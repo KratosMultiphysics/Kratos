@@ -156,11 +156,28 @@ private:
             << "\"name\" need to be specified." << std::endl;
         std::string name = rParameters["name"].GetString();
 
+        SizeType shape_function_derivatives_order = 1;
+        if (rParameters.Has("shape_function_derivatives_order")) {
+            shape_function_derivatives_order = rParameters["shape_function_derivatives_order"].GetInt();
+        }
+        else {
+            KRATOS_INFO_IF("CreateQuadraturePointGeometries", EchoLevel > 4)
+                << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
+        }
+
+        KRATOS_INFO_IF("CreateQuadraturePointGeometries", EchoLevel > 0)
+            << "Creating " << name << "s of type: " << type
+            << " for " << rQuadraturePointGeometryList.size() << " geometries"
+            << " in " << rCadSubModelPart.Name() << "-SubModelPart." << std::endl;
+
         for (SizeType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
             rQuadraturePointGeometryList[i].CreateQuadraturePointGeometries(
-                geometries, 2);
+                geometries, shape_function_derivatives_order);
+
+            KRATOS_INFO_IF("CreateQuadraturePointGeometries", EchoLevel > 1)
+                << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
             if (type == "element" || type == "Element") {
                 int id = 0;
