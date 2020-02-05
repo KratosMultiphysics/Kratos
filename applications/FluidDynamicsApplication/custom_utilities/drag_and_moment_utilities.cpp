@@ -90,10 +90,9 @@ namespace Kratos
         #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) private(elem_drag) schedule(dynamic)
         for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
             auto it_elem = rModelPart.ElementsBegin() + i;
-            auto center_elem = it_elem->GetGeometry().Center();
-            auto x = center_elem[0] - rReferencePoint[0];
-            auto y = center_elem[1] - rReferencePoint[1];
-            auto z = center_elem[2] - rReferencePoint[2];
+            auto x = it_elem->GetGeometry().Center().X() - rReferencePoint[0];
+            auto y = it_elem->GetGeometry().Center().X() - rReferencePoint[1];
+            auto z = it_elem->GetGeometry().Center().X() - rReferencePoint[2];
             it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
             drag_x_red += elem_drag[0];
             drag_y_red += elem_drag[1];
