@@ -27,6 +27,7 @@ from KratosMultiphysics.HDF5Application.core.xdmf import UniformMeshTopology
 from KratosMultiphysics.HDF5Application.core.xdmf import UniformGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import NodalData
 from KratosMultiphysics.HDF5Application.core.xdmf import ElementData
+from KratosMultiphysics.HDF5Application.core.xdmf import ConditionData
 from KratosMultiphysics.HDF5Application.core.xdmf import TemporalGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
@@ -278,7 +279,7 @@ def XdmfConditionResults(h5_results):
     except KeyError:
         return results
     for variable, data in filter(Has_dtype, grp.items()):
-        r = ElementData(variable, HDF5UniformDataItem(data))
+        r = ConditionData(variable, HDF5UniformDataItem(data))
         results.append(r)
     return results
 
@@ -303,7 +304,7 @@ def XdmfConditionFlags(h5_results):
     except KeyError:
         return results
     for variable, data in filter(Has_dtype, grp.items()):
-        r = ElementData(variable, HDF5UniformDataItem(data))
+        r = ConditionData(variable, HDF5UniformDataItem(data))
         results.append(r)
     return results    
 
@@ -320,6 +321,8 @@ def XdmfResults(h5_results):
             XdmfNodalFlags(h5_results),
             XdmfElementResults(h5_results),
             XdmfElementFlags(h5_results),
+            XdmfConditionResults(h5_results),
+            XdmfConditionFlags(h5_results),            
         )
     )
 

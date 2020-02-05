@@ -383,6 +383,44 @@ class ElementData(Attribute):
         e.append(self.data.create_xml_element())
         return e
 
+class ConditionData(Attribute):
+    """An XDMF Attribute for condition data value container data."""
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def center(self):
+        return "Cell"
+
+    @property
+    def attribute_type(self):
+        if len(self.data.dimensions) == 1:
+            return "Scalar"
+        elif len(self.data.dimensions) == 2:
+            return "Vector"
+        else:
+            raise Exception("Invalid dimensions.")
+
+    def __init__(self, name, data):
+        """Construct the object.
+
+        Keyword arguments:
+        name -- the name of the results data, e.g., "PRESSURE"
+        data -- the data item for the corresponding HDF5 data set
+        """
+        self._name = name
+        self.data = data
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag)
+        e.set("Name", self.name)
+        e.set("Center", self.center)
+        e.set("AttributeType", self.attribute_type)
+        e.append(self.data.create_xml_element())
+        return e        
+
 
 class SpatialGrid(Grid):
     """A collection of uniform XDMF Grid objects with results data.
