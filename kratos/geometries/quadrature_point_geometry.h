@@ -144,7 +144,8 @@ public:
     }
 
     /// Copy constructor.
-    QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
+    QuadraturePointGeometry(
+        QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
         , mGeometryData( rOther.mGeometryData )
         , mpGeometryParent( rOther.mpGeometryParent )
@@ -156,7 +157,8 @@ public:
 
     /// Copy constructor with different point type.
     template<class TOtherPointType>
-    QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
+    QuadraturePointGeometry(
+        QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
         : BaseType( rOther )
         , mGeometryData( rOther.mGeometryData )
         , mpGeometryParent(rOther.mpGeometryParent)
@@ -168,7 +170,8 @@ public:
     ///@{
 
     /// Assignment operator.
-    QuadraturePointGeometry& operator=( const QuadraturePointGeometry& rOther )
+    QuadraturePointGeometry& operator=(
+        const QuadraturePointGeometry& rOther )
     {
         BaseType::operator=( rOther );
 
@@ -180,7 +183,8 @@ public:
 
     /// Assignment operator with different point type.
     template<class TOtherPointType>
-    QuadraturePointGeometry& operator=( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
+    QuadraturePointGeometry& operator=(
+        QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
     {
         BaseType::operator=( rOther );
 
