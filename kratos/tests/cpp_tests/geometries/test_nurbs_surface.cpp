@@ -450,19 +450,47 @@ namespace Testing {
         KRATOS_CHECK_MATRIX_NEAR(
             p_element->pGetGeometry()->ShapeFunctionsValues(),
             quadrature_points(2)->ShapeFunctionsValues(),
-            TOLERANCE)
+            TOLERANCE);
 
-        // Check first derivatives
+            // Check first derivatives
         KRATOS_CHECK_MATRIX_NEAR(
             p_element->GetGeometry().ShapeFunctionDerivatives(1, 0),
             quadrature_points(2)->ShapeFunctionLocalGradient(0),
-            TOLERANCE)
+            TOLERANCE);
 
-        // Check second derivatives
+            // Check second derivatives
         KRATOS_CHECK_MATRIX_NEAR(
-            p_element->GetGeometry().ShapeFunctionDerivatives(2,0),
+            p_element->GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
-            TOLERANCE)
+            TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNodePointsAt, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        Geometry<Node<3>>::PointsArrayType points;
+
+        surface.GetPointsAtEdge(points, 3, 0);
+
+        // test to obtain the points on the left boundary
+        KRATOS_CHECK_EQUAL(points.size(), 2);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 4);
+
+        surface.GetPointsAtEdge(points, 3, 1);
+
+        // test to obtain the second row of points on the left boundary
+        KRATOS_CHECK_EQUAL(points.size(), 2);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 2);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 5);
+
+        surface.GetPointsAtEdge(points, 0, 0);
+
+        // test to obtain the second row of points on the left boundary
+        KRATOS_CHECK_EQUAL(points.size(), 3);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 2);
+        KRATOS_CHECK_EQUAL(points[2].Id(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {

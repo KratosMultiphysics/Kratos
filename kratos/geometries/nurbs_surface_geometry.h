@@ -41,6 +41,7 @@ public:
     typedef typename TContainerPointType::value_type NodeType;
 
     /// Geometry as base class.
+    typedef typename TContainerPointType::value_type NodeType;
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
@@ -53,6 +54,8 @@ public:
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     using BaseType::CreateQuadraturePointGeometries;
+    using BaseType::GetPoint;
+    using BaseType::pGetPoint;
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
@@ -456,6 +459,190 @@ public:
                     counter++;
                 }
             }
+        }
+    }
+
+    ///@}
+    ///@name Point Access
+    ///@{
+
+    NodeType GetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->GetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    const NodeType GetPoint(IndexType IndexU, IndexType IndexV) const
+    {
+        return this->GetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->pGetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    const typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV) const
+    {
+        return this->pGetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    /**     2
+     *  *--------*
+     *  | ^v     |
+     *3 | |      | 1
+     *  | .->u   |
+     *  *--------*
+     *      0
+     */
+    virtual void GetPointsAtEdge(
+        PointsArrayType& rResultPoints,
+        IndexType EdgeIndex,
+        IndexType SpecificationType = 0) const override
+    {
+        if (EdgeIndex == 0) { // getting first point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = -1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (EdgeIndex == 1) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
+            local_coords[1] = -1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (EdgeIndex == 2) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = -1;
+            local_coords[1] = 1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (EdgeIndex == 3) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[1] = -1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtEdge: No points available at EdgeIndex: " << EdgeIndex << std::endl;
+        }
+    }
+
+    /**
+     * 3*--------*2
+     *  | ^v     |
+     *  | |      |
+     *  | .->u   |
+     * 0*--------*1
+     */
+    void GetPointsAtVertex(
+        PointsArrayType& rResultPoints,
+        IndexType VertexIndex,
+        IndexType SpecificationType = 0) const override
+    {
+        if (VertexIndex == 0) { // getting first point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (VertexIndex == 1) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (VertexIndex == 2) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
+            local_coords[1] = 1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (VertexIndex == 3) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[1] = 1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtVertex: No points available at VertexIndex: " << VertexIndex << std::endl;
+        }
+    }
+    /**
+     * @brief provides acces to a set of node lying at a boundary (face, edge, vertex).
+     * @param rGeometryArray is set with all boundary nodes.
+     * @param rLocalCoordinates 0-> Beginn
+     *                          1-> End
+     *                         -1-> nodes are all in this dimension
+     * @param SpecificationType 0-> nodes on boundary.
+     *                          1-> nodes in scond row\ variation
+     */
+    void GetPointsAt(
+        PointsArrayType& rResultPoints,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const
+    {
+        rResultPoints.clear();
+
+        SizeType number_of_cps_u = NumberOfControlPointsU();
+        SizeType number_of_cps_v = NumberOfControlPointsV();
+
+        IndexType u_start = 0;
+        IndexType u_end = number_of_cps_u;
+        IndexType v_start = 0;
+        IndexType v_end = number_of_cps_v;
+
+        if (SpecificationType == 0)
+        {
+            if (rLocalCoordinates[0] >= 0) {
+                u_start = rLocalCoordinates[0] * (number_of_cps_u - 1);
+                u_end = rLocalCoordinates[0] * (number_of_cps_u - 1) + 1;
+            }
+            if (rLocalCoordinates[1] >= 0) {
+                v_start = rLocalCoordinates[1] * (number_of_cps_v - 1);
+                v_end = rLocalCoordinates[1] * (number_of_cps_v - 1) + 1;
+            }
+
+            for (IndexType i = u_start; i < u_end; ++i) {
+                for (IndexType j = v_start; j < v_end; ++j) {
+                    rResultPoints.push_back(this->pGetPoint(i, j));
+                }
+            }
+        }
+        else if (SpecificationType == 1)
+        {
+            if (rLocalCoordinates[0] == 0) {
+                u_start = 1;
+                u_end = 2;
+            }
+            if (rLocalCoordinates[0] == 1) {
+                u_start = number_of_cps_u - 2;
+                u_end = number_of_cps_u - 1;
+            }
+            if (rLocalCoordinates[1] == 0) {
+                v_start = 1;
+                v_end = 2;
+            }
+            if (rLocalCoordinates[1] == 1) {
+                v_start = number_of_cps_v - 2;
+                v_end = number_of_cps_v - 1;
+            }
+
+            for (IndexType i = u_start; i < u_end; ++i) {
+                for (IndexType j = v_start; j < v_end; ++j) {
+                    rResultPoints.push_back(this->pGetPoint(i, j));
+                }
+            }
+        }
+        else {
+            KRATOS_ERROR << "SpecificationType " << SpecificationType
+                << " not defined." << std::endl;
         }
     }
 

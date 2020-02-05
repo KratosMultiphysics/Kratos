@@ -255,6 +255,85 @@ public:
     }
 
     ///@}
+    ///@name Point Access
+    ///@{
+    /*
+     *      -> t
+     * 0 * ------ * 1
+     */
+    void GetPointsAtVertex(
+        PointsArrayType& rResultPoints,
+        IndexType VertexIndex,
+        IndexType SpecificationType = 0) const override
+    {
+        if (VertexIndex == 0) { // getting first point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else if (VertexIndex == 1) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
+        }
+        else {
+            KRATOS_ERROR << "NurbsCurveGeometry::GetPointsAtVertex: No points available at VertexIndex: " << VertexIndex << std::endl;
+        }
+    }
+
+    /**
+     * @brief provides acces to a set of node lying at a boundary (face, edge, vertex).
+     * @param rGeometryArray is set with all boundary nodes.
+     * @param rLocalCoordinates 0-> Beginn
+     *                          1-> End
+     *                         -1-> nodes are all in this dimension
+     * @param SpecificationType 0-> nodes on boundary.
+     *                          1-> nodes in scond row\ variation
+     */
+    void GetPointsAt(
+        PointsArrayType& rResultPoints,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const
+    {
+        rResultPoints.clear();
+
+        SizeType number_of_cps = this->size();
+
+        if (SpecificationType == 0)
+        {
+            IndexType t_start = 0;
+            IndexType t_end = number_of_cps;
+
+            if (rLocalCoordinates[0] >= 0)
+            {
+                t_start = rLocalCoordinates[0] * (number_of_cps - 1);
+                t_end = rLocalCoordinates[0] * (number_of_cps - 1) + 1;
+            }
+
+            for (IndexType i = t_start; i < t_end; ++i)
+            {
+                rResultPoints.push_back(this->pGetPoint(i));
+            }
+        }
+        if (SpecificationType == 1)
+        {
+            KRATOS_ERROR_IF(number_of_cps < 3)
+                << "GetPointsAt: Not enough control points to get second row of nodes."
+                << std::endl;
+
+            if (rLocalCoordinates[0] == 0)
+            {
+                rResultPoints.push_back(this->pGetPoint(1));
+            }
+            if (rLocalCoordinates[0] == 1)
+            {
+                rResultPoints.push_back(this->pGetPoint(number_of_cps - 1));
+            }
+        }
+        KRATOS_ERROR << "SpecificationType " << SpecificationType
+            << " not defined." << std::endl;
+    }
+
+    ///@}
     ///@name Operation within Global Space
     ///@{
 
