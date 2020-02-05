@@ -407,7 +407,11 @@ class SpatialGrid(Grid):
     def add_attribute(self, attr):
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
-            grid.add_attribute(attr)
+            if (attr.center == "Cell"):
+                if (grid.name.startswith("RootModelPart.Elements")):
+                    grid.add_attribute(attr)    
+            else:
+                grid.add_attribute(attr)
 
     def add_grid(self, grid):
         self.grids.append(grid)
@@ -435,7 +439,7 @@ class TemporalGrid(Grid):
     def add_attribute(self, attr):
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
-            grid.add_attribute(attr)
+                grid.add_attribute(attr)
 
     def add_grid(self, time, grid):
         """Add a child grid with a time step value.
