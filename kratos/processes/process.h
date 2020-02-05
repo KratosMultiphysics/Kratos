@@ -167,7 +167,13 @@ public:
     {
         return 0;
     }
-
+    
+    /**
+     * @brief This method clears the assignation of the conditions
+     */
+    virtual void Clear()
+    {
+    }
 
     ///@}
     ///@name Access
