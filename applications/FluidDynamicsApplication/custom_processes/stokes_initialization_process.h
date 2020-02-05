@@ -288,7 +288,7 @@ protected:
 
 
     // Liberate memory.
-    virtual void Clear()
+    void Clear() override
     {
         mpSolutionStrategy->Clear();
         mIsCleared = true;
