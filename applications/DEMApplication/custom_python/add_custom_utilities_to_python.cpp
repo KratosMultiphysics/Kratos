@@ -324,6 +324,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
         .def(py::init<>())
+        .def("ComputeAverageZStressFor2D", &AuxiliaryUtilities::ComputeAverageZStressFor2D)
         ;
 
     py::class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")

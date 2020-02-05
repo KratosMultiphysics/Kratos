@@ -467,6 +467,43 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    double mVelocityTolerance;
+
+    double mPressureTolerance;
+
+    unsigned int mMaxVelocityIter;
+
+    unsigned int mMaxPressureIter;
+
+    unsigned int mDomainSize;
+
+    unsigned int mTimeOrder;
+
+    bool mPredictorCorrector;
+
+    bool mUseSlipConditions;
+
+    bool mReformDofSet;
+
+    // Fractional step index.
+    /*  1 : Momentum step (calculate fractional step velocity)
+      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
+      * 4 : Pressure step
+      * 5 : Computation of projections
+      * 6 : End of step velocity
+      */
+//    unsigned int mStepId;
+
+    /// Scheme for the solution of the momentum equation
+    StrategyPointerType mpMomentumStrategy;
+
+    /// Scheme for the solution of the mass equation
+    StrategyPointerType mpPressureStrategy;
+
+    std::vector< Process::Pointer > mExtraIterationSteps;
+
+    const Kratos::Variable<int>& mrPeriodicIdVar;
+
 
     ///@}
     ///@name Protected Operators
@@ -517,7 +554,7 @@ protected:
         KRATOS_CATCH("");
     }
 
-    double SolveStep()
+    virtual double SolveStep()
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -599,6 +636,7 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
+
         /*
         mpPressureStrategy->Clear();
         double NormDu = mpPressureStrategy->Solve();
@@ -642,13 +680,14 @@ protected:
 
         double Ratio = NormDv / NormV;
 
-        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Fractional velocity relative error: " << Ratio << std::endl;
+        KRATOS_INFO_IF("Fractional Step Strategy : ", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
+        KRATOS_INFO_IF("Fractional Step Strategy : ", BaseType::GetEchoLevel() > 0) <<  std::scientific << std::setprecision(8)
+                                                                                    << "FRAC VEL.: ratio = "
+                                                                                    << Ratio <<"; exp.ratio = " << mVelocityTolerance
+                                                                                    << " abs = " << NormDv << std::endl;
 
         if (Ratio < mVelocityTolerance)
-        {
             return true;
-        }
         else
             return false;
     }
@@ -691,7 +730,7 @@ protected:
     }
 
 
-    void ComputeSplitOssProjections(ModelPart& rModelPart)
+    virtual void ComputeSplitOssProjections(ModelPart& rModelPart)
     {
         array_1d<double,3> Out = ZeroVector(3);
 
@@ -746,7 +785,7 @@ protected:
         }
     }
 
-    void CalculateEndOfStepVelocity()
+    virtual void CalculateEndOfStepVelocity()
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -1034,43 +1073,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    double mVelocityTolerance;
-
-    double mPressureTolerance;
-
-    unsigned int mMaxVelocityIter;
-
-    unsigned int mMaxPressureIter;
-
-    unsigned int mDomainSize;
-
-    unsigned int mTimeOrder;
-
-    bool mPredictorCorrector;
-
-    bool mUseSlipConditions;
-
-    bool mReformDofSet;
-
-    // Fractional step index.
-    /*  1 : Momentum step (calculate fractional step velocity)
-      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
-      * 4 : Pressure step
-      * 5 : Computation of projections
-      * 6 : End of step velocity
-      */
-//    unsigned int mStepId;
-
-    /// Scheme for the solution of the momentum equation
-    StrategyPointerType mpMomentumStrategy;
-
-    /// Scheme for the solution of the mass equation
-    StrategyPointerType mpPressureStrategy;
-
-    std::vector< Process::Pointer > mExtraIterationSteps;
-
-    const Kratos::Variable<int>& mrPeriodicIdVar;
 
     ///@}
     ///@name Private Operators

@@ -12,8 +12,7 @@ def LinearSolver(tolerance, max_iterations):
     # settings of the ML solver
     MLList = ParameterList()
 
-    default_settings = EpetraDefaultSetter()
-    default_settings.SetDefaults(MLList, "NSSA")
+    MultiLevelSolver.SetDefaults(MLList, "NSSA")
 
     MLList.set("ML output", 1)
     MLList.set("coarse: max size", 10000)

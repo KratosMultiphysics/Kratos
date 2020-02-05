@@ -14,11 +14,14 @@
     },
     "solver_settings"                  : {
         "solver_type": "Monolithic",
-        "model_part_name": "Cavity",
+        "model_part_name": "MainModelPart",
         "domain_size": 2,
         "model_import_settings"       : {
             "input_type"     : "mdpa",
             "input_filename" : "square5"
+        },
+        "material_import_settings": {
+            "materials_filename": "cavity_test_materials.json"
         },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
@@ -58,7 +61,7 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "VELOCITY",
                 "constrained"     : [false,false,false],
                 "value"           : ["5*t","-2*t", "t"],
@@ -69,7 +72,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "PRESSURE",
                 "value"           : "t*t+2",
                 "constrained"     : false
@@ -82,7 +85,7 @@
             "help"            : "",
             "process_name"    : "IntegrationPointStatisticsProcess",
             "Parameters" : {
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "dimension"       : 2,
                 "statistics" : [
                     {

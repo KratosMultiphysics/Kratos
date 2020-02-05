@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 # import KratosMultiphysics.ExternalSolversApplication as KratosExternal
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 

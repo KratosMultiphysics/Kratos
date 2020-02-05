@@ -31,6 +31,9 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_GID_file",
                 "distance_file_name"  : "distance_file"
@@ -90,6 +93,12 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.embedded_formulation = navier_stokes_embedded_solver.EmbeddedFormulation(self.settings["formulation"])
         self.element_name = self.embedded_formulation.element_name
         self.condition_name = self.embedded_formulation.condition_name
+
+        ## Set the formulation level set type
+        self.level_set_type = self.embedded_formulation.level_set_type
+
+        ## Set the nodal properties flag
+        self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
 
         ## Construct the linear solver
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])

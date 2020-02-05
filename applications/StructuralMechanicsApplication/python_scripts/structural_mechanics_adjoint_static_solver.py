@@ -62,7 +62,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N",
                     "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
-                    "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N"
+                    "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
                 },
                 "condition_name_table" :
                 {
@@ -99,14 +100,14 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
         if response_type == "adjoint_local_stress":
             self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_max_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_reaction":
             self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif response_type == "adjoint_max_stress":
-            self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_aggregated_stress":
             self.response_function = StructuralMechanicsApplication.AdjointAggregatedStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:

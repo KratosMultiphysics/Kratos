@@ -85,11 +85,19 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void UpdatePrimitiveVariables(ModelPart& rModelPart);
+
+    void UpdatePrimitiveVariables(ModelPart& rModelPart, double Epsilon);
+
+    void ComputeAccelerations(ModelPart& rModelPart);
+
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
     void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
+
+    void ResetDryDomain(ModelPart& rModelPart, double Thickness = 0.0);
 
     template<class TContainerType>
     void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
@@ -105,6 +113,19 @@ public:
     void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
 
     void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
+
+    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
+
+    template<class TVarType>
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, TVarType& rVariable)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+        {
+            auto const it_node = rModelPart.NodesBegin() + i;
+            it_node->FastGetSolutionStepValue(rVariable,1) = it_node->FastGetSolutionStepValue(rVariable);
+        }
+    }
 
     ///@}
     ///@name Access

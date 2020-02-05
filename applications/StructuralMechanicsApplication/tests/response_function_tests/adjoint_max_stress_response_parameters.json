@@ -1,0 +1,27 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "cantilever_beam",
+        "model_part_name" : "cantilever_beam",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "response_settings":{
+        "response_type"        : "adjoint_max_stress",
+        "gradient_mode"        : "semi_analytic",
+        "step_size"            : 1.0e-6,
+        "critical_part_name"   : "stress_region",
+        "stress_type"          : "VON_MISES_STRESS",
+        "stress_treatment"     : "mean",
+        "echo_level"           : 1,
+        "primal_settings"      : "adjoint_max_stress_primal_parameters.json",
+        "adjoint_settings"     : "auto",
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name"                : "Parts_structure",
+            "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "element_data_value_sensitivity_variables"   : [],
+            "condition_data_value_sensitivity_variables" : [],
+            "build_mode": "static"
+        }
+    }
+}

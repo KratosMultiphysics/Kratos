@@ -19,7 +19,7 @@
         "compute_reactions"			   : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_lift_jump_coordinates",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "analytic"
             },
         "sensitivity_settings" : {
@@ -71,7 +71,7 @@
             "Parameters"            : {
                 "check_variables" : ["SHAPE_SENSITIVITY","ADJOINT_VELOCITY_POTENTIAL","ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"],
                 "input_file_name" : "adjoint_analytical_incompressible_test_results.json",
-                "model_part_name"  : "Parts_Parts_Auto1",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "time_frequency"   : -2
             }
         }],
@@ -86,7 +86,7 @@
         "Parameters"            : {
             "output_variables" : ["SHAPE_SENSITIVITY","ADJOINT_VELOCITY_POTENTIAL","ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"],
             "output_file_name" : "adjoint_analytical_incompressible_test_results.json",
-            "model_part_name"  : "Parts_Parts_Auto1",
+            "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
             "time_frequency"   : -2
         }
     }

@@ -53,7 +53,7 @@ namespace OSUtilities
      * @brief This method returns the current working directory
      * @return The current working directory
      */
-    std::string KRATOS_API(KRATOS_CORE) GetCurrentWorkingDir();
+    KRATOS_DEPRECATED_MESSAGE("OSUtilities is deprecated, please use Kratos::filesystem") std::string KRATOS_API(KRATOS_CORE) GetCurrentWorkingDir();
 
 }; // namespace OSUtilities
 }  // namespace Kratos

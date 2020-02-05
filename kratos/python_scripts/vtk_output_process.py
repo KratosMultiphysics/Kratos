@@ -15,6 +15,12 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         model_part_name = settings["model_part_name"].GetString()
         self.model_part = model[model_part_name]
 
+        if settings.Has("write_properties_id"):
+            KratosMultiphysics.Logger.PringWarning("VtkOutputProcess", "The setting `write_properties_id` is deprecated, use `write_ids` instead!")
+            if not settings.Has("write_ids"):
+                settings.AddEmptyValue("write_ids").SetBool(settings["write_properties_id"].GetBool())
+            settings.RemoveValue("write_properties_id")
+
         # default settings can be found in "vtk_output.cpp"
         self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, settings) # this also validates the settings
 

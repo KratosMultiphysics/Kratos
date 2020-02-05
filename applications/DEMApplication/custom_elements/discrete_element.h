@@ -95,7 +95,7 @@ namespace Kratos {
         virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "Discrete Element #" << Id();}
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const override { /*mpGeometry->PrintData(rOStream);*/ }
+        //virtual void PrintData(std::ostream& rOStream) const override { /*mpGeometry->PrintData(rOStream);*/ }
 
     protected:
 

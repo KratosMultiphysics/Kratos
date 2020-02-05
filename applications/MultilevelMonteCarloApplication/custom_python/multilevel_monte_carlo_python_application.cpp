@@ -24,6 +24,7 @@
 #include "multilevel_monte_carlo_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_statistics_to_python.h"
 
 
 namespace Kratos {
@@ -41,11 +42,14 @@ PYBIND11_MODULE(KratosMultilevelMonteCarloApplication,m)
 
     // AddCustomStrategiesToPython(m);
     // AddCustomUtilitiesToPython(m);
+    AddCustomStatisticsToPython(m);
 
     //registering variables in python
-    
-    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POWER_SUM_1 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POWER_SUM_2 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POWER_SUM_3 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POWER_SUM_4 )
 }
 
 } // namespace Python.

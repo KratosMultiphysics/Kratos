@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
@@ -35,12 +35,13 @@ KratosMeshingApplication::KratosMeshingApplication()
 void KratosMeshingApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing Kratos MeshingApplication..." << std::endl;
+    KRATOS_INFO("") << "Initializing KratosMeshingApplication..." << std::endl;
 
     KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);                                  // The average nodal error
     KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);                                    // The anisotropic aspect ratio
     KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT);                                    // An auxiliar gradient needed to compute the metric
     KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);                                     // An auxiliar hessian needed to compute the metric
+    KRATOS_REGISTER_VARIABLE(METRIC_SCALAR);                                        // A single scalar metric
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
     KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
 

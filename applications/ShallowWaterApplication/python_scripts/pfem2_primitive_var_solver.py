@@ -33,10 +33,10 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
     def AddVariables(self):
         super(Pfem2PrimitiveVarSolver, self).AddVariables()
         # Variables to project unknown and update particles
-        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_SCALAR1)
         self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_VECTOR1)
         self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_VECTOR1)
         # Specific variables to convect particles
         self.main_model_part.AddNodalSolutionStepVariable(KM.YP)
         self.main_model_part.AddNodalSolutionStepVariable(SW.MEAN_SIZE)
@@ -77,7 +77,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             self.moveparticles.PreReseed(pre_minimum_number_of_particles)
             # Project info to mesh
             self.moveparticles.TransferLagrangianToEulerian()
-            self.moveparticles.ResetBoundaryConditions()
+            # self.moveparticles.ResetBoundaryConditions()
             # Initialize mesh solution step
             self.solver.InitializeSolutionStep()
 

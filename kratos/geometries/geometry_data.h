@@ -329,6 +329,15 @@ public:
     }
 
     ///@}
+    ///@name GeometryDimension
+    ///@{
+
+    void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
+    {
+        mpGeometryDimension = pGeometryDimension;
+    }
+
+    ///@}
     ///@name Informations
     ///@{
 
@@ -671,6 +680,17 @@ public:
         return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
     }
 
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function or derivative value related to the input parameters
+    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(IndexType DerivativeOrderIndex, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    {
+        return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+    }
 
     ///@}
     ///@name Input and output

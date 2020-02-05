@@ -265,10 +265,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("WallCondition3D3N", mWallCondition3D);  //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_CONDITION("WallCondition2D", mWallCondition2D);
     KRATOS_REGISTER_CONDITION("WallCondition3D", mWallCondition3D);
-    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D", mFSWernerWengleWallCondition2D);
-    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D", mFSWernerWengleWallCondition3D);
-    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D", mFSGeneralizedWallCondition2D);
-    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition3D", mFSGeneralizedWallCondition3D);
+    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D2N", mFSWernerWengleWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D3N", mFSWernerWengleWallCondition3D);
+    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D2N", mFSGeneralizedWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition3D3N", mFSGeneralizedWallCondition3D);
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous2D", mWallConditionDiscontinuous2D);
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D", mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D2N", mMonolithicWallCondition2D);

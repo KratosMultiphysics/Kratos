@@ -134,7 +134,7 @@ void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     Vector& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
-    stress_vector[0] = rValues.GetMaterialProperties()[YOUNG_MODULUS]*rValues.GetStrainVector()[0];
+    stress_vector[0] = this->CalculateStressElastic(rValues);
 }
 //************************************************************************************
 //************************************************************************************
