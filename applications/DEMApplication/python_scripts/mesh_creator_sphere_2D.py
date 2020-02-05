@@ -5,7 +5,6 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
     msh              = open(post_path + "/" + filename_msh, 'r')
     rad              = open(post_path + "/" + filename_msh, 'r')
     coh              = open(post_path + "/" + filename_msh, 'r')
-    ski              = open(post_path + "/" + filename_msh, 'r')
     mod              = open(post_path + "/" + filename_msh, 'r')
     SpheresMdpa_post = open(filename_post + ".mdpa", 'w')
 
