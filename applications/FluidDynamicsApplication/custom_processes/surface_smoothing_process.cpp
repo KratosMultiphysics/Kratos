@@ -82,8 +82,8 @@ void SurfaceSmoothingProcess::Execute()
     std::vector<double> DistDiffAvg(NumNodes);
     std::vector<double> NumNeighbors(NumNodes);
 
-    double min_distance = 0.0; //1.0e10;
-    int min_dist_node = 0;
+    //double min_distance = 0.0; //1.0e10;
+    //int min_dist_node = 0;
 
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
@@ -92,11 +92,11 @@ void SurfaceSmoothingProcess::Execute()
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
 
-        if (distance < min_distance)//(abs(distance) < min_distance)
+        /* if (distance < min_distance)//(abs(distance) < min_distance)
         {
             min_distance = distance;//abs(distance);
             min_dist_node = k;
-        }
+        } */
     }
 
     /* const double epsilon = 1.0e-5;
@@ -111,8 +111,8 @@ void SurfaceSmoothingProcess::Execute()
         }
     } */
 
-    auto it_node = mrModelPart.NodesBegin() + min_dist_node;
-    it_node->Fix(DISTANCE_AUX);
+    //auto it_node = mrModelPart.NodesBegin() + min_dist_node;
+    //it_node->Fix(DISTANCE_AUX);
 
     /* for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
        Geometry< Node<3> >& geom = it_cond->GetGeometry();

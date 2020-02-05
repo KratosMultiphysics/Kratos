@@ -155,6 +155,13 @@ void LumpedInterfaceCurvatureCalculation::Execute(){
             it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT/* _AUX */) /= it_node->GetValue(AREA_VARIABLE_AUX);
     }
 
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
+        auto it_node = it_node_begin + i;
+        it_node->SetValue(NODAL_AREA/* AREA_VARIABLE_AUX */, 0.0);              
+    }
+
+
     //KRATOS_INFO("LumpedInterfaceCurvatureCalculation") << "ponderate gradient" << std::endl;
 
     // #pragma omp parallel for
@@ -271,6 +278,8 @@ void LumpedInterfaceCurvatureCalculation::Execute(){
                     }
                 }
 
+                //KRATOS_INFO("LumpedInterfaceCurvatureCalculation, curvature") << divergence << std::endl;
+
                 for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
 
                     double& r_divergence = r_geometry[i_node].FastGetSolutionStepValue(CURVATURE);
@@ -278,10 +287,10 @@ void LumpedInterfaceCurvatureCalculation::Execute(){
                     #pragma omp atomic
                     r_divergence += int_N(point_number,i_node) * int_weights(point_number) * divergence;
 
-                    //double& area = r_geometry[i_node].GetValue(AREA_VARIABLE_AUX);
+                    double& area = r_geometry[i_node].GetValue(NODAL_AREA/* AREA_VARIABLE_AUX */);
 
-                    //#pragma omp atomic
-                    //area += int_N(point_number,i_node) * int_weights(point_number);
+                    #pragma omp atomic
+                    area += int_N(point_number,i_node) * int_weights(point_number);
                 }
             }
 
@@ -292,11 +301,14 @@ void LumpedInterfaceCurvatureCalculation::Execute(){
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node = it_node_begin + i;
-        if (it_node->GetValue(AREA_VARIABLE_AUX) > 1.0e-14)
-            it_node->FastGetSolutionStepValue(CURVATURE) /= it_node->GetValue(AREA_VARIABLE_AUX);
+        if (it_node->GetValue(NODAL_AREA/* AREA_VARIABLE_AUX */) > 1.0e-14){
+            it_node->FastGetSolutionStepValue(CURVATURE) /= it_node->GetValue(NODAL_AREA/* AREA_VARIABLE_AUX */);
+            //KRATOS_INFO("LumpedInterfaceCurvatureCalculation, curvature") << it_node->FastGetSolutionStepValue(CURVATURE) << std::endl;
+            //KRATOS_INFO("LumpedInterfaceCurvatureCalculation, NODAL_AREA") << it_node->GetValue(NODAL_AREA) << std::endl;   
+            //KRATOS_INFO("LumpedInterfaceCurvatureCalculation, AREA_VARIABLE_AUX") << it_node->GetValue(AREA_VARIABLE_AUX) << std::endl;  
+        }
+            
     }
-
-    //KRATOS_INFO("LumpedInterfaceCurvatureCalculation") << "ponderate divergence" << std::endl;       
 
     KRATOS_CATCH("")
 }
@@ -313,7 +325,7 @@ void LumpedInterfaceCurvatureCalculation::ClearVariables()
         auto it_node=it_node_begin + i;
         it_node->SetValue(AREA_VARIABLE_AUX, 0.0);
         it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT/* _AUX */).clear();
-        it_node->FastGetSolutionStepValue(CURVATURE, 0.0);
+        it_node->FastGetSolutionStepValue(CURVATURE) = 0.0;
         /* it_node->SetValue(IS_NEAR_CUT, 0.0); */
     }
 }

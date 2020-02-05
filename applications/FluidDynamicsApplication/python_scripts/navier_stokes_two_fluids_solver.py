@@ -194,11 +194,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
+        it_number=self.linear_solver.GetIterationsNumber()
+        KratosMultiphysics.Logger.PrintInfo("surface_smoothing_process", it_number)
+
         self.distance_gradient_process = self._set_distance_gradient_process()
         #(self.distance_gradient_process).Execute()
 
         self.curvature_calculation_process = self._set_curvature_calculation_process()
         #(self.curvature_calculation_process).Execute()
+
+        self.interface_curvature_calculation = self._set_interface_curvature_calculation()
+        #(self.interface_curvature_calculation).Execute()
 
         self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
         #(self.distance_gradient_process).Execute()
@@ -324,16 +330,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             # Smoothing the surface to filter oscillatory surface
-            #(self.surface_smoothing_process).Execute()
+            #self.surface_smoothing_process).Execute()
             #for node in self.main_model_part.Nodes:
             #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
+            #it_number=self.linear_solver.GetIterationsNumber()
+            #KratosMultiphysics.Logger.PrintInfo("surface_smoothing_process", it_number)
+
             # Compute the DISTANCE_GRADIENT on nodes
-            (self.distance_gradient_process).Execute()
+            #(self.distance_gradient_process).Execute()
 
             # Compute CURVATURE on nodes
-            (self.curvature_calculation_process).Execute()
+            #(self.curvature_calculation_process).Execute()
+
+            # Compute CURVATURE on nodes of cut element based on interface integration
+            (self.interface_curvature_calculation).Execute()
 
             #for node in self.main_model_part.Nodes:
             #    node.SetSolutionStepValue(KratosCFD.CURVATURE, 2.0/0.003)
@@ -553,6 +565,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.NODAL_AREA)
 
         return curvature_calculation_process
+
+    def _set_interface_curvature_calculation(self):
+        #Calculate curvature as divergence of normalized DISTANCE_GRADIENT at nodes using LumpedInterfaceCurvatureCalculation
+        interface_curvature_calculation = KratosCFD.LumpedInterfaceCurvatureCalculation(
+                self.main_model_part)
+
+        return interface_curvature_calculation
 
     def _set_surface_smoothing_process(self):
         #Smoothing the surface (zero DISTANCE) by solving a diffusion problem
