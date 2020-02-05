@@ -312,6 +312,14 @@ def Create(settings):
         return ElementDataValueInput(settings)
     elif operation_type == 'element_flag_value_input':
         return ElementFlagValueInput(settings)
+    elif operation_type == 'condition_data_value_output':
+        return ConditionDataValueOutput(settings)
+    elif operation_type == 'condition_flag_value_output':
+        return ConditionFlagValueOutput(settings)
+    elif operation_type == 'condition_data_value_input':
+        return ConditionDataValueInput(settings)
+    elif operation_type == 'condition_flag_value_input':
+        return ConditionFlagValueInput(settings)        
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':
