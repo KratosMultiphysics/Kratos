@@ -82,8 +82,7 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
             flag_mod = 1
         if 'Coordinates' in Line and flag_mod == 1:
             flag_mod = 2
-            SpheresMdpa_post.write('Begin SubModelPart Parts_dems // Group dems // Subtree Parts\n')
-            SpheresMdpa_post.write('Begin SubModelPartNodes\n')
+            SpheresMdpa_post.write('Begin SubModelPart Parts_dems // Group dems // Subtree Parts\nBegin SubModelPartNodes\n')
             continue
         if 'Coordinates' in Line and flag_mod == 2:
             flag_mod = 3
