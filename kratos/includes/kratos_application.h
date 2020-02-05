@@ -398,13 +398,13 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometry
-    const std::size_t size_quadrature = 1;
-    const QuadraturePointGeometry<NodeType, 3>* mpQuadraturePointGeometryVolume3dPrototype = new QuadraturePointGeometry<NodeType, 3>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 3, 2>* mpQuadraturePointGeometrySurface3dPrototype = new QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 2>* mpQuadraturePointGeometrySurface2dPrototype = new QuadraturePointGeometry<NodeType, 2>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 3, 1>* mpQuadraturePointGeometryCurve3dPrototype = new QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 2, 1>* mpQuadraturePointGeometryCurve2dPrototype = new QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(size_quadrature));
-    
+    //const std::size_t size_quadrature = 1;
+    //const QuadraturePointGeometry<NodeType, 3>* mpQuadraturePointGeometryVolume3dPrototype = new QuadraturePointGeometry<NodeType, 3>(GeometryType::PointsArrayType(size_quadrature));
+    //const QuadraturePointGeometry<NodeType, 3, 2>* mpQuadraturePointGeometrySurface3dPrototype = new QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(size_quadrature));
+    //const QuadraturePointGeometry<NodeType, 2>* mpQuadraturePointGeometrySurface2dPrototype = new QuadraturePointGeometry<NodeType, 2>(GeometryType::PointsArrayType(size_quadrature));
+    //const QuadraturePointGeometry<NodeType, 3, 1>* mpQuadraturePointGeometryCurve3dPrototype = new QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(size_quadrature));
+    //const QuadraturePointGeometry<NodeType, 2, 1>* mpQuadraturePointGeometryCurve2dPrototype = new QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(size_quadrature));
+
     // General conditions must be defined
 
     // Point conditions
