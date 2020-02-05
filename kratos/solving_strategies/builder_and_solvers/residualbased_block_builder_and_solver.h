@@ -150,16 +150,12 @@ public:
     /**
      * @brief Default constructor.
      */
-    explicit ResidualBasedBlockBuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool ScaleDiagonal = false,
-        const bool ConsiderNormDiagonal = true,
-        const bool SilentWarnings = false
-        ) : BaseType(pNewLinearSystemSolver)
+    explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver) 
+        : BaseType(pNewLinearSystemSolver)
     {
-        mOptions.Set(SCALE_DIAGONAL, ScaleDiagonal);
-        mOptions.Set(CONSIDER_NORM_DIAGONAL, ConsiderNormDiagonal);
-        mOptions.Set(SILENT_WARNINGS, SilentWarnings);
+        mOptions.Set(SCALE_DIAGONAL, false);
+        mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+        mOptions.Set(SILENT_WARNINGS, false);
     }
 
     /** Destructor.
