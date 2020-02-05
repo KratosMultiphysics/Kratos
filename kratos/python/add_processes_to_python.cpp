@@ -132,6 +132,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("Check",&Process::Check)
+    .def("Clear",&Process::Clear)
     .def("__str__", PrintObject<Process>)
     ;
 
@@ -342,14 +343,12 @@ void  AddProcessesToPython(pybind11::module& m)
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
-        .def("Clear", &CalculateDiscontinuousDistanceToSkinProcess<2>::Clear)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
-        .def("Clear", &CalculateDiscontinuousDistanceToSkinProcess<3>::Clear)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         ;
@@ -358,7 +357,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
-        .def("Clear", &CalculateDistanceToSkinProcess<2>::Clear)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -366,7 +364,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
-        .def("Clear", &CalculateDistanceToSkinProcess<3>::Clear)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -386,12 +383,12 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
         .def(py::init<Model &, Parameters>())
-        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
+        ;
 
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
         .def(py::init<Model &, Parameters>())
-        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
+        ;
 
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
@@ -399,37 +396,30 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarVariableToEntitiesProcess<NodeType>::Clear)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarVariableToEntitiesProcess<Condition>::Clear)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarVariableToEntitiesProcess<Element>::Clear)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Clear)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarFieldToEntitiesProcess<NodeType>::Clear)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarFieldToEntitiesProcess<Condition>::Clear)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
-    .def("Clear", &AssignScalarFieldToEntitiesProcess<Element>::Clear)
     ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
