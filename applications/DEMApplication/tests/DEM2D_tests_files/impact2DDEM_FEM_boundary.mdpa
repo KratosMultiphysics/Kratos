@@ -14,13 +14,12 @@ POISSON_RATIO 0.25
 End Properties
 
 Begin Nodes
-14 -3 1 1
-15 -3 -1 1
-16 -3 0 -1
+14 -1 1 0
+15 -1 -1 0
 End Nodes
 
-Begin Conditions RigidFace3D3N
-12 1 14 15 16
+Begin Conditions RigidEdge2D2N
+12 1 14 15
 End Conditions
 
 
@@ -46,7 +45,6 @@ Begin SubModelPart 1 // DEM-FEM-Wall. Group name: disc
   Begin SubModelPartNodes
   14
   15
-  16
   End SubModelPartNodes
 End SubModelPart
 

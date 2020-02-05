@@ -14,7 +14,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         super(Pfem2ConservedVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "ConservedVarElement"
+        self.element_name = "PFEM2ConservativeSWE"
         self.condition_name = "Condition"
         self.min_buffer_size = 2
 

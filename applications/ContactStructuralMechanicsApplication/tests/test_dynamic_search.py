@@ -22,9 +22,6 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         self.model = KM.Model()
         self.main_model_part = self.model.CreateModelPart("Structure", 2)
 
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.StructureModel = {"Structure": self.main_model_part}
-
         self.main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
@@ -95,8 +92,9 @@ class TestDynamicSearch(KratosUnittest.TestCase):
 
         search_parameters = KM.Parameters("""
         {
-            "dynamic_search"              : true,
-            "simple_search"               : false
+            "dynamic_search"               : true,
+            "simple_search"                : false,
+            "normal_orientation_threshold" : 0.0
         }
         """)
         contact_search = CSMA.ContactSearchProcess(self.main_model_part, search_parameters)
@@ -121,7 +119,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
 
         check_parameters["input_file_name"].SetString(input_filename + "_dynamic_search.json")
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
+        check = from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -139,18 +137,18 @@ class TestDynamicSearch(KratosUnittest.TestCase):
 
         #out_parameters["output_file_name"].SetString(input_filename + "_dynamic_search.json")
 
-        #out = json_output_process.JsonOutputProcess(self.StructureModel, out_parameters)
+        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
 
     def test_dynamic_search_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/integration_tests/test_double_curvature_integration_triangle"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/integration_tests/test_double_curvature_integration_triangle"
 
         self._dynamic_search_tests(input_filename, 3)
 
     def test_dynamic_search_quad(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/integration_tests/test_double_curvature_integration_quadrilateral"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/integration_tests/test_double_curvature_integration_quadrilateral"
 
         self._dynamic_search_tests(input_filename, 4)
 

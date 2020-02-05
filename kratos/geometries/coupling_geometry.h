@@ -192,20 +192,35 @@ public:
     ///@{
 
     /**
-    * @brief This function returns the geometry part which is accessable
-    *        with a certain index.
-    * @details Here, 0 is the master, all above 0 is for the slaves
-    * of the geometry. Checks if index is available only in debug mode.
-    * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
-    * @return geometry, which is connected through the Index
-     */
-    GeometryType& GetGeometryPart(IndexType Index) const override
+    * @brief This function returns the pointer of the geometry part
+    *        which is corresponding to the index.
+    *        Checks if index is available only in debug.
+    * @param Index: 0 -> master, all bigger than 0 -> slaves.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(IndexType Index) override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
-            << Index << " out of range. Composite contains only of: "
-            << mpGeometries.size() << " geometries." << std::endl;
+            << Index << " out of range. CouplingGeometry #" << this->Id()
+            << " has " << mpGeometries.size() << " geometries." << std::endl;
 
-        return *mpGeometries[Index];
+        return mpGeometries[Index];
+    }
+
+    /**
+    * @brief This function returns the const pointer of the geometry part
+    *        which is corresponding to the index.
+    *        Checks if index is available only in debug.
+    * @param Index: 0 -> master, all bigger than 0 -> slaves.
+    * @return const pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(IndexType Index) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index \""
+            << Index << "\" out of range. CouplingGeometry #" << this->Id() 
+            << " has " << mpGeometries.size() << " geometries." << std::endl;
+
+        return mpGeometries[Index];
     }
 
     /**
@@ -219,8 +234,16 @@ public:
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
-        KRATOS_ERROR_IF(0 == Index) << "Cannot change master: "
-            << Index << std::endl;
+        if (0 == Index){
+            if (mpGeometries.size() > 1) {
+                KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[1]->Dimension())
+                    << "Dimension of new master geometry does not coincide with the other geometries. "
+                    << "Dimension of new geometry: " << pGeometry->Dimension()
+                    << ", dimension of coupling geometry: " << mpGeometries[1]->Dimension() << std::endl;
+            }
+
+            this->SetGeometryData(&(pGeometry->GetGeometryData()));
+        }
 
         KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
             << "Dimension of new entity does not coincide with this coupling geometry. "

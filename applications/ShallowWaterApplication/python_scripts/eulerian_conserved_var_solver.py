@@ -14,7 +14,7 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
         super(EulerianConservedVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "EulerConsVarElement"
+        self.element_name = "ConservedElement"
         self.condition_name = "Condition"
         self.min_buffer_size = 2
 

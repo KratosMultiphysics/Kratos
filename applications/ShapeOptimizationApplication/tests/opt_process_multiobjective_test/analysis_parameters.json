@@ -28,8 +28,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["structure"],
-        "processes_sub_model_part_list"      : ["fix_support","roller_support","load_point"],
         "rotation_dofs"                      : true
     },
     "processes": {
@@ -37,7 +35,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "fix_support",
+                "model_part_name" : "structure.fix_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -47,7 +45,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "roller_support",
+                "model_part_name" : "structure.roller_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -59,7 +57,7 @@
             "kratos_module" : "KratosMultiphysics",
             "check"         : "DirectorVectorNonZero direction",
             "Parameters"    : {
-                "model_part_name" : "load_point",
+                "model_part_name" : "structure.load_point",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 1000.0,
                 "direction"       : [0.0,-1,0.0],
@@ -91,24 +89,29 @@
                 "time_frequency"   : 0.0
            }
     }],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION"],
-            "gauss_point_results" : ["VON_MISES_STRESS"]
-        },
-        "point_data_configuration"  : []
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "structure",
+                "output_name"            : "structure",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "nodal_results"       : ["DISPLACEMENT","REACTION"],
+                        "gauss_point_results" : ["VON_MISES_STRESS"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
     }
 }

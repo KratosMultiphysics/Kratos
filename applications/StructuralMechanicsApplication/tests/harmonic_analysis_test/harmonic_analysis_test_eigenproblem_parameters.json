@@ -41,8 +41,6 @@
                 "solver_type": "skyline_lu_complex"
             }
 	},
-        "problem_domain_sub_model_part_list" : ["Parts_plate"],
-        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -53,7 +51,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_support",
+            "model_part_name" : "Structure.DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -67,7 +65,7 @@
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_load",
+            "model_part_name" : "Structure.PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,
             "direction"       : [0.0,0.0,1.0],

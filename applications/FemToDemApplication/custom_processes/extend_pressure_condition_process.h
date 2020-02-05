@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license:
+//  License:         BSD License
+//                     Kratos default license:
 // kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -185,6 +185,11 @@ public:
      * @brief fills the mpPropertiesVector and mPropertiesId
      */
     void SavePreviousProperties();
+
+    /**
+     * @brief returns the pressure Id
+     */
+    int GetPressureIdSubModel(const std::string &rSubModelName);
 
 protected:
     // Member Variables

@@ -30,6 +30,9 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
                 "distance_file_name"  : "no_distance_file"
@@ -78,6 +81,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
+        self.element_has_nodal_properties = True
         self.min_buffer_size = 3
 
         if (self.settings["solver_type"].GetString() == "TwoFluids"):

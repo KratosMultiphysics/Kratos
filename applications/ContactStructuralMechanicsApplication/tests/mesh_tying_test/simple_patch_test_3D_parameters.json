@@ -173,7 +173,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -190,7 +190,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
-                        "nodal_nonhistorical_results": ["NORMAL"],
+                        "nodal_nonhistorical_results": [],
                         "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
                     },
                     "point_data_configuration"  : []}}}]

@@ -41,7 +41,6 @@ class SearchBaseProcess(KM.Process):
             "help"                        : "This class is a base class used to perform the search for contact and mesh tying. This class constructs the model parts containing the conditions. The class creates search utilities to be used to create the pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
-            "computing_model_part_name"   : "computing_domain",
             "search_model_part"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "search_property_ids"         : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
@@ -59,7 +58,7 @@ class SearchBaseProcess(KM.Process):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 0.0,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -83,9 +82,6 @@ class SearchBaseProcess(KM.Process):
         # The main model part
         self.model = Model
         self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
-        # The computing model part
-        computing_model_part_name = self.settings["computing_model_part_name"].GetString()
-        self.computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
 
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
@@ -110,14 +106,14 @@ class SearchBaseProcess(KM.Process):
         """
 
         # First we generate or identify the different model parts
-        if self.computing_model_part.HasSubModelPart("Contact"):
+        if self.main_model_part.HasSubModelPart("Contact"):
             self.preprocess = False
             # We get the submodelpart
-            self.search_model_part = self.computing_model_part.GetSubModelPart("Contact")
+            self.search_model_part = self.main_model_part.GetSubModelPart("Contact")
         else:
             self.preprocess = True
             # We create the submodelpart
-            self.search_model_part = self.computing_model_part.CreateSubModelPart("Contact")
+            self.search_model_part = self.main_model_part.CreateSubModelPart("Contact")
 
         # In case of no "Contact" model part we create it
         if self.preprocess:
@@ -134,7 +130,7 @@ class SearchBaseProcess(KM.Process):
                         self.__generate_search_model_part_from_input_list(self.settings["search_model_part"][key], key)
 
         # We compute NODAL_H that can be used in the search and some values computation
-        self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+        self.find_nodal_h = KM.FindNodalHProcess(self.main_model_part)
         self.find_nodal_h.Execute()
 
         # We check the normals
@@ -143,7 +139,7 @@ class SearchBaseProcess(KM.Process):
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():
-            factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
+            factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.main_model_part)
             KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
             search_factor = self.settings["search_parameters"]["search_factor"].GetDouble() * factor
             self.settings["search_parameters"]["search_factor"].SetDouble(search_factor)
@@ -155,7 +151,7 @@ class SearchBaseProcess(KM.Process):
 
         #If the conditions doesn't exist we create them
         if self.preprocess is False:
-            master_slave_process = CSMA.MasterSlaveProcess(self.computing_model_part)
+            master_slave_process = CSMA.MasterSlaveProcess(self.main_model_part)
             master_slave_process.Execute()
 
         # Setting the integration order and active check factor
@@ -350,7 +346,7 @@ class SearchBaseProcess(KM.Process):
         """
 
         # We create the process for creating the interface
-        self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.computing_model_part)
+        self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.main_model_part)
 
         # It should create the conditions automatically
         interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
@@ -413,7 +409,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters = self._create_search_parameters(key)
 
         # We create the search process
-        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.main_model_part, search_parameters)
 
     def _create_search_parameters(self, key = "0"):
         """ This creates the parameters for the search
@@ -434,6 +430,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
         search_parameters.AddValue("static_check_movement", self.settings["search_parameters"]["static_check_movement"])
         search_parameters.AddValue("consider_gap_threshold", self.settings["search_parameters"]["consider_gap_threshold"])
+        search_parameters.AddValue("normal_orientation_threshold", self.settings["search_parameters"]["normal_orientation_threshold"])
         search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
@@ -499,6 +496,7 @@ class SearchBaseProcess(KM.Process):
         gid_io.WriteNodalFlags(KM.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KM.ISOLATED, "ISOLATED", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KM.SLAVE, "SLAVE", self.main_model_part.Nodes, label)
+        gid_io.WriteNodalFlags(KM.MASTER, "MASTER", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.NORMAL, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResults(KM.NODAL_H, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResultsNonHistorical(KM.NODAL_AREA, self.main_model_part.Nodes, label)
@@ -550,7 +548,7 @@ class SearchBaseProcess(KM.Process):
         if self.predefined_master_slave and self.dimension == 3:
             slave_defined = False
             master_defined = False
-            for cond in self.computing_model_part.Conditions:
+            for cond in self.main_model_part.Conditions:
                 if cond.Is(KM.SLAVE):
                     number_nodes = len(cond.GetNodes())
                     if number_nodes > 1:
@@ -562,7 +560,7 @@ class SearchBaseProcess(KM.Process):
                 if slave_defined and master_defined:
                     break
         else:
-            for cond in self.computing_model_part.Conditions:
+            for cond in self.main_model_part.Conditions:
                 number_nodes = len(cond.GetNodes())
                 if number_nodes > 1:
                     break
@@ -649,7 +647,7 @@ class SearchBaseProcess(KM.Process):
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
-                if self.main_model_part.Is(KM.MODIFIED) or self.computing_model_part.Is(KM.MODIFIED):
+                if self.main_model_part.Is(KM.MODIFIED) or self.main_model_part.Is(KM.MODIFIED):
                     KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
                     partial_model_part.RemoveConditions(KM.TO_ERASE)
 

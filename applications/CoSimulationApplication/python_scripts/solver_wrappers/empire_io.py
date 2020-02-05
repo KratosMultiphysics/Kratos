@@ -24,7 +24,9 @@ class EmpireIO(CoSimulationIO):
     """
     def __init__(self, settings, model, solver_name):
         super(EmpireIO, self).__init__(settings, model, solver_name)
-        KratosCoSim.EMPIRE_API.EMPIRE_API_Connect(self.settings["api_configuration_file_name"].GetString())
+        # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
+        KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(self.settings["api_print_timing"].GetBool())
 
         # delete and recreate communication folder to avoid leftover files
         kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
@@ -32,6 +34,13 @@ class EmpireIO(CoSimulationIO):
 
     def Finalize(self):
         kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
+
+    def __del__(self):
+        # make sure no communication files are left even if simulation is terminated prematurely
+        if os.path.isdir(communication_folder):
+            kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
+            if self.echo_level > 0:
+                cs_tools.cs_print_info(self._ClassName(), "Deleting Communication folder in destructor")
 
     def ImportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]
@@ -76,7 +85,7 @@ class EmpireIO(CoSimulationIO):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "api_configuration_file_name" : "UNSPECIFIED"
+            "api_print_timing" : false
         }""")
         this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 

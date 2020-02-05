@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
+#include "custom_utilities/trilinos_solver_utilities.h"
 
 //aztec solver includes
 #include "AztecOO.h"
@@ -126,20 +127,10 @@ public:
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = Settings["trilinos_aztec_parameter_list"].begin(); it != Settings["trilinos_aztec_parameter_list"].end(); it++) {
-            if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
-            else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
-        }
+        TrilinosSolverUtilities::SetTeuchosParameters(Settings["trilinos_aztec_parameter_list"], mAztecParameterList);
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = Settings["trilinos_ml_parameter_list"].begin(); it != Settings["trilinos_ml_parameter_list"].end(); it++) {
-            if(it->IsString()) mMLParameterList.set(it.name(), it->GetString());
-            else if(it->IsInt()) mMLParameterList.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mMLParameterList.set(it.name(), it->GetDouble());
-        }
+        TrilinosSolverUtilities::SetTeuchosParameters(Settings["trilinos_ml_parameter_list"], mMLParameterList);
     }
 
     MultiLevelSolver(Teuchos::ParameterList& rAztecParameterList, Teuchos::ParameterList& rMLParameterList, double Tolerance, int MaxIterations)
@@ -314,6 +305,11 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Trilinos MultiLevel-Solver";
+    }
+
+    static void SetDefaults(Teuchos::ParameterList& rParameterlist, const std::string& rSettingsName)
+    {
+        ML_Epetra::SetDefaults(rSettingsName.c_str(), rParameterlist);
     }
 
 private:
