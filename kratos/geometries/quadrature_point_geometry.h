@@ -154,6 +154,7 @@ public:
      */
     QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
+        , mGeometryData( rOther.mGeometryData )
     {
     }
 
@@ -172,6 +173,7 @@ public:
     template<class TOtherPointType>
     QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
         : BaseType( rOther )
+        , mGeometryData( rOther.mGeometryData )
     {
     }
 
@@ -197,6 +199,8 @@ public:
     {
         BaseType::operator=( rOther );
 
+        mGeometryData = rOther.mGeometryData;
+
         return *this;
     }
 
@@ -215,6 +219,8 @@ public:
     QuadraturePointGeometry& operator=( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
     {
         BaseType::operator=( rOther );
+
+        mGeometryData = rOther.mGeometryData;
 
         return *this;
     }
