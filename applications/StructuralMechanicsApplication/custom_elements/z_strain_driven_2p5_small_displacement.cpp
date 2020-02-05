@@ -153,7 +153,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if (rVariable == IMPOSED_Z_STRAIN_VALUE) {
+    if (rVariable == YIELD_STRAIN_COMPRESSION) {
         const SizeType integration_points_number = mImposedZStrainVector.size();
         for ( IndexType point_number = 0; point_number < integration_points_number; ++point_number ) {
             mImposedZStrainVector[point_number] = rValues[point_number];
@@ -172,8 +172,8 @@ int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProce
 
     int check = Element::Check(rCurrentProcessInfo);
 
-    const auto& r_geometry = rElement.GetGeometry();
-    const auto& r_properties = rElement.GetProperties();
+    const auto& r_geometry = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
@@ -201,14 +201,14 @@ int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProce
     // Verify that the constitutive law has the correct dimension
     const SizeType strain_size = r_properties.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
     if ( dimension == 2 ) {
-        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 2.5D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 2.5D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
     } else {
         KRATOS_ERROR << "Wrong dimension. The 2.5D element must have a 2D geometry." << std::endl;
     }
 
     // Check constitutive law
-    if ( rConstitutiveLaws.size() > 0 ) {
-        check = rConstitutiveLaws[0]->Check( r_properties, r_geometry, rCurrentProcessInfo );
+    if ( BaseType::mConstitutiveLawVector.size() > 0 ) {
+        check = BaseType::mConstitutiveLawVector[0]->Check( r_properties, r_geometry, rCurrentProcessInfo );
     }
 
     return check;

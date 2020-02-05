@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "custom_elements/small_displacement.h"

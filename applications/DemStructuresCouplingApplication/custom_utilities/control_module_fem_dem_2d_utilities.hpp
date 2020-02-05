@@ -32,6 +32,7 @@
 #endif
 
 /* Project includes */
+#include "geometries/geometry.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 
@@ -170,7 +171,7 @@ void ExecuteInitializeSolutionStep()
         {
             ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
             Element::GeometryType& rGeom = itElem->GetGeometry();
-            MyIntegrationMethod = itElem->GetIntegrationMethod();
+            GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
             const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
             unsigned int NumGPoints = IntegrationPoints.size();
             std::vector<Vector> stress_vector(NumGPoints);
@@ -188,17 +189,17 @@ void ExecuteInitializeSolutionStep()
         double K_estimated = mStiffness;
         if(mUpdateStiffness == true) {
             if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
-                std::abs(ReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
-                K_estimated = std::abs((ReactionStress-mReactionStressOld)/(mVelocity * delta_time));
+                std::abs(reaction_stress-mReactionStressOld) > mStressIncrementTolerance) {
+                K_estimated = std::abs((reaction_stress-mReactionStressOld)/(mVelocity * delta_time));
             }
-            mReactionStressOld = ReactionStress;
+            mReactionStressOld = reaction_stress;
             mStiffness = K_estimated;
         }
 
         // Update velocity
         TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
         const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
-        const double df_target = NextTargetStress - ReactionStress;
+        const double df_target = NextTargetStress - reaction_stress;
         double delta_velocity = df_target/(K_estimated * delta_time) - mVelocity;
 
         if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
@@ -217,7 +218,7 @@ void ExecuteInitializeSolutionStep()
         for(int i = 0; i<NNodes; i++) {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = ReactionStress;
+            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
             it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
         }
     }
@@ -232,7 +233,7 @@ void ExecuteInitializeSolutionStep()
     {
         ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
         Element::GeometryType& rGeom = itElem->GetGeometry();
-        MyIntegrationMethod = itElem->GetIntegrationMethod();
+        GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
         const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
         unsigned int NumGPoints = IntegrationPoints.size();
         std::vector<double> imposed_z_strain_vector(NumGPoints);
@@ -241,7 +242,7 @@ void ExecuteInitializeSolutionStep()
         {
             imposed_z_strain_vector[GPoint] = imposed_z_strain;
         }
-        itElem->SetValueOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
+        itElem->SetValueOnIntegrationPoints( YIELD_STRAIN_COMPRESSION, imposed_z_strain_vector, CurrentProcessInfo );
     }
 
     KRATOS_CATCH("");
