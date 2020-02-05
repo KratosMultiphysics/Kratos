@@ -287,7 +287,7 @@ private:
     }
 
     static void GetGeometryList(
-        GeometriesArrayType rGeometryList,
+        GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
         const Parameters& rParameters,
         int EchoLevel = 0)
@@ -316,7 +316,7 @@ private:
         }
 
         KRATOS_ERROR_IF(rGeometryList.size() == 0)
-            << "Empty geometry list. Either \"brep_id\", \"brep_ids\", \"brep_name\" or \"brep_names\" need to be specified." << std::endl;
+            << "Empty geometry list. Either \"brep_id\", \"brep_ids\", \"brep_name\" or \"brep_names\" are the possible options." << std::endl;
     }
 
     ///@}
