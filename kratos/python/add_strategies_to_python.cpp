@@ -467,10 +467,7 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType;
             py::class_< ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType, ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier")
             .def(py::init< LinearSolverType::Pointer > ())
-            .def(py::init< LinearSolverType::Pointer, const bool > ())
-            .def(py::init< LinearSolverType::Pointer, const bool, const bool > ())
-            .def(py::init< LinearSolverType::Pointer, const bool, const bool, const bool > ())
-            .def(py::init< LinearSolverType::Pointer, const bool, const bool, const bool, const bool > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
 
             //********************************************************************
