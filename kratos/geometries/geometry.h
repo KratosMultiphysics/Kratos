@@ -316,7 +316,6 @@ public:
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
         : mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
-
     {
         SetId(GeometryId);
     }
