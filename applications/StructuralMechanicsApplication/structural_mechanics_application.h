@@ -99,7 +99,7 @@
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
-#include "custom_advanced_constitutive/wrinkling_2d_law.h"
+#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
 #include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_henky_1d.h"
@@ -513,7 +513,7 @@ private:
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
-    const Wrinkling2DLaw mWrinkling2DLaw;
+    const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;

@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_advanced_constitutive/wrinkling_2d_law.h"
+#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -24,7 +24,7 @@ namespace Kratos
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-Wrinkling2DLaw::Wrinkling2DLaw()
+WrinklingLinear2DLaw::WrinklingLinear2DLaw()
     : ConstitutiveLaw()
 {
 }
@@ -32,7 +32,7 @@ Wrinkling2DLaw::Wrinkling2DLaw()
 /******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
-Wrinkling2DLaw::Wrinkling2DLaw(const Wrinkling2DLaw& rOther)
+WrinklingLinear2DLaw::WrinklingLinear2DLaw(const WrinklingLinear2DLaw& rOther)
     : ConstitutiveLaw(rOther),
       mpConstitutiveLaw(rOther.mpConstitutiveLaw)
 {
@@ -41,36 +41,36 @@ Wrinkling2DLaw::Wrinkling2DLaw(const Wrinkling2DLaw& rOther)
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer Wrinkling2DLaw::Clone() const
+ConstitutiveLaw::Pointer WrinklingLinear2DLaw::Clone() const
 {
-    return Kratos::make_shared<Wrinkling2DLaw>(*this);
+    return Kratos::make_shared<WrinklingLinear2DLaw>(*this);
 }
 
 /*******************************CONSTRUCTOR*****************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer Wrinkling2DLaw::Create(Kratos::Parameters NewParameters) const
+ConstitutiveLaw::Pointer WrinklingLinear2DLaw::Create(Kratos::Parameters NewParameters) const
 {
-    return Kratos::make_shared<Wrinkling2DLaw>();
+    return Kratos::make_shared<WrinklingLinear2DLaw>();
 }
 
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-Wrinkling2DLaw::~Wrinkling2DLaw()
+WrinklingLinear2DLaw::~WrinklingLinear2DLaw()
 {
 };
 
 
 
-std::size_t Wrinkling2DLaw::WorkingSpaceDimension()
+std::size_t WrinklingLinear2DLaw::WorkingSpaceDimension()
 {
     KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension()<2) << "WorkingSpaceDimension must be bigger than 1" << std::endl;
     return mpConstitutiveLaw->WorkingSpaceDimension();
 }
 
 
-std::size_t Wrinkling2DLaw::GetStrainSize()
+std::size_t WrinklingLinear2DLaw::GetStrainSize()
 {
     SizeType strain_size = 3;
     KRATOS_ERROR_IF_NOT(mpConstitutiveLaw->GetStrainSize()==3) << "wrinkling law only works for 2D base laws (strain size = 3)" << std::endl;
@@ -80,55 +80,55 @@ std::size_t Wrinkling2DLaw::GetStrainSize()
 
 
 template <class T>
-bool Wrinkling2DLaw::THas(const Variable<T>& rTemplateVariable) const
+bool WrinklingLinear2DLaw::THas(const Variable<T>& rTemplateVariable) const
 {
     return mpConstitutiveLaw->Has(rTemplateVariable);
 }
 
 
-bool Wrinkling2DLaw::Has(const Variable<bool>& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<bool>& rThisVariable)
 {
     return THas(rThisVariable);
 }
 
 
 
-bool Wrinkling2DLaw::Has(const Variable<int>& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<int>& rThisVariable)
 {
     return THas(rThisVariable);
 }
 
 
 
-bool Wrinkling2DLaw::Has(const Variable<double>& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<double>& rThisVariable)
 {
     return THas(rThisVariable);
 }
 
 
 
-bool Wrinkling2DLaw::Has(const Variable<Vector>& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<Vector>& rThisVariable)
 {
     return THas(rThisVariable);
 }
 
 
 
-bool Wrinkling2DLaw::Has(const Variable<Matrix>& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     return THas(rThisVariable);
 }
 
 
 
-bool Wrinkling2DLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
 {
     return THas(rThisVariable);
 }
 
 
 
-bool Wrinkling2DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
+bool WrinklingLinear2DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
 {
     return THas(rThisVariable);
 }
@@ -136,14 +136,14 @@ bool Wrinkling2DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
 
 
 template <class T>
-T& Wrinkling2DLaw::TGetValue(const Variable<T>& rTemplateVariable, T& rTemplateValue)
+T& WrinklingLinear2DLaw::TGetValue(const Variable<T>& rTemplateVariable, T& rTemplateValue)
 {
     mpConstitutiveLaw->GetValue(rTemplateVariable,rTemplateValue);
     return rTemplateValue;
 }
 
 
-bool& Wrinkling2DLaw::GetValue(
+bool& WrinklingLinear2DLaw::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -151,7 +151,7 @@ bool& Wrinkling2DLaw::GetValue(
     return TGetValue(rThisVariable,rValue);
 }
 
-int& Wrinkling2DLaw::GetValue(
+int& WrinklingLinear2DLaw::GetValue(
     const Variable<int>& rThisVariable,
     int& rValue
     )
@@ -159,7 +159,7 @@ int& Wrinkling2DLaw::GetValue(
     return TGetValue(rThisVariable,rValue);
 }
 
-double& Wrinkling2DLaw::GetValue(
+double& WrinklingLinear2DLaw::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -169,7 +169,7 @@ double& Wrinkling2DLaw::GetValue(
 
 
 
-Vector& Wrinkling2DLaw::GetValue(
+Vector& WrinklingLinear2DLaw::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -179,7 +179,7 @@ Vector& Wrinkling2DLaw::GetValue(
 
 
 
-Matrix& Wrinkling2DLaw::GetValue(
+Matrix& WrinklingLinear2DLaw::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -189,7 +189,7 @@ Matrix& Wrinkling2DLaw::GetValue(
 
 
 
-array_1d<double, 3 >& Wrinkling2DLaw::GetValue(
+array_1d<double, 3 >& WrinklingLinear2DLaw::GetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
     )
@@ -199,7 +199,7 @@ array_1d<double, 3 >& Wrinkling2DLaw::GetValue(
 
 
 
-array_1d<double, 6 >& Wrinkling2DLaw::GetValue(
+array_1d<double, 6 >& WrinklingLinear2DLaw::GetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
     )
@@ -208,7 +208,7 @@ array_1d<double, 6 >& Wrinkling2DLaw::GetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<bool>& rThisVariable,
     const bool& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -218,7 +218,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<int>& rThisVariable,
     const int& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -228,7 +228,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -238,7 +238,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -248,7 +248,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<Matrix>& rThisVariable,
     const Matrix& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -258,7 +258,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     const array_1d<double, 3 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -268,7 +268,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-void Wrinkling2DLaw::SetValue(
+void WrinklingLinear2DLaw::SetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     const array_1d<double, 6 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -278,7 +278,7 @@ void Wrinkling2DLaw::SetValue(
 }
 
 
-bool& Wrinkling2DLaw::CalculateValue(
+bool& WrinklingLinear2DLaw::CalculateValue(
     Parameters& rParameterValues,
     const Variable<bool>& rThisVariable,
     bool& rValue
@@ -289,7 +289,7 @@ bool& Wrinkling2DLaw::CalculateValue(
 }
 
 
-int& Wrinkling2DLaw::CalculateValue(
+int& WrinklingLinear2DLaw::CalculateValue(
     Parameters& rParameterValues,
     const Variable<int>& rThisVariable,
     int& rValue
@@ -300,7 +300,7 @@ int& Wrinkling2DLaw::CalculateValue(
 }
 
 
-double& Wrinkling2DLaw::CalculateValue(
+double& WrinklingLinear2DLaw::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -311,7 +311,7 @@ double& Wrinkling2DLaw::CalculateValue(
 }
 
 
-Vector& Wrinkling2DLaw::CalculateValue(
+Vector& WrinklingLinear2DLaw::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -322,7 +322,7 @@ Vector& Wrinkling2DLaw::CalculateValue(
 }
 
 
-Matrix& Wrinkling2DLaw::CalculateValue(
+Matrix& WrinklingLinear2DLaw::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -332,7 +332,7 @@ Matrix& Wrinkling2DLaw::CalculateValue(
     return rValue;
 }
 
-array_1d<double, 3 >& Wrinkling2DLaw::CalculateValue(
+array_1d<double, 3 >& WrinklingLinear2DLaw::CalculateValue(
     Parameters& rParameterValues,
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
@@ -343,7 +343,7 @@ array_1d<double, 3 >& Wrinkling2DLaw::CalculateValue(
 }
 
 
-array_1d<double, 6 >& Wrinkling2DLaw::CalculateValue(
+array_1d<double, 6 >& WrinklingLinear2DLaw::CalculateValue(
     Parameters& rParameterValues,
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
@@ -353,7 +353,7 @@ array_1d<double, 6 >& Wrinkling2DLaw::CalculateValue(
     return rValue;
 }
 
-void Wrinkling2DLaw::InitializeMaterial(
+void WrinklingLinear2DLaw::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -368,7 +368,7 @@ void Wrinkling2DLaw::InitializeMaterial(
 }
 
 
-void Wrinkling2DLaw::InitializeSolutionStep(
+void WrinklingLinear2DLaw::InitializeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -378,7 +378,7 @@ void Wrinkling2DLaw::InitializeSolutionStep(
     mpConstitutiveLaw->InitializeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
-void Wrinkling2DLaw::FinalizeSolutionStep(
+void WrinklingLinear2DLaw::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -390,7 +390,7 @@ void Wrinkling2DLaw::FinalizeSolutionStep(
 
 
 
-void Wrinkling2DLaw::InitializeNonLinearIteration(
+void WrinklingLinear2DLaw::InitializeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -402,7 +402,7 @@ void Wrinkling2DLaw::InitializeNonLinearIteration(
 
 
 
-void Wrinkling2DLaw::FinalizeNonLinearIteration(
+void WrinklingLinear2DLaw::FinalizeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -414,7 +414,7 @@ void Wrinkling2DLaw::FinalizeNonLinearIteration(
 
 
 
-void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
     // do standard calculation
@@ -499,7 +499,7 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     KRATOS_CATCH("");
 }
 
-void Wrinkling2DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
+void WrinklingLinear2DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY;
     mpConstitutiveLaw->InitializeMaterialResponsePK2(rValues);
@@ -509,7 +509,7 @@ void Wrinkling2DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 
 
 
-void Wrinkling2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void WrinklingLinear2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY;
     mpConstitutiveLaw->FinalizeMaterialResponsePK2(rValues);
@@ -519,7 +519,7 @@ void Wrinkling2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 
 
 
-void Wrinkling2DLaw::ResetMaterial(
+void WrinklingLinear2DLaw::ResetMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -529,13 +529,13 @@ void Wrinkling2DLaw::ResetMaterial(
 }
 
 
-void Wrinkling2DLaw::GetLawFeatures(Features& rFeatures)
+void WrinklingLinear2DLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mStrainSize = GetStrainSize();
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-void Wrinkling2DLaw::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
+void WrinklingLinear2DLaw::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
 {
     // make sure to divide rNonPrincipalVector[2]/2 if strains are passed
     rPrincipalVector = ZeroVector(2);
@@ -543,7 +543,7 @@ void Wrinkling2DLaw::PrincipalVector(Vector& rPrincipalVector, const Vector& rNo
     rPrincipalVector[1] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
 }
 
-void Wrinkling2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain, Vector& rWrinklingDirectionVector)
+void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain, Vector& rWrinklingDirectionVector)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
 
@@ -593,13 +593,13 @@ void Wrinkling2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, const V
 }
 
 
-int Wrinkling2DLaw::Check(
+int WrinklingLinear2DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_ERROR_IF_NOT(mpConstitutiveLaw) << "Wrinkling2DLaw is not initialized" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpConstitutiveLaw) << "WrinklingLinear2DLaw is not initialized" << std::endl;
     mpConstitutiveLaw->Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     return 0;
 }

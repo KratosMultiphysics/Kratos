@@ -9,8 +9,8 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_WRINKLING_2D_LAW_H_INCLUDED)
-#define  KRATOS_WRINKLING_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_WRINKLING_LINEAR_2D_LAW_H_INCLUDED)
+#define  KRATOS_WRINKLING_LINEAR_2D_LAW_H_INCLUDED
 
 // System includes
 
@@ -40,12 +40,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class Wrinkling2DLaw
+ * @class WrinklingLinear2DLaw
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a wrinkling modification for any 2D claw
  * @author Klaus B. Sautter
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) Wrinkling2DLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) WrinklingLinear2DLaw
     : public ConstitutiveLaw
 {
 public:
@@ -62,8 +62,8 @@ public:
     /// The definition of the size type
     typedef std::size_t        SizeType;
 
-    /// Pointer definition of Wrinkling2DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( Wrinkling2DLaw );
+    /// Pointer definition of WrinklingLinear2DLaw
+    KRATOS_CLASS_POINTER_DEFINITION( WrinklingLinear2DLaw );
 
     enum class WrinklingType {
       Taut,
@@ -77,17 +77,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    Wrinkling2DLaw();
+    WrinklingLinear2DLaw();
 
     /**
      * @brief Copy constructor.
      */
-    Wrinkling2DLaw (const Wrinkling2DLaw& rOther);
+    WrinklingLinear2DLaw (const WrinklingLinear2DLaw& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~Wrinkling2DLaw() override;
+    ~WrinklingLinear2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -418,6 +418,6 @@ private:
     }
 
 
-}; // Class Wrinkling2DLaw
+}; // Class WrinklingLinear2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_WRINKLING_2D_LAW_H_INCLUDED  defined
+#endif // KRATOS_WRINKLING_LINEAR_2D_LAW_H_INCLUDED  defined

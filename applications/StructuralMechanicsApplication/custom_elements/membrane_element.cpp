@@ -1213,34 +1213,6 @@ void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rN
     rPrincipalVector[1] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
 }
 
-void MembraneElement::CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain)
-{
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-
-    Vector principal_strains = ZeroVector(2);
-    Vector temp_strains = ZeroVector(3);
-    temp_strains = rStrain;
-    temp_strains[2] /= 2.0; // normalize voigt strain vector to calcualte principal strains
-    PrincipalVector(principal_strains,temp_strains);
-
-
-    Vector principal_stresses = ZeroVector(2);
-    PrincipalVector(principal_stresses,rStress);
-
-    const double min_stress = std::min(principal_stresses[0],principal_stresses[1]);
-    const double max_strain = std::max(principal_strains[0],principal_strains[1]);
-
-    if (min_stress > 0.0){
-        rWrinklingState = WrinklingType::Taut;
-    } else if ((max_strain > 0.0) && (min_stress < numerical_limit)){
-        rWrinklingState = WrinklingType::Wrinkle;
-    } else if (max_strain<numerical_limit){
-        rWrinklingState = WrinklingType::Slack;
-    }
-    else KRATOS_ERROR << "error in principal direction calculation of membrane element with id " << Id() << std::endl;
-
-}
-
 //***********************************************************************************
 //***********************************************************************************
 int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)

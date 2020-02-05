@@ -51,12 +51,6 @@ namespace Kratos
       Reference
     };
 
-    enum class WrinklingType {
-      Taut,
-      Slack,
-      Wrinkle
-    };
-
     // Name Operations
 
     /**
@@ -387,14 +381,6 @@ namespace Kratos
      */
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
-
-      /**
-     * @brief Checks for taunt/slack/wrinkles
-     * @param rWrinklingState the current wrinkling state
-     * @param rStress the stress
-     * @param rStrain the strain
-     */
-    void CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain);
 
     void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
