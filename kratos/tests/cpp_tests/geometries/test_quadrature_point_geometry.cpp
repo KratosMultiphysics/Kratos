@@ -137,8 +137,7 @@ namespace Kratos {
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry2();
 
-            QuadraturePointGeometry<Node<3>, 2, 2> geom
-                = QuadraturePointGeometry<Node<3>, 2, 2>(*p_this_quadrature_point);
+            QuadraturePointGeometry<Node<3>, 2, 2> geom(*p_this_quadrature_point);
 
             KRATOS_CHECK_EQUAL(geom.size(), 3);
             KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
@@ -158,8 +157,7 @@ namespace Kratos {
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry2();
 
-            QuadraturePointGeometry<Point, 2, 2> geom
-                = QuadraturePointGeometry<Point, 2, 2>(*p_this_quadrature_point);
+            QuadraturePointGeometry<Point, 2, 2> geom(*p_this_quadrature_point);
 
             KRATOS_CHECK_EQUAL(geom.size(), 3);
             KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
