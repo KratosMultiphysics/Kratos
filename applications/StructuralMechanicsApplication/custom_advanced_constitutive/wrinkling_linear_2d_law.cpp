@@ -359,7 +359,7 @@ void WrinklingLinear2DLaw::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.NumberOfSubproperties()==1) << "Exactly one base claw must be given" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.NumberOfSubproperties()==1) << "Exactly one base claw must be given (" << rMaterialProperties.NumberOfSubproperties() << " claws are defined for baseclaw " << rMaterialProperties.Id() <<  ")" << std::endl;
     // We create the base constitutive laws
     const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
     KRATOS_ERROR_IF_NOT(base_claw_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
