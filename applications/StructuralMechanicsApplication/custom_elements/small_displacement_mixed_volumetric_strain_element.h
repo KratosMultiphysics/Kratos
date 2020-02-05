@@ -629,31 +629,6 @@ private:
         const Vector& rStrainTensor
         ) const;
 
-    // /**
-    //  * @brief Calculate the element size
-    //  * This method calculates the element size used in the stabilization terms
-    //  * @param rThisKinematicVariables Kinematic variables container. Required
-    //  * in case h is computed using the gradients (triangles and tetrahedas)
-    //  * @return double The element size
-    //  */
-    // double CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const;
-
-    // /**
-    //  * @brief Calculates the linearised bulk modulus
-    //  * This method approximates the bulk modulus for the current volumetric strain
-    //  * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
-    //  * @return double Approximated bulk modulus
-    //  */
-    // double CalculateLinearisedBulkModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const;
-
-    // /**
-    //  * @brief Calculates the linearised shear modulus
-    //  * This method approximates the shear modulus for the current deviatoric strain
-    //  * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
-    //  * @return double Approximated shear modulus
-    //  */
-    // double CalculateLinearisedShearModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const;
-
     /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
