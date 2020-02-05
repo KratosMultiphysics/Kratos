@@ -1,6 +1,6 @@
 {
     "properties": [{
-            "model_part_name": "Parts_membrane",
+            "model_part_name": "Structure.Parts_membrane",
             "properties_id": 2,
             "Material": {
                     "name": "Material",
@@ -18,7 +18,7 @@
             }
     },
     {
-            "model_part_name": "Parts_truss",
+            "model_part_name": "Structure.Parts_truss",
             "properties_id": 1,
             "Material": {
                     "name": "Material",

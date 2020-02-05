@@ -24,7 +24,7 @@ namespace Kratos {
         double mHistoryDisp;
         double mHistoryShearFlag;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_Dempack2D() {}
 

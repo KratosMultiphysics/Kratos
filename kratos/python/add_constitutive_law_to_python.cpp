@@ -82,6 +82,9 @@ Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, Mat
 const Matrix& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
 Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& F){ return rThisParameters.GetDeformationGradientF(F);}
 
+ConstitutiveLaw::Pointer CreateWithoutProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters){ return rThisConstitutiveLaw.Create(NewParameters);}
+ConstitutiveLaw::Pointer CreateWithProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters, const Properties& rProperties){ return rThisConstitutiveLaw.Create(NewParameters, rProperties);}
+
 void DeprecatedInitializeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
                                        const Properties& rMaterialProperties,
                                        const ConstitutiveLaw::GeometryType& rElementGeometry,
@@ -199,7 +202,8 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
 
     py::class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , Flags >(m,"ConstitutiveLaw")
     .def(py::init<>() )
-    .def("Create",&ConstitutiveLaw::Create)
+    .def("Create",CreateWithoutProperties)
+    .def("Create",CreateWithProperties)
     .def("Clone",&ConstitutiveLaw::Clone)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
     .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)

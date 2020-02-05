@@ -24,7 +24,7 @@ namespace Kratos {
 
         ~DEM_D_Stress_Dependent_Cohesive() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         void Check(Properties::Pointer pProp) const override;
 

@@ -28,7 +28,7 @@ namespace Kratos {
 #endif
 
 #ifndef KRATOS_MINOR_VERSION
-#define KRATOS_MINOR_VERSION 0
+#define KRATOS_MINOR_VERSION 1
 #endif
 
 constexpr int GetMajorVersion() {

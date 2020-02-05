@@ -23,11 +23,13 @@ class MeshSolverStructuralSimilarity(MeshSolverBase):
         linear_solver = self.get_linear_solver()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
+        poisson_ratio = self.settings["poisson_ratio"].GetDouble()
         solving_strategy = KratosMeshMoving.StructuralMeshMovingStrategy(self.mesh_model_part,
                                                              linear_solver,
                                                              0,
                                                              reform_dofs_each_step,
                                                              compute_reactions,
                                                              False,
-                                                             self.echo_level)
+                                                             self.echo_level,
+                                                             poisson_ratio)
         return solving_strategy

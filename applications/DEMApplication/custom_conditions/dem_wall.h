@@ -59,7 +59,7 @@ public:
         PropertiesType::Pointer pProperties ) const override;
 
 
-    virtual void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
     virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
@@ -78,7 +78,9 @@ public:
                                               array_1d<double, 4>& Weight,
                                               array_1d<double, 3>& wall_delta_disp_at_contact_point,
                                               array_1d<double, 3>& wall_velocity_at_contact_point,
-                                              int& ContactType){}
+                                              int& ContactType){
+        KRATOS_ERROR << "Base class DemWall method ComputeConditionRelativeData was called!" << std::endl;
+    }
     virtual bool IsPhantom(){return false;}
     virtual int CheckSide(SphericParticle* p_particle){return 1.0;}
 
@@ -117,11 +119,10 @@ protected:
 private:
     ///@name Static Member Variables
     std::vector<SphericParticle*> mVectorOfGluedParticles;
-    /// privat variables
+    /// private variables
 
 
-    // privat name Operations
-
+    // private name Operations
 
 
     ///@}
@@ -133,11 +134,13 @@ private:
     virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        //rSerializer.save("mRightHandSideVector", mRightHandSideVector);
     }
 
     virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        //rSerializer.load("mRightHandSideVector", mRightHandSideVector);
     }
 
 

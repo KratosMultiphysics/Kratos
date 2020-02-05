@@ -3,20 +3,20 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication.MainFemDem as MainFemDem
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DEMApplication as DEM
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
 class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
     def Info(self):
-        print("FEM part of the FEMDEM application") 
+        print("FEM part of the FEMDEM application")
 
 
     def Initialize(self):
 
         #### INITIALIZE ####
-        
+
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
 
@@ -29,63 +29,15 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-
-        # Adding PFEM Variables TODO put in another place
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_ERROR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DEM_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DELTA_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.ELASTIC_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.TANGENTIAL_ELASTIC_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.SHEAR_STRESS)
 
 
-        #VARIABLES FOR PAPANASTASIOU MODEL
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
-
-        #VARIABLES FOR MU-I RHEOLOGY MODEL
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_OLD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_RATE)
-
-        # PFEM fluid variables
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
-
-        
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()
 
@@ -98,7 +50,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         # Add materials (assign material to model_parts if Materials.json exists)
         self.AddMaterials()
-        
+
         # Add processes
         self.model_processes = self.AddProcesses()
         self.model_processes.ExecuteInitialize()
@@ -120,7 +72,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
-        
+
         self.GraphicalOutputExecuteInitialize()
 
         print(" ")
@@ -130,7 +82,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         self.model_processes.ExecuteBeforeSolutionLoop()
 
-        self.GraphicalOutputExecuteBeforeSolutionLoop()        
+        self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
         self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -152,7 +104,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
                 interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
-                interval = KratosMultiphysics.IntervalUtility(interval_settings)            
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)
                 # Getting the time step of the interval
                 if interval.IsInInterval(current_time):
                     return interval_settings["time_step"].GetDouble()

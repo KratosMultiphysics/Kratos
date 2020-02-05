@@ -124,11 +124,12 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
+        self.PrintAnalysisStageProgressInformation()
+
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
-        self.PrintAnalysisStageProgressInformation()
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -171,6 +172,11 @@ class AnalysisStage(object):
         self._GetSolver().Check()
         for process in self._GetListOfProcesses():
             process.Check()
+
+    def Clear(self):
+        """This function clears the AnalysisStage
+        """
+        self._GetSolver().Clear()
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """

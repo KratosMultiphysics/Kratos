@@ -153,6 +153,10 @@ class TestTimeLabel(KratosUnittest.TestCase):
         self.assertEqual(TimeLabel("kratos-1.2.h5"), "1.2")
         self.assertEqual(TimeLabel("kratos-1.2e+00.h5"), "1.2e+00")
         self.assertEqual(TimeLabel("kratos-1.2E+00.h5"), "1.2E+00")
+        self.assertEqual(TimeLabel("kratos-1.2E-01.h5"), "1.2E-01")
+        self.assertEqual(TimeLabel("kratos-kratos-1.2E-01.h5"), "1.2E-01")
+        self.assertEqual(TimeLabel("kratos1-kratos-1.2E-01.h5"), "1.2E-01")
+        self.assertEqual(TimeLabel("kratos1-kratos-1.2E+01.h5"), "1.2E+01")
 
 
 class TestFindMatchingFiles(KratosUnittest.TestCase):

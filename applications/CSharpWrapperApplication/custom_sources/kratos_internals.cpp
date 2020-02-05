@@ -23,7 +23,7 @@
 #include "custom_includes/kratos_internals.h"
 #include "utilities/variable_utils.h"
 #include "utilities/read_materials_utility.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 
 //#define SKIN_SUBMODEL_PART_NAME "skin_model_part"
 
@@ -151,7 +151,7 @@ void KratosInternals::initSolver() {
     if (mSettingsParameters["solver_settings"]["linear_solver_settings"].Has("solver_type")) {
         pSolver = LinearSolverFactoryType().Create(mSettingsParameters["solver_settings"]["linear_solver_settings"]);
     } else { // Automatic
-        std::array<std::string, 5> linear_solvers_by_speed = {"pardiso_lu", "sparse_lu", "pastix", "super_lu", "skyline_lu_factorization"};
+        std::array<std::string, 5> linear_solvers_by_speed = {"pastix", "super_lu", "skyline_lu_factorization"};
         for (auto& r_name_solver :  linear_solvers_by_speed) {
             if (LinearSolverFactoryType().Has(r_name_solver)) {
                 mSettingsParameters["solver_settings"]["linear_solver_settings"].AddEmptyValue("solver_type").SetString(r_name_solver);

@@ -3,7 +3,6 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 0
-    CONDUCTIVITY 1.0
 End Properties
 
 Begin Properties 1
@@ -22,14 +21,14 @@ Begin Nodes
 End Nodes
 
 Begin Elements LaplacianElement2D3N// GUI group identifier: Domain
-        1          0          5          8          2 
-        2          0          9          7          8 
-        3          0          6          3          7 
-        4          0          1          2          3 
-        5          0          2          8          4 
-        6          0          4          8          7 
-        7          0          4          7          3 
-        8          0          4          3          2 
+        1          0          5          8          2
+        2          0          9          7          8
+        3          0          6          3          7
+        4          0          1          2          3
+        5          0          2          8          4
+        6          0          4          8          7
+        7          0          4          7          3
+        8          0          4          3          2
 End Elements
 
 Begin Conditions LineCondition2D2N// GUI group identifier: Domain

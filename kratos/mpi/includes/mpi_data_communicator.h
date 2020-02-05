@@ -197,9 +197,17 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    bool AndReduce(
+        const bool Value,
+        const int Root) const override;
+
     Kratos::Flags AndReduce(
         const Kratos::Flags Values,
         const Kratos::Flags Mask,
+        const int Root) const override;
+
+    bool OrReduce(
+        const bool Value,
         const int Root) const override;
 
     Kratos::Flags OrReduce(
@@ -215,7 +223,11 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
 
+    bool AndReduceAll(const bool Value) const override;
+
     Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    bool OrReduceAll(const bool Value) const override;
 
     Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
