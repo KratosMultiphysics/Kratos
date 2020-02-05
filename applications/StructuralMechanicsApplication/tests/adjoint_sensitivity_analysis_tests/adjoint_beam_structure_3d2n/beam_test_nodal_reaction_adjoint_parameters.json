@@ -35,9 +35,6 @@
             },
         "echo_level"                   : 0,
         "rotation_dofs"                      : true,
-        "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
-        },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "Beam_structure"

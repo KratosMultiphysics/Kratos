@@ -1,27 +1,26 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import os
+
 #import kratos core and applications
-from KratosMultiphysics import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
-    has_hdf5_application = True
-else:
-    has_hdf5_application = False
+has_hdf5_application = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
 
 def solve_primal_problem(file_name):
     with open(file_name,'r') as parameter_file:
-        ProjectParametersPrimal = Parameters( parameter_file.read())
+        ProjectParametersPrimal = KratosMultiphysics.Parameters( parameter_file.read())
 
     # To avoid many prints
     if (ProjectParametersPrimal["problem_data"]["echo_level"].GetInt() == 0):
-        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     else:
-        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
-    model_primal = Model()
+    model_primal = KratosMultiphysics.Model()
     primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
     primal_analysis.Run()
 
@@ -42,9 +41,9 @@ class TestAdjointSensitivityAnalysisSpringDamperStructure(KratosUnittest.TestCas
         #Create the adjoint solver
         with KratosUnittest.WorkFolderScope(_get_test_working_dir() , __file__):
             with open("AdjointParameters.json",'r') as parameter_file:
-                ProjectParametersAdjoint = Parameters( parameter_file.read())
+                ProjectParametersAdjoint = KratosMultiphysics.Parameters( parameter_file.read())
 
-            model_adjoint = Model()
+            model_adjoint = KratosMultiphysics.Model()
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
             adjoint_analysis.Run()
 
