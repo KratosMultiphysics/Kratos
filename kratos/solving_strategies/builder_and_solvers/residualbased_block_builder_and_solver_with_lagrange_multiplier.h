@@ -142,16 +142,14 @@ public:
     /**
      * @brief Default constructor.
      */
-    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool ScaleDiagonal = true,
-        const bool ConsiderNormDiagonal = true,
-        const bool SilentWarnings = false,
-        const bool ConsiderDoubleLagrangeMultiplier = true
-        ) : BaseType(pNewLinearSystemSolver, ScaleDiagonal, ConsiderNormDiagonal, SilentWarnings)
+    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(typename TLinearSolver::Pointer pNewLinearSystemSolver)   
+        : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
-        BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ConsiderDoubleLagrangeMultiplier);
+        BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, true);
+        BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+        BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
+        BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
     }
 
     /** Destructor.
