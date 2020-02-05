@@ -433,16 +433,14 @@ class MechanicalSolver(PythonSolver):
             bs_params.AddValue("scale_diagonal",self.settings["scale_diagonal_block_builder_and_solver"])
             bs_params.AddValue("consider_norm_diagonal",self.settings["consider_norm_diagonal"])
             bs_params.AddValue("silent_warnings",self.settings["silent_warnings_block_builder_and_solver"])
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
-            scale_diagonal_block_builder_and_solver = self.settings["scale_diagonal_block_builder_and_solver"].GetBool()
-            consider_norm_diagonal = self.settings["consider_norm_diagonal"].GetBool()
-            silent_warnings_block_builder_and_solver = self.settings["silent_warnings_block_builder_and_solver"].GetBool()
             consider_lagrange_multiplier_constraint_resolution = self.settings["consider_lagrange_multiplier_constraint_resolution"].GetString()
             if consider_lagrange_multiplier_constraint_resolution == "None":
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, scale_diagonal_block_builder_and_solver, consider_norm_diagonal, silent_warnings_block_builder_and_solver)
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
                 double_lm = True if consider_lagrange_multiplier_constraint_resolution == 'Double' else False
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, scale_diagonal_block_builder_and_solver, silent_warnings_block_builder_and_solver, double_lm)
+                bs_params.AddValue("consider_double_lagrange_multiplier",self.settings["silent_warnings_block_builder_and_solver"])
+                bs_params["consider_double_lagrange_multiplier"].SetBool(double_lm)
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
