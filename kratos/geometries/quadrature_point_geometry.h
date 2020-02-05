@@ -148,10 +148,11 @@ public:
     QuadraturePointGeometry(
         QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
-        , mGeometryData( rOther.mGeometryData )
+        , mGeometryData(
+            &msGeometryDimension,
+            rOther.GetGeometryData().GetGeometryShapeFunctionContainer())
         , mpGeometryParent( rOther.mpGeometryParent )
     {
-        mGeometryData.SetGeometryDimension(&msGeometryDimension);
     }
 
     /// Destructor.
@@ -162,10 +163,11 @@ public:
     QuadraturePointGeometry(
         QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
         : BaseType( rOther )
-        , mGeometryData( rOther.mGeometryData )
+        , mGeometryData(
+            &msGeometryDimension,
+            rOther.GetGeometryData().GetGeometryShapeFunctionContainer())
         , mpGeometryParent(rOther.mpGeometryParent)
     {
-        mGeometryData.SetGeometryDimension(&msGeometryDimension);
     }
 
     ///@}
@@ -178,8 +180,9 @@ public:
     {
         BaseType::operator=( rOther );
 
-        mGeometryData = rOther.mGeometryData;
-        mGeometryData.SetGeometryDimension(&msGeometryDimension);
+        mGeometryData = GeometryData(
+            &msGeometryDimension,
+            rOther.GetGeometryData().GetGeometryShapeFunctionContainer());
 
         mpGeometryParent = rOther.mpGeometryParent;
 
@@ -193,8 +196,9 @@ public:
     {
         BaseType::operator=( rOther );
 
-        mGeometryData = rOther.mGeometryData;
-        mGeometryData.SetGeometryDimension(&msGeometryDimension);
+        mGeometryData = GeometryData(
+            &msGeometryDimension,
+            rOther.GetGeometryData().GetGeometryShapeFunctionContainer());
 
         mpGeometryParent = rOther.mpGeometryParent;
 

@@ -295,7 +295,8 @@ public:
     * Construct this geometry data as a copy of given geometry data.
     */
     GeometryData( const GeometryData& rOther )
-        : mGeometryShapeFunctionContainer( rOther.mGeometryShapeFunctionContainer)
+        : mpGeometryDimension( rOther.mpGeometryDimension)
+        , mGeometryShapeFunctionContainer( rOther.mGeometryShapeFunctionContainer)
     {
     }
 
@@ -321,6 +322,7 @@ public:
     */
     GeometryData& operator=( const GeometryData& rOther )
     {
+        mpGeometryDimension = rOther.mpGeometryDimension;
         mGeometryShapeFunctionContainer = rOther.mGeometryShapeFunctionContainer;
 
         return *this;
@@ -333,6 +335,15 @@ public:
     void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
     {
         mpGeometryDimension = pGeometryDimension;
+    }
+
+    ///@}
+    ///@name GeometryShapeFunctionContainer
+    ///@{
+
+    GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer()
+    {
+        return mGeometryShapeFunctionContainer;
     }
 
     ///@}
