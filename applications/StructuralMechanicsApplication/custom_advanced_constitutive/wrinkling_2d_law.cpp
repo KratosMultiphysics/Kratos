@@ -375,8 +375,7 @@ void Wrinkling2DLaw::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
-    mpConstitutiveLaw->InitializeSolutionStep(base_claw_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+    mpConstitutiveLaw->InitializeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 void Wrinkling2DLaw::FinalizeSolutionStep(
@@ -386,8 +385,7 @@ void Wrinkling2DLaw::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
-    mpConstitutiveLaw->FinalizeSolutionStep(base_claw_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+    mpConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 
@@ -399,8 +397,7 @@ void Wrinkling2DLaw::InitializeNonLinearIteration(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
-    mpConstitutiveLaw->InitializeNonLinearIteration(base_claw_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+    mpConstitutiveLaw->InitializeNonLinearIteration(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 
@@ -412,8 +409,7 @@ void Wrinkling2DLaw::FinalizeNonLinearIteration(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
-    mpConstitutiveLaw->FinalizeNonLinearIteration(base_claw_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+    mpConstitutiveLaw->FinalizeNonLinearIteration(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 
@@ -424,11 +420,10 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     // do standard calculation
     Vector strain_vector = rValues.GetStrainVector();
     Vector stress_vector = ZeroVector(3);
-    const Properties& base_claw_prop = *(rValues.GetMaterialProperties().GetSubProperties().begin());
 
     Matrix material_tangent_modulus = ZeroMatrix(3);
     ConstitutiveLaw::Parameters element_parameters;
-    element_parameters.SetMaterialProperties(base_claw_prop);
+    element_parameters.SetMaterialProperties(rValues.GetMaterialProperties());
     element_parameters.SetStrainVector(strain_vector);
     element_parameters.SetStressVector(stress_vector);
     element_parameters.SetConstitutiveMatrix(material_tangent_modulus);
@@ -530,8 +525,7 @@ void Wrinkling2DLaw::ResetMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
-    mpConstitutiveLaw->ResetMaterial(base_claw_prop, rElementGeometry, rShapeFunctionsValues);
+    mpConstitutiveLaw->ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
 
 
@@ -606,14 +600,7 @@ int Wrinkling2DLaw::Check(
     )
 {
     KRATOS_ERROR_IF_NOT(mpConstitutiveLaw) << "Wrinkling2DLaw is not initialized" << std::endl;
-    const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
-    mpConstitutiveLaw->Check(base_claw_prop,rElementGeometry,rCurrentProcessInfo);
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS)) << "THICKNESS must be given in the main claw variables" << std::endl;
-    KRATOS_ERROR_IF_NOT(base_claw_prop.Has(THICKNESS)) << "THICKNESS must be given in the sub claw variables" << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[THICKNESS]==base_claw_prop[THICKNESS]) << "THICKNESS must be equal in main and sub claw variables" << std::endl;
-
+    mpConstitutiveLaw->Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     return 0;
 }
 

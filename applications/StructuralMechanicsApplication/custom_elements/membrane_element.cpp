@@ -1245,7 +1245,8 @@ void MembraneElement::CheckWrinklingState(WrinklingType& rWrinklingState, const 
 //***********************************************************************************
 int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+    KRATOS_TRY;
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
     const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
@@ -1259,6 +1260,12 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(DENSITY)
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
     KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
+
+    if (GetProperties().Has(THICKNESS) == false ||
+            GetProperties()[THICKNESS] <= numerical_limit) {
+        KRATOS_ERROR << "THICKNESS not provided for element " << Id()
+                     << std::endl;
+    }
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( SizeType i = 0; i < number_of_nodes; i++ ) {
