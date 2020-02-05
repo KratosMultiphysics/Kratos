@@ -122,7 +122,7 @@ public:
     /**
      * @brief This method clears the assignation of the conditions
      */
-    void Clear();
+    void Clear() override;
     
     ///@}
     ///@name Access
