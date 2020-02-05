@@ -72,7 +72,7 @@ namespace Testing
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
 
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
+        p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
         p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
         // Check RHS and LHS results
@@ -126,7 +126,7 @@ namespace Testing
         Vector RHS = ZeroVector(12);
         Matrix LHS = ZeroMatrix(12,12);
 
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
+        p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
         p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
         // Check RHS and LHS results
@@ -184,7 +184,7 @@ namespace Testing
         Vector RHS = ZeroVector(32);
         Matrix LHS = ZeroMatrix(32,32);
 
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
+        p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
         p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
         // Check RHS and LHS results
@@ -242,7 +242,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
-        p_element->Initialize();
+        p_element->Initialize(r_model_part.GetProcessInfo());
 
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0e-5;
@@ -316,7 +316,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
-        p_element->Initialize();
+        p_element->Initialize(r_model_part.GetProcessInfo());
 
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0;
@@ -415,7 +415,7 @@ namespace Testing
 
         // Initialize the elements to initialize the constitutive law
         for (auto &r_elem : r_model_part.Elements()) {
-            r_elem.Initialize();
+            r_elem.Initialize(r_model_part.GetProcessInfo());
         }
 
         // Construct the linear solver pointer

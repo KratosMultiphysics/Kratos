@@ -150,7 +150,7 @@ void SmallDisplacementMixedVolumetricStrainElement::GetDofList(
 /***********************************************************************************/
 
 //TODO: Change to Initialize(const ProcessInfo& rCurrentProcessInfo)
-void SmallDisplacementMixedVolumetricStrainElement::Initialize()
+void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -167,9 +167,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize()
     InitializeMaterial();
 
     // Calculate the and save the anisotropy transformation tensor
-    const ProcessInfo fake_process_info; // TODO: This has to be removed once the Initialize has the ProcessInfo as argument
-    CalculateAnisotropyTensor(fake_process_info);
-    // CalculateAnisotropyTensor(rCurrentProcessInfo); //TODO: Use this when we change to Initialize(const ProcessInfo&)
+    CalculateAnisotropyTensor(rCurrentProcessInfo); //TODO: Use this when we change to Initialize(const ProcessInfo&)
     CalculateInverseAnisotropyTensor();
 
     KRATOS_CATCH( "" )
@@ -345,30 +343,27 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // Calculate the anisotropy tensors
+        // Calculate the anisotropy tensor products
         m_T = prod(voigt_identity, mAnisotropyTensor);
-        const Matrix m_T_tensor = MathUtils<double>::StrainVectorToTensor(m_T);
         const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
+        const Matrix devC = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(devC, B_i)));
+            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        double m_T_tau_1 = 0.0;
-        for (IndexType i = 0; i < dim; ++i) {
-            for (IndexType j = 0; j < dim; ++j) {
-                m_T_tau_1 += m_T_tensor(i,j) * tau_1_mat(i,j);
-            }
-        }
+        const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+        double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
@@ -525,30 +520,27 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // Calculate the anisotropy tensors
+        // Calculate the anisotropy tensor products
         m_T = prod(voigt_identity, mAnisotropyTensor);
-        const Matrix m_T_tensor = MathUtils<double>::StrainVectorToTensor(m_T);
         const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
         // Calculate tau_1 stabilization constant
-        Matrix aux = ZeroMatrix(dim, dim);
+        Matrix aux = ZeroMatrix(dim,dim);
+        const Matrix devC = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            for (IndexType k = 0; k < strain_size; ++k) {
+            for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
-                    B_i(k, l) = kinematic_variables.B(k, i_node * dim + l);
+                    B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(devC, B_i)));
+            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        double m_T_tau_1 = 0.0;
-        for (IndexType i = 0; i < dim; ++i) {
-            for (IndexType j = 0; j < dim; ++j) {
-                m_T_tau_1 += m_T_tensor(i, j) * tau_1_mat(i, j);
-            }
-        }
+        const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+        double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
@@ -675,30 +667,27 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // Calculate the anisotropy tensors
+        // Calculate the anisotropy tensor products
         m_T = prod(voigt_identity, mAnisotropyTensor);
-        const Matrix m_T_tensor = MathUtils<double>::StrainVectorToTensor(m_T);
         const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
+        const Matrix devC = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(devC, B_i)));
+            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        double m_T_tau_1 = 0.0;
-        for (IndexType i = 0; i < dim; ++i) {
-            for (IndexType j = 0; j < dim; ++j) {
-                m_T_tau_1 += m_T_tensor(i,j) * tau_1_mat(i,j);
-            }
-        }
+        const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+        double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
