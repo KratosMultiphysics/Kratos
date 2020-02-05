@@ -445,6 +445,70 @@ class TestOperations(KratosUnittest.TestCase):
             self.assertEqual(p.call_count, 1)
             self.assertEqual(element_flag_value_io.ReadElementFlags.call_count, 1)
 
+    def test_ConditionDataValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_data_value_output'
+        condition_data_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_data_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True) as p:
+            condition_data_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_data_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_data_value_io.WriteConditionResults.call_count, 1)
+
+    def test_ConditionFlagValueOutput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_flag_value_output'
+        condition_flag_value_output = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_flag_value_output, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True) as p:
+            condition_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_flag_value_output(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_flag_value_io.WriteConditionFlags.call_count, 1)
+
+    def test_ConditionDataValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_data_value_input'
+        condition_data_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_data_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True) as p:
+            condition_data_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_data_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_data_value_io.ReadConditionResults.call_count, 1)
+
+    def test_ConditionFlagValueInput(self):
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'condition_flag_value_input'
+        condition_flag_value_input = operations.Create(settings)
+        self.assertTrue(settings.Has('prefix'))
+        self.assertTrue(settings.Has('list_of_variables'))
+        self.assertTrue(settings['list_of_variables'].IsArray())
+        self.assertIsInstance(condition_flag_value_input, operations.VariableIO)
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True) as p:
+            condition_flag_value_io = p.return_value
+            model_part = _SurrogateModelPart()
+            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
+            condition_flag_value_input(model_part, hdf5_file)
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(condition_flag_value_io.ReadConditionFlags.call_count, 1)
+
     def test_PrimalBossakOutput(self):
         settings = ParametersWrapper()
         settings['operation_type'] = 'primal_bossak_output'
