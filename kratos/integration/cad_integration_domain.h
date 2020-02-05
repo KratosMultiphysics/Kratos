@@ -63,7 +63,7 @@ public:
 
     static void CreateIntegrationDomain(
         ModelPart& rModelPart,
-        ModelPart &rCadModelPart,
+        ModelPart& rCadModelPart,
         const Parameters& rPhysicsParameters,
         int EchoLevel = 0)
     {
@@ -76,6 +76,7 @@ public:
             rPhysicsParameters["element_condition_list"],
             EchoLevel);
     }
+
 private:
     static void CreateIntegrationDomainElementConditionList(
         ModelPart& rModelPart,
@@ -118,6 +119,10 @@ private:
             ? rModelPart.GetSubModelPart(sub_model_part_name)
             : rModelPart.CreateSubModelPart(sub_model_part_name);
 
+        KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", EchoLevel > 1)
+            << "SubModelPart: " << sub_model_part_name << " prepared for geometrical integration of: "
+            << geometry_type << "s" << std::endl;
+
         // Generate the list of geometries, which are needed, here.
         GeometriesArrayType geometry_list;
         CadIntegrationDomain::GetGeometryList(geometry_list, rModelPart, rParameters, EchoLevel);
@@ -126,14 +131,16 @@ private:
         {
             CadIntegrationDomain::GetGeometryPointsAt(geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
         }
-        if (geometry_type == "GeometryCurveVariationNodes" || geometry_type == "GeometrySurfaceVariationNodes")
+        else if (geometry_type == "GeometryCurveVariationNodes" || geometry_type == "GeometrySurfaceVariationNodes")
         {
             CadIntegrationDomain::GetGeometryPointsAt(geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
         }
         else
         {
-            CadIntegrationDomain::CreateQuadraturePointGeometries(geometry_list, sub_model_part, rParameters, EchoLevel);
+            CadIntegrationDomain::CreateQuadraturePointGeometries(geometry_list, sub_model_part, rParameters["parameters"], EchoLevel);
         }
+        KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", EchoLevel > 3)
+            << "Creation of elements/ conditions finished in: " << sub_model_part << std::endl;
     }
 
     static void CreateQuadraturePointGeometries(
