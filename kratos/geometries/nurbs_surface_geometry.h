@@ -335,7 +335,7 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) const override
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         // shape function container.
         NurbsSurfaceShapeFunction shape_function_container(

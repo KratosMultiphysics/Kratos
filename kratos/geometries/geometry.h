@@ -1907,7 +1907,7 @@ public:
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) const
+        const IntegrationPointsArrayType& rIntegrationPoints)
     {
         KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from base class."
             << " Please check the definition of derived class. "
@@ -1926,8 +1926,8 @@ public:
     * @see quadrature_point_geometry.h
     */
     virtual void CreateQuadraturePointGeometries(
-    GeometriesArrayType& rResultGeometries,
-    IndexType NumberOfShapeFunctionDerivatives) const
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
     {
         IntegrationPointsArrayType IntegrationPoints;
         CreateIntegrationPoints(IntegrationPoints);
