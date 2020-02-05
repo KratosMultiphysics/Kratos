@@ -65,8 +65,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
                     "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
                     "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N",
-                    "MembraneElement3D3N"           : "AdjointFiniteDifferencingMembraneElement3D3N",
-                    "MembraneElement3D4N"           : "AdjointFiniteDifferencingMembraneElement3D4N"
+                    "MembraneElement3D3N"            : "AdjointFiniteDifferencingMembraneElement3D3N",
+                    "MembraneElement3D4N"            : "AdjointFiniteDifferencingMembraneElement3D4N",
+                    "CableElement3D2N"               : "AdjointFiniteDifferenceCableElement3D2N"
                 },
                 "condition_name_table" :
                 {
