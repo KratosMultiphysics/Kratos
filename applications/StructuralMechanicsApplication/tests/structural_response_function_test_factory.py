@@ -4,31 +4,15 @@ import os
 
 # Import Kratos core and apps
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-    has_eigensolvers_application = True
-else:
-    has_eigensolvers_application = False
+has_eigensolvers_application = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
-
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
