@@ -341,7 +341,7 @@ public:
     ///@name GeometryShapeFunctionContainer
     ///@{
 
-    GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer()
+    GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer() const
     {
         return mGeometryShapeFunctionContainer;
     }
