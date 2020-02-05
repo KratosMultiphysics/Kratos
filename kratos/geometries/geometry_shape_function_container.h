@@ -161,6 +161,7 @@ public:
         : mIntegrationPoints({})
         , mShapeFunctionsValues({})
         , mShapeFunctionsLocalGradients({})
+        , mShapeFunctionsDerivatives({})
     {
     }
 
@@ -173,6 +174,7 @@ public:
         , mIntegrationPoints(rOther.mIntegrationPoints)
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
+        , mShapeFunctionsDerivatives( rOther.mShapeFunctionsDerivatives )
     {
     }
 
@@ -190,6 +192,7 @@ public:
         mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
         mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
+        mShapeFunctionsDerivatives = rOther.mShapeFunctionsDerivatives;
 
         return *this;
     }
