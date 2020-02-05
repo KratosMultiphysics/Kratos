@@ -325,8 +325,8 @@ public:
     *                       2D: du^3, du^2dv, dudv^2, dv^3 (size2 = 4)
     */
     const Matrix& ShapeFunctionDerivatives(
-        IndexType IntegrationPointIndex,
         IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
         /* Shape function values are stored within a Matrix, however, only one row
