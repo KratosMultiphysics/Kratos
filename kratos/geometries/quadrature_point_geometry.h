@@ -151,6 +151,7 @@ public:
         , mGeometryData( rOther.mGeometryData )
         , mpGeometryParent( rOther.mpGeometryParent )
     {
+        mGeometryData.SetGeometryDimension(&msGeometryDimension);
     }
 
     /// Destructor.
@@ -164,6 +165,7 @@ public:
         , mGeometryData( rOther.mGeometryData )
         , mpGeometryParent(rOther.mpGeometryParent)
     {
+        mGeometryData.SetGeometryDimension(&msGeometryDimension);
     }
 
     ///@}
@@ -177,6 +179,8 @@ public:
         BaseType::operator=( rOther );
 
         mGeometryData = rOther.mGeometryData;
+        mGeometryData.SetGeometryDimension(&msGeometryDimension);
+
         mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
@@ -190,6 +194,8 @@ public:
         BaseType::operator=( rOther );
 
         mGeometryData = rOther.mGeometryData;
+        mGeometryData.SetGeometryDimension(&msGeometryDimension);
+
         mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
