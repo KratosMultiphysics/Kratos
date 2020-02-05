@@ -26,7 +26,7 @@ std::string GetCurrentWorkingDir()
 {
     KRATOS_TRY
 
-    return filesystem::current_path().string();
+    return FilesystemExtensions::CurrentWorkingDirectory();
 
     KRATOS_CATCH("")
 }
