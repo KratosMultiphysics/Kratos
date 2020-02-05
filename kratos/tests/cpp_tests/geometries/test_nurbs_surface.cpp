@@ -437,7 +437,7 @@ namespace Testing {
         double area = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             for (IndexType j = 0; j < quadrature_points.size(); ++j) {
-                area += quadrature_points[i].IntegrationPoints[j].Weight();
+                area += quadrature_points[i].IntegrationPoints()[j].Weight();
             }
         }
         KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
@@ -452,13 +452,13 @@ namespace Testing {
             quadrature_points(2)->ShapeFunctionsValues(),
             TOLERANCE);
 
-            // Check first derivatives
+        // Check first derivatives
         KRATOS_CHECK_MATRIX_NEAR(
             p_element->GetGeometry().ShapeFunctionDerivatives(1, 0),
             quadrature_points(2)->ShapeFunctionLocalGradient(0),
             TOLERANCE);
 
-            // Check second derivatives
+        // Check second derivatives
         KRATOS_CHECK_MATRIX_NEAR(
             p_element->GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
