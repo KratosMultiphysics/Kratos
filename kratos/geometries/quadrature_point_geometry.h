@@ -114,7 +114,7 @@ public:
     /// Constructor with points and geometry shape function container
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -124,7 +124,7 @@ public:
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
