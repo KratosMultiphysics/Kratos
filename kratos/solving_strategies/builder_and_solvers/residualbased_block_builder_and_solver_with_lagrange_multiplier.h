@@ -125,7 +125,7 @@ public:
         {
             "name"                                : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
             "scale_diagonal"                      : true,
-            "consider_norm_diagonal"              : true,
+            "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
             "silent_warnings"                     : false,
             "consider_double_lagrange_multiplier" : true
         })" );
@@ -134,7 +134,17 @@ public:
 
         // Setting flags
         BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
-        BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, ThisParameters["consider_norm_diagonal"].GetBool());
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+        if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
+            BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+        } else {
+            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            // We assume it is a number
+            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
+            number_stream >> BaseType::mScaleFactor; 
+        }
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ThisParameters["consider_double_lagrange_multiplier"].GetBool());
     }
