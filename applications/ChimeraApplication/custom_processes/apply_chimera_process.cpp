@@ -435,12 +435,11 @@ void ApplyChimera<TDim>::FormulateConstraints(
 
     ApplyChimera<TDim>::IndexType found_counter = 0;
     ApplyChimera<TDim>::IndexType removed_counter = 0;
-    std::vector<ApplyChimera<TDim>::IndexType> nodes_to_add;
 
     BuiltinTimer loop_over_b_nodes;
 #pragma omp parallel for shared(constraints_id_vector,               \
                                 rVelocityMasterSlaveContainerVector, \
-                                rPressureMasterSlaveContainerVector, rBinLocator)
+                                rPressureMasterSlaveContainerVector, rBinLocator) reduction(+:found_counter)
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
         auto& ms_velocity_container =
             rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
