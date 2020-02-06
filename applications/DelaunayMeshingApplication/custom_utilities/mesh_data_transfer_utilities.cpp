@@ -1391,7 +1391,7 @@ void MeshDataTransferUtilities::FillVectorData(VariablesList& rVariablesList,
     if(KratosComponents<Variable<Vector > >::Has(variable_name))
     {
       //std::cout<<"Vector"<<std::endl;
-      const Variable<Vector>& variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+      Variable<Vector> variable = KratosComponents<Variable<Vector > >::Get(variable_name);
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
         //getting the data of the solution step
@@ -1433,7 +1433,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
     double data;
     if(KratosComponents<Variable<double> >::Has(variable_name))
     {
-      const Variable<double>& variable = KratosComponents<Variable<double> >::Get(variable_name);
+      Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
         //getting the data of the solution step
@@ -1463,7 +1463,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
       //std::cout<<"array1d"<<std::endl;
-      const Variable<array_1d<double, 3> >& variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
+      Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
       array_1d<double, 3> data;
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
@@ -1495,7 +1495,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
     else if(KratosComponents<Variable<Matrix > >::Has(variable_name))
     {
       //std::cout<<"Matrix"<<std::endl;
-      const Variable<Matrix>& variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
+      Variable<Matrix> variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
       Matrix data;
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
@@ -1538,7 +1538,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
     else if(KratosComponents<Variable<Vector > >::Has(variable_name))
     {
       //std::cout<<"Vector"<<std::endl;
-      const Variable<Vector>& variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+      Variable<Vector> variable = KratosComponents<Variable<Vector > >::Get(variable_name);
       Vector data;
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
@@ -1587,7 +1587,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
       //std::cout<<"string"<<std::endl;
       //NO INTERPOLATION
 
-      const Variable<std::string>& variable = KratosComponents<Variable<std::string> >::Get(variable_name);
+      Variable<std::string> variable = KratosComponents<Variable<std::string> >::Get(variable_name);
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
         //assign data from the first node
@@ -1598,7 +1598,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
     {
       //std::cout<<"int"<<std::endl;
       //NO INTERPOLATION
-      const Variable<int>& variable = KratosComponents<Variable<int> >::Get(variable_name);
+      Variable<int> variable = KratosComponents<Variable<int> >::Get(variable_name);
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
         //assign data from the first node
@@ -1609,7 +1609,7 @@ void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
     {
       //std::cout<<"bool"<<std::endl;
       //NO INTERPOLATION
-      const Variable<bool>& variable = KratosComponents<Variable<bool> >::Get(variable_name);
+      Variable<bool> variable = KratosComponents<Variable<bool> >::Get(variable_name);
       for(unsigned int step = 0; step<buffer_size; ++step)
       {
         //assign data from the first node
