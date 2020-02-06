@@ -5,7 +5,7 @@ import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 class ControlModuleFemDemUtility(object):
     def __init__(self, Model, spheres_model_part, test_number):
 
-        self.fem_main_model_part = Model["Structure"]
+        fem_main_model_part = Model["Structure"]
         self.dem_main_model_part = spheres_model_part
 
         self.components_utility_list = []
@@ -22,7 +22,8 @@ class ControlModuleFemDemUtility(object):
             compression_length = 0.009144
             face_area = 0.088343
 
-        if self.fem_main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+        if fem_main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            self.fem_submodel_part = Model["Structure.Parts_Solid_part"]
             settings = KratosMultiphysics.Parameters( """
             {
                 "target_stress_table_id" : 1,
@@ -38,7 +39,7 @@ class ControlModuleFemDemUtility(object):
 
             settings.AddEmptyValue("face_area")
             settings["face_area"].SetDouble(face_area)
-            self.components_utility_list.append(DemFem.ControlModuleFemDem2DUtilities(self.fem_main_model_part, self.dem_main_model_part, settings))
+            self.components_utility_list.append(DemFem.ControlModuleFemDem2DUtilities(self.fem_submodel_part, self.dem_main_model_part, settings))
         else:
             self.top_fem_model_part = Model["Structure.SurfacePressure3D_top_pressure"]
             #self.top_fem_model_part = Model["Structure.SurfacePressure3D_sigmaZpos"]
