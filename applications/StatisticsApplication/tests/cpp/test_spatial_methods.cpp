@@ -57,10 +57,10 @@ void RunSpatialSumMethodTest()
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    double sum_method_density;
-    array_1d<double, 3> sum_method_velocity;
-    statistics_methods::CalculateSum(sum_method_density, test_model_part, DENSITY);
-    statistics_methods::CalculateSum(sum_method_velocity, test_model_part, VELOCITY);
+    const double sum_method_density =
+        statistics_methods::CalculateSum(test_model_part, DENSITY);
+    const array_1d<double, 3>& sum_method_velocity =
+        statistics_methods::CalculateSum(test_model_part, VELOCITY);
 
     double sum_density = 0.0;
     array_1d<double, 3> sum_velocity = ZeroVector(3);
@@ -90,10 +90,10 @@ void RunSpatialMeanMethodTest()
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    double mean_method_density;
-    array_1d<double, 3> mean_method_velocity;
-    statistics_methods::CalculateMean(mean_method_density, test_model_part, DENSITY);
-    statistics_methods::CalculateMean(mean_method_velocity, test_model_part, VELOCITY);
+    const double mean_method_density =
+        statistics_methods::CalculateMean(test_model_part, DENSITY);
+    const array_1d<double, 3>& mean_method_velocity =
+        statistics_methods::CalculateMean(test_model_part, VELOCITY);
 
     double mean_density = 0.0;
     array_1d<double, 3> mean_velocity = ZeroVector(3);
@@ -126,12 +126,16 @@ void RunSpatialVarianceMethodTest()
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    double mean_method_density, variance_method_density;
-    array_1d<double, 3> mean_method_velocity, variance_method_velocity;
-    statistics_methods::CalculateVariance(
-        mean_method_density, variance_method_density, test_model_part, DENSITY);
-    statistics_methods::CalculateVariance(
-        mean_method_velocity, variance_method_velocity, test_model_part, VELOCITY);
+    const std::tuple<double, double>& method_density =
+        statistics_methods::CalculateVariance(test_model_part, DENSITY);
+    const std::tuple<array_1d<double, 3>, array_1d<double, 3>>& method_velocity =
+        statistics_methods::CalculateVariance(test_model_part, VELOCITY);
+
+    const double mean_method_density = std::get<0>(method_density);
+    const double variance_method_density = std::get<1>(method_density);
+
+    const array_1d<double, 3>& mean_method_velocity = std::get<0>(method_velocity);
+    const array_1d<double, 3>& variance_method_velocity = std::get<1>(method_velocity);
 
     double mean_density = 0.0;
     array_1d<double, 3> mean_velocity = ZeroVector(3);
@@ -177,12 +181,14 @@ void RunSpatialMinMethodTest(const std::string& rNormType)
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    double min_method_density, min_method_velocity;
-    std::size_t min_method_density_id, min_method_velocity_id;
-    statistics_methods::GetMin(min_method_density, min_method_density_id,
-                               rNormType, test_model_part, DENSITY);
-    statistics_methods::GetMin(min_method_velocity, min_method_velocity_id,
-                               rNormType, test_model_part, VELOCITY);
+    const std::tuple<double, std::size_t>& method_density =
+        statistics_methods::GetMin(rNormType, test_model_part, DENSITY);
+    const std::tuple<double, std::size_t>& method_velocity =
+        statistics_methods::GetMin(rNormType, test_model_part, VELOCITY);
+    const double min_method_density = std::get<0>(method_density);
+    const double min_method_density_id = std::get<1>(method_density);
+    const double min_method_velocity = std::get<0>(method_velocity);
+    const double min_method_velocity_id = std::get<1>(method_velocity);
 
     const double max_value = std::numeric_limits<double>::max();
 
@@ -248,12 +254,16 @@ void RunSpatialMaxMethodTest(const std::string& rNormType)
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    double max_method_density, max_method_velocity;
-    std::size_t max_method_density_id, max_method_velocity_id;
-    statistics_methods::GetMax(max_method_density, max_method_density_id,
-                               rNormType, test_model_part, DENSITY);
-    statistics_methods::GetMax(max_method_velocity, max_method_velocity_id,
-                               rNormType, test_model_part, VELOCITY);
+    const std::tuple<double, std::size_t>& method_density =
+        statistics_methods::GetMax(rNormType, test_model_part, DENSITY);
+    const std::tuple<double, std::size_t>& method_velocity =
+        statistics_methods::GetMax(rNormType, test_model_part, VELOCITY);
+
+    const double max_method_density = std::get<0>(method_density);
+    const std::size_t max_method_density_id = std::get<1>(method_density);
+
+    const double max_method_velocity = std::get<0>(method_velocity);
+    const std::size_t max_method_velocity_id = std::get<1>(method_velocity);
 
     const double min_value = std::numeric_limits<double>::lowest();
 

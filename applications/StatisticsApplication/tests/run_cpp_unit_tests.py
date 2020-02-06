@@ -3,7 +3,7 @@ from KratosMultiphysics.StatisticsApplication import *
 
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
+    Tester.SetVerbosity(Tester.Verbosity.FAILED_TESTS_OUTPUTS)  # TESTS_OUTPUTS
     Tester.RunTestSuite("KratosStatisticsFastSuite")
 
 

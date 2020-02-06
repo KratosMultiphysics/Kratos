@@ -15,6 +15,8 @@
 
 // System includes
 #include <cmath>
+#include <functional>
+#include <tuple>
 
 // External includes
 
@@ -22,7 +24,6 @@
 #include "includes/communicator.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 
 // Application includes
 #include "custom_utilities/method_utilities.h"
@@ -42,9 +43,8 @@ class ContainerSpatialMethods
 {
 public:
     template <typename TDataType>
-    void static CalculateSum(TDataType& rSum,
-                             const ModelPart& rModelPart,
-                             const Variable<TDataType>& rVariable)
+    TDataType static CalculateSum(const ModelPart& rModelPart,
+                                  const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
@@ -54,8 +54,8 @@ public:
         const TDataType& r_initial_value =
             TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
 
-        rSum = rVariable.Zero();
-        MethodsUtilities::DataTypeSizeInitializer(rSum, r_initial_value);
+        TDataType global_sum = rVariable.Zero();
+        MethodsUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
 
 #pragma omp parallel
         {
@@ -73,17 +73,18 @@ public:
             }
 #pragma omp critical
             {
-                rSum += sum;
+                global_sum += sum;
             }
         }
 
-        rSum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(rSum);
+        global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
+        return global_sum;
 
         KRATOS_CATCH("");
     }
 
     // special overloaded method for flags
-    void static CalculateSum(int& rSum, const ModelPart& rModelPart, const Flags& rVariable)
+    int static CalculateSum(const ModelPart& rModelPart, const Flags& rVariable)
     {
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
@@ -96,15 +97,15 @@ public:
             sum += r_item.Is(rVariable);
         }
 
-        rSum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(sum);
+        sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(sum);
+        return sum;
     }
 
     template <typename TDataType>
-    void static CalculateMean(TDataType& rMean,
-                              const ModelPart& rModelPart,
-                              const Variable<TDataType>& rVariable)
+    TDataType static CalculateMean(const ModelPart& rModelPart,
+                                   const Variable<TDataType>& rVariable)
     {
-        CalculateSum<TDataType>(rMean, rModelPart, rVariable);
+        const TDataType& sum = CalculateSum<TDataType>(rModelPart, rVariable);
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
 
@@ -114,17 +115,17 @@ public:
 
         if (number_of_items > 0)
         {
-            rMean *= (1.0 / static_cast<double>(number_of_items));
+            return sum * (1.0 / static_cast<double>(number_of_items));
         }
+
+        return rVariable.Zero();
     }
 
     template <typename TDataType>
-    void static CalculateVariance(TDataType& rMean,
-                                  TDataType& rVariance,
-                                  const ModelPart& rModelPart,
-                                  const Variable<TDataType>& rVariable)
+    std::tuple<TDataType, TDataType> static CalculateVariance(const ModelPart& rModelPart,
+                                                              const Variable<TDataType>& rVariable)
     {
-        CalculateMean<TDataType>(rMean, rModelPart, rVariable);
+        TDataType mean = CalculateMean<TDataType>(rModelPart, rVariable);
 
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
@@ -132,8 +133,8 @@ public:
         const TDataType& r_initial_value =
             TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
 
-        rVariance = rVariable.Zero();
-        MethodsUtilities::DataTypeSizeInitializer(rVariance, r_initial_value);
+        TDataType global_variance = rVariable.Zero();
+        MethodsUtilities::DataTypeSizeInitializer(global_variance, r_initial_value);
 
 #pragma omp parallel
         {
@@ -152,35 +153,38 @@ public:
             }
 #pragma omp critical
             {
-                rVariance += variance;
+                global_variance += variance;
             }
         }
-        rVariance = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(rVariance);
+        global_variance =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
         const unsigned int number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
                 r_container.size());
 
         if (number_of_items > 0)
         {
-            rVariance *= (1.0 / static_cast<double>(number_of_items));
-            rVariance -= MethodsUtilities::RaiseToPower(rMean, 2);
+            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance -= MethodsUtilities::RaiseToPower(mean, 2);
         }
+
+        return std::make_tuple<TDataType, TDataType>(
+            std::forward<TDataType>(mean), std::forward<TDataType>(global_variance));
     }
 
     template <typename TDataType>
-    void static GetMax(double& rMax,
-                       std::size_t& rId,
-                       const std::string& rNormType,
-                       const ModelPart& rModelPart,
-                       const Variable<TDataType>& rVariable)
+    std::tuple<double, std::size_t> static GetMax(const std::string& rNormType,
+                                                  const ModelPart& rModelPart,
+                                                  const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
 
-        rMax = std::numeric_limits<double>::lowest();
-        const int multiplication_table = GetMultiplicationTable(rVariable, rNormType);
+        double global_max = std::numeric_limits<double>::lowest();
+        std::size_t global_id = 0;
+        const auto& norm_method = GetNormMethod(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -192,7 +196,7 @@ public:
                 const TContainerItemType& r_item = *(r_container.begin() + i);
                 const TDataType& current_value =
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                const double value_norm = GetNorm(current_value, multiplication_table);
+                const double value_norm = norm_method(current_value);
                 if (value_norm > current_max)
                 {
                     current_max = value_norm;
@@ -201,33 +205,49 @@ public:
             }
 #pragma omp critical
             {
-                if (current_max > rMax)
+                if (current_max > global_max)
                 {
-                    rMax = current_max;
-                    rId = current_id;
+                    global_max = current_max;
+                    global_id = current_id;
                 }
             }
         }
 
-        rMax = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(rMax);
+        const DataCommunicator& r_communicator =
+            rModelPart.GetCommunicator().GetDataCommunicator();
+        const std::vector<double> global_max_value_array =
+            r_communicator.AllGather(std::vector<double>{{global_max}});
+        const std::vector<std::size_t> global_max_id_array =
+            r_communicator.AllGather(std::vector<std::size_t>{{global_id}});
+
+        for (std::size_t i = 0; i < global_max_value_array.size(); ++i)
+        {
+            if (global_max_value_array[i] > global_max)
+            {
+                global_max = global_max_value_array[i];
+                global_id = global_max_id_array[i];
+            }
+        }
+
+        return std::make_tuple<double, std::size_t>(
+            std::forward<double>(global_max), std::forward<std::size_t>(global_id));
 
         KRATOS_CATCH("");
     }
 
     template <typename TDataType>
-    void static GetMin(double& rMin,
-                       std::size_t& rId,
-                       const std::string& rNormType,
-                       const ModelPart& rModelPart,
-                       const Variable<TDataType>& rVariable)
+    std::tuple<double, std::size_t> static GetMin(const std::string& rNormType,
+                                                  const ModelPart& rModelPart,
+                                                  const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
 
-        rMin = std::numeric_limits<double>::max();
-        const int multiplication_table = GetMultiplicationTable(rVariable, rNormType);
+        double global_min = std::numeric_limits<double>::max();
+        std::size_t global_id = 0;
+        const auto& norm_method = GetNormMethod(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -239,7 +259,7 @@ public:
                 const TContainerItemType& r_item = *(r_container.begin() + i);
                 const TDataType& current_value =
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                const double value_norm = GetNorm(current_value, multiplication_table);
+                const double value_norm = norm_method(current_value);
                 if (value_norm < current_min)
                 {
                     current_min = value_norm;
@@ -248,46 +268,71 @@ public:
             }
 #pragma omp critical
             {
-                if (current_min < rMin)
+                if (current_min < global_min)
                 {
-                    rMin = current_min;
-                    rId = current_id;
+                    global_min = current_min;
+                    global_id = current_id;
                 }
             }
         }
 
-        rMin = rModelPart.GetCommunicator().GetDataCommunicator().MinAll(rMin);
+        const DataCommunicator& r_communicator =
+            rModelPart.GetCommunicator().GetDataCommunicator();
+        const std::vector<double> global_min_value_array =
+            r_communicator.AllGather(std::vector<double>{{global_min}});
+        const std::vector<std::size_t> global_min_id_array =
+            r_communicator.AllGather(std::vector<std::size_t>{{global_id}});
+
+        for (std::size_t i = 0; i < global_min_value_array.size(); ++i)
+        {
+            if (global_min_value_array[i] < global_min)
+            {
+                global_min = global_min_value_array[i];
+                global_id = global_min_id_array[i];
+            }
+        }
+
+        return std::make_tuple<double, std::size_t>(
+            std::forward<double>(global_min), std::forward<std::size_t>(global_id));
 
         KRATOS_CATCH("");
     }
 
 private:
-    const int static GetMultiplicationTable(const Variable<double>&, const std::string&)
+    const std::function<double(const double&)> static GetNormMethod(const Variable<double>&,
+                                                                    const std::string&)
     {
-        return 1;
+        return [](const double& rValue) -> double { return rValue; };
     }
 
-    const int static GetMultiplicationTable(const Variable<array_1d<double, 3>>& rVariable,
-                                            const std::string& rNormType)
+    const std::function<double(const array_1d<double, 3>&)> static GetNormMethod(
+        const Variable<array_1d<double, 3>>& rVariable, const std::string& rNormType)
     {
         KRATOS_TRY
 
-        int index = -1;
         if (rNormType == "magnitude")
         {
-            index = 3;
+            return [](const array_1d<double, 3>& rValue) -> double {
+                return norm_2(rValue);
+            };
         }
         else if (rNormType == "component_x")
         {
-            index = 0;
+            return [](const array_1d<double, 3>& rValue) -> double {
+                return rValue[0];
+            };
         }
         else if (rNormType == "component_y")
         {
-            index = 1;
+            return [](const array_1d<double, 3>& rValue) -> double {
+                return rValue[1];
+            };
         }
         else if (rNormType == "component_z")
         {
-            index = 2;
+            return [](const array_1d<double, 3>& rValue) -> double {
+                return rValue[2];
+            };
         }
         else
         {
@@ -300,31 +345,9 @@ private:
                          << "        component_z\n";
         }
 
-        return index;
+        return [](const array_1d<double, 3>& rValue) -> double { return 0.0; };
 
         KRATOS_CATCH("");
-    }
-
-    double static GetNorm(const double Value, const int)
-    {
-        return Value;
-    }
-
-    double static GetNorm(const array_1d<double, 3>& rValue, const int Index)
-    {
-        if (Index < 3)
-        {
-            return rValue[Index];
-        }
-        else
-        {
-            double value_norm = 0.0;
-            for (int i = 0; i < 3; ++i)
-            {
-                value_norm += std::pow(rValue[i], 2);
-            }
-            return std::sqrt(value_norm);
-        }
     }
 };
 } // namespace SpatialMethods
