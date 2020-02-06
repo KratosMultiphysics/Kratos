@@ -134,6 +134,7 @@ public:
     {
     }
 
+    /// Constructor.
     explicit QuadraturePointGeometry(
         const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
@@ -167,7 +168,6 @@ public:
         BaseType::operator=( rOther );
 
         mGeometryData = rOther.mGeometryData;
-
         mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
