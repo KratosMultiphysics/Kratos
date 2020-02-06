@@ -9,8 +9,19 @@ class TestFlags(KratosUnittest.TestCase):
         self.model_part = self.model.CreateModelPart("TestModelPart")
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
-    def tearDown(self):
-        pass
+    def test_CopyConstructor(self):
+        flag1 = ACTIVE | STRUCTURE | MPI_BOUNDARY
+        flag2 = Flags(flag1)
+
+        flag1 |= VISITED | RIGID # modify the original flags, this should not affect the copy-constructed flags
+        self.assertTrue(flag1.Is(VISITED))
+        self.assertTrue(flag1.Is(RIGID))
+
+        self.assertTrue(flag2.Is(ACTIVE))
+        self.assertTrue(flag2.Is(STRUCTURE))
+        self.assertTrue(flag2.Is(MPI_BOUNDARY))
+        self.assertFalse(flag2.Is(VISITED))
+        self.assertFalse(flag2.Is(RIGID))
 
     def testFlagSetReset(self):
         node = self.model_part.GetNode(1)
