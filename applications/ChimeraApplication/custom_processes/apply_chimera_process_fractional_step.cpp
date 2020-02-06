@@ -111,11 +111,8 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart&
                             vel_modelpart.MasterSlaveConstraints());
     VariableUtils().SetFlag(ACTIVE, true, pre_modelpart.MasterSlaveConstraints());
 
-    KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took : ", BaseType::mEchoLevel > 1)
+    KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took         : ", BaseType::mEchoLevel > 1)
         << mpc_add_time.ElapsedSeconds() << " seconds" << std::endl;
-    KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1)
-        << rBoundaryModelPart.Name() << " : "
-        << rBoundaryModelPart.NumberOfNodes() << std::endl;
 }
 
 // Template declarations

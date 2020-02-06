@@ -16,6 +16,8 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
 
 
     def __init__(self, model, custom_settings):
+        self.chimera_settings = custom_settings["chimera_settings"].Clone()
+        custom_settings.RemoveValue("chimera_settings")
         super(NavierStokesSolverFractionalStepForChimera,self).__init__(model,custom_settings)
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Construction of NavierStokesSolverFractionalStepForChimera finished.")
 
@@ -23,7 +25,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         super(NavierStokesSolverFractionalStepForChimera,self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.CHIMERA_DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATIONAL_ANGLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATIONAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_VELOCITY)

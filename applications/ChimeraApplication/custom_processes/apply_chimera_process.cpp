@@ -211,8 +211,9 @@ void ApplyChimera<TDim>::DoChimeraLoop()
     KRATOS_INFO_IF(
         "ApplyChimera : Chimera Initialization took               : ", mEchoLevel > 0)
         << do_chimera_loop_time.ElapsedSeconds() << " seconds" << std::endl;
-    KRATOS_INFO_IF("ApplyChimera : Number of constraints for Chimera     :", mEchoLevel > 0)
+    KRATOS_INFO_IF("ApplyChimera : Number of constraints for Chimera         : ", mEchoLevel > 0)
         << mrMainModelPart.NumberOfMasterSlaveConstraints() << std::endl;
+    KRATOS_INFO("End of Formulate Chimera") << std::endl;
 }
 
 template <int TDim>
@@ -287,8 +288,6 @@ void ApplyChimera<TDim>::FormulateChimera(const Parameters BackgroundParam,
     r_hole_boundary_model_part.RemoveSubModelPart(mBoundaryName);
     r_background_model_part.RemoveSubModelPart(mHoleName);
     r_patch_model_part.RemoveSubModelPart(mModifiedName);
-
-    KRATOS_INFO("End of Formulate Chimera") << std::endl;
 }
 
 template <int TDim>
