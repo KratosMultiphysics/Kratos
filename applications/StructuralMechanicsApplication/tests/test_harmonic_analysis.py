@@ -7,6 +7,10 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 
+external_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication")
+eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
+hdf5_application_available = kratos_utils.CheckIfApplicationsAvailable("HDF5Application")
+
 from math import sqrt
 from cmath import phase
 import os
@@ -102,7 +106,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
         return mp
 
+    @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
     def test_undamped_mdof_harmonic(self):
+        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
         current_model = KratosMultiphysics.Model()
         #analytic solution taken from Humar - Dynamics of Structures p. 675
 
@@ -120,7 +126,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         harmonic_solver = self._setup_harmonic_solver(mp)
 
         exfreq = 1.0
-        max_exfreq = 20.0
+        max_exfreq = 2.0
         df = 0.05
 
         while(exfreq <= max_exfreq):
@@ -139,7 +145,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
             exfreq = exfreq + df
 
+    @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
     def test_damped_mdof_harmonic(self):
+        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
         current_model = KratosMultiphysics.Model()
 
         #analytic solution taken from Humar - Dynamics of Structures p. 677
@@ -159,7 +167,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         harmonic_solver = self._setup_harmonic_solver(mp)
 
         exfreq = 1.0
-        max_exfreq = 20.0
+        max_exfreq = 2.0
         df = 0.05
 
         while(exfreq <= max_exfreq):
@@ -197,11 +205,10 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             exfreq = exfreq + df
 
 class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
+    @KratosUnittest.skipUnless(hdf5_application_available and eigen_solvers_application_available,"Missing required application: HDF5Application, EigenSolversApplication")
     def test_harmonic_mdpa_input(self):
-        if not kratos_utils.CheckIfApplicationsAvailable("HDF5Application"):
-            self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
 
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".",__file__):
             #run simulation and write to hdf5 file
             model = KratosMultiphysics.Model()
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json"
