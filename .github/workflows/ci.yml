@@ -2,33 +2,8 @@ name: CI
 
 on:
   pull_request:
-    paths:
-    - '.github/**'
-    - 'cmake_modules/**'
-    - 'scripts/**'
-    - 'CMakeLists.txt'
-    - 'external_libraries/**'
-    - 'kratos/**'
-    - 'applications/CableNetApplication/**'
-    - 'applications/CompressiblePotentialFlowApplication/**'
-    - 'applications/ContactStructuralMechanicsApplication/**'
-    - 'applications/CoSimulationApplication/**'
-    - 'applications/CSharpWrapperApplication/**'
-    - 'applications/DEMApplication/**'
-    - 'applications/EigenSolversApplication/**'
-    - 'applications/ExternalSolversApplication/**'
-    - 'applications/FluidDynamicsApplication/**'
-    - 'applications/FSIApplication/**'
-    - 'applications/MappingApplication/**'
-    - 'applications/MeshingApplication/**'
-    - 'applications/MeshMovingApplication/**'
-    - 'applications/MetisApplication/**'
-    - 'applications/RANSApplication/**'
-    - 'applications/ShapeOptimizationApplication/**'
-    - 'applications/StructuralMechanicsApplication/**'
-    - 'applications/SwimmingDEMApplication/**'
-    - 'applications/TrilinosApplication/**'
-    - 'applications/HDF5Application/**'
+    branches:
+      - master
 
   schedule:
     - cron:  '0 1 * * *'
