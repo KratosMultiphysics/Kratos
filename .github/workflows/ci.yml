@@ -15,6 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
 
@@ -27,28 +28,38 @@ jobs:
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
         FC: gfortran-7
-        CC: /usr/lib/ccache/gcc
-        CXX: /usr/lib/ccache/g++
+        # CC: /usr/lib/ccache/gcc
+        # CXX: /usr/lib/ccache/g++
 
     steps:
     - uses: actions/checkout@v2-beta
 
-    - name: Cache Build
-      id: cache-build
-      uses: actions/cache@v1
-      with:
-        path: ~/.ccache
-        key: ${{ runner.os }}-ccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-ccache-
+    # - name: Cache Build
+    #   id: cache-build
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: ~/.ccache
+    #     key: ${{ runner.os }}-ccache-${{ github.sha }}
+    #     restore-keys: ${{ runner.os }}-ccache-
 
     - name: Build
       run: |
+        if [ ${{ matrix.compiler }} == gcc ]; then
+          export CC=/usr/bin/gcc
+          export CXX=/usr/bin/g++
+        elif [ ${{ matrix.compiler }} == clang ]; then
+          export CC=/usr/bin/clang
+          export CXX=/usr/bin/clang++
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
         export MKLVARS_ARCHITECTURE=intel64
         export MKLVARS_INTERFACE=lp64
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
-        ccache -s
+        # ccache -s
 
     - name: Running small tests
       if: github.event_name == 'pull_request'
