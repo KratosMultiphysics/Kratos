@@ -315,13 +315,12 @@ namespace Kratos
             // Testing scale
             Parameters parameters = Parameters(R"(
             {
-                "scale_diagonal"         : true,
-                "consider_norm_diagonal" : false,
-                "silent_warnings"        : false
+                "scale_diagonal"                     : true,
+                "diagonal_values_for_dirichlet_dofs" : "2.26648e+10",
+                "silent_warnings"                    : false
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
             
-            r_model_part.GetProcessInfo()[BUILD_SCALE_FACTOR] = 2.26648e+10;
             const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
 
             KRATOS_CHECK(rA.size1() == 6);
