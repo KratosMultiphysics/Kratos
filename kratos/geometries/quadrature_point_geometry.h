@@ -148,9 +148,7 @@ public:
     QuadraturePointGeometry(
         QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
-        , mGeometryData(
-            rOther.GetGeometryData(),
-            &msGeometryDimension)
+        , mGeometryData(rOther.mGeometryData)
         , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
