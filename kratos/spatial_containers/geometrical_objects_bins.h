@@ -43,9 +43,9 @@ namespace Kratos
 
 /// A bins container for 3 dimensional GeometricalObject entities.
 /** It provides efficent search in radius and search nearest methods.
- * All of the geometries should be given at construction time. After 
+ * All of the geometries should be given at construction time. After
  * constructing the bins the geometries cannot be modified. In case of
- * any modification, the bins should be reconstructed.  
+ * any modification, the bins should be reconstructed.
  * Please note that the current implementation is only for triangles.
  * Addapt it to other geometries is postponed to after adding distance
  * method to the geometry.
@@ -125,7 +125,7 @@ public:
         return mNumberOfCells[0] * mNumberOfCells[1] * mNumberOfCells[2];
     }
 
-    /// Accessing cell_ijk giving the 3 indices 
+    /// Accessing cell_ijk giving the 3 indices
     CellType& GetCell(std::size_t I, std::size_t J, std::size_t K){
         KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
         KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
@@ -142,11 +142,11 @@ public:
         KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
 
         BoundingBox<Point> result;
-        
+
         result.GetMinPoint()[0] = mBoundingBox.GetMinPoint()[0] + I * mCellSizes[0];
         result.GetMinPoint()[1] = mBoundingBox.GetMinPoint()[1] + J * mCellSizes[1];
         result.GetMinPoint()[2] = mBoundingBox.GetMinPoint()[2] + K * mCellSizes[2];
-         
+
         result.GetMaxPoint()[0] = mBoundingBox.GetMinPoint()[0] + (I + 1) * mCellSizes[0];
         result.GetMaxPoint()[1] = mBoundingBox.GetMinPoint()[1] + (J + 1) * mCellSizes[1];
         result.GetMaxPoint()[2] = mBoundingBox.GetMinPoint()[2] + (K + 1) * mCellSizes[2];
@@ -186,7 +186,7 @@ public:
     /** This method takes a point and finds the nearest object to it in a given radius.
      * If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not. 
+     * Result contains a flag is the object has been found or not.
     */
      template<typename TPointType>
     ResultType SearchNearestInRadius(TPointType const& ThePoint, double Radius) {
@@ -225,7 +225,7 @@ public:
 
     /** This method takes a point and finds the nearest object to it.
      * If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not. 
+     * Result contains a flag is the object has been found or not.
     */
     template<typename TPointType>
     ResultType SearchNearest(TPointType const& ThePoint) {
@@ -275,7 +275,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-	
+
     BoundingBox<Point> mBoundingBox;
 	array_1d<std::size_t, Dimension> mNumberOfCells;
     array_1d<double, 3>  mCellSizes;
@@ -323,21 +323,21 @@ private:
     /// Adding objects to the cells that intersecting with it.
     template<typename TIteratorType>
 	void AddObjectsToCells(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
-        for(auto i_geometrical_object = GeometricalObjectsBegin ; i_geometrical_object != GeometricalObjectsEnd ; i_geometrical_object++){
-            array_1d< std::size_t, 3 > min_position;
-            array_1d< std::size_t, 3 > max_position;
-            CalculateMinMaxPositions(i_geometrical_object->GetGeometry(), min_position, max_position);
-            for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
-                for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
-                    for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
-                        auto cell_bounding_box = GetCellBoundingBox(i,j,k);
-                        if(IsIntersected(i_geometrical_object->GetGeometry(), cell_bounding_box, Tolerance)){
-                            GetCell(i,j,k).push_back(&(*i_geometrical_object));
-                        }
-                    }
-                }
-            }
-        }        
+        // for(auto i_geometrical_object = GeometricalObjectsBegin ; i_geometrical_object != GeometricalObjectsEnd ; i_geometrical_object++){
+        //     array_1d< std::size_t, 3 > min_position(0.0);
+        //     array_1d< std::size_t, 3 > max_position(0.0);
+        //     CalculateMinMaxPositions(i_geometrical_object->GetGeometry(), min_position, max_position);
+        //     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
+        //         for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
+        //             for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
+        //                 auto cell_bounding_box = GetCellBoundingBox(i,j,k);
+        //                 if(IsIntersected(i_geometrical_object->GetGeometry(), cell_bounding_box, Tolerance)){
+        //                     GetCell(i,j,k).push_back(&(*i_geometrical_object));
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     /// Giving the min and max position of cells intersecting with the bounding box of the geometry.
@@ -365,27 +365,27 @@ private:
                                 : position;
         return result;
     }
-    
+
     /// Expands by the tolerance the geometry bounding box and checks the intersection
     template<typename TGeometryType>
     static inline bool IsIntersected(TGeometryType& TheGeometry, BoundingBox<Point> Box, const double tolerance)
     {
         Point rLowPointTolerance;
         Point rHighPointTolerance;
-        
+
         for(std::size_t i = 0; i<3; i++)
         {
             rLowPointTolerance[i]  =  Box.GetMinPoint()[i] - tolerance;
             rHighPointTolerance[i] =  Box.GetMaxPoint()[i] + tolerance;
         }
-        
+
         return  TheGeometry.HasIntersection(rLowPointTolerance,rHighPointTolerance);
     }
 
     /// Searchs in objects in the given cell for the ones with distance less than given radius + tolerance.
     template<typename TPointType>
     void SearchInRadiusInCell(CellType const& TheCell, TPointType const& ThePoint, double Radius, std::unordered_set<GeometricalObject*>& rResults) {
-        for(auto p_geometrical_object : TheCell){  
+        for(auto p_geometrical_object : TheCell){
             auto& geometry = p_geometrical_object->GetGeometry();
             // TODO: Change this to new Distance method of the geometry to be more general
             double distance = GeometryUtils::PointDistanceToTriangle3D(
@@ -402,7 +402,7 @@ private:
    /// Searchs in objects in the given cell for the nearest one.
     template<typename TPointType>
     void SearchNearestInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult, double MaxRadius) {
-        for(auto p_geometrical_object : TheCell){  
+        for(auto p_geometrical_object : TheCell){
             auto& geometry = p_geometrical_object->GetGeometry();
             // TODO: Change this to new Distance method of the geometry to be more general
             double distance = GeometryUtils::PointDistanceToTriangle3D(
