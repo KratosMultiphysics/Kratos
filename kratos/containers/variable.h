@@ -85,7 +85,7 @@ public:
      * @param NewName The name to be assigned to the new variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
-    explicit Variable(const std::string& NewName, const TDataType Zero = TDataType())
+    Variable(const std::string& NewName, const TDataType Zero = TDataType())
         : VariableData(NewName, sizeof(TDataType)), mZero(Zero)
     {
     }
@@ -94,7 +94,7 @@ public:
      * Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    explicit Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
+    Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
 
     /// Destructor.
     ~Variable() override {}
