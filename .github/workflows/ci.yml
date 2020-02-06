@@ -48,8 +48,9 @@ jobs:
           export CC=/usr/bin/gcc
           export CXX=/usr/bin/g++
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang-9
-          export CXX=/usr/bin/clang++-9
+          apt-get -y install clang-7
+          export CC=/usr/bin/clang-7
+          export CXX=/usr/bin/clang++-7
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
