@@ -32,313 +32,392 @@ namespace Testing
 {
 namespace
 {
-template <typename TContainerType, typename TContainerItemType>
-void InitializeSpatialMethodNonHistoricalVariables(TContainerType& rContainer)
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+void InitializeSpatialMethodVariables(TContainerType& rContainer)
 {
     using random_initializer =
-        StatisticsApplicationTestUtilities::RandomInitializer<TContainerType, TContainerItemType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor,
-                                                              MethodsUtilities::NonHistoricalDataValueInitializationFunctor>;
+        StatisticsApplicationTestUtilities::RandomInitializer<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
     random_initializer::InitializeVariableWithRandomValues(rContainer, DENSITY);
     random_initializer::InitializeVariableWithRandomValues(rContainer, VELOCITY);
-    random_initializer::InitializeVariableWithRandomValues(rContainer, EXTERNAL_FORCES_VECTOR);
-    random_initializer::InitializeVariableWithRandomValues(
-        rContainer, GREEN_LAGRANGE_STRAIN_TENSOR);
 }
 
-template <typename TContainerType, typename TContainerItemType>
-void InitializeSpatialMethodHistoricalVariables(TContainerType& rContainer)
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+void RunSpatialSumMethodTest()
 {
-    using random_initializer =
-        StatisticsApplicationTestUtilities::RandomInitializer<TContainerType, TContainerItemType, MethodsUtilities::HistoricalDataValueRetrievalFunctor,
-                                                              MethodsUtilities::HistoricalDataValueInitializationFunctor>;
-    random_initializer::InitializeVariableWithRandomValues(rContainer, DENSITY);
-    random_initializer::InitializeVariableWithRandomValues(rContainer, VELOCITY);
-    random_initializer::InitializeVariableWithRandomValues(rContainer, EXTERNAL_FORCES_VECTOR);
-    random_initializer::InitializeVariableWithRandomValues(
-        rContainer, GREEN_LAGRANGE_STRAIN_TENSOR);
+    Model test_model;
+    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
+    StatisticsApplicationTestUtilities::AddNodalSolutionStepVariables(test_model_part);
+    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+
+    TContainerType& r_container =
+        MethodsUtilities::GetDataContainer<TContainerType>(test_model_part);
+
+    InitializeSpatialMethodVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor>(
+        r_container);
+    using statistics_methods =
+        SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
+
+    double sum_method_density;
+    array_1d<double, 3> sum_method_velocity;
+    statistics_methods::CalculateSum(sum_method_density, test_model_part, DENSITY);
+    statistics_methods::CalculateSum(sum_method_velocity, test_model_part, VELOCITY);
+
+    double sum_density = 0.0;
+    array_1d<double, 3> sum_velocity = ZeroVector(3);
+    for (const TContainerItemType& r_item : r_container)
+    {
+        sum_density += TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+        sum_velocity += TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+    }
+
+    KRATOS_CHECK_NEAR(sum_density, sum_method_density, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(sum_velocity, sum_method_velocity, 1e-12);
 }
+
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+void RunSpatialMeanMethodTest()
+{
+    Model test_model;
+    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
+    StatisticsApplicationTestUtilities::AddNodalSolutionStepVariables(test_model_part);
+    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+
+    TContainerType& r_container =
+        MethodsUtilities::GetDataContainer<TContainerType>(test_model_part);
+
+    InitializeSpatialMethodVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor>(
+        r_container);
+    using statistics_methods =
+        SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
+
+    double mean_method_density;
+    array_1d<double, 3> mean_method_velocity;
+    statistics_methods::CalculateMean(mean_method_density, test_model_part, DENSITY);
+    statistics_methods::CalculateMean(mean_method_velocity, test_model_part, VELOCITY);
+
+    double mean_density = 0.0;
+    array_1d<double, 3> mean_velocity = ZeroVector(3);
+    for (const TContainerItemType& r_item : r_container)
+    {
+        mean_density += TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+        mean_velocity += TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+    }
+
+    mean_density /= r_container.size();
+    mean_velocity /= r_container.size();
+
+    KRATOS_CHECK_NEAR(mean_density, mean_method_density, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(mean_velocity, mean_method_velocity, 1e-12);
+}
+
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+void RunSpatialVarianceMethodTest()
+{
+    Model test_model;
+    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
+    StatisticsApplicationTestUtilities::AddNodalSolutionStepVariables(test_model_part);
+    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+
+    TContainerType& r_container =
+        MethodsUtilities::GetDataContainer<TContainerType>(test_model_part);
+
+    InitializeSpatialMethodVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor>(
+        r_container);
+    using statistics_methods =
+        SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
+
+    double mean_method_density, variance_method_density;
+    array_1d<double, 3> mean_method_velocity, variance_method_velocity;
+    statistics_methods::CalculateVariance(
+        mean_method_density, variance_method_density, test_model_part, DENSITY);
+    statistics_methods::CalculateVariance(
+        mean_method_velocity, variance_method_velocity, test_model_part, VELOCITY);
+
+    double mean_density = 0.0;
+    array_1d<double, 3> mean_velocity = ZeroVector(3);
+    double variance_density = 0.0;
+    array_1d<double, 3> variance_velocity = ZeroVector(3);
+    for (const TContainerItemType& r_item : r_container)
+    {
+        mean_density += TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+        mean_velocity += TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+        variance_density += MethodsUtilities::RaiseToPower(
+            TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY), 2);
+        variance_velocity += MethodsUtilities::RaiseToPower(
+            TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY), 2);
+    }
+
+    const int n = r_container.size();
+    mean_density /= n;
+    mean_velocity /= n;
+    variance_density =
+        variance_density / n - MethodsUtilities::RaiseToPower(mean_density, 2);
+    variance_velocity =
+        variance_velocity / n - MethodsUtilities::RaiseToPower(mean_velocity, 2);
+
+    KRATOS_CHECK_NEAR(mean_density, mean_method_density, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(mean_velocity, mean_method_velocity, 1e-12);
+    KRATOS_CHECK_NEAR(variance_density, variance_method_density, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(variance_velocity, variance_method_velocity, 1e-12);
+}
+
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+void RunSpatialMinMethodTest(const std::string& rNormType)
+{
+    Model test_model;
+    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
+    StatisticsApplicationTestUtilities::AddNodalSolutionStepVariables(test_model_part);
+    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+
+    TContainerType& r_container =
+        MethodsUtilities::GetDataContainer<TContainerType>(test_model_part);
+
+    InitializeSpatialMethodVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor>(
+        r_container);
+    using statistics_methods =
+        SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
+
+    double min_method_density, min_method_velocity;
+    std::size_t min_method_density_id, min_method_velocity_id;
+    statistics_methods::GetMin(min_method_density, min_method_density_id,
+                               rNormType, test_model_part, DENSITY);
+    statistics_methods::GetMin(min_method_velocity, min_method_velocity_id,
+                               rNormType, test_model_part, VELOCITY);
+
+    const double max_value = std::numeric_limits<double>::max();
+
+    double min_density{max_value}, min_velocity{max_value};
+    std::size_t min_density_id{0}, min_velocity_id{0};
+
+    for (const TContainerItemType& r_item : r_container)
+    {
+        const double current_density =
+            TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+        if (current_density < min_density)
+        {
+            min_density = current_density;
+            min_density_id = r_item.Id();
+        }
+
+        const array_1d<double, 3>& r_current_velocity =
+            TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+        double current_velocity_norm = 0.0;
+        if (rNormType == "magnitude")
+        {
+            current_velocity_norm = norm_2(r_current_velocity);
+        }
+        else if (rNormType == "component_x")
+        {
+            current_velocity_norm = r_current_velocity[0];
+        }
+        else if (rNormType == "component_y")
+        {
+            current_velocity_norm = r_current_velocity[1];
+        }
+        else if (rNormType == "component_z")
+        {
+            current_velocity_norm = r_current_velocity[2];
+        }
+
+        if (current_velocity_norm < min_velocity)
+        {
+            min_velocity = current_velocity_norm;
+            min_velocity_id = r_item.Id();
+        }
+    }
+
+    KRATOS_CHECK_NEAR(min_density, min_method_density, 1e-12);
+    KRATOS_CHECK_EQUAL(min_density_id, min_method_density_id);
+    KRATOS_CHECK_NEAR(min_velocity, min_method_velocity, 1e-12);
+    KRATOS_CHECK_EQUAL(min_velocity_id, min_method_velocity_id);
+}
+
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+void RunSpatialMaxMethodTest(const std::string& rNormType)
+{
+    Model test_model;
+    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
+    StatisticsApplicationTestUtilities::AddNodalSolutionStepVariables(test_model_part);
+    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+
+    TContainerType& r_container =
+        MethodsUtilities::GetDataContainer<TContainerType>(test_model_part);
+
+    InitializeSpatialMethodVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor>(
+        r_container);
+    using statistics_methods =
+        SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
+
+    double max_method_density, max_method_velocity;
+    std::size_t max_method_density_id, max_method_velocity_id;
+    statistics_methods::GetMax(max_method_density, max_method_density_id,
+                               rNormType, test_model_part, DENSITY);
+    statistics_methods::GetMax(max_method_velocity, max_method_velocity_id,
+                               rNormType, test_model_part, VELOCITY);
+
+    const double min_value = std::numeric_limits<double>::lowest();
+
+    double max_density{min_value}, max_velocity{min_value};
+    std::size_t max_density_id{0}, max_velocity_id{0};
+
+    for (const TContainerItemType& r_item : r_container)
+    {
+        const double current_density =
+            TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+        if (current_density > max_density)
+        {
+            max_density = current_density;
+            max_density_id = r_item.Id();
+        }
+
+        const array_1d<double, 3>& r_current_velocity =
+            TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+        double current_velocity_norm = 0.0;
+        if (rNormType == "magnitude")
+        {
+            current_velocity_norm = norm_2(r_current_velocity);
+        }
+        else if (rNormType == "component_x")
+        {
+            current_velocity_norm = r_current_velocity[0];
+        }
+        else if (rNormType == "component_y")
+        {
+            current_velocity_norm = r_current_velocity[1];
+        }
+        else if (rNormType == "component_z")
+        {
+            current_velocity_norm = r_current_velocity[2];
+        }
+
+        if (current_velocity_norm > max_velocity)
+        {
+            max_velocity = current_velocity_norm;
+            max_velocity_id = r_item.Id();
+        }
+    }
+
+    KRATOS_CHECK_NEAR(max_density, max_method_density, 1e-12);
+    KRATOS_CHECK_EQUAL(max_density_id, max_method_density_id);
+    KRATOS_CHECK_NEAR(max_velocity, max_method_velocity, 1e-12);
+    KRATOS_CHECK_EQUAL(max_velocity_id, max_method_velocity_id);
+}
+
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSumNodalNonHistorical, KratosStatisticsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSumMethod, KratosStatisticsFastSuite)
 {
-    Model test_model;
-    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
-    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
-
-    using container_item_type = ModelPart::NodeType;
-    using container_type = ModelPart::NodesContainerType;
-
-    container_type& r_container = test_model_part.Nodes();
-
-    InitializeSpatialMethodNonHistoricalVariables<container_type, container_item_type>(r_container);
-    using statistics_methods =
-        SpatialMethods::ContainerSpatialMethods<container_type, container_item_type, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
-
-    double sum_method_density;
-    array_1d<double, 3> sum_method_velocity;
-    Vector sum_method_external_forces_vector;
-    Matrix sum_method_green_lagrange_strain_tensor;
-    statistics_methods::CalculateSum(sum_method_density, r_container, DENSITY);
-    statistics_methods::CalculateSum(sum_method_velocity, r_container, VELOCITY);
-    statistics_methods::CalculateSum(sum_method_external_forces_vector,
-                                     r_container, EXTERNAL_FORCES_VECTOR);
-    statistics_methods::CalculateSum(sum_method_green_lagrange_strain_tensor,
-                                     r_container, GREEN_LAGRANGE_STRAIN_TENSOR);
-
-    double sum_density = 0.0;
-    array_1d<double, 3> sum_velocity = ZeroVector(3);
-    Vector sum_external_forces_vector(5, 0.0);
-    Matrix sum_green_lagrange_strain_tensor(5, 5, 0.0);
-    for (const container_item_type& r_item : r_container)
-    {
-        sum_density += r_item.GetValue(DENSITY);
-        sum_velocity += r_item.GetValue(VELOCITY);
-        sum_external_forces_vector += r_item.GetValue(EXTERNAL_FORCES_VECTOR);
-        sum_green_lagrange_strain_tensor += r_item.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
-    }
-
-    KRATOS_CHECK_NEAR(sum_density, sum_method_density, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(sum_velocity, sum_method_velocity, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(sum_external_forces_vector,
-                             sum_method_external_forces_vector, 1e-14);
-    KRATOS_CHECK_MATRIX_NEAR(sum_green_lagrange_strain_tensor,
-                             sum_method_green_lagrange_strain_tensor, 1e-14);
+    RunSpatialSumMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
+                            MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialSumMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType,
+                            MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialSumMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType,
+                            MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialSumMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
+                            MethodsUtilities::HistoricalDataValueRetrievalFunctor>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSumConditionNonHistorical, KratosStatisticsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialMeanMethod, KratosStatisticsFastSuite)
 {
-    Model test_model;
-    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
-    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
-
-    using container_item_type = ModelPart::ConditionType;
-    using container_type = ModelPart::ConditionsContainerType;
-
-    container_type& r_container = test_model_part.Conditions();
-
-    InitializeSpatialMethodNonHistoricalVariables<container_type, container_item_type>(r_container);
-    using statistics_methods =
-        SpatialMethods::ContainerSpatialMethods<container_type, container_item_type, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
-
-    double sum_method_density;
-    array_1d<double, 3> sum_method_velocity;
-    Vector sum_method_external_forces_vector;
-    Matrix sum_method_green_lagrange_strain_tensor;
-    statistics_methods::CalculateSum(sum_method_density, r_container, DENSITY);
-    statistics_methods::CalculateSum(sum_method_velocity, r_container, VELOCITY);
-    statistics_methods::CalculateSum(sum_method_external_forces_vector,
-                                     r_container, EXTERNAL_FORCES_VECTOR);
-    statistics_methods::CalculateSum(sum_method_green_lagrange_strain_tensor,
-                                     r_container, GREEN_LAGRANGE_STRAIN_TENSOR);
-
-    double sum_density = 0.0;
-    array_1d<double, 3> sum_velocity = ZeroVector(3);
-    Vector sum_external_forces_vector(5, 0.0);
-    Matrix sum_green_lagrange_strain_tensor(5, 5, 0.0);
-    for (const container_item_type& r_item : r_container)
-    {
-        sum_density += r_item.GetValue(DENSITY);
-        sum_velocity += r_item.GetValue(VELOCITY);
-        sum_external_forces_vector += r_item.GetValue(EXTERNAL_FORCES_VECTOR);
-        sum_green_lagrange_strain_tensor += r_item.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
-    }
-
-    KRATOS_CHECK_NEAR(sum_density, sum_method_density, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(sum_velocity, sum_method_velocity, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(sum_external_forces_vector,
-                             sum_method_external_forces_vector, 1e-14);
-    KRATOS_CHECK_MATRIX_NEAR(sum_green_lagrange_strain_tensor,
-                             sum_method_green_lagrange_strain_tensor, 1e-14);
+    RunSpatialMeanMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
+                             MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialMeanMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType,
+                             MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialMeanMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType,
+                             MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialMeanMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
+                             MethodsUtilities::HistoricalDataValueRetrievalFunctor>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSumElementNonHistorical, KratosStatisticsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialVarianceMethod, KratosStatisticsFastSuite)
 {
-    Model test_model;
-    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
-    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
-
-    using container_item_type = ModelPart::ElementType;
-    using container_type = ModelPart::ElementsContainerType;
-
-    container_type& r_container = test_model_part.Elements();
-
-    InitializeSpatialMethodNonHistoricalVariables<container_type, container_item_type>(r_container);
-    using statistics_methods =
-        SpatialMethods::ContainerSpatialMethods<container_type, container_item_type, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
-
-    double sum_method_density;
-    array_1d<double, 3> sum_method_velocity;
-    Vector sum_method_external_forces_vector;
-    Matrix sum_method_green_lagrange_strain_tensor;
-    statistics_methods::CalculateSum(sum_method_density, r_container, DENSITY);
-    statistics_methods::CalculateSum(sum_method_velocity, r_container, VELOCITY);
-    statistics_methods::CalculateSum(sum_method_external_forces_vector,
-                                     r_container, EXTERNAL_FORCES_VECTOR);
-    statistics_methods::CalculateSum(sum_method_green_lagrange_strain_tensor,
-                                     r_container, GREEN_LAGRANGE_STRAIN_TENSOR);
-
-    double sum_density = 0.0;
-    array_1d<double, 3> sum_velocity = ZeroVector(3);
-    Vector sum_external_forces_vector(5, 0.0);
-    Matrix sum_green_lagrange_strain_tensor(5, 5, 0.0);
-    for (const container_item_type& r_item : r_container)
-    {
-        sum_density += r_item.GetValue(DENSITY);
-        sum_velocity += r_item.GetValue(VELOCITY);
-        sum_external_forces_vector += r_item.GetValue(EXTERNAL_FORCES_VECTOR);
-        sum_green_lagrange_strain_tensor += r_item.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
-    }
-
-    KRATOS_CHECK_NEAR(sum_density, sum_method_density, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(sum_velocity, sum_method_velocity, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(sum_external_forces_vector,
-                             sum_method_external_forces_vector, 1e-14);
-    KRATOS_CHECK_MATRIX_NEAR(sum_green_lagrange_strain_tensor,
-                             sum_method_green_lagrange_strain_tensor, 1e-14);
+    RunSpatialVarianceMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
+                                 MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialVarianceMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType,
+                                 MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialVarianceMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType,
+                                 MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
+    RunSpatialVarianceMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
+                                 MethodsUtilities::HistoricalDataValueRetrievalFunctor>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialMeanNodalNonHistorical, KratosStatisticsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialMinMethod, KratosStatisticsFastSuite)
 {
-    Model test_model;
-    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
-    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude");
+    RunSpatialMinMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude");
+    RunSpatialMinMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude");
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude");
 
-    using container_item_type = ModelPart::NodeType;
-    using container_type = ModelPart::NodesContainerType;
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x");
+    RunSpatialMinMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x");
+    RunSpatialMinMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x");
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_x");
 
-    container_type& r_container = test_model_part.Nodes();
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y");
+    RunSpatialMinMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y");
+    RunSpatialMinMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y");
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_y");
 
-    InitializeSpatialMethodNonHistoricalVariables<container_type, container_item_type>(r_container);
-    using statistics_methods =
-        SpatialMethods::ContainerSpatialMethods<container_type, container_item_type, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
-
-    double mean_method_density;
-    array_1d<double, 3> mean_method_velocity;
-    Vector mean_method_external_forces_vector;
-    Matrix mean_method_green_lagrange_strain_tensor;
-    statistics_methods::CalculateMean(mean_method_density, r_container, DENSITY);
-    statistics_methods::CalculateMean(mean_method_velocity, r_container, VELOCITY);
-    statistics_methods::CalculateMean(mean_method_external_forces_vector,
-                                      r_container, EXTERNAL_FORCES_VECTOR);
-    statistics_methods::CalculateMean(mean_method_green_lagrange_strain_tensor,
-                                      r_container, GREEN_LAGRANGE_STRAIN_TENSOR);
-
-    double mean_density = 0.0;
-    array_1d<double, 3> mean_velocity = ZeroVector(3);
-    Vector mean_external_forces_vector(5, 0.0);
-    Matrix mean_green_lagrange_strain_tensor(5, 5, 0.0);
-    const double n = r_container.size();
-    for (const container_item_type& r_item : r_container)
-    {
-        mean_density += r_item.GetValue(DENSITY) / n;
-        mean_velocity += r_item.GetValue(VELOCITY) / n;
-        mean_external_forces_vector += r_item.GetValue(EXTERNAL_FORCES_VECTOR) / n;
-        mean_green_lagrange_strain_tensor +=
-            r_item.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR) / n;
-    }
-
-    KRATOS_CHECK_NEAR(mean_density, mean_method_density, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(mean_velocity, mean_method_velocity, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(mean_external_forces_vector,
-                             mean_method_external_forces_vector, 1e-14);
-    KRATOS_CHECK_MATRIX_NEAR(mean_green_lagrange_strain_tensor,
-                             mean_method_green_lagrange_strain_tensor, 1e-14);
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z");
+    RunSpatialMinMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z");
+    RunSpatialMinMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z");
+    RunSpatialMinMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_z");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialMeanConditionNonHistorical, KratosStatisticsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialMaxMethod, KratosStatisticsFastSuite)
 {
-    Model test_model;
-    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
-    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude");
+    RunSpatialMaxMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude");
+    RunSpatialMaxMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude");
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude");
 
-    using container_item_type = ModelPart::ConditionType;
-    using container_type = ModelPart::ConditionsContainerType;
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x");
+    RunSpatialMaxMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x");
+    RunSpatialMaxMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x");
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_x");
 
-    container_type& r_container = test_model_part.Conditions();
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y");
+    RunSpatialMaxMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y");
+    RunSpatialMaxMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y");
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_y");
 
-    InitializeSpatialMethodNonHistoricalVariables<container_type, container_item_type>(r_container);
-    using statistics_methods =
-        SpatialMethods::ContainerSpatialMethods<container_type, container_item_type, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
-
-    double mean_method_density;
-    array_1d<double, 3> mean_method_velocity;
-    Vector mean_method_external_forces_vector;
-    Matrix mean_method_green_lagrange_strain_tensor;
-    statistics_methods::CalculateMean(mean_method_density, r_container, DENSITY);
-    statistics_methods::CalculateMean(mean_method_velocity, r_container, VELOCITY);
-    statistics_methods::CalculateMean(mean_method_external_forces_vector,
-                                      r_container, EXTERNAL_FORCES_VECTOR);
-    statistics_methods::CalculateMean(mean_method_green_lagrange_strain_tensor,
-                                      r_container, GREEN_LAGRANGE_STRAIN_TENSOR);
-
-    double mean_density = 0.0;
-    array_1d<double, 3> mean_velocity = ZeroVector(3);
-    Vector mean_external_forces_vector(5, 0.0);
-    Matrix mean_green_lagrange_strain_tensor(5, 5, 0.0);
-    const double n = r_container.size();
-    for (const container_item_type& r_item : r_container)
-    {
-        mean_density += r_item.GetValue(DENSITY) / n;
-        mean_velocity += r_item.GetValue(VELOCITY) / n;
-        mean_external_forces_vector += r_item.GetValue(EXTERNAL_FORCES_VECTOR) / n;
-        mean_green_lagrange_strain_tensor +=
-            r_item.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR) / n;
-    }
-
-    KRATOS_CHECK_NEAR(mean_density, mean_method_density, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(mean_velocity, mean_method_velocity, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(mean_external_forces_vector,
-                             mean_method_external_forces_vector, 1e-14);
-    KRATOS_CHECK_MATRIX_NEAR(mean_green_lagrange_strain_tensor,
-                             mean_method_green_lagrange_strain_tensor, 1e-14);
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z");
+    RunSpatialMaxMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z");
+    RunSpatialMaxMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z");
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_z");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialMeanElementNonHistorical, KratosStatisticsFastSuite)
-{
-    Model test_model;
-    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
-    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
-
-    using container_item_type = ModelPart::ElementType;
-    using container_type = ModelPart::ElementsContainerType;
-
-    container_type& r_container = test_model_part.Elements();
-
-    InitializeSpatialMethodNonHistoricalVariables<container_type, container_item_type>(r_container);
-    using statistics_methods =
-        SpatialMethods::ContainerSpatialMethods<container_type, container_item_type, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
-
-    double mean_method_density;
-    array_1d<double, 3> mean_method_velocity;
-    Vector mean_method_external_forces_vector;
-    Matrix mean_method_green_lagrange_strain_tensor;
-    statistics_methods::CalculateMean(mean_method_density, r_container, DENSITY);
-    statistics_methods::CalculateMean(mean_method_velocity, r_container, VELOCITY);
-    statistics_methods::CalculateMean(mean_method_external_forces_vector,
-                                      r_container, EXTERNAL_FORCES_VECTOR);
-    statistics_methods::CalculateMean(mean_method_green_lagrange_strain_tensor,
-                                      r_container, GREEN_LAGRANGE_STRAIN_TENSOR);
-
-    double mean_density = 0.0;
-    array_1d<double, 3> mean_velocity = ZeroVector(3);
-    Vector mean_external_forces_vector(5, 0.0);
-    Matrix mean_green_lagrange_strain_tensor(5, 5, 0.0);
-    const double n = r_container.size();
-    for (const container_item_type& r_item : r_container)
-    {
-        mean_density += r_item.GetValue(DENSITY) / n;
-        mean_velocity += r_item.GetValue(VELOCITY) / n;
-        mean_external_forces_vector += r_item.GetValue(EXTERNAL_FORCES_VECTOR) / n;
-        mean_green_lagrange_strain_tensor +=
-            r_item.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR) / n;
-    }
-
-    KRATOS_CHECK_NEAR(mean_density, mean_method_density, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(mean_velocity, mean_method_velocity, 1e-14);
-    KRATOS_CHECK_VECTOR_NEAR(mean_external_forces_vector,
-                             mean_method_external_forces_vector, 1e-14);
-    KRATOS_CHECK_MATRIX_NEAR(mean_green_lagrange_strain_tensor,
-                             mean_method_green_lagrange_strain_tensor, 1e-14);
-}
 } // namespace Testing
 } // namespace Kratos
