@@ -166,7 +166,6 @@ public:
         , mGeometryData(
             rOther.GetGeometryData(),
             &msGeometryDimension)
-        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -199,7 +198,7 @@ public:
         //    &msGeometryDimension,
         //    rOther.GetGeometryData().GetGeometryShapeFunctionContainer());
 
-        mpGeometryParent = rOther.mpGeometryParent;
+        //mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
