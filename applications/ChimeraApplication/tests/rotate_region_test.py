@@ -79,7 +79,8 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
 
     def __MakeModelPart(self, model_part):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(chm.ROTATION_MESH_DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(chm.ROTATION_MESH_VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
         # Create nodes
