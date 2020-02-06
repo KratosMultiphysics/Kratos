@@ -28,7 +28,7 @@ namespace Kratos
 {
 namespace StatisticsApplicationTestUtilities
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TInitializationFunctor>
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
 class RandomInitializer
 {
 public:
@@ -43,7 +43,6 @@ public:
 
         for (TContainerItemType& container_item : rContainer)
         {
-            TInitializationFunctor<TContainerItemType>()(container_item, rVariable, 0.0);
             TDataRetrievalFunctor<TContainerItemType>()(container_item, rVariable) =
                 distribution(generator);
         }
@@ -57,12 +56,6 @@ public:
         std::seed_seq seed(seed_str.begin(), seed_str.end());
         std::default_random_engine generator(seed);
 
-        for (TContainerItemType& container_item : rContainer)
-        {
-            TInitializationFunctor<TContainerItemType>()(
-                container_item, rVariable, rVariable.Zero());
-        }
-
         for (int i = 0; i < 3; ++i)
         {
             std::uniform_real_distribution<double> distribution(-10.0, 10.0);
@@ -71,61 +64,6 @@ public:
             {
                 TDataRetrievalFunctor<TContainerItemType>()(
                     container_item, rVariable)[i] = distribution(generator);
-            }
-        }
-    }
-
-    void static InitializeVariableWithRandomValues(TContainerType& rContainer,
-                                                   const Variable<Vector>& rVariable)
-    {
-        std::string seed_str =
-            "KratosStatisticsApplicationTestSeed_" + rVariable.Name();
-        std::seed_seq seed(seed_str.begin(), seed_str.end());
-        std::default_random_engine generator(seed);
-
-        for (TContainerItemType& container_item : rContainer)
-        {
-            TInitializationFunctor<TContainerItemType>()(
-                container_item, rVariable, Vector(5, 0.0));
-        }
-
-        for (int i = 0; i < 5; ++i)
-        {
-            std::uniform_real_distribution<double> distribution(-10.0, 10.0);
-
-            for (TContainerItemType& container_item : rContainer)
-            {
-                TDataRetrievalFunctor<TContainerItemType>()(
-                    container_item, rVariable)[i] = distribution(generator);
-            }
-        }
-    }
-
-    void static InitializeVariableWithRandomValues(TContainerType& rContainer,
-                                                   const Variable<Matrix>& rVariable)
-    {
-        std::string seed_str =
-            "KratosStatisticsApplicationTestSeed_" + rVariable.Name();
-        std::seed_seq seed(seed_str.begin(), seed_str.end());
-        std::default_random_engine generator(seed);
-
-        for (TContainerItemType& container_item : rContainer)
-        {
-            TInitializationFunctor<TContainerItemType>()(
-                container_item, rVariable, Matrix(5, 5, 0.0));
-        }
-
-        for (int i = 0; i < 5; ++i)
-        {
-            for (int j = 0; j < 5; ++j)
-            {
-                std::uniform_real_distribution<double> distribution(-10.0, 10.0);
-
-                for (TContainerItemType& container_item : rContainer)
-                {
-                    TDataRetrievalFunctor<TContainerItemType>()(
-                        container_item, rVariable)(i, j) = distribution(generator);
-                }
             }
         }
     }

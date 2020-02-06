@@ -38,8 +38,6 @@ void AddNodalSolutionStepVariables(ModelPart& rModelPart)
 {
     rModelPart.AddNodalSolutionStepVariable(DENSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(EXTERNAL_FORCES_VECTOR);
-    rModelPart.AddNodalSolutionStepVariable(GREEN_LAGRANGE_STRAIN_TENSOR);
 }
 
 void CreateModelPart(ModelPart& rModelPart)
