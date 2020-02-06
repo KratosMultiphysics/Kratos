@@ -9,7 +9,7 @@
 //
 
 // Project includes
-#include "includes/cad_json_input.h"
+#include "cad_json_input.h"
 
 namespace Kratos
 {
