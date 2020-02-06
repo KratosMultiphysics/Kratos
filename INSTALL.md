@@ -308,7 +308,7 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 ### Logging
 `-DKRATOS_COLORED_OUTPUT=ON/OFF`
 
-Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored terminal output is not supported by all terminals.
+Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### External libraries
 #### Feast
