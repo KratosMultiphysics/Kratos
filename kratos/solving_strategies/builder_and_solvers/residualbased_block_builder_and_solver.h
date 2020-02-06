@@ -1422,21 +1422,25 @@ protected:
 //         double max_diag = 0.0;
 //         #pragma omp parallel for reduction(max:max_diag)
 //         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
-//             max_diag = std::max(max_diag, rA(i,i));
+//             max_diag = std::max(max_diag, std::abs(rA(i,i)));
 //         }
 //         return max_diag;
 
         // Creating a buffer for parallel vector fill
         const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<double> max_vector(num_threads, 0.0);
+        Vector max_vector(num_threads, 0.0);
         #pragma omp parallel for
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
             const int id = OpenMPUtils::ThisThread();
-            if (rA(i,i) > max_vector[id])
-                max_vector[id] = rA(i,i);
+            if (std::abs(rA(i,i)) > max_vector[id])
+                max_vector[id] = std::abs(rA(i,i));
         }
 
-        return *std::max_element(max_vector.begin(), max_vector.end());
+        double max_diag = 0.0;
+        for(int i = 0; i < num_threads; ++i) {
+            max_diag = std::max(max_diag, max_vector[i]);
+        }
+        return max_diag;
     }
 
     /**
@@ -1450,21 +1454,25 @@ protected:
 //         double min_diag = std::numeric_limits<double>::max();
 //         #pragma omp parallel for reduction(min:min_diag)
 //         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
-//             min_diag = std::min(min_diag, rA(i,i));
+//             min_diag = std::min(min_diag, std::abs(rA(i,i)));
 //         }
 //         return min_diag;
 
         // Creating a buffer for parallel vector fill
         const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<double> min_vector(num_threads, std::numeric_limits<double>::max());
+        Vector min_vector(num_threads, std::numeric_limits<double>::max());
         #pragma omp parallel for
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
             const int id = OpenMPUtils::ThisThread();
-            if (rA(i,i) < min_vector[id])
-                min_vector[id] = rA(i,i);
+            if (std::abs(rA(i,i)) < min_vector[id])
+                min_vector[id] = std::abs(rA(i,i));
         }
         
-        return *std::min_element(min_vector.begin(), min_vector.end());
+        double min_diag = std::numeric_limits<double>::max();
+        for(int i = 0; i < num_threads; ++i) {
+            min_diag = std::min(min_diag, min_vector[i]);
+        }
+        return min_diag;
     }
 
     ///@}
