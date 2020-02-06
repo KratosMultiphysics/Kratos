@@ -19,7 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/checks.h"
-#include "utilities/os_utilities.h"
+#include "includes/kratos_filesystem.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
 #include "meshing_application_variables.h"
@@ -78,7 +78,7 @@ namespace Kratos
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgIO<MMGLibrary::MMG2D> mmg_io(OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d");
+            MmgIO<MMGLibrary::MMG2D> mmg_io(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d"}));
             mmg_io.WriteModelPart(r_model_part);
 
             Model this_aux_model;
@@ -93,11 +93,11 @@ namespace Kratos
                 KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.mesh").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.sol").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.json").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.cond.ref.json").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.elem.ref.json").c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.mesh"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.sol"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.json"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.cond.ref.json"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.elem.ref.json"})).c_str());
         }
 
         /**
@@ -169,7 +169,7 @@ namespace Kratos
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgIO<MMGLibrary::MMG3D> mmg_io(OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d");
+            MmgIO<MMGLibrary::MMG3D> mmg_io(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d"}));
             mmg_io.WriteModelPart(r_model_part);
 
             Model this_aux_model;
@@ -184,11 +184,11 @@ namespace Kratos
                 KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.mesh").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.sol").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.json").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.cond.ref.json").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.elem.ref.json").c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.mesh"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.sol"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.json"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.cond.ref.json"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.elem.ref.json"})).c_str());
         }
     } // namespace Testing
 }  // namespace Kratos.
