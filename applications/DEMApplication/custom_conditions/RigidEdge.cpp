@@ -150,7 +150,8 @@ void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
 {
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize = number_of_nodes * dim;
 
     if (rRightHandSideVector.size() != MatSize)
     {
@@ -188,11 +189,10 @@ void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
                 {
                     weight = weights_vector[k];
 
-                    unsigned int w =  k * 3;
-
-                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
-                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
-                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
+                    unsigned int w =  k * dim;
+                    for(size_t l=0; l<dim; l++) {
+                        rRightHandSideVector[w + l] += -ContactForce[l] * weight;
+                    }
                 }
 
             }//if the condition neighbour of my sphere neighbour is myself.

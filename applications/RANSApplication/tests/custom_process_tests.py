@@ -407,7 +407,6 @@ class CustomProcessTest(UnitTest.TestCase):
                 "Parameters" :             {
                     "model_part_name" : "test",
                     "echo_level"      : 0,
-                    "step"            : 0,
                     "max_iterations"  : 10,
                     "tolerance"       : 1e-6,
                     "constants": {
@@ -446,6 +445,45 @@ class CustomProcessTest(UnitTest.TestCase):
             else:
                 self.assertAlmostEqual(y_plus, 0.0, 9)
 
+    def testLogarithmicYPlusVelocitySensitivitiesProcessFlow(self):
+        self.__CreateModel()
+
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "LogarithmicYPlusCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test",
+                    "echo_level"      : 0,
+                    "max_iterations"  : 10,
+                    "tolerance"       : 1e-6,
+                    "constants": {
+                        "von_karman"  : 0.41,
+                        "beta"        : 5.2
+                    }
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "LogarithmicYPlusVelocitySensitivitiesProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test",
+                    "echo_level"      : 0,
+                    "constants": {
+                        "von_karman"  : 0.41,
+                        "beta"        : 5.2
+                    }
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
     def testNutKEpsilonHighReCalculationProcess(self):
         self.__CreateModel()
 
@@ -473,8 +511,72 @@ class CustomProcessTest(UnitTest.TestCase):
             epsilon = node.GetSolutionStepValue(
                 KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
             node_value = node.GetSolutionStepValue(Kratos.TURBULENT_VISCOSITY)
-            print(node_value, k, epsilon)
             self.assertAlmostEqual(node_value, c_mu * k * k / epsilon, 9)
+
+    def testNutKEpsilonHighReSensitivitiesProcess(self):
+        self.__CreateModel()
+
+        adjoint_settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "NutKEpsilonHighReSensitivitiesProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test"
+                }
+            }
+        ]''')
+
+        primal_settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "NutKEpsilonHighReCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test"
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(adjoint_settings)
+        self.__ExecuteProcesses()
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(primal_settings)
+        self.__ExecuteProcesses()
+
+        delta = 1e-9
+        variable_list = [
+            KratosRANS.TURBULENT_KINETIC_ENERGY,
+            KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
+        ]
+        check_variable = Kratos.TURBULENT_VISCOSITY
+        sensitivity_variable = KratosRANS.RANS_NUT_SCALAR_PARTIAL_DERIVATIVES
+
+        for node in self.model_part.Nodes:
+            for (variable, index) in zip(variable_list,
+                                         range(len(variable_list))):
+                self.__ExecuteProcesses()
+                current_check_value = node.GetSolutionStepValue(check_variable)
+
+                current_value = node.GetSolutionStepValue(variable)
+                node.SetSolutionStepValue(variable, 0, current_value + delta)
+
+                self.__ExecuteProcesses()
+                perturbed_check_value = node.GetSolutionStepValue(
+                    check_variable)
+
+                node.SetSolutionStepValue(variable, 0, current_value)
+
+                check_value_sensitivity = (
+                    perturbed_check_value - current_check_value) / delta
+                adjoint_sensitivity = node.GetValue(
+                    sensitivity_variable)[index]
+
+                self.assertTrue(UnitTest.isclose(adjoint_sensitivity, check_value_sensitivity, rel_tol=1e-6))
 
 
 # test model part is as follows

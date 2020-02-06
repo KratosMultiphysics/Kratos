@@ -45,10 +45,6 @@ RansFindConditionParentProcess::RansFindConditionParentProcess(Model& rModel, Pa
     KRATOS_CATCH("");
 }
 
-RansFindConditionParentProcess::~RansFindConditionParentProcess()
-{
-}
-
 int RansFindConditionParentProcess::Check()
 {
     KRATOS_TRY

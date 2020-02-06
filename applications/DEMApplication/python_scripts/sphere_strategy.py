@@ -233,6 +233,7 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
+        self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, 0.0) # A default value
 
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
