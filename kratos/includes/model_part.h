@@ -248,6 +248,9 @@ public:
     /// Const Geometry Iterator
     typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
 
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
+
     /// The container of the sub model parts. A hash table is used.
     /**
     */
@@ -1429,20 +1432,33 @@ public:
         return mGeometries.GeometriesBegin();
     }
 
-    ///// Begin geometry const iterator
-    //GeometryConstantIterator GeometriesBegin() const {
-    //    return mGeometries.GeometriesBegin();
-    //}
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
 
     /// End geometry iterator
     GeometryIterator GeometriesEnd() {
         return mGeometries.GeometriesEnd();
     }
 
-    ///// End geometry const iterator
-    //GeometryConstantIterator GeometriesEnd() const {
-    //    return mGeometries.GeometriesEnd();
-    //}
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
+
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
 
     ///@}
     ///@name Sub model parts

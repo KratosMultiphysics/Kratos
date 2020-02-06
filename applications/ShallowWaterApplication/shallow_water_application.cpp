@@ -51,6 +51,9 @@ namespace Kratos
         mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
+        mConservedElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3     <Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mConservedElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
 
     {}
@@ -82,12 +85,19 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variableS for PFEM2
+        KRATOS_REGISTER_VARIABLE(NUMBER_OF_PARTICLES)
+        KRATOS_REGISTER_VARIABLE(SUM_AREAS)
+        KRATOS_REGISTER_VARIABLE(PARTICLE_AREA)
+        KRATOS_REGISTER_VARIABLE(PARTICLE_WEIGHT)
+        KRATOS_REGISTER_VARIABLE(SUM_PARTICLES_WEIGHTS)
+        KRATOS_REGISTER_VARIABLE(MASS_WEIGHT)
         KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
         KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)
         KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
         KRATOS_REGISTER_VARIABLE(DELTA_SCALAR1)
         KRATOS_REGISTER_VARIABLE(PROJECTED_VECTOR1)
         KRATOS_REGISTER_VARIABLE(DELTA_VECTOR1)
+        KRATOS_REGISTER_VARIABLE(CURRENT_ELEMENT)
 
         // Units conversion
         KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)
@@ -113,6 +123,9 @@ namespace Kratos
 
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N)
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
+
+        KRATOS_REGISTER_ELEMENT("ConservedElement2D3N", mConservedElement2D3N)
+        KRATOS_REGISTER_ELEMENT("ConservedElement2D4N", mConservedElement2D4N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }
