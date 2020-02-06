@@ -158,17 +158,6 @@ public:
     /// Destructor.
     ~QuadraturePointGeometry() override = default;
 
-    /// Copy constructor with different point type.
-    template<class TOtherPointType>
-    QuadraturePointGeometry(
-        QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
-        : BaseType( rOther )
-        , mGeometryData(
-            rOther.GetGeometryData(),
-            &msGeometryDimension)
-    {
-    }
-
     ///@}
     ///@name Operators
     ///@{
@@ -182,23 +171,6 @@ public:
         mGeometryData = rOther.mGeometryData;
 
         mpGeometryParent = rOther.mpGeometryParent;
-
-        return *this;
-    }
-
-    /// Assignment operator with different point type.
-    template<class TOtherPointType>
-    QuadraturePointGeometry& operator=(
-        QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
-    {
-        BaseType::operator=( rOther );
-
-        mGeometryData = rOther.mGeometryData;
-        //mGeometryData = GeometryData(
-        //    &msGeometryDimension,
-        //    rOther.GetGeometryData().GetGeometryShapeFunctionContainer());
-
-        //mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
