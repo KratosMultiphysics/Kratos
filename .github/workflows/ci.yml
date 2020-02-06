@@ -48,7 +48,7 @@ jobs:
           export CC=/usr/bin/gcc
           export CXX=/usr/bin/g++
         elif [ ${{ matrix.compiler }} = clang ]; then
-          apt-get -y install clang-7
+          apt-get -y install clang-7 libomp-dev
           export CC=/usr/bin/clang-7
           export CXX=/usr/bin/clang++-7
         else
