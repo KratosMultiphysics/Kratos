@@ -323,15 +323,6 @@ public:
     }
 
     ///@}
-    ///@name GeometryShapeFunctionContainer
-    ///@{
-
-    GeometryShapeFunctionContainer<IntegrationMethod> GetGeometryShapeFunctionContainer() const
-    {
-        return mGeometryShapeFunctionContainer;
-    }
-
-    ///@}
     ///@name Informations
     ///@{
 
