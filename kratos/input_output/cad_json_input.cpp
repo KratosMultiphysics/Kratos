@@ -578,5 +578,3 @@ namespace Kratos
 
     ///@}
 }  // namespace Kratos.
-
-#endif // KRATOS_CAD_JSON_INPUT_INCLUDED  defined
