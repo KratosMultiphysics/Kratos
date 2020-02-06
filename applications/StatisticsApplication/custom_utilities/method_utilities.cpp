@@ -133,8 +133,8 @@ void DataTypeSizeChecker(const Vector& rData, const Vector& rReferenceData)
     KRATOS_TRY
 
     KRATOS_ERROR_IF(rData.size() != rReferenceData.size())
-        << "Vector size mismatch. [ " << rData.size()
-        << " != " << rReferenceData.size() << " ].\n";
+        << "Data size and reference data vector size mismatch. [ "
+        << rData.size() << " != " << rReferenceData.size() << " ].\n";
 
     KRATOS_CATCH("");
 }
@@ -145,13 +145,49 @@ void DataTypeSizeChecker(const Matrix& rData, const Matrix& rReferenceData)
     KRATOS_TRY
 
     KRATOS_ERROR_IF(rData.size1() != rReferenceData.size1())
-        << "Matrix size1 mismatch. [ " << rData.size1()
-        << " != " << rReferenceData.size1() << " ].\n";
+        << "Data size and reference data matrix size1 mismatch. [ "
+        << rData.size1() << " != " << rReferenceData.size1() << " ].\n";
     KRATOS_ERROR_IF(rData.size2() != rReferenceData.size2())
-        << "Matrix size2 mismatch. [ " << rData.size2()
-        << " != " << rReferenceData.size2() << " ].\n";
+        << "Data size and reference data matrix size2 mismatch. [ "
+        << rData.size2() << " != " << rReferenceData.size2() << " ].\n";
 
     KRATOS_CATCH("");
+}
+
+template <>
+NodesContainerType& GetDataContainer(ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Nodes();
+}
+
+template <>
+ElementsContainerType& GetDataContainer(ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Elements();
+}
+
+template <>
+ConditionsContainerType& GetDataContainer(ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Conditions();
+}
+
+template <>
+const NodesContainerType& GetDataContainer(const ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Nodes();
+}
+
+template <>
+const ElementsContainerType& GetDataContainer(const ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Elements();
+}
+
+template <>
+const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Conditions();
 }
 
 // method template instantiations
@@ -173,10 +209,6 @@ template class HistoricalDataValueRetrievalFunctor<NodeType>;
 template class NonHistoricalDataValueRetrievalFunctor<ConditionType>;
 template class NonHistoricalDataValueRetrievalFunctor<ElementType>;
 
-template class NonHistoricalDataValueInitializationFunctor<NodeType>;
-template class HistoricalDataValueInitializationFunctor<NodeType>;
-template class NonHistoricalDataValueInitializationFunctor<ConditionType>;
-template class NonHistoricalDataValueInitializationFunctor<ElementType>;
 //
 
 } // namespace MethodsUtilities

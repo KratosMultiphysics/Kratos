@@ -36,6 +36,10 @@ using NodeType = ModelPart::NodeType;
 using ConditionType = ModelPart::ConditionType;
 using ElementType = ModelPart::ElementType;
 
+using NodesContainerType = ModelPart::NodesContainerType;
+using ConditionsContainerType = ModelPart::ConditionsContainerType;
+using ElementsContainerType = ModelPart::ElementsContainerType;
+
 template <typename TDataType>
 TDataType RaiseToPower(const TDataType& rData, const double Power);
 
@@ -64,40 +68,22 @@ public:
     template <typename TDataType>
     TDataType& operator()(TContainerItemType& rDataItem, const Variable<TDataType>& rVariable)
     {
+        KRATOS_TRY
+
         return rDataItem.FastGetSolutionStepValue(rVariable);
+
+        KRATOS_CATCH("");
     }
 
     template <typename TDataType>
     TDataType operator()(const TContainerItemType& rDataItem,
                          const Variable<TDataType>& rVariable)
     {
+        KRATOS_TRY
+
         return rDataItem.FastGetSolutionStepValue(rVariable);
-    }
-};
 
-template <typename TContainerItemType>
-class NonHistoricalDataValueInitializationFunctor
-{
-public:
-    template <typename TDataType>
-    void operator()(TContainerItemType& rDataItem,
-                    const Variable<TDataType>& rVariable,
-                    const TDataType& rValue)
-    {
-        rDataItem.SetValue(rVariable, rValue);
-    }
-};
-
-template <typename TContainerItemType>
-class HistoricalDataValueInitializationFunctor
-{
-public:
-    template <typename TDataType>
-    void operator()(TContainerItemType& rDataItem,
-                    const Variable<TDataType>& rVariable,
-                    const TDataType& rValue)
-    {
-        rDataItem.FastGetSolutionStepValue(rVariable) = rValue;
+        KRATOS_CATCH("");
     }
 };
 
@@ -106,6 +92,12 @@ void DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData);
 
 template <typename TDataType>
 void DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData);
+
+template <typename TContainerType>
+TContainerType& GetDataContainer(ModelPart& rModelPart);
+
+template <typename TContainerType>
+const TContainerType& GetDataContainer(const ModelPart& rModelPart);
 
 } // namespace MethodsUtilities
 
