@@ -151,8 +151,8 @@ public:
         , mGeometryData(
             rOther.GetGeometryData(),
             &msGeometryDimension)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
-        mpGeometryParent = rOther.mpGeometryParent;
     }
 
     /// Destructor.
@@ -166,8 +166,8 @@ public:
         , mGeometryData(
             rOther.GetGeometryData(),
             &msGeometryDimension)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
-        mpGeometryParent = rOther.mpGeometryParent;
     }
 
     ///@}
