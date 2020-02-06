@@ -391,6 +391,20 @@ class CadJsonInput : public IO
         ///@name Utility functions
         ///@{
 
+        /// Sets the geometry Id with either the 'brep_id' or the 'brep_name'.
+        template<class TGeometry>
+        static void SetIdOrName(
+            const Parameters& rParameters,
+            typename TGeometry::Pointer pGeometry)
+        {
+            if (rParameters.Has("brep_id")) {
+                pGeometry->SetId(rParameters["brep_id"].GetInt());
+            }
+            else if (rParameters.Has("brep_name")) {
+                pGeometry->SetId(rParameters["brep_name"].GetString());
+            }
+        }
+
         /// Returns the string of either the 'brep_id' or the 'brep_name'. Used for output massages.
         static std::string GetIdOrName(
             const Parameters& rParameters);

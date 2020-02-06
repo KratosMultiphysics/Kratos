@@ -18,7 +18,8 @@ namespace Kratos
     ///@{
 
     /// Adds all CAD geometries to the herin provided model_part.
-    void CadJsonInput::ReadModelPart(ModelPart& rModelPart) override
+    template<class TNodeType, class TEmbeddedNodeType>
+    void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadModelPart(ModelPart& rModelPart)
     {
         ReadGeometryModelPart(mCadJsonParameters, rModelPart, mEchoLevel);
     }
@@ -28,7 +29,8 @@ namespace Kratos
     ///@{
 
     /// Allows static access without own memory.
-    static void CadJsonInput::ReadGeometryModelPart(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadGeometryModelPart(
         const Parameters& rCadJsonParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -43,7 +45,8 @@ namespace Kratos
     ///@name Read in Brep
     ///@{
 
-    static void CadJsonInput::ReadBreps(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBreps(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -67,7 +70,8 @@ namespace Kratos
         }
     }
 
-    static void CadJsonInput::ReadBrepFaces(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepFaces(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -78,7 +82,8 @@ namespace Kratos
         }
     }
 
-    static void CadJsonInput::ReadBrepEdges(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepEdges(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -93,7 +98,8 @@ namespace Kratos
     ///@name Read in Brep Geometries
     ///@{
 
-    static void CadJsonInput::ReadBrepSurfaces(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepSurfaces(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -110,7 +116,8 @@ namespace Kratos
         }
     }
 
-    static void CadJsonInput::ReadBrepSurface(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepSurface(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -176,8 +183,9 @@ namespace Kratos
     ///@name Read in Surface Trimming
     ///@{
 
-    static BrepCurveOnSurfaceLoopType
-        CadJsonInput::ReadTrimmingCurveVector(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static Kratos::CadJsonInput<TNodeType, TEmbeddedNodeType>::BrepCurveOnSurfaceLoopType
+        CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadTrimmingCurveVector(
             const Parameters& rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
@@ -198,8 +206,9 @@ namespace Kratos
         return trimming_brep_curve_vector;
     }
 
-    static typename BrepCurveOnSurfaceType::Pointer
-        CadJsonInput::ReadTrimmingCurve(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static typename Kratos::CadJsonInput<TNodeType, TEmbeddedNodeType>::BrepCurveOnSurfaceType::Pointer
+        CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadTrimmingCurve(
             const Parameters& rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
@@ -226,8 +235,9 @@ namespace Kratos
         return p_brep_curve_on_surface;
     }
 
-    static std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
-        CadJsonInput::ReadBoundaryLoops(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static std::tuple<Kratos::CadJsonInput<TNodeType, TEmbeddedNodeType>::BrepCurveOnSurfaceLoopArrayType, Kratos::CadJsonInput<TNodeType, TEmbeddedNodeType>::BrepCurveOnSurfaceLoopArrayType>
+        CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBoundaryLoops(
             const Parameters& rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
@@ -273,7 +283,8 @@ namespace Kratos
     ///@name Read in Nurbs Geometries
     ///@{
 
-    static void CadJsonInput::ReadBrepCurveOnSurfaces(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepCurveOnSurfaces(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -290,7 +301,8 @@ namespace Kratos
         }
     }
 
-    static void CadJsonInput::ReadBrepEdge(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepEdge(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -314,7 +326,8 @@ namespace Kratos
         }
     }
 
-    static void CadJsonInput::ReadBrepEdgeBrepCurveOnSurface(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepEdgeBrepCurveOnSurface(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -362,7 +375,8 @@ namespace Kratos
         rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
     }
 
-    static void CadJsonInput::ReadCouplingGeometry(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadCouplingGeometry(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -396,7 +410,8 @@ namespace Kratos
     ///@{
 
     /// Reads the weights of all control points and provides them in a Vector.
-    static Vector CadJsonInput::ReadControlPointWeightVector(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static Vector CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadControlPointWeightVector(
         const Parameters& rParameters,
         SizeType EchoLevel = 0)
     {
@@ -418,7 +433,8 @@ namespace Kratos
     }
 
     /// Reads a Node<3>::Pointer-vector of control points.
-    static void CadJsonInput::ReadControlPointVector(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadControlPointVector(
         PointerVector<Node<3>>& rControlPoints,
         const Parameters& rParameters,
         ModelPart& rModelPart,
@@ -437,7 +453,8 @@ namespace Kratos
     }
 
     /// Reads a Point::Pointer-vector of control points.
-    static void CadJsonInput::ReadControlPointVector(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadControlPointVector(
         PointerVector<Point>& rControlPoints,
         const Parameters& rParameters,
         ModelPart& rModelPart,
@@ -463,7 +480,8 @@ namespace Kratos
     * Input needs to be a Parameter object:
     * [id, [x, y, z, weight]]
     */
-    static Node<3>::Pointer CadJsonInput::ReadNode(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static Node<3>::Pointer CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadNode(
         const Parameters& rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -483,7 +501,8 @@ namespace Kratos
     * Input needs to be a Parameter object:
     * [[x, y, z, weight]] or [id, [x, y, z, weight]]
     */
-    static Point::Pointer CadJsonInput::ReadPoint(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static Point::Pointer CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadPoint(
         const Parameters& rParameters,
         SizeType EchoLevel = 0)
     {
@@ -502,7 +521,8 @@ namespace Kratos
     ///@{
 
     /// Returns the string of either the 'brep_id' or the 'brep_name'. Used for output massages.
-    static std::string CadJsonInput::GetIdOrName(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static std::string CadJsonInput<TNodeType, TEmbeddedNodeType>::GetIdOrName(
         const Parameters& rParameters)
     {
         if (rParameters.Has("brep_id")) {
@@ -517,30 +537,19 @@ namespace Kratos
     }
 
     /// Checks if one of the 'brep_id' or the 'brep_name' is provided.
-    static bool CadJsonInput::HasIdOrName(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static bool CadJsonInput<TNodeType, TEmbeddedNodeType>::HasIdOrName(
         const Parameters& rParameters)
     {
         return (rParameters.Has("brep_id") || rParameters.Has("brep_name"));
     }
 
-    /// Sets the geometry Id with either the 'brep_id' or the 'brep_name'.
-    template<class TGeometry>
-    static void CadJsonInput::SetIdOrName(
-        const Parameters& rParameters,
-        typename TGeometry::Pointer pGeometry)
-    {
-        if (rParameters.Has("brep_id")) {
-            pGeometry->SetId(rParameters["brep_id"].GetInt());
-        }
-        else if (rParameters.Has("brep_name")) {
-            pGeometry->SetId(rParameters["brep_name"].GetString());
-        }
-    }
-
     /// Returns the geometry with either the 'brep_id' or the 'brep_name'.
-    static typename GeometryType::Pointer CadJsonInput::GetGeometry(
-        const Parameters& rParameters,
-        ModelPart& rModelPart)
+    template<class TNodeType, class TEmbeddedNodeType>
+    static typename Kratos::CadJsonInput<TNodeType, TEmbeddedNodeType>::GeometryType::Pointer
+        CadJsonInput<TNodeType, TEmbeddedNodeType>::GetGeometry(
+            const Parameters& rParameters,
+            ModelPart& rModelPart)
     {
         if (rParameters.Has("brep_id")) {
             return rModelPart.pGetGeometry(rParameters["brep_id"].GetInt());
@@ -551,7 +560,8 @@ namespace Kratos
     }
 
     /// Reads in a json formatted file and returns its KratosParameters instance.
-    static Parameters CadJsonInput::ReadParamatersFile(
+    template<class TNodeType, class TEmbeddedNodeType>
+    static Parameters CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadParamatersFile(
         const std::string& rDataFileName,
         SizeType EchoLevel = 0)
     {
