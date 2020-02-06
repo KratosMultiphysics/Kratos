@@ -39,7 +39,7 @@ add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
-# add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
+add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 
@@ -64,6 +64,15 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DUSE_COTIRE=ON \
+-DINCLUDE_MMG=ON                                    \
+-DMMG_INCLUDE_DIR="/usr/local/include/mmg/"         \
+-DMMG2D_INCLUDE_DIR="/usr/local/include/mmg/mmg2d/" \
+-DMMG3D_INCLUDE_DIR="/usr/local/include/mmg/mmg3d/" \
+-DMMGS_INCLUDE_DIR="/usr/local/include/mmg/mmgs/"   \
+-DMMG_LIBRARY="/usr/local/lib/libmmg.so"            \
+-DMMG2D_LIBRARY="/usr/local/lib/libmmg2d.so"        \
+-DMMG3D_LIBRARY="/usr/local/lib/libmmg3d.so"        \
+-DMMGS_LIBRARY="/usr/local/lib/libmmgs.so"          \
 -DUSE_EIGEN_MKL=ON
 
 # Buid
