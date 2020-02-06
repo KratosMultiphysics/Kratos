@@ -101,18 +101,18 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
 
     // Computing the linear velocity at this it_node
     DenseVector<double> radius(3);
-    DenseVector<double> linearVelocity(3);
+    DenseVector<double> linear_velocity(3);
     radius[0] = it_node->X() - mCenterOfRotation[0];
     radius[1] = it_node->Y() - mCenterOfRotation[1];
     radius[2] = it_node->Z() - mCenterOfRotation[2];
-    CalculateLinearVelocity(mAxisOfRotationVector, radius, linearVelocity);
+    CalculateLinearVelocity(mAxisOfRotationVector, radius, linear_velocity);
     it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0) =
-        mAngularVelocityRadians * linearVelocity[0];
+        mAngularVelocityRadians * linear_velocity[0];
     it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0) =
-        mAngularVelocityRadians * linearVelocity[1];
+        mAngularVelocityRadians * linear_velocity[1];
     if (domain_size > 2)
       it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0) =
-          mAngularVelocityRadians * linearVelocity[2];
+          mAngularVelocityRadians * linear_velocity[2];
 
     if (mParameters["is_ale"].GetBool())
     {
