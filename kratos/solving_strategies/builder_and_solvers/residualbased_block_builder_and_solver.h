@@ -855,7 +855,7 @@ public:
         ) override
     {
         std::size_t system_size = rA.size1();
-        std::vector<double> scaling_factors (system_size, 1.0);
+        Vector scaling_factors (system_size, 1.0);
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
@@ -866,7 +866,6 @@ public:
             auto it_dof_iterator = it_dof_iterator_begin + k;
             if (it_dof_iterator->IsFixed())
                 scaling_factors[k] = 0.0;
-
         }
 
         double* Avalues = rA.value_data().begin();
