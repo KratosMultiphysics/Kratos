@@ -27,6 +27,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "custom_conditions/RigidFace.h"
+#include "custom_conditions/RigidEdge.h"
 #include "DEM_application_variables.h"
 #include "dem_structures_coupling_application_variables.h"
 #include "custom_elements/spheric_continuum_particle.h"
@@ -54,6 +55,7 @@ virtual ~DemStructuresCouplingUtilities(){}
 void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_destination_model_part, Properties::Pointer props) {
 
     std::string error = CheckProvidedProperties(props);
+    const int dimension = r_source_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
     if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
 
@@ -68,7 +70,13 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
     for (unsigned int i = 0; i < source_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
         Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
-        Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
+        Condition::Pointer cond;
+        if (dimension == 2) {
+            cond = Condition::Pointer(new RigidEdge3D(id, p_geometry, props));            
+        } else {
+            cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));  
+        }
+
         cond->Set(DEMFlags::STICKY, true);
         r_destination_model_part.AddCondition(cond); //TODO: add all of them in a single sentence! AddConditions. Use a temporary PointerVector as a list (not std::vector!).
         id++;
