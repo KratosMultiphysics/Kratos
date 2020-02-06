@@ -16,9 +16,6 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-
-# Set build type
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Custom"}
 export PYTHON_EXECUTABLE="/usr/bin/python3.6"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
@@ -39,7 +36,7 @@ add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
-# add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
+add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 
