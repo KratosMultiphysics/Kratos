@@ -368,7 +368,7 @@ protected:
             GetPointLocator(r_patch_model_part);
         KRATOS_INFO_IF(
             "ApplyChimera : Creation of search structures took        : ", mEchoLevel > 0)
-            << elapsesearch_creation_time.ElapsedSeconds() d_search_creation_time
+            << search_creation_time.ElapsedSeconds()
             << " seconds" << std::endl;
         KRATOS_ERROR_IF(over_lap_distance < 1e-12)
             << "Overlap distance should be a positive and non-zero number."
@@ -633,10 +633,6 @@ protected:
                               MasterSlaveContainerVectorType& rVelocityMasterSlaveContainerVector,
                               MasterSlaveContainerVectorType& rPressureMasterSlaveContainerVector)
     {
-        std::vector<NodesContainerType> SendNodes(mpi_size);
-        Model& current_model = mrMainModelPart.GetModel();
-
-        // WriteModelPart(gathered_modelpart);
         std::vector<int> vector_of_non_found_nodes;
         const int n_boundary_nodes = static_cast<int>(rBoundaryModelPart.Nodes().size());
         std::vector<int> constraints_id_vector;
@@ -644,6 +640,7 @@ protected:
         CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
         IndexType found_counter = 0;
+        IndexType removed_counter = 0;
         std::vector<IndexType> nodes_to_add;
 
         BuiltinTimer loop_over_b_nodes;
@@ -657,17 +654,15 @@ protected:
                 rPressureMasterSlaveContainerVector[omp_get_thread_num()];
 
             ModelPart::NodesContainerType::iterator i_boundary_node =
-                gathered_modelpart.NodesBegin() + i_bn;
+                rBoundaryModelPart.NodesBegin() + i_bn;
             NodeType& r_boundary_node = *(*(i_boundary_node.base()));
-            const int node_p_index = is_comm_distributed
-                                         ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX)
-                                         : 0;
             unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
             Element::Pointer r_host_element;
             Vector weights;
             bool is_found =
                 SearchNode(rBinLocator, r_boundary_node, r_host_element, weights);
             if (is_found) {
+                removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
                 MakeConstraints(r_boundary_node, r_host_element, weights,
                                 ms_velocity_container, ms_pressure_container,
                                 constraints_id_vector, start_constraint_id);
@@ -691,6 +686,9 @@ protected:
         KRATOS_INFO_IF(
             "ApplyChimera : Number of constraints made                : ", mEchoLevel > 1)
             << found_counter * 9 << std::endl;
+        KRATOS_INFO_IF(
+            "ApplyChimera : Number of constraints removed             : ", mEchoLevel > 1)
+            << removed_counter << std::endl;
     }
     ///@}
     ///@name Protected  Access
