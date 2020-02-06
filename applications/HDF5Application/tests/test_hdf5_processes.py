@@ -33,9 +33,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.patcher8 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalFlagValueIO', autospec=True)
         self.patcher9 = patch(
-            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True)  
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True)
         self.patcher10 = patch(
-            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True)                         
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True)
         self.HDF5FileSerial = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
@@ -57,7 +57,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.patcher7.stop()
         self.patcher8.stop()
         self.patcher9.stop()
-        self.patcher10.stop()        
+        self.patcher10.stop()
 
     def test_SingleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -87,10 +87,10 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                     },
                     "condition_data_value_settings": {
                         "prefix": "/ResultsData/ConditionDataValues"
-                    },   
+                    },
                     "condition_flag_value_settings": {
                         "prefix": "/ResultsData/ConditionFlagValues"
-                    },                                     
+                    },
                     "output_time_settings": {
                         "time_frequency": 0.2,
                         "step_frequency": 10
@@ -185,7 +185,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.call_count, 2)
         self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.assert_called_with(
-            self.model_part.Conditions)            
+            self.model_part.Conditions)
 
     def test_MultipleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -310,7 +310,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 1)
         self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
-            self.model_part.Conditions)            
+            self.model_part.Conditions)
 
     def test_SingleMeshTemporalInputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -362,7 +362,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 2)
         self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
-            self.model_part.Conditions)            
+            self.model_part.Conditions)
 
     def test_SingleMeshXdmfOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''

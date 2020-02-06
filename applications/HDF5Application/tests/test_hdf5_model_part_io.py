@@ -123,7 +123,7 @@ class TestCase(KratosUnittest.TestCase):
 
             condition.Set(SLIP, bool(random.randint(-100, 100) % 2))
             condition.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
-            condition.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))            
+            condition.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
         # Set some process info variables.
         model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
         model_part.ProcessInfo[TIME] = random.random() # float
@@ -187,7 +187,7 @@ class TestCase(KratosUnittest.TestCase):
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
-        return HDF5ConditionFlagValueIO(params, hdf5_file)        
+        return HDF5ConditionFlagValueIO(params, hdf5_file)
 
     def _get_nodal_data_value_io(self, hdf5_file):
         params = Parameters("""
@@ -357,7 +357,7 @@ class TestCase(KratosUnittest.TestCase):
             # Check data.
             for read_condition, write_condition in zip(read_model_part.Conditions, write_model_part.Conditions):
                 for var in assert_variables_list:
-                    self.assertEqual(read_condition.Is(var), write_condition.Is(var))                    
+                    self.assertEqual(read_condition.Is(var), write_condition.Is(var))
 
     def test_HDF5NodalDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
