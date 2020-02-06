@@ -1,3 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+
 #if !defined(KRATOS_CAD_JSON_INPUT_INCLUDED )
 #define  KRATOS_CAD_JSON_INPUT_INCLUDED
 
