@@ -1583,7 +1583,7 @@ protected:
     {
         double diagonal_norm = 0.0;
         #pragma omp parallel for reduction(+:diagonal_norm)
-        for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+        for(int i = 0; i < TSparseSpace::Size1(rA); ++i) {
             diagonal_norm += std::pow(rA(i,i), 2);
         }
         return std::sqrt(diagonal_norm);
@@ -1618,7 +1618,7 @@ protected:
         const int num_threads = OpenMPUtils::GetNumThreads();
         Vector max_vector(num_threads, 0.0);
         #pragma omp parallel for
-        for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+        for(int i = 0; i < TSparseSpace::Size1(rA); ++i) {
             const int id = OpenMPUtils::ThisThread();
             if (std::abs(rA(i,i)) > max_vector[id])
                 max_vector[id] = std::abs(rA(i,i));
@@ -1650,7 +1650,7 @@ protected:
         const int num_threads = OpenMPUtils::GetNumThreads();
         Vector min_vector(num_threads, std::numeric_limits<double>::max());
         #pragma omp parallel for
-        for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+        for(int i = 0; i < TSparseSpace::Size1(rA); ++i) {
             const int id = OpenMPUtils::ThisThread();
             if (std::abs(rA(i,i)) < min_vector[id])
                 min_vector[id] = std::abs(rA(i,i));
