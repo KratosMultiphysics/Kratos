@@ -300,7 +300,11 @@ public:
     {
     }
 
-
+    GeometryData(const GeometryData& rOther, GeometryDimension const* pThisGeometryDimension)
+        : mpGeometryDimension(pThisGeometryDimension)
+        , mGeometryShapeFunctionContainer(rOther.mGeometryShapeFunctionContainer)
+    {
+    }
 
     /// Destructor. Do nothing!!!
     virtual ~GeometryData() {}
