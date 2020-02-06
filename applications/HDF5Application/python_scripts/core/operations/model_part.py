@@ -166,7 +166,7 @@ class ConditionFlagValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ConditionFlagValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions)            
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions)
 
 
 class NodalSolutionStepDataOutput(VariableIO):
@@ -319,7 +319,7 @@ def Create(settings):
     elif operation_type == 'condition_data_value_input':
         return ConditionDataValueInput(settings)
     elif operation_type == 'condition_flag_value_input':
-        return ConditionFlagValueInput(settings)        
+        return ConditionFlagValueInput(settings)
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':

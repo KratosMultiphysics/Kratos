@@ -46,7 +46,7 @@ def Factory(settings, Model):
     +-------------------------------------+------------+---------------------------------+
     | "condition_data_value_settings"     | Parameters | "prefix": "/ResultsData"        |
     |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+    
+    +-------------------------------------+------------+---------------------------------+
     """
     core_settings = CreateCoreSettings(settings["Parameters"])
     return InitializationFromHDF5ProcessFactory(core_settings, Model)
@@ -109,6 +109,6 @@ def CreateCoreSettings(user_settings):
         CreateOperationSettings("condition_flag_value_input",
                                 user_settings["condition_flag_value_settings"]),
         CreateOperationSettings("condition_data_value_input",
-                                user_settings["condition_data_value_settings"])                                
+                                user_settings["condition_data_value_settings"])
     ]
     return core_settings

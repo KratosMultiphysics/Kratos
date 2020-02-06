@@ -213,7 +213,7 @@ class TestXdmfConditionResults(KratosUnittest.TestCase):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_group("/Results")
             results = XdmfConditionFlags(f["/Results"])
-            self.assertEqual(len(results), 0)            
+            self.assertEqual(len(results), 0)
 
 
 class TestXdmfResults(KratosUnittest.TestCase):

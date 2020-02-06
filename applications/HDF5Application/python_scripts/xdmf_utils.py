@@ -306,7 +306,7 @@ def XdmfConditionFlags(h5_results):
     for variable, data in filter(Has_dtype, grp.items()):
         r = ConditionData(variable, HDF5UniformDataItem(data))
         results.append(r)
-    return results    
+    return results
 
 
 def XdmfResults(h5_results):
@@ -322,7 +322,7 @@ def XdmfResults(h5_results):
             XdmfElementResults(h5_results),
             XdmfElementFlags(h5_results),
             XdmfConditionResults(h5_results),
-            XdmfConditionFlags(h5_results),            
+            XdmfConditionFlags(h5_results),
         )
     )
 
