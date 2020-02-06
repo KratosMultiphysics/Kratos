@@ -90,20 +90,21 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
         self.gid_output.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        # Set time in case the GiD process control output is time
-        self.visualization_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.origin_model_part.ProcessInfo[KratosMultiphysics.TIME]
-
         self.EmbeddedSkinVisualizationProcess.ExecuteInitializeSolutionStep()
         self.gid_output.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteBeforeOutputStep()
         if (self.gid_output.IsOutputStep()):
             self.gid_output.PrintOutput()
+
+    def ExecuteAfterOutputStep(self):
+        self.EmbeddedSkinVisualizationProcess.ExecuteAfterOutputStep()
+        self.gid_output.ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteFinalize()
