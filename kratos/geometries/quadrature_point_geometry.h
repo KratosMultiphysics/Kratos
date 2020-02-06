@@ -56,7 +56,6 @@ public:
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
-    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
@@ -82,8 +81,8 @@ public:
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
-        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
+        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -122,7 +121,6 @@ public:
             ThisGeometryShapeFunctionContainer)
     {
     }
-
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
@@ -136,45 +134,7 @@ public:
     {
     }
 
-    /// Constructor with points, N, Vector<DN_De, ...>
-    QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointType& ThisIntegrationPoint,
-        const Matrix& ThisShapeFunctionsValues,
-        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
-                ThisIntegrationPoint,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsDerivatives))
-    {
-    }
-
-    /// Constructor with points, N, Vector<DN_De, ...>, parent
-    QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointType& ThisIntegrationPoint,
-        const Matrix& ThisShapeFunctionsValues,
-        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
-                ThisIntegrationPoint,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsDerivatives))
-        , mpGeometryParent(pGeometryParent)
-    {
-    }
-
-    /// Constructor.
-    explicit QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints)
+    explicit QuadraturePointGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -183,30 +143,78 @@ public:
     {
     }
 
-    /// Destructor.
-    ~QuadraturePointGeometry() override = default;
-
-    /// Copy constructor.
-    QuadraturePointGeometry(
-        QuadraturePointGeometry const& rOther )
+    /**
+     * Copy constructor.
+     * Constructs this geometry as a copy of given geometry.
+     *
+     * @note This copy constructor does not copy the points, thus,
+     * the new geometry shares points with the source geometry.
+     * Any changes to the new geometry points affect the source
+     * geometry points too.
+     */
+    QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
-        , mGeometryData(rOther.mGeometryData)
-        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
+
+    /**
+     * Copy constructor from a geometry with other point type.
+     * Construct this geometry as a copy of given geometry which
+     * has different type of points. The given goemetry's
+     * TOtherPointType* must be implicity convertible to this
+     * geometry PointType.
+     *
+     * @note This copy constructor does not copy the points, thus,
+     * the new geometry shares points with the source geometry.
+     * Any changes to the new geometry points affect the source
+     * geometry points too.
+     */
+    template<class TOtherPointType>
+    QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
+        : BaseType( rOther )
+    {
+    }
+
+    /// Destructor. Does nothing!!!
+    ~QuadraturePointGeometry() override {}
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    QuadraturePointGeometry& operator=(
-        const QuadraturePointGeometry& rOther )
+    /**
+     * Assignment operator.
+     *
+     * @note This copy constructor does not copy the points, thus,
+     * the new geometry shares points with the source geometry.
+     * Any changes to the new geometry points affect the source
+     * geometry points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
+    QuadraturePointGeometry& operator=( const QuadraturePointGeometry& rOther )
     {
         BaseType::operator=( rOther );
 
-        mGeometryData = rOther.mGeometryData;
-        mpGeometryParent = rOther.mpGeometryParent;
+        return *this;
+    }
+
+    /**
+     * Assignment operator for geometries with different point type.
+     *
+     * @note This copy constructor does not copy the points, thus,
+     * the new geometry shares points with the source geometry.
+     * Any changes to the new geometry points affect the source
+     * geometry points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
+    template<class TOtherPointType>
+    QuadraturePointGeometry& operator=( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
+    {
+        BaseType::operator=( rOther );
 
         return *this;
     }
@@ -456,6 +464,7 @@ private:
         rSerializer.load("GeometryData", mGeometryData);
 
         mGeometryData.SetGeometryDimension(&msGeometryDimension);
+
     }
 
     QuadraturePointGeometry()

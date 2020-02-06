@@ -120,9 +120,17 @@ public:
     explicit PointerVector(std::size_t NewSize) :  mData(NewSize)
     {
     }
+/*
+    template<class TOtherDataType>
+    PointerVector(std::size_t NewSize, TOtherDataType const& Value) :  mData(NewSize)
+    {
+        for(size_type i = 0 ; i < NewSize ; i++)
+            mData[i] = pointer(new TOtherDataType(Value));
+    }*/
 
     /// Destructor.
     virtual ~PointerVector() {}
+
 
     ///@}
     ///@name Operators
@@ -272,6 +280,17 @@ public:
         mData.push_back(x);
     }
 
+//     template<class TOtherDataType>
+//     void push_back(TOtherDataType const& x)
+//     {
+//         push_back(TPointerType(new TOtherDataType(x)));
+//     }
+/*
+    template<class TOtherDataType>
+    iterator insert(iterator Position, const TOtherDataType& rData)
+    {
+        return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
+    }*/
 
     iterator insert(iterator Position, const TPointerType pData)
     {
@@ -301,12 +320,7 @@ public:
         mData.clear();
     }
 
-    void resize(size_type dim)
-    {
-        mData.resize(dim);
-    }
-
-    void reserve(size_type dim)
+    void reserve(int dim)
     {
         mData.reserve(dim);
     }
@@ -331,6 +345,8 @@ public:
     {
         return mData;
     }
+
+
 
     ///@}
     ///@name Inquiry
@@ -365,6 +381,12 @@ public:
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
 
     ///@}
 

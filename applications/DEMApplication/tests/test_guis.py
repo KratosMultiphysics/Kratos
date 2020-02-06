@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
+from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 

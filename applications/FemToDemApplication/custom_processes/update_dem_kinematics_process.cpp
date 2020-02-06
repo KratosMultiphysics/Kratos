@@ -51,7 +51,6 @@ void UpdateDemKinematicsProcess::UpdateKinematics(
 {
     const array_1d<double,3> coordinates = rNode->Coordinates();
     const array_1d<double,3> displacement = rNode->FastGetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3> delta_displacement = rNode->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     const array_1d<double,3> velocity = rNode->FastGetSolutionStepValue(VELOCITY);
 
     auto& r_displ_dem = rDEMNode.FastGetSolutionStepValue(DISPLACEMENT);
@@ -60,8 +59,6 @@ void UpdateDemKinematicsProcess::UpdateKinematics(
     r_vel_dem = velocity;
 
     array_1d<double,3>& r_dem_coordinates = rDEMNode.Coordinates();
-    array_1d<double, 3>& r_dem_delta_displ = rDEMNode.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-    r_dem_delta_displ = delta_displacement;
     r_dem_coordinates = coordinates;
 }
 

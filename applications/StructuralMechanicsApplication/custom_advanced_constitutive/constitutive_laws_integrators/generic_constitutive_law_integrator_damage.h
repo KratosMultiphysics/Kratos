@@ -146,7 +146,6 @@ class GenericConstitutiveLawIntegratorDamage
             break;
         }
         rDamage = (rDamage > 0.999) ? 0.999 : rDamage;
-        rDamage = (rDamage < 0.0) ? 0.0 : rDamage;
         rPredictiveStressVector *= (1.0 - rDamage);
     }
 

@@ -9,14 +9,6 @@ class TestCase(MeshMovingTestCase):
         self.number_of_nodes_per_elements = 4
         self.solver_type = "structural_similarity"
         self.mesh_vel_calc_helper = KM.TimeDiscretization.BDF2()
-
-        mesh_vel_calc_settings = KM.Parameters("""{
-            "calculate_mesh_velocity"   : true,
-            "mesh_velocity_calculation" : {
-                "time_scheme" : "bdf2"
-            }
-        }""")
-
         self.print_reference_results = False
 
         # to suppress many prints
@@ -26,7 +18,7 @@ class TestCase(MeshMovingTestCase):
         self.print_vtk_output = False
         self.print_gid_output = False
 
-        self.executeTest(mesh_vel_calc_settings)
+        self.executeTest()
 
     def test_structural_similarity_3D8N(self):
         # General Settings for the test
@@ -34,15 +26,6 @@ class TestCase(MeshMovingTestCase):
         self.number_of_nodes_per_elements = 8
         self.solver_type = "structural_similarity"
         self.mesh_vel_calc_helper = KM.TimeDiscretization.Bossak(-0.1)
-
-        mesh_vel_calc_settings = KM.Parameters("""{
-            "calculate_mesh_velocity"   : true,
-            "mesh_velocity_calculation" : {
-                "time_scheme" : "bossak",
-                "alpha_m" : -0.1
-            }
-        }""")
-
         self.print_reference_results = False
 
         # to suppress many prints
@@ -52,7 +35,7 @@ class TestCase(MeshMovingTestCase):
         self.print_vtk_output = False
         self.print_gid_output = False
 
-        self.executeTest(mesh_vel_calc_settings)
+        self.executeTest()
 
 if __name__ == '__main__':
     import KratosMultiphysics.KratosUnittest as KratosUnittest

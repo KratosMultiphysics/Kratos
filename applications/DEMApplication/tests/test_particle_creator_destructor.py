@@ -1,5 +1,5 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.DEMApplication as DEM
+from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestParticleCreatorDestructor(KratosUnittest.TestCase):
@@ -15,27 +15,28 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
 
         properties = Kratos.Properties(0)
         properties[Kratos.YOUNG_MODULUS] = 3.331
-        properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
-        properties[DEM.FRICTION] = 0.0
+        properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
+        properties[FRICTION] = 0.0
         properties[Kratos.POISSON_RATIO] = 0.0
-        properties[DEM.DAMPING_GAMMA] = 0.0
-        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.0
+        properties[DAMPING_GAMMA] = 0.0
+        properties[COEFFICIENT_OF_RESTITUTION] = 0.0
 
         self.ModifyProperties(properties)
 
         self.spheres_model_part.AddProperties(properties)
 
-        DEM.PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
+        PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
 
-        self.creator_destructor = DEM.ParticleCreatorDestructor()
+        self.creator_destructor = ParticleCreatorDestructor()
 
     def ModifyProperties(self, properties, param = 0):
 
         if not param:
-            DiscontinuumConstitutiveLaw = getattr(DEM, properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
-        scheme = DEM.SymplecticEulerScheme()
+        scheme = SymplecticEulerScheme()
         scheme.SetTranslationalIntegrationSchemeInProperties(properties, False)
         scheme.SetRotationalIntegrationSchemeInProperties(properties, False)
 

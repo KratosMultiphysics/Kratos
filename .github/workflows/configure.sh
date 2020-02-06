@@ -60,20 +60,11 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations" \
+-DEIGEN_ROOT="/usr/include/eigen3" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
--DUSE_COTIRE=ON \
--DINCLUDE_MMG=ON                                    \
--DMMG_INCLUDE_DIR="/usr/local/include/mmg/"         \
--DMMG2D_INCLUDE_DIR="/usr/local/include/mmg/mmg2d/" \
--DMMG3D_INCLUDE_DIR="/usr/local/include/mmg/mmg3d/" \
--DMMGS_INCLUDE_DIR="/usr/local/include/mmg/mmgs/"   \
--DMMG_LIBRARY="/usr/local/lib/libmmg.so"            \
--DMMG2D_LIBRARY="/usr/local/lib/libmmg2d.so"        \
--DMMG3D_LIBRARY="/usr/local/lib/libmmg3d.so"        \
--DMMGS_LIBRARY="/usr/local/lib/libmmgs.so"          \
--DUSE_EIGEN_MKL=ON
+-DUSE_COTIRE=ON
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1

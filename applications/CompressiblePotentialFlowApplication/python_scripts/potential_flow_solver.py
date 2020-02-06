@@ -11,7 +11,6 @@ class PotentialFlowFormulation(object):
     def __init__(self, formulation_settings):
         self.element_name = None
         self.condition_name = None
-        self.process_info_data = {}
 
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
@@ -25,10 +24,6 @@ class PotentialFlowFormulation(object):
                 self._SetUpEmbeddedCompressibleElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
-
-    def SetProcessInfo(self, model_part):
-        for variable,value in self.process_info_data.items():
-            model_part.ProcessInfo[variable] = value
 
     def _SetUpIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -50,15 +45,12 @@ class PotentialFlowFormulation(object):
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_incompressible",
-            "penalty_coefficient": 0.0
-
+            "element_type": "embedded_incompressible"
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -125,7 +117,6 @@ class PotentialFlowSolver(FluidSolver):
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
-        self.formulation.SetProcessInfo(self.main_model_part)
         self.min_buffer_size = 1
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.reference_chord = custom_settings["reference_chord"].GetDouble()
@@ -157,8 +148,7 @@ class PotentialFlowSolver(FluidSolver):
         self._ComputeNodalNeighbours()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        strategy = self._GetStrategyType()
-        if strategy == "linear":
+        if "incompressible" in self.settings["formulation"]["element_type"].GetString():
             # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
                 self.GetComputingModelPart(),
@@ -168,7 +158,7 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
-        elif strategy == "non_linear":
+        elif "compressible" in self.settings["formulation"]["element_type"].GetString():
             conv_criteria = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
@@ -198,19 +188,3 @@ class PotentialFlowSolver(FluidSolver):
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
-
-    def _GetStrategyType(self):
-        element_type = self.settings["formulation"]["element_type"].GetString()
-        if "incompressible" in element_type:
-            if not self.settings["formulation"].Has("penalty_coefficient"):
-                strategy = "linear"
-            elif self.settings["formulation"]["penalty_coefficient"].GetDouble() == 0.0:
-                strategy = "linear"
-            else:
-                strategy = "non_linear"
-        elif "compressible" in element_type:
-            strategy = "non_linear"
-        else:
-            strategy = ""
-
-        return strategy

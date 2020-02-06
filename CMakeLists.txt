@@ -415,9 +415,6 @@ message("")
 message("***********************************************************************")
 message("")
 
-message("List of upcoming api-breaking changes:")
-message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
-
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
 

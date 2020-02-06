@@ -290,21 +290,36 @@ public:
     {
     }
 
-    /// Copy constructor.
+    /*
+    * Copy constructor.
+    * Construct this geometry data as a copy of given geometry data.
+    */
     GeometryData( const GeometryData& rOther )
         : mpGeometryDimension( rOther.mpGeometryDimension)
         , mGeometryShapeFunctionContainer( rOther.mGeometryShapeFunctionContainer)
     {
     }
 
-    /// Destructor.
+
+
+    /// Destructor. Do nothing!!!
     virtual ~GeometryData() {}
+
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
+    /** Assignment operator.
+
+    @note This operator don't copy the points and this
+    geometry shares points with given source geometry. It's
+    obvious that any change to this geometry's point affect
+    source geometry's points too.
+
+    @see Clone
+    @see ClonePoints
+    */
     GeometryData& operator=( const GeometryData& rOther )
     {
         mpGeometryDimension = rOther.mpGeometryDimension;

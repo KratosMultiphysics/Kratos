@@ -56,21 +56,20 @@ public:
 
     typedef typename TGeometryType::Pointer GeometryPointerType;
 
-
-    /// Geometry Hash Map Container.
-    // Stores with hash of Ids to corresponding geometries.
+    /* Geometry Hash Map Container.
+    *  Hash of Id are keys to corresponding intrusive pointer */
     typedef PointerHashMapSet<
         TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
         GeometryPointerType
-        > GeometriesMapType;
+    > GeometriesContainerType;
 
     /// Geometry Iterator
-    typedef typename GeometriesMapType::iterator GeometryIterator;
+    typedef typename GeometriesContainerType::iterator GeometryIterator;
 
     /// Const Geometry Iterator
-    typedef typename GeometriesMapType::const_iterator GeometryConstantIterator;
+    typedef typename GeometriesContainerType::const_iterator GeometryConstantIterator;
 
     ///@}
     ///@name Life Cycle
@@ -88,7 +87,7 @@ public:
 
     /// Components Constructor
     GeometryContainer(
-        GeometriesMapType& NewGeometries)
+        GeometriesContainerType& NewGeometries)
         : mGeometries(NewGeometries)
     {}
 
@@ -101,7 +100,7 @@ public:
 
     GeometryContainer Clone()
     {
-        typename GeometriesMapType::Pointer p_geometries(new GeometriesMapType(*mGeometries));
+        typename GeometriesContainerType::Pointer p_geometries(new GeometriesContainerType(*mGeometries));
 
         return GeometryContainer(p_geometries);
     }
@@ -266,12 +265,12 @@ public:
     ///@name Container Functions
     ///@{
 
-    GeometriesMapType& Geometries()
+    GeometriesContainerType& Geometries()
     {
         return mGeometries;
     }
 
-    const GeometriesMapType& Geometries() const
+    const GeometriesContainerType& Geometries() const
     {
         return mGeometries;
     }
@@ -317,7 +316,7 @@ private:
     ///@{
 
     /// Geometry Container
-    GeometriesMapType mGeometries;
+    GeometriesContainerType mGeometries;
 
     ///@}
     ///@name Serialization

@@ -70,11 +70,6 @@ class GenerateDemProcess : public Process
      */
   int GetMaximumDEMId();
 
-    /**
-     * @brief This returns the maximum Id of FEM nodes
-     */
-  int GetMaximumFEMId();
-
 protected:
 
   // Member Variables
