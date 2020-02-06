@@ -48,8 +48,8 @@ jobs:
           export CC=/usr/bin/gcc
           export CXX=/usr/bin/g++
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang
-          export CXX=/usr/bin/clang++
+          export CC=/usr/bin/clang-9
+          export CXX=/usr/bin/clang++-9
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
