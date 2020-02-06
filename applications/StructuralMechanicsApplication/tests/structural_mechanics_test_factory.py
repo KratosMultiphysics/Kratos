@@ -34,16 +34,16 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
                         "solver_type": "EigenSolversApplication.sparse_lu"
                     }""")
                 ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
-            else:
-                solver_type = ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
-                solver_type_splitted = solver_type.split(".")
-                if len(solver_type_splitted) == 2:
-                    # this means that we use a solver from an application
-                    # hence we have to check if it exists, otherwise skip the test
-                    app_name = solver_type_splitted[0]
-                    solver_name = solver_type_splitted[1]
-                    if not kratos_utils.CheckIfApplicationsAvailable(app_name):
-                        self.skipTest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
+
+            solver_type = ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
+            solver_type_splitted = solver_type.split(".")
+            if len(solver_type_splitted) == 2:
+                # this means that we use a solver from an application
+                # hence we have to check if it exists, otherwise skip the test
+                app_name = solver_type_splitted[0]
+                solver_name = solver_type_splitted[1]
+                if not kratos_utils.CheckIfApplicationsAvailable(app_name):
+                    self.skipTest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
 
 
             self.modify_parameters(ProjectParameters)
