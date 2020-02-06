@@ -197,6 +197,7 @@ protected:
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
+            KRATOS_INFO("FRACTIONAL STEP :: ")<<it+1<<std::endl;
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = BaseType::mpMomentumStrategy->Solve();
@@ -335,6 +336,8 @@ protected:
                     itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
+                } else {
+                    KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
                 }
             }
         }
@@ -434,6 +437,8 @@ protected:
                             itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
                         if ( ! itNode->IsFixed(VELOCITY_Z) )
                             itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+                    } else {
+                        KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
                     }
                 }
             }
@@ -501,6 +506,8 @@ protected:
                             itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
                         if ( ! itNode->IsFixed(VELOCITY_Y) )
                             itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                    } else {
+                        KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
                     }
                 }
             }
@@ -617,6 +624,8 @@ protected:
                 itNode->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
                 itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
                 itNode->GetValue(DIVPROJ) = 0.0;
+            } else {
+                KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
             }
         }
      }
