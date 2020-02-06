@@ -133,17 +133,27 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                   : "ResidualBasedBlockBuilderAndSolver",
-            "scale_diagonal"         : false,
-            "consider_norm_diagonal" : true,
-            "silent_warnings"        : false
+            "name"                               : "ResidualBasedBlockBuilderAndSolver",
+            "scale_diagonal"                     : false,
+            "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
+            "silent_warnings"                    : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Setting flags
         mOptions.Set(SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
-        mOptions.Set(CONSIDER_NORM_DIAGONAL, ThisParameters["consider_norm_diagonal"].GetBool());
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+        if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
+            mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+        } else {
+            mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            // We assume it is a number
+            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
+            number_stream >> mScaleFactor; 
+        }
         mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
 
@@ -873,8 +883,7 @@ public:
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
-        const auto& r_process_info = rModelPart.GetProcessInfo();
-        const double diagonal_value = GetScaleNorm(rA, r_process_info, BUILD_SCALE_FACTOR);
+        const double diagonal_value = GetScaleNorm(rA);
         
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel
@@ -1091,7 +1100,8 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
-
+    double mScaleFactor = 1.0;         /// The manuallyset scale factor
+    
     Flags mOptions; /// Some flags used internally
 
     ///@}
@@ -1545,19 +1555,13 @@ protected:
     /**
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rA The LHS matrix
-     * @param rCurrentProcessInfo The current process info instance
-     * @param rScaleVariable The scale variable considered
      * @return The scale norm
      */
-    double GetScaleNorm(
-        TSystemMatrixType& rA,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Variable<double>& rScaleVariable
-        )
+    double GetScaleNorm(TSystemMatrixType& rA)
     {
         if (mOptions.Is(SCALE_DIAGONAL) ) {
-            if (rCurrentProcessInfo.Has(rScaleVariable)) {
-                return rCurrentProcessInfo[rScaleVariable];
+            if (mScaleFactor > 1.0) {
+                return mScaleFactor;
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
                     return GetDiagonalNorm(rA);
