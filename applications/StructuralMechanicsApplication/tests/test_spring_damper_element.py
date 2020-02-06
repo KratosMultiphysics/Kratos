@@ -324,7 +324,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
                 "number_of_eigenvalues": 2,
                 "search_dimension": 18,
                 "linear_solver_settings": {
-                    "solver_type" : "skyline_lu_complex",
+                    "solver_type" : "pastix",
                     "echo_level" : 0
                 }
             }""")

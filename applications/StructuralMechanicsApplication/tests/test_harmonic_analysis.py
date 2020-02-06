@@ -13,8 +13,6 @@ hdf5_application_available = kratos_utils.CheckIfApplicationsAvailable("HDF5Appl
 
 from math import sqrt
 from cmath import phase
-import os
-
 
 class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
