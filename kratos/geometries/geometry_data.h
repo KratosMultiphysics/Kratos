@@ -266,11 +266,10 @@ public:
         const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainer<IntegrationMethod>(
                 ThisDefaultMethod,
                 ThisIntegrationPoints,
                 ThisShapeFunctionsValues,
-                ThisShapeFunctionsLocalGradients))
+                ThisShapeFunctionsLocalGradients)
     {
     }
 
@@ -282,11 +281,10 @@ public:
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
-        GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
+        GeometryShapeFunctionContainer<IntegrationMethod> ThisGeometryShapeFunctionContainer)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainer<IntegrationMethod>(
-                ThisGeometryShapeFunctionContainer))
+                ThisGeometryShapeFunctionContainer)
     {
     }
 
