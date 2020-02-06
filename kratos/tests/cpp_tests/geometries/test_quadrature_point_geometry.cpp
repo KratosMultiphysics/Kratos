@@ -90,12 +90,14 @@ namespace Kratos {
                 N_i(0, j) = r_N(0, j);
             }
             const Matrix& DN_De = triangle->ShapeFunctionLocalGradient(0);
+            DenseVector<Matrix> derivatives(1);
+            derivatives[0] = DN_De;
 
             return Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
                 triangle->Points(),
                 integration_points[0],
                 N_i,
-                DN_De,
+                derivatives,
                 triangle.get());
         }
 
