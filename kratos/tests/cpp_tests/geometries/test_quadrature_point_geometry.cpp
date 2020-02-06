@@ -86,21 +86,13 @@ namespace Kratos {
             {
                 N_i(0, j) = r_N(0, j);
             }
-            Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
+            const Matrix& DN_De = triangle->ShapeFunctionLocalGradient(0);
 
-            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                GeometryData::GI_GAUSS_1,
-                integration_points[0],
-                N_i,
-                DN_De);
-
-            QuadraturePointGeometry<Node<3>, 2, 2>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
+            return Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
                     triangle->Points(),
-                    data_container,
-                    triangle.get()));
-
-            return p_this_quadrature_point;
+                    integration_points[0],
+                    N_i, DN_De,
+                    triangle.get());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointUtility, KratosCoreFastSuite)

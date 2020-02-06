@@ -121,6 +121,7 @@ public:
             ThisGeometryShapeFunctionContainer)
     {
     }
+
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
@@ -130,6 +131,42 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             ThisGeometryShapeFunctionContainer)
+        , mpGeometryParent(pGeometryParent)
+    {
+    }
+
+    /// Constructor with points, N, Vector<DN_De, ...>
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryShapeFunctionContainerType(
+                GeometryData::GI_GAUSS_1,
+                ThisIntegrationPoint,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsDerivatives))
+    {
+    }
+
+    /// Constructor with points, N, Vector<DN_De, ...>, parent
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryShapeFunctionContainerType(
+                GeometryData::GI_GAUSS_1,
+                ThisIntegrationPoint,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsDerivatives))
         , mpGeometryParent(pGeometryParent)
     {
     }
@@ -145,6 +182,9 @@ public:
     {
     }
 
+    /// Destructor.
+    ~QuadraturePointGeometry() override = default;
+
     /// Copy constructor.
     QuadraturePointGeometry(
         QuadraturePointGeometry const& rOther )
@@ -153,9 +193,6 @@ public:
         , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
-
-    /// Destructor.
-    ~QuadraturePointGeometry() override = default;
 
     ///@}
     ///@name Operators
