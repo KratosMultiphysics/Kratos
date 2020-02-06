@@ -31,27 +31,6 @@ class FlowOverCylinderFractionalStep(ChimeraAnalysisBaseTest):
         end = time.clock()
         print("Time taken for fractional step chimera simulation",end-start)
 
-class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
-    def test_MultipleOverlappingPatchMonolithic(self):
-        start = time.clock()
-        work_folder = "multiple_over_lapping_patches_monolithic"
-        settings_file_name = "multiple_overlapping_patches_monolithic.json"
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._run_test(settings_file_name)
-
-        end = time.clock()
-        print("Time taken for Multiple overlapping chimera simulation using Monolithic solver ",end-start)
-
-class FractionalStepMultiPatch(ChimeraAnalysisBaseTest):
-    def test_MultipleOverlappingPatchFractionalStep(self): #TODO: Check and correct this
-        start = time.clock()
-        work_folder = "multiple_over_lapping_patches_fractionalstep"
-        settings_file_name = "multiple_overlapping_patches_fractionalstep.json"
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._run_test(settings_file_name)
-
-        end = time.clock()
-        print("Time taken for Multiple overlapping chimera simulation using fractional step solver ",end-start)
 
 class FlowOverCrossMonolithic(ChimeraAnalysisBaseTest):
     def test_FlowOverCrossMonolithic(self):
