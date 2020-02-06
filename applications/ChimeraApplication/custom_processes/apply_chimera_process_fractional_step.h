@@ -68,30 +68,12 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    ApplyChimeraProcessFractionalStep(ModelPart& rMainModelPart, Parameters iParameters)
-        : BaseType(rMainModelPart, iParameters)
-    {
-    }
+    ApplyChimeraProcessFractionalStep(ModelPart& rMainModelPart, Parameters iParameters);
 
     /// Destructor.
-    virtual ~ApplyChimeraProcessFractionalStep()
-    {
-    }
+    virtual ~ApplyChimeraProcessFractionalStep();
 
-    virtual void ExecuteFinalizeSolutionStep() override
-    {
-        if (BaseType::mReformulateEveryStep) {
-            auto& vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart(
-                "fs_velocity_model_part");
-            vel_modelpart.MasterSlaveConstraints().clear();
-
-            auto& pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart(
-                "fs_pressure_model_part");
-            pre_modelpart.MasterSlaveConstraints().clear();
-        }
-
-        BaseType::ExecuteFinalizeSolutionStep();
-    }
+    virtual void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Operators
@@ -101,22 +83,13 @@ public:
     ///@name Operations
     ///@{
 
-    std::string Info() const override
-    {
-        return "ApplyChimeraProcessFractionalStep";
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyChimeraProcessFractionalStep" << std::endl;
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        KRATOS_INFO("ApplyChimeraProcessFractionalStep") << std::endl;
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -148,54 +121,8 @@ protected:
      * @param rBinLocator The bin based locator formulated on the background.
      * This is used to locate nodes on rBoundaryModelPart.
      */
-    void ApplyContinuityWithMpcs(ModelPart& rBoundaryModelPart, PointLocatorType& rBinLocator) override
-    {
-        // loop over nodes and find the triangle in which it falls, then do
-        // interpolation
-        MasterSlaveContainerVectorType velocity_ms_container_vector;
-        MasterSlaveContainerVectorType pressure_ms_container_vector;
-        BaseType::ReserveMemoryForConstraintContainers(
-            rBoundaryModelPart, velocity_ms_container_vector);
-        BaseType::ReserveMemoryForConstraintContainers(
-            rBoundaryModelPart, pressure_ms_container_vector);
-
-        const int n_boundary_nodes = static_cast<int>(rBoundaryModelPart.Nodes().size());
-        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
-            ModelPart::NodesContainerType::iterator i_boundary_node =
-                rBoundaryModelPart.NodesBegin() + i_bn;
-            Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-
-            BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
-        }
-
-        BaseType::FormulateConstraints(rBoundaryModelPart, rBinLocator, velocity_ms_container_vector,
-                                       pressure_ms_container_vector);
-
-        BuiltinTimer mpc_add_time;
-        auto& vel_modelpart =
-            BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
-        BaseType::AddConstraintsToModelpart(vel_modelpart, velocity_ms_container_vector);
-        VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, false,
-                                vel_modelpart.MasterSlaveConstraints());
-        VariableUtils().SetFlag(FS_CHIMERA_VELOCITY_CONSTRAINT, true,
-                                vel_modelpart.MasterSlaveConstraints());
-        VariableUtils().SetFlag(ACTIVE, true, vel_modelpart.MasterSlaveConstraints());
-
-        auto& pre_modelpart =
-            BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
-        BaseType::AddConstraintsToModelpart(pre_modelpart, pressure_ms_container_vector);
-        VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, true,
-                                vel_modelpart.MasterSlaveConstraints());
-        VariableUtils().SetFlag(FS_CHIMERA_VELOCITY_CONSTRAINT, false,
-                                vel_modelpart.MasterSlaveConstraints());
-        VariableUtils().SetFlag(ACTIVE, true, pre_modelpart.MasterSlaveConstraints());
-
-        KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took : ", BaseType::mEchoLevel > 1)
-            << mpc_add_time.ElapsedSeconds() << " seconds" << std::endl;
-        KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1)
-            << rBoundaryModelPart.Name() << " : "
-            << rBoundaryModelPart.NumberOfNodes() << std::endl;
-    }
+    void ApplyContinuityWithMpcs(ModelPart& rBoundaryModelPart,
+                                 PointLocatorType& rBinLocator) override;
 
     ///@}
     ///@name Protected  Access
