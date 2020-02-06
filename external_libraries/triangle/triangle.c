@@ -3368,6 +3368,7 @@ struct behavior *b;
             }
             workstring[k] = '\0';
             b->maxarea = (REAL) strtod(workstring, (char **) NULL);
+            printf("%s -- %f\n", workstring, b->maxarea);
             if (b->maxarea <= 0.0) {
               printf("Error:  Maximum area must be greater than zero.\n");
               triexit(1);
