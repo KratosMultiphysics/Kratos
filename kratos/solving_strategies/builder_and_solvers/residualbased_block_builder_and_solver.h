@@ -1390,6 +1390,7 @@ protected:
     double GetDiagonalNorm(TSystemMatrixType& rA)
     {
         double diagonal_norm = 0.0;
+        #pragma omp parallel for reduction(+:diagonal_norm)
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
             diagonal_norm += std::pow(rA(i,i), 2);
         }
@@ -1413,11 +1414,25 @@ protected:
      */
     double GetMaxDiagonal(TSystemMatrixType& rA)
     {
-        double max_diag = 0.0;
+//         // NOTE: Reduction failing in MSVC
+//         double max_diag = 0.0;
+//         #pragma omp parallel for reduction(max:max_diag)
+//         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+//             max_diag = std::max(max_diag, rA(i,i));
+//         }
+//         return max_diag;
+
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        std::vector<double> max_vector(num_threads, 0.0);
+        #pragma omp parallel for
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
-            max_diag = std::max(std::abs(rA(i,i)), max_diag);
+            const int id = OpenMPUtils::ThisThread();
+            if (rA(i,i) > max_vector[id])
+                max_vector[id] = rA(i,i);
         }
-        return max_diag;
+
+        return *std::max_element(max_vector.begin(), max_vector.end());
     }
 
     /**
@@ -1427,11 +1442,25 @@ protected:
      */
     double GetMinDiagonal(TSystemMatrixType& rA)
     {
-        double min_diag = std::numeric_limits<double>::max();
+//         // NOTE: Reduction failing in MSVC
+//         double min_diag = std::numeric_limits<double>::max();
+//         #pragma omp parallel for reduction(min:min_diag)
+//         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+//             min_diag = std::min(min_diag, rA(i,i));
+//         }
+//         return min_diag;
+
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        std::vector<double> min_vector(num_threads, std::numeric_limits<double>::max());
+        #pragma omp parallel for
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
-            min_diag = std::min(std::abs(rA(i,i)), min_diag);
+            const int id = OpenMPUtils::ThisThread();
+            if (rA(i,i) < min_vector[id])
+                min_vector[id] = rA(i,i);
         }
-        return min_diag;
+        
+        return *std::min_element(min_vector.begin(), min_vector.end());
     }
 
     ///@}
