@@ -180,7 +180,7 @@ void ApplyChimera<TDim>::DoChimeraLoop()
                         << extraction_time.ElapsedSeconds() << " seconds" << std::endl;
                 }
 
-            for (ApplyChimera<TDim>::IndexType i_slave_level = i_current_level + 1;
+            for (int i_slave_level = i_current_level + 1;
                  i_slave_level < mNumberOfLevels; ++i_slave_level) {
                 for (auto& slave_patch_param :
                      mParameters[i_slave_level]) // Loop over all other slave
@@ -352,7 +352,7 @@ void ApplyChimera<TDim>::ApplyContinuityWithElement(
     // Initialise the boundary nodes dofs to 0 at ever time steps
     rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) = 0.0;
 
-    for (std::size_t i = 0; i < rGeometry.size(); i++) {
+    for (int i = 0; i < rGeometry.size(); i++) {
         // Interpolation of rVariable
         rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) +=
             rGeometry[i].GetDof(rVariable).GetSolutionStepValue(0) * rShapeFuncWeights[i];

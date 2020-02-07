@@ -393,9 +393,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    ApplyChimera& operator=(ApplyChimera const& rOther);
-
     ///@}
 }; // Class ApplyChimera
 
