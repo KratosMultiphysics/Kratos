@@ -373,7 +373,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_advanced_MPC_Constraints(self):
-        self._advanced_setup_test("Block")
+        self._advanced_setup_test("Block", "LU")
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_basic_LM_MPC_Constraints(self):
