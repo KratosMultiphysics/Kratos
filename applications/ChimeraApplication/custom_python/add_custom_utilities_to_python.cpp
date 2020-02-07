@@ -31,6 +31,14 @@ namespace Kratos
 
 namespace Python
 {
+
+    // Utility function to transfer the solution step data between the modelparts.
+    // Used in the python file chimera_modelpart_import.py
+    void TransferSolutionStepData(ModelPart& rFromModelPart, ModelPart& rToModelPart)
+    {
+      rToModelPart.SetNodalSolutionStepVariablesList( rFromModelPart.pGetNodalSolutionStepVariablesList() );
+    }
+
     namespace py = pybind11;
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
@@ -56,6 +64,10 @@ namespace Python
         .def("GetStrategy",&FractionalStepSettingsForChimeraType::pGetStrategy)
         .def("SetEchoLevel",&FractionalStepSettingsForChimeraType::SetEchoLevel)
         ;
+
+    // Utility function to transfer the solution step data between the modelparts.
+    // Used in the python file chimera_modelpart_import.py
+    m.def("TransferSolutionStepData", &TransferSolutionStepData, "Utility function to transfer the solution step data between the modelparts.");
   }
 
 }  // namespace Python.
