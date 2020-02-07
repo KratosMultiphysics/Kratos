@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosChimeraApplicationApplicationApplicationApplication ****")
+message("**** configuring KratosChimeraApplication****")
 
 
 ## Check if fluid dynamics app is being compile dor not
@@ -82,13 +82,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosChimeraApplicationCore)
-    cotire(KratosChimeraApplication)
-endif(USE_COTIRE MATCHES ON)
-
 install(TARGETS KratosChimeraApplicationCore DESTINATION libs )
 install(TARGETS KratosChimeraApplication DESTINATION libs )
-
-# Add to the KratosMultiphisics Python module 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ChimeraApplication.py" DESTINATION "KratosMultiphysics/ChimeraApplication" RENAME "__init__.py")
