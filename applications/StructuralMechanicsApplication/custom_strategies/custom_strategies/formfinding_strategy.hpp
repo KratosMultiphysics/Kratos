@@ -199,7 +199,7 @@ private:
         if (mPrintingFormat=="all" || mPrintingFormat=="gid"){
             mpIterationIO = Kratos::make_unique<IterationIOType>(
                 "formfinding_iterations",
-                GiD_PostAscii,
+                GiD_PostBinary,
                 MultiFileFlag::SingleFile,
                 WriteDeformedMeshFlag::WriteUndeformed,
                 WriteConditionsFlag::WriteConditions);
