@@ -1384,7 +1384,7 @@ protected:
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
                     return GetDiagonalNorm(rA);
                 } else {
-                    return TSparseSpace::TwoNorm(rA);
+                    return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
                 }
             }
         } else {
