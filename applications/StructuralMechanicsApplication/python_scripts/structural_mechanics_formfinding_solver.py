@@ -33,7 +33,7 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "printing_format"             : "all",
-            "write_new_reference_file"    : true,
+            "write_formfound_geometry_file"    : true,
             "formfinding_model_part_name" : "",
             "projection_settings": {
                 "model_part_name"  : "Structure",
@@ -71,7 +71,7 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
                                                                 mechanical_convergence_criterion,
                                                                 builder_and_solver,
                                                                 formfinding_model_part,
-                                                                self.settings["write_new_reference_file"].GetBool(),
+                                                                self.settings["write_formfound_geometry_file"].GetBool(),
                                                                 self.settings["printing_format"].GetString(),
                                                                 self.settings["projection_settings"],
                                                                 self.settings["max_iteration"].GetInt(),

@@ -48,7 +48,8 @@ namespace Kratos
             typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
             typedef typename BaseType::TSystemVectorType TSystemVectorType;
             typedef GidIO<> IterationIOType;
-            typedef IterationIOType::Pointer IterationIOPointerType;
+            //typedef IterationIOType::Pointer IterationIOPointerType;
+            typedef Kratos::unique_ptr<IterationIOType> IterationIOPointerType;
 
             ///@}
             ///@name Life Cycle
@@ -59,35 +60,6 @@ namespace Kratos
             * Constructor.
             */
 
-            FormfindingStrategy(
-                ModelPart& model_part,
-                typename TSchemeType::Pointer pScheme,
-                typename TLinearSolver::Pointer pNewLinearSolver,
-                typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                ModelPart& rFormFindingModelPart,
-                bool WriteNewReferenceFile,
-                std::string PrintingFormat,
-                Parameters ProjectionSetting,
-                int MaxIterations = 30,
-                bool CalculateReactions = false,
-                bool ReformDofSetAtEachStep = false,
-                bool MoveMeshFlag = false
-                )
-                : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
-                    pNewLinearSolver,
-                    pNewConvergenceCriteria,
-                    MaxIterations,
-                    CalculateReactions,
-                    ReformDofSetAtEachStep,
-                    MoveMeshFlag),
-                    mProjectionSettings(ProjectionSetting),
-                    mrFormFindingModelPart(rFormFindingModelPart),
-                    mPrintingFormat(PrintingFormat),
-                    mWriteNewReferenceFile(WriteNewReferenceFile)
-                 {
-                    InitializeIterationIO();
-                 }
-
             // constructor with Builder and Solver
             FormfindingStrategy(
                 ModelPart& model_part,
@@ -96,7 +68,7 @@ namespace Kratos
                 typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                 typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                 ModelPart& rFormFindingModelPart,
-                bool WriteNewReferenceFile,
+                bool WriteFormFoundGeometryFile,
                 std::string PrintingFormat,
                 Parameters ProjectionSetting,
                 int MaxIterations = 30,
@@ -110,7 +82,7 @@ namespace Kratos
                     mProjectionSettings(ProjectionSetting),
                     mrFormFindingModelPart(rFormFindingModelPart),
                     mPrintingFormat(PrintingFormat),
-                    mWriteNewReferenceFile(WriteNewReferenceFile)
+                    mWriteFormFoundGeometryFile(WriteFormFoundGeometryFile)
                  {
                     InitializeIterationIO();
                  }
@@ -119,12 +91,7 @@ namespace Kratos
             ~FormfindingStrategy() = default;
 
         private:
-            bool SolveSolutionStep() override
-            {
-                BaseType::SolveSolutionStep();
-                if (mPrintingFormat=="all" || mPrintingFormat=="gid") mpIterationIO->FinalizeResults();
-                return true;
-            }
+
 
             void UpdateDatabase(
                     TSystemMatrixType& A,
@@ -149,8 +116,6 @@ namespace Kratos
                     PrintResults();
                 }
 
-                FormfindingStrategy(const FormfindingStrategy& Other) {};
-
                 void EchoInfo(const unsigned int IterationNumber) override
                 {
                     BaseType::EchoInfo(IterationNumber);
@@ -171,7 +136,8 @@ namespace Kratos
                 void FinalizeSolutionStep() override
                 {
                     BaseType::FinalizeSolutionStep();
-                    if (mWriteNewReferenceFile) WriteNewMdpaFile();
+                    if (mPrintingFormat=="all" || mPrintingFormat=="gid") mpIterationIO->FinalizeResults();
+                    if (mWriteFormFoundGeometryFile) WriteNewMdpaFile();
                 }
 
                 void WriteNewMdpaFile()
@@ -193,7 +159,7 @@ namespace Kratos
                     model_part_io.WriteModelPart(BaseType::GetModelPart());
                 }
 
-                void PrintVtkFiles(const int& rIterationNumber)
+                void PrintVtkFiles(const int rIterationNumber)
                 {
                     Parameters vtk_params( R"({
                         "file_format"                        : "binary",
@@ -211,7 +177,7 @@ namespace Kratos
                 }
 
 
-                void PrintGiDFiles(const int& rIterationNumber)
+                void PrintGiDFiles(const int rIterationNumber)
                 {
                     double solution_tag = rIterationNumber;
                     mpIterationIO->WriteNodalResultsNonHistorical(DISPLACEMENT,BaseType::GetModelPart().Nodes(),solution_tag);
@@ -257,7 +223,7 @@ namespace Kratos
                 ModelPart& mrFormFindingModelPart;
                 std::string mPrintingFormat;
                 int mIterationNumber = 0;
-                bool mWriteNewReferenceFile = true;
+                bool mWriteFormFoundGeometryFile = true;
 
         }; /* Class FormfindingStrategy */
 } /* namespace Kratos. */

@@ -31,7 +31,7 @@
         "max_iteration"                   : 40,
         "rotation_dofs"                   : false,
         "printing_format"                 : "none",
-        "write_new_reference_file"        : false,
+        "write_formfound_geometry_file"   : false,
         "projection_settings": {
             "model_part_name"  : "Structure",
             "echo_level"       : 1,
