@@ -14,9 +14,7 @@ def ComputeMeanRadiusOfThisParticle(x, y, z, fine_radius):
         radius = fine_radius
     else:
         radius = fine_radius + slope * (distance_to_origin - max_distance_for_fine_radius)
-
-    #if x>0.003918 and x<0.00392 and y>-9.724e-05 and y<-9.72e-05:
-    #    print(radius)
+        
     return radius
 
 class ElementSizeModifier(DEMAnalysisStage):
@@ -72,9 +70,7 @@ class ElementSizeModifier(DEMAnalysisStage):
             self.list_of_young_modulus_at_start.append(props[KratosMultiphysics.YOUNG_MODULUS])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.size_modifier_parameters["material_settings"]["young_modulus"].GetDouble())
             self.list_of_coefficients_of_restittution_at_start.append(props[DEM.COEFFICIENT_OF_RESTITUTION])
-            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())
-            #self.list_of_damping_gammas_at_start.append(props[DEM.DAMPING_GAMMA])
-            #props.SetValue(DEM.DAMPING_GAMMA, self.size_modifier_parameters["material_settings"]["young_modulus"].GetDouble())
+            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())            
 
     def InitializeSolutionStep(self):
         super(ElementSizeModifier, self).InitializeSolutionStep()
