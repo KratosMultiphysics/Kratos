@@ -113,7 +113,6 @@ class MechanicalSolver(PythonSolver):
             "block_builder" : true,
             "consider_lagrange_multiplier_constraint_resolution" : "none",
             "builder_and_solver_settings" : {
-                "scale_diagonal"                      : false,
                 "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
                 "silent_warnings"                     : false,
                 "consider_double_lagrange_multiplier" : true
