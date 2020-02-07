@@ -52,7 +52,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
--DCMAKE_CXX_FLAGS="-std=c++11 -O0 -fopenmp -Wall \
+-DCMAKE_CXX_FLAGS="-std=c++11 -O0 -fopenmp -Wall" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
