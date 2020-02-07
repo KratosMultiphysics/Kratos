@@ -3,6 +3,7 @@ import KratosMultiphysics.StatisticsApplication as Statistics
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemContainer
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetNormTypeContainer
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethod
+from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethodHeaders
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 
@@ -84,20 +85,55 @@ class SpatialStatisticsProcess(Kratos.Process):
             container_name = variable_settings["container"].GetString()
             norm_type = variable_settings["norm_type"].GetString()
             method_name = variable_settings["method_name"].GetString()
+            method_headers = GetMethodHeaders(method_name)
 
             item_container = GetItemContainer(container_name)
             item_norm_container = GetNormTypeContainer(item_container, norm_type)
             method = GetMethod(item_norm_container, method_name)
 
             variable_list = []
+            max_variable_length = 0
             for variable_name in variable_settings["variable_names"].GetStringArray():
+                max_variable_length = max(max_variable_length, len(variable_name))
                 variable_list.append(Kratos.KratosGlobals.GetVariable(variable_name))
 
+            max_variable_length += 3
+
             if (norm_type == "none"):
+                Kratos.Logger.PrintInfo("SpatialStatisticsProcess", "Spatial statistical results for " + self.model_part_name + "'s " + container_name + " container under method " + method_name + " using values:")
+                msg = "Variable Name"
+                max_variable_length = max(len(msg) + 3, max_variable_length)
+                msg = msg.rjust(max_variable_length)
+                for header_name in method_headers:
+                    msg += "  " + header_name.ljust(30)
+                Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
                 for variable in variable_list:
                     output = method(self.model_part, variable)
-                    print(variable, output)
+                    msg = ""
+                    if len(method_headers) == 1:
+                        msg += variable.Name().rjust(max_variable_length)
+                        msg += str(output)
+                    else:
+                        msg += variable.Name().rjust(max_variable_length)
+                        for value in output:
+                            msg += "  " + str(value).ljust(30)
+                    Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
             else:
+                Kratos.Logger.PrintInfo("SpatialStatisticsProcess", "Spatial statistical results for " + self.model_part_name + "'s " + container_name + " container under method " + method_name + " using " + norm_type + " norm :")
+                msg = "Variable Name"
+                max_variable_length = max(len(msg) + 3, max_variable_length)
+                msg = msg.rjust(max_variable_length)
+                for header_name in method_headers:
+                    msg += "  " + header_name.ljust(30)
+                Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
                 for variable in variable_list:
                     output = method(norm_type, self.model_part, variable)
-                    print(variable, output)
+                    msg = ""
+                    if len(method_headers) == 1:
+                        msg += variable.Name().rjust(max_variable_length)
+                        msg += str(output)
+                    else:
+                        msg += variable.Name().rjust(max_variable_length)
+                        for value in output:
+                            msg += "  " + str(value).ljust(30)
+                    Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
