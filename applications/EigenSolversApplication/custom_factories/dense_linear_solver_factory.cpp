@@ -9,11 +9,12 @@
 //  Author: Quirin Aumann
 */
 
-// // Project includes
+// Project includes
 #include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
 
-// // Linear solvers
+// Linear solvers
+#include "custom_factories/dense_linear_solver_factory.h"
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigen_dense_col_piv_householder_qr_solver.h"
 #include "custom_solvers/eigen_dense_householder_qr_solver.h"
@@ -64,4 +65,5 @@ void RegisterDenseLinearSolvers()
 }
 
 template class KratosComponents<DenseLinearSolverFactoryType>;
+template class KratosComponents<ComplexDenseLinearSolverFactoryType>;
 }
