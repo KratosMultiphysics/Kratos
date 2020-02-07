@@ -6,7 +6,8 @@ import KratosMultiphysics.StatisticsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosStatisticsGeneralTests
+from test_spatial_methods import SpatialMethodTests
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -27,7 +28,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosStatisticsGeneralTests('testSmallExample'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialMethodTests]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -40,13 +41,10 @@ def AssembleTestSuites():
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosStatisticsGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite)
 
     return suites
+
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssembleTestSuites())
