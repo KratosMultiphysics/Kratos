@@ -315,7 +315,6 @@ namespace Kratos
             // Testing scale
             Parameters parameters = Parameters(R"(
             {
-                "scale_diagonal"                     : true,
                 "diagonal_values_for_dirichlet_dofs" : "2.26648e+10",
                 "silent_warnings"                    : false
             })" );
