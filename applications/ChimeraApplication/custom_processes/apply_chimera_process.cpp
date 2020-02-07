@@ -17,6 +17,9 @@
 //
 
 // Application includes
+#include "containers/model.h"
+#include "utilities/builtin_timer.h"
+#include "utilities/variable_utils.h"
 #include "custom_processes/apply_chimera_process.h"
 
 namespace Kratos {
@@ -53,7 +56,6 @@ ApplyChimera<TDim>::ApplyChimera(ModelPart& rMainModelPart, Parameters iParamete
     KRATOS_ERROR_IF(mNumberOfLevels < 2)
         << "Chimera requires atleast one Patch !" << std::endl;
 
-    ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
     mEchoLevel = 0;
     mReformulateEveryStep = false;
     mIsFormulated = false;
@@ -352,7 +354,7 @@ void ApplyChimera<TDim>::ApplyContinuityWithElement(
     // Initialise the boundary nodes dofs to 0 at ever time steps
     rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) = 0.0;
 
-    for (int i = 0; i < rGeometry.size(); i++) {
+    for (IndexType i = 0; i < rGeometry.size(); i++) {
         // Interpolation of rVariable
         rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) +=
             rGeometry[i].GetDof(rVariable).GetSolutionStepValue(0) * rShapeFuncWeights[i];

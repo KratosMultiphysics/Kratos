@@ -20,17 +20,13 @@
 #define CHIMERA_HOLE_CUTTING_UTILITY_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <string>
 #include <algorithm>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/process_info.h"
-#include "containers/model.h"
-#include "processes/node_erase_process.h"                 // To delete empty nodes
+#include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"                     // Skin face geometry template
 #include "geometries/line_2d_2.h"
 // Application includes

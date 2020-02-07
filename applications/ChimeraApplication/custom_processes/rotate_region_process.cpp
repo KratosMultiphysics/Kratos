@@ -1,3 +1,4 @@
+
 #include "rotate_region_process.h"
 
 // Application includes

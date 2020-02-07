@@ -57,8 +57,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
 
         /*
         * Any node goes out of the domain means the element need to be INACTIVE
-        * ,
-        *   otherwise the modified patch boundary wont find any nodes on
+        * ,otherwise the modified patch boundary wont find any nodes on
         * background
         */
         if (num_nodes_outside > 0) {
