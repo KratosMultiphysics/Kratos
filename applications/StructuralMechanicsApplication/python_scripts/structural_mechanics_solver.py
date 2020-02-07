@@ -113,9 +113,10 @@ class MechanicalSolver(PythonSolver):
             "block_builder" : true,
             "consider_lagrange_multiplier_constraint_resolution" : "none",
             "builder_and_solver_settings" : {
-                "scale_diagonal"                     : false,
-                "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-                "silent_warnings"                    : false
+                "scale_diagonal"                      : false,
+                "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
+                "silent_warnings"                     : false,
+                "consider_double_lagrange_multiplier" : true
             },
             "clear_storage": false,
             "move_mesh_flag": true,
@@ -434,6 +435,7 @@ class MechanicalSolver(PythonSolver):
             bs_params = self.settings["builder_and_solver_settings"]
             consider_lagrange_multiplier_constraint_resolution = self.settings["consider_lagrange_multiplier_constraint_resolution"].GetString()
             if consider_lagrange_multiplier_constraint_resolution == "none":
+                bs_params.RemoveValue("consider_double_lagrange_multiplier")
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
                 double_lm = True if consider_lagrange_multiplier_constraint_resolution == 'Double' else False
