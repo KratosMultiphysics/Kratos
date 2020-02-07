@@ -81,9 +81,21 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         if solving_with == "Block":
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         elif solving_with == "LM":
-            self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, True, False, False)
+            params = KM.Parameters("""{
+                "scale_diagonal"                      : true,
+                "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
+                "silent_warnings"                     : false,
+                "consider_double_lagrange_multiplier" : false
+            }""")
+            self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, params)
         elif solving_with == "DoubleLM":
-            self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, True, False, True)
+            params = KM.Parameters("""{
+                "scale_diagonal"                      : true,
+                "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
+                "silent_warnings"                     : false,
+                "consider_double_lagrange_multiplier" : true
+            }""")
+            self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, params)
         else: # Block default
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         self.scheme = KM.ResidualBasedBossakDisplacementScheme(-0.01)
