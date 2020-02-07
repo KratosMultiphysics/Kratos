@@ -30,30 +30,28 @@ jobs:
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
         FC: gfortran-7
-        # CC: /usr/lib/ccache/gcc
-        # CXX: /usr/lib/ccache/g++
 
     steps:
     - uses: actions/checkout@v2
 
-    # - name: Cache Build
-    #   id: cache-build
-    #   uses: actions/cache@v1
-    #   with:
-    #     path: ~/.ccache
-    #     key: ${{ runner.os }}-ccache-${{ github.sha }}
-    #     restore-keys: ${{ runner.os }}-ccache-
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
 
     - name: Build
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc
-          export CXX=/usr/bin/g++
+          export /usr/lib/ccache/gcc
+          export /usr/lib/ccache/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang-9
-          export CXX=/usr/bin/clang++-9
+          export /usr/lib/ccache/clang-9
+          export /usr/lib/ccache/clang++-9
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -61,7 +59,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
-        # ccache -s
+        ccache -s
 
     - name: Running small tests
       if: github.event_name == 'pull_request'
