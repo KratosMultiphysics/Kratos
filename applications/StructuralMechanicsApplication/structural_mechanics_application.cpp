@@ -177,6 +177,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLineLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
       mLineLoadCondition3D2N(0, Condition::GeometryType::Pointer(new Line3D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
       mLineLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Line3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+      mSmallDisplacementLineLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementLineLoadCondition3D2N(0, Condition::GeometryType::Pointer(new Line3D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+      mSmallDisplacementLineLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Line3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
       mAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
       mAxisymLineLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
       // Adding surface load conditions
@@ -185,6 +189,11 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSurfaceLoadCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<NodeType >(Condition::GeometryType::PointsArrayType(6)))),
       mSurfaceLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Condition::GeometryType::PointsArrayType(8)))),
       mSurfaceLoadCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Condition::GeometryType::PointsArrayType(9)))),
+      mSmallDisplacementSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementSurfaceLoadCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<NodeType >(Condition::GeometryType::PointsArrayType(6)))),
+      mSmallDisplacementSurfaceLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Condition::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementSurfaceLoadCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Condition::GeometryType::PointsArrayType(9)))),
       // Adding point moment conditions
       mPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
 
@@ -407,6 +416,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FRICTION_ANGLE)
     KRATOS_REGISTER_VARIABLE(COHESION)
     KRATOS_REGISTER_VARIABLE(DAMAGE)
+    KRATOS_REGISTER_VARIABLE(DAMAGE_MATRIX)
+    KRATOS_REGISTER_VARIABLE(DAMAGE_FIBER)
     KRATOS_REGISTER_VARIABLE(THRESHOLD)
     KRATOS_REGISTER_VARIABLE(INTEGRATED_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_TENSOR)
@@ -636,6 +647,11 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("LineLoadCondition3D2N", mLineLoadCondition3D2N)
     KRATOS_REGISTER_CONDITION("LineLoadCondition3D3N", mLineLoadCondition3D3N)
 
+    KRATOS_REGISTER_CONDITION("SmallDisplacementLineLoadCondition2D2N", mSmallDisplacementLineLoadCondition2D2N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementLineLoadCondition2D3N", mSmallDisplacementLineLoadCondition2D3N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementLineLoadCondition3D2N", mSmallDisplacementLineLoadCondition3D2N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementLineLoadCondition3D3N", mSmallDisplacementLineLoadCondition3D3N)
+
     KRATOS_REGISTER_CONDITION("AxisymLineLoadCondition2D2N", mAxisymLineLoadCondition2D2N)
     KRATOS_REGISTER_CONDITION("AxisymLineLoadCondition2D3N", mAxisymLineLoadCondition2D3N)
 
@@ -645,6 +661,12 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N)
     KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N)
     KRATOS_REGISTER_CONDITION("SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N)
+
+    KRATOS_REGISTER_CONDITION("SmallDisplacementSurfaceLoadCondition3D3N", mSmallDisplacementSurfaceLoadCondition3D3N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementSurfaceLoadCondition3D4N", mSmallDisplacementSurfaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementSurfaceLoadCondition3D6N", mSmallDisplacementSurfaceLoadCondition3D6N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementSurfaceLoadCondition3D8N", mSmallDisplacementSurfaceLoadCondition3D8N)
+    KRATOS_REGISTER_CONDITION("SmallDisplacementSurfaceLoadCondition3D9N", mSmallDisplacementSurfaceLoadCondition3D9N)
 
     // Point moment
     KRATOS_REGISTER_CONDITION("PointMomentCondition3D1N", mPointMomentCondition3D1N);
