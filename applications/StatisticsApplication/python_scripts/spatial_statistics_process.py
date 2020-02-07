@@ -119,7 +119,7 @@ class SpatialStatisticsProcess(Kratos.Process):
                             msg += "  " + str(value).ljust(30)
                     Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
             else:
-                Kratos.Logger.PrintInfo("SpatialStatisticsProcess", "Spatial statistical results for " + self.model_part_name + "'s " + container_name + " container under method " + method_name + " using " + norm_type + " norm :")
+                Kratos.Logger.PrintInfo("SpatialStatisticsProcess", "Spatial statistical results for " + self.model_part_name + "'s " + container_name + " container under method " + method_name + " using " + norm_type + " norm:")
                 msg = "Variable Name"
                 max_variable_length = max(len(msg) + 3, max_variable_length)
                 msg = msg.rjust(max_variable_length)
