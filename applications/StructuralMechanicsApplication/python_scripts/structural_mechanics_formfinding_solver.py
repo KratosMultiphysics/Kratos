@@ -10,9 +10,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(main_model_part, custom_settings):
-    return FormfindingMechanicalSolverNew(main_model_part, custom_settings)
+    return FormfindingMechanicalSolver(main_model_part, custom_settings)
 
-class FormfindingMechanicalSolverNew(MechanicalSolver):
+class FormfindingMechanicalSolver(MechanicalSolver):
     """The structural mechanics formfinding solver.
 
     This class creates the mechanical solver for formfinding.
@@ -25,8 +25,10 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
         custom_settings["use_computing_model_part"].SetBool(False) # must be False for FormFinding!
 
         # Construct the base solver.
-        super(FormfindingMechanicalSolverNew, self).__init__(main_model_part, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolverNew]:: ", "Construction finished")
+        super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["projection_settings"])
+
+        KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
 
 
     @classmethod
@@ -46,7 +48,7 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
                 "check_local_space_dimension" : false
             }
         }""")
-        this_defaults.AddMissingParameters(super(FormfindingMechanicalSolverNew, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(FormfindingMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def _create_solution_scheme(self):
