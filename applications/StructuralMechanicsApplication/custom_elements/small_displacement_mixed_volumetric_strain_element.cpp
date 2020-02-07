@@ -323,11 +323,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     Vector G_j(dim);
     Vector psi_i(dim);
     Vector psi_j(dim);
-    Vector m_T(strain_size);
     Vector transBi_C_invT_m(dim);
-    // Matrix m_T_tau_1(dim,dim);
     Matrix B_i(strain_size, dim);
     Matrix B_j(strain_size, dim);
+
+    // Calculate the anisotropy tensor products
+    const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
+    const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
     // Calculate the RHS and LHS contributions
     rLeftHandSideMatrix.clear();
@@ -342,10 +344,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-
-        // Calculate the anisotropy tensor products
-        m_T = prod(voigt_identity, mAnisotropyTensor);
-        const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
@@ -501,11 +499,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     Vector G_j(dim);
     Vector psi_i(dim);
     Vector psi_j(dim);
-    Vector m_T(strain_size);
     Vector transBi_C_invT_m(dim);
-    // Matrix m_T_tau_1(dim,dim);
     Matrix B_i(strain_size, dim);
     Matrix B_j(strain_size, dim);
+
+    // Calculate the anisotropy tensor products
+    const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
+    const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
     // Calculate the LHS contributions
     rLeftHandSideMatrix.clear();
@@ -519,10 +519,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-
-        // Calculate the anisotropy tensor products
-        m_T = prod(voigt_identity, mAnisotropyTensor);
-        const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
@@ -648,11 +644,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     Vector G_j(dim);
     Vector psi_i(dim);
     Vector psi_j(dim);
-    Vector m_T(strain_size);
     Vector transBi_C_invT_m(dim);
-    // Matrix m_T_tau_1(dim,dim);
     Matrix B_i(strain_size, dim);
     Matrix B_j(strain_size, dim);
+
+    // Calculate the anisotropy tensor products
+    const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
+    const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
     // Calculate the RHS contributions
     rRightHandSideVector.clear();
@@ -666,10 +664,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-
-        // Calculate the anisotropy tensor products
-        m_T = prod(voigt_identity, mAnisotropyTensor);
-        const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
