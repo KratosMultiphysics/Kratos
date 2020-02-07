@@ -167,7 +167,46 @@ void ConservedElement<TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    constexpr size_t element_size = TNumNodes*3;
+    if(rRightHandSideVector.size() != element_size)
+        rRightHandSideVector.resize(element_size, false); // False says not to preserve existing storage!!
+
+    MatrixType left_hand_side_matrix = ZeroMatrix(element_size, element_size);
+    rRightHandSideVector = ZeroVector(element_size);
+
+    const GeometryType& geom = this->GetGeometry();
+
+    ElementVariables variables;
+    this->InitializeElementVariables(variables, rCurrentProcessInfo);
+
+    const BoundedMatrix<double, TNumNodes, TNumNodes> N_container = geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2 );
+    GeometryType::ShapeFunctionsGradientsType DN_DX_container(TNumNodes);
+    geom.ShapeFunctionsIntegrationPointsGradients(DN_DX_container, GeometryData::GI_GAUSS_2);
+
+    BoundedMatrix<double, TNumNodes, 2> DN_DX;
+    array_1d<double, TNumNodes> N;
+    double area = geom.Area();
+
+    this->GetNodalValues(variables);
+    this->CalculateElementValues(DN_DX_container, variables);
+
+    for (size_t g = 0; g < TNumNodes; ++g)
+    {
+        N = row(N_container, g);
+        DN_DX = DN_DX_container[g];
+
+        this->BuildAuxiliaryMatrices(N, DN_DX, variables);
+
+        this->AddConvectiveTerms(left_hand_side_matrix, rRightHandSideVector, variables);
+        this->AddWaveTerms(left_hand_side_matrix, rRightHandSideVector, variables);
+        this->AddFrictionTerms(left_hand_side_matrix, rRightHandSideVector, variables);
+        this->AddStabilizationTerms(left_hand_side_matrix, rRightHandSideVector, variables);
+        this->AddSourceTerms(rRightHandSideVector, variables);
+    }
+
+    rRightHandSideVector -= prod(left_hand_side_matrix, variables.unknown);
+
+    rRightHandSideVector *= area * variables.lumping_factor;
 }
 
 
@@ -472,6 +511,57 @@ void ConservedElement<TNumNodes>::CalculateLumpedMassMatrix(LocalMatrixType& rMa
     constexpr size_t local_size = 3 * TNumNodes;
     rMassMatrix = IdentityMatrix(local_size, local_size);
     rMassMatrix /= static_cast<double>(TNumNodes);
+}
+
+
+template<size_t TNumNodes>
+void ConservedElement<TNumNodes>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rVariable == NODAL_MASS)
+    {
+        CalculateLumpedNodalMass();
+    }
+    else
+        KRATOS_ERROR << "This method was expecting NODAL_MASS variable" << std::endl;
+}
+
+
+template<size_t TNumNodes>
+void ConservedElement<TNumNodes>::CalculateLumpedNodalMass()
+{
+    auto& r_geom = this->GetGeometry();
+    const double area = r_geom.Area();
+    const double lumped_mass_factor = area / r_geom.size();
+    
+    for (size_t i = 0; i < r_geom.size(); ++i)
+    {
+        r_geom[i].SetLock();
+        r_geom[i].FastGetSolutionStepValue(NODAL_MASS) += lumped_mass_factor;
+        r_geom[i].UnSetLock();
+    }
+}
+
+
+template<size_t TNumNodes>
+void ConservedElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType right_hand_side_vector;
+    CalculateRightHandSide(right_hand_side_vector, const_cast<ProcessInfo&>(rCurrentProcessInfo));
+
+    auto& r_geom = this->GetGeometry();
+    size_t j = 0;
+
+    for (size_t i = 0; i < r_geom.size(); ++i)
+    {
+        r_geom[i].SetLock();
+        r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS_X) += right_hand_side_vector[j++];
+        r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS_Y) += right_hand_side_vector[j++];
+        r_geom[i].FastGetSolutionStepValue(HEIGHT_RHS) += right_hand_side_vector[j++];
+        r_geom[i].UnSetLock();
+    }
 }
 
 
