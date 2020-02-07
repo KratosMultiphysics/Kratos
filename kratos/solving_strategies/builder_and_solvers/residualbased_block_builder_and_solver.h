@@ -574,6 +574,7 @@ public:
             #pragma omp for  schedule(guided, 512) nowait
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
+
                 // Gets list of Dof involved on every element
                 it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
