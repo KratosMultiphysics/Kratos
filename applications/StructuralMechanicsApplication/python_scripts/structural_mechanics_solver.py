@@ -112,7 +112,6 @@ class MechanicalSolver(PythonSolver):
             "compute_reactions": true,
             "block_builder" : true,
             "builder_and_solver_settings" : {
-                "scale_diagonal"                     : false,
                 "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
                 "silent_warnings"                    : false
             },
