@@ -1,19 +1,20 @@
+import os
 
-def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, filename_res, post_path):
+def WriteSphereMdpaFromResults(filename_pre, pre_path, filename_post, filename_msh, filename_res, post_path):
 
-    SpheresMdpa_pre  = open(filename_pre + ".mdpa" , 'r')
-    msh              = open(post_path + "/" + filename_msh, 'r')
-    rad              = open(post_path + "/" + filename_msh, 'r')
-    coh              = open(post_path + "/" + filename_msh, 'r')
-    mod              = open(post_path + "/" + filename_msh, 'r')
-    ski              = open(post_path + "/" + filename_res, 'r')
-    SpheresMdpa_post = open(filename_post + ".mdpa", 'w')
+    SpheresMdpa_pre = open(os.path.join(pre_path, filename_pre) + ".mdpa", 'r')
+    msh = open(os.path.join(post_path, filename_msh), 'r')
+    rad = open(os.path.join(post_path, filename_msh), 'r')
+    coh = open(os.path.join(post_path, filename_msh), 'r')
+    mod = open(os.path.join(post_path, filename_msh), 'r')
+    ski = open(os.path.join(post_path, filename_res), 'r')
+    SpheresMdpa_post = open(os.path.join(pre_path, filename_post) + ".mdpa", 'w')
 
     for Line in SpheresMdpa_pre:
         # The next 4 lines mean that, while we do not get to 'Begin Nodes', we simply copy the mdpa contents, in this case the Properties part
         if Line.startswith("Begin Nodes"):
-             SpheresMdpa_pre.close()
-             break
+            SpheresMdpa_pre.close()
+            break
         SpheresMdpa_post.write(Line)
 
     flag_msh = 0

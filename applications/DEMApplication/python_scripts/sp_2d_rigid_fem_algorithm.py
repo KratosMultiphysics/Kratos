@@ -45,7 +45,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         spheres_mp_filename_post = self.problem_name + 'DEM_Post'
 
         if self.write_mdpa_from_results:
-            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', spheres_mp_filename_post, self.file_msh, self.file_res, self.post_path)
+            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', self.main_path, spheres_mp_filename_post, self.file_msh, self.file_res, self.post_path)
 
 if __name__ == "__main__":
     DEMAnalysisStage2DSpRigidFem(model, project_parameters).Run()
