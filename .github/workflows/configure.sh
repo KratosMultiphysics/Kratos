@@ -70,7 +70,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DMMG2D_LIBRARY="/usr/local/lib/libmmg2d.so"        \
 -DMMG3D_LIBRARY="/usr/local/lib/libmmg3d.so"        \
 -DMMGS_LIBRARY="/usr/local/lib/libmmgs.so"          \
--DUSE_EIGEN_MKL=ON
+-DUSE_EIGEN_MKL=OFF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1
