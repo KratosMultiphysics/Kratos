@@ -31,6 +31,9 @@ class SPAlgorithm(Algorithm):
 
         self.post_process_step_count = 0
         self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_frequency"].GetInt()
+        self.use_post_process_tool = self.sp_parameters["post_process_tool"]["use_post_process_tool"].GetBool()
+        if not self.use_post_process_tool:
+            self.post_process_frequency = 0
         self.post_process_write_count = self.post_process_frequency
 
     @classmethod
@@ -44,6 +47,7 @@ class SPAlgorithm(Algorithm):
                 "axis"    : [0.0,0.0,1.0]
             },
             "post_process_tool":{
+                "use_post_process_tool": false,
                 "output_frequency": 0
             }
         }""")
@@ -65,10 +69,11 @@ class SPAlgorithm(Algorithm):
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
         # Create Postprocess tool for SP
-        from KratosMultiphysics.DemStructuresCouplingApplication.sand_production_post_process_tool import SandProductionPostProcessTool
-        self.sp_post_process_tool = SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
-                                                                                                    self.dem_solution.spheres_model_part,
-                                                                                                    self.test_number)
+        if self.use_post_process_tool:
+            from KratosMultiphysics.DemStructuresCouplingApplication.sand_production_post_process_tool import SandProductionPostProcessTool
+            self.sp_post_process_tool = SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
+                                                                        self.dem_solution.spheres_model_part,
+                                                                        self.test_number)
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
