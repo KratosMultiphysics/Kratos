@@ -271,13 +271,39 @@ const std::function<double(const Vector&)> GetNormMethod(const Variable<Vector>&
     {
         return [](const Vector& rValue) -> double { return norm_2(rValue); };
     }
-    else if (rNormType.size() > 5)
+    else if (rNormType.size() > 6)
     {
-        if (rNormType.substr(0, 5) == "index")
+        if (rNormType.substr(0, 6) == "index_")
         {
+            const std::string index_str = rNormType.substr(6, rNormType.size() - 6);
+
+            KRATOS_ERROR_IF(index_str.size() == 0)
+                << "No index value is provided for " << rVariable.Name()
+                << " variable. Please provide an index as in "
+                   "\"index_i\" [ NormType = "
+                << rNormType << " ]\n";
+
+            KRATOS_ERROR_IF(static_cast<int>(index_str.size()) !=
+                            static_cast<int>(std::count_if(
+                                index_str.begin(), index_str.end(),
+                                [](unsigned char c) { return std::isdigit(c); })))
+                << "Found non digit characters in norm type index for "
+                << rVariable.Name()
+                << " variable. Please use index_i format [ NormType = " << rNormType
+                << " ]\n.";
+
             const int index = std::stoi(rNormType.substr(6, rNormType.size() - 6));
-            return
-                [index](const Vector& rValue) -> double { return rValue[index]; };
+            return [index, rVariable](const Vector& rValue) -> double {
+                KRATOS_TRY
+
+                KRATOS_ERROR_IF(index >= static_cast<int>(rValue.size()))
+                    << "Index is larger than vector size for " << rVariable.Name()
+                    << " variable. [ " << index << " >= " << rValue.size() << " ]\n.";
+
+                return rValue[index];
+
+                KRATOS_CATCH("");
+            };
         }
     }
 
@@ -303,16 +329,69 @@ const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>&
         return
             [](const Matrix& rValue) -> double { return norm_frobenius(rValue); };
     }
-    else if (rNormType.size() > 5)
+    else if (rNormType.size() > 7)
     {
-        if (rNormType.substr(0, 5) == "index")
+        if (rNormType.substr(0, 7) == "index_(")
         {
-            const std::string& r_indices = rNormType.substr(7, rNormType.size() - 8);
+            const std::string& r_indices = rNormType.substr(
+                7, rNormType.size() - std::min(8, static_cast<int>(rNormType.size() - 1)));
+            KRATOS_ERROR_IF(r_indices.size() <= 1)
+                << "No index value is provided for " << rVariable.Name()
+                << " variable. Please provide an index as in "
+                   "\"index_(i,j)\" [ NormType = "
+                << rNormType << " ]\n";
+
             const std::size_t sep_index = r_indices.find(',');
-            const int i = std::stoi(r_indices.substr(0, sep_index));
-            const int j = std::stoi(r_indices.substr(sep_index + 1));
-            return
-                [i, j](const Matrix& rValue) -> double { return rValue(i, j); };
+            KRATOS_ERROR_IF(sep_index == std::string::npos)
+                << "Index seperator not found for " << rVariable.Name()
+                << " variable. Please use index_(i,j) format. [ NormType = " << rNormType
+                << " ]\n.";
+            const std::string& i_str = r_indices.substr(0, sep_index);
+            KRATOS_ERROR_IF(i_str.size() == 0)
+                << "Row index was not provided for " << rVariable.Name()
+                << " variable. Please use index_(i,j) format. [ NormType = " << rNormType
+                << " ]\n.";
+            KRATOS_ERROR_IF(static_cast<int>(i_str.size()) !=
+                            static_cast<int>(std::count_if(
+                                i_str.begin(), i_str.end(),
+                                [](unsigned char c) { return std::isdigit(c); })))
+                << "Found non digit characters in norm type row index for "
+                << rVariable.Name()
+                << " variable. Please use index_(i,j) format [ NormType = " << rNormType
+                << " ]\n.";
+            const int i = std::stoi(i_str);
+
+            const std::string& j_str = r_indices.substr(sep_index + 1);
+            KRATOS_ERROR_IF(j_str.size() == 0)
+                << "Column index was not provided for " << rVariable.Name()
+                << " variable. Please use index_(i,j) format. [ NormType = " << rNormType
+                << " ]\n.";
+            KRATOS_ERROR_IF(static_cast<int>(j_str.size()) !=
+                            static_cast<int>(std::count_if(
+                                j_str.begin(), j_str.end(),
+                                [](unsigned char c) { return std::isdigit(c); })))
+                << "Found non digit characters in norm type column index for "
+                << rVariable.Name()
+                << " variable. Please use index_(i,j) format [ NormType = " << rNormType
+                << " ]\n.";
+
+            const int j = std::stoi(j_str);
+            return [i, j, rVariable](const Matrix& rValue) -> double {
+                KRATOS_TRY
+
+                KRATOS_ERROR_IF(i >= static_cast<int>(rValue.size1()))
+                    << "Row index is larger than size1 of " << rVariable.Name()
+                    << " matrix variable. [ " << i << " >= " << rValue.size1() << " ]\n.";
+
+                KRATOS_ERROR_IF(j >= static_cast<int>(rValue.size2()))
+                    << "Column index is larger than size2 of "
+                    << rVariable.Name() << " matrix variable. [ " << j
+                    << " >= " << rValue.size2() << " ]\n.";
+
+                return rValue(i, j);
+
+                KRATOS_CATCH("");
+            };
         }
     }
 
