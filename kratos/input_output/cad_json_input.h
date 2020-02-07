@@ -157,7 +157,7 @@ class CadJsonInput : public IO
         ///@{
 
         static BrepCurveOnSurfaceLoopType
-            CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadTrimmingCurveVector(
+            ReadTrimmingCurveVector(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
                 ModelPart& rModelPart,
@@ -179,7 +179,7 @@ class CadJsonInput : public IO
         }
 
         static typename BrepCurveOnSurfaceType::Pointer
-            CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadTrimmingCurve(
+            ReadTrimmingCurve(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
                 ModelPart& rModelPart,
@@ -207,7 +207,7 @@ class CadJsonInput : public IO
         }
 
         static std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
-            CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBoundaryLoops(
+            ReadBoundaryLoops(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
                 ModelPart& rModelPart,
