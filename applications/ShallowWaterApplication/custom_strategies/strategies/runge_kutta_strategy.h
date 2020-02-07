@@ -317,7 +317,7 @@ private:
 
         VariableUtils().SetHistoricalVariableToZero(NODAL_MASS, r_model_part.Nodes());
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(guided)
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfElements()); ++i)
         {
             auto it_elem = r_model_part.ElementsBegin() + i;
@@ -325,7 +325,7 @@ private:
             it_elem->Calculate(NODAL_MASS, dummy, r_process_info);
         }
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(guided)
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfConditions()); ++i)
         {
             auto it_elem = r_model_part.ConditionsBegin() + i;
@@ -342,14 +342,14 @@ private:
         VariableUtils().SetHistoricalVariableToZero(MOMENTUM_RHS, r_model_part.Nodes());
         VariableUtils().SetHistoricalVariableToZero(HEIGHT_RHS, r_model_part.Nodes());
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(guided)
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfElements()); ++i)
         {
             auto it_elem = r_model_part.ElementsBegin() + i;
             it_elem->AddExplicitContribution(r_process_info);
         }
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(guided)
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfConditions()); ++i)
         {
             auto it_elem = r_model_part.ConditionsBegin() + i;
