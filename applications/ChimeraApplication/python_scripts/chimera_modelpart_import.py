@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.ChimeraApplication as KratosChimera
 import numpy as np
 import math
 import os
@@ -8,7 +9,7 @@ from copy import deepcopy
 
 def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, material_file="", parallel_type="OpenMP"):
     '''
-        This function extends the functionalies of the
+        This function extends the functionalities of the
         mpda_manipulator from: https://github.com/philbucher/mdpa-manipulator
 
         main_modelpart      : The modelpart to which the new modelparts are appended to.
@@ -30,6 +31,7 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
 
             model = KratosMultiphysics.Model()
             model_part = model.CreateModelPart("new_modelpart")
+            KratosChimera.TransferSolutionStepData(main_modelpart, model_part)
 
             ReadModelPart(mdpa_file_name, model_part, material_file)
             AddModelPart(main_modelpart, model_part)
@@ -46,6 +48,7 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
         for mp_import_setting in chimera_mp_import_settings_list:
             model = KratosMultiphysics.Model()
             model_part = model.CreateModelPart("new_modelpart")
+            KratosChimera.TransferSolutionStepData(main_modelpart, model_part)
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
             mdpa_file_name = mp_import_setting["input_filename"].GetString()
             if mdpa_file_name.endswith('.mdpa'):
