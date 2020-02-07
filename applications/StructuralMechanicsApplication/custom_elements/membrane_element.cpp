@@ -458,23 +458,12 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
-    Vector dg1 = ZeroVector(dimension);
-    Vector dg2 = ZeroVector(dimension);
-    Vector dudur = ZeroVector(dimension*number_of_nodes);
-    dudur[DofR] = 1.0;
-
-    for (SizeType i=0;i<number_of_nodes;++i){
-        dg1[0] += (dudur[(i*dimension)+0]) * rShapeFunctionGradientValues(i, 0);
-        dg1[1] += (dudur[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
-        dg1[2] += (dudur[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
-
-        dg2[0] += (dudur[(i*dimension)+0]) * rShapeFunctionGradientValues(i, 1);
-        dg2[1] += (dudur[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
-        dg2[2] += (dudur[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
-    }
-    rBaseVectors[0] = dg1;
-    rBaseVectors[1] = dg2;
+    rBaseVectors[0] = ZeroVector(dimension);
+    rBaseVectors[1] = ZeroVector(dimension);
+    int dof_nr = DofR%dimension;
+    int node_nr = (DofR-dof_nr)/dimension;
+    rBaseVectors[0][dof_nr] = rShapeFunctionGradientValues(node_nr, 0);
+    rBaseVectors[1][dof_nr] = rShapeFunctionGradientValues(node_nr, 1);
 }
 
 void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
