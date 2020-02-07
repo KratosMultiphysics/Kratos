@@ -868,17 +868,20 @@ public:
         ) override
     {
         std::size_t system_size = rA.size1();
-        Vector scaling_factors (system_size, 1.0);
+        Vector scaling_factors (system_size);
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(ndofs)
         for (int k = 0; k<ndofs; k++) {
             auto it_dof_iterator = it_dof_iterator_begin + k;
-            if (it_dof_iterator->IsFixed())
+            if (it_dof_iterator->IsFixed()) {
                 scaling_factors[k] = 0.0;
+            } else {
+                scaling_factors[k] = 1.0;
+            }
         }
 
         double* Avalues = rA.value_data().begin();
