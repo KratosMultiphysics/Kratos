@@ -176,7 +176,7 @@ void ApplyChimera<TDim>::DoChimeraLoop()
                     KRATOS_INFO_IF(
                         "ApplyChimera : Extraction of boundary mesh took   "
                         "       : ",
-                        mEchoLevel > 0)
+                        mEchoLevel > 1)
                         << extraction_time.ElapsedSeconds() << " seconds" << std::endl;
                 }
 
@@ -464,7 +464,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
 
     double loop_time = loop_over_b_nodes.ElapsedSeconds();
     KRATOS_INFO_IF(
-        "ApplyChimera : Loop over boundary nodes took             : ", mEchoLevel > 1)
+        "ApplyChimera : Loop over boundary nodes took             : ", mEchoLevel > 0)
         << loop_time << " seconds" << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of Boundary nodes                  : ", mEchoLevel > 1)

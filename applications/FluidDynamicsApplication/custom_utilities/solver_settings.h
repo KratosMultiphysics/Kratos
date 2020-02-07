@@ -121,12 +121,6 @@ public:
                              const double Tolerance,
                              const unsigned int MaxIter) {}
 
-    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
-                             typename TLinearSolver::Pointer pLinearSolver,
-                             const double Tolerance,
-                             const std::size_t MaxIter,
-                             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver){}
-
     virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
