@@ -13,6 +13,8 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
             solver_module_name = "navier_stokes_solver_vmsmonolithic_chimera"
         elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
             solver_module_name = "navier_stokes_solver_fractionalstep_chimera"
+        elif (solver_type == "ale_chimera_fluid"):
+            solver_module_name = "navier_stokes_ale_chimera_fluid_solver"
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
 
