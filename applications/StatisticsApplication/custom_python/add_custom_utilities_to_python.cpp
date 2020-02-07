@@ -38,6 +38,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetNormMethod", &MethodsUtilities::GetNormMethod<array_1d<double, 3>>)
         .def("GetNormMethod", &MethodsUtilities::GetNormMethod<Vector>)
         .def("GetNormMethod", &MethodsUtilities::GetNormMethod<Matrix>)
+        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<int>)
+        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<double>)
+        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<array_1d<double, 3>>)
+        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<Vector>)
+        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<Matrix>)
         ;
 
 
