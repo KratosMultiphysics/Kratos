@@ -74,7 +74,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         step = 0
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(self.variable_area, step, self.a[0])
-            node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
+            node.SetSolutionStepValue(self.variable_pres, step, self.p[0] * self.rhof)
 
         # Interfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
@@ -121,7 +121,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                 Exception("Newton failed to converge")
 
         # Output does not contain boundary conditions
-        p = self.p[1:self.m + 1]
+        p = self.p[1:self.m + 1] * self.rhof
         self.interface_output.SetNumpyArray(p)
         return self.interface_output.deepcopy()
 
@@ -135,13 +135,13 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         return self.interface_input.deepcopy()
 
     def SetInterfaceInput(self):
-        Exception("This solver interface provides no mapping.")
+        raise Exception("This solver interface provides no mapping.")
 
     def GetInterfaceOutput(self):
         return self.interface_output.deepcopy()
 
     def SetInterfaceOutput(self):
-        Exception("This solver interface provides no mapping.")
+        raise Exception("This solver interface provides no mapping.")
 
     def GetBoundary(self):
         if self.utype == 1:
@@ -181,7 +181,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                                  * (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0)
         f[2 * self.m + 2] = self.u[self.m + 1] - (2.0 * self.u[self.m] - self.u[self.m - 1])
         f[2 * self.m + 3] = self.p[self.m + 1] - (2.0 * (self.cmk2 - (m.sqrt(self.cmk2 - self.pn[self.m + 1] / 2.0)
-                             - (self.u[self.m + 1] - self.un[self.m + 1])/ 4.0) ** 2))
+                                                         - (self.u[self.m + 1] - self.un[self.m + 1]) / 4.0) ** 2))
         return f
 
     def GetJacobian(self):
@@ -194,13 +194,14 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
 
         j[self.Au + 2, 0:2 * self.m + 0:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i, 2*(i-1)]
         j[self.Au + 3, 0:2 * self.m + 0:2] = (-((self.u[1:self.m + 1] + 2.0 * self.u[0:self.m]) * usign
-                                                + self.u[1:self.m + 1] * (1.0 - usign))
-                                                * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*(i-1)]
+                                              + self.u[1:self.m + 1] * (1.0 - usign))
+                                              * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*(i-1)]
         j[self.Au + 1, 1:2 * self.m + 1:2] = -self.alpha  # [2*i, 2*(i-1)+1]
         j[self.Au + 2, 1:2 * self.m + 1:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i+1, 2*(i-1)+1]
 
         j[self.Au + 0, 2:2 * self.m + 2:2] = ((self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
-                                                - (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i, 2*i]
+                                              - (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i, 2*i]
+
         j[self.Au + 1, 2:2 * self.m + 2:2] = (self.dz / self.dt * self.a[1:self.m + 1]
                                                   + ((2.0 * self.u[1:self.m + 1] + self.u[2:self.m + 2]) * usign
                                                      + self.u[2:self.m + 2] * (1.0 - usign))
@@ -210,26 +211,25 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                                                   * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*i]
         j[self.Au - 1, 3:2 * self.m + 3:2] = 2.0 * self.alpha  # [2*i, 2*i+1]
         j[self.Au + 0, 3:2 * self.m + 3:2] = (-(self.a[1:self.m + 1] + self.a[2:self.m + 2])
-                                                  + (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0  # [2*i+1, 2*i+1]
+                                              + (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0  # [2*i+1, 2*i+1]
 
         j[self.Au - 2, 4:2 * self.m + 4:2] = (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0  # [2*i, 2*(i+1)]
         j[self.Au - 1, 4:2 * self.m + 4:2] = ((self.u[1:self.m + 1] * usign + (self.u[1:self.m + 1]
-                                                                                   + 2.0 * self.u[2:self.m + 2])
-                                                   * (1.0 - usign))
-                                                  * (self.a[1:self.m + 1]
-                                                     + self.a[2:self.m + 2]) / 4.0)  # [2*i+1, 2*(i+1)]
+                                                                               + 2.0 * self.u[2:self.m + 2])
+                                               * (1.0 - usign))
+                                              * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0)  # [2*i+1, 2*(i+1)]
         j[self.Au - 3, 5:2 * self.m + 5:2] = -self.alpha  # [2*i, 2*(i+1)+1]
         j[self.Au - 2, 5:2 * self.m + 5:2] = (self.a[1:self.m + 1]
-                                                  + self.a[2:self.m + 2]) / 4.0  # [2*i+1, 2*(i+1)+1]
+                                              + self.a[2:self.m + 2]) / 4.0  # [2*i+1, 2*(i+1)+1]
 
         j[self.Au + (2 * self.m + 2) - (2 * self.m + 2), 2 * self.m + 2] = 1.0  # [2*m+2, 2*m+2]
         j[self.Au + (2 * self.m + 2) - (2 * self.m), 2 * self.m] = -2.0  # [2*m+2, 2*m]
         j[self.Au + (2 * self.m + 2) - (2 * self.m - 2), 2 * self.m - 2] = 1.0  # [2*m+2, 2*m-2]
         j[self.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(m.sqrt(self.cmk2
-                                                                                         - self.pn[self.m + 1] / 2.0)
-                                                                                  - (self.u[self.m + 1]
-                                                                                     - self.un[self.m + 1])
-                                                                                  / 4.0))  # [2*m+3, 2*m+2]
+                                                                                     - self.pn[self.m + 1] / 2.0)
+                                                                              - (self.u[self.m + 1]
+                                                                                 - self.un[self.m + 1])
+                                                                              / 4.0))  # [2*m+3, 2*m+2]
         j[self.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
 
         return j

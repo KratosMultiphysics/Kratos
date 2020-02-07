@@ -59,7 +59,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
             self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
         step = 0
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
+            node.SetSolutionStepValue(self.variable_pres, step, self.p[0] * self.rhof)
             node.SetSolutionStepValue(self.variable_area, step, self.a[0])
 
         # Interfaces
@@ -76,7 +76,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
     def SolveSolutionStep(self, interface_input):
         self.interface_input = interface_input.deepcopy()
-        self.p = self.interface_input.GetNumpyArray()
+        self.p = self.interface_input.GetNumpyArray() / self.rhof
 
         # Independent rings model
         for i in range(len(self.p)):
