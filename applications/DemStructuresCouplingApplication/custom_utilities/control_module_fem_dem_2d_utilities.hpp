@@ -246,7 +246,7 @@ void ExecuteInitializeSolutionStep()
         {
             imposed_z_strain_vector[GPoint] = imposed_z_strain;
         }
-        itElem->SetValueOnIntegrationPoints( YIELD_STRAIN_COMPRESSION, imposed_z_strain_vector, CurrentProcessInfo );
+        itElem->SetValueOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
     }
 
     KRATOS_CATCH("");

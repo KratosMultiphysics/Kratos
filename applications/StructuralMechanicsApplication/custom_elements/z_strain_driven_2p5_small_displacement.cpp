@@ -153,7 +153,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if (rVariable == YIELD_STRAIN_COMPRESSION) {
+    if (rVariable == IMPOSED_Z_STRAIN_VALUE) {
         const SizeType integration_points_number = mImposedZStrainVector.size();
         for ( IndexType point_number = 0; point_number < integration_points_number; ++point_number ) {
             mImposedZStrainVector[point_number] = rValues[point_number];
