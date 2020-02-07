@@ -190,6 +190,77 @@ const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
     return rModelPart.GetCommunicator().LocalMesh().Conditions();
 }
 
+template <>
+const std::function<double(const double&)> GetNormMethod(const Variable<double>& rVariable,
+                                                         const std::string& rNormType)
+{
+    KRATOS_TRY
+
+    if (rNormType == "value")
+    {
+        return [](const double& rValue) -> double { return rValue; };
+    }
+    else if (rNormType == "magnitude")
+    {
+        return [](const double& rValue) -> double { return std::abs(rValue); };
+    }
+    else
+    {
+        KRATOS_ERROR << "Unknown norm type for double variable "
+                     << rVariable.Name() << ". [ NormType = " << rNormType << " ]\n"
+                     << "   Allowed norm types are:\n"
+                     << "        magnitude\n"
+                     << "        value\n";
+    }
+
+    return [](const double&) -> double { return 0.0; };
+
+    KRATOS_CATCH("");
+}
+
+template <>
+const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
+    const Variable<array_1d<double, 3>>& rVariable, const std::string& rNormType)
+{
+    KRATOS_TRY
+
+    if (rNormType == "magnitude")
+    {
+        return [](const array_1d<double, 3>& rValue) -> double {
+            return norm_2(rValue);
+        };
+    }
+    else if (rNormType == "component_x")
+    {
+        return
+            [](const array_1d<double, 3>& rValue) -> double { return rValue[0]; };
+    }
+    else if (rNormType == "component_y")
+    {
+        return
+            [](const array_1d<double, 3>& rValue) -> double { return rValue[1]; };
+    }
+    else if (rNormType == "component_z")
+    {
+        return
+            [](const array_1d<double, 3>& rValue) -> double { return rValue[2]; };
+    }
+    else
+    {
+        KRATOS_ERROR << "Unknown norm type for 3d variable " << rVariable.Name()
+                     << ". [ NormType = " << rNormType << " ]\n"
+                     << "   Allowed norm types are:\n"
+                     << "        magnitude\n"
+                     << "        component_x\n"
+                     << "        component_y\n"
+                     << "        component_z\n";
+    }
+
+    return [](const array_1d<double, 3>&) -> double { return 0.0; };
+
+    KRATOS_CATCH("");
+}
+
 // method template instantiations
 
 template double RaiseToPower(const double&, const double);

@@ -181,61 +181,85 @@ void RunSpatialMinMethodTest(const std::string& rNormType)
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    const std::tuple<double, std::size_t>& method_density =
-        statistics_methods::GetMin(rNormType, test_model_part, DENSITY);
-    const std::tuple<double, std::size_t>& method_velocity =
-        statistics_methods::GetMin(rNormType, test_model_part, VELOCITY);
-    const double min_method_density = std::get<0>(method_density);
-    const double min_method_density_id = std::get<1>(method_density);
-    const double min_method_velocity = std::get<0>(method_velocity);
-    const double min_method_velocity_id = std::get<1>(method_velocity);
-
     const double max_value = std::numeric_limits<double>::max();
 
-    double min_density{max_value}, min_velocity{max_value};
-    std::size_t min_density_id{0}, min_velocity_id{0};
-
-    for (const TContainerItemType& r_item : r_container)
+    if (rNormType == "magnitude" || rNormType == "value")
     {
-        const double current_density =
-            TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
-        if (current_density < min_density)
+        double min_density{max_value};
+        std::size_t min_density_id{0};
+
+        const std::tuple<double, std::size_t>& method_density =
+            statistics_methods::GetMin(rNormType, test_model_part, DENSITY);
+        const double min_method_density = std::get<0>(method_density);
+        const double min_method_density_id = std::get<1>(method_density);
+        for (const TContainerItemType& r_item : r_container)
         {
-            min_density = current_density;
-            min_density_id = r_item.Id();
+            const double current_density =
+                TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+            double current_density_norm = 0.0;
+            if (rNormType == "magnitude")
+            {
+                current_density_norm = std::abs(current_density);
+            }
+            else if (rNormType == "value")
+            {
+                current_density_norm = current_density;
+            }
+
+            if (current_density_norm < min_density)
+            {
+                min_density = current_density_norm;
+                min_density_id = r_item.Id();
+            }
         }
 
-        const array_1d<double, 3>& r_current_velocity =
-            TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
-        double current_velocity_norm = 0.0;
-        if (rNormType == "magnitude")
-        {
-            current_velocity_norm = norm_2(r_current_velocity);
-        }
-        else if (rNormType == "component_x")
-        {
-            current_velocity_norm = r_current_velocity[0];
-        }
-        else if (rNormType == "component_y")
-        {
-            current_velocity_norm = r_current_velocity[1];
-        }
-        else if (rNormType == "component_z")
-        {
-            current_velocity_norm = r_current_velocity[2];
-        }
-
-        if (current_velocity_norm < min_velocity)
-        {
-            min_velocity = current_velocity_norm;
-            min_velocity_id = r_item.Id();
-        }
+        KRATOS_CHECK_NEAR(min_density, min_method_density, 1e-12);
+        KRATOS_CHECK_EQUAL(min_density_id, min_method_density_id);
     }
 
-    KRATOS_CHECK_NEAR(min_density, min_method_density, 1e-12);
-    KRATOS_CHECK_EQUAL(min_density_id, min_method_density_id);
-    KRATOS_CHECK_NEAR(min_velocity, min_method_velocity, 1e-12);
-    KRATOS_CHECK_EQUAL(min_velocity_id, min_method_velocity_id);
+    if (rNormType == "magnitude" || rNormType == "component_x" ||
+        rNormType == "component_y" || rNormType == "component_z")
+    {
+        const std::tuple<double, std::size_t>& method_velocity =
+            statistics_methods::GetMin(rNormType, test_model_part, VELOCITY);
+        const double min_method_velocity = std::get<0>(method_velocity);
+        const double min_method_velocity_id = std::get<1>(method_velocity);
+
+        double min_velocity{max_value};
+        std::size_t min_velocity_id{0};
+
+        for (const TContainerItemType& r_item : r_container)
+        {
+            const array_1d<double, 3>& r_current_velocity =
+                TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+            double current_velocity_norm = 0.0;
+            if (rNormType == "magnitude")
+            {
+                current_velocity_norm = norm_2(r_current_velocity);
+            }
+            else if (rNormType == "component_x")
+            {
+                current_velocity_norm = r_current_velocity[0];
+            }
+            else if (rNormType == "component_y")
+            {
+                current_velocity_norm = r_current_velocity[1];
+            }
+            else if (rNormType == "component_z")
+            {
+                current_velocity_norm = r_current_velocity[2];
+            }
+
+            if (current_velocity_norm < min_velocity)
+            {
+                min_velocity = current_velocity_norm;
+                min_velocity_id = r_item.Id();
+            }
+        }
+
+        KRATOS_CHECK_NEAR(min_velocity, min_method_velocity, 1e-12);
+        KRATOS_CHECK_EQUAL(min_velocity_id, min_method_velocity_id);
+    }
 }
 
 template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
@@ -254,63 +278,85 @@ void RunSpatialMaxMethodTest(const std::string& rNormType)
     using statistics_methods =
         SpatialMethods::ContainerSpatialMethods<TContainerType, TContainerItemType, TDataRetrievalFunctor>;
 
-    const std::tuple<double, std::size_t>& method_density =
-        statistics_methods::GetMax(rNormType, test_model_part, DENSITY);
-    const std::tuple<double, std::size_t>& method_velocity =
-        statistics_methods::GetMax(rNormType, test_model_part, VELOCITY);
-
-    const double max_method_density = std::get<0>(method_density);
-    const std::size_t max_method_density_id = std::get<1>(method_density);
-
-    const double max_method_velocity = std::get<0>(method_velocity);
-    const std::size_t max_method_velocity_id = std::get<1>(method_velocity);
-
     const double min_value = std::numeric_limits<double>::lowest();
 
-    double max_density{min_value}, max_velocity{min_value};
-    std::size_t max_density_id{0}, max_velocity_id{0};
-
-    for (const TContainerItemType& r_item : r_container)
+    if (rNormType == "magnitude" || rNormType == "value")
     {
-        const double current_density =
-            TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
-        if (current_density > max_density)
-        {
-            max_density = current_density;
-            max_density_id = r_item.Id();
-        }
+        double max_density{min_value};
+        std::size_t max_density_id{0};
 
-        const array_1d<double, 3>& r_current_velocity =
-            TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
-        double current_velocity_norm = 0.0;
-        if (rNormType == "magnitude")
-        {
-            current_velocity_norm = norm_2(r_current_velocity);
-        }
-        else if (rNormType == "component_x")
-        {
-            current_velocity_norm = r_current_velocity[0];
-        }
-        else if (rNormType == "component_y")
-        {
-            current_velocity_norm = r_current_velocity[1];
-        }
-        else if (rNormType == "component_z")
-        {
-            current_velocity_norm = r_current_velocity[2];
-        }
+        const std::tuple<double, std::size_t>& method_density =
+            statistics_methods::GetMax(rNormType, test_model_part, DENSITY);
+        const double max_method_density = std::get<0>(method_density);
+        const std::size_t max_method_density_id = std::get<1>(method_density);
 
-        if (current_velocity_norm > max_velocity)
+        for (const TContainerItemType& r_item : r_container)
         {
-            max_velocity = current_velocity_norm;
-            max_velocity_id = r_item.Id();
+            const double current_density =
+                TDataRetrievalFunctor<TContainerItemType>()(r_item, DENSITY);
+            double current_density_norm = 0.0;
+            if (rNormType == "magnitude")
+            {
+                current_density_norm = std::abs(current_density);
+            }
+            else if (rNormType == "value")
+            {
+                current_density_norm = current_density;
+            }
+
+            if (current_density_norm > max_density)
+            {
+                max_density = current_density_norm;
+                max_density_id = r_item.Id();
+            }
         }
+        KRATOS_CHECK_NEAR(max_density, max_method_density, 1e-12);
+        KRATOS_CHECK_EQUAL(max_density_id, max_method_density_id);
     }
 
-    KRATOS_CHECK_NEAR(max_density, max_method_density, 1e-12);
-    KRATOS_CHECK_EQUAL(max_density_id, max_method_density_id);
-    KRATOS_CHECK_NEAR(max_velocity, max_method_velocity, 1e-12);
-    KRATOS_CHECK_EQUAL(max_velocity_id, max_method_velocity_id);
+    if (rNormType == "magnitude" || rNormType == "component_x" ||
+        rNormType == "component_y" || rNormType == "component_z")
+    {
+        const std::tuple<double, std::size_t>& method_velocity =
+            statistics_methods::GetMax(rNormType, test_model_part, VELOCITY);
+        const double max_method_velocity = std::get<0>(method_velocity);
+        const std::size_t max_method_velocity_id = std::get<1>(method_velocity);
+
+        double max_velocity{min_value};
+        std::size_t max_velocity_id{0};
+
+        for (const TContainerItemType& r_item : r_container)
+        {
+            const array_1d<double, 3>& r_current_velocity =
+                TDataRetrievalFunctor<TContainerItemType>()(r_item, VELOCITY);
+            double current_velocity_norm = 0.0;
+            if (rNormType == "magnitude")
+            {
+                current_velocity_norm = norm_2(r_current_velocity);
+            }
+            else if (rNormType == "component_x")
+            {
+                current_velocity_norm = r_current_velocity[0];
+            }
+            else if (rNormType == "component_y")
+            {
+                current_velocity_norm = r_current_velocity[1];
+            }
+            else if (rNormType == "component_z")
+            {
+                current_velocity_norm = r_current_velocity[2];
+            }
+
+            if (current_velocity_norm > max_velocity)
+            {
+                max_velocity = current_velocity_norm;
+                max_velocity_id = r_item.Id();
+            }
+        }
+
+        KRATOS_CHECK_NEAR(max_velocity, max_method_velocity, 1e-12);
+        KRATOS_CHECK_EQUAL(max_velocity_id, max_method_velocity_id);
+    }
 }
 
 } // namespace
@@ -392,6 +438,15 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialMinMethod, KratosStatisticsFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialMaxMethod, KratosStatisticsFastSuite)
 {
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value");
+    RunSpatialMaxMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value");
+    RunSpatialMaxMethodTest<ModelPart::ElementsContainerType, ModelPart::ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value");
+    RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "value");
+
     RunSpatialMaxMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
         "magnitude");
     RunSpatialMaxMethodTest<ModelPart::ConditionsContainerType, ModelPart::ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(

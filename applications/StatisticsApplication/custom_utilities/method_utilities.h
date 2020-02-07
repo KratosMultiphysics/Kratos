@@ -14,6 +14,7 @@
 #define KRATOS_METHOD_UTILITIES_H_INCLUDED
 
 // System includes
+#include <functional>
 
 // External includes
 
@@ -99,6 +100,9 @@ TContainerType& GetDataContainer(ModelPart& rModelPart);
 template <typename TContainerType>
 const TContainerType& GetDataContainer(const ModelPart& rModelPart);
 
+template <typename TDataType>
+const std::function<double(const TDataType&)> GetNormMethod(const Variable<TDataType>&,
+                                                            const std::string&);
 } // namespace MethodsUtilities
 
 ///@}

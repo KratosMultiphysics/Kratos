@@ -184,7 +184,8 @@ public:
 
         double global_max = std::numeric_limits<double>::lowest();
         std::size_t global_id = 0;
-        const auto& norm_method = GetNormMethod(rVariable, rNormType);
+        const auto& norm_method =
+            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -247,7 +248,8 @@ public:
 
         double global_min = std::numeric_limits<double>::max();
         std::size_t global_id = 0;
-        const auto& norm_method = GetNormMethod(rVariable, rNormType);
+        const auto& norm_method =
+            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -294,58 +296,6 @@ public:
 
         return std::make_tuple<double, std::size_t>(
             std::forward<double>(global_min), std::forward<std::size_t>(global_id));
-
-        KRATOS_CATCH("");
-    }
-
-private:
-    const std::function<double(const double&)> static GetNormMethod(const Variable<double>&,
-                                                                    const std::string&)
-    {
-        return [](const double& rValue) -> double { return rValue; };
-    }
-
-    const std::function<double(const array_1d<double, 3>&)> static GetNormMethod(
-        const Variable<array_1d<double, 3>>& rVariable, const std::string& rNormType)
-    {
-        KRATOS_TRY
-
-        if (rNormType == "magnitude")
-        {
-            return [](const array_1d<double, 3>& rValue) -> double {
-                return norm_2(rValue);
-            };
-        }
-        else if (rNormType == "component_x")
-        {
-            return [](const array_1d<double, 3>& rValue) -> double {
-                return rValue[0];
-            };
-        }
-        else if (rNormType == "component_y")
-        {
-            return [](const array_1d<double, 3>& rValue) -> double {
-                return rValue[1];
-            };
-        }
-        else if (rNormType == "component_z")
-        {
-            return [](const array_1d<double, 3>& rValue) -> double {
-                return rValue[2];
-            };
-        }
-        else
-        {
-            KRATOS_ERROR << "Unknown norm type for 3d variable "
-                         << rVariable.Name() << ". [ NormType = " << rNormType << " ]\n"
-                         << "   Allowed norm types are:\n"
-                         << "        magnitude\n"
-                         << "        component_x\n"
-                         << "        component_y\n"
-                         << "        component_z\n";
-        }
-
-        return [](const array_1d<double, 3>& rValue) -> double { return 0.0; };
 
         KRATOS_CATCH("");
     }
