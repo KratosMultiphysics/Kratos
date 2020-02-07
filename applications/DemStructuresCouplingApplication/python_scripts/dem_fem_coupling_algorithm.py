@@ -130,14 +130,15 @@ class Algorithm(object):
     def _TransferStructuresSkinToDem(self):
         self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
         self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
-        dem_walls_mp = self.dem_solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
+        # dem_walls_mp = self.dem_solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
+        dem_walls_mp = self.dem_solution.rigid_face_model_part
         max_prop_id = 0
         for prop in dem_walls_mp.Properties:
             if prop.Id > max_prop_id:
                 max_prop_id = prop.Id
         props = Kratos.Properties(max_prop_id + 1)
         # NOTE: this should be more general
-        props[Dem.FRICTION] = -0.5773502691896257
+        props[Dem.FRICTION] = 0.2
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001
