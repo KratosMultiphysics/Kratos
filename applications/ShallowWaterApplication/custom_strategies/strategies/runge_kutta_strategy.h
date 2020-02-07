@@ -254,7 +254,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    double mInitialTime, mFinalTime;
 
     ///@}
     ///@name Protected Operators
