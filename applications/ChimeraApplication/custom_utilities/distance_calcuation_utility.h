@@ -25,7 +25,7 @@
 #include "includes/define.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
-#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
 #include "utilities/variable_utils.h"
 
 

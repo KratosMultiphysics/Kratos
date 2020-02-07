@@ -35,7 +35,6 @@
 #include "includes/process_info.h"
 #include "includes/variables.h"
 #include "input_output/vtk_output.h"
-#include "processes/calculate_distance_to_skin_process.h"
 #include "processes/process.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/builtin_timer.h"
