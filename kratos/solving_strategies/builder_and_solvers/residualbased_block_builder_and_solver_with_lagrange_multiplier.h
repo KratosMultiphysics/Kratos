@@ -136,11 +136,11 @@ public:
         BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
+            BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
         } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
-            BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
         } else {
-            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
             // We assume it is a number
             std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
             number_stream >> BaseType::mScaleFactor; 
