@@ -331,13 +331,13 @@ protected:
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if( NodalArea > mAreaTolerence )
+                if( NodalArea > mAreaTolerance )
                 {
                     itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
                 } else {
-                    KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
+                    KRATOS_WARNING("1. Nodal area too small ! ")<<std::endl;
                 }
             }
         }
@@ -430,7 +430,7 @@ protected:
                 for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
                 {
                     const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if(NodalArea >mAreaTolerence){
+                    if(NodalArea >mAreaTolerance){
                         if ( ! itNode->IsFixed(VELOCITY_X) )
                             itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
                         if ( ! itNode->IsFixed(VELOCITY_Y) )
@@ -438,7 +438,7 @@ protected:
                         if ( ! itNode->IsFixed(VELOCITY_Z) )
                             itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
                     } else {
-                        KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
+                        KRATOS_WARNING("2. Nodal area too small ! ")<<std::endl;
                     }
                 }
             }
@@ -500,14 +500,14 @@ protected:
                 {
                     const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
 
-                    if(NodalArea >mAreaTolerence)
+                    if(NodalArea >mAreaTolerance)
                     {
                         if ( ! itNode->IsFixed(VELOCITY_X) )
                             itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
                         if ( ! itNode->IsFixed(VELOCITY_Y) )
                             itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
                     } else {
-                        KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
+                        KRATOS_WARNING("3. Nodal area too small ! ")<<std::endl;
                     }
                 }
             }
@@ -613,7 +613,7 @@ protected:
 
         for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
         {
-            if (itNode->GetValue(NODAL_AREA) > mAreaTolerence)
+            if (itNode->GetValue(NODAL_AREA) > mAreaTolerance)
             {
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
                 itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
@@ -625,7 +625,7 @@ protected:
                 itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
                 itNode->GetValue(DIVPROJ) = 0.0;
             } else {
-                KRATOS_WARNING("Nodal area too small ! ")<<std::endl;
+                KRATOS_WARNING("4. Nodal area too small ! ")<<std::endl;
             }
         }
      }
@@ -713,7 +713,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const double mAreaTolerence=1E-12;
+    const double mAreaTolerance=1E-12;
 
     ///@}
     ///@name Private Operators
