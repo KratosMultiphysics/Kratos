@@ -222,7 +222,7 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
-        const Parameters variables_considered = FilterFailingVariablesIfRequired(variables, rProperty.Id());
+        const Parameters variables_considered = FilterVariables(variables, rProperty.Id());
         
         for (auto iter = variables_considered.begin(); iter != variables_considered.end(); ++iter) {
             const Parameters value = variables_considered.GetValue(iter.name());
@@ -328,7 +328,7 @@ void ReadMaterialsUtility::AssignTablesToProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ReadMaterialsUtility::FilterFailingVariablesIfRequired(
+Parameters ReadMaterialsUtility::FilterVariables(
     const Parameters VariablesParameters,
     const IndexType PropertyId
     )
