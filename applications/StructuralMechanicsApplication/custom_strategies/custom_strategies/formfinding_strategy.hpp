@@ -90,6 +90,24 @@ public:
     // Destructor
     ~FormfindingStrategy() = default;
 
+    static void WriteFormFoundMdpa(ModelPart& rModelPart)
+    {
+        Matrix output_matrix;
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        for(auto& r_element : rModelPart.Elements()){
+            r_element.Calculate(MEMBRANE_PRESTRESS,output_matrix,r_process_info);
+            r_element.Data().Clear();
+            r_element.SetValue(MEMBRANE_PRESTRESS,output_matrix);
+        }
+
+        rModelPart.Conditions().clear();
+        rModelPart.rProperties().clear();
+        rModelPart.GetNodalSolutionStepVariablesList().clear();
+
+        ModelPartIO model_part_io("formfinding_result_model", IO::WRITE);
+        model_part_io.WriteModelPart(rModelPart);
+    }
+
 private:
     void UpdateDatabase(
         TSystemMatrixType& A,
@@ -134,26 +152,9 @@ private:
     {
         BaseType::FinalizeSolutionStep();
         if (mPrintingFormat=="all" || mPrintingFormat=="gid") mpIterationIO->FinalizeResults();
-        if (mWriteFormFoundGeometryFile) WriteNewMdpaFile();
     }
 
-    void WriteNewMdpaFile()
-    {
-        Matrix output_matrix;
-        const ProcessInfo temp_process_info;
-        for(auto& r_element : mrFormFindingModelPart.Elements()){
-            r_element.Calculate(MEMBRANE_PRESTRESS,output_matrix,temp_process_info);
-            r_element.SetValue(MEMBRANE_PRESTRESS,output_matrix);
-        }
 
-        // write new mdpa
-        // erase properties
-        for (auto& prop: BaseType::GetModelPart().rProperties())
-            prop.Data().Clear();
-
-        ModelPartIO model_part_io("formfinding_result_model", IO::WRITE);
-        model_part_io.WriteModelPart(BaseType::GetModelPart());
-    }
 
     void PrintVtkFiles(const int rIterationNumber)
     {
@@ -198,7 +199,7 @@ private:
         if (mPrintingFormat=="all" || mPrintingFormat=="gid"){
             mpIterationIO = Kratos::make_unique<IterationIOType>(
                 "formfinding_iterations",
-                GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
+                GiD_PostAscii,
                 MultiFileFlag::SingleFile,
                 WriteDeformedMeshFlag::WriteUndeformed,
                 WriteConditionsFlag::WriteConditions);

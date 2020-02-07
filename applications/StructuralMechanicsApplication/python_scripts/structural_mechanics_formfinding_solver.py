@@ -51,6 +51,12 @@ class FormfindingMechanicalSolver(MechanicalSolver):
         this_defaults.AddMissingParameters(super(FormfindingMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
 
+
+
+    def Finalize(self):
+        super(FormfindingMechanicalSolver, self).Finalize()
+        StructuralMechanicsApplication.FormfindingStrategy.WriteFormFoundMdpa(self.GetComputingModelPart())
+
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
