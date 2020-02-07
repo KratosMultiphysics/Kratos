@@ -34,7 +34,7 @@
 
 // include the eigensolver
 // #include "custom_solvers/gen_eigensystem_solver.h"
-#include "custom_utilities/generalized_eigenvalue_utility.hpp"
+#include "custom_utilities/generalized_eigenvalue_utility.h"
 #include "custom_utilities/orthogonalization_utility.hpp"
 #include "custom_utilities/complex_sort_utility.hpp"
 // #include "../EigenSolversApplication/custom_solvers/eigen_direct_solver.h"
@@ -77,7 +77,8 @@ template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver,
           class TReducedSparseSpace,
-          class TReducedDenseSpace
+          class TReducedDenseSpace,
+          bool TUseModalDamping
           >
 class MorSecondOrderIRKAStrategy
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace >
@@ -269,9 +270,21 @@ class MorSecondOrderIRKAStrategy
         const size_t n_sampling_points = mSamplingPoints.size();
         const size_t reduced_system_size = n_sampling_points;
 
-        // copy mass matrix and rhs to the complex space, create solution vector
+        // copy mass matrix and rhs to the complex space
         ComplexSparseMatrixType r_M_tmp = ComplexSparseMatrixType(r_M);
         ComplexSparseVectorType r_RHS_tmp = ComplexSparseVectorType(r_RHS);
+
+        // create a complex stiffness matrix
+        TReducedSparseMatrixType r_K_cplx;
+        if( TUseModalDamping )
+        {
+            r_K_cplx = TReducedSparseMatrixType(r_D);
+            complex z(0,1);
+            r_K_cplx *= reinterpret_cast<typename TReducedSparseSpace::DataType(&)[2]>(z)[0];   //cast complex to double (real part)
+            r_K_cplx += r_K;
+
+            noalias(r_Dr) = ZeroMatrix(r_Dr.size1(), r_Dr.size2());
+        }
 
         // create solution vector
         ComplexSparseVectorPointerType tmp_dx = ComplexSparseSpaceType::CreateEmptyVectorPointer();
@@ -291,7 +304,10 @@ class MorSecondOrderIRKAStrategy
         for( size_t i=0; i<n_sampling_points/2; ++i )
         {
             noalias(r_kdyn) = r_D;
-            r_kdyn *= mSamplingPoints(2*i);
+            if( TUseModalDamping )
+                r_kdyn *= complex(0,1);
+            else
+                r_kdyn *= mSamplingPoints(2*i);
             r_kdyn += r_K;
             r_kdyn += std::pow( mSamplingPoints(2*i), 2.0 ) * r_M_tmp;
 
@@ -317,16 +333,43 @@ class MorSecondOrderIRKAStrategy
             BuiltinTimer irka_projection_time;
 
             // project onto reduced space
-            this->ProjectMatrix(r_K, r_basis, r_Kr);
-            this->ProjectMatrix(r_D, r_basis, r_Dr);
-            this->ProjectMatrix(r_M, r_basis, r_Mr);
+            if( TUseModalDamping )
+            {
+                this->template ProjectMatrix<TReducedSparseMatrixType>(r_K_cplx, r_basis, r_Kr);
+                this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_Mr);
+            }
+            else
+            {
+                this->template ProjectMatrix<TSystemMatrixType>(r_K, r_basis, r_Kr);
+                this->template ProjectMatrix<TSystemMatrixType>(r_D, r_basis, r_Dr);
+                this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_Mr);
+            }
             projection_time = irka_projection_time.ElapsedSeconds();
 
-            // compute generalized eigenvalues
-            GeneralizedEigenvalueUtility::ComputePolynomial<TReducedDenseSpace>(r_Kr, r_Dr, r_Mr, eigenvalues);
+            if( TUseModalDamping )
+            {
+                // compute generalized eigenvalues
+                vector<complex> tmp_eigenvalues;
+                GeneralizedEigenvalueUtility::Compute<TReducedDenseSpace>(r_Kr, r_Mr, tmp_eigenvalues);
 
-            // use mirror images of first r eigenvalues as expansion points
-            eigenvalues *= -1.;
+                std::for_each(tmp_eigenvalues.begin(), tmp_eigenvalues.end(),
+                    [](complex &a) {a = std::sqrt(a);});
+
+                eigenvalues.resize(2*reduced_system_size);
+                noalias(subrange(eigenvalues, 0, reduced_system_size)) = tmp_eigenvalues;
+                std::for_each(tmp_eigenvalues.begin(), tmp_eigenvalues.end(), 
+                    [](complex &a) {a = std::conj(a);});
+                noalias(subrange(eigenvalues, reduced_system_size, reduced_system_size*2)) = tmp_eigenvalues;
+            }
+            else
+            {
+                // compute generalized eigenvalues
+                GeneralizedEigenvalueUtility::ComputePolynomial<TReducedDenseSpace>(r_Kr, r_Dr, r_Mr, eigenvalues);
+
+                // use mirror images of first r eigenvalues as expansion points
+                eigenvalues *= -1.;
+            }
+
             ComplexSortUtility::PairComplexConjugates(eigenvalues);
             noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
 
@@ -339,7 +382,10 @@ class MorSecondOrderIRKAStrategy
             for( size_t i=0; i<n_sampling_points/2; ++i )
             {
                 r_kdyn = r_D;
-                r_kdyn *= mSamplingPoints(2*i);
+                if( TUseModalDamping )
+                    r_kdyn *= complex(0,1);
+                else
+                    r_kdyn *= mSamplingPoints(2*i);
                 r_kdyn += r_K;
                 r_kdyn += std::pow( mSamplingPoints(2*i), 2.0 ) * r_M_tmp;
 

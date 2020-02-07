@@ -523,10 +523,10 @@ class MorOfflineSecondOrderStrategy
         r_output_vector_r.resize( reduced_system_size, false);
         noalias(r_output_vector_r) = prod( r_output_vector, r_basis );
 
-        ProjectMatrix(r_K, r_basis, r_stiffness_matrix_reduced);
-        ProjectMatrix(r_M, r_basis, r_mass_matrix_reduced);
+        ProjectMatrix<TSystemMatrixType>(r_K, r_basis, r_stiffness_matrix_reduced);
+        ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_mass_matrix_reduced);
         if (mUseDamping)
-            ProjectMatrix(r_D, r_basis, r_damping_matrix_reduced);
+            ProjectMatrix<TSystemMatrixType>(r_D, r_basis, r_damping_matrix_reduced);
 
         KRATOS_INFO_IF("System Projection Time", BaseType::GetEchoLevel() > 0 && rank == 0)
             << system_projection_time.ElapsedSeconds() << std::endl;
@@ -981,7 +981,8 @@ class MorOfflineSecondOrderStrategy
     /**
      * @brief computes X=V^H * A * V
      */
-    void ProjectMatrix(TSystemMatrixType& rA, ComplexMatrix& rV, ComplexMatrix& rX)
+    template <typename MatrixType>
+    void ProjectMatrix(MatrixType& rA, ComplexMatrix& rV, ComplexMatrix& rX)
     {
         const size_t system_size = rV.size1();
         const size_t reduced_system_size = rV.size2();
@@ -1005,7 +1006,8 @@ class MorOfflineSecondOrderStrategy
     /**
      * @brief computes X=V^T * A * V
      */
-    void ProjectMatrix(TSystemMatrixType& rA, Matrix& rV, Matrix& rX)
+    template <typename MatrixType>
+    void ProjectMatrix(MatrixType& rA, Matrix& rV, Matrix& rX)
     {
         const size_t reduced_system_size = rV.size2();
         Vector v_col = ZeroVector(rV.size1());

@@ -87,10 +87,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef MorOnlineSecondOrderStrategy< ComplexLocalSpaceType, ComplexLocalSpaceType, ComplexDenseLinearSolverType, MorSecondOrderRealInComplexOutOfflineStrategyType > MorSecondOrderComplexOnlineStrategyType;
     // typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, MorOfflineSecondOrderStrategyType > MorOnlineStrategyType;
 
-    typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType, LocalSpaceType > MorSecondOrderKrylovStrategyType;
+    // typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType, LocalSpaceType > MorSecondOrderKrylovStrategyType;
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType > MorSecondOrderComplexKrylovStrategyType;
 
-    typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, SparseSpaceType, LocalSpaceType > MorSecondOrderIrkaRealStrategyType;
+    typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, SparseSpaceType, LocalSpaceType, false > MorSecondOrderIrkaRealStrategyType;
+    typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType, true > MorSecondOrderIrkaComplexStrategyType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
@@ -196,6 +197,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIrkaRealStrategyType, typename MorSecondOrderIrkaRealStrategyType::Pointer, MorSecondOrderRealInRealOutOfflineStrategyType >(m,"MorSecondOrderRealIrkaStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
+        ;
+
+    py::class_< MorSecondOrderIrkaComplexStrategyType, typename MorSecondOrderIrkaComplexStrategyType::Pointer, MorSecondOrderRealInComplexOutOfflineStrategyType >(m,"MorSecondOrderComplexIrkaStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
         ;
 
