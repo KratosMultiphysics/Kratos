@@ -305,6 +305,11 @@ Instead of the regular install target.
 
 Enables or Disables(default) the modules and code for mpi. This option is needed if you want to compile Trilinos, Metis, etc...
 
+### Logging
+`-DKRATOS_COLORED_OUTPUT=ON/OFF`
+
+Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
+
 ### External libraries
 #### Feast
 `-DINCLUDE_FEAST`

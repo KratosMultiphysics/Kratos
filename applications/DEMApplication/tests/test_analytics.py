@@ -2,7 +2,7 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
@@ -39,8 +39,8 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
     def FinalizeTimeStep(self, time):
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
-            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
-            face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
             if node.Id == 1:
                 if time > 0.099:
                     expected_value = 11.07179
@@ -83,7 +83,7 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
             self.MakeAnalyticsMeasurements()
             if is_time_to_print:
                 self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
                     self.CheckTotalNumberOfCrossingParticles()
 
@@ -118,7 +118,7 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
             self.MakeAnalyticsMeasurements()
             if is_time_to_print:  # or IsCountStep()
                 self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
 
                     if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
