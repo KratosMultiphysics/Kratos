@@ -42,6 +42,24 @@ template <typename TContainerType, typename TContainerItemType, template <typena
 class ContainerSpatialMethods
 {
 public:
+    // special overloaded method for flags
+    int static CalculateSum(const ModelPart& rModelPart, const Flags& rVariable)
+    {
+        const TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+        int sum = 0;
+
+#pragma omp parallel for reduction(+ : sum)
+        for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+        {
+            const TContainerItemType& r_item = *(r_container.begin() + i);
+            sum += r_item.Is(rVariable);
+        }
+
+        sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(sum);
+        return sum;
+    }
+
     template <typename TDataType>
     TDataType static CalculateSum(const ModelPart& rModelPart,
                                   const Variable<TDataType>& rVariable)
@@ -83,22 +101,41 @@ public:
         KRATOS_CATCH("");
     }
 
-    // special overloaded method for flags
-    int static CalculateSum(const ModelPart& rModelPart, const Flags& rVariable)
+    template <typename TDataType>
+    double static CalculateNormSum(const std::string& rNormType,
+                                   const ModelPart& rModelPart,
+                                   const Variable<TDataType>& rVariable)
     {
+        KRATOS_TRY
+
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
-        int sum = 0;
 
-#pragma omp parallel for reduction(+ : sum)
-        for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+        double global_sum = 0.0;
+        const auto& norm_method =
+            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+
+#pragma omp parallel
         {
-            const TContainerItemType& r_item = *(r_container.begin() + i);
-            sum += r_item.Is(rVariable);
+            double sum = 0.0;
+#pragma omp for
+            for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+            {
+                const TContainerItemType& r_item = *(r_container.begin() + i);
+                const TDataType& current_value =
+                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
+                sum += norm_method(current_value);
+            }
+#pragma omp critical
+            {
+                global_sum += sum;
+            }
         }
 
-        sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(sum);
-        return sum;
+        global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
+        return global_sum;
+
+        KRATOS_CATCH("");
     }
 
     template <typename TDataType>
@@ -119,6 +156,27 @@ public:
         }
 
         return rVariable.Zero();
+    }
+
+    template <typename TDataType>
+    double static CalculateNormMean(const std::string& rNormType,
+                                    const ModelPart& rModelPart,
+                                    const Variable<TDataType>& rVariable)
+    {
+        const double sum = CalculateNormSum<TDataType>(rNormType, rModelPart, rVariable);
+        const TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+
+        const unsigned int number_of_items =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                r_container.size());
+
+        if (number_of_items > 0)
+        {
+            return sum * (1.0 / static_cast<double>(number_of_items));
+        }
+
+        return 0.0;
     }
 
     template <typename TDataType>
@@ -170,6 +228,54 @@ public:
 
         return std::make_tuple<TDataType, TDataType>(
             std::forward<TDataType>(mean), std::forward<TDataType>(global_variance));
+    }
+
+    template <typename TDataType>
+    std::tuple<double, double> static CalculateNormVariance(const std::string& rNormType,
+                                                            const ModelPart& rModelPart,
+                                                            const Variable<TDataType>& rVariable)
+    {
+        double mean = CalculateNormMean<TDataType>(rNormType, rModelPart, rVariable);
+
+        const TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+
+        double global_variance = 0.0;
+        const auto& norm_method =
+            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+
+#pragma omp parallel
+        {
+            double variance = 0.0;
+
+#pragma omp for
+            for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+            {
+                const TContainerItemType& r_item = *(r_container.begin() + i);
+                const TDataType& current_value =
+                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
+
+                variance += std::pow(norm_method(current_value), 2);
+            }
+#pragma omp critical
+            {
+                global_variance += variance;
+            }
+        }
+        global_variance =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
+        const unsigned int number_of_items =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                r_container.size());
+
+        if (number_of_items > 0)
+        {
+            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance -= MethodsUtilities::RaiseToPower(mean, 2);
+        }
+
+        return std::make_tuple<double, double>(
+            std::forward<double>(mean), std::forward<double>(global_variance));
     }
 
     template <typename TDataType>

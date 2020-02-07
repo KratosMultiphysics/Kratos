@@ -101,8 +101,8 @@ template <typename TContainerType>
 const TContainerType& GetDataContainer(const ModelPart& rModelPart);
 
 template <typename TDataType>
-const std::function<double(const TDataType&)> GetNormMethod(const Variable<TDataType>&,
-                                                            const std::string&);
+const std::function<double(const TDataType&)> GetNormMethod(const Variable<TDataType>& rVariable,
+                                                            const std::string& rNormType);
 } // namespace MethodsUtilities
 
 ///@}

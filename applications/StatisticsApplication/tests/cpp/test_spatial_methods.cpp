@@ -74,6 +74,101 @@ void RunSpatialSumMethodTest()
     KRATOS_CHECK_VECTOR_NEAR(sum_velocity, sum_method_velocity, 1e-12);
 }
 
+template <typename TContainerType, typename TContainerItemType, typename TInputDataType, typename TOutputDataType, template <typename T> typename TDataRetrievalFunctor>
+void RunSpatialNormMethodTest(
+    const std::string& rNormType,
+    const Variable<TInputDataType>& rVariable,
+    const std::function<TOutputDataType(const std::string&, const ModelPart&, const Variable<TInputDataType>&)>& rTestMethod,
+    const std::function<void(const TOutputDataType&, const TContainerType&, const std::string&, const Variable<TInputDataType>&)>& rCheckMethod)
+{
+    Model test_model;
+    ModelPart& test_model_part = test_model.CreateModelPart("test_model_part");
+    StatisticsApplicationTestUtilities::AddNodalSolutionStepVariables(test_model_part);
+    StatisticsApplicationTestUtilities::CreateModelPart(test_model_part);
+
+    TContainerType& r_container =
+        MethodsUtilities::GetDataContainer<TContainerType>(test_model_part);
+
+    InitializeSpatialMethodVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor>(
+        r_container);
+
+    const auto& r_norm_method =
+        MethodsUtilities::GetNormMethod<TInputDataType>(rVariable, rNormType);
+    const auto& method_output = rTestMethod(rNormType, test_model_part, rVariable);
+
+    rCheckMethod(method_output, r_container, rNormType, rVariable);
+}
+
+template <typename TContainerType, typename TContainerItemType, typename TDataType, template <typename T> typename TDataRetrievalFunctor>
+void CheckNormSumMethod(const double& rTestValue,
+                        const TContainerType& rContainer,
+                        const std::string& rNormType,
+                        const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    double sum = 0.0;
+    const auto& norm_method =
+        MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+    for (const TContainerItemType& item : rContainer)
+    {
+        sum += norm_method(TDataRetrievalFunctor<TContainerItemType>()(item, rVariable));
+    }
+
+    KRATOS_CHECK_NEAR(rTestValue, sum, 1e-12);
+
+    KRATOS_CATCH("");
+}
+
+template <typename TContainerType, typename TContainerItemType, typename TDataType, template <typename T> typename TDataRetrievalFunctor>
+void CheckNormMeanMethod(const double& rTestValue,
+                         const TContainerType& rContainer,
+                         const std::string& rNormType,
+                         const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    double mean = 0.0;
+    const auto& norm_method =
+        MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+    for (const TContainerItemType& item : rContainer)
+    {
+        mean += norm_method(TDataRetrievalFunctor<TContainerItemType>()(item, rVariable));
+    }
+    mean /= static_cast<double>(rContainer.size());
+
+    KRATOS_CHECK_NEAR(rTestValue, mean, 1e-12);
+
+    KRATOS_CATCH("");
+}
+
+template <typename TContainerType, typename TContainerItemType, typename TDataType, template <typename T> typename TDataRetrievalFunctor>
+void CheckNormVarianceMethod(const std::tuple<double, double>& rTestValue,
+                             const TContainerType& rContainer,
+                             const std::string& rNormType,
+                             const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    double mean = 0.0;
+    double variance = 0.0;
+    const auto& norm_method =
+        MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+    for (const TContainerItemType& item : rContainer)
+    {
+        mean += norm_method(TDataRetrievalFunctor<TContainerItemType>()(item, rVariable));
+        variance += std::pow(
+            norm_method(TDataRetrievalFunctor<TContainerItemType>()(item, rVariable)), 2);
+    }
+    mean /= static_cast<double>(rContainer.size());
+    variance = variance / static_cast<double>(rContainer.size()) - std::pow(mean, 2);
+
+    KRATOS_CHECK_NEAR(std::get<0>(rTestValue), mean, 1e-12);
+    KRATOS_CHECK_NEAR(std::get<1>(rTestValue), variance, 1e-12);
+
+    KRATOS_CATCH("");
+}
+
 template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
 void RunSpatialMeanMethodTest()
 {
@@ -373,6 +468,151 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSumMethod, KratosStatisticsFastSuite)
                             MethodsUtilities::HistoricalDataValueRetrievalFunctor>();
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialNormSumMethod, KratosStatisticsFastSuite)
+{
+    using node_type = ModelPart::NodeType;
+    using nodes_container_type = ModelPart::NodesContainerType;
+    using condition_type = ModelPart::ConditionType;
+    using conditions_container_type = ModelPart::ConditionsContainerType;
+    using element_type = ModelPart::ElementType;
+    using elements_container_type = ModelPart::ElementsContainerType;
+
+    // checking for doubles
+    using variable_type_scalar = double;
+    const auto& test_nodal_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::HistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_scalar>;
+    const auto& check_nodal_historical_method_scalar =
+        CheckNormSumMethod<nodes_container_type, node_type, variable_type_scalar, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_nodal_historical_method_scalar,
+        check_nodal_historical_method_scalar);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_nodal_historical_method_scalar,
+        check_nodal_historical_method_scalar);
+
+    const auto& test_nodal_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_scalar>;
+    const auto& check_nodal_non_historical_method_scalar =
+        CheckNormSumMethod<nodes_container_type, node_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_nodal_non_historical_method_scalar,
+        check_nodal_non_historical_method_scalar);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_nodal_non_historical_method_scalar,
+        check_nodal_non_historical_method_scalar);
+
+    const auto& test_condition_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<conditions_container_type, condition_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_scalar>;
+    const auto& check_condition_non_historical_method_scalar =
+        CheckNormSumMethod<conditions_container_type, condition_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_condition_non_historical_method_scalar,
+        check_condition_non_historical_method_scalar);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_condition_non_historical_method_scalar,
+        check_condition_non_historical_method_scalar);
+
+    const auto& test_element_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<elements_container_type, element_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_scalar>;
+    const auto& check_element_non_historical_method_scalar =
+        CheckNormSumMethod<elements_container_type, element_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_element_non_historical_method_scalar,
+        check_element_non_historical_method_scalar);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_element_non_historical_method_scalar,
+        check_element_non_historical_method_scalar);
+
+    using variable_type_array = array_1d<double, 3>;
+    const auto& test_nodal_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::HistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_array>;
+    const auto& check_nodal_historical_method_array =
+        CheckNormSumMethod<nodes_container_type, node_type, variable_type_array, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+
+    const auto& test_nodal_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_array>;
+    const auto& check_nodal_non_historical_method_array =
+        CheckNormSumMethod<nodes_container_type, node_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+
+    const auto& test_condition_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<conditions_container_type, condition_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_array>;
+    const auto& check_condition_non_historical_method_array =
+        CheckNormSumMethod<conditions_container_type, condition_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+
+    const auto& test_element_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<elements_container_type, element_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormSum<variable_type_array>;
+    const auto& check_element_non_historical_method_array =
+        CheckNormSumMethod<elements_container_type, element_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SpatialMeanMethod, KratosStatisticsFastSuite)
 {
     RunSpatialMeanMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
@@ -385,6 +625,151 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialMeanMethod, KratosStatisticsFastSuite)
                              MethodsUtilities::HistoricalDataValueRetrievalFunctor>();
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialNormMeanMethod, KratosStatisticsFastSuite)
+{
+    using node_type = ModelPart::NodeType;
+    using nodes_container_type = ModelPart::NodesContainerType;
+    using condition_type = ModelPart::ConditionType;
+    using conditions_container_type = ModelPart::ConditionsContainerType;
+    using element_type = ModelPart::ElementType;
+    using elements_container_type = ModelPart::ElementsContainerType;
+
+    // checking for doubles
+    using variable_type_scalar = double;
+    const auto& test_nodal_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::HistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_scalar>;
+    const auto& check_nodal_historical_method_scalar =
+        CheckNormMeanMethod<nodes_container_type, node_type, variable_type_scalar, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_nodal_historical_method_scalar,
+        check_nodal_historical_method_scalar);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_nodal_historical_method_scalar,
+        check_nodal_historical_method_scalar);
+
+    const auto& test_nodal_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_scalar>;
+    const auto& check_nodal_non_historical_method_scalar =
+        CheckNormMeanMethod<nodes_container_type, node_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_nodal_non_historical_method_scalar,
+        check_nodal_non_historical_method_scalar);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_nodal_non_historical_method_scalar,
+        check_nodal_non_historical_method_scalar);
+
+    const auto& test_condition_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<conditions_container_type, condition_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_scalar>;
+    const auto& check_condition_non_historical_method_scalar =
+        CheckNormMeanMethod<conditions_container_type, condition_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_condition_non_historical_method_scalar,
+        check_condition_non_historical_method_scalar);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_condition_non_historical_method_scalar,
+        check_condition_non_historical_method_scalar);
+
+    const auto& test_element_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<elements_container_type, element_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_scalar>;
+    const auto& check_element_non_historical_method_scalar =
+        CheckNormMeanMethod<elements_container_type, element_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_element_non_historical_method_scalar,
+        check_element_non_historical_method_scalar);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_scalar,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_element_non_historical_method_scalar,
+        check_element_non_historical_method_scalar);
+
+    using variable_type_array = array_1d<double, 3>;
+    const auto& test_nodal_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::HistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_array>;
+    const auto& check_nodal_historical_method_array =
+        CheckNormMeanMethod<nodes_container_type, node_type, variable_type_array, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+
+    const auto& test_nodal_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_array>;
+    const auto& check_nodal_non_historical_method_array =
+        CheckNormMeanMethod<nodes_container_type, node_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array, double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+
+    const auto& test_condition_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<conditions_container_type, condition_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_array>;
+    const auto& check_condition_non_historical_method_array =
+        CheckNormMeanMethod<conditions_container_type, condition_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+
+    const auto& test_element_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<elements_container_type, element_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormMean<variable_type_array>;
+    const auto& check_element_non_historical_method_array =
+        CheckNormMeanMethod<elements_container_type, element_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             double, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SpatialVarianceMethod, KratosStatisticsFastSuite)
 {
     RunSpatialVarianceMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
@@ -395,6 +780,163 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialVarianceMethod, KratosStatisticsFastSuite)
                                  MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>();
     RunSpatialVarianceMethodTest<ModelPart::NodesContainerType, ModelPart::NodeType,
                                  MethodsUtilities::HistoricalDataValueRetrievalFunctor>();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialNormVarianceMethod, KratosStatisticsFastSuite)
+{
+    using node_type = ModelPart::NodeType;
+    using nodes_container_type = ModelPart::NodesContainerType;
+    using condition_type = ModelPart::ConditionType;
+    using conditions_container_type = ModelPart::ConditionsContainerType;
+    using element_type = ModelPart::ElementType;
+    using elements_container_type = ModelPart::ElementsContainerType;
+
+    // checking for doubles
+    using variable_type_scalar = double;
+    const auto& test_nodal_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::HistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_scalar>;
+    const auto& check_nodal_historical_method_scalar =
+        CheckNormVarianceMethod<nodes_container_type, node_type, variable_type_scalar, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_nodal_historical_method_scalar,
+        check_nodal_historical_method_scalar);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_nodal_historical_method_scalar,
+        check_nodal_historical_method_scalar);
+
+    const auto& test_nodal_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_scalar>;
+    const auto& check_nodal_non_historical_method_scalar =
+        CheckNormVarianceMethod<nodes_container_type, node_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_nodal_non_historical_method_scalar,
+        check_nodal_non_historical_method_scalar);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_nodal_non_historical_method_scalar,
+        check_nodal_non_historical_method_scalar);
+
+    const auto& test_condition_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<conditions_container_type, condition_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_scalar>;
+    const auto& check_condition_non_historical_method_scalar =
+        CheckNormVarianceMethod<conditions_container_type, condition_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_condition_non_historical_method_scalar,
+        check_condition_non_historical_method_scalar);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_condition_non_historical_method_scalar,
+        check_condition_non_historical_method_scalar);
+
+    const auto& test_element_non_historical_method_scalar =
+        SpatialMethods::ContainerSpatialMethods<elements_container_type, element_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_scalar>;
+    const auto& check_element_non_historical_method_scalar =
+        CheckNormVarianceMethod<elements_container_type, element_type, variable_type_scalar, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "value", DENSITY, test_element_non_historical_method_scalar,
+        check_element_non_historical_method_scalar);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_scalar,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", DENSITY, test_element_non_historical_method_scalar,
+        check_element_non_historical_method_scalar);
+
+    using variable_type_array = array_1d<double, 3>;
+    const auto& test_nodal_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::HistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_array>;
+    const auto& check_nodal_historical_method_array =
+        CheckNormVarianceMethod<nodes_container_type, node_type, variable_type_array, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::HistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_nodal_historical_method_array,
+        check_nodal_historical_method_array);
+
+    const auto& test_nodal_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<nodes_container_type, node_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_array>;
+    const auto& check_nodal_non_historical_method_array =
+        CheckNormVarianceMethod<nodes_container_type, node_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+    RunSpatialNormMethodTest<nodes_container_type, node_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_nodal_non_historical_method_array,
+        check_nodal_non_historical_method_array);
+
+    const auto& test_condition_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<conditions_container_type, condition_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_array>;
+    const auto& check_condition_non_historical_method_array =
+        CheckNormVarianceMethod<conditions_container_type, condition_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+    RunSpatialNormMethodTest<conditions_container_type, condition_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_condition_non_historical_method_array,
+        check_condition_non_historical_method_array);
+
+    const auto& test_element_non_historical_method_array =
+        SpatialMethods::ContainerSpatialMethods<elements_container_type, element_type,
+                                                MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>::CalculateNormVariance<variable_type_array>;
+    const auto& check_element_non_historical_method_array =
+        CheckNormVarianceMethod<elements_container_type, element_type, variable_type_array, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_x", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_y", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "component_z", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
+    RunSpatialNormMethodTest<elements_container_type, element_type, variable_type_array,
+                             std::tuple<double, double>, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>(
+        "magnitude", VELOCITY, test_element_non_historical_method_array,
+        check_element_non_historical_method_array);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialMinMethod, KratosStatisticsFastSuite)
