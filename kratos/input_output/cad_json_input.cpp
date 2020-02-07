@@ -33,7 +33,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadGeometryModelPart(
         const Parameters& rCadJsonParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rCadJsonParameters.Has("breps"))
             << "Missing \"breps\" section" << std::endl;
@@ -49,7 +49,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBreps(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
         {
@@ -74,7 +74,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepFaces(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         if (rParameters.Has("faces"))
         {
@@ -86,7 +86,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepEdges(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         if (rParameters.Has("edges"))
         {
@@ -102,7 +102,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepSurfaces(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
             << "\"faces\" section needs to be an array of BrepSurfaces." << std::endl;
@@ -120,7 +120,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepSurface(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Reading BrepSurface \"" << GetIdOrName(rParameters) << "\"" << std::endl;
@@ -186,7 +186,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepCurveOnSurfaces(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
             << "\"faces\" section needs to be an array of BrepSurfaces." << std::endl;
@@ -204,7 +204,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepEdge(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
             << "Missing 'brep_id' or 'brep_name' in brep edge" << std::endl;
@@ -229,7 +229,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadBrepEdgeBrepCurveOnSurface(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 3))
             << "Reading BrepEdge \"" << GetIdOrName(rParameters) << "\"" << std::endl;
@@ -278,7 +278,7 @@ namespace Kratos
     static void CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadCouplingGeometry(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_INFO_IF("ReadCouplingGeometry", (EchoLevel > 3))
             << "Reading CouplingGeometry \"" << GetIdOrName(rParameters) << "\"" << std::endl;
@@ -312,7 +312,7 @@ namespace Kratos
     template<class TNodeType, class TEmbeddedNodeType>
     static Vector CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadControlPointWeightVector(
         const Parameters& rParameters,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         Vector control_point_weights = ZeroVector(rParameters.size());
         KRATOS_ERROR_IF(rParameters.size() == 0)
@@ -337,7 +337,7 @@ namespace Kratos
         PointerVector<Node<3>>& rControlPoints,
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
             << "\"control_points\" section needs to be an array." << std::endl;
@@ -357,7 +357,7 @@ namespace Kratos
         PointerVector<Point>& rControlPoints,
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
             << "\"control_points\" section needs to be an array." << std::endl;
@@ -383,7 +383,7 @@ namespace Kratos
     static Node<3>::Pointer CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadNode(
         const Parameters& rParameters,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         SizeType number_of_entries = rParameters.size();
         KRATOS_ERROR_IF((number_of_entries != 2))
@@ -403,7 +403,7 @@ namespace Kratos
     template<class TNodeType, class TEmbeddedNodeType>
     static Point::Pointer CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadPoint(
         const Parameters& rParameters,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         SizeType number_of_entries = rParameters.size();
         KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
@@ -462,7 +462,7 @@ namespace Kratos
     template<class TNodeType, class TEmbeddedNodeType>
     static Parameters CadJsonInput<TNodeType, TEmbeddedNodeType>::ReadParamatersFile(
         const std::string& rDataFileName,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel)
     {
         // Check if rDataFileName ends with ".cad.json" and add it if needed.
         std::string data_file_name = rDataFileName;
