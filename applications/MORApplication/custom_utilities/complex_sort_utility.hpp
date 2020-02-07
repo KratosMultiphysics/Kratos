@@ -71,7 +71,8 @@ namespace ComplexSortUtility
         for( size_t i=0; i<n_cplx; i+=2)
         {
             KRATOS_ERROR_IF( std::abs(std::real(rV(i)) - std::real(rV(i+1))) > tol ) 
-                << "Complex numbers cannot be paired (real parts not in pairs)\n";
+                << "Complex numbers " << rV(i) << "," << rV(i+1) << " cannot be paired (real parts not in pairs): difference "
+                << std::abs(std::real(rV(i)) - std::real(rV(i+1))) << " at tolerance " << tol << "\n";
         }
 
         //now build slices with identical real parts and check inside them for complex conjugate pairs,
@@ -103,7 +104,8 @@ namespace ComplexSortUtility
                 }
                 else
                 {
-                    KRATOS_ERROR << "Complex numbers cannot be paired (imaginary parts not conjugate)\n";
+                    KRATOS_ERROR << "Complex numbers " << rV(i) << "," << rV(i+1) << " cannot be paired (imaginary parts not conjugate): difference " 
+                        << std::abs(std::real(rV(i)) - std::real(rV(i+1))) << " at tolerance " << tol << "\n";
                 }
             }
             //if more identical real parts are found, loop over the imaginary parts
@@ -147,7 +149,8 @@ namespace ComplexSortUtility
                         }
                         else
                         {
-                            KRATOS_ERROR << "Complex numbers cannot be paired (imaginary parts not conjugate)\n";
+                            KRATOS_ERROR << "Complex numbers " << rV(ii+k) << "," << rV(ii+k+1) << " cannot be paired (imaginary parts not conjugate): difference "
+                                << std::abs(std::imag(rV(ii+k)) + std::imag(rV(ii+k+1))) << " at tolerance " << tol << "\n";
                         }
 
                     }
