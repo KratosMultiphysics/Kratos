@@ -458,8 +458,8 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    int dof_nr = DofR%dimension;
-    int node_nr = (DofR-dof_nr)/dimension;
+    const SizeType dof_nr = DofR%dimension;
+    const SizeType node_nr = (DofR-dof_nr)/dimension;
     for (SizeType i=0;i<2;++i){
         rBaseVectors[i] = ZeroVector(dimension);
         rBaseVectors[i][dof_nr] = rShapeFunctionGradientValues(node_nr, i);
