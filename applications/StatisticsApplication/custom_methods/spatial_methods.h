@@ -69,33 +69,38 @@ public:
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
 
-        const TDataType& r_initial_value =
-            TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
-
         TDataType global_sum = rVariable.Zero();
-        MethodsUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
+
+        if (r_container.size() > 0)
+        {
+            const TDataType& r_initial_value =
+                TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
+
+            MethodsUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
 
 #pragma omp parallel
-        {
-            TDataType sum = rVariable.Zero();
-            MethodsUtilities::DataTypeSizeInitializer(sum, r_initial_value);
+            {
+                TDataType sum = rVariable.Zero();
+                MethodsUtilities::DataTypeSizeInitializer(sum, r_initial_value);
 
 #pragma omp for
-            for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
-            {
-                const TContainerItemType& r_item = *(r_container.begin() + i);
-                const TDataType& current_value =
-                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                MethodsUtilities::DataTypeSizeChecker(current_value, sum);
-                sum += current_value;
-            }
+                for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+                {
+                    const TContainerItemType& r_item = *(r_container.begin() + i);
+                    const TDataType& current_value =
+                        TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
+                    MethodsUtilities::DataTypeSizeChecker(current_value, sum);
+                    sum += current_value;
+                }
 #pragma omp critical
-            {
-                global_sum += sum;
+                {
+                    global_sum += sum;
+                }
             }
+
+            global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
         }
 
-        global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
         return global_sum;
 
         KRATOS_CATCH("");
@@ -146,13 +151,16 @@ public:
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
 
-        const unsigned int number_of_items =
-            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
-
-        if (number_of_items > 0)
+        if (r_container.size() > 0)
         {
-            return sum * (1.0 / static_cast<double>(number_of_items));
+            const unsigned int number_of_items =
+                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                    r_container.size());
+
+            if (number_of_items > 0)
+            {
+                return sum * (1.0 / static_cast<double>(number_of_items));
+            }
         }
 
         return rVariable.Zero();
@@ -184,46 +192,49 @@ public:
                                                               const Variable<TDataType>& rVariable)
     {
         TDataType mean = CalculateMean<TDataType>(rModelPart, rVariable);
+        TDataType global_variance = rVariable.Zero();
 
         const TContainerType& r_container =
             MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
 
-        const TDataType& r_initial_value =
-            TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
+        if (r_container.size() > 0)
+        {
+            const TDataType& r_initial_value =
+                TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
 
-        TDataType global_variance = rVariable.Zero();
-        MethodsUtilities::DataTypeSizeInitializer(global_variance, r_initial_value);
+            MethodsUtilities::DataTypeSizeInitializer(global_variance, r_initial_value);
 
 #pragma omp parallel
-        {
-            TDataType variance = rVariable.Zero();
-            MethodsUtilities::DataTypeSizeInitializer(variance, r_initial_value);
+            {
+                TDataType variance = rVariable.Zero();
+                MethodsUtilities::DataTypeSizeInitializer(variance, r_initial_value);
 
 #pragma omp for
-            for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
-            {
-                const TContainerItemType& r_item = *(r_container.begin() + i);
-                const TDataType& current_value =
-                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                MethodsUtilities::DataTypeSizeChecker(current_value, variance);
+                for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+                {
+                    const TContainerItemType& r_item = *(r_container.begin() + i);
+                    const TDataType& current_value =
+                        TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
+                    MethodsUtilities::DataTypeSizeChecker(current_value, variance);
 
-                variance += MethodsUtilities::RaiseToPower(current_value, 2);
-            }
+                    variance += MethodsUtilities::RaiseToPower(current_value, 2);
+                }
 #pragma omp critical
-            {
-                global_variance += variance;
+                {
+                    global_variance += variance;
+                }
             }
-        }
-        global_variance =
-            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
-        const unsigned int number_of_items =
-            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+            global_variance =
+                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
+            const unsigned int number_of_items =
+                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                    r_container.size());
 
-        if (number_of_items > 0)
-        {
-            global_variance *= (1.0 / static_cast<double>(number_of_items));
-            global_variance -= MethodsUtilities::RaiseToPower(mean, 2);
+            if (number_of_items > 0)
+            {
+                global_variance *= (1.0 / static_cast<double>(number_of_items));
+                global_variance -= MethodsUtilities::RaiseToPower(mean, 2);
+            }
         }
 
         return std::make_tuple<TDataType, TDataType>(
