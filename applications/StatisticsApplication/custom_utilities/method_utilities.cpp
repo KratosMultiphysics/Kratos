@@ -190,19 +190,19 @@ const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
     return rModelPart.GetCommunicator().LocalMesh().Conditions();
 }
 
-template <>
-const std::function<double(const double&)> GetNormMethod(const Variable<double>& rVariable,
-                                                         const std::string& rNormType)
+template <typename TDataType>
+const std::function<double(const TDataType&)> GetNormMethod(const Variable<TDataType>& rVariable,
+                                                            const std::string& rNormType)
 {
     KRATOS_TRY
 
     if (rNormType == "value")
     {
-        return [](const double& rValue) -> double { return rValue; };
+        return [](const TDataType rValue) -> double { return rValue; };
     }
     else if (rNormType == "magnitude")
     {
-        return [](const double& rValue) -> double { return std::abs(rValue); };
+        return [](const TDataType rValue) -> double { return std::abs(rValue); };
     }
     else
     {
@@ -213,7 +213,7 @@ const std::function<double(const double&)> GetNormMethod(const Variable<double>&
                      << "        value\n";
     }
 
-    return [](const double&) -> double { return 0.0; };
+    return [](const TDataType) -> double { return 0.0; };
 
     KRATOS_CATCH("");
 }
@@ -261,10 +261,81 @@ const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
     KRATOS_CATCH("");
 }
 
+template <>
+const std::function<double(const Vector&)> GetNormMethod(const Variable<Vector>& rVariable,
+                                                         const std::string& rNormType)
+{
+    KRATOS_TRY
+
+    if (rNormType == "magnitude")
+    {
+        return [](const Vector& rValue) -> double { return norm_2(rValue); };
+    }
+    else if (rNormType.size() > 5)
+    {
+        if (rNormType.substr(0, 5) == "index")
+        {
+            const int index = std::stoi(rNormType.substr(6, rNormType.size() - 6));
+            return
+                [index](const Vector& rValue) -> double { return rValue[index]; };
+        }
+    }
+
+    KRATOS_ERROR << "Unknown norm type for vector variable " << rVariable.Name()
+                 << ". [ NormType = " << rNormType << " ]\n"
+                 << "   Allowed norm types are:\n"
+                 << "        magnitude\n"
+                 << "        index_i\n";
+
+    return [](const Vector&) -> double { return 0.0; };
+
+    KRATOS_CATCH("");
+}
+
+template <>
+const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>& rVariable,
+                                                         const std::string& rNormType)
+{
+    KRATOS_TRY
+
+    if (rNormType == "frobenius")
+    {
+        return
+            [](const Matrix& rValue) -> double { return norm_frobenius(rValue); };
+    }
+    else if (rNormType.size() > 5)
+    {
+        if (rNormType.substr(0, 5) == "index")
+        {
+            const std::string& r_indices = rNormType.substr(7, rNormType.size() - 8);
+            const std::size_t sep_index = r_indices.find(',');
+            const int i = std::stoi(r_indices.substr(0, sep_index));
+            const int j = std::stoi(r_indices.substr(sep_index + 1));
+            return
+                [i, j](const Matrix& rValue) -> double { return rValue(i, j); };
+        }
+    }
+
+    KRATOS_ERROR << "Unknown norm type for matrix variable " << rVariable.Name()
+                 << ". [ NormType = " << rNormType << " ]\n"
+                 << "   Allowed norm types are:\n"
+                 << "        frobenius\n"
+                 << "        index_(i,j)\n";
+
+    return [](const Matrix&) -> double { return 0.0; };
+
+    KRATOS_CATCH("");
+}
+
 // method template instantiations
 
 template double RaiseToPower(const double&, const double);
 template int RaiseToPower(const int&, const double);
+
+template const std::function<double(const int&)> GetNormMethod(const Variable<int>&,
+                                                               const std::string&);
+template const std::function<double(const double&)> GetNormMethod(const Variable<double>&,
+                                                                  const std::string&);
 
 template void DataTypeSizeInitializer(double&, const double&);
 template void DataTypeSizeInitializer(int&, const int&);
