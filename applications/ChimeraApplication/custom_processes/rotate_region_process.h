@@ -8,7 +8,7 @@
 //  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					        Navaneeth K Narayanan
