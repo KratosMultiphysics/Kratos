@@ -68,7 +68,7 @@ if( USE_EIGEN_MKL MATCHES ON )
         message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
         target_link_libraries( KratosEigenSolversCore PUBLIC ${MKL_RT_LIB} )
     else( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-        target_link_libraries( KratosEigenSolversCore PUBLIC mkl_intel_lp64 mkl_tbb_thread mkl_core tbb stdc++ pthread m dl )
+        target_link_libraries( KratosEigenSolversCore PUBLIC mkl_intel_lp64 libomp mkl_core stdc++ pthread m dl )
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
 
