@@ -21,7 +21,7 @@ def GetItemContainer(item_container_name):
     return item_container_types_list[item_container_names_list.index(item_container_name)]
 
 def GetNormTypeContainer(item_container, norm_type):
-    if (norm_type == "value"):
+    if (norm_type == "none"):
         return item_container.ValueMethods
     else:
         return item_container.NormMethods

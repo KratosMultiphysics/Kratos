@@ -28,7 +28,7 @@ class SpatialStatisticsProcess(Kratos.Process):
             "input_variable_settings" : [
                 {
                     "method_name"   : "sum",
-                    "norm_type"     : "value",
+                    "norm_type"     : "none",
                     "container"     : "nodal_historical",
                     "variable_names": []
                 }
@@ -93,7 +93,7 @@ class SpatialStatisticsProcess(Kratos.Process):
             for variable_name in variable_settings["variable_names"].GetStringArray():
                 variable_list.append(Kratos.KratosGlobals.GetVariable(variable_name))
 
-            if (norm_type == "value"):
+            if (norm_type == "none"):
                 for variable in variable_list:
                     output = method(self.model_part, variable)
                     print(variable, output)
