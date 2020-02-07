@@ -42,3 +42,16 @@ def GetMethod(item_norm_container, method_name):
         raise Exception(msg)
 
     return getattr(item_norm_container, method_list[method_names_list.index(method_name)])
+
+def GetMethodHeaders(method_name):
+    method_headers = [
+        ["sum", ["sum"]],
+        ["mean", ["mean"]],
+        ["variance", ["mean", "variance"]],
+        ["min", ["min", "id"]],
+        ["max", ["max", "id"]]
+    ]
+
+    method_header_names = [ method_headers[i][0] for i in range(len(method_headers)) ]
+    return method_headers[method_header_names.index(method_name)][1]
+
