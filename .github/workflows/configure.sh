@@ -53,10 +53,6 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
 -DCMAKE_CXX_FLAGS="-std=c++11 -O0 -fopenmp -Wall \
--Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
--Werror=misleading-indentation -Werror=return-type \
--Werror=sign-compare -Werror=unused-but-set-variable \
--Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
@@ -70,7 +66,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DMMG2D_LIBRARY="/usr/local/lib/libmmg2d.so"        \
 -DMMG3D_LIBRARY="/usr/local/lib/libmmg3d.so"        \
 -DMMGS_LIBRARY="/usr/local/lib/libmmgs.so"          \
--DUSE_EIGEN_MKL=OFF
+-DUSE_EIGEN_MKL=ON
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1
