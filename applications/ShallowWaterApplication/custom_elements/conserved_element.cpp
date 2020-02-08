@@ -133,8 +133,8 @@ void ConservedElement<TNumNodes>::CalculateLocalSystem(
     this->GetNodalValues(variables);
     this->CalculateElementValues(DN_DX_container, variables);
 
-    rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
-    rRightHandSideVector = ZeroVector(element_size);
+    LocalMatrixType lhs_matrix = ZeroMatrix(element_size, element_size);
+    LocalVectorType rhs_vector = ZeroVector(element_size);
 
     for (size_t g = 0; g < TNumNodes; ++g)
     {
@@ -143,22 +143,25 @@ void ConservedElement<TNumNodes>::CalculateLocalSystem(
 
         this->BuildAuxiliaryMatrices(N, DN_DX, variables);
 
-        this->AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        // this->AddConvectiveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        this->AddWaveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        this->AddFrictionTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        this->AddStabilizationTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        this->AddSourceTerms(rRightHandSideVector, variables);
+        this->AddInertiaTerms(lhs_matrix, rhs_vector, variables);
+        // this->AddConvectiveTerms(lhs_matrix, rRightHandSideVector, variables);
+        this->AddWaveTerms(lhs_matrix, rhs_vector, variables);
+        this->AddFrictionTerms(lhs_matrix, rhs_vector, variables);
+        this->AddStabilizationTerms(lhs_matrix, rhs_vector, variables);
+        this->AddSourceTerms(rhs_vector, variables);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
-    rRightHandSideVector -= prod(rLeftHandSideMatrix, variables.unknown);
+    rhs_vector -= prod(lhs_matrix, variables.unknown);
 
-    rRightHandSideVector *= area * variables.lumping_factor;
-    rLeftHandSideMatrix  *= area * variables.lumping_factor;
+    rhs_vector *= area * variables.lumping_factor;
+    lhs_matrix  *= area * variables.lumping_factor;
 
-    double residual = norm_1(rRightHandSideVector);
+    double residual = norm_1(rhs_vector);
     this->SetValue(RESIDUAL_NORM, residual);
+
+    noalias(rLeftHandSideMatrix) = lhs_matrix;
+    noalias(rRightHandSideVector) = rhs_vector;
 }
 
 
@@ -171,8 +174,8 @@ void ConservedElement<TNumNodes>::CalculateRightHandSide(
     if(rRightHandSideVector.size() != element_size)
         rRightHandSideVector.resize(element_size, false); // False says not to preserve existing storage!!
 
-    MatrixType left_hand_side_matrix = ZeroMatrix(element_size, element_size);
-    rRightHandSideVector = ZeroVector(element_size);
+    LocalMatrixType lhs_matrix = ZeroMatrix(element_size, element_size);
+    LocalVectorType rhs_vector = ZeroVector(element_size);
 
     const GeometryType& geom = this->GetGeometry();
 
@@ -197,16 +200,17 @@ void ConservedElement<TNumNodes>::CalculateRightHandSide(
 
         this->BuildAuxiliaryMatrices(N, DN_DX, variables);
 
-        this->AddConvectiveTerms(left_hand_side_matrix, rRightHandSideVector, variables);
-        this->AddWaveTerms(left_hand_side_matrix, rRightHandSideVector, variables);
-        this->AddFrictionTerms(left_hand_side_matrix, rRightHandSideVector, variables);
-        this->AddStabilizationTerms(left_hand_side_matrix, rRightHandSideVector, variables);
-        this->AddSourceTerms(rRightHandSideVector, variables);
+        this->AddConvectiveTerms(lhs_matrix, rhs_vector, variables);
+        this->AddWaveTerms(lhs_matrix, rhs_vector, variables);
+        this->AddFrictionTerms(lhs_matrix, rhs_vector, variables);
+        this->AddStabilizationTerms(lhs_matrix, rhs_vector, variables);
+        this->AddSourceTerms(rhs_vector, variables);
     }
 
-    rRightHandSideVector -= prod(left_hand_side_matrix, variables.unknown);
+    rhs_vector -= prod(lhs_matrix, variables.unknown);
+    rhs_vector *= area * variables.lumping_factor;
 
-    rRightHandSideVector *= area * variables.lumping_factor;
+    noalias(rRightHandSideVector) = rhs_vector;
 }
 
 
@@ -390,9 +394,9 @@ void ConservedElement<TNumNodes>::BuildAuxiliaryMatrices(
 
 template<size_t TNumNodes>
 void ConservedElement<TNumNodes>::AddInertiaTerms(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    LocalMatrixType& rLeftHandSideMatrix,
+    LocalVectorType& rRightHandSideVector,
+    const ElementVariables& rVariables)
 {
     LocalMatrixType mass_matrix;
     mass_matrix = prod(trans(rVariables.N_v), rVariables.N_v); // <v, v>
@@ -406,9 +410,9 @@ void ConservedElement<TNumNodes>::AddInertiaTerms(
 
 template<size_t TNumNodes>
 void ConservedElement<TNumNodes>::AddConvectiveTerms(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    LocalMatrixType& rLeftHandSideMatrix,
+    LocalVectorType& rRightHandSideVector,
+    const ElementVariables& rVariables)
 {
     BoundedMatrix<double,2, rVariables.LocalSize> convection_operator;
     convection_operator = rVariables.velocity[0] * rVariables.Grad_v1;
@@ -420,9 +424,9 @@ void ConservedElement<TNumNodes>::AddConvectiveTerms(
 
 template<size_t TNumNodes>
 void ConservedElement<TNumNodes>::AddWaveTerms(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    LocalMatrixType& rLeftHandSideMatrix,
+    LocalVectorType& rRightHandSideVector,
+    const ElementVariables& rVariables)
 {
     auto N_grad_f = prod(trans(rVariables.N_v), rVariables.Grad_f); // <v, grad_f> (momentum balance)
     rLeftHandSideMatrix += rVariables.wave_vel_2 * N_grad_f;
@@ -433,9 +437,9 @@ void ConservedElement<TNumNodes>::AddWaveTerms(
 
 template<size_t TNumNodes>
 void ConservedElement<TNumNodes>::AddFrictionTerms(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    LocalMatrixType& rLeftHandSideMatrix,
+    LocalVectorType& rRightHandSideVector,
+    const ElementVariables& rVariables)
 {
     const double q = norm_2(rVariables.momentum) + rVariables.epsilon;
     const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
@@ -448,9 +452,9 @@ void ConservedElement<TNumNodes>::AddFrictionTerms(
 
 template<size_t TNumNodes>
 void ConservedElement<TNumNodes>::AddStabilizationTerms(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    LocalMatrixType& rLeftHandSideMatrix,
+    LocalVectorType& rRightHandSideVector,
+    const ElementVariables& rVariables)
 {
     double tau_h;
     double tau_q;
@@ -497,8 +501,8 @@ void ConservedElement<TNumNodes>::AddStabilizationTerms(
 
 template<size_t TNumNodes>
 void ConservedElement<TNumNodes>::AddSourceTerms(
-    VectorType& rRightHandSideVector,
-    ElementVariables& rVariables)
+    LocalVectorType& rRightHandSideVector,
+    const ElementVariables& rVariables)
 {
     LocalMatrixType scalar_mass_matrix = outer_prod(rVariables.N_f, rVariables.N_f);
     rRightHandSideVector += prod(scalar_mass_matrix, rVariables.source);

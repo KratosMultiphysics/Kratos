@@ -249,33 +249,33 @@ protected:
         ElementVariables& rVariables);
 
     void AddInertiaTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
+        LocalMatrixType& rLeftHandSideMatrix,
+        LocalVectorType& rRightHandSideVector,
+        const ElementVariables& rVariables);
 
     void AddConvectiveTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
+        LocalMatrixType& rLeftHandSideMatrix,
+        LocalVectorType& rRightHandSideVector,
+        const ElementVariables& rVariables);
 
     void AddWaveTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
+        LocalMatrixType& rLeftHandSideMatrix,
+        LocalVectorType& rRightHandSideVector,
+        const ElementVariables& rVariables);
 
     void AddFrictionTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
+        LocalMatrixType& rLeftHandSideMatrix,
+        LocalVectorType& rRightHandSideVector,
+        const ElementVariables& rVariables);
 
     void AddStabilizationTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
+        LocalMatrixType& rLeftHandSideMatrix,
+        LocalVectorType& rRightHandSideVector,
+        const ElementVariables& rVariables);
 
     void AddSourceTerms(
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
+        LocalVectorType& rRightHandSideVector,
+        const ElementVariables& rVariables);
 
     void CalculateLumpedMassMatrix(LocalMatrixType& rMassMatrix);
 
