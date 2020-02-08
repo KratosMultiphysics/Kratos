@@ -44,7 +44,6 @@ jobs:
 
     - name: Build
       run: |
-        ls -l /usr/lib/ccache/
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
@@ -53,8 +52,6 @@ jobs:
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export CC=/usr/lib/ccache/clang
-          export CXX=/usr/lib/ccache/clang++
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
