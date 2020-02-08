@@ -313,22 +313,31 @@ private:
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
+        auto elements_begin = r_model_part.ElementsBegin();
+        auto conditions_begin = r_model_part.ConditionsBegin();
+
+        const int n_elements = static_cast<int>(r_model_part.NumberOfElements());
+        const int n_conditions = static_cast<int>(r_model_part.NumberOfConditions());
+
         VariableUtils().SetHistoricalVariableToZero(NODAL_MASS, r_model_part.Nodes());
 
-        #pragma omp parallel for schedule(guided)
-        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfElements()); ++i)
+        #pragma omp parallel firstprivate(n_elements, n_conditions)
         {
-            auto it_elem = r_model_part.ElementsBegin() + i;
-            double dummy;
-            it_elem->Calculate(NODAL_MASS, dummy, r_process_info);
-        }
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < n_elements; ++i)
+            {
+                auto it_elem = elements_begin + i;
+                double dummy;
+                it_elem->Calculate(NODAL_MASS, dummy, r_process_info);
+            }
 
-        #pragma omp parallel for schedule(guided)
-        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfConditions()); ++i)
-        {
-            auto it_elem = r_model_part.ConditionsBegin() + i;
-            double dummy;
-            it_elem->Calculate(NODAL_MASS, dummy, r_process_info);
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < n_conditions; ++i)
+            {
+                auto it_cond = conditions_begin + i;
+                double dummy;
+                it_cond->Calculate(NODAL_MASS, dummy, r_process_info);
+            }
         }
     }
 
@@ -337,20 +346,29 @@ private:
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
+        auto elements_begin = r_model_part.ElementsBegin();
+        auto conditions_begin = r_model_part.ConditionsBegin();
+
+        const int n_elements = static_cast<int>(r_model_part.NumberOfElements());
+        const int n_conditions = static_cast<int>(r_model_part.NumberOfConditions());
+
         SetVariablesToZero(HEIGHT_RHS, MOMENTUM_RHS);
 
-        #pragma omp parallel for schedule(guided)
-        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfElements()); ++i)
+        #pragma omp parallel firstprivate(n_elements, n_conditions)
         {
-            auto it_elem = r_model_part.ElementsBegin() + i;
-            it_elem->AddExplicitContribution(r_process_info);
-        }
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < n_elements; ++i)
+            {
+                auto it_elem = elements_begin + i;
+                it_elem->AddExplicitContribution(r_process_info);
+            }
 
-        #pragma omp parallel for schedule(guided)
-        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfConditions()); ++i)
-        {
-            auto it_elem = r_model_part.ConditionsBegin() + i;
-            it_elem->AddExplicitContribution(r_process_info);
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < n_conditions; ++i)
+            {
+                auto it_cond = conditions_begin + i;
+                it_cond->AddExplicitContribution(r_process_info);
+            }
         }
     }
 
