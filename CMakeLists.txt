@@ -2,10 +2,10 @@ project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
 set (CMAKE_CXX_STANDARD 11)
 
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-endif()
+# find_program(CCACHE_PROGRAM ccache)
+# if(CCACHE_PROGRAM)
+#     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+# endif()
 
 # Setting some policies
 # No recursive dereferencing
