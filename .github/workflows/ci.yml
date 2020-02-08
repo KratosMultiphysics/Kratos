@@ -44,7 +44,7 @@ jobs:
 
     - name: Build
       run: |
-        ll /usr/lib/ccache/
+        ls -l /usr/lib/ccache/
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
