@@ -159,12 +159,10 @@ public:
     bool SolveSolutionStep() override
     {
         // Initialize the mass matrix
-        auto& r_model_part = BaseType::GetModelPart();
         ComputeNodalMass();
 
         // Initialize the first step
-        VariableUtils().SetHistoricalVariableToZero(MOMENTUM_RK4, r_model_part.Nodes());
-        VariableUtils().SetHistoricalVariableToZero(HEIGHT_RK4, r_model_part.Nodes());
+        SetVariablesToZero(HEIGHT_RK4, MOMENTUM_RK4);
 
         // Perform the RK steps
         for (int step = 0; step < mNumberOfSteps; ++step)
@@ -339,8 +337,7 @@ private:
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
-        VariableUtils().SetHistoricalVariableToZero(MOMENTUM_RHS, r_model_part.Nodes());
-        VariableUtils().SetHistoricalVariableToZero(HEIGHT_RHS, r_model_part.Nodes());
+        SetVariablesToZero(HEIGHT_RHS, MOMENTUM_RHS);
 
         #pragma omp parallel for schedule(guided)
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfElements()); ++i)
@@ -495,7 +492,7 @@ private:
         for (int i = 0; i < static_cast<int>(mSlipBoundaryList.size()); ++i)
         {
             auto it_node = mSlipBoundaryList.begin() + i;
-            
+
             array_1d<double, 3> normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double length = norm_2(normal);
             KRATOS_ERROR_IF(length == 0.0) << "One shall compute the normals before applying slip boundary conditions" << std::endl;
@@ -505,6 +502,19 @@ private:
             const double normal_projection = inner_prod(normal, value);
             const array_1d<double, 3> normal_component = normal_projection * normal;
             it_node->FastGetSolutionStepValue(MOMENTUM) -= normal_component;
+        }
+    }
+
+    void SetVariablesToZero(const Variable<double> rScalarVar, const Variable<array_1d<double,3>>& rVectorVar)
+    {
+        auto& r_model_part = BaseType::GetModelPart();
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node = r_model_part.NodesBegin() + i;
+            it_node->FastGetSolutionStepValue(rScalarVar) = 0.0;
+            it_node->FastGetSolutionStepValue(rVectorVar) = rVectorVar.Zero();
         }
     }
 
