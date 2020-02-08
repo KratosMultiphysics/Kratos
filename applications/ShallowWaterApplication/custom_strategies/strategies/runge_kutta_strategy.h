@@ -412,8 +412,8 @@ private:
 
             auto qn = it_node->FastGetSolutionStepValue(MOMENTUM,1);
             auto dq = it_node->FastGetSolutionStepValue(MOMENTUM_RHS);
-            it_node->FastGetSolutionStepValue(MOMENTUM) = qn + StepFactor * dt/mass * dq;
-            it_node->FastGetSolutionStepValue(MOMENTUM_RK4) += GlobalFactor * dt/mass * dq;
+            noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn + StepFactor * dt/mass * dq;
+            noalias(it_node->FastGetSolutionStepValue(MOMENTUM_RK4)) += GlobalFactor * dt/mass * dq;
 
             auto hn = it_node->FastGetSolutionStepValue(HEIGHT,1);
             auto dh = it_node->FastGetSolutionStepValue(HEIGHT_RHS);
@@ -434,7 +434,7 @@ private:
 
             auto qn = it_node->FastGetSolutionStepValue(MOMENTUM,1);
             auto dq = it_node->FastGetSolutionStepValue(MOMENTUM_RK4);
-            it_node->FastGetSolutionStepValue(MOMENTUM) = qn + dq;
+            noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn + dq;
 
             auto hn = it_node->FastGetSolutionStepValue(HEIGHT,1);
             auto dh = it_node->FastGetSolutionStepValue(HEIGHT_RK4);
@@ -519,7 +519,7 @@ private:
             const array_1d<double, 3> value = it_node->FastGetSolutionStepValue(MOMENTUM);
             const double normal_projection = inner_prod(normal, value);
             const array_1d<double, 3> normal_component = normal_projection * normal;
-            it_node->FastGetSolutionStepValue(MOMENTUM) -= normal_component;
+            noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) -= normal_component;
         }
     }
 
