@@ -539,12 +539,11 @@ void ConservedElement<TNumNodes>::CalculateLumpedNodalMass()
     auto& r_geom = this->GetGeometry();
     const double area = r_geom.Area();
     const double lumped_mass_factor = area / r_geom.size();
-    
+
     for (size_t i = 0; i < r_geom.size(); ++i)
     {
-        r_geom[i].SetLock();
+        #pragma omp atomic
         r_geom[i].FastGetSolutionStepValue(NODAL_MASS) += lumped_mass_factor;
-        r_geom[i].UnSetLock();
     }
 }
 
@@ -556,15 +555,18 @@ void ConservedElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rCu
     CalculateRightHandSide(right_hand_side_vector, const_cast<ProcessInfo&>(rCurrentProcessInfo));
 
     auto& r_geom = this->GetGeometry();
-    size_t j = 0;
 
     for (size_t i = 0; i < r_geom.size(); ++i)
     {
-        r_geom[i].SetLock();
-        r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS_X) += right_hand_side_vector[j++];
-        r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS_Y) += right_hand_side_vector[j++];
-        r_geom[i].FastGetSolutionStepValue(HEIGHT_RHS) += right_hand_side_vector[j++];
-        r_geom[i].UnSetLock();
+        auto& mom = r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS);
+        #pragma omp atomic
+        mom[0] += right_hand_side_vector[3*i];
+
+        #pragma omp atomic
+        mom[1] += right_hand_side_vector[3*i+1];
+
+        #pragma omp atomic
+        r_geom[i].FastGetSolutionStepValue(HEIGHT_RHS) += right_hand_side_vector[3*i+2];
     }
 }
 
