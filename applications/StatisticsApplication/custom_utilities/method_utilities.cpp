@@ -155,39 +155,75 @@ void DataTypeSizeChecker(const Matrix& rData, const Matrix& rReferenceData)
 }
 
 template <>
-NodesContainerType& GetDataContainer(ModelPart& rModelPart)
+NodesContainerType& GetLocalDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Nodes();
+}
+
+template <>
+ElementsContainerType& GetLocalDataContainer(ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Elements();
+}
+
+template <>
+ConditionsContainerType& GetLocalDataContainer(ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Conditions();
+}
+
+template <>
+const NodesContainerType& GetLocalDataContainer(const ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Nodes();
+}
+
+template <>
+const ElementsContainerType& GetLocalDataContainer(const ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Elements();
+}
+
+template <>
+const ConditionsContainerType& GetLocalDataContainer(const ModelPart& rModelPart)
+{
+    return rModelPart.GetCommunicator().LocalMesh().Conditions();
+}
+
+template <>
+NodesContainerType& GetDataContainer(ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
 }
 
 template <>
 ElementsContainerType& GetDataContainer(ModelPart& rModelPart)
 {
-    return rModelPart.GetCommunicator().LocalMesh().Elements();
+    return rModelPart.Elements();
 }
 
 template <>
 ConditionsContainerType& GetDataContainer(ModelPart& rModelPart)
 {
-    return rModelPart.GetCommunicator().LocalMesh().Conditions();
+    return rModelPart.Conditions();
 }
 
 template <>
 const NodesContainerType& GetDataContainer(const ModelPart& rModelPart)
 {
-    return rModelPart.GetCommunicator().LocalMesh().Nodes();
+    return rModelPart.Nodes();
 }
 
 template <>
 const ElementsContainerType& GetDataContainer(const ModelPart& rModelPart)
 {
-    return rModelPart.GetCommunicator().LocalMesh().Elements();
+    return rModelPart.Elements();
 }
 
 template <>
 const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
 {
-    return rModelPart.GetCommunicator().LocalMesh().Conditions();
+    return rModelPart.Conditions();
 }
 
 template <typename TDataType>

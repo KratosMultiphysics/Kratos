@@ -23,6 +23,7 @@
 
 // Application includes
 #include "custom_methods/spatial_methods.h"
+#include "custom_methods/temporal_methods.h"
 #include "custom_utilities/method_utilities.h"
 
 namespace Kratos
@@ -33,17 +34,10 @@ void AddCustomMethodsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using NodeType = ModelPart::NodeType;
-    using ElementType = ModelPart::ElementType;
-    using ConditionType = ModelPart::ConditionType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-    using ElementsContainerType = ModelPart::ElementsContainerType;
-    using ConditionsContainerType = ModelPart::ConditionsContainerType;
-
+    // Adding spatial methods
     auto spatial_method_module = m.def_submodule("SpatialMethods");
 
-    using HistoricalSpatialMethods = SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>;
+    using HistoricalSpatialMethods = SpatialMethods::HistoricalSpatialMethods;
     auto spatial_historical_method = spatial_method_module.def_submodule("Historical");
     spatial_historical_method.def_submodule("ValueMethods")
         .def("Sum", &HistoricalSpatialMethods::CalculateSum<double>)
@@ -76,7 +70,7 @@ void AddCustomMethodsToPython(pybind11::module& m)
         .def("Max", &HistoricalSpatialMethods::GetMax<Matrix>)
         ;
 
-    using NodalNonHistoricalSpatialMethods = SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    using NodalNonHistoricalSpatialMethods = SpatialMethods::NodalNonHistoricalSpatialMethods;
     auto non_historical_spatial_method_module = spatial_method_module.def_submodule("NonHistorical");
     auto spatial_non_historical_nodal_method = non_historical_spatial_method_module.def_submodule("Nodes");
     spatial_non_historical_nodal_method.def_submodule("ValueMethods")
@@ -110,7 +104,7 @@ void AddCustomMethodsToPython(pybind11::module& m)
         .def("Max", &NodalNonHistoricalSpatialMethods::GetMax<Matrix>)
         ;
 
-    using ConditionNonHistoricalSpatialMethods = SpatialMethods::ContainerSpatialMethods<ConditionsContainerType, ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    using ConditionNonHistoricalSpatialMethods = SpatialMethods::ConditionNonHistoricalSpatialMethods;
     auto spatial_non_historical_condition_method = non_historical_spatial_method_module.def_submodule("Conditions");
     spatial_non_historical_condition_method.def_submodule("ValueMethods")
         .def("Sum", &ConditionNonHistoricalSpatialMethods::CalculateSum<double>)
@@ -143,7 +137,7 @@ void AddCustomMethodsToPython(pybind11::module& m)
         .def("Max", &ConditionNonHistoricalSpatialMethods::GetMax<Matrix>)
         ;
 
-    using ElementNonHistoricalSpatialMethods = SpatialMethods::ContainerSpatialMethods<ElementsContainerType, ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>;
+    using ElementNonHistoricalSpatialMethods = SpatialMethods::ElementNonHistoricalSpatialMethods;
     auto spatial_non_historical_element_method = non_historical_spatial_method_module.def_submodule("Elements");
     spatial_non_historical_element_method.def_submodule("ValueMethods")
         .def("Sum", &ElementNonHistoricalSpatialMethods::CalculateSum<double>)
@@ -175,6 +169,41 @@ void AddCustomMethodsToPython(pybind11::module& m)
         .def("Max", &ElementNonHistoricalSpatialMethods::GetMax<Vector>)
         .def("Max", &ElementNonHistoricalSpatialMethods::GetMax<Matrix>)
         ;
+
+    // Adding temporal methods
+
+    // adding base temporal method
+    auto temporal_method_module = m.def_submodule("TemporalMethods");
+
+    py::class_<TemporalMethods::TemporalMethod, TemporalMethods::TemporalMethod::Pointer>(temporal_method_module,"TemporalMethod")
+    .def(py::init<ModelPart&>())
+    .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)
+    .def("CalculateStatistics", &TemporalMethods::TemporalMethod::CalculateStatistics)
+    .def("GetModelPart", &TemporalMethods::TemporalMethod::GetModelPart)
+    ;
+
+    auto temporal_historical_method = temporal_method_module.def_submodule("HistoricalInput");
+    auto temporal_historical_historical_output_method = temporal_historical_method.def_submodule("HistoricalOutput");
+
+    auto temporal_historical_historical_output_value_method = temporal_historical_historical_output_method.def_submodule("ValueMethods");
+    auto temporal_historical_historical_output_double_value_method = temporal_historical_historical_output_value_method.def_submodule("Double");
+    auto temporal_historical_historical_output_array_value_method = temporal_historical_historical_output_value_method.def_submodule("Array");
+    auto temporal_historical_historical_output_vector_value_method = temporal_historical_historical_output_value_method.def_submodule("Vector");
+    auto temporal_historical_historical_output_matrix_value_method = temporal_historical_historical_output_value_method.def_submodule("Matrix");
+
+    using HistoricalInputHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputHistoricalOutputTemporalMethods;
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>::Pointer, TemporalMethods::TemporalMethod>(
+        temporal_historical_historical_output_double_value_method, "Variance")
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>::Pointer, TemporalMethods::TemporalMethod>(
+        temporal_historical_historical_output_array_value_method, "Variance")
+        .def(py::init<ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&>());
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>::Pointer, TemporalMethods::TemporalMethod>(
+        temporal_historical_historical_output_vector_value_method, "Variance")
+        .def(py::init<ModelPart&, const Variable<Vector>&, const Variable<Vector>&, const Variable<Vector>&>());
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>::Pointer, TemporalMethods::TemporalMethod>(
+        temporal_historical_historical_output_matrix_value_method, "Variance")
+        .def(py::init<ModelPart&, const Variable<Matrix>&, const Variable<Matrix>&, const Variable<Matrix>&>());
 }
 
 } // namespace Python.

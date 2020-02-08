@@ -95,6 +95,12 @@ template <typename TDataType>
 void DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData);
 
 template <typename TContainerType>
+TContainerType& GetLocalDataContainer(ModelPart& rModelPart);
+
+template <typename TContainerType>
+const TContainerType& GetLocalDataContainer(const ModelPart& rModelPart);
+
+template <typename TContainerType>
 TContainerType& GetDataContainer(ModelPart& rModelPart);
 
 template <typename TContainerType>

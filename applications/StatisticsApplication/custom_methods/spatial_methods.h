@@ -46,7 +46,7 @@ public:
     int static CalculateSum(const ModelPart& rModelPart, const Flags& rVariable)
     {
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
         int sum = 0;
 
 #pragma omp parallel for reduction(+ : sum)
@@ -67,7 +67,7 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         TDataType global_sum = rVariable.Zero();
 
@@ -114,7 +114,7 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_sum = 0.0;
         const auto& norm_method =
@@ -149,7 +149,7 @@ public:
     {
         const TDataType& sum = CalculateSum<TDataType>(rModelPart, rVariable);
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         if (r_container.size() > 0)
         {
@@ -173,7 +173,7 @@ public:
     {
         const double sum = CalculateNormSum<TDataType>(rNormType, rModelPart, rVariable);
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         const unsigned int number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
@@ -195,7 +195,7 @@ public:
         TDataType global_variance = rVariable.Zero();
 
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         if (r_container.size() > 0)
         {
@@ -249,7 +249,7 @@ public:
         double mean = CalculateNormMean<TDataType>(rNormType, rModelPart, rVariable);
 
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_variance = 0.0;
         const auto& norm_method =
@@ -297,7 +297,7 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_max = std::numeric_limits<double>::lowest();
         std::size_t global_id = 0;
@@ -361,7 +361,7 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetDataContainer<TContainerType>(rModelPart);
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_min = std::numeric_limits<double>::max();
         std::size_t global_id = 0;
@@ -417,6 +417,35 @@ public:
         KRATOS_CATCH("");
     }
 };
+
+using NodeType = ModelPart::NodeType;
+using ElementType = ModelPart::ElementType;
+using ConditionType = ModelPart::ConditionType;
+
+using NodesContainerType = ModelPart::NodesContainerType;
+using ElementsContainerType = ModelPart::ElementsContainerType;
+using ConditionsContainerType = ModelPart::ConditionsContainerType;
+
+class HistoricalSpatialMethods
+    : public SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>
+{
+};
+
+class NodalNonHistoricalSpatialMethods
+    : public SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+{
+};
+
+class ConditionNonHistoricalSpatialMethods
+    : public SpatialMethods::ContainerSpatialMethods<ConditionsContainerType, ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+{
+};
+
+class ElementNonHistoricalSpatialMethods
+    : public SpatialMethods::ContainerSpatialMethods<ElementsContainerType, ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+{
+};
+
 } // namespace SpatialMethods
 
 ///@}
