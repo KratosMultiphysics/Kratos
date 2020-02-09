@@ -200,6 +200,18 @@ void AddCustomMethodsToPython(pybind11::module& m)
             .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::InitializeValueStatisticsVariables<Vector>)
             .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::InitializeValueStatisticsVariables<Matrix>)
             ;
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::MeanMethod, HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_value_method, "Mean")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::CalculateValueStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::CalculateValueStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::CalculateValueStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::CalculateValueStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::InitializeValueStatisticsVariables<double>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::InitializeValueStatisticsVariables<array_1d<double, 3>>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::InitializeValueStatisticsVariables<Vector>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::InitializeValueStatisticsVariables<Matrix>)
+            ;
 
     auto temporal_historical_historical_output_norm_method = temporal_historical_historical_output_method.def_submodule("NormMethods");
     using HistoricalInputNonHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputNonHistoricalOutputTemporalMethods;
@@ -211,6 +223,15 @@ void AddCustomMethodsToPython(pybind11::module& m)
             .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::CalculateNormStatistics<Vector>)
             .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::CalculateNormStatistics<Matrix>)
             .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::InitializeNormStatisticsVariables)
+            ;
+    py::class_<HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod, HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_norm_method, "Mean")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::CalculateNormStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::CalculateNormStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::CalculateNormStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::CalculateNormStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::InitializeNormStatisticsVariables)
             ;
 
 

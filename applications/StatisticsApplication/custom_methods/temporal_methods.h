@@ -24,6 +24,7 @@
 // Application includes
 
 // Application method includes
+#include "custom_methods/temporal_mean_method.h"
 #include "custom_methods/temporal_variance_method.h"
 
 namespace Kratos
@@ -36,12 +37,14 @@ namespace Kratos
 
 namespace TemporalMethods
 {
-
 template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
 class ContainerTemporalMethods
 {
 public:
-    using VarianceMethod = TemporalVarianceMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using VarianceMethod =
+        TemporalVarianceMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using MeanMethod =
+        TemporalMeanMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
 };
 
 using NodeType = ModelPart::NodeType;
