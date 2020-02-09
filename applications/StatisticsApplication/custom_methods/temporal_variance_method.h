@@ -1,197 +1,164 @@
-// //    |  /           |
-// //    ' /   __| _` | __|  _ \   __|
-// //    . \  |   (   | |   (   |\__ `
-// //   _|\_\_|  \__,_|\__|\___/ ____/
-// //                   Multi-Physics
-// //
-// //  License:		 BSD License
-// //					 Kratos default license: kratos/license.txt
-// //
-// //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
-// //
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//
 
-// #if !defined(KRATOS_TEMPORAL_VARIANCE_METHOD_H_INCLUDED)
-// #define KRATOS_TEMPORAL_VARIANCE_METHOD_H_INCLUDED
+#if !defined(KRATOS_TEMPORAL_VARIANCE_METHOD_H_INCLUDED)
+#define KRATOS_TEMPORAL_VARIANCE_METHOD_H_INCLUDED
 
-// // System includes
-// #include <string>
+// System includes
 
-// // External includes
+// External includes
 
-// // Project includes
+// Project includes
+#include "includes/define.h"
+#include "includes/model_part.h"
 
-// // Application includes
-// #include "statistics_method.h"
+// Application includes
+#include "custom_methods/temporal_method.h"
+#include "custom_utilities/method_utilities.h"
+#include "custom_utilities/temporal_method_utilities.h"
 
-// namespace Kratos
-// {
-// ///@addtogroup RANSApplication
-// ///@{
+namespace Kratos
+{
+///@addtogroup StatisticsApplication
+///@{
 
-// ///@name Kratos Globals
-// ///@{
+///@name Kratos Globals
+///@{
 
-// ///@}
-// ///@name Type Definitions
-// ///@{
+namespace TemporalMethods
+{
+template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
+class TemporalVarianceMethod : public TemporalMethod
+{
+public:
+    using BaseType = TemporalMethod;
 
-// ///@}
-// ///@name  Enum's
-// ///@{
+    KRATOS_CLASS_POINTER_DEFINITION(TemporalVarianceMethod);
 
-// ///@}
-// ///@name  Functions
-// ///@{
+    TemporalVarianceMethod(ModelPart& rModelPart) : BaseType(rModelPart)
+    {
+    }
 
-// ///@}
-// ///@name Kratos Classes
-// ///@{
+    // value method
+    template <typename TDataType>
+    void CalculateValueStatistics(const Variable<TDataType>& rOutputMeanVariable,
+                                  const Variable<TDataType>& rOutputVarianceVariable,
+                                  const Variable<TDataType>& rInputVariable,
+                                  const double DeltaTime)
+    {
+        TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
-// /**
-//  * @brief Clips given scalar variable to a range
-//  *
-//  * This process clips a given scalar variable to a range in all nodes in the model part.
-//  *
-//  */
-// template <typename TDataType>
-// class KRATOS_API(STATISTICS_APPLICATION) TemporalVarianceMethod
-//     : public StatisticsMethod<TDataType, TDataType, TDataType, double, double>
-// {
-// public:
-//     ///@name Type Definitions
-//     ///@{
+        const int number_of_items = r_container.size();
+#pragma omp parallel for
+        for (int i = 0; i < number_of_items; ++i)
+        {
+            TContainerItemType& r_item = *(r_container.begin() + i);
+            const TDataType& r_input_value =
+                TDataRetrievalFunctor<TContainerItemType>()(r_item, rInputVariable);
+            TDataType& r_output_mean_value =
+                TDataStorageFunctor<TContainerItemType>()(r_item, rOutputMeanVariable);
+            TDataType& r_output_variance_value =
+                TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVarianceVariable);
 
-//     /// Pointer definition of TemporalVarianceMethod
-//     KRATOS_CLASS_POINTER_DEFINITION(TemporalVarianceMethod);
+            MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_mean_value);
+            MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_variance_value);
 
-//     ///@}
-//     ///@name Life Cycle
-//     ///@{
+            CalculateMeanAndVariance<TDataType>(r_output_mean_value,
+                                                r_output_variance_value, r_input_value,
+                                                DeltaTime, this->GetTotalTime());
+        }
+    }
 
-//     /// Constructor
+    // Norm method
+    template <typename TDataType>
+    void CalculateNormStatistics(const std::string& rNormType,
+                                 const Variable<double>& rOutputMeanVariable,
+                                 const Variable<double>& rOutputVarianceVariable,
+                                 const Variable<TDataType>& rInputVariable,
+                                 const double DeltaTime)
+    {
+        TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
-//     TemporalVarianceMethod();
+        const auto& norm_method = MethodsUtilities::GetNormMethod(rInputVariable, rNormType);
 
-//     /// Destructor.
-//     ~TemporalVarianceMethod()  = default;
+        const int number_of_items = r_container.size();
+#pragma omp parallel for
+        for (int i = 0; i < number_of_items; ++i)
+        {
+            TContainerItemType& r_item = *(r_container.begin() + i);
+            const TDataType& r_input_value =
+                TDataRetrievalFunctor<TContainerItemType>()(r_item, rInputVariable);
+            const double input_norm_value = norm_method(r_input_value);
+            double& r_output_mean_value =
+                TDataStorageFunctor<TContainerItemType>()(r_item, rOutputMeanVariable);
+            double& r_output_variance_value =
+                TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVarianceVariable);
 
-//     ///@}
-//     ///@name Operators
-//     ///@{
+            CalculateMeanAndVariance<double>(r_output_mean_value,
+                                             r_output_variance_value, input_norm_value,
+                                             DeltaTime, this->GetTotalTime());
+        }
+    }
 
-//     ///@}
-//     ///@name Operations
-//     ///@{
+    // value output variable initialization
+    template <typename TDataType>
+    void InitializeValueStatisticsVariables(const Variable<TDataType>& rOutputMeanVariable,
+                                            const Variable<TDataType>& rOutputVarianceVariable,
+                                            const Variable<TDataType>& rInputVariable)
+    {
+        TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
-//     void CalculateStatistics(TDataType& rMean,
-//                              TDataType& rVariance,
-//                              TDataType const& rNewDataPoint,
-//                              double const& rDeltaTime,
-//                              double const& rTotalTime);
+        auto& initializer_method =
+            TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
+                                                          TDataStorageFunctor, TDataType>;
+        initializer_method(r_container, rOutputMeanVariable, rInputVariable);
+        initializer_method(r_container, rOutputVarianceVariable, rInputVariable);
+    }
 
-//     ///@}
-//     ///@name Access
-//     ///@{
+    // norm output variable initialization
+    void InitializeNormStatisticsVariables(const Variable<double>& rOutputMeanVariable,
+                                           const Variable<double>& rOutputVarianceVariable)
+    {
+        TContainerType& r_container =
+            MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
-//     ///@}
-//     ///@name Inquiry
-//     ///@{
+        auto& initializer_method =
+            TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
+        initializer_method(r_container, rOutputMeanVariable);
+        initializer_method(r_container, rOutputVarianceVariable);
+    }
 
-//     ///@}
-//     ///@name Input and output
-//     ///@{
+private:
+    template <typename TDataType>
+    void CalculateMeanAndVariance(TDataType& rMean,
+                                  TDataType& rVariance,
+                                  const TDataType& rNewDataPoint,
+                                  const double DeltaTime,
+                                  const double TotalTime)
+    {
+        const double new_total_time = TotalTime + DeltaTime;
+        const TDataType new_mean =
+            (rMean * TotalTime + rNewDataPoint) * (1.0 / new_total_time);
+        rVariance =
+            ((rVariance + MethodsUtilities::RaiseToPower<TDataType>(new_mean - rMean, 2)) * TotalTime +
+             MethodsUtilities::RaiseToPower<TDataType>(rNewDataPoint - new_mean, 2)) *
+            (1.0 / new_total_time);
+        rMean = new_mean;
+    }
+};
+} // namespace TemporalMethods
+} // namespace Kratos
 
-//     ///@}
-//     ///@name Friends
-//     ///@{
-
-//     ///@}
-
-// protected:
-//     ///@name Protected static Member Variables
-//     ///@{
-
-//     ///@}
-//     ///@name Protected member Variables
-//     ///@{
-
-//     ///@}
-//     ///@name Protected Operators
-//     ///@{
-
-//     ///@}
-//     ///@name Protected Operations
-//     ///@{
-
-//     ///@}
-//     ///@name Protected  Access
-//     ///@{
-
-//     ///@}
-//     ///@name Protected Inquiry
-//     ///@{
-
-//     ///@}
-//     ///@name Protected LifeCycle
-//     ///@{
-
-//     ///@}
-
-// private:
-//     ///@name Static Member Variables
-//     ///@{
-
-//     ///@}
-//     ///@name Member Variables
-//     ///@{
-
-//     ///@}
-//     ///@name Private Operators
-//     ///@{
-
-//     ///@}
-//     ///@name Private Operations
-//     ///@{
-
-//     ///@}
-//     ///@name Private  Access
-//     ///@{
-
-//     ///@}
-//     ///@name Private Inquiry
-//     ///@{
-
-//     ///@}
-//     ///@name Un accessible methods
-//     ///@{
-
-//     /// Assignment operator.
-//     TemporalVarianceMethod& operator=(TemporalVarianceMethod const& rOther);
-
-//     /// Copy constructor.
-//     TemporalVarianceMethod(TemporalVarianceMethod const& rOther);
-
-//     ///@}
-// };
-
-// ///@}
-
-// ///@name Type Definitions
-// ///@{
-
-// ///@}
-// ///@name Input and output
-// ///@{
-
-// /// output stream function
-// template <typename TDataType>
-// inline std::ostream& operator<<(std::ostream& rOStream,
-//                                 const TemporalVarianceMethod<TDataType>& rThis);
-
-// ///@}
-
-// ///@} addtogroup block
-
-// } // namespace Kratos.
-
-// #endif // KRATOS_TEMPORAL_VARIANCE_METHOD_H_INCLUDED defined
+#endif // KRATOS_TEMPORAL_VARIANCE_METHOD_H_INCLUDED

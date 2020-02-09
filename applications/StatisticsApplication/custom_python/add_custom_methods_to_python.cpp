@@ -177,33 +177,56 @@ void AddCustomMethodsToPython(pybind11::module& m)
 
     py::class_<TemporalMethods::TemporalMethod, TemporalMethods::TemporalMethod::Pointer>(temporal_method_module,"TemporalMethod")
     .def(py::init<ModelPart&>())
-    .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)
-    .def("CalculateStatistics", &TemporalMethods::TemporalMethod::CalculateStatistics)
     .def("GetModelPart", &TemporalMethods::TemporalMethod::GetModelPart)
+    .def("GetTotalTime", &TemporalMethods::TemporalMethod::GetTotalTime)
+    .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)
+    .def("FinalizeStatisticsTimeStep", &TemporalMethods::TemporalMethod::FinalizeStatisticsTimeStep)
     ;
 
     auto temporal_historical_method = temporal_method_module.def_submodule("HistoricalInput");
     auto temporal_historical_historical_output_method = temporal_historical_method.def_submodule("HistoricalOutput");
 
     auto temporal_historical_historical_output_value_method = temporal_historical_historical_output_method.def_submodule("ValueMethods");
-    auto temporal_historical_historical_output_double_value_method = temporal_historical_historical_output_value_method.def_submodule("Double");
-    auto temporal_historical_historical_output_array_value_method = temporal_historical_historical_output_value_method.def_submodule("Array");
-    auto temporal_historical_historical_output_vector_value_method = temporal_historical_historical_output_value_method.def_submodule("Vector");
-    auto temporal_historical_historical_output_matrix_value_method = temporal_historical_historical_output_value_method.def_submodule("Matrix");
-
     using HistoricalInputHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputHistoricalOutputTemporalMethods;
-    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>::Pointer, TemporalMethods::TemporalMethod>(
-        temporal_historical_historical_output_double_value_method, "Variance")
-        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
-    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>::Pointer, TemporalMethods::TemporalMethod>(
-        temporal_historical_historical_output_array_value_method, "Variance")
-        .def(py::init<ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&>());
-    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>::Pointer, TemporalMethods::TemporalMethod>(
-        temporal_historical_historical_output_vector_value_method, "Variance")
-        .def(py::init<ModelPart&, const Variable<Vector>&, const Variable<Vector>&, const Variable<Vector>&>());
-    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>::Pointer, TemporalMethods::TemporalMethod>(
-        temporal_historical_historical_output_matrix_value_method, "Variance")
-        .def(py::init<ModelPart&, const Variable<Matrix>&, const Variable<Matrix>&, const Variable<Matrix>&>());
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_value_method, "Variance")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::CalculateValueStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::CalculateValueStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::CalculateValueStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::CalculateValueStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::InitializeValueStatisticsVariables<double>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::InitializeValueStatisticsVariables<array_1d<double, 3>>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::InitializeValueStatisticsVariables<Vector>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod::InitializeValueStatisticsVariables<Matrix>)
+            ;
+
+    auto temporal_historical_historical_output_norm_method = temporal_historical_historical_output_method.def_submodule("NormMethods");
+    using HistoricalInputNonHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputNonHistoricalOutputTemporalMethods;
+    py::class_<HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod, HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_norm_method, "Variance")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::CalculateNormStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::CalculateNormStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::CalculateNormStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::CalculateNormStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::VarianceMethod::InitializeNormStatisticsVariables)
+            ;
+
+
+
+    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>::Pointer, TemporalMethods::TemporalMethod>(
+    //     temporal_historical_historical_output_double_value_method, "Variance")
+    //     .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
+    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>::Pointer, TemporalMethods::TemporalMethod>(
+    //     temporal_historical_historical_output_array_value_method, "Variance")
+    //     .def(py::init<ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&>());
+    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>::Pointer, TemporalMethods::TemporalMethod>(
+    //     temporal_historical_historical_output_vector_value_method, "Variance")
+    //     .def(py::init<ModelPart&, const Variable<Vector>&, const Variable<Vector>&, const Variable<Vector>&>());
+    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>::Pointer, TemporalMethods::TemporalMethod>(
+    //     temporal_historical_historical_output_matrix_value_method, "Variance")
+    //     .def(py::init<ModelPart&, const Variable<Matrix>&, const Variable<Matrix>&, const Variable<Matrix>&>());
 }
 
 } // namespace Python.
