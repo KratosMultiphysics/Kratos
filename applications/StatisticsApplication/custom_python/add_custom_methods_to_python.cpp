@@ -212,6 +212,18 @@ void AddCustomMethodsToPython(pybind11::module& m)
             .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::InitializeValueStatisticsVariables<Vector>)
             .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MeanMethod::InitializeValueStatisticsVariables<Matrix>)
             ;
+    py::class_<HistoricalInputHistoricalOutputTemporalMethods::SumMethod, HistoricalInputHistoricalOutputTemporalMethods::SumMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_value_method, "Sum")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::CalculateValueStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::CalculateValueStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::CalculateValueStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::CalculateValueStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::InitializeValueStatisticsVariables<double>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::InitializeValueStatisticsVariables<array_1d<double, 3>>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::InitializeValueStatisticsVariables<Vector>)
+            .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::SumMethod::InitializeValueStatisticsVariables<Matrix>)
+            ;
 
     auto temporal_historical_historical_output_norm_method = temporal_historical_historical_output_method.def_submodule("NormMethods");
     using HistoricalInputNonHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputNonHistoricalOutputTemporalMethods;
@@ -233,21 +245,24 @@ void AddCustomMethodsToPython(pybind11::module& m)
             .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::CalculateNormStatistics<Matrix>)
             .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::MeanMethod::InitializeNormStatisticsVariables)
             ;
-
-
-
-    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<double>::Pointer, TemporalMethods::TemporalMethod>(
-    //     temporal_historical_historical_output_double_value_method, "Variance")
-    //     .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
-    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<array_1d<double, 3>>::Pointer, TemporalMethods::TemporalMethod>(
-    //     temporal_historical_historical_output_array_value_method, "Variance")
-    //     .def(py::init<ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&>());
-    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Vector>::Pointer, TemporalMethods::TemporalMethod>(
-    //     temporal_historical_historical_output_vector_value_method, "Variance")
-    //     .def(py::init<ModelPart&, const Variable<Vector>&, const Variable<Vector>&, const Variable<Vector>&>());
-    // py::class_<HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>, HistoricalInputHistoricalOutputTemporalMethods::VarianceMethod<Matrix>::Pointer, TemporalMethods::TemporalMethod>(
-    //     temporal_historical_historical_output_matrix_value_method, "Variance")
-    //     .def(py::init<ModelPart&, const Variable<Matrix>&, const Variable<Matrix>&, const Variable<Matrix>&>());
+    py::class_<HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod, HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_norm_method, "Sum")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod::CalculateNormStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod::CalculateNormStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod::CalculateNormStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod::CalculateNormStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::SumMethod::InitializeNormStatisticsVariables)
+            ;
+    py::class_<HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod, HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_norm_method, "Min")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::CalculateNormStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::CalculateNormStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::CalculateNormStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::CalculateNormStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::InitializeNormStatisticsVariables)
+            ;
 }
 
 } // namespace Python.

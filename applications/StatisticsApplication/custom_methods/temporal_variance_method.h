@@ -136,8 +136,8 @@ public:
 
         auto& initializer_method =
             TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
-        initializer_method(r_container, rOutputMeanVariable);
-        initializer_method(r_container, rOutputVarianceVariable);
+        initializer_method(r_container, rOutputMeanVariable, 0.0);
+        initializer_method(r_container, rOutputVarianceVariable, 0.0);
     }
 
 private:

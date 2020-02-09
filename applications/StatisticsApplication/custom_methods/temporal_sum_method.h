@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_TEMPORAL_MEAN_METHOD_H_INCLUDED)
-#define KRATOS_TEMPORAL_MEAN_METHOD_H_INCLUDED
+#if !defined(KRATOS_TEMPORAL_SUM_METHOD_H_INCLUDED)
+#define KRATOS_TEMPORAL_SUM_METHOD_H_INCLUDED
 
 // System includes
 
@@ -37,14 +37,14 @@ namespace Kratos
 namespace TemporalMethods
 {
 template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
-class TemporalMeanMethod : public TemporalMethod
+class TemporalSumMethod : public TemporalMethod
 {
 public:
     using BaseType = TemporalMethod;
 
-    KRATOS_CLASS_POINTER_DEFINITION(TemporalMeanMethod);
+    KRATOS_CLASS_POINTER_DEFINITION(TemporalSumMethod);
 
-    TemporalMeanMethod(ModelPart& rModelPart) : BaseType(rModelPart)
+    TemporalSumMethod(ModelPart& rModelPart) : BaseType(rModelPart)
     {
     }
 
@@ -68,8 +68,8 @@ public:
                 TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
             MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_value);
 
-            CalculateMean<TDataType>(r_output_value, r_input_value, DeltaTime,
-                                     this->GetTotalTime());
+            CalculateSum<TDataType>(r_output_value, r_input_value, DeltaTime,
+                                    this->GetTotalTime());
         }
     }
 
@@ -96,8 +96,8 @@ public:
             double& r_output_value =
                 TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
 
-            CalculateMean<double>(r_output_value, input_norm_value, DeltaTime,
-                                  this->GetTotalTime());
+            CalculateSum<double>(r_output_value, input_norm_value, DeltaTime,
+                                 this->GetTotalTime());
         }
     }
 
@@ -128,15 +128,15 @@ public:
 
 private:
     template <typename TDataType>
-    void CalculateMean(TDataType& rMean,
-                       const TDataType& rNewDataPoint,
-                       const double DeltaTime,
-                       const double TotalTime)
+    void CalculateSum(TDataType& rSum,
+                      const TDataType& rNewDataPoint,
+                      const double DeltaTime,
+                      const double TotalTime)
     {
-        rMean = (rMean * TotalTime + rNewDataPoint) * (1.0 / (TotalTime + DeltaTime));
+        rSum = (rSum + rNewDataPoint);
     }
 };
 } // namespace TemporalMethods
 } // namespace Kratos
 
-#endif // KRATOS_TEMPORAL_MEAN_METHOD_H_INCLUDED
+#endif // KRATOS_TEMPORAL_SUM_METHOD_H_INCLUDED

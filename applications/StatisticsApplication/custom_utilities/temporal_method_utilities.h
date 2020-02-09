@@ -56,7 +56,9 @@ void InitializeVariables(TContainerType& rContainer,
 }
 
 template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataStorageFunctor>
-void InitializeVariables(TContainerType& rContainer, const Variable<double>& rOutputVariable)
+void InitializeVariables(TContainerType& rContainer,
+                         const Variable<double>& rOutputVariable,
+                         const double InitializerValue)
 {
     if (rContainer.size() > 0)
     {
@@ -67,7 +69,7 @@ void InitializeVariables(TContainerType& rContainer, const Variable<double>& rOu
             TContainerItemType& r_item = *(rContainer.begin() + i);
             double& r_output_value =
                 TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
-            r_output_value = 0.0;
+            r_output_value = InitializerValue;
         }
     }
 }
