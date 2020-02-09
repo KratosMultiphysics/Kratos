@@ -58,6 +58,7 @@
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -336,6 +337,20 @@ void ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlipUnitary(
 void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPart& rModelPart)
 {
     MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, 1.0, false);
+}
+
+std::string GetRegisteredNameElement(const Element& rElement)
+{
+    std::string name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name);
+    return name;
+}
+
+std::string GetRegisteredNameCondition(const Condition& rCondition)
+{
+    std::string name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name);
+    return name;
 }
 
 void AddUtilitiesToPython(pybind11::module &m)
@@ -1110,6 +1125,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeConditions );
     entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeElements );
     entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeMasterSlaveConstraints );
+    
+    // GeometricalTransformationUtilities
+    auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
+    mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
+    mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
 }
 
 } // namespace Python.

@@ -47,6 +47,7 @@ namespace Kratos
 
 namespace Python
 {
+    typedef std::size_t IndexType;
     typedef Geometry<Node<3> > GeometryType;
     typedef GeometryType::PointsArrayType NodesArrayType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
@@ -54,6 +55,29 @@ namespace Python
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
+
+    // Id utilities
+    void SetId1(
+        GeometryType& dummy, IndexType geometry_id)
+    {
+        return(dummy.SetId(geometry_id));
+    }
+
+    void SetId2(
+        GeometryType& dummy, const std::string& geometry_name)
+    {
+        return(dummy.SetId(geometry_name));
+    }
+
+    bool IsIdGeneratedFromString1(GeometryType& dummy)
+    {
+        return(dummy.IsIdGeneratedFromString());
+    }
+
+    bool IsIdSelfAssigned1(GeometryType& dummy)
+    {
+        return(dummy.IsIdSelfAssigned());
+    }
 
     array_1d<double,3> GetNormal(
         GeometryType& dummy,
@@ -95,7 +119,19 @@ void  AddGeometriesToPython(pybind11::module& m)
 
     py::class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
     .def(py::init<>())
+    .def(py::init< IndexType >())
+    .def(py::init< std::string >())
     .def(py::init< GeometryType::PointsArrayType& >())
+    .def(py::init< IndexType, GeometryType::PointsArrayType& >())
+    .def(py::init< std::string, GeometryType::PointsArrayType& >())
+    // Id functions
+    .def_property("Id", &GeometryType::Id, SetId1)
+    .def("SetId", SetId1)
+    .def("SetId", SetId2)
+    .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
+    .def("IsIdSelfAssigned", IsIdSelfAssigned1)
+    .def_static("GenerateId", &GeometryType::GenerateId)
+    // Dimension access
     .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
     .def("DomainSize",&GeometryType::DomainSize)
