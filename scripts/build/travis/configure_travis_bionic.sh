@@ -11,9 +11,6 @@
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
-# Set compiler
-export CC=gcc
-export CXX=g++
 
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"

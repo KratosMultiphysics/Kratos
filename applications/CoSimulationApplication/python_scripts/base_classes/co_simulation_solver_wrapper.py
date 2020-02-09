@@ -57,6 +57,8 @@ class CoSimulationSolverWrapper(object):
             self.__GetIO().Finalize()
 
     def AdvanceInTime(self, current_time):
+        # in case a solver does not provide time information (e.g. external or steady solvers),
+        # then this solver should return "0.0" here
         raise Exception('"AdvanceInTime" must be implemented in the derived class!')
 
     def Predict(self):

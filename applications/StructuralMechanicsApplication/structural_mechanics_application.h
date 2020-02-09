@@ -48,6 +48,7 @@
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/prestress_membrane_element.hpp"
+#include "custom_elements/membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
@@ -78,9 +79,10 @@
 #include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/small_displacement_line_load_condition.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
 
@@ -349,6 +351,8 @@ private:
     // Adding the membrane element
     const PrestressMembraneElement mPreStressMembraneElement3D3N;
     const PrestressMembraneElement mPreStressMembraneElement3D4N;
+    const MembraneElement mMembraneElement3D4N;
+    const MembraneElement mMembraneElement3D3N;
 
     // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
@@ -460,6 +464,11 @@ private:
     const LineLoadCondition<3> mLineLoadCondition3D2N;
     const LineLoadCondition<3> mLineLoadCondition3D3N;
 
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D2N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D3N;
+    const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D2N;
+    const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D3N;
+
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
 
@@ -469,6 +478,12 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D6N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
+
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D3N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D4N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D6N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D8N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D9N;
 
     // Point moment
     const PointMomentCondition3D mPointMomentCondition3D1N;
