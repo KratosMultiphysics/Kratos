@@ -199,7 +199,7 @@ private:
         auto p_surface = ReadNurbsSurface<3, TNodeType>(
             rParameters["surface"], rModelPart, EchoLevel);
 
-        bool is_trimmed = (rParameters["surface"].Has("is_trimmed"))
+        const bool is_trimmed = (rParameters["surface"].Has("is_trimmed"))
             ? rParameters["surface"]["is_trimmed"].GetBool()
             : true;
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4) && !rParameters["surface"].Has("is_trimmed"))
