@@ -316,7 +316,22 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
         column(rOutput,1) = base_2;
         column(rOutput,2) = base_3;
     }
+    if (rVariable == MEMBRANE_PRESTRESS) {
+        std::vector< Vector > prestress_matrix;
+        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
+        const int manual_integraton_points_size(1);
+        rOutput = ZeroMatrix(3,manual_integraton_points_size);
+
+        // each column represents 1 GP
+        for (SizeType i=0;i<manual_integraton_points_size;++i){
+            column(rOutput,i) = prestress_matrix[i];
+        }
+    }
 }
+
+
+
+
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput,
@@ -378,6 +393,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
 
         temp_internal_stresses[0] += prestress;
+
         rOutput[0] = temp_internal_stresses;
     }
     if (rVariable == CAUCHY_STRESS_VECTOR) {
@@ -396,7 +412,6 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
-
 
         const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
         const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
@@ -517,7 +532,7 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     if (GetProperties().Has(YOUNG_MODULUS) == false ||
-            GetProperties()[YOUNG_MODULUS] <= numerical_limit) {
+            GetProperties()[YOUNG_MODULUS] < 0.0) {
         KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << Id()
                      << std::endl;
     }
