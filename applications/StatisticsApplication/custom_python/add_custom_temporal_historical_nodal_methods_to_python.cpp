@@ -32,8 +32,7 @@ void AddCustomTemporalHistoricalNodalMethodsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    auto temporal_historical_method = m.def_submodule("HistoricalInput");
-    auto temporal_historical_historical_output_method = temporal_historical_method.def_submodule("HistoricalOutput");
+    auto temporal_historical_historical_output_method = m.def_submodule("HistoricalOutput");
 
     auto temporal_historical_historical_output_value_method = temporal_historical_historical_output_method.def_submodule("ValueMethods");
     using HistoricalInputHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputHistoricalOutputTemporalMethods;
@@ -122,7 +121,7 @@ void AddCustomTemporalHistoricalNodalMethodsToPython(pybind11::module& m)
             .def("InitializeVariables", &HistoricalInputHistoricalOutputTemporalMethods::MaxNormMethod::InitializeStatisticsVariables)
             ;
 
-    auto temporal_historical_non_historical_output_method = temporal_historical_method.def_submodule("NonHistoricalOutput");
+    auto temporal_historical_non_historical_output_method = m.def_submodule("NonHistoricalOutput");
 
     auto temporal_historical_non_historical_output_value_method = temporal_historical_non_historical_output_method.def_submodule("ValueMethods");
     using HistoricalInputNonHistoricalOutputTemporalMethods = TemporalMethods::HistoricalInputNonHistoricalOutputTemporalMethods;

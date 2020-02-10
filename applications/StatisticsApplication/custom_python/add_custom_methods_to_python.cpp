@@ -29,6 +29,9 @@
 // temporal methods
 #include "custom_methods/temporal_method.h"
 #include "custom_python/add_custom_temporal_historical_nodal_methods_to_python.h"
+#include "custom_python/add_custom_temporal_non_historical_nodal_methods_to_python.h"
+#include "custom_python/add_custom_temporal_non_historical_condition_methods_to_python.h"
+#include "custom_python/add_custom_temporal_non_historical_element_methods_to_python.h"
 
 // Include base h
 #include "custom_python/add_custom_methods_to_python.h"
@@ -62,7 +65,13 @@ void AddCustomMethodsToPython(pybind11::module& m)
         .def("FinalizeStatisticsTimeStep", &TemporalMethods::TemporalMethod::FinalizeStatisticsTimeStep)
     ;
 
-    AddCustomTemporalHistoricalNodalMethodsToPython(temporal_method_module);
+    auto temporal_historical_method = temporal_method_module.def_submodule("Historical");
+    AddCustomTemporalHistoricalNodalMethodsToPython(temporal_historical_method);
+
+    auto temporal_non_historical_method = temporal_method_module.def_submodule("NonHistorical");
+    AddCustomTemporalNonHistoricalNodalMethodsToPython(temporal_non_historical_method);
+    AddCustomTemporalNonHistoricalConditionMethodsToPython(temporal_non_historical_method);
+    AddCustomTemporalNonHistoricalElementMethodsToPython(temporal_non_historical_method);
 }
 
 } // namespace Python.
