@@ -672,15 +672,15 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double limit_mach_number = rCurrentProcessInfo[LIMIT_MACH];
+    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
 
     // Computing local mach number
     double local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
-    if (local_mach_number > limit_mach_number)
-    { // Clamping the mach number to limit_mach_number
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << limit_mach_number << std::endl;
-        local_mach_number = limit_mach_number;
+    if (local_mach_number > mach_number_limit)
+    { // Clamping the mach number to mach_number_limit
+        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
+        local_mach_number = mach_number_limit;
     }
 
     // Computing squares
