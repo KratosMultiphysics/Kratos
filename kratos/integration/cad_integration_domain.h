@@ -106,8 +106,16 @@ private:
         int& rIdCounter,
         int EchoLevel = 0);
 
-    /// Searches for nodes with geometrical criteria
-    static void GetGeometryPointsAt(
+    /// Searches for nodes in surfaces with geometrical criteria
+    static void GetGeometrySurfacePointsAt(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rCadSubModelPart,
+        const Parameters& rParameters,
+        IndexType SpecificationType,
+        int EchoLevel = 0);
+
+    /// Searches for nodes in curves with geometrical criteria
+    static void GetGeometryCurvePointsAt(
         GeometriesArrayType& rGeometryList,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,

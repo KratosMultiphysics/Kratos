@@ -235,14 +235,37 @@ namespace Kratos
             local_parameters[i] = rParameters["local_parameters"][i].GetDouble();
         }
 
+        const double tolerance;
+
         PointsArrayType points;
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
-            // Uncommented as the interface is not decided yet.
-            //rGeometryList[i].GetPointsAt(
-            //    points,
-            //    local_parameters,
-            //    SpecificationType);
+            // Edges
+            if (std::abs(local_parameters[0] + 1) < tolerance && std::abs(local_parameters[1]) < tolerance) {
+                GetPointsAtEdge(points, 0, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0] - 1) < tolerance && std::abs(local_parameters[1] + 1) < tolerance) {
+                GetPointsAtEdge(points, 1, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0] + 1) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
+                GetPointsAtEdge(points, 2, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1] + 1) < tolerance) {
+                GetPointsAtEdge(points, 3, SpecificationType);
+            }
+            // Vertices
+            else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1]) < tolerance) {
+                GetPointsAtVertex(points, 0, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0] - 1) < tolerance && std::abs(local_parameters[1]) < tolerance) {
+                GetPointsAtVertex(points, 1, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0] - 1) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
+                GetPointsAtVertex(points, 2, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
+                GetPointsAtVertex(points, 3, SpecificationType);
+            }
         }
 
         rCadSubModelPart.AddNodes(points.begin(), points.end());
