@@ -51,19 +51,8 @@ class MechanicalSolver(PythonSolver):
         if settings_have_smps_for_comp_mp:
             kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
 
-        # Clean up settings
-        settings_have_block_builder = custom_settings.Has("block_builder")
-        if settings_have_block_builder:
-            block_builder = custom_settings["block_builder"].GetBool()
-            custom_settings.RemoveValue("block_builder")
-
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
-
-        # Throwing warning for the block_builder setting
-        if settings_have_block_builder:
-            custom_settings["builder_and_solver_settings"]["block_builder"].SetBool(block_builder)
-            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder" directly is deprecated, please move it to builder_and_solver_settings')
 
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -124,9 +113,9 @@ class MechanicalSolver(PythonSolver):
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
+            "block_builder" : true,
             "consider_lagrange_multiplier_constraint_resolution" : "none",
             "builder_and_solver_settings" : {
-                "block_builder"                      : true,
                 "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
                 "silent_warnings"                     : false,
                 "consider_double_lagrange_multiplier" : true
@@ -449,8 +438,8 @@ class MechanicalSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        bs_params = self.settings["builder_and_solver_settings"]
-        if bs_params["block_builder"].GetBool():
+        if self.settings["block_builder"].GetBool():
+            bs_params = self.settings["builder_and_solver_settings"]
             consider_lagrange_multiplier_constraint_resolution = self.settings["consider_lagrange_multiplier_constraint_resolution"].GetString()
             if consider_lagrange_multiplier_constraint_resolution == "none":
                 bs_params.RemoveValue("consider_double_lagrange_multiplier")
