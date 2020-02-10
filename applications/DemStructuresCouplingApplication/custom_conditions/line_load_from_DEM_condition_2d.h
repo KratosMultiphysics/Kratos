@@ -15,10 +15,11 @@
 #define  KRATOS_LINE_LOAD_FROM_DEM_CONDITION_2D_H_INCLUDED
 
 // Project includes
+#include "includes/serializer.h"
 #include "includes/define.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/line_load_condition.h"
 
 // Application includes
 #include "dem_structures_coupling_application_variables.h"
@@ -49,33 +50,24 @@ namespace Kratos
 /**
  * @class LineLoadFromDEMCondition2D
  */
+template<std::size_t TDim>
 class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) LineLoadFromDEMCondition2D
-    : public LineLoadCondition2D
+    : public LineLoadCondition<TDim>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// We define the base class LineLoadCondition2D
-    typedef LineLoadCondition2D BaseType;
+    /// We define the base class LineLoadCondition
+    typedef LineLoadCondition<TDim> BaseType;
 
-    /// Dfinition of the index type
-    typedef BaseType::IndexType IndexType;
-
-    /// Definition of the size type
-    typedef BaseType::SizeType SizeType;
-
-    /// Definition of the node type
-    typedef BaseType::NodeType NodeType;
-
-    /// Definition of the properties type
-    typedef BaseType::PropertiesType PropertiesType;
-
-    /// Definition of the geometry type with given NodeType
-    typedef BaseType::GeometryType GeometryType;
-
-    /// Definition of nodes container type, redefined from GeometryType
-    typedef BaseType::NodesArrayType NodesArrayType;
+    typedef std::size_t IndexType;
+	typedef Properties PropertiesType;
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef Vector VectorType;
+    typedef Matrix MatrixType;
 
     /// Counted pointer of LineLoadFromDEMCondition2D
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadFromDEMCondition2D );
@@ -85,23 +77,19 @@ public:
     ///@{
 
     // Constructor void
-    LineLoadFromDEMCondition2D();
+    LineLoadFromDEMCondition2D()
+        : LineLoadCondition<TDim>() {}
 
     // Constructor using an array of nodes
-    KRATOS_DEPRECATED_MESSAGE("Please use LineLoadCondition() instead") LineLoadFromDEMCondition2D(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        );
+    LineLoadFromDEMCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
+        : LineLoadCondition<TDim>( NewId, pGeometry ) {}
 
     // Constructor using an array of nodes with properties
-    KRATOS_DEPRECATED_MESSAGE("Please use LineLoadCondition() instead") LineLoadFromDEMCondition2D(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties
-        );
+    LineLoadFromDEMCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+        : LineLoadCondition<TDim>( NewId, pGeometry, pProperties ) {}
 
     // Destructor
-    ~LineLoadFromDEMCondition2D() override;
+    ~LineLoadFromDEMCondition2D() override {}
 
     ///@}
     ///@name Operators
@@ -168,26 +156,6 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "LineLoadFromDEMCondition2D #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "LineLoadFromDEMCondition2D #" << Id();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
 
     ///@}
     ///@name Friends
@@ -287,12 +255,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition<TDim> );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition2D );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition<TDim> );
     }
 
 
@@ -319,20 +287,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadFromDEMCondition2D& rThis);
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadFromDEMCondition2D& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 ///@}
 

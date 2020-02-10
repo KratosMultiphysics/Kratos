@@ -66,7 +66,7 @@ namespace Kratos {
         private:
 
             // Line load from DEM
-            const LineLoadFromDEMCondition2D mLineLoadFromDEMCondition2D2N;
+            const LineLoadFromDEMCondition2D<2> mLineLoadFromDEMCondition2D2N;
 
             // Surface load from DEM
             const SurfaceLoadFromDEMCondition3D mSurfaceLoadFromDEMCondition3D3N;
