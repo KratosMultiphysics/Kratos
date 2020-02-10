@@ -20,15 +20,14 @@
 namespace Kratos
 {
 
-    ///@}
     ///@name Life Cycle
     ///@{
 
-    static void CadIntegrationDomain::CreateIntegrationDomain(
+    void CadIntegrationDomain::CreateIntegrationDomain(
         ModelPart& rModelPart,
         ModelPart& rCadModelPart,
         const Parameters& rPhysicsParameters,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rPhysicsParameters.Has("element_condition_list"))
             << "Missing \"element_condition_list\" section" << std::endl;
@@ -40,11 +39,11 @@ namespace Kratos
             EchoLevel);
     }
 
-    static void CadIntegrationDomain::CreateIntegrationDomainElementConditionList(
+    void CadIntegrationDomain::CreateIntegrationDomainElementConditionList(
         ModelPart& rModelPart,
         ModelPart& rCadModelPart,
         const Parameters& rElementConditionListParameters,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rElementConditionListParameters.IsArray())
             << "\"element_condition_list\" needs to be an array." << std::endl;
@@ -59,11 +58,11 @@ namespace Kratos
         }
     }
 
-    static void CadIntegrationDomain::CreateIntegrationDomainElementCondition(
+    void CadIntegrationDomain::CreateIntegrationDomainElementCondition(
         ModelPart& rModelPart,
         ModelPart& rCadModelPart,
         const Parameters& rParameters,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("geometry_type"))
             << "\"geometry_type\" need to be specified." << std::endl;
@@ -93,7 +92,7 @@ namespace Kratos
             || geometry_type == "GeometrySurfaceVariationNodes"
             || geometry_type == "GeometryCurveNodes"
             || geometry_type == "GeometryCurveVariationNodes") {
-            CadIntegrationDomain::GetGeometrySurfacePointsAt(
+            CadIntegrationDomain::GetGeometryPointsAt(
                 geometry_list, sub_model_part, geometry_type, rParameters["parameters"], 0, EchoLevel);
         }
         else {
@@ -104,11 +103,11 @@ namespace Kratos
             << "Creation of elements/ conditions finished in: " << sub_model_part << std::endl;
     }
 
-    static void CadIntegrationDomain::CreateQuadraturePointGeometries(
+    void CadIntegrationDomain::CreateQuadraturePointGeometries(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
             << "\"type\" need to be specified." << std::endl;
@@ -161,12 +160,12 @@ namespace Kratos
         }
     }
 
-    static void CadIntegrationDomain::CreateElements(
+    void CadIntegrationDomain::CreateElements(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rCadSubModelPart,
         std::string& rElementName,
         int& rIdCounter,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
 
@@ -187,12 +186,12 @@ namespace Kratos
         rCadSubModelPart.AddElements(new_element_list.begin(), new_element_list.end());
     }
 
-    static void CadIntegrationDomain::CreateConditions(
+    void CadIntegrationDomain::CreateConditions(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rCadSubModelPart,
         std::string& rConditionName,
         int& rIdCounter,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
@@ -214,41 +213,41 @@ namespace Kratos
         rCadSubModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
-    static void CadIntegrationDomain::GetGeometryPointsAt(
+    void CadIntegrationDomain::GetGeometryPointsAt(
         GeometriesArrayType& rGeometryList,
         ModelPart& rCadSubModelPart,
         const std::string& rGeometryType,
         const Parameters& rParameters,
         IndexType SpecificationType,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_INFO_IF("GetGeometryPointsAt", EchoLevel > 1)
-            << "In " << geometry_type  <<" collecting nodes." << std::endl;
+            << "In " << rGeometryType <<" collecting nodes." << std::endl;
 
-        if (geometry_type == "GeometrySurfaceNodes") {
+        if (rGeometryType == "GeometrySurfaceNodes") {
             CadIntegrationDomain::GetGeometrySurfacePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
+                rGeometryList, rCadSubModelPart, rParameters["parameters"], 0, EchoLevel);
         }
-        else if (geometry_type == "GeometrySurfaceVariationNodes") {
+        else if (rGeometryType == "GeometrySurfaceVariationNodes") {
             CadIntegrationDomain::GetGeometrySurfacePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+                rGeometryList, rCadSubModelPart, rParameters["parameters"], 1, EchoLevel);
         }
-        if (geometry_type == "GeometryCurveNodes") {
+        if (rGeometryType == "GeometryCurveNodes") {
             CadIntegrationDomain::GetGeometryCurvePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
+                rGeometryList, rCadSubModelPart, rParameters["parameters"], 0, EchoLevel);
         }
-        else if (geometry_type == "GeometryCurveVariationNodes") {
+        else if (rGeometryType == "GeometryCurveVariationNodes") {
             CadIntegrationDomain::GetGeometryCurvePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+                rGeometryList, rCadSubModelPart, rParameters["parameters"], 1, EchoLevel);
         }
     }
 
-    static void CadIntegrationDomain::GetGeometrySurfacePointsAt(
+    void CadIntegrationDomain::GetGeometrySurfacePointsAt(
         GeometriesArrayType& rGeometryList,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,
         IndexType SpecificationType,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("local_parameters"))
             << "\"local_parameters\" need to be specified." << std::endl;
@@ -265,48 +264,48 @@ namespace Kratos
         KRATOS_INFO_IF("GetGeometrySurfacePointsAt", EchoLevel > 2)
             << "At parameters: " << local_parameters << "." << std::endl;
 
-        const double tolerance;
+        const double tolerance = 1e-6;
 
         PointsArrayType points;
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             // Edges
             if (std::abs(local_parameters[0] + 1) < tolerance && std::abs(local_parameters[1]) < tolerance) {
-                GetPointsAtEdge(points, 0, SpecificationType);
+                rGeometryList[i].GetPointsAtEdge(points, 0, SpecificationType);
             }
             else if (std::abs(local_parameters[0] - 1) < tolerance && std::abs(local_parameters[1] + 1) < tolerance) {
-                GetPointsAtEdge(points, 1, SpecificationType);
+                rGeometryList[i].GetPointsAtEdge(points, 1, SpecificationType);
             }
             else if (std::abs(local_parameters[0] + 1) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
-                GetPointsAtEdge(points, 2, SpecificationType);
+                rGeometryList[i].GetPointsAtEdge(points, 2, SpecificationType);
             }
             else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1] + 1) < tolerance) {
-                GetPointsAtEdge(points, 3, SpecificationType);
+                rGeometryList[i].GetPointsAtEdge(points, 3, SpecificationType);
             }
             // Vertices
             else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1]) < tolerance) {
-                GetPointsAtVertex(points, 0, SpecificationType);
+                rGeometryList[i].GetPointsAtVertex(points, 0, SpecificationType);
             }
             else if (std::abs(local_parameters[0] - 1) < tolerance && std::abs(local_parameters[1]) < tolerance) {
-                GetPointsAtVertex(points, 1, SpecificationType);
+                rGeometryList[i].GetPointsAtVertex(points, 1, SpecificationType);
             }
             else if (std::abs(local_parameters[0] - 1) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
-                GetPointsAtVertex(points, 2, SpecificationType);
+                rGeometryList[i].GetPointsAtVertex(points, 2, SpecificationType);
             }
             else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
-                GetPointsAtVertex(points, 3, SpecificationType);
+                rGeometryList[i].GetPointsAtVertex(points, 3, SpecificationType);
             }
         }
 
         rCadSubModelPart.AddNodes(points.begin(), points.end());
     }
 
-    static void CadIntegrationDomain::GetGeometryEdgePointsAt(
+    void CadIntegrationDomain::GetGeometryCurvePointsAt(
         GeometriesArrayType& rGeometryList,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,
         IndexType SpecificationType,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("local_parameters"))
             << "\"local_parameters\" need to be specified." << std::endl;
@@ -323,27 +322,27 @@ namespace Kratos
         KRATOS_INFO_IF("GetGeometryEdgePointsAt", EchoLevel > 2)
             << "At parameters: " << local_parameters << "." << std::endl;
 
-        const double tolerance;
+        const double tolerance = 1e-6;
 
         PointsArrayType points;
         for (SizeType i = 0; i < rGeometryList.size(); ++i) {
             // Vertices
             if (std::abs(local_parameters[0]) < tolerance) {
-                GetPointsAtVertex(points, 0, SpecificationType);
+                rGeometryList[i].GetPointsAtVertex(points, 0, SpecificationType);
             }
             else if (std::abs(local_parameters[0] - 1) < tolerance) {
-                GetPointsAtVertex(points, 1, SpecificationType);
+                rGeometryList[i].GetPointsAtVertex(points, 1, SpecificationType);
             }
         }
 
         rCadSubModelPart.AddNodes(points.begin(), points.end());
     }
 
-    static void CadIntegrationDomain::GetGeometryList(
+    void CadIntegrationDomain::GetGeometryList(
         GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
         const Parameters& rParameters,
-        int EchoLevel = 0)
+        int EchoLevel)
     {
         if (rParameters.Has("brep_id")) {
             rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_id"].GetInt()));
@@ -368,8 +367,4 @@ namespace Kratos
 
     ///@}
 
-}; // namespace CadIntegrationDomain
-
 }  // namespace Kratos.
-
-#endif // KRATOS_CAD_INTEGRATION_DOMAIN_H_INCLUDED  defined
