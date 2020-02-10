@@ -326,8 +326,7 @@ namespace Kratos
         const double tolerance;
 
         PointsArrayType points;
-        for (SizeType i = 0; i < rGeometryList.size(); ++i)
-        {
+        for (SizeType i = 0; i < rGeometryList.size(); ++i) {
             // Vertices
             if (std::abs(local_parameters[0]) < tolerance) {
                 GetPointsAtVertex(points, 0, SpecificationType);
@@ -346,25 +345,19 @@ namespace Kratos
         const Parameters& rParameters,
         int EchoLevel = 0)
     {
-        if (rParameters.Has("brep_id"))
-        {
+        if (rParameters.Has("brep_id")) {
             rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_id"].GetInt()));
         }
-        if (rParameters.Has("brep_ids"))
-        {
-            for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i)
-            {
+        if (rParameters.Has("brep_ids")) {
+            for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i) {
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_ids"][i].GetInt()));
             }
         }
-        if (rParameters.Has("brep_name"))
-        {
+        if (rParameters.Has("brep_name")) {
             rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_name"].GetString()));
         }
-        if (rParameters.Has("brep_names"))
-        {
-            for (SizeType i = 0; i < rParameters["brep_names"].size(); ++i)
-            {
+        if (rParameters.Has("brep_names")) {
+            for (SizeType i = 0; i < rParameters["brep_names"].size(); ++i) {
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_names"][i].GetString()));
             }
         }
