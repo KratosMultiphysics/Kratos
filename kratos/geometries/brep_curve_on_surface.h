@@ -71,8 +71,6 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -1;
-
     ///@}
     ///@name Life Cycle
     ///@{
