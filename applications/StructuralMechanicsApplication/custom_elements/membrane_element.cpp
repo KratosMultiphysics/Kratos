@@ -374,23 +374,6 @@ void MembraneElement::MaterialResponse(Vector& rStress,
     rStress += initial_stress;
 }
 
-/* void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
-    const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
-    const SizeType& rIntegrationPointNumber)
-{
-    rTangentModulus = ZeroMatrix(3);
-    Vector strain_vector = ZeroVector(3);
-    StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
-        rCurrentCoVariantMetric,rTransformationMatrix);
-
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),temp_process_information);
-    element_parameters.SetStrainVector(strain_vector);
-    element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-
-} */
-
 void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const Matrix& rTransformationMatrix)
 {

@@ -247,21 +247,6 @@ namespace Kratos
     void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
        const Matrix& rTransformationMatrix);
 
-
-      /**
-     * @brief Calculates the material tangent modulus
-     * @param rTangentModulus The modulus
-     * @param rReferenceContraVariantMetric reference contra variant metric
-     * @param rReferenceCoVariantMetric reference covariant metric
-     * @param rCurrentCoVariantMetric current covariant metric
-     * @param rTransformationMatrix local coordinate system transformation
-     * @param rIntegrationPointNumber current integration point number
-     */
-    /* void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
-      const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
-      const SizeType& rIntegrationPointNumber); */
-
-
       /**
      * @brief Calculates the piola-kirchhoff-2 stress
      * @param rStress The stress
