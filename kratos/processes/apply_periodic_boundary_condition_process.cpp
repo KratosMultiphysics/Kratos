@@ -243,7 +243,7 @@ template <int TDim>
 void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
                                                                                         const std::string& rVarName )
 {
-    const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
+    const VariableType& r_var = KratosComponents<VariableType>::Get(rVarName);
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
