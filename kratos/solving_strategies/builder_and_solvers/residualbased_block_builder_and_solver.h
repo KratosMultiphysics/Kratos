@@ -144,18 +144,18 @@ public:
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
             mOptions.Set(SCALE_DIAGONAL, false);
-        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-            mOptions.Set(SCALE_DIAGONAL, true);
-            mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
-        } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
-            mOptions.Set(SCALE_DIAGONAL, true);
-            mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
         } else {
             mOptions.Set(SCALE_DIAGONAL, true);
-            mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
-            // We assume it is a number
-            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
-            number_stream >> mScaleFactor; 
+            if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+                mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
+            } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
+                mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            } else {
+                mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+                // We assume it is a number
+                std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
+                number_stream >> mScaleFactor; 
+            }
         }
         mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
