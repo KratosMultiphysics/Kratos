@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 # Import KratosUnittest
@@ -30,14 +31,20 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
                 else:
                     default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type": "ExternalSolversApplication.super_lu",
-                        "max_iteration": 500,
-                        "tolerance": 1e-9,
-                        "scaling": false,
-                        "symmetric_scaling": true,
-                        "verbosity": 0
+                        "solver_type": "EigenSolversApplication.sparse_lu"
                     }""")
                 ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+
+            solver_type = ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
+            solver_type_splitted = solver_type.split(".")
+            if len(solver_type_splitted) == 2:
+                # this means that we use a solver from an application
+                # hence we have to check if it exists, otherwise skip the test
+                app_name = solver_type_splitted[0]
+                solver_name = solver_type_splitted[1]
+                if not kratos_utils.CheckIfApplicationsAvailable(app_name):
+                    self.skipTest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
+
 
             self.modify_parameters(ProjectParameters)
 
@@ -161,17 +168,8 @@ class EigenTL3D8NCubeTests(StructuralMechanicsTestFactory):
 class Eigen3D3NThinCircleTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
 
-class Fofi4PointTentnoCableTests(StructuralMechanicsTestFactory):
-    file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"
-
 class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
-    file_name = "formfinding_test/Fofi_4Point_Tent_Cable_test"
-
-class MembraneQ4PointLoadTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_Q4_PointLoad_test"
-
-class MembraneQ4TrussPointLoadTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"
+    file_name = "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test"
 
 class MembraneHemisphereTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_hemisphere_test"
