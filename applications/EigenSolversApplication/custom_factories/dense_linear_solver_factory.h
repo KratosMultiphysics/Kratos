@@ -53,7 +53,7 @@ namespace Kratos
  * @tparam TLinearSolverType The linear solver type
  */
 template <typename TGlobalSpace, typename TLocalSpace, typename TLinearSolverType>
-class DenseLinearSolverFactory
+class KRATOS_API(EIGENSOLVERS_APPLICATION) DenseLinearSolverFactory
     : public LinearSolverFactory<TGlobalSpace,TLocalSpace>
 {
     ///@name Type Definitions
@@ -108,17 +108,20 @@ typedef LinearSolverFactory<LocalSparseSpaceType, LocalSparseSpaceType> DenseLin
 #ifdef KRATOS_REGISTER_DENSE_LINEAR_SOLVER
 #undef KRATOS_REGISTER_DENSE_LINEAR_SOLVER
 #endif
-#define KRATOS_REGISTER_DENSE_LINEAR_SOLVER(name, reference) \
+#define KRATOS_REGISTER_DENSE_LINEAR_SOLVER(name, reference) ; \
     KratosComponents<DenseLinearSolverFactoryType>::Add(name, reference);
+
+KRATOS_API_EXTERN template class KRATOS_API(EIGENSOLVERS_APPLICATION) KratosComponents<DenseLinearSolverFactoryType>;
 
 typedef LinearSolverFactory<ComplexLocalSparseSpaceType, ComplexLocalSparseSpaceType> ComplexDenseLinearSolverFactoryType;
 
 #ifdef KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER
 #undef KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER
 #endif
-#define KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER(name, reference) \
+#define KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER(name, reference) ; \
     KratosComponents<ComplexDenseLinearSolverFactoryType>::Add(name, reference);
 
+KRATOS_API_EXTERN template class KRATOS_API(EIGENSOLVERS_APPLICATION) KratosComponents<ComplexDenseLinearSolverFactoryType>;
 
 }  // namespace Kratos.
 
