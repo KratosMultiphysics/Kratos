@@ -113,8 +113,10 @@ class SPAlgorithm(Algorithm):
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
             if self.test_number == 1 or self.test_number == 2:
-                self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
-                #DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                if self.structural_solution._GetSolver().main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2:
+                    self.outer_walls_model_part = self.model["Structure.LinePressure2D_Outer_line"]
+                else:
+                    self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             elif self.test_number == 3:
