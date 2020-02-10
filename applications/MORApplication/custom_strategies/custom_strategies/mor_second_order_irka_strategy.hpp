@@ -384,15 +384,20 @@ class MorSecondOrderIRKAStrategy
             BuiltinTimer basis_construction_time;
             for( size_t i=0; i<n_sampling_points/2; ++i )
             {
-                r_kdyn = r_D;
                 if( TUseModalDamping )
-                    r_kdyn *= complex(0,1);
+                    noalias(r_kdyn) = r_K_cplx;
                 else
+                {
+                    noalias(r_kdyn) = r_D;
                     r_kdyn *= mSamplingPoints(2*i);
-                r_kdyn += r_K;
+                    r_kdyn += r_K;
+                }
                 r_kdyn += std::pow( mSamplingPoints(2*i), 2.0 ) * r_M_tmp;
+                ComplexSparseSpaceType::SetToZero(r_tmp_dx);
+                
+                this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp );
 
-                this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp); // Ax = b, solve for x
+                KRATOS_DEBUG_ERROR_IF(isinf(norm_2(r_tmp_dx))) << "No solution could be obtained (norm infinity)!";
 
                 column(r_basis, 2*i)   = real(r_tmp_dx);
                 column(r_basis, 2*i+1) = imag(r_tmp_dx);
