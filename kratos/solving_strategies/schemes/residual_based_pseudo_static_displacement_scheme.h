@@ -106,7 +106,7 @@ public:
     /**
      * @brief Default constructor. The pseudo static scheme
      */
-    explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double> RayleighBetaVariable)
+    explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double>& RayleighBetaVariable)
         :DerivedBaseType(0.0),
         mRayleighBeta(RayleighBetaVariable)
     {

@@ -12,6 +12,7 @@
 
 #include "compressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"

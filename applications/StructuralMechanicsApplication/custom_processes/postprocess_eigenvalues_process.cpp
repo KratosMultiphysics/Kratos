@@ -225,7 +225,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
 
         if( KratosComponents< Variable<double> >::Has( variable_name ) ) {
-            const Variable<double > variable = KratosComponents< Variable<double > >::Get(variable_name);
+            const Variable<double >& variable = KratosComponents< Variable<double > >::Get(variable_name);
 
             KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
@@ -233,7 +233,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 
             rRequestedDoubleResults.push_back(variable);
         } else if (KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) {
-            const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
+            const Variable<array_1d<double,3> >& variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
             KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
