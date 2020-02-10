@@ -142,7 +142,10 @@ private:
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - faces." << std::endl;
 
-            ReadBrepFaces(rParameters[brep_index], rModelPart, EchoLevel);
+            if (rParameters[brep_index].Has("faces"))
+            {
+                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, EchoLevel);
+            }
         }
 
         for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
@@ -155,17 +158,6 @@ private:
         }
     }
 
-
-    static void ReadBrepFaces(
-        const Parameters& rParameters,
-        ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
-    {
-        if (rParameters.Has("faces"))
-        {
-            ReadBrepSurfaces(rParameters["faces"], rModelPart, EchoLevel);
-        }
-    }
 
     static void ReadBrepEdges(
         const Parameters& rParameters,
