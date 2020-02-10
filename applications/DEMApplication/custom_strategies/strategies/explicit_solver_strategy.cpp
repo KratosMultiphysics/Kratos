@@ -705,6 +705,8 @@ namespace Kratos {
         ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
+        RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+
         SetNormalRadiiOnAllParticles(*mpDem_model_part);
 
         #pragma omp parallel
