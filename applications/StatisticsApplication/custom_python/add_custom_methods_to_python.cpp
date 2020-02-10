@@ -62,6 +62,7 @@ void AddCustomMethodsToPython(pybind11::module& m)
         .def("GetModelPart", &TemporalMethods::TemporalMethod::GetModelPart)
         .def("GetTotalTime", &TemporalMethods::TemporalMethod::GetTotalTime)
         .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)
+        .def("CalculateStatistics", &TemporalMethods::TemporalMethod::CalculateStatistics)
         .def("FinalizeStatisticsTimeStep", &TemporalMethods::TemporalMethod::FinalizeStatisticsTimeStep)
     ;
 

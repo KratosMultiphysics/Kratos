@@ -44,22 +44,11 @@ template <typename TContainerType, typename TContainerItemType, template <typena
 class ContainerTemporalMethods
 {
 public:
-    using VarianceValueMethod =
-        typename TemporalVarianceMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::ValueMethod;
-    using VarianceNormMethod =
-        typename TemporalVarianceMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::NormMethod;
-    using MeanValueMethod =
-        typename TemporalMeanMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::ValueMethod;
-    using MeanNormMethod =
-        typename TemporalMeanMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::NormMethod;
-    using SumValueMethod =
-        typename TemporalSumMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::ValueMethod;
-    using SumNormMethod =
-        typename TemporalSumMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::NormMethod;
-    using MinNormMethod =
-        typename TemporalMinMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::NormMethod;
-    using MaxNormMethod =
-        typename TemporalMaxMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>::NormMethod;
+    using SumMethod = TemporalSumMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using MeanMethod = TemporalMeanMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using VarianceMethod = TemporalVarianceMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using MinMethod = TemporalMinMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using MaxMethod = TemporalMaxMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
 };
 
 using NodeType = ModelPart::NodeType;

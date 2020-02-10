@@ -40,23 +40,25 @@ template <typename TContainerType, typename TContainerItemType, template <typena
 class TemporalVarianceMethod
 {
 public:
-    using BaseType = TemporalMethod;
-
+    template <typename TDataType>
     class ValueMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(ValueMethod);
 
-        ValueMethod(ModelPart& rModelPart) : BaseType(rModelPart)
+        ValueMethod(ModelPart& rModelPart,
+                    const std::string& rNormType,
+                    const Variable<TDataType>& rInputVariable,
+                    const Variable<TDataType>& rOutputMeanVariable,
+                    const Variable<TDataType>& rOutputVarianceVariable)
+            : TemporalMethod(rModelPart),
+              mrInputVariable(rInputVariable),
+              mrOutputMeanVariable(rOutputMeanVariable),
+              mrOutputVarianceVariable(rOutputVarianceVariable)
         {
         }
 
-        // value method
-        template <typename TDataType>
-        void CalculateStatistics(const Variable<TDataType>& rOutputMeanVariable,
-                                 const Variable<TDataType>& rOutputVarianceVariable,
-                                 const Variable<TDataType>& rInputVariable,
-                                 const double DeltaTime)
+        void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
                 MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
@@ -67,11 +69,11 @@ public:
             {
                 TContainerItemType& r_item = *(r_container.begin() + i);
                 const TDataType& r_input_value =
-                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rInputVariable);
+                    TDataRetrievalFunctor<TContainerItemType>()(r_item, mrInputVariable);
                 TDataType& r_output_mean_value =
-                    TDataStorageFunctor<TContainerItemType>()(r_item, rOutputMeanVariable);
+                    TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputMeanVariable);
                 TDataType& r_output_variance_value =
-                    TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVarianceVariable);
+                    TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputVarianceVariable);
 
                 MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_mean_value);
                 MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_variance_value);
@@ -80,13 +82,11 @@ public:
                     r_output_mean_value, r_output_variance_value, r_input_value,
                     DeltaTime, this->GetTotalTime());
             }
+
+            TemporalMethod::CalculateStatistics(DeltaTime);
         }
 
-        // value output variable initialization
-        template <typename TDataType>
-        void InitializeStatisticsVariables(const Variable<TDataType>& rOutputMeanVariable,
-                                           const Variable<TDataType>& rOutputVarianceVariable,
-                                           const Variable<TDataType>& rInputVariable)
+        void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
                 MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
@@ -94,33 +94,42 @@ public:
             auto& initializer_method =
                 TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
                                                               TDataStorageFunctor, TDataType>;
-            initializer_method(r_container, rOutputMeanVariable, rInputVariable);
-            initializer_method(r_container, rOutputVarianceVariable, rInputVariable);
+            initializer_method(r_container, mrOutputMeanVariable, mrInputVariable);
+            initializer_method(r_container, mrOutputVarianceVariable, mrInputVariable);
         }
+
+    private:
+        const Variable<TDataType>& mrInputVariable;
+        const Variable<TDataType>& mrOutputMeanVariable;
+        const Variable<TDataType>& mrOutputVarianceVariable;
     };
 
+    template <typename TDataType>
     class NormMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NormMethod);
 
-        NormMethod(ModelPart& rModelPart) : BaseType(rModelPart)
+        NormMethod(ModelPart& rModelPart,
+                   const std::string& rNormType,
+                   const Variable<TDataType>& rInputVariable,
+                   const Variable<double>& rOutputMeanVariable,
+                   const Variable<double>& rOutputVarianceVariable)
+            : TemporalMethod(rModelPart),
+              mNormType(rNormType),
+              mrInputVariable(rInputVariable),
+              mrOutputMeanVariable(rOutputMeanVariable),
+              mrOutputVarianceVariable(rOutputVarianceVariable)
         {
         }
 
-        // Norm method
-        template <typename TDataType>
-        void CalculateStatistics(const std::string& rNormType,
-                                 const Variable<double>& rOutputMeanVariable,
-                                 const Variable<double>& rOutputVarianceVariable,
-                                 const Variable<TDataType>& rInputVariable,
-                                 const double DeltaTime)
+        void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
                 MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
-                MethodsUtilities::GetNormMethod(rInputVariable, rNormType);
+                MethodsUtilities::GetNormMethod(mrInputVariable, mNormType);
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -128,31 +137,38 @@ public:
             {
                 TContainerItemType& r_item = *(r_container.begin() + i);
                 const TDataType& r_input_value =
-                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rInputVariable);
+                    TDataRetrievalFunctor<TContainerItemType>()(r_item, mrInputVariable);
                 const double input_norm_value = norm_method(r_input_value);
                 double& r_output_mean_value =
-                    TDataStorageFunctor<TContainerItemType>()(r_item, rOutputMeanVariable);
+                    TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputMeanVariable);
                 double& r_output_variance_value =
-                    TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVarianceVariable);
+                    TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputVarianceVariable);
 
                 TemporalVarianceMethod::CalculateMeanAndVariance<double>(
                     r_output_mean_value, r_output_variance_value,
                     input_norm_value, DeltaTime, this->GetTotalTime());
             }
+
+            TemporalMethod::CalculateStatistics(DeltaTime);
         }
 
         // norm output variable initialization
-        void InitializeStatisticsVariables(const Variable<double>& rOutputMeanVariable,
-                                           const Variable<double>& rOutputVarianceVariable)
+        void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
                 MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
                 TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
-            initializer_method(r_container, rOutputMeanVariable, 0.0);
-            initializer_method(r_container, rOutputVarianceVariable, 0.0);
+            initializer_method(r_container, mrOutputMeanVariable, 0.0);
+            initializer_method(r_container, mrOutputVarianceVariable, 0.0);
         }
+
+    private:
+        const std::string mNormType;
+        const Variable<TDataType>& mrInputVariable;
+        const Variable<double>& mrOutputMeanVariable;
+        const Variable<double>& mrOutputVarianceVariable;
     };
 
 private:

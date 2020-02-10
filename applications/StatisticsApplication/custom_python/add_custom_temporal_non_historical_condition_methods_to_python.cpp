@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
 // System includes
@@ -32,94 +31,176 @@ void AddCustomTemporalNonHistoricalConditionMethodsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    auto method_module = m.def_submodule("Conditions");
+    using type_double = double;
+    using type_array = array_1d<double, 3>;
+    using type_vector = Vector;
+    using type_matrix = Matrix;
 
-    auto value_method_module = method_module.def_submodule("ValueMethods");
-    using ConditionNonHistoricalTemporalMethods = TemporalMethods::ConditionNonHistoricalTemporalMethods;
-    py::class_<ConditionNonHistoricalTemporalMethods::VarianceValueMethod, ConditionNonHistoricalTemporalMethods::VarianceValueMethod::Pointer, TemporalMethods::TemporalMethod>(
-            value_method_module, "Variance")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::InitializeStatisticsVariables<double>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::InitializeStatisticsVariables<array_1d<double, 3>>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::InitializeStatisticsVariables<Vector>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::VarianceValueMethod::InitializeStatisticsVariables<Matrix>)
-            ;
-    py::class_<ConditionNonHistoricalTemporalMethods::MeanValueMethod, ConditionNonHistoricalTemporalMethods::MeanValueMethod::Pointer, TemporalMethods::TemporalMethod>(
-            value_method_module, "Mean")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::InitializeStatisticsVariables<double>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::InitializeStatisticsVariables<array_1d<double, 3>>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::InitializeStatisticsVariables<Vector>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MeanValueMethod::InitializeStatisticsVariables<Matrix>)
-            ;
-    py::class_<ConditionNonHistoricalTemporalMethods::SumValueMethod, ConditionNonHistoricalTemporalMethods::SumValueMethod::Pointer, TemporalMethods::TemporalMethod>(
-            value_method_module, "Sum")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumValueMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumValueMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumValueMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumValueMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::SumValueMethod::InitializeStatisticsVariables<double>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::SumValueMethod::InitializeStatisticsVariables<array_1d<double, 3>>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::SumValueMethod::InitializeStatisticsVariables<Vector>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::SumValueMethod::InitializeStatisticsVariables<Matrix>)
-            ;
+    auto container_module = m.def_submodule("Conditions");
 
-    auto norm_method_module = method_module.def_submodule("NormMethods");
-    using ConditionNonHistoricalTemporalMethods = TemporalMethods::ConditionNonHistoricalTemporalMethods;
-    py::class_<ConditionNonHistoricalTemporalMethods::VarianceNormMethod, ConditionNonHistoricalTemporalMethods::VarianceNormMethod::Pointer, TemporalMethods::TemporalMethod>(
-            norm_method_module, "Variance")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceNormMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceNormMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceNormMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::VarianceNormMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::VarianceNormMethod::InitializeStatisticsVariables)
-            ;
-    py::class_<ConditionNonHistoricalTemporalMethods::MeanNormMethod, ConditionNonHistoricalTemporalMethods::MeanNormMethod::Pointer, TemporalMethods::TemporalMethod>(
-            norm_method_module, "Mean")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanNormMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanNormMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanNormMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MeanNormMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MeanNormMethod::InitializeStatisticsVariables)
-            ;
-    py::class_<ConditionNonHistoricalTemporalMethods::SumNormMethod, ConditionNonHistoricalTemporalMethods::SumNormMethod::Pointer, TemporalMethods::TemporalMethod>(
-            norm_method_module, "Sum")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumNormMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumNormMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumNormMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::SumNormMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::SumNormMethod::InitializeStatisticsVariables)
-            ;
-    py::class_<ConditionNonHistoricalTemporalMethods::MinNormMethod, ConditionNonHistoricalTemporalMethods::MinNormMethod::Pointer, TemporalMethods::TemporalMethod>(
-            norm_method_module, "Min")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MinNormMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MinNormMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MinNormMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MinNormMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MinNormMethod::InitializeStatisticsVariables)
-            ;
-    py::class_<ConditionNonHistoricalTemporalMethods::MaxNormMethod, ConditionNonHistoricalTemporalMethods::MaxNormMethod::Pointer, TemporalMethods::TemporalMethod>(
-            norm_method_module, "Max")
-            .def(py::init<ModelPart&>())
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MaxNormMethod::CalculateStatistics<double>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MaxNormMethod::CalculateStatistics<array_1d<double, 3>>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MaxNormMethod::CalculateStatistics<Vector>)
-            .def("CalculateStatistics", &ConditionNonHistoricalTemporalMethods::MaxNormMethod::CalculateStatistics<Matrix>)
-            .def("InitializeVariables", &ConditionNonHistoricalTemporalMethods::MaxNormMethod::InitializeStatisticsVariables)
-            ;
+    auto value_module = container_module.def_submodule("ValueMethods");
+    {
+        auto method_module = value_module.def_submodule("Sum");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::SumMethod;
+        py::class_<current_method::ValueMethod<type_double>, current_method::ValueMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<type_double>&>());
+        py::class_<current_method::ValueMethod<type_array>, current_method::ValueMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<type_array>&>());
+        py::class_<current_method::ValueMethod<type_vector>, current_method::ValueMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<type_vector>&>());
+        py::class_<current_method::ValueMethod<type_matrix>, current_method::ValueMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<type_matrix>&>());
+    }
+    {
+        auto method_module = value_module.def_submodule("Mean");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::MeanMethod;
+        py::class_<current_method::ValueMethod<type_double>, current_method::ValueMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<type_double>&>());
+        py::class_<current_method::ValueMethod<type_array>, current_method::ValueMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<type_array>&>());
+        py::class_<current_method::ValueMethod<type_vector>, current_method::ValueMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<type_vector>&>());
+        py::class_<current_method::ValueMethod<type_matrix>, current_method::ValueMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<type_matrix>&>());
+    }
+    {
+        auto method_module = value_module.def_submodule("Variance");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::VarianceMethod;
+        py::class_<current_method::ValueMethod<type_double>, current_method::ValueMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<type_double>&, const Variable<type_double>&>());
+        py::class_<current_method::ValueMethod<type_array>, current_method::ValueMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<type_array>&, const Variable<type_array>&>());
+        py::class_<current_method::ValueMethod<type_vector>, current_method::ValueMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<type_vector>&, const Variable<type_vector>&>());
+        py::class_<current_method::ValueMethod<type_matrix>, current_method::ValueMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<type_matrix>&, const Variable<type_matrix>&>());
+    }
+
+    auto norm_module = container_module.def_submodule("NormMethods");
+    {
+        auto method_module = norm_module.def_submodule("Sum");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::SumMethod;
+        py::class_<current_method::NormMethod<type_double>, current_method::NormMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_array>, current_method::NormMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_vector>, current_method::NormMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_matrix>, current_method::NormMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<double>&>());
+    }
+    {
+        auto method_module = norm_module.def_submodule("Mean");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::MeanMethod;
+        py::class_<current_method::NormMethod<type_double>, current_method::NormMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_array>, current_method::NormMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_vector>, current_method::NormMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_matrix>, current_method::NormMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<double>&>());
+    }
+    {
+        auto method_module = norm_module.def_submodule("Variance");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::VarianceMethod;
+        py::class_<current_method::NormMethod<type_double>, current_method::NormMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_array>, current_method::NormMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_vector>, current_method::NormMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_matrix>, current_method::NormMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<double>&, const Variable<double>&>());
+    }
+    {
+        auto method_module = norm_module.def_submodule("Max");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::MaxMethod;
+        py::class_<current_method::NormMethod<type_double>, current_method::NormMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_array>, current_method::NormMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_vector>, current_method::NormMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_matrix>, current_method::NormMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<double>&, const Variable<double>&>());
+    }
+    {
+        auto method_module = norm_module.def_submodule("Min");
+        using current_method = TemporalMethods::ConditionNonHistoricalTemporalMethods::MinMethod;
+        py::class_<current_method::NormMethod<type_double>, current_method::NormMethod<type_double>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Double")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_array>, current_method::NormMethod<type_array>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Array")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_vector>, current_method::NormMethod<type_vector>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Vector")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,
+                          const Variable<double>&, const Variable<double>&>());
+        py::class_<current_method::NormMethod<type_matrix>, current_method::NormMethod<type_matrix>::Pointer,
+                   TemporalMethods::TemporalMethod>(method_module, "Matrix")
+            .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,
+                          const Variable<double>&, const Variable<double>&>());
+    }
 }
 
 } // namespace Python.

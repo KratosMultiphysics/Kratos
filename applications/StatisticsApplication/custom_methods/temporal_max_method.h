@@ -42,30 +42,32 @@ template <typename TContainerType, typename TContainerItemType, template <typena
 class TemporalMaxMethod
 {
 public:
-    using BaseType = TemporalMethod;
-
+    template <typename TDataType>
     class NormMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NormMethod);
 
-        NormMethod(ModelPart& rModelPart) : BaseType(rModelPart)
+        NormMethod(ModelPart& rModelPart,
+                   const std::string& rNormType,
+                   const Variable<TDataType>& rInputVariable,
+                   const Variable<double>& rOutputVariable,
+                   const Variable<double>& rMaxTimeValueVariable)
+            : TemporalMethod(rModelPart),
+              mNormType(rNormType),
+              mrInputVariable(rInputVariable),
+              mrOutputVariable(rOutputVariable),
+              mrMaxTimeValueVariable(rMaxTimeValueVariable)
         {
         }
 
-        // Only norm methods
-        template <typename TDataType>
-        void CalculateStatistics(const std::string& rNormType,
-                                 const Variable<double>& rOutputVariable,
-                                 const Variable<double>& rMaxTimeValueVariable,
-                                 const Variable<TDataType>& rInputVariable,
-                                 const double DeltaTime)
+        void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
                 MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
-                MethodsUtilities::GetNormMethod(rInputVariable, rNormType);
+                MethodsUtilities::GetNormMethod(mrInputVariable, mNormType);
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -73,13 +75,13 @@ public:
             {
                 TContainerItemType& r_item = *(r_container.begin() + i);
                 const TDataType& r_input_value =
-                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rInputVariable);
+                    TDataRetrievalFunctor<TContainerItemType>()(r_item, mrInputVariable);
                 const double input_norm_value = norm_method(r_input_value);
 
                 double& r_output_value =
-                    TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
+                    TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputVariable);
                 double& r_max_time_value = TDataStorageFunctor<TContainerItemType>()(
-                    r_item, rMaxTimeValueVariable);
+                    r_item, mrMaxTimeValueVariable);
 
                 if (input_norm_value > r_output_value)
                 {
@@ -87,21 +89,27 @@ public:
                     r_max_time_value = this->GetTotalTime() + DeltaTime;
                 }
             }
+
+            TemporalMethod::CalculateStatistics(DeltaTime);
         }
 
-        // norm output variable initialization
-        void InitializeStatisticsVariables(const Variable<double>& rOutputVariable,
-                                           const Variable<double>& rMaxTimeValueVariable)
+        void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
                 MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
                 TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
-            initializer_method(r_container, rOutputVariable,
+            initializer_method(r_container, mrOutputVariable,
                                std::numeric_limits<double>::lowest());
-            initializer_method(r_container, rMaxTimeValueVariable, 0.0);
+            initializer_method(r_container, mrMaxTimeValueVariable, 0.0);
         }
+
+    private:
+        const std::string mNormType;
+        const Variable<TDataType>& mrInputVariable;
+        const Variable<double>& mrOutputVariable;
+        const Variable<double>& mrMaxTimeValueVariable;
     };
 };
 } // namespace TemporalMethods

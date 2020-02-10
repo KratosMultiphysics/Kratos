@@ -46,9 +46,25 @@ public:
     {
     }
 
+    virtual void InitializeStatisticsVariables()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "Calling base class InitializeStatisticsVariables. "
+                        "Please implement it in derrived class.\n";
+
+        KRATOS_CATCH("");
+    }
+
     virtual void InitializeStatisticsMethod()
     {
         mTotalTime = 0.0;
+        this->InitializeStatisticsVariables();
+    }
+
+    virtual void CalculateStatistics(const double DeltaTime)
+    {
+        this->FinalizeStatisticsTimeStep(DeltaTime);
     }
 
     virtual void FinalizeStatisticsTimeStep(const double DeltaTime)
