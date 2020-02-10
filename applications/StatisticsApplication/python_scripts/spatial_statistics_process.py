@@ -4,6 +4,7 @@ from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemCo
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetNormTypeContainer
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethod
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethodHeaders
+from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethodValues
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 from datetime import datetime
 
@@ -39,9 +40,10 @@ class SpatialStatisticsProcess(Kratos.Process):
             "output_settings" : {
                 "output_control_variable": "STEP",
                 "output_time_interval"   : 1,
-                "output_to_screen"       : true,
+                "write_kratos_version"   : true,
+                "write_time_stamp"       : true,
                 "output_file_settings"   : {
-                    "file_name"  : "<model_part_name>_<container>_<method_name>_<norm_type>.dat",
+                    "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
                     "folder_name": "spatial_statistics_output",
                     "write_buffer_size" : -1
                 }
@@ -52,6 +54,8 @@ class SpatialStatisticsProcess(Kratos.Process):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
         self.variables_settings_list = self.settings["input_variable_settings"]
+        self.output_settings = self.settings["output_settings"]
+        self.output_settings.RecursivelyValidateAndAssignDefaults(default_parameters["output_settings"])
 
         for variable_settings in self.variables_settings_list:
             variable_settings.ValidateAndAssignDefaults(default_parameters["input_variable_settings"][0])
@@ -75,8 +79,6 @@ class SpatialStatisticsProcess(Kratos.Process):
         if (not self.model.HasModelPart(self.model_part_name)):
             raise Exception(self.model_part_name + " not found.")
 
-        self.model_part = self.model[self.model_part_name]
-
         for variable_settings in self.variables_settings_list:
             variable_names_list = variable_settings["variable_names"].GetStringArray()
             for variable_name in variable_names_list:
@@ -87,10 +89,10 @@ class SpatialStatisticsProcess(Kratos.Process):
             if (container == "nodal_historical"):
                 for variable_name in variable_names_list:
                     variable = Kratos.KratosGlobals.GetVariable(variable_name)
-                    if (not self.model_part.HasNodalSolutionStepVariable(variable)):
-                        raise Exception("Variable " + variable_name + " not found in nodal solution step data of " + self.model_part.Name)
+                    if (not self.__get_model_part().HasNodalSolutionStepVariable(variable)):
+                        raise Exception("Variable " + variable_name + " not found in nodal solution step data of " + self.__get_model_part().Name)
 
-        process_info = self.model_part.ProcessInfo
+        process_info = self.__get_model_part().ProcessInfo
         output_settings = self.settings["output_settings"]
         output_control_variable_name = output_settings["output_control_variable"].GetString()
         output_control_variable = Kratos.KratosGlobals.GetVariable(output_control_variable_name)
@@ -105,32 +107,54 @@ class SpatialStatisticsProcess(Kratos.Process):
         if (not process_info.Has(output_control_variable)):
             raise Exception("Output control variable " + output_control_variable_name + " not found in process info of " + self.model_part_name)
 
-        process_info_value = self.model_part.ProcessInfo[output_control_variable]
+        process_info_value = self.__get_model_part().ProcessInfo[output_control_variable]
         self.output_control_counter = process_info_value
         self.previous_process_info_value = process_info_value
 
     def ExecuteInitialize(self):
+        kratos_version = "not_given"
+        if (self.output_settings["write_kratos_version"].GetBool()):
+            kratos_version = str(Kratos.KratosGlobals.Kernel.Version())
+
+        time_stamp = "not_specified"
+        if (self.output_settings["write_time_stamp"].GetBool()):
+            time_stamp = str(datetime.now())
+
+        output_control_variable_name = self.output_settings["output_control_variable"].GetString()
+
         self.output_files = []
         for variable_settings in self.variables_settings_list:
             container_name = variable_settings["container"].GetString()
             norm_type = variable_settings["norm_type"].GetString()
             method_name = variable_settings["method_name"].GetString()
-            method_headers = GetMethodHeaders(method_name)
 
             msg_header = ""
             msg_header += "# Spatial statistics process output\n"
-            msg_header += "# Kratos version : " + str(Kratos.KratosGlobals.Kernel.Version()) + "\n"
-            msg_header += "# Timestamp      : " + str(datetime.now()) + "\n"
-            msg_header += "# Method Name    : " + method_name + "\n"
-            msg_header += "# Norm type      : " + norm_type + "\n"
-            msg_header += "# Container type : " + container_name + "\n"
+            msg_header += "# Kratos version               : " + kratos_version + "\n"
+            msg_header += "# Timestamp                    : " + time_stamp + "\n"
+            msg_header += "# Method Name                  : " + method_name + "\n"
+            msg_header += "# Norm type                    : " + norm_type + "\n"
+            msg_header += "# Container type               : " + container_name + "\n"
+            msg_header += "# Modelpart name               : " + self.model_part_name + "\n"
+            msg_header += "# Output control variable name : " + output_control_variable_name + "\n"
             msg_header += "# ----------------------------------------------------------------------\n"
-            msg_header += "# Headers:\n# "
-            for header in method_headers:
-                msg_header += header + ","
-            msg_header = msg_header[:-1] + "\n"
+            msg_header += "# Headers:\n"
 
-            filename = self.settings["output_settings"]
+            output_file_settings = self.output_settings["output_file_settings"]
+            output_file_name_syntax = output_file_settings["file_name"].GetString()
+            output_file_name = output_file_name_syntax.replace("<model_part_name>", self.model_part_name)
+            output_file_name = output_file_name.replace("<container>", container_name)
+            output_file_name = output_file_name.replace("<norm_type>", norm_type)
+            output_file_name = output_file_name.replace("<method_name>", method_name)
+
+            current_output_file_settings = Kratos.Parameters("""{}""")
+            current_output_file_settings.AddEmptyValue("file_name")
+            current_output_file_settings["file_name"].SetString(output_file_name)
+            current_output_file_settings.AddEmptyValue("folder_name")
+            current_output_file_settings["folder_name"].SetString(output_file_settings["folder_name"].GetString())
+            # restarting is not supported if STEP is used as the control variable
+            self.output_files.append(TimeBasedAsciiFileWriterUtility(self.__get_model_part(), current_output_file_settings, msg_header))
+
 
     def ExecuteFinalizeSolutionStep(self):
         output_settings = self.settings["output_settings"]
@@ -143,69 +167,70 @@ class SpatialStatisticsProcess(Kratos.Process):
         elif (output_control_variable_type == "Double"):
             current_output_control_variable_value = output_settings["output_time_interval"].GetDouble()
 
-        process_info_value = self.model_part.ProcessInfo[output_control_variable]
+        self.process_info_value = self.__get_model_part().ProcessInfo[output_control_variable]
 
-        self.output_control_counter += (process_info_value - self.previous_process_info_value)
+        self.output_control_counter += (self.process_info_value - self.previous_process_info_value)
 
         if (self.output_control_counter >= current_output_control_variable_value):
             self.CalculateOutput()
             self.output_control_counter = 0
+            for output_file in self.output_files:
+                output_file.file.write("\n")
 
-        self.previous_process_info_value = process_info_value
+        self.previous_process_info_value = self.process_info_value
 
     def CalculateOutput(self):
-        for variable_settings in self.variables_settings_list:
+        for variable_settings, output_file in zip(self.variables_settings_list, self.output_files):
+            self.is_output_control_variable_value_written = False
             container_name = variable_settings["container"].GetString()
             norm_type = variable_settings["norm_type"].GetString()
             method_name = variable_settings["method_name"].GetString()
-            method_headers = GetMethodHeaders(method_name)
 
             item_container = GetItemContainer(container_name)
             item_norm_container = GetNormTypeContainer(item_container, norm_type)
             method = GetMethod(item_norm_container, method_name)
 
             variable_list = []
-            max_variable_length = 0
-            for variable_name in variable_settings["variable_names"].GetStringArray():
-                max_variable_length = max(max_variable_length, len(variable_name))
+            variable_names_list = variable_settings["variable_names"].GetStringArray()
+            for variable_name in variable_names_list:
                 variable_list.append(Kratos.KratosGlobals.GetVariable(variable_name))
 
-            max_variable_length = self.__write_headers(method_headers, container_name, method_name, norm_type, max_variable_length + 3)
             if (norm_type == "none"):
                 for variable in variable_list:
-                    output = method(self.model_part, variable)
-                    self.__write_screen_values(variable, output, max_variable_length, method_headers)
+                    output = method(self.__get_model_part(), variable)
+                    method_headers = GetMethodHeaders(method_name, variable_settings["method_settings"])
+                    self.__write_output(output, variable_names_list, norm_type, method_name, method_headers, output_file)
             else:
                 for variable in variable_list:
-                    output = method(norm_type, self.model_part, variable, variable_settings["method_settings"])
-                    self.__write_screen_values(variable, output, max_variable_length, method_headers)
+                    output = method(norm_type, self.__get_model_part(), variable, variable_settings["method_settings"])
+                    method_headers = GetMethodHeaders(method_name, variable_settings["method_settings"])
+                    self.__write_output(output, variable_names_list, norm_type, method_name, method_headers, output_file)
 
 
-    def __write_screen_headers(self, method_headers, container_name, method_name, norm_type, max_variable_length):
-        if (self.settings["output_settings"]["output_to_screen"].GetBool()):
-            Kratos.Logger.PrintInfo("SpatialStatisticsProcess", "Spatial statistical results for " + self.model_part_name + "'s " + container_name + " container under method " + method_name + " using " + norm_type + " norm:")
-            msg = "Variable Name"
-            max_variable_length = max(len(msg) + 3, max_variable_length)
-            msg = msg.rjust(max_variable_length)
-            for header_name in method_headers:
-                msg += "  " + header_name.ljust(30)
-            Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
-            return max_variable_length
+    def __write_output(self, output, variable_names_list, norm_type, method_name, method_headers, output_file):
+        self.__write_headers(variable_names_list, method_headers, output_file)
+        if (not self.is_output_control_variable_value_written):
+            output_file.file.write(str(self.process_info_value))
+            self.is_output_control_variable_value_written = True
+        output_file.file.write(",")
+        output_file.file.write(GetMethodValues(method_name, output))
 
-    def __write_screen_values(self, variable, output, max_variable_length, method_headers):
-        if (self.settings["output_settings"]["output_to_screen"].GetBool()):
-            msg = ""
-            if len(method_headers) == 1:
-                msg += variable.Name().rjust(max_variable_length)
-                msg += str(output)
-            else:
-                msg += variable.Name().rjust(max_variable_length)
-                for value in output:
-                    msg += "  " + str(value).ljust(30)
-            Kratos.Logger.PrintInfo("SpatialStatisticsProcess", msg)
 
-    def __get_file_header(self):
-        pass
+    def __write_headers(self, variable_names_list, method_headers, output_file):
+        if (not hasattr(output_file, "is_variable_headers_written")):
+            output_file.is_variable_headers_written = False
 
-    def __get_file_values(self):
-        pass
+        if (not output_file.is_variable_headers_written):
+            msg = "# OutputControlVariableValue"
+            for variable_name in variable_names_list:
+                for header in method_headers:
+                    msg += "," + variable_name + header
+            msg += "\n"
+            output_file.file.write(msg)
+            output_file.is_variable_headers_written = True
+
+    def __get_model_part(self):
+        if (not hasattr(self, "model_part")):
+            self.model_part = self.model[self.model_part_name]
+
+        return self.model_part
