@@ -89,17 +89,25 @@ namespace Kratos
         GeometriesArrayType geometry_list;
         CadIntegrationDomain::GetGeometryList(geometry_list, rModelPart, rParameters, EchoLevel);
 
-        if (geometry_type == "GeometryCurveNodes" || geometry_type == "GeometrySurfaceNodes")
-        {
-            CadIntegrationDomain::GetGeometryPointsAt(geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
+        if (geometry_type == "GeometrySurfaceNodes") {
+            CadIntegrationDomain::GetGeometrySurfacePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
         }
-        else if (geometry_type == "GeometryCurveVariationNodes" || geometry_type == "GeometrySurfaceVariationNodes")
-        {
-            CadIntegrationDomain::GetGeometryPointsAt(geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+        else if (geometry_type == "GeometrySurfaceVariationNodes") {
+            CadIntegrationDomain::GetGeometrySurfacePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
         }
-        else
-        {
-            CadIntegrationDomain::CreateQuadraturePointGeometries(geometry_list, sub_model_part, rParameters["parameters"], EchoLevel);
+        if (geometry_type == "GeometryCurveNodes") {
+            CadIntegrationDomain::GetGeometryCurvePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
+        }
+        else if (geometry_type == "GeometryCurveVariationNodes") {
+            CadIntegrationDomain::GetGeometryCurvePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+        }
+        else {
+            CadIntegrationDomain::CreateQuadraturePointGeometries(
+                geometry_list, sub_model_part, rParameters["parameters"], EchoLevel);
         }
         KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", EchoLevel > 3)
             << "Creation of elements/ conditions finished in: " << sub_model_part << std::endl;
@@ -215,7 +223,7 @@ namespace Kratos
         rCadSubModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
-    static void CadIntegrationDomain::GetGeometryPointsAt(
+    static void CadIntegrationDomain::GetGeometrySurfacePointsAt(
         GeometriesArrayType& rGeometryList,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,
@@ -265,6 +273,43 @@ namespace Kratos
             }
             else if (std::abs(local_parameters[0]) < tolerance && std::abs(local_parameters[1] - 1) < tolerance) {
                 GetPointsAtVertex(points, 3, SpecificationType);
+            }
+        }
+
+        rCadSubModelPart.AddNodes(points.begin(), points.end());
+    }
+
+    static void CadIntegrationDomain::GetGeometryEdgePointsAt(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rCadSubModelPart,
+        const Parameters& rParameters,
+        IndexType SpecificationType,
+        int EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("local_parameters"))
+            << "\"local_parameters\" need to be specified." << std::endl;
+        KRATOS_ERROR_IF(rParameters["local_parameters"].size() > 3)
+            << "\"local_parameters\" exceeds size. Maximum size is 3. Actual size is: "
+            << rParameters["local_parameters"].size() << std::endl;
+
+        CoordinatesArrayType local_parameters = ZeroVector(3);
+
+        for (SizeType i = 0; i < rParameters["local_parameters"].size(); ++i)
+        {
+            local_parameters[i] = rParameters["local_parameters"][i].GetDouble();
+        }
+
+        const double tolerance;
+
+        PointsArrayType points;
+        for (SizeType i = 0; i < rGeometryList.size(); ++i)
+        {
+            // Vertices
+            if (std::abs(local_parameters[0]) < tolerance) {
+                GetPointsAtVertex(points, 0, SpecificationType);
+            }
+            else if (std::abs(local_parameters[0] - 1) < tolerance) {
+                GetPointsAtVertex(points, 1, SpecificationType);
             }
         }
 
