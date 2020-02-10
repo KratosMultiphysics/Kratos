@@ -24,9 +24,10 @@
 // Application includes
 
 // Application method includes
+#include "custom_methods/temporal_max_method.h"
 #include "custom_methods/temporal_mean_method.h"
-#include "custom_methods/temporal_sum_method.h"
 #include "custom_methods/temporal_min_method.h"
+#include "custom_methods/temporal_sum_method.h"
 #include "custom_methods/temporal_variance_method.h"
 
 namespace Kratos
@@ -51,6 +52,9 @@ public:
         TemporalSumMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
     using MinMethod =
         TemporalMinMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+
+    using MaxMethod =
+        TemporalMaxMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
 };
 
 using NodeType = ModelPart::NodeType;

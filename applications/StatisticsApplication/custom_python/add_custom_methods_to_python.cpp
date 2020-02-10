@@ -263,6 +263,16 @@ void AddCustomMethodsToPython(pybind11::module& m)
             .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::CalculateNormStatistics<Matrix>)
             .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::MinMethod::InitializeNormStatisticsVariables)
             ;
+
+    py::class_<HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod, HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod::Pointer, TemporalMethods::TemporalMethod>(
+            temporal_historical_historical_output_norm_method, "Max")
+            .def(py::init<ModelPart&>())
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod::CalculateNormStatistics<double>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod::CalculateNormStatistics<array_1d<double, 3>>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod::CalculateNormStatistics<Vector>)
+            .def("CalculateStatistics", &HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod::CalculateNormStatistics<Matrix>)
+            .def("InitializeVariables", &HistoricalInputNonHistoricalOutputTemporalMethods::MaxMethod::InitializeNormStatisticsVariables)
+            ;
 }
 
 } // namespace Python.
