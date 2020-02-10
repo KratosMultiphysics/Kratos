@@ -143,7 +143,7 @@ public:
 
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
-        if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
             mOptions.Set(SCALE_DIAGONAL, false);
         } else {
             mOptions.Set(SCALE_DIAGONAL, true);
