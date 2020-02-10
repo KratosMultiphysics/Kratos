@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Tosi
 //
 
-#ifndef KRATOS_DIVERGENCE_PROCESS_H
-#define KRATOS_DIVERGENCE_PROCESS_H
+#ifndef KRATOS_CALCULATE_DIVERGENCE_PROCESS_H
+#define KRATOS_CALCULATE_DIVERGENCE_PROCESS_H
 
 // System includes
 
@@ -57,14 +57,14 @@ namespace Kratos
      * and DIVERGENCE as \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
      * where u is the velocity field and K an element of the domain \Omega.
      */
-    class KRATOS_API(EXAQUTE_SANDBOX_APPLICATION) DivergenceProcess : public Process
+    class KRATOS_API(EXAQUTE_SANDBOX_APPLICATION) CalculateDivergenceProcess : public Process
     {
     public:
         ///@name Type Definitions
         ///@{
 
         /// Pointer definition of Process
-        KRATOS_CLASS_POINTER_DEFINITION(DivergenceProcess);
+        KRATOS_CLASS_POINTER_DEFINITION(CalculateDivergenceProcess);
 
         ///@}
         ///@name Life Cycle
@@ -72,17 +72,19 @@ namespace Kratos
 
         /// Default constructor
         /**
-         * @brief Construct DivergenceProcess object
+         * @brief Construct CalculateDivergenceProcess object
          * @param rModelPart Model part the process is applied to
+         * @param ThisParameters The input parameters
          */
-        DivergenceProcess(
-        ModelPart& rModelPart);
+        CalculateDivergenceProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})"));
 
         /// Destructor.
-        ~DivergenceProcess() override = default;
+        ~CalculateDivergenceProcess() override = default;
 
         /// Assignment operator.
-        DivergenceProcess& operator=(DivergenceProcess const& rOther) = delete;
+        CalculateDivergenceProcess& operator=(CalculateDivergenceProcess const& rOther) = delete;
 
         ///@}
         ///@name Operators
@@ -133,38 +135,29 @@ namespace Kratos
         ///@name Protected static Member Variables
         ///@{
 
-
         ///@}
         ///@name Protected member Variables
         ///@{
-
 
         ///@}
         ///@name Protected Operators
         ///@{
 
-
         ///@}
         ///@name Protected Operations
         ///@{
-
-        double ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z);
-        double ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z);
 
         ///@}
         ///@name Protected  Access
         ///@{
 
-
         ///@}
         ///@name Protected Inquiry
         ///@{
 
-
         ///@}
         ///@name Protected LifeCycle
         ///@{
-
 
         ///@}
 
@@ -182,12 +175,21 @@ namespace Kratos
         ///@name Private Operations
         ///@{
 
+        /**
+         * @brief Function computing divergence at element level
+         */
+        double ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z);
+        /**
+         * @brief Function computing velocity seminorm at element level
+         */
+        double ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z);
+
         ///@}
         ///@name Un accessible methods
         ///@{
 
         /// Copy constructor.
-        DivergenceProcess(DivergenceProcess const& rOther);
+        CalculateDivergenceProcess(CalculateDivergenceProcess const& rOther) = delete;;
 
         ///@}
 
@@ -204,14 +206,14 @@ namespace Kratos
 
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream,
-                                    DivergenceProcess& rThis);
+                                    CalculateDivergenceProcess& rThis);
 
     /// output stream function
     inline std::ostream& operator << (std::ostream& rOStream,
-                                    const DivergenceProcess& rThis);
+                                    const CalculateDivergenceProcess& rThis);
 
     ///@}
 
 } // namespace Kratos
 
-#endif // KRATOS_DIVERGENCE_PROCESS_H
+#endif // KRATOS_CALCULATE_DIVERGENCE_PROCESS_H

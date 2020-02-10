@@ -26,28 +26,29 @@ namespace Kratos
     /* Public functions *******************************************************/
 
     // Constructor
-    DivergenceProcess::DivergenceProcess(
-        ModelPart& rModelPart):
+    CalculateDivergenceProcess::CalculateDivergenceProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters):
         Process(),
         mrModelPart(rModelPart)
     {}
 
-    std::string DivergenceProcess::Info() const
+    std::string CalculateDivergenceProcess::Info() const
     {
-        return "DivergenceProcess";
+        return "CalculateDivergenceProcess";
     }
 
-    void DivergenceProcess::PrintInfo(std::ostream& rOStream) const
+    void CalculateDivergenceProcess::PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "DivergenceProcess";
+        rOStream << "CalculateDivergenceProcess";
     }
 
-    void DivergenceProcess::PrintData(std::ostream& rOStream) const
+    void CalculateDivergenceProcess::PrintData(std::ostream& rOStream) const
     {
         this->PrintInfo(rOStream);
     }
 
-    void DivergenceProcess::ExecuteInitialize()
+    void CalculateDivergenceProcess::ExecuteInitialize()
     {
         KRATOS_TRY;
 
@@ -59,7 +60,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void DivergenceProcess::ExecuteBeforeOutputStep()
+    void CalculateDivergenceProcess::ExecuteBeforeOutputStep()
     {
         KRATOS_TRY;
 
@@ -139,7 +140,7 @@ namespace Kratos
     }
 
     // Compute local auxiliar divergence
-    double DivergenceProcess::ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z)
+    double CalculateDivergenceProcess::ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         double aux_current_divergence;
@@ -153,7 +154,7 @@ namespace Kratos
     }
 
     // Compute local auxiliar velocity seminorm
-    double DivergenceProcess::ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z)
+    double CalculateDivergenceProcess::ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         double aux_current_velocity_seminorm;
@@ -171,7 +172,7 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const DivergenceProcess& rThis)
+        const CalculateDivergenceProcess& rThis)
     {
         rThis.PrintData(rOStream);
         return rOStream;

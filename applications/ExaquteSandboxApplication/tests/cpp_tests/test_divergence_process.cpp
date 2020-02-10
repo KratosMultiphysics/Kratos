@@ -73,8 +73,8 @@ namespace Kratos {
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Call the divergence time average process
-            DivergenceProcess(model_part).ExecuteInitialize();
-            DivergenceProcess(model_part).ExecuteBeforeOutputStep();
+            CalculateDivergenceProcess(model_part).ExecuteInitialize();
+            CalculateDivergenceProcess(model_part).ExecuteBeforeOutputStep();
 
             // Check computed values over the elements
             auto elements_begin = model_part.ElementsBegin();

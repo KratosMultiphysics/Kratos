@@ -49,9 +49,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     ;
 
-    py::class_<DivergenceProcess, DivergenceProcess::Pointer, Process >
+    py::class_<CalculateDivergenceProcess, CalculateDivergenceProcess::Pointer, Process >
         (m, "DivergenceProcess")
         .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
     ;
 
 }
