@@ -4,8 +4,8 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemContainer
-from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetNormTypeContainer
-from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethod
+from KratosMultiphysics.StatisticsApplication.method_utilities import GetNormTypeContainer
+from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
 
 from random import uniform
 
