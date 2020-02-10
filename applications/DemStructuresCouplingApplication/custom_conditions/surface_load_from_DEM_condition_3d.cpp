@@ -124,6 +124,14 @@ namespace Kratos
         const unsigned int number_of_nodes = Geometry.size();
         const unsigned int mat_size = number_of_nodes * 3;
 
+        // Resizing as needed the LHS
+        if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+            if (rLeftHandSideMatrix.size1() != mat_size) {
+                rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+            }
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+        }
+
         // Resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
