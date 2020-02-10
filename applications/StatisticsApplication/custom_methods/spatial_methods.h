@@ -551,6 +551,7 @@ public:
                 min_value + (max_value - min_value) * static_cast<double>(i) /
                                 static_cast<double>(number_of_groups));
         }
+        group_limits[group_limits.size() - 1] += 1.0;
         group_limits.push_back(std::numeric_limits<double>::max());
 
         group_limits.shrink_to_fit();
@@ -609,6 +610,7 @@ public:
                 static_cast<double>(global_distribution[i]) /
                 static_cast<double>(number_of_items));
         }
+        group_limits[group_limits.size() - 2] -= 1.0;
         group_limits[group_limits.size() - 1] = max_value;
 
         return std::make_tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>>(
