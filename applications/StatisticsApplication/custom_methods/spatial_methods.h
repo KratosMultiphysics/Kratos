@@ -584,6 +584,7 @@ public:
                     if (value_norm < group_limits[i])
                     {
                         ++local_distribution[i];
+                        break;
                     }
                 }
             }
@@ -608,6 +609,7 @@ public:
                 static_cast<double>(global_distribution[i]) /
                 static_cast<double>(number_of_items));
         }
+        group_limits[group_limits.size() - 1] = max_value;
 
         return std::make_tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>>(
             std::forward<double>(min_value), std::forward<double>(max_value),
