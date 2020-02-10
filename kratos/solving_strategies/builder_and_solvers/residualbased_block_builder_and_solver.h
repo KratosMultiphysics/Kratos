@@ -134,6 +134,7 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                               : "ResidualBasedBlockBuilderAndSolver",
+            "block_builder"                      : true,
             "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
             "silent_warnings"                    : false
         })" );
@@ -147,9 +148,9 @@ public:
         } else {
             mOptions.Set(SCALE_DIAGONAL, true);
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-                mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
-            } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
+                mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
             } else {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
                 // We assume it is a number
@@ -1382,9 +1383,10 @@ protected:
                 return mScaleFactor;
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
-                    return GetDiagonalNorm(rA);
+                    return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
                 } else {
-                    return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
+                    return GetMaxDiagonal(rA);
+//                     return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
                 }
             }
         } else {
