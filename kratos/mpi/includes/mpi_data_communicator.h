@@ -180,13 +180,7 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Operations
     ///@{
 
-    /// Create a new MPIDataCommunicator using the provided MPI_Comm object.
-    /** The new MPIDataCommunicator instance is returned as a unique pointer,
-     *  since it is responsible for managing the lifetime of the underlying MPI_Comm,
-     *  and in particular calling MPI_Comm_free once it goes out of scope
-     *  (this is only required/done if Comm is not one of the predefined MPI_COMM types).
-     */
-    static MPIDataCommunicator::UniquePointer Create(MPI_Comm MPIComm);
+    DataCommunicator::UniquePointer Clone() const override;
 
     void Barrier() const override;
 
@@ -256,10 +250,6 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     int Size() const override;
 
     bool IsDistributed() const override;
-
-    bool IsDefinedOnThisRank() const override;
-
-    bool IsNullOnThisRank() const override;
 
     ///@}
     ///@name Helper functions for error checking in MPI

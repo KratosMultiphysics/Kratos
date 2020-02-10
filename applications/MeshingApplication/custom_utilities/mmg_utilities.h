@@ -98,22 +98,22 @@ struct MMGMeshInfo
     /**
      * @brief It returns the number of the first type of conditions
      */
-    SizeType NumberFirstTypeConditions() const;
+    const SizeType NumberFirstTypeConditions() const;
 
     /**
      * @brief It returns the number of the second type of conditions
      */
-    SizeType NumberSecondTypeConditions() const;
+    const SizeType NumberSecondTypeConditions() const;
 
     /**
      * @brief It returns the number of the first type of elements
      */
-    SizeType NumberFirstTypeElements() const;
+    const SizeType NumberFirstTypeElements() const;
 
     /**
      * @brief It returns the number of the second type of elements
      */
-    SizeType NumberSecondTypeElements() const;
+    const SizeType NumberSecondTypeElements() const;
 };
 
 /**

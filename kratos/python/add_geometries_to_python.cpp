@@ -130,7 +130,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("SetId", SetId2)
     .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
     .def("IsIdSelfAssigned", IsIdSelfAssigned1)
-    .def_static("GenerateId", &GeometryType::GenerateId)
+    .def("GenerateId", &GeometryType::GenerateId)
     // Dimension access
     .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)

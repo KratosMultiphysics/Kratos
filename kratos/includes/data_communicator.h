@@ -339,7 +339,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @see ParallelEnvironment.
      *  @return a unique pointer to the new DataCommunicator.
      */
-    static DataCommunicator::UniquePointer Create()
+    virtual DataCommunicator::UniquePointer Clone() const
     {
         return Kratos::make_unique<DataCommunicator>();
     }
@@ -608,24 +608,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
     /// Check whether this DataCommunicator is aware of parallelism.
     virtual bool IsDistributed() const
-    {
-        return false;
-    }
-
-    /// Check whether this DataCommunicator involves the current rank.
-    /** In MPI, if the rank is not involved in communication, the communicator
-     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
-     */
-    virtual bool IsDefinedOnThisRank() const
-    {
-        return true;
-    }
-
-    /// Check whether this DataCommunicator is MPI_COMM_NULL.
-    /** In MPI, if the rank is not involved in communication, the communicator
-     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
-     */
-    virtual bool IsNullOnThisRank() const
     {
         return false;
     }

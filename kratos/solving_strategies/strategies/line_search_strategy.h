@@ -356,7 +356,7 @@ protected:
         typename TSchemeType::Pointer pScheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
-        TSystemVectorType aux(Dx);
+        TSystemVectorType aux(TSparseSpace::Size(b));
         
         double x1 = mFirstAlphaValue;
         double x2 = mSecondAlphaValue;

@@ -131,8 +131,6 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     mReactionStressOld = 0.0;
     mStiffness = rParameters["young_modulus"].GetDouble()*mFaceArea/rParameters["compression_length"].GetDouble();
 
-    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
-
     KRATOS_CATCH("");
 }
 
@@ -281,9 +279,6 @@ void ExecuteFinalizeSolutionStep()
             // it->FastGetSolutionStepValue(ReactionStressVarComponent) = pTargetStressTable->GetValue(CurrentTime)-ReactionStress;
             it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
         }
-
-        mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
-
     }
 }
 
