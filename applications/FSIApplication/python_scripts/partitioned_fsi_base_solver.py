@@ -63,15 +63,57 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.fluid_interface_submodelpart_name = coupling_settings["fluid_interfaces_list"][0].GetString()
         self.structure_interface_submodelpart_name = coupling_settings["structure_interfaces_list"][0].GetString()
 
-        # Construct the structure solver
+        ## Construct the structure solver
         self.structure_solver = python_solvers_wrapper_structural.CreateSolverByParameters(self.model, self.settings["structure_solver_settings"], self.parallel_type)
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Structure solver construction finished.")
 
-        # Construct the fluid solver
+        ## Construct the fluid solver
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"], self.parallel_type)
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Fluid solver construction finished.")
 
-        # Construct the ALE mesh solver
+        ## Check the ALE settings before the mesh solver construction
+        mesh_solver_settings = self.settings["mesh_solver_settings"]
+        fluid_solver_settings = self.settings["fluid_solver_settings"]
+
+        # Check that the ALE and the fluid are the same model part
+        fluid_model_part_name =  fluid_solver_settings["model_part_name"].GetString()
+        if mesh_solver_settings.Has("model_part_name"):
+            if not fluid_model_part_name == mesh_solver_settings["model_part_name"].GetString():
+                err_msg =  'Fluid and mesh solver have to use the same MainModelPart ("model_part_name")!\n'
+                raise Exception(err_msg)
+        else:
+            mesh_solver_settings.AddValue("model_part_name", fluid_solver_settings["model_part_name"])
+
+        # Check that the ALE and the fluid have the sime time scheme
+        fluid_time_scheme =  fluid_solver_settings["time_scheme"].GetString()
+        if mesh_solver_settings.Has("mesh_velocity_calculation"):
+            if mesh_solver_settings["mesh_velocity_calculation"].Has("time_scheme"):
+                if not fluid_time_scheme == mesh_solver_settings["mesh_velocity_calculation"]["time_scheme"].GetString():
+                    err_msg = 'Fluid and mesh solver require to use the same time scheme ("time_scheme") for consistency!\n'
+                    raise Exception(err_msg)
+            else:
+                mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
+        else:
+            mesh_solver_settings.AddEmptyValue("mesh_velocity_calculation")
+            mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
+
+        # Check domain size
+        fluid_domain_size = fluid_solver_settings["domain_size"].GetInt()
+        if mesh_solver_settings.Has("domain_size"):
+            if not fluid_domain_size == mesh_solver_settings["domain_size"].GetInt():
+                raise Exception('Fluid and mesh solver have different "domain_size"!')
+        else:
+            mesh_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
+
+        # Ensure that the MESH_VELOCITY is computed
+        if mesh_solver_settings.Has("calculate_mesh_velocity"):
+            if not mesh_solver_settings["calculate_mesh_velocity"].GetBool():
+                mesh_solver_settings.SetValue("calculate_mesh_velocity", True)
+                self._PrintWarningOnRankZero("","Mesh velocity calculation was desactivated. Switching \"calculate_mesh_velocity\" on")
+        else:
+            mesh_solver_settings.AddEmptyValue("calculate_mesh_velocity").SetBool(True)
+
+        ## Construct the ALE mesh solver
         self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(self.model, self.settings["mesh_solver_settings"], self.parallel_type)
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "ALE mesh solver construction finished.")
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Partitioned FSI base solver construction finished.")

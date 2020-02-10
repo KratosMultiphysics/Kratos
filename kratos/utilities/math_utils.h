@@ -1698,6 +1698,10 @@ public:
         TDataType a, u, c, s, gamma, teta;
         IndexType index1, index2;
 
+        aux_A.resize(size,size,false);
+        aux_V_matrix.resize(size,size,false);
+        rotation_matrix.resize(size,size,false);
+
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
@@ -1808,6 +1812,45 @@ public:
                 rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }
         }
+
+        return is_converged;
+    }
+
+    /**
+     * @brief Calculates the square root of a matrix
+     * @details This function calculates the square root of a matrix by doing an eigenvalue decomposition
+     * The square root of a matrix A is defined as A = V*S*inv(V) where A is the eigenvectors matrix
+     * and S the diagonal matrix containing the square root of the eigenvalues. Note that the previous
+     * expression can be rewritten as A = V*S*trans(V) since V is orthogonal.
+     * @tparam TMatrixType1 Input matrix type
+     * @tparam TMatrixType2 Output matrix type
+     * @param rA Input matrix
+     * @param rMatrixSquareRoot Square root output matrix
+     * @param Tolerance Tolerance of the eigenvalue decomposition
+     * @param MaxIterations Maximum iterations of the eigenvalue decomposition
+     * @return true The eigenvalue decomposition problem converged
+     * @return false The eigenvalue decomposition problem did not converge
+     */
+    template<class TMatrixType1, class TMatrixType2>
+    static inline bool MatrixSquareRoot(
+        const TMatrixType1 &rA,
+        TMatrixType2 &rMatrixSquareRoot,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20)
+    {
+        // Do an eigenvalue decomposition of the input matrix
+        TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
+        const bool is_converged = GaussSeidelEigenSystem(rA, eigenvectors_matrix, eigenvalues_matrix, Tolerance, MaxIterations);
+        KRATOS_WARNING_IF("MatrixSquareRoot", !is_converged) << "GaussSeidelEigenSystem did not converge.\n";
+
+        // Get the square root of the eigenvalues
+        SizeType size = eigenvalues_matrix.size1();
+        for (SizeType i = 0; i < size; ++i) {
+            eigenvalues_matrix(i,i) = std::sqrt(eigenvalues_matrix(i,i));
+        }
+
+        // Calculate the solution from the previous decomposition and eigenvalues square root
+        BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
 
         return is_converged;
     }

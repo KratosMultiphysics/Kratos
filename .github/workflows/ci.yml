@@ -2,33 +2,8 @@ name: CI
 
 on:
   pull_request:
-    paths:
-    - '.github/**'
-    - 'cmake_modules/**'
-    - 'scripts/**'
-    - 'CMakeLists.txt'
-    - 'external_libraries/**'
-    - 'kratos/**'
-    - 'applications/CableNetApplication/**'
-    - 'applications/CompressiblePotentialFlowApplication/**'
-    - 'applications/ContactStructuralMechanicsApplication/**'
-    - 'applications/CoSimulationApplication/**'
-    - 'applications/CSharpWrapperApplication/**'
-    - 'applications/DEMApplication/**'
-    - 'applications/EigenSolversApplication/**'
-    - 'applications/ExternalSolversApplication/**'
-    - 'applications/FluidDynamicsApplication/**'
-    - 'applications/FSIApplication/**'
-    - 'applications/MappingApplication/**'
-    - 'applications/MeshingApplication/**'
-    - 'applications/MeshMovingApplication/**'
-    - 'applications/MetisApplication/**'
-    - 'applications/RANSApplication/**'
-    - 'applications/ShapeOptimizationApplication/**'
-    - 'applications/StructuralMechanicsApplication/**'
-    - 'applications/SwimmingDEMApplication/**'
-    - 'applications/TrilinosApplication/**'
-    - 'applications/HDF5Application/**'
+    branches:
+      - master
 
   schedule:
     - cron:  '0 1 * * *'
@@ -36,6 +11,12 @@ on:
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Custom, FullDebug]
+    env:
+      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
 
     container:
       image: oberbichler/kratos-dev:latest
@@ -50,7 +31,7 @@ jobs:
         CXX: /usr/lib/ccache/g++
 
     steps:
-    - uses: actions/checkout@v2-beta
+    - uses: actions/checkout@v2
 
     - name: Cache Build
       id: cache-build
@@ -62,6 +43,9 @@ jobs:
 
     - name: Build
       run: |
+        export MKLVARS_ARCHITECTURE=intel64
+        export MKLVARS_INTERFACE=lp64
+        . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
@@ -69,22 +53,28 @@ jobs:
     - name: Running small tests
       if: github.event_name == 'pull_request'
       run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        export MKLVARS_ARCHITECTURE=intel64
+        export MKLVARS_INTERFACE=lp64
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running nightly tests
       if: github.event_name == 'schedule' # this is the nightly build
       run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        export MKLVARS_ARCHITECTURE=intel64
+        export MKLVARS_INTERFACE=lp64
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
   windows:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2-beta
+    - uses: actions/checkout@v2
     - uses: actions/setup-python@v1
       with:
         python-version: '3.6'
@@ -117,6 +107,7 @@ jobs:
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CSharpWrapperApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
 
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"

@@ -85,7 +85,7 @@ public:
     RansKTurbulentIntensityInletProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansKTurbulentIntensityInletProcess() override;
+    ~RansKTurbulentIntensityInletProcess() override = default;
 
     ///@}
     ///@name Operators

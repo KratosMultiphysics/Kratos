@@ -705,6 +705,8 @@ namespace Kratos {
         ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
+        SetNormalRadiiOnAllParticles(*mpDem_model_part);
+
         #pragma omp parallel
         {
             #pragma omp for nowait
@@ -949,9 +951,9 @@ namespace Kratos {
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);
 
-                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
-
                 const unsigned int& dim = geom.WorkingSpaceDimension();
+
+                if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
 
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
                     //we are studying a certain condition here

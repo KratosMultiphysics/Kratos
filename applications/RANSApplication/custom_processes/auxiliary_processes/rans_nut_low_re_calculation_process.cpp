@@ -51,10 +51,6 @@ RansNutLowReCalculationProcess::RansNutLowReCalculationProcess(Model& rModel, Pa
     KRATOS_CATCH("");
 }
 
-RansNutLowReCalculationProcess::~RansNutLowReCalculationProcess()
-{
-}
-
 int RansNutLowReCalculationProcess::Check()
 {
     KRATOS_TRY
