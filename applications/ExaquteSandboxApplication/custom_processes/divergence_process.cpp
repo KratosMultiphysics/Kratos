@@ -16,6 +16,8 @@
 // External includes
 
 // Project includes
+#include "utilities/geometry_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_processes/divergence_process.h"

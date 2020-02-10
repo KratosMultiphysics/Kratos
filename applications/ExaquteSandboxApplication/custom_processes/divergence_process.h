@@ -18,10 +18,8 @@
 // External includes
 
 // Project includes
-#include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "utilities/variable_utils.h"
 #include "exaqute_sandbox_application_variables.h"
 
 // Application includes
