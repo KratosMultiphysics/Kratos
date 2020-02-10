@@ -52,13 +52,25 @@ int ParallelEnvironment::GetDefaultSize()
     return env.mDefaultSize;
 }
 
+void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.SetUpMPIEnvironmentDetail(std::move(pEnvironmentManager));
+}
+
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string& Name,
-    const DataCommunicator& rPrototype,
+    DataCommunicator::UniquePointer pPrototype,
     const bool Default)
 {
     ParallelEnvironment& env = GetInstance();
-    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
+    env.RegisterDataCommunicatorDetail(Name, std::move(pPrototype), Default);
+}
+
+void ParallelEnvironment::UnregisterDataCommunicator(const std::string& Name)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.UnregisterDataCommunicatorDetail(Name);
 }
 
 bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
@@ -71,6 +83,18 @@ std::string ParallelEnvironment::GetDefaultDataCommunicatorName()
 {
     const ParallelEnvironment& env = GetInstance();
     return env.mDefaultCommunicator->first;
+}
+
+bool ParallelEnvironment::MPIIsInitialized()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.MPIIsInitializedDetail();
+}
+
+bool ParallelEnvironment::MPIIsFinalized()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.MPIIsFinalizedDetail();
 }
 
 std::string ParallelEnvironment::Info()
@@ -95,11 +119,20 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 
 ParallelEnvironment::ParallelEnvironment()
 {
-    RegisterDataCommunicatorDetail("Serial", DataCommunicator(), MakeDefault);
+    RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
 }
 
 ParallelEnvironment::~ParallelEnvironment()
 {
+    // First release the registered DataCommunicators
+    mDataCommunicators.clear();
+
+    // Then finalize MPI if necessary by freeing the manager instance
+    if (mpEnvironmentManager)
+    {
+        mpEnvironmentManager.reset();
+    }    
+
     mDestroyed = true;
     mpInstance = nullptr;
 }
@@ -139,15 +172,23 @@ void ParallelEnvironment::Create()
     mpInstance = &parallel_environment;
 }
 
+void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager)
+{
+    KRATOS_ERROR_IF(MPIIsInitialized() || MPIIsFinalized())
+    << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
+
+    mpEnvironmentManager = std::move(pEnvironmentManager);
+}
+
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
     const std::string& Name,
-    const DataCommunicator& rPrototype,
+    DataCommunicator::UniquePointer pPrototype,
     const bool Default)
 {
     auto found = mDataCommunicators.find(Name);
     if (found == mDataCommunicators.end())
     {
-        auto result = mDataCommunicators.emplace(Name, rPrototype.Clone());
+        auto result = mDataCommunicators.emplace(Name, std::move(pPrototype));
         // result.first returns the created pair, pair_iterator->second the cloned prototype (which is a UniquePointer)
         auto pair_iterator = result.first;
         KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
@@ -163,6 +204,23 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         << " but a DataCommunicator with the same name already exists: "
         << *(found->second)
         << " The provided DataCommunicator has not been added." << std::endl;
+    }
+}
+
+void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Name)
+{
+    KRATOS_ERROR_IF(Name == mDefaultCommunicator->first)
+    << "Trying to unregister the default DataCommunicator \"" << Name
+    << "\". Please define a new default before unregistering the current one."
+    << std::endl;
+    int num_erased = mDataCommunicators.erase(Name);
+    KRATOS_WARNING_IF("ParallelEnvironment", num_erased == 0)
+    << "Trying to unregister a DataCommunicator with name " << Name
+    << " but no DataCommunicator of that name exsits."
+    << " No changes were made." << std::endl;
+    if (num_erased == 1)
+    {
+        KratosComponents<DataCommunicator>::Remove(Name);
     }
 }
 
@@ -194,6 +252,15 @@ bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) co
     return (mDataCommunicators.find(rName) != mDataCommunicators.end());
 }
 
+bool ParallelEnvironment::MPIIsInitializedDetail() const
+{
+    return (mpEnvironmentManager == nullptr) ? false : mpEnvironmentManager->IsInitialized();
+}
+
+bool ParallelEnvironment::MPIIsFinalizedDetail() const
+{
+    return (mpEnvironmentManager == nullptr) ? false : mpEnvironmentManager->IsFinalized();
+}
 
 std::string ParallelEnvironment::InfoDetail() const
 {
