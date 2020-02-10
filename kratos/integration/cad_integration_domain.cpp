@@ -222,6 +222,9 @@ namespace Kratos
         IndexType SpecificationType,
         int EchoLevel = 0)
     {
+        KRATOS_INFO_IF("GetGeometryPointsAt", EchoLevel > 1)
+            << "In " << geometry_type  <<" collecting nodes." << std::endl;
+
         if (geometry_type == "GeometrySurfaceNodes") {
             CadIntegrationDomain::GetGeometrySurfacePointsAt(
                 geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
@@ -255,10 +258,12 @@ namespace Kratos
 
         CoordinatesArrayType local_parameters = ZeroVector(3);
 
-        for (SizeType i = 0; i < rParameters["local_parameters"].size(); ++i)
-        {
+        for (SizeType i = 0; i < rParameters["local_parameters"].size(); ++i) {
             local_parameters[i] = rParameters["local_parameters"][i].GetDouble();
         }
+
+        KRATOS_INFO_IF("GetGeometrySurfacePointsAt", EchoLevel > 2)
+            << "At parameters: " << local_parameters << "." << std::endl;
 
         const double tolerance;
 
@@ -311,10 +316,12 @@ namespace Kratos
 
         CoordinatesArrayType local_parameters = ZeroVector(3);
 
-        for (SizeType i = 0; i < rParameters["local_parameters"].size(); ++i)
-        {
+        for (SizeType i = 0; i < rParameters["local_parameters"].size(); ++i) {
             local_parameters[i] = rParameters["local_parameters"][i].GetDouble();
         }
+
+        KRATOS_INFO_IF("GetGeometryEdgePointsAt", EchoLevel > 2)
+            << "At parameters: " << local_parameters << "." << std::endl;
 
         const double tolerance;
 
