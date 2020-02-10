@@ -53,7 +53,6 @@ namespace Kratos {
                 .def(init<ModelPart&,ModelPart&,Parameters&>())
                 .def("ExecuteInitialize", &ControlModuleFemDemUtilities::ExecuteInitialize)
                 .def("ExecuteInitializeSolutionStep", &ControlModuleFemDemUtilities::ExecuteInitializeSolutionStep)
-                .def("ExecuteFinalizeSolutionStep", &ControlModuleFemDemUtilities::ExecuteFinalizeSolutionStep)
             ;
 
             class_<ControlModuleFemDem2DUtilities> (m, "ControlModuleFemDem2DUtilities")
