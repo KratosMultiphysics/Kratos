@@ -27,7 +27,8 @@
 #include "custom_python/add_custom_spatial_non_historical_element_methods_to_python.h"
 
 // temporal methods
-#include "custom_python/add_custom_temporal_methods_to_python.h"
+#include "custom_methods/temporal_method.h"
+#include "custom_python/add_custom_temporal_historical_nodal_methods_to_python.h"
 
 // Include base h
 #include "custom_python/add_custom_methods_to_python.h"
@@ -49,6 +50,19 @@ void AddCustomMethodsToPython(pybind11::module& m)
     AddCustomSpatialNonHistoricalNodalMethodsToPython(spatial_non_historical_method_module);
     AddCustomSpatialNonHistoricalConditionMethodsToPython(spatial_non_historical_method_module);
     AddCustomSpatialNonHistoricalElementMethodsToPython(spatial_non_historical_method_module);
+
+    // adding temporal methods
+    auto temporal_method_module = m.def_submodule("TemporalMethods");
+
+    py::class_<TemporalMethods::TemporalMethod, TemporalMethods::TemporalMethod::Pointer>(temporal_method_module,"TemporalMethod")
+        .def(py::init<ModelPart&>())
+        .def("GetModelPart", &TemporalMethods::TemporalMethod::GetModelPart)
+        .def("GetTotalTime", &TemporalMethods::TemporalMethod::GetTotalTime)
+        .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)
+        .def("FinalizeStatisticsTimeStep", &TemporalMethods::TemporalMethod::FinalizeStatisticsTimeStep)
+    ;
+
+    AddCustomTemporalHistoricalNodalMethodsToPython(temporal_method_module);
 }
 
 } // namespace Python.
