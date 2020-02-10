@@ -4,7 +4,7 @@ language: cpp
 compiler: g++
 
 git:
-  depth: 3
+  depth: 1
 
 cache: ccache
 
@@ -15,16 +15,13 @@ env:
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
     - CCACHE_MAXSIZE=500M
-    - FC=gfortran-6
-
+    - FC=gfortran-7
+    - CC=gcc
+    - CXX=g++
 addons:
   apt:
-    sources:
-      - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
-      - gcc-6
-      - g++-6
-      - gfortran-6
+      - gfortran-7
       - libboost-dev
       - libblas-dev
       - liblapack-dev
@@ -40,16 +37,11 @@ addons:
       - libtrilinos-teuchos-dev
 
 before_script:
-- export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
-- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
+- export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}/bin/Custom
+- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/bin/Custom/libs
 
 script:
-- cp scripts/build/travis/configure_travis_bionic.sh cmake_build/configure.sh
-- cd cmake_build
+- cp scripts/build/travis/configure_travis_bionic.sh configure.sh
 - bash configure.sh
-- make all_unity
-- make runkratos
-- make install/fast
-- cd ../kratos/python_scripts
-- python3 run_tests.py -l small -c python3
+- python3 kratos/python_scripts/run_tests.py -l small -c python3
 - ccache -s

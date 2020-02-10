@@ -66,7 +66,7 @@ public:
     RansVectorAlignProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansVectorAlignProcess() override;
+    ~RansVectorAlignProcess() override = default;
 
     ///@}
     ///@name Operators

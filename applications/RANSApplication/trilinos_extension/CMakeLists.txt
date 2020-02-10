@@ -1,3 +1,5 @@
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
+
 include_directories(
   ${CMAKE_SOURCE_DIR}/kratos
   ${CMAKE_SOURCE_DIR}/applications/RANSApplication

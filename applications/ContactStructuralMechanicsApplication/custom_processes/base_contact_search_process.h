@@ -564,21 +564,6 @@ private:
         );
 
     /**
-     * @brief The whole model part name
-     * @param rModelPart The model part of interest
-     * @param rName The name of interest
-     */
-    static inline void GetWholeModelPartName(
-        const ModelPart& rModelPart,
-        std::string& rName
-        )
-    {
-        rName = rModelPart.Name() + "." + rName;
-        if (rModelPart.IsSubModelPart())
-            GetWholeModelPartName(*rModelPart.GetParentModelPart(), rName);
-    }
-
-    /**
      * @brief Calculates the minimal distance between one node and its center
      * @return The radius of the geometry
      */

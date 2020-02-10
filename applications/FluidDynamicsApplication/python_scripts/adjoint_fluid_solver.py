@@ -92,7 +92,8 @@ class AdjointFluidSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
         self.response_function.InitializeSolutionStep()
-
+        if hasattr(self, "_adjoint_turbulence_model_solver"):
+            self._adjoint_turbulence_model_solver.InitializeSolutionStep()
 
     def Predict(self):
         self.solver.Predict()
@@ -103,10 +104,17 @@ class AdjointFluidSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
+
+        if hasattr(self, "_adjoint_turbulence_model_solver"):
+            self._adjoint_turbulence_model_solver.FinalizeSolutionStep()
+
         self.sensitivity_builder.UpdateSensitivities()
 
     def Check(self):
         (self.solver).Check()
+
+        if hasattr(self, "_adjoint_turbulence_model_solver"):
+            self._adjoint_turbulence_model_solver.Check()
 
     def Clear(self):
         (self.solver).Clear()
@@ -223,4 +231,5 @@ class AdjointFluidSolver(PythonSolver):
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        if not hasattr(self, "_adjoint_turbulence_model_solver"):
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

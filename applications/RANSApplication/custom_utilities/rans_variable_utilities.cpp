@@ -12,8 +12,8 @@
 //
 
 /* System includes */
-#include <limits>
 #include <cmath>
+#include <limits>
 
 /* External includes */
 
@@ -99,32 +99,28 @@ double GetMinimumScalarValue(const ModelPart& rModelPart, const Variable<double>
 
     if (number_of_nodes != 0)
     {
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        const int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector node_partition;
         OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector min_values(number_of_threads);
+        Vector min_values(number_of_threads, min_value);
 
 #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const int k = OpenMPUtils::ThisThread();
 
             auto nodes_begin = r_nodes.begin() + node_partition[k];
             auto nodes_end = r_nodes.begin() + node_partition[k + 1];
-            min_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
 
             for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode)
             {
                 const double value = itNode->FastGetSolutionStepValue(rVariable);
                 min_values[k] = std::min(min_values[k], value);
             }
+        }
 
-#pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
-                {
-                    min_value = std::min(min_value, min_values[i]);
-                }
-            }
+        for (int i = 0; i < number_of_threads; ++i)
+        {
+            min_value = std::min(min_value, min_values[i]);
         }
     }
 
@@ -137,7 +133,7 @@ double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>
 {
     KRATOS_TRY
 
-    double max_value = std::numeric_limits<double>::min();
+    double max_value = std::numeric_limits<double>::lowest();
 
     const Communicator& r_communicator = rModelPart.GetCommunicator();
 
@@ -147,32 +143,28 @@ double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>
 
     if (number_of_nodes != 0)
     {
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        const int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector node_partition;
         OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector max_values(number_of_threads);
+        Vector max_values(number_of_threads, max_value);
 
 #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const int k = OpenMPUtils::ThisThread();
 
             auto nodes_begin = r_nodes.begin() + node_partition[k];
             auto nodes_end = r_nodes.begin() + node_partition[k + 1];
-            max_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
 
             for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode)
             {
                 const double value = itNode->FastGetSolutionStepValue(rVariable);
                 max_values[k] = std::max(max_values[k], value);
             }
+        }
 
-#pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
-                {
-                    max_value = std::max(max_value, max_values[i]);
-                }
-            }
+        for (int i = 0; i < number_of_threads; ++i)
+        {
+            max_value = std::max(max_value, max_values[i]);
         }
     }
 
@@ -193,6 +185,20 @@ void GetNodalVariablesVector(Vector& rValues,
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         rValues[i_node] = (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable);
+}
+
+void GetNodalArray(Vector& rNodalValues, const Element& rElement, const Variable<double>& rVariable)
+{
+    const Geometry<ModelPart::NodeType>& r_geometry = rElement.GetGeometry();
+    std::size_t number_of_nodes = r_geometry.PointsNumber();
+
+    if (rNodalValues.size() != number_of_nodes)
+        rNodalValues.resize(number_of_nodes);
+
+    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        rNodalValues[i_node] = r_geometry[i_node].FastGetSolutionStepValue(rVariable);
+    }
 }
 
 void SetNodalVariables(ModelPart::NodesContainerType& rNodes,
