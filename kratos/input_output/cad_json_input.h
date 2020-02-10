@@ -199,16 +199,13 @@ private:
         auto p_surface = ReadNurbsSurface<3, TNodeType>(
             rParameters["surface"], rModelPart, EchoLevel);
 
-        bool is_trimmed = true;
-        if (rParameters["surface"].Has("is_trimmed")) {
-            is_trimmed = rParameters["surface"]["is_trimmed"].GetBool();
-        }
-        else {
-            KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4))
-                << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
-                << "\", is_trimmed is not provided in the input."
-                << " is_trimmed = true is considered." << std::endl;
-        }
+        bool is_trimmed = (rParameters["surface"].Has("is_trimmed"))
+            ? rParameters["surface"]["is_trimmed"].GetBool()
+            : true;
+        KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4) && !rParameters["surface"].Has("is_trimmed"))
+            << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
+            << "\", is_trimmed is not provided in the input."
+            << " is_trimmed = true is considered." << std::endl;
 
         if (rParameters.Has("boundary_loops"))
         {
