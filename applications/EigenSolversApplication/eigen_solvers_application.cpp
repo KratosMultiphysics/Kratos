@@ -31,7 +31,6 @@
 
 namespace Kratos
 {
-KratosEigenSolversApplication::KratosEigenSolversApplication() : KratosApplication("EigenSolversApplication") {}
 
 void KratosEigenSolversApplication::Register()
 {
