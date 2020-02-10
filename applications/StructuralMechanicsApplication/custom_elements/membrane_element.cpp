@@ -659,8 +659,6 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
             transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
 
-        /* MaterialTangentModulus(material_tangent_modulus,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            inplane_transformation_matrix_material,point_number); */
 
         for (SizeType dof_s=0;dof_s<number_dofs;++dof_s){
             for (SizeType dof_r=0;dof_r<number_dofs;++dof_r){
