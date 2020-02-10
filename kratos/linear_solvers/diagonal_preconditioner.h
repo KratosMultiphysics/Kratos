@@ -115,13 +115,13 @@ public:
     */
     void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
-        mTemp.resize(int(TSparseSpaceType::Size(rX)));
+        mDiagonal.resize(static_cast<int>(TSparseSpaceType::Size(rX)));
+        mTemp.resize(static_cast<int>(TSparseSpaceType::Size(rX)));
 
         const DataType zero = DataType();
 
         #pragma omp parallel for
-        for(int i = 0 ; i < int(rA.size1()) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(rA.size1()) ; ++i)
         {
             double diag_Aii = rA(i,i);
             if(diag_Aii != zero)
@@ -139,7 +139,7 @@ public:
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             mTemp[i] = rX[i] * mDiagonal[i];
         TSparseSpaceType::Mult(rA,mTemp, rY);
         ApplyLeft(rY);
@@ -148,7 +148,7 @@ public:
     void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             mTemp[i] = rX[i] * mDiagonal[i];
         TSparseSpaceType::TransposeMult(rA,mTemp, rY);
         ApplyRight(rY);
@@ -157,7 +157,7 @@ public:
     VectorType& ApplyLeft(VectorType& rX) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -166,7 +166,7 @@ public:
     VectorType& ApplyRight(VectorType& rX) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -181,7 +181,7 @@ public:
     VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -190,7 +190,7 @@ public:
     VectorType& ApplyTransposeRight(VectorType& rX) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -199,7 +199,7 @@ public:
     VectorType& ApplyInverseRight(VectorType& rX) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] /= mDiagonal[i];
 
         return rX;
@@ -208,7 +208,7 @@ public:
     VectorType& Finalize(VectorType& rX) override
     {
         #pragma omp parallel for
-        for(int i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
