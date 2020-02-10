@@ -32,7 +32,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             "index_(1,1)"
         ]
 
-        self.norm_only_methods = ["min", "max", "median"]
+        self.norm_only_methods = ["min", "max", "median", "distribution"]
 
         SpatialMethodTests.__AddNodalSolutionStepVariables(self.model_part)
         SpatialMethodTests.__CreateModelPart(self.model_part)
@@ -124,6 +124,26 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             return analytical_value, analytical_id
 
         self.__TestMethod("max", analytical_method)
+
+    def testMedianMethod(self):
+        def analytical_method(container, container_type, norm_type, variable):
+            item_values = []
+            for item in container:
+                current_value = SpatialMethodTests.__GetNormValue(
+                    variable,
+                    SpatialMethodTests.__GetValue(item, container_type,
+                                                  variable), norm_type)
+
+                item_values.append(current_value)
+
+            item_values = sorted(item_values)
+            n = len(item_values)
+            if (n % 2 != 0):
+                return item_values[n // 2]
+            else:
+                return (item_values[(n - 1) // 2] + item_values[n // 2]) * 0.5
+
+        self.__TestMethod("median", analytical_method)
 
     def __TestMethod(self,
                      test_method_name,
