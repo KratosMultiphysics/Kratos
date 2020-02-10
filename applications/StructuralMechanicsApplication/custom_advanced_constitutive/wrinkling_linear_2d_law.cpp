@@ -73,7 +73,7 @@ std::size_t WrinklingLinear2DLaw::WorkingSpaceDimension()
 std::size_t WrinklingLinear2DLaw::GetStrainSize()
 {
     SizeType strain_size = 3;
-    KRATOS_ERROR_IF_NOT(mpConstitutiveLaw->GetStrainSize()==3) << "wrinkling law only works for 2D base laws (strain size = 3)" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpConstitutiveLaw->GetStrainSize()==3) << "Wrinkling law only works for 2D base laws (strain size = 3)" << std::endl;
     return strain_size;
 }
 
