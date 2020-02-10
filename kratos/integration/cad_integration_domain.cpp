@@ -89,21 +89,12 @@ namespace Kratos
         GeometriesArrayType geometry_list;
         CadIntegrationDomain::GetGeometryList(geometry_list, rModelPart, rParameters, EchoLevel);
 
-        if (geometry_type == "GeometrySurfaceNodes") {
+        if (geometry_type == "GeometrySurfaceNodes"
+            || geometry_type == "GeometrySurfaceVariationNodes"
+            || geometry_type == "GeometryCurveNodes"
+            || geometry_type == "GeometryCurveVariationNodes") {
             CadIntegrationDomain::GetGeometrySurfacePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
-        }
-        else if (geometry_type == "GeometrySurfaceVariationNodes") {
-            CadIntegrationDomain::GetGeometrySurfacePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
-        }
-        if (geometry_type == "GeometryCurveNodes") {
-            CadIntegrationDomain::GetGeometryCurvePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
-        }
-        else if (geometry_type == "GeometryCurveVariationNodes") {
-            CadIntegrationDomain::GetGeometryCurvePointsAt(
-                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+                geometry_list, sub_model_part, geometry_type, rParameters["parameters"], 0, EchoLevel);
         }
         else {
             CadIntegrationDomain::CreateQuadraturePointGeometries(
@@ -221,6 +212,32 @@ namespace Kratos
         }
 
         rCadSubModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+    }
+
+    static void CadIntegrationDomain::GetGeometryPointsAt(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rCadSubModelPart,
+        const std::string& rGeometryType,
+        const Parameters& rParameters,
+        IndexType SpecificationType,
+        int EchoLevel = 0)
+    {
+        if (geometry_type == "GeometrySurfaceNodes") {
+            CadIntegrationDomain::GetGeometrySurfacePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
+        }
+        else if (geometry_type == "GeometrySurfaceVariationNodes") {
+            CadIntegrationDomain::GetGeometrySurfacePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+        }
+        if (geometry_type == "GeometryCurveNodes") {
+            CadIntegrationDomain::GetGeometryCurvePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
+        }
+        else if (geometry_type == "GeometryCurveVariationNodes") {
+            CadIntegrationDomain::GetGeometryCurvePointsAt(
+                geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+        }
     }
 
     static void CadIntegrationDomain::GetGeometrySurfacePointsAt(
