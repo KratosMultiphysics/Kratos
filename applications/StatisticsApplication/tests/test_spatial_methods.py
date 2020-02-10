@@ -9,6 +9,7 @@ from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethod
 
 from random import uniform
 
+
 class SpatialMethodTests(KratosUnittest.TestCase):
     def setUp(self):
         self.model = Kratos.Model()
@@ -80,11 +81,13 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                     SpatialMethodTests.__GetValue(item, container_type,
                                                   variable), norm_type)
                 mean_value += current_value
-                variance_value += KratosStats.MethodUtilities.RaiseToPower(current_value, 2)
+                variance_value += KratosStats.MethodUtilities.RaiseToPower(
+                    current_value, 2)
 
             n = len(container)
             mean_value /= n
-            variance_value = variance_value / n - KratosStats.MethodUtilities.RaiseToPower(mean_value, 2)
+            variance_value = variance_value / n - KratosStats.MethodUtilities.RaiseToPower(
+                mean_value, 2)
 
             return mean_value, variance_value
 
@@ -122,7 +125,10 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
         self.__TestMethod("max", analytical_method)
 
-    def __TestMethod(self, test_method_name, analytical_method):
+    def __TestMethod(self,
+                     test_method_name,
+                     analytical_method,
+                     method_params=Kratos.Parameters("""{}""")):
         for container_type in self.containers_to_test:
             container = SpatialMethodTests.__GetContainer(
                 self.model_part, container_type)
@@ -132,7 +138,8 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                     item_method_norm_container = GetNormTypeContainer(
                         item_method_container, norm_type)
 
-                    if (norm_type == "none" and test_method_name in self.norm_only_methods):
+                    if (norm_type == "none"
+                            and test_method_name in self.norm_only_methods):
                         continue
 
                     test_method = GetMethod(item_method_norm_container,
@@ -141,7 +148,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                         method_value = test_method(self.model_part, variable)
                     else:
                         method_value = test_method(norm_type, self.model_part,
-                                                variable)
+                                                   variable, method_params)
 
                     analytical_value = analytical_method(
                         container, container_type, norm_type, variable)
