@@ -11,8 +11,8 @@
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 206900000000.0,
                 "POISSON_RATIO" : 0.29,
-		"RAYLEIGH_ALPHA": 0.01,
-		"RAYLEIGH_BETA" : 1e-8
+                "RAYLEIGH_ALPHA": 0.01,
+                "RAYLEIGH_BETA" : 1e-8
             },
             "Tables"           : {}
         }
