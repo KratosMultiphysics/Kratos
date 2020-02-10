@@ -17,14 +17,9 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "custom_python/add_custom_methods_to_python.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 
 // Application includes
 #include "custom_methods/spatial_methods.h"
-#include "custom_methods/temporal_methods.h"
-#include "custom_utilities/method_utilities.h"
 
 namespace Kratos
 {

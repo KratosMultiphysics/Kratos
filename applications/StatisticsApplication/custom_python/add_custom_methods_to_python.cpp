@@ -19,7 +19,8 @@
 // Project includes
 
 // Application includes
-#include "custom_python/add_custom_spatial_methods_to_python.h"
+#include "custom_python/add_custom_spatial_historical_methods_to_python.h"
+#include "custom_python/add_custom_spatial_non_historical_methods_to_python.h"
 #include "custom_python/add_custom_temporal_methods_to_python.h"
 
 // Include base h
@@ -33,8 +34,10 @@ void AddCustomMethodsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    // Adding spatial methods
-    AddCustomSpatialMethodsToPython(m);
+    auto spatial_method_module = m.def_submodule("SpatialMethods");
+    AddCustomSpatialHistoricalMethodsToPython(spatial_method_module);
+    AddCustomSpatialNonHistoricalMethodsToPython(spatial_method_module);
+
     AddCustomTemporalMethodsToPython(m);
 
 

@@ -17,8 +17,6 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
 
 // Application includes
 #include "custom_methods/spatial_methods.h"
