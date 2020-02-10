@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/geometry_utilities.h"
 #include "utilities/variable_utils.h"
+#include "exaqute_sandbox_application_variables.h"
 
 // Application includes
 #include "custom_processes/divergence_process.h"

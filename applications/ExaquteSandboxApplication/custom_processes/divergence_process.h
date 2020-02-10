@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "exaqute_sandbox_application_variables.h"
 
 // Application includes
 
