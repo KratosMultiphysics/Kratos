@@ -117,7 +117,7 @@ private:
 
     /// Allows static access without own memory.
     static void ReadGeometryModelPart(
-        const Parameters& rCadJsonParameters,
+        const Parameters rCadJsonParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -132,7 +132,7 @@ private:
     ///@{
 
     static void ReadBreps(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -166,7 +166,7 @@ private:
     ///@{
 
     static void ReadBrepSurfaces(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -183,7 +183,7 @@ private:
     }
 
     static void ReadBrepSurface(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -251,7 +251,7 @@ private:
 
     static BrepCurveOnSurfaceLoopType
         ReadTrimmingCurveVector(
-            const Parameters& rParameters,
+            const Parameters rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
@@ -273,7 +273,7 @@ private:
 
     static typename BrepCurveOnSurfaceType::Pointer
         ReadTrimmingCurve(
-            const Parameters& rParameters,
+            const Parameters rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
@@ -301,7 +301,7 @@ private:
 
     static std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
         ReadBoundaryLoops(
-            const Parameters& rParameters,
+            const Parameters rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
@@ -347,7 +347,7 @@ private:
     ///@{
 
     static void ReadBrepCurveOnSurfaces(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -364,7 +364,7 @@ private:
     }
 
     static void ReadBrepEdge(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -436,7 +436,7 @@ private:
     }
 
     static void ReadCouplingGeometry(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -485,7 +485,7 @@ private:
     template<int TWorkingSpaceDimension, class TThisNodeType>
     static typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
         ReadNurbsCurve(
-            const Parameters& rParameters,
+            const Parameters rParameters,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
     {
@@ -551,7 +551,7 @@ private:
     template<int TWorkingSpaceDimension, class TThisNodeType>
     static typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
         ReadNurbsSurface(
-            const Parameters& rParameters,
+            const Parameters rParameters,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
     {
@@ -613,7 +613,7 @@ private:
 
     /// Reads the weights of all control points and provides them in a Vector.
     static Vector ReadControlPointWeightVector(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         SizeType EchoLevel = 0)
     {
         Vector control_point_weights = ZeroVector(rParameters.size());
@@ -636,7 +636,7 @@ private:
     /// Reads a Node<3>::Pointer-vector of control points.
     static void ReadControlPointVector(
         PointerVector<Node<3>>& rControlPoints,
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -655,7 +655,7 @@ private:
     /// Reads a Point::Pointer-vector of control points.
     static void ReadControlPointVector(
         PointerVector<Point>& rControlPoints,
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -680,7 +680,7 @@ private:
     * [id, [x, y, z, weight]]
     */
     static Node<3>::Pointer ReadNode(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
@@ -700,7 +700,7 @@ private:
     * [[x, y, z, weight]] or [id, [x, y, z, weight]]
     */
     static Point::Pointer ReadPoint(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         SizeType EchoLevel = 0)
     {
         SizeType number_of_entries = rParameters.size();
@@ -720,7 +720,7 @@ private:
     /// Sets the geometry Id with either the 'brep_id' or the 'brep_name'.
     template<class TGeometry>
     static void SetIdOrName(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         typename TGeometry::Pointer pGeometry)
     {
         if (rParameters.Has("brep_id")) {
@@ -733,7 +733,7 @@ private:
 
     /// Returns the string of either the 'brep_id' or the 'brep_name'. Used for output massages.
     static std::string GetIdOrName(
-        const Parameters& rParameters)
+        const Parameters rParameters)
     {
         if (rParameters.Has("brep_id")) {
             return std::to_string(rParameters["brep_id"].GetInt());
@@ -748,14 +748,14 @@ private:
 
     /// Checks if one of the 'brep_id' or the 'brep_name' is provided.
     static bool HasIdOrName(
-        const Parameters& rParameters)
+        const Parameters rParameters)
     {
         return (rParameters.Has("brep_id") || rParameters.Has("brep_name"));
     }
 
     /// Returns the geometry with either the 'brep_id' or the 'brep_name'.
     static typename GeometryType::Pointer GetGeometry(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         ModelPart& rModelPart)
     {
         if (rParameters.Has("brep_id")) {
