@@ -82,7 +82,7 @@ namespace Kratos
         #pragma omp parallel for firstprivate(DN_DX)
         for(int i_elem = 0; i_elem < static_cast<int>(number_elements); ++i_elem) {
             auto it_elem = mrModelPart.ElementsBegin() + i_elem;
-            auto& r_geometry = it_elem->GetGeometry();
+            const auto& r_geometry = it_elem->GetGeometry();
 
             // Current geometry information
             const std::size_t number_nodes_element = r_geometry.PointsNumber();
