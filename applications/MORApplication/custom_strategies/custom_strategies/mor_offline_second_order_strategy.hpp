@@ -442,11 +442,11 @@ class MorOfflineSecondOrderStrategy
 
                 TSystemVectorType tmp(r_K.size1(), 0.0);
 
-                p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_RHS);
 
-                //set up the stiffness matrix
+                //set up the stiffness matrix and rhs
                 r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
-                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_K, tmp);
+                TSparseSpace::SetToZero(r_RHS);
+                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_K, r_RHS);
                 ApplyDirichletConditions(r_K, r_RHS, fixed_dofs, 1.0);
 
                 //set up the mass matrix
@@ -464,7 +464,7 @@ class MorOfflineSecondOrderStrategy
 
                 //create output vector
                 r_model_part.GetProcessInfo()[BUILD_LEVEL] = 301;
-                noalias(r_OV) = ZeroVector(r_K.size1());
+                TSparseSpace::SetToZero(r_OV);
                 p_builder_and_solver->BuildRHS(p_scheme, r_model_part, r_OV);
                 r_OV -= r_RHS;
             }
