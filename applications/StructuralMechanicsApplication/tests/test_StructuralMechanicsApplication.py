@@ -33,15 +33,15 @@ from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchT
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
+from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
+from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
 from test_patch_test_cr_beam import DynamicPatchTestBeam3D2N as TDynamicPatchTestBeam3D2N
 from test_patch_test_cr_beam import StaticPatchTestBeam3D2N as TStaticPatchTestBeam3D2N
 from test_patch_test_cr_beam import DynamicPatchTestBeam2D2N as TDynamicPatchTestBeam2D2N
 from test_patch_test_cr_beam import StaticPatchTestBeam2D2N as TStaticPatchTestBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
-from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
-from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
-from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
+from test_patch_test_formfinding_trusses import TestPatchTestFormfinding as TTestPatchTestFormfinding
 
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
@@ -122,10 +122,7 @@ from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEige
 from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
 from structural_mechanics_test_factory import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
 # Membrane tests
-from structural_mechanics_test_factory import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
 from structural_mechanics_test_factory import Fofi4PointTentCableTests as TFofi4PointTentCableTests
-from structural_mechanics_test_factory import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
-from structural_mechanics_test_factory import MembraneQ4TrussPointLoadTests as TMembraneQ4TrussPointLoadTests
 from structural_mechanics_test_factory import MembraneHemisphereTests as TMembraneHemisphereTests
 from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests as TMembraneOrthotropicDiagonalTests
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
@@ -285,9 +282,10 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
     # Membranes
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
+    # Formfinding
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
@@ -363,10 +361,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
-    nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
-    nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
-    nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneHemisphereTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
