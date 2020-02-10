@@ -378,10 +378,9 @@ class MPMSolver(PythonSolver):
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "non_linear":
-                self.material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.ANALYSIS_IS_LINEAR, False)
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
         elif analysis_type == 'linear':
-                self.material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.ANALYSIS_IS_LINEAR, True)
+                self.material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.IMPLICIT_IS_LINEAR, True)
                 solution_strategy = self._CreateLinearStrategy();
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"

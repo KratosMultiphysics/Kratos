@@ -252,7 +252,7 @@ namespace Kratos
         Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
         // Solver related variables
-        KRATOS_REGISTER_VARIABLE(ANALYSIS_IS_LINEAR);
+        KRATOS_REGISTER_VARIABLE(IMPLICIT_IS_LINEAR);
     }
 
 }  // namespace Kratos.
