@@ -145,6 +145,43 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
         self.__TestMethod("median", analytical_method)
 
+    def testDistributionMethod(self):
+        default_parameters = Kratos.Parameters("""
+        {
+            "number_of_value_groups" : 10,
+            "min_value"              : "min",
+            "max_value"              : "max"
+        }""")
+
+        def analytical_method(container, container_type, norm_type, variable):
+            item_values = []
+            for item in container:
+                current_value = SpatialMethodTests.__GetNormValue(
+                    variable,
+                    SpatialMethodTests.__GetValue(item, container_type,
+                                                  variable), norm_type)
+                item_values.append(current_value)
+
+            min_value = min(item_values)
+            max_value = max(item_values)
+            group_limits = [min_value + (max_value - min_value) * i / 10 for i in range(11)]
+            group_limits.append(1e+100)
+
+            data_distribution = [0 for i in range(len(group_limits))]
+            for value in item_values:
+                for i in range(len(group_limits)):
+                    if (value < group_limits[i]):
+                        data_distribution[i] += 1
+                        break
+            percentage_data_distribution = []
+            for i in range(len(group_limits)):
+                percentage_data_distribution.append(data_distribution[i] / len(item_values))
+
+            group_limits[-1] = max_value
+            return min_value, max_value, group_limits, data_distribution, percentage_data_distribution
+
+        self.__TestMethod("distribution", analytical_method, default_parameters)
+
     def __TestMethod(self,
                      test_method_name,
                      analytical_method,
@@ -183,6 +220,9 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                 self.assertMatrixAlmostEqual(value_a, value_b, tolerance)
             elif (isinstance(value_a, Kratos.Vector)):
                 self.assertVectorAlmostEqual(value_a, value_b, tolerance)
+            elif (isinstance(value_a, list)):
+                for i in range(len(value_a)):
+                    self.assertAlmostEqual(value_a[i], value_b[i], tolerance)
             else:
                 self.assertAlmostEqual(value_a, value_b, tolerance)
 
