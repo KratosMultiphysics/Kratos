@@ -79,8 +79,9 @@ public:
     ///@{
 
     /// Definition of the flags
-    KRATOS_DEFINE_LOCAL_FLAG( SCALE_DIAGONAL );
+    KRATOS_DEFINE_LOCAL_FLAG( NO_SCALING );
     KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_PRESCRIBED_DIAGONAL );
     KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
 
     /// Definition of the pointer
@@ -144,15 +145,20 @@ public:
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
-            mOptions.Set(SCALE_DIAGONAL, false);
+            mOptions.Set(NO_SCALING, false);
+            mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+            mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
         } else {
-            mOptions.Set(SCALE_DIAGONAL, true);
+            mOptions.Set(NO_SCALING, true);
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+                mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
             } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
+                mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
             } else {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
+                mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, true);
                 // We assume it is a number
                 std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
                 number_stream >> mScaleFactor; 
@@ -167,7 +173,7 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver) 
         : BaseType(pNewLinearSystemSolver)
     {
-        mOptions.Set(SCALE_DIAGONAL, false);
+        mOptions.Set(NO_SCALING, false);
         mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
         mOptions.Set(SILENT_WARNINGS, false);
     }
@@ -1566,8 +1572,9 @@ protected:
      */
     double GetScaleNorm(TSystemMatrixType& rA)
     {
-        if (mOptions.Is(SCALE_DIAGONAL) ) {
-            if (mScaleFactor > 1.0) {
+        if (mOptions.Is(NO_SCALING) ) {
+            if (mOptions.Is(CONSIDER_PRESCRIBED_DIAGONAL)) {
+                KRATOS_DEBUG_ERROR_IF(mScaleFactor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
                 return mScaleFactor;
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
@@ -1773,11 +1780,13 @@ private:
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SCALE_DIAGONAL(Kratos::Flags::Create(0));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::NO_SCALING(Kratos::Flags::Create(0));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(2));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_PRESCRIBED_DIAGONAL(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(3));
 
 ///@}
 
