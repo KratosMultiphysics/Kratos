@@ -17,7 +17,6 @@
 #define  KRATOS_CAD_INTEGRATION_DOMAIN_H_INCLUDED
 
 
-
 // System includes
 
 // External includes
@@ -104,6 +103,15 @@ private:
         ModelPart& rCadSubModelPart,
         std::string& rConditionName,
         int& rIdCounter,
+        int EchoLevel = 0);
+
+    /// Searches for nodes with geometrical criteria
+    static void GetGeometryPointsAt(
+        GeometriesArrayType& rGeometryList,
+        ModelPart& rCadSubModelPart,
+        const std::string& rGeometryType,
+        const Parameters& rParameters,
+        IndexType SpecificationType,
         int EchoLevel = 0);
 
     /// Searches for nodes in surfaces with geometrical criteria
