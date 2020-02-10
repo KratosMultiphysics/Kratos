@@ -19,7 +19,6 @@
 
 // Project includes
 #include "custom_python/add_custom_methods_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/define_python.h"
 #include "statistics_application.h"
@@ -37,7 +36,6 @@ PYBIND11_MODULE(KratosStatisticsApplication, m)
         m, "KratosStatisticsApplication")
         .def(py::init<>());
 
-    AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomMethodsToPython(m);
 

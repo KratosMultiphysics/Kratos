@@ -11,26 +11,23 @@
 //                   Author2 Fullname
 //
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
-
+#if !defined(KRATOS_ADD_SPATIAL_HISTORICAL_METHODS_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_SPATIAL_HISTORICAL_METHODS_TO_PYTHON_H_INCLUDED
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
 
+namespace Kratos
+{
+namespace Python
+{
+void AddCustomSpatialHistoricalMethodsToPython(pybind11::module& m);
 
-namespace Kratos {
-namespace Python {
+} // namespace Python.
+} // namespace Kratos.
 
-void  AddCustomStrategiesToPython(pybind11::module& m);
-
-}  // namespace Python.
-}  // namespace Kratos.
-
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_SPATIAL_HISTORICAL_METHODS_TO_PYTHON_H_INCLUDED  defined
