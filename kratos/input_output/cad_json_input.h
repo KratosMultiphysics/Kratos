@@ -154,19 +154,10 @@ private:
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - edges." << std::endl;
 
-            ReadBrepEdges(rParameters[brep_index], rModelPart, EchoLevel);
-        }
-    }
-
-
-    static void ReadBrepEdges(
-        const Parameters& rParameters,
-        ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
-    {
-        if (rParameters.Has("edges"))
-        {
-            ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart, EchoLevel);
+            if (rParameters[brep_index].Has("edges"))
+            {
+                ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, EchoLevel);
+            }
         }
     }
 
