@@ -22,21 +22,19 @@
 #include "custom_methods/spatial_methods.h"
 
 // Include base h
-#include "add_custom_spatial_historical_methods_to_python.h"
+#include "add_custom_spatial_historical_nodal_methods_to_python.h"
 
 namespace Kratos
 {
 namespace Python
 {
-void AddCustomSpatialHistoricalMethodsToPython(pybind11::module& m)
+void AddCustomSpatialHistoricalNodalMethodsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
     // Adding spatial methods
-    auto spatial_historical_method = m.def_submodule("Historical");
-
     using HistoricalSpatialMethods = SpatialMethods::HistoricalSpatialMethods;
-    spatial_historical_method.def_submodule("ValueMethods")
+    m.def_submodule("ValueMethods")
         .def("Sum", &HistoricalSpatialMethods::CalculateSum<double>)
         .def("Sum", &HistoricalSpatialMethods::CalculateSum<array_1d<double, 3>>)
         .def("Mean", &HistoricalSpatialMethods::CalculateMean<double>)
@@ -44,7 +42,7 @@ void AddCustomSpatialHistoricalMethodsToPython(pybind11::module& m)
         .def("Variance", &HistoricalSpatialMethods::CalculateVariance<double>)
         .def("Variance", &HistoricalSpatialMethods::CalculateVariance<array_1d<double, 3>>)
         ;
-    spatial_historical_method.def_submodule("NormMethods")
+    m.def_submodule("NormMethods")
         .def("Sum", &HistoricalSpatialMethods::CalculateNormSum<double>)
         .def("Sum", &HistoricalSpatialMethods::CalculateNormSum<array_1d<double, 3>>)
         .def("Sum", &HistoricalSpatialMethods::CalculateNormSum<Vector>)

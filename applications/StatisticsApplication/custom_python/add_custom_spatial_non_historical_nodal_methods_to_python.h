@@ -11,8 +11,8 @@
 //                   Author2 Fullname
 //
 
-#if !defined(KRATOS_ADD_SPATIAL_NON_HISTORICAL_METHODS_TO_PYTHON_H_INCLUDED)
-#define KRATOS_ADD_SPATIAL_NON_HISTORICAL_METHODS_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_SPATIAL_NON_HISTORICAL_NODAL_METHODS_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_SPATIAL_NON_HISTORICAL_NODAL_METHODS_TO_PYTHON_H_INCLUDED
 
 // System includes
 
@@ -25,9 +25,9 @@ namespace Kratos
 {
 namespace Python
 {
-void AddCustomSpatialNonHistoricalMethodsToPython(pybind11::module& m);
+void AddCustomSpatialNonHistoricalNodalMethodsToPython(pybind11::module& m);
 
 } // namespace Python.
 } // namespace Kratos.
 
-#endif // KRATOS_ADD_SPATIAL_NON_HISTORICAL_METHODS_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_SPATIAL_NON_HISTORICAL_NODAL_METHODS_TO_PYTHON_H_INCLUDED  defined
