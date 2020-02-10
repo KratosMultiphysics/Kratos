@@ -265,20 +265,20 @@ namespace Kratos
             return rA;
         }
 
-//         static void DebugLHS(const SparseSpaceType::MatrixType& rA)
-//         {
-//             for (std::size_t i = 0; i < rA.size1(); ++i) {
-//                 for (std::size_t j = 0; j < rA.size2(); ++j) {
-//                     if (std::abs(rA(i, j)) > 0.99) {
-//                         std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - ";
-//                         std::cout << std::fixed;
-//                         std::cout << std::setprecision(16);
-//                         std::cout << rA(i, j);
-//                         std::cout << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
-//                     }
-//                 }
-//             }
-//         }
+        static void DebugLHS(const SparseSpaceType::MatrixType& rA)
+        {
+            for (std::size_t i = 0; i < rA.size1(); ++i) {
+                for (std::size_t j = 0; j < rA.size2(); ++j) {
+                    if (std::abs(rA(i, j)) > 0.99) {
+                        std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - ";
+                        std::cout << std::fixed;
+                        std::cout << std::setprecision(16);
+                        std::cout << rA(i, j);
+                        std::cout << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
+                    }
+                }
+            }
+        }
 
         /**
          * Checks if the block builder and solver performs correctly the assemble of the system
@@ -377,7 +377,7 @@ namespace Kratos
         /**
          * Checks if the block builder and solver with lagrange multiplier performs correctly the assemble of the system
          */
-        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithLagrangeMultiplier, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithLagrangeMultiplier, KratosCoreFastSuite2)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
@@ -388,7 +388,6 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "scale_diagonal"                      : true,
                 "silent_warnings"                     : false,
                 "consider_double_lagrange_multiplier" : false
             })" );
@@ -396,8 +395,10 @@ namespace Kratos
 
             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-//             // To create the solution of reference
-//             DebugLHS(rA);
+            KRATOS_WATCH(rA)
+            
+            // To create the solution of reference
+            DebugLHS(rA);
 
             // The solution check
             constexpr double tolerance = 1e-8;
@@ -431,7 +432,6 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "scale_diagonal"                      : true,
                 "silent_warnings"                     : false,
                 "consider_double_lagrange_multiplier" : true
             })" );
@@ -844,7 +844,6 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "scale_diagonal"                      : true,
                 "silent_warnings"                     : false,
                 "consider_double_lagrange_multiplier" : false
             })" );
@@ -993,7 +992,6 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "scale_diagonal"                      : true,
                 "silent_warnings"                     : false,
                 "consider_double_lagrange_multiplier" : true
             })" );

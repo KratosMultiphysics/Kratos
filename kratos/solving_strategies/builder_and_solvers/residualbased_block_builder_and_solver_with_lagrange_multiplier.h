@@ -72,6 +72,8 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( DOUBLE_LAGRANGE_MULTIPLIER );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR );
 
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier);
@@ -123,30 +125,61 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                                : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
-            "scale_diagonal"                      : true,
-            "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
-            "silent_warnings"                     : false,
-            "consider_double_lagrange_multiplier" : true
+            "name"                                               : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
+            "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
+            "constraint_scale_factor"                            : "use_mean_diagonal",
+            "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal",
+            "silent_warnings"                                    : false,
+            "consider_lagrange_multiplier_constraint_resolution" : "Double"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Setting flags
-        BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
-        if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-            BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
-        } else if (r_diagonal_values_for_dirichlet_dofs == "use_lhs_norm") {
-            BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
+        if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
+            BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, false);
+        } else { 
+            BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, true);
+            if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+                BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
+                BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+            } else {
+                BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
+                // We assume it is a number
+                std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
+                number_stream >> BaseType::mScaleFactor; 
+            }
+        }
+        const std::string& r_constraint_scale_factor = ThisParameters["constraint_scale_factor"].GetString();
+        if (r_constraint_scale_factor == "use_mean_diagonal") {
+            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
+        } else if (r_constraint_scale_factor == "use_diagonal_norm") {
+            BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
         } else {
-            BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
+            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
             // We assume it is a number
-            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
-            number_stream >> BaseType::mScaleFactor; 
+            std::stringstream number_stream(r_constraint_scale_factor); 
+            number_stream >> mConstraintScaleFactor; 
+        }
+        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["auxiliar_constraint_scale_factor"].GetString();
+        if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
+            BaseType::mOptions.Set(AUXILIAR_CONSTRAINT_SCALE_FACTOR, false);
+        } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") {
+            BaseType:: mOptions.Set(AUXILIAR_CONSTRAINT_SCALE_FACTOR, true);
+        } else {
+            BaseType::mOptions.Set(AUXILIAR_CONSTRAINT_SCALE_FACTOR, false);
+            // We assume it is a number
+            std::stringstream number_stream(r_auxiliar_constraint_scale_factor); 
+            number_stream >> mAuxiliarConstraintScaleFactor; 
         }
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
-        BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ThisParameters["consider_double_lagrange_multiplier"].GetBool());
+        if (ThisParameters["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
+            BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
+        } else {
+            BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, false);
+        }
     }
 
     /**
@@ -743,9 +776,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave;
-    
-    TSystemVectorType mLagrangeMultiplierVector; /// This is vector containing the Lagrange multiplier solution
+    std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave; /// A map of the correspondance between the slave dofs
+    TSystemVectorType mLagrangeMultiplierVector;                       /// This is vector containing the Lagrange multiplier solution
+    double mConstraintScaleFactor = 0.0;                               /// The constraint scale factor
+    double mAuxiliarConstraintScaleFactor = 0.0;                       /// The auxiliar constraint scale factor
 
     ///@}
     ///@name Protected Operators
@@ -1067,6 +1101,10 @@ private:
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(4));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR(Kratos::Flags::Create(5));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR(Kratos::Flags::Create(6));
 
 ///@}
 

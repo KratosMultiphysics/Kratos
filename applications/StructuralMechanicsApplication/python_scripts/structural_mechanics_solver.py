@@ -114,11 +114,11 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "compute_reactions": true,
             "block_builder" : true,
-            "consider_lagrange_multiplier_constraint_resolution" : "none",
             "builder_and_solver_settings" : {
-                "diagonal_values_for_dirichlet_dofs"  : "use_max_diagonal",
-                "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : true
+                "consider_lagrange_multiplier_constraint_resolution" : "none",
+                "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
+                "silent_warnings"                                    : false,
+                "consider_double_lagrange_multiplier"                : true
             },
             "clear_storage": false,
             "move_mesh_flag": true,
@@ -440,14 +440,11 @@ class MechanicalSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]
-            consider_lagrange_multiplier_constraint_resolution = self.settings["consider_lagrange_multiplier_constraint_resolution"].GetString()
+            consider_lagrange_multiplier_constraint_resolution = self.settings["builder_and_solver_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString()
             if consider_lagrange_multiplier_constraint_resolution == "none":
                 bs_params.RemoveValue("consider_double_lagrange_multiplier")
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
-                double_lm = True if consider_lagrange_multiplier_constraint_resolution == 'Double' else False
-                bs_params.AddValue("consider_double_lagrange_multiplier",self.settings["scale_diagonal"])
-                bs_params["consider_double_lagrange_multiplier"].SetBool(double_lm)
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
