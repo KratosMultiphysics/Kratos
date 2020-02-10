@@ -51,8 +51,19 @@ class MechanicalSolver(PythonSolver):
         if settings_have_smps_for_comp_mp:
             kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
 
+        # Clean up settings
+        settings_have_block_builder = custom_settings.Has("block_builder")
+        if settings_have_block_builder:
+            block_builder = custom_settings["block_builder"].GetBool()
+            custom_settings.RemoveValue("block_builder")
+
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
+
+        # Throwing warning for the block_builder setting
+        if settings_have_block_builder:
+            custom_settings["builder_and_solver_settings"]["block_builder"].SetBool(block_builder)
+            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder" directly is deprecated, please move it to builder_and_solver_settings')
 
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -113,8 +124,8 @@ class MechanicalSolver(PythonSolver):
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
-            "block_builder" : true,
             "builder_and_solver_settings" : {
+                "block_builder"                      : true,
                 "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
                 "silent_warnings"                    : false
             },
@@ -436,8 +447,8 @@ class MechanicalSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            bs_params = self.settings["builder_and_solver_settings"]
+        bs_params = self.settings["builder_and_solver_settings"]
+        if bs_params["block_builder"].GetBool():
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
