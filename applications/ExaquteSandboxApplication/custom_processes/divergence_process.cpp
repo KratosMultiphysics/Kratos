@@ -77,9 +77,12 @@ namespace Kratos
 
         // Auxiliar containers
         GeometryData::ShapeFunctionsGradientsType DN_DX;
+        Vector grad_x;
+        Vector grad_y;
+        Vector grad_z;
 
         // Iterate over the elements
-        #pragma omp parallel for firstprivate(DN_DX)
+        #pragma omp parallel for firstprivate(DN_DX,grad_x,grad_y,grad_z)
         for(int i_elem = 0; i_elem < static_cast<int>(number_elements); ++i_elem) {
             auto it_elem = mrModelPart.ElementsBegin() + i_elem;
             const auto& r_geometry = it_elem->GetGeometry();
@@ -95,9 +98,7 @@ namespace Kratos
                 const auto &r_velocity = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
                 values_x[i_node] = r_velocity[0];
                 values_y[i_node] = r_velocity[1];
-                if (dimension == 3) {
-                    values_z[i_node] = r_velocity[2];
-                }
+                values_z[i_node] = r_velocity[2];
             }
 
             // Set integration points
@@ -117,14 +118,9 @@ namespace Kratos
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ){
 
                 // Compute local gradient
-                Vector grad_x;
-                Vector grad_y;
-                Vector grad_z;
                 grad_x = prod(trans(DN_DX[point_number]), values_x);
                 grad_y = prod(trans(DN_DX[point_number]), values_y);
-                if (dimension == 3) {
-                    grad_z = prod(trans(DN_DX[point_number]), values_z);
-                }
+                grad_z = prod(trans(DN_DX[point_number]), values_z);
 
                 // Compute divergence and velocity seminorm
                 const double aux_current_divergence = ComputeAuxiliaryElementDivergence(grad_x, grad_y, grad_z);
@@ -147,12 +143,7 @@ namespace Kratos
     {
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         double aux_current_divergence;
-        if (dimension == 2) {
-            aux_current_divergence = grad_x[0] + grad_y[1];
-        }
-        else if (dimension == 3) {
-            aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
-        }
+        aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
         return aux_current_divergence;
     }
 
@@ -161,12 +152,7 @@ namespace Kratos
     {
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         double aux_current_velocity_seminorm;
-        if (dimension == 2) {
-            aux_current_velocity_seminorm = inner_prod(grad_x, grad_x) + inner_prod(grad_y, grad_y);
-        }
-        else if (dimension == 3) {
-            aux_current_velocity_seminorm = inner_prod(grad_x, grad_x) + inner_prod(grad_y, grad_y) + inner_prod(grad_z,grad_z);
-        }
+        aux_current_velocity_seminorm = inner_prod(grad_x, grad_x) + inner_prod(grad_y, grad_y) + inner_prod(grad_z,grad_z);
         return aux_current_velocity_seminorm;
     }
 
