@@ -293,7 +293,7 @@ class MorSecondOrderIRKAStrategy
         ComplexSparseSpaceType::Set(r_tmp_dx, 0.0);
 
         // create dynamic stiffness matrix
-        auto  kdyn = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        auto kdyn = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_kdyn   = *kdyn;
         ComplexSparseSpaceType::Resize(r_kdyn, system_size, system_size); // n x n
         ComplexSparseSpaceType::SetToZero(r_kdyn);
@@ -303,15 +303,18 @@ class MorSecondOrderIRKAStrategy
         //initial basis
         for( size_t i=0; i<n_sampling_points/2; ++i )
         {
-            noalias(r_kdyn) = r_D;
             if( TUseModalDamping )
-                r_kdyn *= complex(0,1);
+                noalias(r_kdyn) = r_K_cplx;
             else
+            {
+                noalias(r_kdyn) = r_D;
                 r_kdyn *= mSamplingPoints(2*i);
-            r_kdyn += r_K;
+                r_kdyn += r_K;
+            }
             r_kdyn += std::pow( mSamplingPoints(2*i), 2.0 ) * r_M_tmp;
+            this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp );
 
-            this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp); // Ax = b, solve for x
+            KRATOS_DEBUG_ERROR_IF(isinf(norm_2(r_tmp_dx))) << "No solution could be obtained (norm infinity)!";
 
             column(r_basis, 2*i)   = real(r_tmp_dx);
             column(r_basis, 2*i+1) = imag(r_tmp_dx);
