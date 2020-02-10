@@ -26,11 +26,11 @@ namespace Kratos
 class IntegrationPointUtilities
 {
 
-private:
+public:
     ///@name private static members
     ///@{
 
-    static std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
+    static const std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
 
     ///@}
 public:
@@ -60,5 +60,6 @@ public:
 
     ///@}
 };
+
 }
 #endif // KRATOS_INTEGRATION_POINT_UTILITIES_INCLUDED  defined
