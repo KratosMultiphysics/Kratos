@@ -874,7 +874,7 @@ public:
         TSystemVectorType& rb
         ) override
     {
-        std::size_t system_size = rA.size1();
+        const std::size_t system_size = rA.size1();
         Vector scaling_factors (system_size);
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
