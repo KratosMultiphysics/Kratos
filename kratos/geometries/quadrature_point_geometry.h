@@ -101,13 +101,8 @@ public:
         const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
         const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
         GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            rIntegrationPoints,
-            rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector)
+        : QuadraturePointGeometry(ThisPoints, rIntegrationPoints,
+            rShapeFunctionValues, rShapeFunctionsDerivativesVector)
         , mpGeometryParent(pGeometryParent)
     {
     }
@@ -128,10 +123,7 @@ public:
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            ThisGeometryShapeFunctionContainer)
+        : QuadraturePointGeometry(ThisPoints, ThisGeometryShapeFunctionContainer)
         , mpGeometryParent(pGeometryParent)
     {
     }
@@ -160,14 +152,8 @@ public:
         const Matrix& ThisShapeFunctionsValues,
         const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
         GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
-                ThisIntegrationPoint,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsDerivatives))
+        : QuadraturePointGeometry(ThisPoints, ThisIntegrationPoint,
+            ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives)
         , mpGeometryParent(pGeometryParent)
     {
     }
