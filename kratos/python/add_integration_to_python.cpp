@@ -28,7 +28,9 @@ void  AddIntegrationToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    m.def("CreateIntegrationDomain", &CadIntegrationDomain::CreateIntegrationDomain);
+    //py::class_<CadIntegrationDomain>(m, "CadIntegrationDomain")
+    //    .def("CreateIntegrationDomain", &CadIntegrationDomain::CreateIntegrationDomain);
+    //m.def("CreateIntegrationDomain", &CadIntegrationDomain::CreateIntegrationDomain);
 }
 
 }  // namespace Python.

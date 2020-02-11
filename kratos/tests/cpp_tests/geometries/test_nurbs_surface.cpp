@@ -436,7 +436,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
         double area = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
-            for (IndexType j = 0; j < quadrature_points.size(); ++j) {
+            for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
                 area += quadrature_points[i].IntegrationPoints()[j].Weight();
             }
         }
