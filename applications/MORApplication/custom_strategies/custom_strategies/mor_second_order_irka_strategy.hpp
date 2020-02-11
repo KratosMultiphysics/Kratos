@@ -190,14 +190,14 @@ class MorSecondOrderIRKAStrategy
     ~MorSecondOrderIRKAStrategy() override
     {
 
-        // if (mpM != nullptr)
-        //     TSolutionSpace::Clear(mpM);
-        // if (mpK != nullptr)
-        //     TSolutionSpace::Clear(mpK);
-        // if (mpD != nullptr)
-        //     TSolutionSpace::Clear(mpD);
-        // if (mpb != nullptr)
-        //     TSolutionSpace::Clear(mpb);
+        if (this->mpM != nullptr)
+            TSparseSpace::Clear(this->mpM);
+        if (this->mpA != nullptr)
+            TSparseSpace::Clear(this->mpA);
+        if (this->mpS != nullptr)
+            TSparseSpace::Clear(this->mpS);
+        // if (this->mp != nullptr)
+        //     TSparseSpace::Clear(mpb);
 
 
         this->Clear();
@@ -211,8 +211,8 @@ class MorSecondOrderIRKAStrategy
         {
             BaseType::InitializeSolutionStep();
 
-            const std::size_t reduced_system_size = mSamplingPoints.size();
-            const unsigned int system_size = this->GetBuilderAndSolver()->GetEquationSystemSize();
+            const size_t reduced_system_size = mSamplingPoints.size();
+            const size_t system_size = this->GetSystemSize();
 
             TReducedDenseSpace::Resize(this->GetKr(), reduced_system_size, reduced_system_size);
             TReducedDenseSpace::Resize(this->GetDr(), reduced_system_size, reduced_system_size);
@@ -266,7 +266,7 @@ class MorSecondOrderIRKAStrategy
         TReducedDenseMatrixType& r_Dr = this->GetDr();
 
         // set the system sizes
-        const size_t system_size = p_builder_and_solver->GetEquationSystemSize();
+        const size_t system_size = this->GetSystemSize();
         const size_t n_sampling_points = mSamplingPoints.size();
         const size_t reduced_system_size = n_sampling_points;
 
@@ -296,7 +296,6 @@ class MorSecondOrderIRKAStrategy
         auto kdyn = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_kdyn   = *kdyn;
         ComplexSparseSpaceType::Resize(r_kdyn, system_size, system_size); // n x n
-        ComplexSparseSpaceType::SetToZero(r_kdyn);
 
         BuiltinTimer irka_overall_time;
 

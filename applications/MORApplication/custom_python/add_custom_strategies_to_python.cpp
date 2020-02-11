@@ -133,6 +133,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetM", &MorSecondOrderRealInRealOutOfflineStrategyType::GetMassMatrix)
         .def("GetBasis", &MorSecondOrderRealInRealOutOfflineStrategyType::GetBasis)
         .def("GetKr", &MorSecondOrderRealInRealOutOfflineStrategyType::GetKr)
+        .def("ImportSystem", &MorSecondOrderRealInRealOutOfflineStrategyType::ImportSystem)
         ;
     py::class_< MorSecondOrderRealInComplexOutOfflineStrategyType, typename MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInComplexOutOfflineStrategy")
         .def("EchoInfo", &MorSecondOrderRealInComplexOutOfflineStrategyType::EchoInfo)
@@ -146,6 +147,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetDr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetDr)
         .def("GetMr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetMr)
         .def("GetOutputVectorR", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetOVr)
+        .def("ImportSystem", &MorSecondOrderRealInComplexOutOfflineStrategyType::ImportSystem)
         ;
     // py::class_< MorSecondOrderComplexInComplexOutOfflineStrategyType, typename MorSecondOrderComplexInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderComplexInComplexOutOfflineStrategy");
 

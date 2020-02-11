@@ -163,8 +163,7 @@ class MorOfflineSecondOrderStrategy
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
-        std::cout << "baseclass constructor\n";
-        // KRATOS_WATCH(mSolutionStepIsInitialized)
+        mImportedSystem = false;
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
@@ -178,6 +177,19 @@ class MorOfflineSecondOrderStrategy
 
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(0);
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpS = TSparseSpace::CreateEmptyMatrixPointer();
+        mpM = TSparseSpace::CreateEmptyMatrixPointer();
+        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        mpOV = TSparseSpace::CreateEmptyVectorPointer();
+
+        mpAr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
+        mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
+        mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpSr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
         KRATOS_CATCH("");
     }
@@ -310,18 +322,6 @@ class MorOfflineSecondOrderStrategy
 
         if (mInitializeWasPerformed == false)
         {
-            mpA = TSparseSpace::CreateEmptyMatrixPointer();
-            mpS = TSparseSpace::CreateEmptyMatrixPointer();
-            mpM = TSparseSpace::CreateEmptyMatrixPointer();
-            mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-            mpOV = TSparseSpace::CreateEmptyVectorPointer();
-
-            mpAr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-            mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-            mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
-            mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
-            mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
-            mpSr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -406,8 +406,9 @@ class MorOfflineSecondOrderStrategy
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-                mReformDofSetAtEachStep == true)
+            if ((p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
+                mReformDofSetAtEachStep == true) &&
+                mImportedSystem == false)
             {
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
@@ -589,20 +590,42 @@ class MorOfflineSecondOrderStrategy
         return 0;
 
         KRATOS_CATCH("")
+
+    }
+
+    void ImportSystem(TSystemMatrixType& rK, TSystemMatrixType& rD, TSystemMatrixType& rM, TSystemVectorType& rRHS, TSystemVectorType& rOV)
+    {
+        Initialize();
+        
+        TSystemMatrixType& A = *mpA;
+        A = TSystemMatrixType(rK);
+        
+        TSystemMatrixType& D = *mpS;
+        D = TSystemMatrixType(rD);
+        
+        TSystemMatrixType& M = *mpM;
+        M = TSystemMatrixType(rM);
+        
+        TSystemVectorType& RHS = *mpRHS;
+        RHS = TSystemVectorType(rRHS);
+        
+        TSystemVectorType& OV = *mpOV;
+        OV = TSystemVectorType(rOV);
+        
+        mImportedSystem = true;
     }
 
     /**
      * @brief This method returns the components of the system of equations depending of the echo level
      * @param IterationNumber The non linear iteration in the solution loop
      */
-    virtual void EchoInfo()
+    virtual void EchoInfo(const std::string prefix)
     {
-        TSystemMatrixType& rA  = *mpA;
+        TSystemMatrixType& rA = *mpA;
         TSystemMatrixType& rM = *mpM;
-        TSystemVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rS  = *mpS;
-
-        TReducedDenseVectorType& rRHSr = *mpRHSr;
+        TSystemMatrixType& rD = *mpS;
+        TSystemVectorType& rRHS = *mpRHS;
+        TSystemVectorType& rOV = *mpOV;
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
@@ -616,24 +639,24 @@ class MorOfflineSecondOrderStrategy
             KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
         }
         std::stringstream matrix_market_name;
-        matrix_market_name << "K.mm";
+        matrix_market_name << prefix << "_K.mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
 
         std::stringstream matrix_market_mass_name;
-        matrix_market_mass_name << "M.mm";
+        matrix_market_mass_name << prefix << "_M.mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
 
         std::stringstream matrix_market_damping_name;
-        matrix_market_damping_name << "D.mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
+        matrix_market_damping_name << prefix << "_D.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rD, false);
 
         std::stringstream matrix_market_vectname;
-        matrix_market_vectname << "RHS.mm";
+        matrix_market_vectname << prefix << "_RHS.mm";
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
 
-        std::stringstream matrix_market_reduced_vectname;
-        matrix_market_reduced_vectname << "RHS_r.mm";
-        TReducedDenseSpace::WriteMatrixMarketVector((char *)(matrix_market_reduced_vectname.str()).c_str(), rRHSr);
+        std::stringstream matrix_market_outvectname;
+        matrix_market_outvectname << prefix << "_OV.mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_outvectname.str()).c_str(), rOV);
     }
 
     ///@}
@@ -762,6 +785,18 @@ class MorOfflineSecondOrderStrategy
         return mOVr;
     };
 
+    size_t GetSystemSize()
+    {
+        if( mImportedSystem )
+        {
+            return mpA->size1();
+        }
+        else
+        {
+            return this->GetBuilderAndSolver()->GetEquationSystemSize();
+        }
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -848,6 +883,8 @@ class MorOfflineSecondOrderStrategy
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     bool mUseDamping; /// Flag to set if damping should be considered
+
+    bool mImportedSystem; // Flag to set if an imported system is considered
 
     ///@}
     ///@name Protected Operators
