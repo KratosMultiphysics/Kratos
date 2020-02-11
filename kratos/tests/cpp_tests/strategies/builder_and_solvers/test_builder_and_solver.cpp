@@ -388,8 +388,8 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : "Single"
+                "silent_warnings"                                    : false,
+                "consider_lagrange_multiplier_constraint_resolution" : "Single"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -432,8 +432,8 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : "Double"
+                "silent_warnings"                                    : false,
+                "consider_lagrange_multiplier_constraint_resolution" : "Double"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -844,8 +844,8 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : "Single"
+                "silent_warnings"                                    : false,
+                "consider_lagrange_multiplier_constraint_resolution" : "Single"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -992,8 +992,8 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters parameters = Parameters(R"(
             {
-                "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : "Double"
+                "silent_warnings"                                    : false,
+                "consider_lagrange_multiplier_constraint_resolution" : "Double"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
