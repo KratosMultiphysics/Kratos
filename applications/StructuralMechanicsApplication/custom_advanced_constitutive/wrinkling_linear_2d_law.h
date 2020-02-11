@@ -42,7 +42,7 @@ namespace Kratos
 /**
  * @class WrinklingLinear2DLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This law defines a wrinkling modification for any 2D claw
+ * @brief This law defines a wrinkling modification for any linear 2D claw
  * @author Klaus B. Sautter
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) WrinklingLinear2DLaw
@@ -121,187 +121,395 @@ public:
      */
     SizeType GetStrainSize() override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (template)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     template <class T>
     bool THas(const Variable<T>& rTemplateVariable) const;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (bool)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<bool>& rThisVariable) override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (int)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<int>& rThisVariable) override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<double>& rThisVariable) override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<Vector>& rThisVariable) override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<Matrix>& rThisVariable) override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (array_1d<double, 3 >)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override;
 
-
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (array_1d<double, 6 >)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override;
 
 
-
+    /**
+     * @brief Returns the value of a specified variable (template)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     template <class T>
     T& TGetValue(const Variable<T>& rTemplateVariable, T& rTemplateValue);
 
-
+    /**
+     * @brief Returns the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     bool& GetValue(
         const Variable<bool>& rThisVariable,
         bool& rValue
         ) override;
 
-
+    /**
+     * @brief Returns the value of a specified variable (int)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     int& GetValue(
         const Variable<int>& rThisVariable,
         int& rValue
         ) override;
 
-
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     double& GetValue(
         const Variable<double>& rThisVariable,
         double& rValue
         ) override;
 
-
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     Vector& GetValue(
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
 
-
+    /**
+     * @brief Returns the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     Matrix& GetValue(
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
 
-
+    /**
+     * @brief Returns the value of a specified variable (array_1d<double, 3 > )
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     array_1d<double, 3 > & GetValue(
         const Variable<array_1d<double, 3 > >& rThisVariable,
         array_1d<double, 3 > & rValue
         ) override;
 
-
+    /**
+     * @brief Returns the value of a specified variable (array_1d<double, 6 > )
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     array_1d<double, 6 > & GetValue(
         const Variable<array_1d<double, 6 > >& rThisVariable,
         array_1d<double, 6 > & rValue
         ) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (bool)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     bool& CalculateValue(
         Parameters& rParameterValues,
         const Variable<bool>& rThisVariable,
         bool& rValue
         ) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (int)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     int& CalculateValue(
         Parameters& rParameterValues,
         const Variable<int>& rThisVariable,
         int& rValue
         ) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     double& CalculateValue(
         Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue
         ) override;
 
+
+    /**
+     * @brief Calculates the value of a specified variable (Vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     Vector& CalculateValue(
         Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (Matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
      Matrix& CalculateValue(
         Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
 
+
+    /**
+     * @brief Calculates the value of a specified variable (array_1d<double, 3 >)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
      array_1d<double, 3 > & CalculateValue(
         Parameters& rParameterValues,
         const Variable<array_1d<double, 3 > >& rVariable,
         array_1d<double, 3 > & rValue
         ) override;
 
+
+    /**
+     * @brief Calculates the value of a specified variable (array_1d<double, 6 >)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     array_1d<double, 6 > & CalculateValue(
         Parameters& rParameterValues,
         const Variable<array_1d<double, 6 > >& rVariable,
         array_1d<double, 6 > & rValue
         ) override;
 
+
+    /**
+     * @brief Sets the value of a specified variable (boolean)
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<bool>& rThisVariable,
         const bool& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Sets the value of a specified variable (int)
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<int>& rThisVariable,
         const int& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
      void SetValue(
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Sets the value of a specified variable (Vector)
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<Vector >& rThisVariable,
         const Vector& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Sets the value of a specified variable (Matrix)
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<Matrix >& rThisVariable,
         const Matrix& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Sets the value of a specified variable (array_1d<double, 3 > )
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<array_1d<double, 3 > >& rThisVariable,
         const array_1d<double, 3 > & rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+
+    /**
+     * @brief Sets the value of a specified variable (array_1d<double, 6 > )
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<array_1d<double, 6 > >& rThisVariable,
         const array_1d<double, 6 > & rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * This is to be called at the very beginning of the calculation
+     * (e.g. from InitializeElement) in order to initialize all relevant
+     * attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
     void InitializeMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
         ) override;
 
+
+    /**
+     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
     void CalculateMaterialResponsePK2 (Parameters& rValues) override;
 
-
+    /**
+     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
     void InitializeMaterialResponsePK2 (Parameters& rValues) override;
 
 
+    /**
+     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
     void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
 
 
+    /**
+     * This can be used in order to reset all internal variables of the
+     * constitutive law (e.g. if a model should be reset to its reference state)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param the current ProcessInfo instance
+     */
     void ResetMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
         ) override;
 
-
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
     void GetLawFeatures(Features& rFeatures) override;
 
 
+    /**
+     * This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return
+     */
     int Check(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,

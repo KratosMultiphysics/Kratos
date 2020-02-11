@@ -370,7 +370,7 @@ void WrinklingLinear2DLaw::InitializeMaterial(
 void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
-    // do standard calculation
+    // Do standard calculation
     Vector strain_vector = rValues.GetStrainVector();
     Vector stress_vector = ZeroVector(3);
 
@@ -385,30 +385,30 @@ void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parame
     element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     mpConstitutiveLaw->CalculateMaterialResponsePK2(element_parameters);
 
-    // consider initial pre-stress state which is calculated on element level (i.e. projection)
-    // this must be manually set in the element
+    // Consider initial pre-stress state which is calculated on element level (i.e. projection)
+    // This must be manually set in the element
     Vector pre_stress_vector = ZeroVector(3);
     if (rValues.IsSetStressVector()){
         pre_stress_vector = rValues.GetStressVector();
         stress_vector += pre_stress_vector;
     }
 
-    // check wrinkling state
+    // Check wrinkling state
     Vector wrinkling_direction = ZeroVector(2);
     WrinklingType current_wrinkling_state;
     CheckWrinklingState(current_wrinkling_state,stress_vector,strain_vector,wrinkling_direction);
 
 
 
-    // apply wrinkling algorithm
-    // slack
+    // Apply wrinkling algorithm
+    // Slack
     if (current_wrinkling_state==WrinklingType::Slack){
-        // we assign -pre_stress_vector because pre_stress_vector is added in the element
-        // we want a zeroVector for the stress in case of slack
+        // We assign -pre_stress_vector because pre_stress_vector is added in the element
+        // We want a zeroVector for the stress in case of slack
         stress_vector = -1.0 * pre_stress_vector;
         material_tangent_modulus = ZeroMatrix(3);
     }
-    // wrinkling
+    // Wrinkling
     else if (current_wrinkling_state==WrinklingType::Wrinkle){
         const double n_1 = wrinkling_direction[0];
         const double n_2 = wrinkling_direction[1];
@@ -419,26 +419,26 @@ void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parame
         wrinkling_operation_vector_1[1] = n_2*n_2;
         wrinkling_operation_vector_1[2] = n_1*n_2*2.0;
 
-        Vector temp_vec = prod(material_tangent_modulus,wrinkling_operation_vector_1);
-        Matrix temp_mat = outer_prod(temp_vec,wrinkling_operation_vector_1);
+        const Vector temp_vec = prod(material_tangent_modulus,wrinkling_operation_vector_1);
+        const Matrix temp_mat = outer_prod(temp_vec,wrinkling_operation_vector_1);
         Matrix material_tangent_modulus_modified_1 = prod(temp_mat,material_tangent_modulus);
-        double temp_double = inner_prod(wrinkling_operation_vector_1,temp_vec);
+        const double temp_double = inner_prod(wrinkling_operation_vector_1,temp_vec);
 
         material_tangent_modulus_modified_1 /= temp_double;
         material_tangent_modulus_modified_1 = material_tangent_modulus - material_tangent_modulus_modified_1;
 
-        stress_vector = prod(material_tangent_modulus_modified_1,strain_vector);
-        material_tangent_modulus = material_tangent_modulus_modified_1;
+        noalias(stress_vector) = prod(material_tangent_modulus_modified_1,strain_vector);
+        noalias(material_tangent_modulus) = material_tangent_modulus_modified_1;
     }
     else {
-        // else: taut, do nothing special
-        // we substract the pre stress again to only obtain the material response
-        // pre-stress was only needed for wrinkling check
-        // pre-stress is added in the element
+        // Else: taut, do nothing special
+        // We substract the pre stress again to only obtain the material response
+        // Pre-stress was only needed for wrinkling check
+        // Pre-stress is added in the element
         stress_vector -= pre_stress_vector;
     }
 
-    // set the data on the main claw
+    // Set the data on the main claw
     Flags& r_constitutive_law_options = rValues.GetOptions();
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
@@ -490,7 +490,7 @@ void WrinklingLinear2DLaw::GetLawFeatures(Features& rFeatures)
 
 void WrinklingLinear2DLaw::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
 {
-    // make sure to divide rNonPrincipalVector[2]/2 if strains are passed
+    // Make sure to divide rNonPrincipalVector[2]/2 if strains are passed
     rPrincipalVector = ZeroVector(2);
     rPrincipalVector[0] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
     rPrincipalVector[1] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
@@ -503,7 +503,7 @@ void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, c
     Vector principal_strains = ZeroVector(2);
     Vector temp_strains = ZeroVector(3);
     temp_strains = rStrain;
-    temp_strains[2] /= 2.0; // adjust voigt strain vector to calcualte principal strains
+    temp_strains[2] /= 2.0; // Adjust voigt strain vector to calcualte principal strains
     PrincipalVector(principal_strains,temp_strains);
 
     Vector principal_stresses = ZeroVector(2);
@@ -515,7 +515,7 @@ void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, c
 
     rWrinklingDirectionVector = ZeroVector(2);
 
-    //direction check
+    // Direction check
     Vector min_stress_dir = ZeroVector(2);
     if (std::abs(rStress[2])>numerical_limit){
         min_stress_dir[0] = 1.0;
@@ -529,7 +529,7 @@ void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, c
         else min_stress_dir[1] = 1.0;
     }
     if ((min_stress > 0.0) || ((std::abs(min_stress)<numerical_limit) && (std::abs(max_stress)<numerical_limit))){
-        //second if-statement necessary for first iteration
+        //Second if-statement necessary for first iteration
         rWrinklingState = WrinklingType::Taut;
     } else if ((max_strain > 0.0) && (min_stress < numerical_limit)){
         rWrinklingState = WrinklingType::Wrinkle;
