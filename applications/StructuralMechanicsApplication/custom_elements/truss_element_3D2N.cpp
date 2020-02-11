@@ -590,7 +590,6 @@ void TrussElement3D2N::UpdateInternalForces(
     Values.SetStrainVector(temp_strain);
     mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
-
     const double normal_force =
         ((temp_internal_stresses[3] + prestress) * l * A) / L0;
 
@@ -948,6 +947,11 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
     rElasticStiffnessMatrix(4, 5) = rElasticStiffnessMatrix(1, 2);
     rElasticStiffnessMatrix(5, 4) = rElasticStiffnessMatrix(4, 5);
     KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+{
+    InitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 

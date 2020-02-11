@@ -261,6 +261,8 @@ namespace Kratos
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
+        void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
         void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;

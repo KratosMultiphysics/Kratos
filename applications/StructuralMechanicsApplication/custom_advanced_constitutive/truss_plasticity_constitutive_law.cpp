@@ -171,6 +171,11 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
         rValue = ZeroVector(dofs);
         double current_stress = this->mStressState;
 
+        double prestress = 0.00;
+        if (r_material_properties.Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
+        }
+
 
         if (this->mCurrentInElasticFlag)
         {
@@ -187,8 +192,9 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
             this->mPlasticAlphaVector[0] = this->mPlasticAlphaVector[0] + delta_gamma;
         }
 
-        rValue[0] = -1.0 * current_stress;
-        rValue[3] = 1.0 * current_stress;
+        // return only material response
+        rValue[0] = -1.0 * (current_stress-prestress);
+        rValue[3] = 1.0 * (current_stress-prestress);
 
         this->mStressState = current_stress;
 
@@ -207,9 +213,14 @@ array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::CalculateValue(
     {
         if (rVariable == FORCE)
         {
+            const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+            double prestress = 0.00;
+            if (r_material_properties.Has(TRUSS_PRESTRESS_PK2)) {
+                prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
+            }
             constexpr SizeType dimension = 3;
             rValue = ZeroVector(dimension);
-            rValue[0] = this->mStressState;
+            rValue[0] = this->mStressState-prestress;
             rValue[1] = 0.0;
             rValue[2] = 0.0;
         }
@@ -230,11 +241,19 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rV
     const double elastic_trial_strain = axial_strain-current_plastic_strain;
     const double youngs_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
 
+    double prestress = 0.00;
+    if (rValues.GetMaterialProperties().Has(TRUSS_PRESTRESS_PK2)) {
+        prestress = rValues.GetMaterialProperties()[TRUSS_PRESTRESS_PK2];
+    }
+
+
     Vector& stress_vector = rValues.GetStressVector();
 
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
     stress_vector[0] = youngs_modulus*elastic_trial_strain;
 
+    // consider pre-stress in plastic algorithm
+    stress_vector[0] += prestress;
 
     this->mStressState = stress_vector[0];
     this->mCurrentInElasticFlag = this->CheckIfIsPlasticRegime(rValues);
@@ -245,6 +264,8 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rV
         this->mPlasticAlphaVector[0] = this->mPlasticAlphaVector[1];
     }
 
+    // return only material response
+    stress_vector[0] -= prestress;
 }
 
 
