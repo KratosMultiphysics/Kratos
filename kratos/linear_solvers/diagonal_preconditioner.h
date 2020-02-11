@@ -116,7 +116,7 @@ public:
     void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mDiagonal.resize(TSparseSpaceType::Size(rX));
-        mTemp.resize(static_cast<int>(TSparseSpaceType::Size(rX)));
+        mTemp.resize(TSparseSpaceType::Size(rX));
 
         const DataType zero = DataType();
 
