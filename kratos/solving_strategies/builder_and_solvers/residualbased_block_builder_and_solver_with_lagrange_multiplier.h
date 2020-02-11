@@ -73,7 +73,9 @@ public:
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( DOUBLE_LAGRANGE_MULTIPLIER );
     KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR );
     KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR );
 
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier);
@@ -138,15 +140,18 @@ public:
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
-            BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, false);
+            BaseType::mOptions.Set(BaseType::NO_SCALING, true);
         } else { 
-            BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, true);
+            BaseType::mOptions.Set(BaseType::NO_SCALING, false);
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
                 BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+                BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
             } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
                 BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+                BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
             } else {
                 BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
+                BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, true);
                 // We assume it is a number
                 std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
                 number_stream >> BaseType::mScaleFactor; 
@@ -155,24 +160,30 @@ public:
         const std::string& r_constraint_scale_factor = ThisParameters["constraint_scale_factor"].GetString();
         if (r_constraint_scale_factor == "use_mean_diagonal") {
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
+            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
         } else if (r_constraint_scale_factor == "use_diagonal_norm") {
             BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
+            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
         } else {
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
+            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, true);
             // We assume it is a number
             std::stringstream number_stream(r_constraint_scale_factor); 
-            number_stream >> mConstraintScaleFactor; 
+            number_stream >> mConstraintFactor; 
         }
         const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["auxiliar_constraint_scale_factor"].GetString();
         if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
-            BaseType::mOptions.Set(AUXILIAR_CONSTRAINT_SCALE_FACTOR, false);
+            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
+            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
         } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") {
-            BaseType:: mOptions.Set(AUXILIAR_CONSTRAINT_SCALE_FACTOR, true);
+            BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, true);
+            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
         } else {
-            BaseType::mOptions.Set(AUXILIAR_CONSTRAINT_SCALE_FACTOR, false);
+            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
+            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, true);
             // We assume it is a number
             std::stringstream number_stream(r_auxiliar_constraint_scale_factor); 
-            number_stream >> mAuxiliarConstraintScaleFactor; 
+            number_stream >> mAuxiliarConstraintFactor; 
         }
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
         if (ThisParameters["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
@@ -189,7 +200,7 @@ public:
         : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
-        BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, true);
+        BaseType::mOptions.Set(BaseType::NO_SCALING, false);
         BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
@@ -493,13 +504,12 @@ public:
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             // First we check if CONSTRAINT_SCALE_FACTOR is defined
-            auto& r_process_info = rModelPart.GetProcessInfo();
-            if (!r_process_info.Has(CONSTRAINT_SCALE_FACTOR)) {
+            if (!BaseType::mOptions.Is(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR)) {
                 TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
                 BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
                 this->BuildLHS(pScheme, rModelPart, A);
                 const double constraint_scale_factor = BaseType::mOptions.Is(BaseType::CONSIDER_NORM_DIAGONAL) ? this->GetDiagonalNorm(A) : TSparseSpace::TwoNorm(A);
-                r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
+                mConstraintFactor = constraint_scale_factor;
             }
 
             // Check T has been computed
@@ -515,9 +525,6 @@ public:
 
             // Extend with the LM constribution
             const SizeType number_of_slave_dofs = TSparseSpace::Size1(BaseType::mT);
-
-            // Auxiliar values
-            const double constraint_scale_factor = r_process_info[CONSTRAINT_SCALE_FACTOR];
 
             // Definition of the total size of the system
             const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
@@ -537,7 +544,7 @@ public:
 
             // Compute LM contributions
             TSystemVectorType b_lm(total_size_of_system);
-            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+            ComputeRHSLMContributions(b_lm, mConstraintFactor);
 
             // Fill auxiliar vector
             TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
@@ -607,11 +614,10 @@ public:
             DenseMatrix<bool> transpose_blocks(number_of_blocks, number_of_blocks);
 
             // Definition of the auxiliar values
-            auto& r_process_info = rModelPart.GetProcessInfo();
-            const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : this->GetAveragevalueDiagonal(rA);
+            const bool has_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR);
+            const double constraint_scale_factor = has_constraint_scale_factor ? mConstraintFactor : this->GetAveragevalueDiagonal(rA);
             if (!has_constraint_scale_factor) {
-                r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
+                mConstraintFactor = constraint_scale_factor;
             }
 
             /* Fill common blocks */
@@ -635,10 +641,10 @@ public:
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Definition of the build scale factor auxiliar value
-                const bool has_auxiliar_constraint_scale_factor = r_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR);
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_process_info[AUXILIAR_CONSTRAINT_SCALE_FACTOR] : constraint_scale_factor;
+                const bool has_auxiliar_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR);
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? mAuxiliarConstraintFactor : constraint_scale_factor;
                 if (!has_auxiliar_constraint_scale_factor) {
-                    r_process_info.SetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR, auxiliar_constraint_scale_factor);
+                    mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
                 }
 
                 // Create auxiliar identity matrix
@@ -778,8 +784,8 @@ protected:
 
     std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave; /// A map of the correspondance between the slave dofs
     TSystemVectorType mLagrangeMultiplierVector;                       /// This is vector containing the Lagrange multiplier solution
-    double mConstraintScaleFactor = 0.0;                               /// The constraint scale factor
-    double mAuxiliarConstraintScaleFactor = 0.0;                       /// The auxiliar constraint scale factor
+    double mConstraintFactor = 0.0;                               /// The constraint scale factor
+    double mAuxiliarConstraintFactor = 0.0;                       /// The auxiliar constraint scale factor
 
     ///@}
     ///@name Protected Operators
@@ -1100,11 +1106,15 @@ private:
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(4));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(5));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR(Kratos::Flags::Create(5));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR(Kratos::Flags::Create(6));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR(Kratos::Flags::Create(6));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR(Kratos::Flags::Create(7));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR(Kratos::Flags::Create(8));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR(Kratos::Flags::Create(9));
 
 ///@}
 
