@@ -768,24 +768,20 @@ private:
         SizeType EchoLevel = 0)
     {
         // Check if rDataFileName ends with ".cad.json" and add it if needed.
-        std::string data_file_name = rDataFileName;
-        if (rDataFileName.compare(rDataFileName.size() - 9, 9, ".cad.json") != 0) {
-            data_file_name += ".cad.json";
-        }
+        const std::string data_file_name = (rDataFileName.compare(rDataFileName.size() - 9, 9, ".cad.json") != 0)
+            ? rDataFileName + ".cad.json"
+            : rDataFileName;
 
+        std::ifstream infile(data_file_name);
+        KRATOS_ERROR_IF_NOT(infile.good()) << "CAD geometry file: "
+            << data_file_name << " cannot be found." << std::endl;
         KRATOS_INFO_IF("ReadParamatersFile", EchoLevel > 3)
             << "Reading file: \"" << data_file_name << "\"" << std::endl;
 
-        std::ifstream cad_json_file;
-        cad_json_file.open(data_file_name);
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
 
-        // Convert std::ifstream into std::string
-        std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
-            std::istreambuf_iterator<char>());
-
-        cad_json_file.close();
-
-        return Parameters(cad_json_string);
+        return Parameters(buffer.str());
     }
 
     ///@}
