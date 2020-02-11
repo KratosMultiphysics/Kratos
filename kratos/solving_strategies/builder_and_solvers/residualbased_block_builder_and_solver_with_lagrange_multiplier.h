@@ -141,10 +141,12 @@ public:
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
             BaseType::mOptions.Set(BaseType::NO_SCALING, true);
+            BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
+            BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
         } else { 
             BaseType::mOptions.Set(BaseType::NO_SCALING, false);
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-                BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+                BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
                 BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
             } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
                 BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
@@ -203,6 +205,10 @@ public:
         BaseType::mOptions.Set(BaseType::NO_SCALING, false);
         BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
+        BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
+        BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
+        BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, true);
+        BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
     }
 
