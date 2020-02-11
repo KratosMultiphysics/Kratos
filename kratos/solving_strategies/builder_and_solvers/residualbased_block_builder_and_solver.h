@@ -867,7 +867,7 @@ public:
         const double diagonal_value = GetScaleNorm(rA);
         
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel
+        #pragma omp parallel firstprivate(system_size)
         {
             std::size_t col_begin = 0, col_end  = 0;
             bool empty = true;
@@ -891,7 +891,7 @@ public:
             }
         }
 
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(system_size)
         for (int k = 0; k < static_cast<int>(system_size); ++k) {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
