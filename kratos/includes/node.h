@@ -335,6 +335,7 @@ public:
 #ifdef _OPENMP
         omp_destroy_lock(&mNodeLock);
 #endif
+        ClearSolutionStepsData();
     }
 
     //*********************************************

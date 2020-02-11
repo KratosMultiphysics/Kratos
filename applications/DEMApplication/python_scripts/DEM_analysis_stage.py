@@ -478,13 +478,6 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
-    def InitializeTimeStep(self): # deprecated
-        message = 'Warning!'
-        message += '\nFunction \'InitializeTimeStep\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        self.InitializeSolutionStep()
-
     def InitializeSolutionStep(self):
         super(DEMAnalysisStage, self).InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
@@ -493,17 +486,13 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
-    def _BeforeSolveOperations(self, time):
-        message = 'Warning!'
-        message += '\nFunction \'_BeforeSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
+            if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
+                if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
+                    t = self.time
+                    self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
-        if self.post_normal_impact_velocity_option:
-            if self.IsCountStep():
-                self.FillAnalyticSubModelPartsWithNewParticles()
-        if self.DEM_parameters["ContactMeshOption"].GetBool():
-            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
@@ -559,7 +548,7 @@ class DEMAnalysisStage(AnalysisStage):
     def AfterSolveOperations(self):
         message = 'Warning!'
         message += '\nFunction \'AfterSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
+        message += '\nIt will be removed after 10/31/2019.\n'
         Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
@@ -677,7 +666,7 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSingleTimeStep(self):
         message = 'Warning!'
         message += '\nFunction \'FinalizeSingleTimeStep\' is deprecated. Use FinalizeSolutionStep instead.'
-        message += '\nIt will be removed after 10/15/2019.\n'
+        message += '\nIt will be removed after 10/31/2019.\n'
         Logger.PrintWarning("DEM_analysis_stage.py", message)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():

@@ -37,6 +37,9 @@ void KratosMultilevelMonteCarloApplication::Register() {
     "       | \\_/ | |_| \\_/ | (_ " << std::endl <<
     "       |_| |_|___|_| |_|\\__|APPLICATION" << std::endl;
 
-
+    KRATOS_REGISTER_VARIABLE( POWER_SUM_1 )
+    KRATOS_REGISTER_VARIABLE( POWER_SUM_2 )
+    KRATOS_REGISTER_VARIABLE( POWER_SUM_3 )
+    KRATOS_REGISTER_VARIABLE( POWER_SUM_4 )
 }
 }  // namespace Kratos.

@@ -5,7 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 # Import the mechanical solver base class
-import FemDemMechanicalSolver as BaseSolver
+import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return ImplicitMechanicalSolver(main_model_part, custom_settings)

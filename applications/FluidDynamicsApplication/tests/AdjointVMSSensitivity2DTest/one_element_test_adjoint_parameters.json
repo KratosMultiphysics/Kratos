@@ -72,6 +72,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/one_element_test_materials.json"
+        },
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : -1.0
@@ -84,8 +87,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Inlet",
+                "model_part_name" : "MainModelPart.Inlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -94,8 +96,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
                 "value"           : 0
             }
@@ -104,8 +105,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Boundary",
+                "model_part_name" : "MainModelPart.Boundary",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -114,8 +114,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0, 0.0, 0.0]

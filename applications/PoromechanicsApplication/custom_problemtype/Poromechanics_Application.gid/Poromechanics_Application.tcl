@@ -52,7 +52,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
             # Windows
             regsub -all {\\} $gidexe {/} gidexe
         }
-        set gidexe [string trimright $gidexe gid.exe]
+        set gidexe [string trimright $gidexe ./gid.exe]
 
         if {[GiD_AccessValue get gendata Domain_Size] eq 2} {
 
@@ -66,11 +66,17 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
         }
     }
 
-    # Write MDPA
+    # Write MDPA file
     source [file join $problemtypedir Mdpa.tcl]
-    set TableDict [WriteMdpa $basename $dir $problemtypedir]
+    set MDPAOutput [WriteMdpa $basename $dir $problemtypedir]
 
-    # Write ProjectParameters
+    # Write PoroMaterials.json
+    set PropertyId [lindex $MDPAOutput 0]
+    source [file join $problemtypedir PoroMaterials.tcl]
+    WritePoroMaterials $basename $dir $problemtypedir PropertyId
+
+    # Write ProjectParameters.json
+    set TableDict [lindex $MDPAOutput 1]
     source [file join $problemtypedir ProjectParameters.tcl]
     WriteProjectParameters $basename $dir $problemtypedir $TableDict
 
@@ -119,9 +125,15 @@ proc Poromechanics_Application::PropagateFractures2D { } {
 
     # Write new MDPA
     source [file join $::Poromechanics_Application::ProblemTypePath Mdpa.tcl]
-    set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+    set MDPAOutput [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+
+    # Write PoroMaterials.json
+    set PropertyId [lindex $MDPAOutput 0]
+    source [file join $::Poromechanics_Application::ProblemTypePath PoroMaterials.tcl]
+    WritePoroMaterials $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath PropertyId
 
     # Write new ProjectParameters
+    set TableDict [lindex $MDPAOutput 1]
     source [file join $::Poromechanics_Application::ProblemTypePath ProjectParameters.tcl]
     WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
 
@@ -143,9 +155,15 @@ proc Poromechanics_Application::PropagateFractures3D { } {
 
     # Write new MDPA
     source [file join $::Poromechanics_Application::ProblemTypePath Mdpa.tcl]
-    set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+    set MDPAOutput [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+
+    # Write PoroMaterials.json
+    set PropertyId [lindex $MDPAOutput 0]
+    source [file join $::Poromechanics_Application::ProblemTypePath PoroMaterials.tcl]
+    WritePoroMaterials $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath PropertyId
 
     # Write new ProjectParameters
+    set TableDict [lindex $MDPAOutput 1]
     source [file join $::Poromechanics_Application::ProblemTypePath ProjectParameters.tcl]
     WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
 
@@ -160,7 +178,7 @@ proc Poromechanics_Application::CreateContactEntity { } {
 
     ## This proc can be called from the command line of GiD as "-np- Poromechanics_Application::CreateContactEntity"
 
-    set LayerName "Layer0"
+    set LayerName "Joint"
 
     ## Contact Surface:
 
@@ -180,8 +198,8 @@ proc Poromechanics_Application::CreateContactEntity { } {
 
     ## Contact Volume:
 
-    # set Surf1 [list 5 1]
-    # set Surf2 [list 186 0]
+    # set Surf1 [list 1 1]
+    # set Surf2 [list 5 0]
 
     # # Orientation of Surf1:
     # #     0: SAME1ST. The normal to the surface points towards the contact volume.

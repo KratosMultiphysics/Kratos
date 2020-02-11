@@ -79,6 +79,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_SET_COMPUTED )                                   // To know if the active set has been computed
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_SET_CONVERGED )                                    // To know if the slip set has converged
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OPERATOR_THRESHOLD )                                    // Consider objetive/non-objetive formulation threshold
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_AUGMENTATION_COEFFICIENT )                         // Coefficient to improve the slip computation convergence (augmented part related)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )                  // The lagrange multiplier for normal contact pressure

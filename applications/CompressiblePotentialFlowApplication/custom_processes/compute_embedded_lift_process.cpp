@@ -42,24 +42,19 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
     double fz = 0.0;
 
     #pragma omp parallel for reduction(+:fx,fy,fz)
-    for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
+    for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfElements()); ++i) {
         auto it_elem=mrModelPart.ElementsBegin()+i;
         auto r_geometry = it_elem->GetGeometry();
 
-        BoundedVector<double,3> geometry_distances;
+        BoundedVector<double, NumNodes> geometry_distances;
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
-        bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
 
         if (is_embedded && it_elem->Is(ACTIVE)){
-            array_1d<double,3> elemental_distances;
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-                elemental_distances[i_node] = r_geometry[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
-            }
 
-            const Vector& r_elemental_distances=elemental_distances;
-            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), r_elemental_distances);
+            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), Vector(geometry_distances));
 
             // Computing Normal
             std::vector<Vector> cut_normal;
@@ -86,16 +81,16 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
     KRATOS_CATCH("");
 }
 
-template<unsigned int Dim, unsigned int NumNodes>
-ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<Dim, NumNodes>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
-    GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
-    switch (geometry_type){
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-            return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-        default:
-                KRATOS_ERROR << "Only Triangle2D3 geometries are currently implemented. The given geometry was: " << geometry_type;
-    }
+template<>
+ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<2, 3>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
+        return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
+template<>
+ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<3, 4>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
+        return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template class ComputeEmbeddedLiftProcess<2, 3>;
+template class ComputeEmbeddedLiftProcess<3, 4>;
 }// Namespace Kratos

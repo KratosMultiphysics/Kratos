@@ -74,10 +74,7 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
                 }]
              }""")
 
-            save_restart_parameters["restart_processes"][0]["Parameters"].AddValue(
-                "model_part_name",
-                self.project_parameters_save["solver_settings"]["model_part_name"])
-
+            save_restart_parameters["restart_processes"][0]["Parameters"].AddValue("model_part_name", self.project_parameters_save["solver_settings"]["model_part_name"])
 
             self.project_parameters_save.AddValue("output_processes", save_restart_parameters)
 
@@ -88,7 +85,7 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
             # Correct the path
             restart_file_path = load_mp_import_settings["input_filename"].GetString()
-            restart_file_path = load_mp_import_settings["input_filename"].SetString(os.path.split(restart_file_path)[1])
+            restart_file_path = load_mp_import_settings["input_filename"].SetString("Structure")
 
     def test_execution(self):
         # Within this location context:
@@ -102,7 +99,8 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # remove the created restart files
-            raw_path, raw_file_name = os.path.split(self.file_name)
+            #raw_path, raw_file_name = os.path.split(self.file_name)
+            raw_file_name = "Structure"
             folder_name = raw_file_name + "__restart_files"
 
             kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name))

@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_CamClay::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_KDEM_CamClay::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_CamClay to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -66,7 +66,7 @@ namespace Kratos {
 
         //Properties& element1_props = element1->GetProperties();
         //Properties& element2_props = element2->GetProperties();
-        //const double mean_preconsolidation_pressure = 1e6 * 0.5*(element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
+        //const double mean_preconsolidation_pressure = 0.5*(element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
 
         BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
         for (unsigned i = 0; i < 3; i++) {

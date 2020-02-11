@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # pyKratos imports
+import KratosMultiphysics as KM
 from .Node import Node
 from .Element import Element
 from .data_value_container import DataValueContainer
-from .Variables import *
 from .Logger import Logger
 
 # Other imports
@@ -42,21 +42,22 @@ class ModelPart(DataValueContainer):
             RuntimeError("No empty names for modelpart are allowed. Please rename ! ")
 
         self.Name = name
-        self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
+        self.ProcessInfo = {KM.TIME: 0.0, KM.DELTA_TIME: 0.0}  # empty dictionary
 
 
     def IsDistributed(self):
         return False
 
     def GetCommunicator(self):
-        # TODO improve this, maybe the fct-call can be redirected? (yield/lambda?)
-        # Or maybe a real communicator Object? => should not be necessary though
-
+        # This is a dummy implementation, since those features should not be necessary
+        # If this becomes necessary, then the ModelPart should hold an instance of the Communicator
         class Communicator(object):
             def __init__(self, model_part):
                 self.__model_part = model_part
             def LocalMesh(self):
                 return self.__model_part
+            def MyPID(self):
+                return 0
         return Communicator(self)
 
 

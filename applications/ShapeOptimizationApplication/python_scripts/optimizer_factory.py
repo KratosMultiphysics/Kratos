@@ -35,9 +35,11 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
     if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
+        optimizer =  VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+
+    return optimizer
 
 # ------------------------------------------------------------------------------
 def _ValidateSettings(optimization_settings):
@@ -70,9 +72,10 @@ def _ValidateObjectiveSettingsRecursively(objective_settings):
         "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
         "type"                                : "minimization",
         "scaling_factor"                      : 1.0,
-        "use_kratos"                          : false,
-        "kratos_response_settings"            : {},
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
         "is_combined"                         : false,
+        "combination_type"                    : "sum",
         "combined_responses"                  : [],
         "weight"                              : 1.0,
         "project_gradient_on_surface_normals" : false
@@ -92,12 +95,13 @@ def _ValidateConstraintSettings(constraint_settings):
         "scaling_factor"                      : 1.0,
         "reference"                           : "initial_value",
         "reference_value"                     : 1.0,
-        "use_kratos"                          : false,
-        "kratos_response_settings"            : {},
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
         "project_gradient_on_surface_normals" : false
     }""")
     for itr in range(constraint_settings.size()):
         constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
+
 
 # ==============================================================================
 class VertexMorphingMethod:
@@ -109,6 +113,7 @@ class VertexMorphingMethod:
         self.communicator = communicator
 
         self.__AddVariablesToBeUsedByAllAglorithms()
+        self.__AddVariablesToBeUsedByDesignVariables()
 
     # --------------------------------------------------------------------------
     def __AddVariablesToBeUsedByAllAglorithms(self):
@@ -135,13 +140,22 @@ class VertexMorphingMethod:
         model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
 
+    def __AddVariablesToBeUsedByDesignVariables(self):
+        if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
+            self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+
     # --------------------------------------------------------------------------
     def Optimize(self):
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
-        print("\n> ==============================================================================================================")
-        print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
-        print("> ==============================================================================================================\n")
+        KM.Logger.Print("")
+        KM.Logger.Print("===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", Timer().GetTimeStamp(), ": Starting optimization using the following algorithm: ", algorithm_name)
+        KM.Logger.Print("===============================================================================\n")
 
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
                                                                   self.analyzer,
@@ -152,8 +166,9 @@ class VertexMorphingMethod:
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()
 
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization                                                                                           ")
-        print("> ==============================================================================================================\n")
+        KM.Logger.Print("")
+        KM.Logger.Print("===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", "Finished optimization")
+        KM.Logger.Print("===============================================================================\n")
 
 # ==============================================================================

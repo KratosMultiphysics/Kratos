@@ -12,10 +12,14 @@
     "solver_settings"          : {
             "model_part_name" : "MainModelPart",
             "domain_size" : 2,
+            "solver_type" : "stationary",
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "problem_settings/square_coarse_2d"
+            },
+            "material_import_settings"           : {
+                "materials_filename" : "problem_settings/materials_poisson_square_2d.json"
             },
             "time_stepping" : {
                 "time_step": 1.1
@@ -34,43 +38,12 @@
         "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "model_part_name" : "Subpart_Boundary",
+            "model_part_name" : "MainModelPart.Subpart_Boundary",
             "variable_name"   : "TEMPERATURE",
             "constrained"     : true,
             "value"           : 0.0,
             "interval"        : [0.0,"End"]
            }
        }]
-    },
-    "output_processes" : {
-        "gid_output" : [{
-            "python_module" : "gid_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "MainModelPart",
-                "output_name"            : "poisson_square_2d",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteUndeformed",
-                            "WriteConditionsFlag"   : "WriteElementsOnly",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 1,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE"]
-                    },
-                    "point_data_configuration"  : []
-                }
-            }
-        }]
     }
 }

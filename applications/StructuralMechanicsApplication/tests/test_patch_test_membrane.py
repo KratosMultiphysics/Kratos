@@ -237,16 +237,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-    def _create_dynamic_explicit_strategy(mp,scheme_name):
-        if (scheme_name=='central_differences'):
-            scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
-        elif scheme_name=='multi_stage':
-            scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(0.33333333333333333)
-
-        strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,scheme,0,0,1)
-        strategy.SetEchoLevel(0)
-        return strategy
-
     def _check_static_results(self,node,displacement_results):
         #check that the results are exact on the node
         displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
@@ -279,6 +269,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
     def _set_up_system_3d3n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         self._add_variables(mp,explicit_dynamics)
         self._apply_material_properties(mp)
@@ -297,6 +288,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
     def _set_up_system_3d4n(self,current_model):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         self._add_variables(mp)
         self._apply_material_properties(mp)
@@ -447,7 +439,6 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system_3d3n(current_model,explicit_dynamics=True)
-        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
 
         #time integration parameters
@@ -457,7 +448,7 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
         step = 0
 
         self._set_and_fill_buffer(mp,3,dt)
-        strategy_expl = BasePatchTestMembrane._create_dynamic_explicit_strategy(mp,'central_differences')
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
         while(time <= end_time):
             time = time + dt
             step = step + 1
@@ -465,7 +456,15 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
             strategy_expl.Solve()
             self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
 
+def _create_dynamic_explicit_strategy(mp,scheme_name):
+    if (scheme_name=='central_differences'):
+        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+    elif scheme_name=='multi_stage':
+        scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(0.33333333333333333)
 
+    strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,scheme,0,0,1)
+    strategy.SetEchoLevel(0)
+    return strategy
 
 if __name__ == '__main__':
     KratosUnittest.main()

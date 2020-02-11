@@ -270,7 +270,7 @@ public:
 
         // Check for minimum value of the buffer index
         // Verify buffer size
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < mOrder + 1) << "Insufficient buffer size. Buffer size should be greater than" << mOrder + 1 << ". Current size is" << rModelPart.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < mOrder + 1) << "Insufficient buffer size. Buffer size should be greater than " << mOrder + 1 << ". Current size is " << rModelPart.GetBufferSize() << std::endl;
 
         KRATOS_CATCH( "" );
 

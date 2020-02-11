@@ -71,6 +71,7 @@ namespace Kratos
 
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, SELECT_TESSELLATION_ELEMENTS,         6 );
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, KEEP_ISOLATED_NODES,                  7 );
+  KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, REFINE_WALL_CORNER,                   8 );
 
   //execution options (tessellation)
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, NEIGHBOURS_SEARCH,                    8 );

@@ -4,8 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
-# Check that KratosMultiphysics was imported in the main script
-# CheckForPreviousImport()
 
 import time
 
@@ -329,7 +327,7 @@ class ULF_FSISolver:
         # self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part, self.domain_size)
         # self.node_erase_process.Execute()
         print("end of remesh fucntion")
-        
+
 
     #
     #
@@ -348,7 +346,7 @@ class ULF_FSISolver:
         av_nodal_h=0.0
         for node in self.fluid_model_part.Nodes:
             if (node.GetSolutionStepValue(NODAL_H)!=0.0):
-               nnodes=nnodes+1;	    
+               nnodes=nnodes+1;
                nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
 
         av_nodal_h=nodal_h/nnodes

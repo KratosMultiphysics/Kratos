@@ -11,18 +11,11 @@
 //
 
 // System includes
-#include <stdio.h>  /* defines FILENAME_MAX */
-#ifdef _WIN32
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#else
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#endif
 
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
 #include "utilities/os_utilities.h"
 
 namespace Kratos
@@ -33,10 +26,7 @@ std::string GetCurrentWorkingDir()
 {
     KRATOS_TRY
 
-    char buff[FILENAME_MAX];
-    GetCurrentDir( buff, FILENAME_MAX );
-    std::string current_working_dir(buff);
-    return current_working_dir;
+    return filesystem::current_path().string();
 
     KRATOS_CATCH("")
 }

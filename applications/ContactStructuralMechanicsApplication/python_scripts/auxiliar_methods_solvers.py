@@ -12,32 +12,36 @@ def  AuxiliarContactSettings():
     {
         "contact_settings" :
         {
-            "mortar_type"                                       : "",
-            "condn_convergence_criterion"                       : false,
-            "fancy_convergence_criterion"                       : true,
-            "print_convergence_criterion"                       : false,
-            "ensure_contact"                                    : false,
-            "frictional_decomposed"                             : true,
-            "compute_dynamic_factor"                            : false,
-            "gidio_debug"                                       : false,
-            "adaptative_strategy"                               : false,
-            "split_factor"                                      : 10.0,
-            "max_number_splits"                                 : 3,
-            "inner_loop_iterations"                             : 5,
-            "inner_loop_adaptive"                               : false,
-            "contact_displacement_relative_tolerance"           : 1.0e-4,
-            "contact_displacement_absolute_tolerance"           : 1.0e-9,
-            "contact_residual_relative_tolerance"               : 1.0e-4,
-            "contact_residual_absolute_tolerance"               : 1.0e-9,
-            "frictional_contact_displacement_relative_tolerance": 1.0e-4,
-            "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
-            "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
-            "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
-            "ratio_normal_tangent_threshold"                    : 1.0e-4,
-            "silent_strategy"                                   : true,
-            "simplified_semi_smooth_newton"                     : false,
-            "rescale_linear_solver"                             : false,
-            "use_mixed_ulm_solver"                              : true,
+            "mortar_type"                                             : "",
+            "condn_convergence_criterion"                             : false,
+            "fancy_convergence_criterion"                             : true,
+            "print_convergence_criterion"                             : false,
+            "ensure_contact"                                          : false,
+            "frictional_decomposed"                                   : true,
+            "compute_dynamic_factor"                                  : false,
+            "gidio_debug"                                             : false,
+            "adaptative_strategy"                                     : false,
+            "split_factor"                                            : 10.0,
+            "max_number_splits"                                       : 3,
+            "inner_loop_iterations"                                   : 5,
+            "inner_loop_adaptive"                                     : false,
+            "contact_displacement_relative_tolerance"                 : 1.0e-4,
+            "contact_displacement_absolute_tolerance"                 : 1.0e-9,
+            "contact_residual_relative_tolerance"                     : 1.0e-4,
+            "contact_residual_absolute_tolerance"                     : 1.0e-9,
+            "frictional_stick_contact_displacement_relative_tolerance": 1.0e-4,
+            "frictional_stick_contact_displacement_absolute_tolerance": 1.0e-9,
+            "frictional_stick_contact_residual_relative_tolerance"    : 1.0e-4,
+            "frictional_stick_contact_residual_absolute_tolerance"    : 1.0e-9,
+            "frictional_slip_contact_displacement_relative_tolerance" : 1.0e-4,
+            "frictional_slip_contact_displacement_absolute_tolerance" : 1.0e-9,
+            "frictional_slip_contact_residual_relative_tolerance"     : 1.0e-4,
+            "frictional_slip_contact_residual_absolute_tolerance"     : 1.0e-9,
+            "ratio_normal_tangent_threshold"                          : 1.0e-4,
+            "silent_strategy"                                         : true,
+            "simplified_semi_smooth_newton"                           : false,
+            "rescale_linear_solver"                                   : false,
+            "use_mixed_ulm_solver"                                    : true,
             "mixed_ulm_solver_parameters" :
             {
                 "solver_type"          : "mixed_ulm_linear_solver",
@@ -194,7 +198,15 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
                         delta_time = delta_time/float(inner_iterations)
                         KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
         return delta_time
+    elif settings["time_stepping"].Has("time_step_table"):
+        current_time = main_model_part.ProcessInfo[KM.TIME]
+        time_step_table = settings["time_stepping"]["time_step_table"].GetMatrix()
+        tb = KM.PiecewiseLinearTable()
+        for interval in range(time_step_table.Size1()):
+            tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+        return tb.GetValue(current_time)
     elif settings["time_stepping"].Has("time_step_intervals"):
+        KM.Logger.PrintWarning("::[Contact Mechanical Static Solver]:: ", "Legacy way to consider time stepping by intervals. Use time_step_table instead")
         current_time = main_model_part.ProcessInfo[KM.TIME]
         for key in settings["time_stepping"]["time_step_intervals"].keys():
             interval_settings = settings["time_stepping"]["time_step_intervals"][key]
@@ -204,9 +216,9 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
             if interval.IsInInterval(current_time):
                 return interval_settings["time_step"].GetDouble()
         # If we arrive here we raise an error because the intervals are not well defined
-        raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not well defined!")
     else:
-        raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+        raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not defined!")
 
 def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.
@@ -226,10 +238,14 @@ def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_sett
     conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
     conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
     conv_params.AddValue("contact_residual_absolute_tolerance", contact_settings["contact_residual_absolute_tolerance"])
-    conv_params.AddValue("frictional_contact_displacement_relative_tolerance", contact_settings["frictional_contact_displacement_relative_tolerance"])
-    conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", contact_settings["frictional_contact_displacement_absolute_tolerance"])
-    conv_params.AddValue("frictional_contact_residual_relative_tolerance", contact_settings["frictional_contact_residual_relative_tolerance"])
-    conv_params.AddValue("frictional_contact_residual_absolute_tolerance", contact_settings["frictional_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_displacement_relative_tolerance", contact_settings["frictional_stick_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_displacement_absolute_tolerance", contact_settings["frictional_stick_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_residual_relative_tolerance", contact_settings["frictional_stick_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_residual_absolute_tolerance", contact_settings["frictional_stick_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_displacement_relative_tolerance", contact_settings["frictional_slip_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_displacement_absolute_tolerance", contact_settings["frictional_slip_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_residual_relative_tolerance", contact_settings["frictional_slip_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_residual_absolute_tolerance", contact_settings["frictional_slip_contact_residual_absolute_tolerance"])
     conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
     conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
     conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
@@ -250,30 +266,36 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
             KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
-                linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
-                if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
-                    amgcl_param = KM.Parameters("""
-                    {
-                        "solver_type"                    : "amgcl",
-                        "smoother_type"                  : "ilu0",
-                        "krylov_type"                    : "lgmres",
-                        "coarsening_type"                : "aggregation",
-                        "max_iteration"                  : 100,
-                        "provide_coordinates"            : false,
-                        "gmres_krylov_space_dimension"   : 100,
-                        "verbosity"                      : 1,
-                        "tolerance"                      : 1e-6,
-                        "scaling"                        : false,
-                        "block_size"                     : 3,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough"                  : 500
-                    }
-                    """)
-                    amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
-                    linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
-                    linear_solver = KM.AMGCLSolver(linear_solver_settings)
-                mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
-                return mixed_ulm_solver
+                if settings.Has("linear_solver_settings"):
+                    if settings["linear_solver_settings"].Has("solver_type"):
+                        linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
+                        if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
+                            amgcl_param = KM.Parameters("""
+                            {
+                                "solver_type"                    : "amgcl",
+                                "smoother_type"                  : "ilu0",
+                                "krylov_type"                    : "lgmres",
+                                "coarsening_type"                : "aggregation",
+                                "max_iteration"                  : 100,
+                                "provide_coordinates"            : false,
+                                "gmres_krylov_space_dimension"   : 100,
+                                "verbosity"                      : 1,
+                                "tolerance"                      : 1e-6,
+                                "scaling"                        : false,
+                                "block_size"                     : 3,
+                                "use_block_matrices_if_possible" : true,
+                                "coarse_enough"                  : 500
+                            }
+                            """)
+                            amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+                            linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
+                            linear_solver = KM.AMGCLSolver(linear_solver_settings)
+                        mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
+                        return mixed_ulm_solver
+                    else:
+                        return linear_solver
+                else:
+                    return linear_solver
             else:
                 KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                 return linear_solver

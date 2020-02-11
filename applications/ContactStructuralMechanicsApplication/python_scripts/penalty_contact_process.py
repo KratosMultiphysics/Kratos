@@ -53,11 +53,13 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
             "tangent_factor"                : 1.0e-3,
+            "operator_threshold"            : 1.0e-3,
             "slip_augmentation_coefficient" : 0.0,
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,

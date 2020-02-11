@@ -35,7 +35,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         {
             "help"                        : "This process uses LinearMasterSlaveConstraint in order to impose an unified movement in the given submodelpart. The process takes the first node from the submodelpart if no node's ID is provided. The default variable is DISPLACEMENT, and in case no variable is considered for the slave the same variable will be considered",
             "main_model_part_name"        : "Structure",
-            "computing_model_part_name"   : "computing_domain",
+            "computing_model_part_name"   : "",
             "model_part_name"             : "please_specify_model_part_name",
             "new_model_part_name"         : "",
             "interval"                    : [0.0, 1e30],
@@ -62,7 +62,10 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
 
         # The computing model part
         computing_model_part_name = settings["computing_model_part_name"].GetString()
-        self.computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
+        if computing_model_part_name == "":
+            self.computing_model_part = self.main_model_part
+        else:
+            self.computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)

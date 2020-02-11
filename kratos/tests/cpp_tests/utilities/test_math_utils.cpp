@@ -249,7 +249,8 @@ namespace Kratos
 
             BoundedMatrix<double, 3, 3> inv33;
             MathUtils<double>::InvertMatrix(mat33, inv33, det);
-            const BoundedMatrix<double, 3, 3> I33 = prod(inv33, mat33);
+            BoundedMatrix<double, 3, 3> I33 = ZeroMatrix(3, 3);
+            noalias(I33) = prod(inv33, mat33);
 
             for (unsigned int i = 0; i < 3; i++) {
                 for (unsigned int j = 0; j < 3; j++) {
@@ -281,7 +282,8 @@ namespace Kratos
 
             BoundedMatrix<double, 4, 4> inv44;
             MathUtils<double>::InvertMatrix(mat44, inv44, det);
-            const BoundedMatrix<double, 4, 4> I44 = prod(inv44, mat44);
+            BoundedMatrix<double, 4, 4> I44 = ZeroMatrix(4, 4);
+            noalias(I44) = prod(inv44, mat44);
 
             for (unsigned int i = 0; i < 4; i++) {
                 for (unsigned int j = 0; j < 4; j++) {
@@ -836,4 +838,3 @@ namespace Kratos
 
     } // namespace Testing
 }  // namespace Kratos.
-

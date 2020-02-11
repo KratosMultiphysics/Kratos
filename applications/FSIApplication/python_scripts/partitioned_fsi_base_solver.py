@@ -511,19 +511,19 @@ class PartitionedFSIBaseSolver(PythonSolver):
             keep_sign = False
             distribute_load = True
             self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                                     KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE,
+                                                                     KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE,
                                                                      keep_sign,
                                                                      distribute_load)
             self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                                     KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE,
+                                                                     KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE,
                                                                      keep_sign,
                                                                      distribute_load)
 
             # Add the two faces contributions to the POINT_LOAD variable
             # TODO: Add this to the variables utils
             for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-                pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-                neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+                pos_face_force = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
+                neg_face_force = node.GetSolutionStepValue(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
                 node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes

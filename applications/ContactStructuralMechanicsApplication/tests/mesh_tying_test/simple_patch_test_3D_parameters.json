@@ -190,7 +190,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
-                        "nodal_nonhistorical_results": ["NORMAL"],
+                        "nodal_nonhistorical_results": [],
                         "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
                     },
                     "point_data_configuration"  : []}}}]

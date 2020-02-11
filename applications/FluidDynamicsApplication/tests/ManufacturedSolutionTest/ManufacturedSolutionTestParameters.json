@@ -41,6 +41,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "ManufacturedSolutionTest/"
         },
+        "material_import_settings": {
+            "materials_filename": "ManufacturedSolutionTestMaterials.json"
+        },
         "compute_reactions"            : true,
         "maximum_iterations"           : 20,
         "relative_velocity_tolerance"  : 1e-5,

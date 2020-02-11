@@ -94,21 +94,21 @@ proc WriteMdpa { basename dir problemtypedir } {
             }        
         } else {
             if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
-                set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement2D"
+                set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement2D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
-                set ElementName "LargeDisplacementRankineFemDemElement2D"
+                set ElementName "TotalLagrangianRankineFemDemElement2D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
-                set ElementName "LargeDisplacementSimoJuFemDemElement2D"
+                set ElementName "TotalLagrangianSimoJuFemDemElement2D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
-                set ElementName "LargeDisplacementDruckerPragerFemDemElement2D"
+                set ElementName "TotalLagrangianDruckerPragerFemDemElement2D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
-                set ElementName "LargeDisplacementVonMisesFemDemElement2D"
+                set ElementName "TotalLagrangianVonMisesFemDemElement2D"
             } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
-                set ElementName "LargeDisplacementTrescaFemDemElement2D"
+                set ElementName "TotalLagrangianTrescaFemDemElement2D"
             }   elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
-                set ElementName "LargeDisplacementMohrCoulombFemDemElement2D"
+                set ElementName "TotalLagrangianMohrCoulombFemDemElement2D"
             } else {
-                set ElementName "LargeDisplacementModifiedMohrCoulombFemDemElement2D"
+                set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement2D"
             }  
         }
          # Elements Property

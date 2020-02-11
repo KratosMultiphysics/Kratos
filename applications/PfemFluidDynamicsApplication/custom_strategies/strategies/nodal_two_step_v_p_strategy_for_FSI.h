@@ -1077,7 +1077,7 @@ public:
 					noalias(solidInterfaceFgrad) = ZeroMatrix(dimension, dimension);
 					noalias(solidInterfaceFgradVel) = ZeroMatrix(dimension, dimension);
 
-					// theta=1.0;
+					theta=1.0;
 					// Matrix solidInterfaceFgrad=ZeroMatrix(dimension,dimension);
 					// Matrix solidInterfaceFgradVel=ZeroMatrix(dimension,dimension);
 					ComputeAndStoreNodalDeformationGradientForInterfaceNode(itNode, solidNodalSFDneighboursId, rSolidNodalSFDneigh, theta, solidInterfaceFgrad, solidInterfaceFgradVel);
@@ -1090,20 +1090,20 @@ public:
 			{
 				if (itNode->Is(SOLID) && solidNodalVolume > 0)
 				{
-					// theta=1.0;
+					theta=1.0;
 					ComputeAndStoreNodalDeformationGradientForSolidNode(itNode, theta);
 					CalcNodalStrainsAndStressesForSolidNode(itNode);
 				}
 				else if (nodalVolume > 0)
 				{
-					// theta=0.5;
+					theta=0.5;
 					this->ComputeAndStoreNodalDeformationGradient(itNode, theta);
 					this->CalcNodalStrainsAndStressesForNode(itNode);
 				}
 			}
 			if (nodalVolume == 0 && solidNodalVolume == 0)
 			{ // if nodalVolume==0
-				//theta=0.5;
+				theta=0.5;
 				this->InitializeNodalVariablesForRemeshedDomain(itNode);
 				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 			}
