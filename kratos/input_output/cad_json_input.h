@@ -260,8 +260,8 @@ private:
 
         for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
         {
-            trimming_brep_curve_vector[tc_idx](ReadTrimmingCurve(
-                rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel));
+            trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(
+                rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel);
         }
 
         return trimming_brep_curve_vector;
