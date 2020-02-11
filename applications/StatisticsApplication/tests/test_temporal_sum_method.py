@@ -80,8 +80,11 @@ class TemporalMethodTests(KratosUnittest.TestCase):
                 analytical_velocity = analytical_method(velocity_list[index], Kratos.VELOCITY)
                 analytical_pressure = analytical_method(pressure_list[index], Kratos.PRESSURE)
 
-                self.__CheckValues(analytical_pressure, node.GetSolutionStepValue(KratosStats.PRESSURE_MEAN), 1e-12)
-                self.__CheckValues(analytical_velocity, node.GetSolutionStepValue(KratosStats.VELOCITY_MEAN), 1e-12)
+                method_velocity = node.GetSolutionStepValue(KratosStats.VELOCITY_MEAN)
+                method_pressure = node.GetSolutionStepValue(KratosStats.PRESSURE_MEAN)
+
+                self.__CheckValues(analytical_pressure, method_pressure, 8)
+                self.__CheckValues(analytical_velocity, method_velocity, 8)
 
             self.model_part.CloneTimeStep(step)
 
