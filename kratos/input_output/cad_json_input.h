@@ -196,8 +196,8 @@ private:
         KRATOS_ERROR_IF_NOT(rParameters.Has("surface"))
             << "Missing 'surface' in brep face." << std::endl;
 
-        auto p_surface = ReadNurbsSurface<3, TNodeType>(
-            rParameters["surface"], rModelPart, EchoLevel);
+        auto p_surface(ReadNurbsSurface<3, TNodeType>(
+            rParameters["surface"], rModelPart, EchoLevel));
 
         const bool is_trimmed = (rParameters["surface"].Has("is_trimmed"))
             ? rParameters["surface"]["is_trimmed"].GetBool()
@@ -241,7 +241,6 @@ private:
         }
     }
 
-
     ///@}
     ///@name Read in Surface Trimming
     ///@{
@@ -261,8 +260,8 @@ private:
 
         for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
         {
-            trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(
-                rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel);
+            trimming_brep_curve_vector[tc_idx](ReadTrimmingCurve(
+                rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel));
         }
 
         return trimming_brep_curve_vector;
@@ -282,8 +281,8 @@ private:
         KRATOS_ERROR_IF_NOT(rParameters.Has("parameter_curve"))
             << "Missing 'parameter_curve' in nurbs curve" << std::endl;
 
-        auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(
-            rParameters["parameter_curve"], rModelPart, EchoLevel);
+        auto p_trimming_curve(ReadNurbsCurve<2, TEmbeddedNodeType>(
+            rParameters["parameter_curve"], rModelPart, EchoLevel));
 
         auto p_brep_curve_on_surface
             = Kratos::make_shared<BrepCurveOnSurfaceType>(
@@ -316,8 +315,8 @@ private:
             KRATOS_ERROR_IF_NOT(rParameters[bl_idx].Has("trimming_curves"))
                 << "Missing 'trimming_curves' in boundary loops"
                 << bl_idx << " loop." << std::endl;
-            auto trimming_curves = ReadTrimmingCurveVector(
-                rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, EchoLevel);
+            auto trimming_curves(ReadTrimmingCurveVector(
+                rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, EchoLevel));
 
             if (loop_type == "outer")
             {
