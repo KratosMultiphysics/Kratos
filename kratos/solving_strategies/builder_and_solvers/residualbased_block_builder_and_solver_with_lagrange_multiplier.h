@@ -514,7 +514,7 @@ public:
                 TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
                 BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
                 this->BuildLHS(pScheme, rModelPart, A);
-                const double constraint_scale_factor = BaseType::mOptions.Is(BaseType::CONSIDER_NORM_DIAGONAL) ? this->GetDiagonalNorm(A) : TSparseSpace::TwoNorm(A);
+                const double constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(A) : this->GetDiagonalNorm(A);
                 mConstraintFactor = constraint_scale_factor;
             }
 
@@ -621,7 +621,7 @@ public:
 
             // Definition of the auxiliar values
             const bool has_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR);
-            const double constraint_scale_factor = has_constraint_scale_factor ? mConstraintFactor : this->GetAveragevalueDiagonal(rA);
+            const double constraint_scale_factor = has_constraint_scale_factor ? mConstraintFactor : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
             if (!has_constraint_scale_factor) {
                 mConstraintFactor = constraint_scale_factor;
             }
@@ -634,8 +634,8 @@ public:
 
             // Fill coefficients
             contribution_coefficients(0, 0) = 1.0;
-            contribution_coefficients(0, 1) = constraint_scale_factor;
-            contribution_coefficients(1, 0) = constraint_scale_factor;
+            contribution_coefficients(0, 1) = mConstraintFactor;
+            contribution_coefficients(1, 0) = mConstraintFactor;
 
             // Fill transpose positions
             for (IndexType i = 0; i < number_of_blocks; ++i) {
@@ -648,7 +648,7 @@ public:
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Definition of the build scale factor auxiliar value
                 const bool has_auxiliar_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR);
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? mAuxiliarConstraintFactor : constraint_scale_factor;
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? mAuxiliarConstraintFactor : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
                 if (!has_auxiliar_constraint_scale_factor) {
                     mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
                 }
@@ -670,12 +670,12 @@ public:
                 matrices_p_blocks(2,2) = &identity_matrix;
 
                 // Fill coefficients
-                contribution_coefficients(0, 2) = constraint_scale_factor;
-                contribution_coefficients(2, 0) = constraint_scale_factor;
-                contribution_coefficients(1, 1) = -auxiliar_constraint_scale_factor;
-                contribution_coefficients(1, 2) = auxiliar_constraint_scale_factor;
-                contribution_coefficients(2, 1) = auxiliar_constraint_scale_factor;
-                contribution_coefficients(2, 2) = -auxiliar_constraint_scale_factor;
+                contribution_coefficients(0, 2) = mConstraintFactor;
+                contribution_coefficients(2, 0) = mConstraintFactor;
+                contribution_coefficients(1, 1) = -mAuxiliarConstraintFactor;
+                contribution_coefficients(1, 2) = mAuxiliarConstraintFactor;
+                contribution_coefficients(2, 1) = mAuxiliarConstraintFactor;
+                contribution_coefficients(2, 2) = -mAuxiliarConstraintFactor;
 
                 // Assemble the matrix (NOTE: Like the identity matrix is created inside the condition must be used meanwhile is alive, so inside the condition)
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
