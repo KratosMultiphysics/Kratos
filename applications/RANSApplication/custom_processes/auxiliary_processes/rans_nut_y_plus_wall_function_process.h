@@ -66,7 +66,7 @@ public:
     RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansNutYPlusWallFunctionProcess() override;
+    ~RansNutYPlusWallFunctionProcess() override = default;
 
     ///@}
     ///@name Operators

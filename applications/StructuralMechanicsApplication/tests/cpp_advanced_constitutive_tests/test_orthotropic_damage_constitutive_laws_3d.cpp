@@ -163,11 +163,11 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinea
     SJ SimoJuCL = SJ();
 
     std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-    MCres = {2.52653e+06,2.44022e+06,3.9072e+06,0,0,1.46187e-11};
-    VMres = {2.52653e+06,2.44022e+06,3.9072e+06,0,0,1.46187e-11};
-    DPres = {2.17197e+06,2.06344e+06,2.79529e+06,0,0,6.59982e-12};
-    Tres  = {2.52653e+06,2.44022e+06,3.9072e+06,0,0,1.46187e-11};
-    Rres  = {2.14141e+06,2.03065e+06,2.70731e+06,0,0,5.99187e-12};
+    MCres = {2.44168e+06,2.44168e+06,3.9072e+06,0,0,1.55171e-11};
+    VMres = {2.44168e+06,2.44168e+06,3.9072e+06,0,0,1.55171e-11};
+    DPres = {2.06524e+06,2.06524e+06,2.79529e+06,0,0,7.72992e-12};
+    Tres  = {2.44168e+06,2.44168e+06,3.9072e+06,0,0,1.55171e-11};
+    Rres  = {2.03248e+06,2.03248e+06,2.70731e+06,0,0,7.14527e-12};
     SJres = {5.40984e+06,5.40984e+06,1.91803e+07,0,0,1.45804e-10};
 
     Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
@@ -271,11 +271,11 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExpon
     SJ SimoJuCL = SJ();
 
     std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-    MCres = {2.52505e+06,2.52344e+06,4.17324e+06,0,0,1.74513e-11};
-    VMres = {2.52505e+06,2.52344e+06,4.17324e+06,0,0,1.74513e-11};
-    DPres = {2.17012e+06,2.16811e+06,3.0807e+06,0,0,9.64135e-12};
-    Tres  = {2.52505e+06,2.52344e+06,4.17324e+06,0,0,1.74513e-11};
-    Rres  = {2.13952e+06,2.13747e+06,2.99425e+06,0,0,9.05001e-12};
+    MCres = {2.52344e+06,2.52344e+06,4.17324e+06,0,0,1.74683e-11};
+    VMres = {2.52344e+06,2.52344e+06,4.17324e+06,0,0,1.74683e-11};
+    DPres = {2.16811e+06,2.16811e+06,3.0807e+06,0,0,9.66264e-12};
+    Tres  = {2.52344e+06,2.52344e+06,4.17324e+06,0,0,1.74683e-11};
+    Rres  = {2.13747e+06,2.13747e+06,2.99425e+06,0,0,9.07172e-12};
     SJres = {1.39358e+06,1.74487e+06,3.08804e+06,0,0,1.79412e-11};
 
     Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
