@@ -154,7 +154,7 @@ private:
 ///@{
 
 /// Assignment operator.
-SandProductionUtilities & operator=(SandProductionUtilities const& rOther);
+SandProductionUtilities & operator=(SandProductionUtilities const& rOther){};
 
 
 ///@}
