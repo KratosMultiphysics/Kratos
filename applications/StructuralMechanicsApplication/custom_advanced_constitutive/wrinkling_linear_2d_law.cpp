@@ -367,53 +367,6 @@ void WrinklingLinear2DLaw::InitializeMaterial(
     mpConstitutiveLaw->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
 
-
-void WrinklingLinear2DLaw::InitializeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    mpConstitutiveLaw->InitializeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-}
-
-void WrinklingLinear2DLaw::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    mpConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-}
-
-
-
-void WrinklingLinear2DLaw::InitializeNonLinearIteration(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    mpConstitutiveLaw->InitializeNonLinearIteration(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-}
-
-
-
-void WrinklingLinear2DLaw::FinalizeNonLinearIteration(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    mpConstitutiveLaw->FinalizeNonLinearIteration(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-}
-
-
-
 void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
@@ -573,10 +526,8 @@ void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, c
         const double stress_diff_1 = std::abs(min_stress-rStress[0]);
         const double stress_diff_2 = std::abs(min_stress-rStress[1]);
         if (stress_diff_1<=stress_diff_2) min_stress_dir[0] = 1.0;
-        else if (stress_diff_2<stress_diff_1) min_stress_dir[1] = 1.0;
-        else KRATOS_ERROR << "error in principal direction calculation 1"  << std::endl;
+        else min_stress_dir[1] = 1.0;
     }
-
     if ((min_stress > 0.0) || ((std::abs(min_stress)<numerical_limit) && (std::abs(max_stress)<numerical_limit))){
         //second if-statement necessary for first iteration
         rWrinklingState = WrinklingType::Taut;

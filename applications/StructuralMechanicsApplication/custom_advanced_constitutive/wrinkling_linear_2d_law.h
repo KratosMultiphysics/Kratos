@@ -283,36 +283,6 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
-    void InitializeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-
-    void InitializeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-
-    void FinalizeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     void CalculateMaterialResponsePK2 (Parameters& rValues) override;
 
 
