@@ -389,7 +389,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : false
+                "consider_double_lagrange_multiplier" : "Single"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -433,7 +433,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : true
+                "consider_double_lagrange_multiplier" : "Double"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -845,7 +845,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : false
+                "consider_double_lagrange_multiplier" : "Single"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -993,7 +993,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                     : false,
-                "consider_double_lagrange_multiplier" : true
+                "consider_double_lagrange_multiplier" : "Double"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
