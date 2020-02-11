@@ -13,6 +13,7 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
     '''Break Solution Loop when Buckling Analysis is converged.
     End Time Parameter can be considered as maximal iteration number
     '''
+            
     def RunSolutionLoop(self):
         while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
@@ -66,4 +67,12 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
                 warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
                 warn_msg += 'the state of convergence from "SolveSolutionStep"'
                 IssueDeprecationWarning("PrebucklingAnalysis", warn_msg)
-            
+    
+    def __CreateListOfProcesses(self):
+        """This function creates the processes and the output-processes
+            """
+        order_processes_initialization = self._GetOrderOfProcessesInitialization()
+        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
+        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+        self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
