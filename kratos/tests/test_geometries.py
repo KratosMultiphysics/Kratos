@@ -169,5 +169,26 @@ class TestGeometry(KratosUnittest.TestCase):
         self.assertEqual(curve.WorkingSpaceDimension(), 3);
         self.assertEqual(curve.LocalSpaceDimension(), 1);
 
+    def test_nodes_vector_iterators(self):
+        current_model = KM.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        node1 = model_part.CreateNewNode(1, 0, 0, 0)
+        node2 = model_part.CreateNewNode(2, 3.3333333333333335, 1.6666666666666667, 0)
+        node3 = model_part.CreateNewNode(3, 6.6666666666666661, 3.333333333333333, 0)
+        node4 = model_part.CreateNewNode(4, 10, 5, 0)
+
+        nodes = KM.NodesVector()
+        nodes.append(node1)
+        nodes.append(node2)
+        nodes.append(node3)
+        nodes.append(node4)
+
+        for node in nodes:
+            node.X = node.X + 1
+
+        self.assertAlmostEqual(nodes[0].X, node1.X)
+        self.assertAlmostEqual(nodes[0].X, 1.0)
+
 if __name__ == '__main__':
     KratosUnittest.main()
