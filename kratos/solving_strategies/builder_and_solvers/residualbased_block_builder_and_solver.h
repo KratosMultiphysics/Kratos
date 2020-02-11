@@ -1635,8 +1635,9 @@ protected:
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
             const int id = OpenMPUtils::ThisThread();
-            if (std::abs(rA(i,i)) > max_vector[id])
-                max_vector[id] = std::abs(rA(i,i));
+            const double abs_value_ii = std::abs(rA(i,i));
+            if (abs_value_ii > max_vector[id])
+                max_vector[id] = abs_value_ii;
         }
 
         double max_diag = 0.0;
@@ -1667,8 +1668,9 @@ protected:
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
             const int id = OpenMPUtils::ThisThread();
-            if (std::abs(rA(i,i)) < min_vector[id])
-                min_vector[id] = std::abs(rA(i,i));
+            const double abs_value_ii = std::abs(rA(i,i));
+            if (abs_value_ii < min_vector[id])
+                min_vector[id] = abs_value_ii;
         }
         
         double min_diag = std::numeric_limits<double>::max();
