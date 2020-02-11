@@ -281,7 +281,7 @@ public:
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
-        GeometryShapeFunctionContainer<IntegrationMethod> ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
                 ThisGeometryShapeFunctionContainer)
