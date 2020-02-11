@@ -14,17 +14,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [Release]
         compiler: [gcc, clang]
     env:
-      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      KRATOS_BUILD_TYPE: Release
       MKLVARS_ARCHITECTURE: intel64
       MKLVARS_INTERFACE: lp64
+      FC: gfortran-7
 
     container:
       image: oberbichler/kratos-dev:latest
-      env:
-        FC: gfortran-7
 
     steps:
     - uses: actions/checkout@v2
@@ -50,25 +48,21 @@ jobs:
     - name: Running tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
+
 
   windows:
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
+
     - uses: actions/setup-python@v1
       with:
         python-version: '3.6'
-    - name: Cache Build
-      id: cache-build
-      uses: actions/cache@v1
-      with:
-        path: build
-        key: ${{ runner.os }}-build-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-build-
+
     - name: Build
       shell: cmd
       run: |
