@@ -129,6 +129,9 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
             
             freq = freq + df
 
+        # with open('test_results/irka_complex_result.csv', 'w', newline='') as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     writer.writerows(result)
         with open('test_results/irka_complex_result.csv', newline='') as csvfile:
             expected_result = csv.reader(csvfile)
             for r, xr in zip(result, expected_result):
@@ -201,7 +204,6 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
             
             freq = freq + df
 
-        import csv
         # with open('test_results/irka_real_result.csv', 'w', newline='') as csvfile:
         #     writer = csv.writer(csvfile)
         #     writer.writerows(result)
