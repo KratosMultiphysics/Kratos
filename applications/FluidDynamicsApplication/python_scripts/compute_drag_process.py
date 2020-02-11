@@ -104,7 +104,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         if (self.model_part.GetCommunicator().MyPID() == 0):
-             if (self.write_drag_output_file):
+            if (self.write_drag_output_file):
                 self.output_file.close()
 
     def _GetFileHeader(self):
