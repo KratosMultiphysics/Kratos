@@ -191,6 +191,9 @@ class TestGeometry(KratosUnittest.TestCase):
         self.assertAlmostEqual(nodes[0].X, node1.X)
         self.assertAlmostEqual(nodes[0].X, 1.0)
 
+        # check length of nodes vector
+        self.assertEqual(len(nodes), 4)
+
     def test_nodes_vector_geometry_iterators(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
@@ -223,6 +226,9 @@ class TestGeometry(KratosUnittest.TestCase):
         # check new coordinates
         self.assertAlmostEqual(nodes[0].X, node1.X)
         self.assertAlmostEqual(nodes[0].X, 1.0)
+
+        # check length of geometry node vector
+        self.assertEqual(len(curve), 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()
