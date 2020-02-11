@@ -145,11 +145,11 @@ public:
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
-            mOptions.Set(NO_SCALING, false);
+            mOptions.Set(NO_SCALING, true);
             mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
             mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
         } else {
-            mOptions.Set(NO_SCALING, true);
+            mOptions.Set(NO_SCALING, false);
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
                 mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
@@ -173,7 +173,7 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver) 
         : BaseType(pNewLinearSystemSolver)
     {
-        mOptions.Set(NO_SCALING, false);
+        mOptions.Set(NO_SCALING, true);
         mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
         mOptions.Set(SILENT_WARNINGS, false);
     }
@@ -1385,6 +1385,8 @@ protected:
     double GetScaleNorm(TSystemMatrixType& rA)
     {
         if (mOptions.Is(NO_SCALING) ) {
+            return 1.0;
+        } else {
             if (mOptions.Is(CONSIDER_PRESCRIBED_DIAGONAL)) {
                 KRATOS_DEBUG_ERROR_IF(mScaleFactor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
                 return mScaleFactor;
@@ -1396,8 +1398,6 @@ protected:
 //                     return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
                 }
             }
-        } else {
-            return 1.0;
         }
     }
 
