@@ -426,7 +426,7 @@ public:
         unsigned int iteration_number = 1;
         rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
-        
+        BaseType::MoveMesh();
         // Store inital load condition values
         if( mLoadStepIteration == 0)
         {
