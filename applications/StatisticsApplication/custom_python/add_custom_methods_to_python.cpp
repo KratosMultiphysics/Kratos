@@ -19,14 +19,7 @@
 // Project includes
 
 // Application includes
-
-// spatial methods
-#include "custom_python/add_custom_spatial_historical_nodal_methods_to_python.h"
-#include "custom_python/add_custom_spatial_non_historical_nodal_methods_to_python.h"
-#include "custom_python/add_custom_spatial_non_historical_condition_methods_to_python.h"
-#include "custom_python/add_custom_spatial_non_historical_element_methods_to_python.h"
-
-// temporal methods
+#include "custom_methods/spatial_methods.h"
 #include "custom_methods/temporal_methods.h"
 
 // Include base h
@@ -43,12 +36,31 @@ void AddCustomMethodsToPython(pybind11::module& m)
     auto spatial_method_module = m.def_submodule("SpatialMethods");
 
     auto spatial_historical_method_module = spatial_method_module.def_submodule("Historical");
-    AddCustomSpatialHistoricalNodalMethodsToPython(spatial_historical_method_module);
+    spatial_historical_method_module.def_submodule("ValueMethods");
+    spatial_historical_method_module.def_submodule("NormMethods");
 
     auto spatial_non_historical_method_module = spatial_method_module.def_submodule("NonHistorical");
-    AddCustomSpatialNonHistoricalNodalMethodsToPython(spatial_non_historical_method_module);
-    AddCustomSpatialNonHistoricalConditionMethodsToPython(spatial_non_historical_method_module);
-    AddCustomSpatialNonHistoricalElementMethodsToPython(spatial_non_historical_method_module);
+    auto spatial_non_historical_nodal_method_module = spatial_non_historical_method_module.def_submodule("Nodes");
+    spatial_non_historical_nodal_method_module.def_submodule("ValueMethods");
+    spatial_non_historical_nodal_method_module.def_submodule("NormMethods");
+    auto spatial_non_historical_condition_method_module = spatial_non_historical_method_module.def_submodule("Conditions");
+    spatial_non_historical_condition_method_module.def_submodule("ValueMethods");
+    spatial_non_historical_condition_method_module.def_submodule("NormMethods");
+    auto spatial_non_historical_element_method_module = spatial_non_historical_method_module.def_submodule("Elements");
+    spatial_non_historical_element_method_module.def_submodule("ValueMethods");
+    spatial_non_historical_element_method_module.def_submodule("NormMethods");
+
+    ADD_KRATOS_STATISTICS_SPATIAL_VALUE_METHOD_PYTHON_INTERFACE(CalculateSum, "Sum", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_VALUE_METHOD_PYTHON_INTERFACE(CalculateMean, "Mean", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_VALUE_METHOD_PYTHON_INTERFACE(CalculateVariance, "Variance", m)
+
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(CalculateNormSum, "Sum", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(CalculateNormMean, "Mean", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(CalculateNormVariance, "Variance", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(GetNormMin, "Min", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(GetNormMax, "Max", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(GetNormMedian, "Median", m)
+    ADD_KRATOS_STATISTICS_SPATIAL_NORM_METHOD_PYTHON_INTERFACE(GetNormDistribution, "Distribution", m)
 
     // adding temporal methods
     auto temporal_method_module = m.def_submodule("TemporalMethods");
