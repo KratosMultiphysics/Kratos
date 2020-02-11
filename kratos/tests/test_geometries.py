@@ -187,6 +187,7 @@ class TestGeometry(KratosUnittest.TestCase):
         for node in nodes:
             node.X = node.X + 1
 
+        # check new coordinates
         self.assertAlmostEqual(nodes[0].X, node1.X)
         self.assertAlmostEqual(nodes[0].X, 1.0)
 
