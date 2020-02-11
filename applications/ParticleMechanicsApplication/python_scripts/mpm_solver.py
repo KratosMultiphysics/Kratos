@@ -380,7 +380,7 @@ class MPMSolver(PythonSolver):
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
         elif analysis_type == 'linear':
-                self.material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.IMPLICIT_IS_LINEAR, True)
+                self.material_point_model_part.ProcessInfo.SetValue(KratosParticle.IMPLICIT_IS_LINEAR, True)
                 solution_strategy = self._CreateLinearStrategy();
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
@@ -409,14 +409,14 @@ class MPMSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         solution_scheme = self._GetSolutionScheme()
         linear_solver = self._GetLinearSolver()
-        builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.MPMResidualBasedLinearStrategy(computing_model_part,
+        reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
+        calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
+        return KratosParticle.MPMResidualBasedLinearStrategy(computing_model_part,
                                                               solution_scheme,
                                                               linear_solver,
-                                                              builder_and_solver,
                                                               self.settings["compute_reactions"].GetBool(),
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                              False,
+                                                              reform_dofs_at_each_step,
+                                                              calc_norm_dx_flag,
                                                               self.settings["move_mesh_flag"].GetBool())
 
     def _SetBufferSize(self):

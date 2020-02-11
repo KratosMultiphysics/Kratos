@@ -85,14 +85,11 @@ namespace Python{
             ;
 
         // MPM Residual Based Linear Strategy Type
-        py::class_< MPMResidualBasedLinearStrategyType, typename MPMResidualBasedLinearStrategyType::Pointer, BaseSolvingStrategyType >
-            (m, "MPMResidualBasedLinearStrategy")
+        py::class_< MPMResidualBasedLinearStrategyType, typename MPMResidualBasedLinearStrategyType::Pointer, BaseSolvingStrategyType >(m, "MPMResidualBasedLinearStrategy")
             .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
             .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool, bool  >())
             .def("SetInitializePerformedFlag", &MPMResidualBasedLinearStrategyType::SetInitializePerformedFlag)
             .def("GetInitializePerformedFlag", &MPMResidualBasedLinearStrategyType::GetInitializePerformedFlag)
-            .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedLinearStrategyType::SetFinalizeSolutionStepFlag)
-            .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedLinearStrategyType::GetFinalizeSolutionStepFlag)
             ;
     }
 

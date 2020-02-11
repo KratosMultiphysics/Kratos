@@ -25,9 +25,9 @@
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/strategies/solving_strategy.h"
 
 // Application includes
 #include "particle_mechanics_application_variables.h"
@@ -54,16 +54,16 @@ namespace Kratos
     ///@{
 
     /**
-     * @class MPMMPMResidualBasedLinearStrategy
-     * @ingroup KratosCore
-     * @brief Linear strategy suited for MPM
-     * @details As a linear strategy the check on the convergence is not done and just one non linear iteration will be performed
-     */
+        * @class MPMMPMResidualBasedLinearStrategy
+        * @ingroup KratosParticle
+        * @brief Linear strategy suited for MPM
+        * @details As a linear strategy the check on the convergence is not done and just one non linear iteration will be performed
+        */
     template<class TSparseSpace,
         class TDenseSpace,
         class TLinearSolver
-    >
-        class MPMResidualBasedLinearStrategy
+        >
+    class MPMResidualBasedLinearStrategy
         : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
@@ -103,15 +103,14 @@ namespace Kratos
         ///@{
 
         /** Constructors.
+         * @param rModelPart The model part of the problem
+         * @param pScheme The integration scheme
+         * @param pNewLinearSolver The linear solver employed
+         * @param CalculateReactionFlag The flag for the reaction calculation
+         * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+         * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
+         * @param MoveMeshFlag The flag that allows to move the mesh
          */
-        MPMResidualBasedLinearStrategy(
-            ModelPart& rModelPart,
-            bool MoveMeshFlag = false
-        )
-            : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
-        {
-        }
-
         MPMResidualBasedLinearStrategy(
             ModelPart& rModelPart,
             typename TSchemeType::Pointer pScheme,
@@ -125,7 +124,9 @@ namespace Kratos
         {
             KRATOS_TRY
 
-                mCalculateReactionsFlag = CalculateReactionFlag;
+            std::cout << "\n\n MPMResidualBasedLinearStrategy \n\n" << std::endl;
+
+            mCalculateReactionsFlag = CalculateReactionFlag;
             mReformDofSetAtEachStep = ReformDofSetAtEachStep;
             mCalculateNormDxFlag = CalculateNormDxFlag;
 
@@ -163,16 +164,16 @@ namespace Kratos
         }
 
         /**
-         * Constructor specifying the builder and solver
-         * @param rModelPart The model part of the problem
-         * @param pScheme The integration scheme
-         * @param pNewLinearSolver The linear solver employed
-         * @param pNewBuilderAndSolver The builder and solver employed
-         * @param CalculateReactionFlag The flag for the reaction calculation
-         * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-         * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
-         * @param MoveMeshFlag The flag that allows to move the mesh
-         */
+            * Constructor specifying the builder and solver
+            * @param rModelPart The model part of the problem
+            * @param pScheme The integration scheme
+            * @param pNewLinearSolver The linear solver employed
+            * @param pNewBuilderAndSolver The builder and solver employed
+            * @param CalculateReactionFlag The flag for the reaction calculation
+            * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+            * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
+            * @param MoveMeshFlag The flag that allows to move the mesh
+            */
         MPMResidualBasedLinearStrategy(
             ModelPart& rModelPart,
             typename TSchemeType::Pointer pScheme,
@@ -187,7 +188,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-                mCalculateReactionsFlag = CalculateReactionFlag;
+            mCalculateReactionsFlag = CalculateReactionFlag;
             mReformDofSetAtEachStep = ReformDofSetAtEachStep;
             mCalculateNormDxFlag = CalculateNormDxFlag;
 
@@ -228,36 +229,36 @@ namespace Kratos
         }
 
         /**
-         * @brief Set method for the time scheme
-         * @param pScheme The pointer to the time scheme considered
-         */
+            * @brief Set method for the time scheme
+            * @param pScheme The pointer to the time scheme considered
+            */
         void SetScheme(typename TSchemeType::Pointer pScheme)
         {
             mpScheme = pScheme;
         };
 
         /**
-         * @brief Get method for the time scheme
-         * @return mpScheme: The pointer to the time scheme considered
-         */
+            * @brief Get method for the time scheme
+            * @return mpScheme: The pointer to the time scheme considered
+            */
         typename TSchemeType::Pointer GetScheme()
         {
             return mpScheme;
         };
 
         /**
-         * @brief Set method for the builder and solver
-         * @param pNewBuilderAndSolver The pointer to the builder and solver considered
-         */
+            * @brief Set method for the builder and solver
+            * @param pNewBuilderAndSolver The pointer to the builder and solver considered
+            */
         void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
         {
             mpBuilderAndSolver = pNewBuilderAndSolver;
         };
 
         /**
-         * @brief Get method for the builder and solver
-         * @return mpBuilderAndSolver: The pointer to the builder and solver considered
-         */
+            * @brief Get method for the builder and solver
+            * @return mpBuilderAndSolver: The pointer to the builder and solver considered
+            */
         typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
         {
             return mpBuilderAndSolver;
@@ -276,6 +277,7 @@ namespace Kratos
         void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
         {
             mCalculateReactionsFlag = CalculateReactionsFlag;
+            GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
         }
 
         bool GetCalculateReactionsFlag()
@@ -294,30 +296,10 @@ namespace Kratos
             return mReformDofSetAtEachStep;
         }
 
-        void SetMaxIterationNumber(unsigned int MaxIterationNumber)
-        {
-            mMaxIterationNumber = MaxIterationNumber;
-        }
-
-        unsigned int GetMaxIterationNumber()
-        {
-            return mMaxIterationNumber;
-        }
-
-        void SetFinalizeSolutionStepFlag(bool FinalizeSolutionStepFlag = true)
-        {
-            mFinalizeSolutionStep = FinalizeSolutionStepFlag;
-        }
-
-        bool GetFinalizeSolutionStepFlag()
-        {
-            return mFinalizeSolutionStep;
-        }
-
         /**
-         * @brief This method returns the solution vector
-         * @return The Dx vector
-         */
+            * @brief This method returns the solution vector
+            * @return The Dx vector
+            */
         TSystemVectorType& GetSolutionVector()
         {
             TSystemVectorType& mDx = *mpDx;
@@ -326,9 +308,9 @@ namespace Kratos
         }
 
         /**
-         * @brief This method returns the residual norm
-         * @return The residual norm
-         */
+            * @brief This method returns the residual norm
+            * @return The residual norm
+            */
         double GetResidualNorm() override
         {
             if (TSparseSpace::Size(*mpb) != 0)
@@ -338,9 +320,9 @@ namespace Kratos
         }
 
         /**
-         * @brief This method returns the RHS vector
-         * @return The RHS vector
-         */
+            * @brief This method returns the RHS vector
+            * @return The RHS vector
+            */
         TSystemVectorType& GetSystemVector()
         {
             TSystemVectorType& mb = *mpb;
@@ -367,14 +349,14 @@ namespace Kratos
         }
 
         /**
-         * @brief It sets the level of echo for the solving strategy
-         * @param Level The level to set
-         * @details The different levels of echo are:
-         * - 0: Mute... no echo at all
-         * - 1: Printing time and basic informations
-         * - 2: Printing linear solver data
-         * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
-         */
+            * @brief It sets the level of echo for the solving strategy
+            * @param Level The level to set
+            * @details The different levels of echo are:
+            * - 0: Mute... no echo at all
+            * - 1: Printing time and basic informations
+            * - 2: Printing linear solver data
+            * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+            */
 
         void SetEchoLevel(int Level) override
         {
@@ -386,16 +368,19 @@ namespace Kratos
         /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
 
         /**
-         * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+            * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
         values of the solution step of interest are assumed equal to the old values
-         */
+            */
         void Predict() override
         {
             KRATOS_TRY
-                //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-                //if the operations needed were already performed this does nothing
-                if (mInitializeWasPerformed == false)
-                    Initialize();
+
+                std::cout << "\n\n Predict \n\n" << std::endl;
+
+            //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+            //if the operations needed were already performed this does nothing
+            if (mInitializeWasPerformed == false)
+                Initialize();
 
             //initialize solution step
             if (mSolutionStepIsInitialized == false)
@@ -415,13 +400,15 @@ namespace Kratos
         }
 
         /**
-         * @brief Initialization of member variables and prior operations
-         */
+            * @brief Initialization of member variables and prior operations
+            */
         void Initialize() override
         {
             KRATOS_TRY
 
-                typename TSchemeType::Pointer p_scheme = GetScheme();
+                std::cout << "\n\n Initialize \n\n" << std::endl;
+
+            typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
             if (mInitializeWasPerformed == false)
@@ -453,6 +440,7 @@ namespace Kratos
             if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
                 mReformDofSetAtEachStep == true)
             {
+                std::cout << "\n\n SHAPING \n\n" << std::endl;
                 // Setting up the list of the DOFs to be solved
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
 
@@ -471,10 +459,14 @@ namespace Kratos
         }
 
         /**
-         * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-         */
+            * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+            */
         bool SolveSolutionStep() override
         {
+            KRATOS_TRY
+
+                std::cout << "\n\n SolveSolutionStep \n\n" << std::endl;
+
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
@@ -485,24 +477,46 @@ namespace Kratos
 
             p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
+            std::cout << "\n\n 1 \n\n" << std::endl;
+
+            std::cout << "BaseType::mStiffnessMatrixIsBuilt = " << BaseType::mStiffnessMatrixIsBuilt << std::endl;
+
             if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
             {
+                std::cout << "before set to zero " << std::endl;
+
+                std::cout << "rA = \n" << rA << std::endl;
+
+
+                TSparseSpace::SetToZero(rA);
+                TSparseSpace::SetToZero(rDx);
+                TSparseSpace::SetToZero(rb);
+                std::cout << "after set to zero " << std::endl;
+
+
+                p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+
+                std::cout << "\n\n 1.1 \n\n" << std::endl;
                 TSparseSpace::SetToZero(rA);
                 TSparseSpace::SetToZero(rDx);
                 TSparseSpace::SetToZero(rb);
                 // passing smart pointers instead of references here
                 // to prevent dangling pointer to system matrix when
                 // reusing ml preconditioners in the trilinos tpl
+
+                std::cout << "\n\n 1.5 \n\n" << std::endl;
                 p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
                 BaseType::mStiffnessMatrixIsBuilt = true;
             }
             else
             {
+                std::cout << "\n\n 1.8 \n\n" << std::endl;
                 TSparseSpace::SetToZero(rDx);
                 TSparseSpace::SetToZero(rb);
                 p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+                std::cout << "\n\n 1.9 \n\n" << std::endl;
             }
-
+            std::cout << "\n\n 2 \n\n" << std::endl;
             // Debugging info
             EchoInfo();
 
@@ -510,6 +524,8 @@ namespace Kratos
             DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
             p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
             p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+
+            std::cout << "\n\n 3 \n\n" << std::endl;
 
             //move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
@@ -521,15 +537,20 @@ namespace Kratos
                     rA, rDx, rb);
 
             return true;
+
+            KRATOS_CATCH("")
         }
 
         /**
-         * @brief The problem of interest is solved
-         * @details a double containing norm(Dx) is returned if CalculateNormDxFlag == true, else 0 is returned
-         * @return norm(Dx)
-         */
+            * @brief The problem of interest is solved
+            * @details a double containing norm(Dx) is returned if CalculateNormDxFlag == true, else 0 is returned
+            * @return norm(Dx)
+            */
         double Solve() override
         {
+
+            std::cout << "\n\n Solve \n\n" << std::endl;
+
             BaseType::Solve();
 
             //calculate if needed the norm of Dx
@@ -541,10 +562,10 @@ namespace Kratos
         }
 
         /**
-         * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
-         * need to be calculated given the solution of the step
-         * @details This operations should be called only when needed, before printing as it can involve a non negligible cost
-         */
+            * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
+            * need to be calculated given the solution of the step
+            * @details This operations should be called only when needed, before printing as it can involve a non negligible cost
+            */
         void CalculateOutputData() override
         {
             TSystemMatrixType& rA = *mpA;
@@ -557,9 +578,9 @@ namespace Kratos
         }
 
         /**
-         * @brief Clears the internal storage
-         * @note NULL could be changed to nullptr in the future (c++11)
-         */
+            * @brief Clears the internal storage
+            * @note NULL could be changed to nullptr in the future (c++11)
+            */
         void Clear() override
         {
             KRATOS_TRY;
@@ -594,21 +615,21 @@ namespace Kratos
 
         /*@} */
         /**@name Operators
-         */
-         /*@{ */
+            */
+            /*@{ */
 
-         /*@} */
-         /**@name Operations */
-         /*@{ */
+            /*@} */
+            /**@name Operations */
+            /*@{ */
 
-         /*@} */
-         /**@name Access */
-         /*@{ */
+            /*@} */
+            /**@name Access */
+            /*@{ */
 
         /**
-         * @brief This method returns the LHS matrix
-         * @return The LHS matrix
-         */
+            * @brief This method returns the LHS matrix
+            * @return The LHS matrix
+            */
         TSystemMatrixType& GetSystemMatrix()
         {
             TSystemMatrixType& mA = *mpA;
@@ -638,8 +659,8 @@ namespace Kratos
         /**@name Private Operators*/
         /*@{ */
         /**
-         * @brief This method returns the components of the system of equations depending of the echo level
-         */
+            * @brief This method returns the components of the system of equations depending of the echo level
+            */
         virtual void EchoInfo()
         {
             TSystemMatrixType& rA = *mpA;
@@ -694,12 +715,12 @@ namespace Kratos
         TSystemMatrixPointerType mpA;  /// The LHS matrix of the system of equations
 
         /**
-         * @brief Flag telling if it is needed to reform the DofSet at each
+            * @brief Flag telling if it is needed to reform the DofSet at each
         solution step or if it is possible to form it just once
         * @details Default = false
             - true  : Reform at each time step
             - false : Form just one (more efficient)
-         */
+            */
         bool mReformDofSetAtEachStep;
 
         // Flag telling if it is needed or not to compute the reactions
@@ -723,11 +744,11 @@ namespace Kratos
         /**@name Protected Operators*/
         /*@{ */
 
-         /**
-         * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-         * @details A member variable should be used as a flag to make sure this function is called only once per step.
-         * @todo Boost dependencies should be replaced by std equivalent
-         */
+            /**
+            * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+            * @details A member variable should be used as a flag to make sure this function is called only once per step.
+            * @todo Boost dependencies should be replaced by std equivalent
+            */
         void InitializeSolutionStep() override
         {
             KRATOS_TRY
@@ -788,9 +809,9 @@ namespace Kratos
         }
 
         /**
-         * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
-         * @details A member variable should be used as a flag to make sure this function is called only once per step.
-         */
+            * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+            * @details A member variable should be used as a flag to make sure this function is called only once per step.
+            */
         void FinalizeSolutionStep() override
         {
             KRATOS_TRY;
@@ -833,9 +854,9 @@ namespace Kratos
         }
 
         /**
-         * @brief Function to perform expensive checks.
-         * @details It is designed to be called ONCE to verify that the input is correct.
-         */
+            * @brief Function to perform expensive checks.
+            * @details It is designed to be called ONCE to verify that the input is correct.
+            */
         int Check() override
         {
             KRATOS_TRY
@@ -869,7 +890,7 @@ namespace Kratos
         /*@{ */
 
         /** Copy constructor.
-         */
+            */
         MPMResidualBasedLinearStrategy(const MPMResidualBasedLinearStrategy& Other)
         {
         };
