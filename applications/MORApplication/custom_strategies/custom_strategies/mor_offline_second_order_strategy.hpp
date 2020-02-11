@@ -437,7 +437,7 @@ class MorOfflineSecondOrderStrategy
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
                 //set up system matrices
-                std::vector<bool> fixed_dofs;
+                std::vector<unsigned int> fixed_dofs;
                 GetDirichletConstraints(fixed_dofs);
 
                 TSystemVectorType tmp(r_K.size1(), 0.0);
@@ -874,15 +874,13 @@ class MorOfflineSecondOrderStrategy
 
     /**
      * @brief Finds all fixed dofs
-     * @param rFixedDofSet array where true specifies a fixed dof
+     * @details vector<bool> is not thread safe, so we use unsigned int here
+     * @param rFixedDofSet array where 1 specifies a fixed dof´
      */ 
-    void GetDirichletConstraints(std::vector<bool>& rFixedDofSet)
+    void GetDirichletConstraints(std::vector<unsigned int>& rFixedDofSet)
     {
-        // std::size_t system_size = A.size1();
-        // std::vector<double> scaling_factors (system_size, 0.0);
-
-        // const int n_dofs = static_cast<int>(BaseType::mDofSet.size());
         const size_t n_dofs = this->GetBuilderAndSolver()->GetEquationSystemSize();
+        auto& r_dof_set = this->GetBuilderAndSolver()->GetDofSet();
 
         if( rFixedDofSet.size() != n_dofs )
             rFixedDofSet.resize( n_dofs, false);
@@ -891,12 +889,8 @@ class MorOfflineSecondOrderStrategy
         #pragma omp parallel for firstprivate(n_dofs)
         for( int k = 0; k < static_cast<int>(n_dofs); k++ )
         {
-            // typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-            typename DofsArrayType::iterator dof_iterator = this->GetBuilderAndSolver()->GetDofSet().begin() + k;
-            if( dof_iterator->IsFixed() )
-                rFixedDofSet[k] = true;
-            else
-                rFixedDofSet[k] = false;
+            auto dof_iterator = std::begin(r_dof_set) + k;
+            rFixedDofSet[k] = dof_iterator->IsFixed() ? 1 : 0;
         }
     }
 
@@ -915,7 +909,7 @@ class MorOfflineSecondOrderStrategy
     void ApplyDirichletConditions(
         TSystemMatrixType& A,
         TSystemVectorType& b,
-        const std::vector<bool>& FixedDofSet,
+        const std::vector<unsigned int>& FixedDofSet,
         // bool TreatSingularity,
         double Factor)
     {
@@ -956,7 +950,7 @@ class MorOfflineSecondOrderStrategy
             std::size_t col_end = Arow_indices[k+1];
             // double k_factor = scaling_factors[k];
             bool is_fixed = FixedDofSet[k];
-            if( is_fixed )
+            if( is_fixed == 1 )
             {
                 // zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
