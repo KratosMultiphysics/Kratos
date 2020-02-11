@@ -39,14 +39,12 @@
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/timer.h"
-
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/embedded_skin_utility.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"
-
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
 #include "utilities/table_stream_utility.h"

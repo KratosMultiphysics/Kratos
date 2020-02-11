@@ -1,5 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
+set (CMAKE_CXX_STANDARD 11)
 
 # Setting some policies
 # No recursive dereferencing
