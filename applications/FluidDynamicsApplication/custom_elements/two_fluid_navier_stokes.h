@@ -602,6 +602,47 @@ private:
 		VectorType& rRHSeeTot);
 
     /**
+     * @brief Computes the LHS terms associated with the pressure stabilizations at cut
+     * This method is mainly proposed for Nitsche-XFEM
+     * @param rData Reference to the element data container
+     * @param rLHS Reference to the Left Hand Side matrix to be filled
+     * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
+     * @param rRHS Reference to the Right Hand Side vector to be filled
+     */
+    void PressureGradientStabilization(
+        TElementData& rData,
+        MatrixType& rLHS,
+        MatrixType& rV,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the LHS terms associated with the pressure stabilizations at the interface
+     * This method is derived from what is done for Nitsche-XFEM
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     */
+    void PressureGradientStabilization(
+        TElementData& rData,
+        const Kratos::Vector& rIntWeights,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        MatrixType& rKeeTot);
+
+    /**
+     * @brief Computes the LHS terms associated with the pressure stabilizations
+     * This method is derived from what is done in ghost penalty method
+     * @param rWeights Weights associated with gauss points
+     * @param rShapeDerivatives Shape functions derivatives at the gauss points
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     */
+    void GhostPressureGradientStabilization(
+        TElementData& rData,
+        const Kratos::Vector& rWeights,
+        const GeometryType::ShapeFunctionsGradientsType& rShapeDerivatives,
+        MatrixType& rKeeTot);
+
+
+    /**
      * @brief Impose pressure discontinuity at the interface and computes the surface tension
      * A penalty method is acquired and integration is done on the interface
      * @param coefficient surface tension coefficient

@@ -190,9 +190,9 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 /* 1.0e-16  */){
                 pt_count_pos++;
-            } else {
+            } else if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) < 0.0 /* 1.0e-16  */){
                 pt_count_neg++;
             }
         }
@@ -215,18 +215,20 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
+                /* if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
                     it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
-                }
+                } */
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
             //KRATOS_INFO("MassConservationProcess") << "About to construct the ModifiedShapeFunctions" << std::endl;
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
+            }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
+            }            
+            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; 
+            }
 
             //KRATOS_INFO("MassConservationProcess") << "Constructed the ModifiedShapeFunctions" << std::endl;
 
@@ -291,7 +293,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 1.0e-16 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -351,7 +353,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 1.0e-16 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -415,7 +417,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 1.0e-16 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -484,7 +486,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             unsigned int pos_count = 0;
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 distance[i] = p_condition->GetGeometry()[i].FastGetSolutionStepValue( DISTANCE );
-                if ( rGeom[i].FastGetSolutionStepValue( DISTANCE ) > 0.0 ){
+                if ( rGeom[i].FastGetSolutionStepValue( DISTANCE ) > 1.0e-16 ){
                     pos_count++;
                 } else {
                     neg_count++;

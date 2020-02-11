@@ -195,7 +195,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
         it_number=self.linear_solver.GetIterationsNumber()
-        KratosMultiphysics.Logger.PrintInfo("surface_smoothing_process", it_number)
+        KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
 
         self.distance_gradient_process = self._set_distance_gradient_process()
         #(self.distance_gradient_process).Execute()
@@ -324,28 +324,32 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #if (TimeStep % 1 == 0):
             #    (self.distance_gradient_process).Execute()
             #    #(self.curvature_calculation_process).Execute()
+            #    (self.interface_curvature_calculation).Execute()
             #    (self.variational_non_eikonal_distance).Execute()
             #    for node in self.main_model_part.Nodes:
             #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+                
+            #    it_number=self.linear_solver.GetIterationsNumber()
+            #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
             # Smoothing the surface to filter oscillatory surface
-            #self.surface_smoothing_process).Execute()
+            #(self.surface_smoothing_process).Execute()
             #for node in self.main_model_part.Nodes:
             #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             #it_number=self.linear_solver.GetIterationsNumber()
-            #KratosMultiphysics.Logger.PrintInfo("surface_smoothing_process", it_number)
+            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 
             # Compute the DISTANCE_GRADIENT on nodes
-            #(self.distance_gradient_process).Execute()
+            (self.distance_gradient_process).Execute()
 
             # Compute CURVATURE on nodes
-            #(self.curvature_calculation_process).Execute()
+            (self.curvature_calculation_process).Execute()
 
             # Compute CURVATURE on nodes of cut element based on interface integration
-            (self.interface_curvature_calculation).Execute()
+            #(self.interface_curvature_calculation).Execute()
 
             #for node in self.main_model_part.Nodes:
             #    node.SetSolutionStepValue(KratosCFD.CURVATURE, 2.0/0.003)
@@ -386,6 +390,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 distLogFile.write( str(TimeStep) + "\t" + str(YZero) + "\n" )
 
     def FinalizeSolutionStep(self):
+        it_number=self.linear_solver.GetIterationsNumber()
+        KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, NS", it_number)
+        TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        with open("solver_iteration.log", "a") as iterLogFile:
+            iterLogFile.write( str(TimeStep) + "\t" + str(it_number) + "\n" )
+
         if self._TimeBufferIsInitialized():
             (self.solver).FinalizeSolutionStep()
             (self.accelerationLimitationUtility).Execute()
