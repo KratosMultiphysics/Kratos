@@ -896,7 +896,7 @@ public:
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
-        const double diagonal_value = GetScaleNorm(rA);
+        mScaleFactor = GetScaleNorm(rA);
         
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel firstprivate(system_size)
@@ -917,7 +917,7 @@ public:
                 }
 
                 if(empty) {
-                    rA(k, k) = diagonal_value;
+                    rA(k, k) = mScaleFactor;
                     rb[k] = 0.0;
                 }
             }
