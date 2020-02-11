@@ -31,6 +31,8 @@
 // Application includes
 #include "custom_utilities/method_utilities.h"
 
+// MPI methods doesn't support vector and matrix SumAll methods,
+// therefore only double and fixed array templates are added
 #ifndef ADD_KRATOS_STATISTICS_SPATIAL_CONTAINER_VALUE_METHOD_PYTHON_INTERFACE
 #define ADD_KRATOS_STATISTICS_SPATIAL_CONTAINER_VALUE_METHOD_PYTHON_INTERFACE(method, method_name, value_method_module, container)  \
 {                                                                                                                                   \
