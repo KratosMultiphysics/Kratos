@@ -442,6 +442,62 @@ const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>&
     KRATOS_CATCH("");
 }
 
+template <typename TDataType>
+void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
+{
+    KRATOS_TRY
+
+    for (const std::string& r_variable_name : rVariableNamesList)
+    {
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(r_variable_name))
+            << r_variable_name << " variable type mismatch.\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CheckInputOutputVariables(const std::vector<std::string>& rInputVariableNamesList,
+                               const std::vector<std::string>& rOutputVariableNamesList)
+{
+    KRATOS_TRY
+
+    const std::size_t number_of_variables = rInputVariableNamesList.size();
+
+    KRATOS_ERROR_IF(number_of_variables != rOutputVariableNamesList.size())
+        << "Input variable and output variable list size mismatch.\n";
+
+    for (std::size_t i = 0; i < number_of_variables; ++i)
+    {
+        const std::string& r_variable_input = rInputVariableNamesList[i];
+        const std::string& r_variable_output = rOutputVariableNamesList[i];
+        KRATOS_ERROR_IF((KratosComponents<Variable<double>>::Has(r_variable_input) &&
+                        !KratosComponents<Variable<double>>::Has(r_variable_output)))
+            << "Input and output variable type mismatch. Input "
+            << r_variable_input << " is of type double and " << r_variable_output
+            << " variable is not found in Kratos double components.\n";
+
+        KRATOS_ERROR_IF((KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_input) &&
+                        !KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_output)))
+            << "Input and output variable type mismatch. Input "
+            << r_variable_input << " is of type array_1d<double, 3> and "
+            << r_variable_output << " variable is not found in Kratos array_1d<double, 3> components.\n";
+
+        KRATOS_ERROR_IF((KratosComponents<Variable<Vector>>::Has(r_variable_input) &&
+                        !KratosComponents<Variable<Vector>>::Has(r_variable_output)))
+            << "Input and output variable type mismatch. Input "
+            << r_variable_input << " is of type Vector and " << r_variable_output
+            << " variable is not found in Kratos Vector components.\n";
+
+        KRATOS_ERROR_IF((KratosComponents<Variable<Matrix>>::Has(r_variable_input) &&
+                        !KratosComponents<Variable<Matrix>>::Has(r_variable_output)))
+            << "Input and output variable type mismatch. Input "
+            << r_variable_input << " is of type Matrix and " << r_variable_output
+            << " variable is not found in Kratos Matrix components.\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
 // method template instantiations
 
 template double RaiseToPower(const double&, const double);
@@ -459,6 +515,11 @@ template void DataTypeSizeInitializer(array_1d<double, 3>&, const array_1d<doubl
 template void DataTypeSizeChecker(const double&, const double&);
 template void DataTypeSizeChecker(const int&, const int&);
 template void DataTypeSizeChecker(const array_1d<double, 3>&, const array_1d<double, 3>&);
+
+template void CheckVariableType<double>(const std::vector<std::string>& rVariableNamesList);
+template void CheckVariableType<array_1d<double, 3>>(const std::vector<std::string>& rVariableNamesList);
+template void CheckVariableType<Vector>(const std::vector<std::string>& rVariableNamesList);
+template void CheckVariableType<Matrix>(const std::vector<std::string>& rVariableNamesList);
 
 // class template instantiations
 template class NonHistoricalDataValueRetrievalFunctor<NodeType>;

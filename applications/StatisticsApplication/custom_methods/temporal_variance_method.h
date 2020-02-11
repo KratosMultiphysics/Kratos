@@ -96,6 +96,13 @@ public:
                                                               TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputMeanVariable, mrInputVariable);
             initializer_method(r_container, mrOutputVarianceVariable, mrInputVariable);
+
+            KRATOS_INFO("TemporalValueVarianceMethod")
+                << "Initialized temporal value variance method for "
+                << mrInputVariable.Name() << " input variable with "
+                << mrOutputMeanVariable.Name() << " mean variable and "
+                << mrOutputVarianceVariable.Name() << " variance variable for "
+                << this->GetModelPart().Name() << ".\n";
         }
 
     private:
@@ -162,6 +169,13 @@ public:
                 TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
             initializer_method(r_container, mrOutputMeanVariable, 0.0);
             initializer_method(r_container, mrOutputVarianceVariable, 0.0);
+
+            KRATOS_INFO("TemporalNormVarianceMethod")
+                << "Initialized temporal norm variance method for "
+                << mrInputVariable.Name() << " input variable with "
+                << mrOutputMeanVariable.Name() << " mean variable and "
+                << mrOutputVarianceVariable.Name() << " variance variable for "
+                << this->GetModelPart().Name() << ".\n";
         }
 
     private:
@@ -170,6 +184,71 @@ public:
         const Variable<double>& mrOutputMeanVariable;
         const Variable<double>& mrOutputVarianceVariable;
     };
+
+    std::vector<TemporalMethod::Pointer> static CreateTemporalMethodObject(
+        ModelPart& rModelPart, const std::string& rNormType, Parameters Params)
+    {
+        KRATOS_TRY
+
+        Parameters default_parameters = Parameters(R"(
+            {
+                "input_variables"           : [],
+                "output_mean_variables"     : [],
+                "output_variance_variables" : []
+            })");
+        Params.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        const std::vector<std::string>& input_variable_names_list =
+            Params["input_variables"].GetStringArray();
+        const std::vector<std::string>& output_variable_1_names_list =
+            Params["output_mean_variables"].GetStringArray();
+        const std::vector<std::string>& output_variable_2_names_list =
+            Params["output_variance_variables"].GetStringArray();
+
+        std::vector<TemporalMethod::Pointer> method_list;
+        if (rNormType == "none") // for non norm types
+        {
+            MethodsUtilities::CheckInputOutputVariables(
+                input_variable_names_list, output_variable_1_names_list);
+            MethodsUtilities::CheckInputOutputVariables(
+                input_variable_names_list, output_variable_2_names_list);
+
+            const int number_of_variables = input_variable_names_list.size();
+            for (int i = 0; i < number_of_variables; ++i)
+            {
+                const std::string& r_variable_input_name = input_variable_names_list[i];
+                const std::string& r_variable_1_output_name =
+                    output_variable_1_names_list[i];
+                const std::string& r_variable_2_output_name =
+                    output_variable_2_names_list[i];
+                ADD_TEMPORAL_VALUE_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(
+                    rModelPart, rNormType, r_variable_input_name, r_variable_1_output_name,
+                    r_variable_2_output_name, method_list, ValueMethod)
+            }
+        }
+        else // for values with norms
+        {
+            MethodsUtilities::CheckVariableType<double>(output_variable_1_names_list);
+            MethodsUtilities::CheckVariableType<double>(output_variable_2_names_list);
+
+            const int number_of_variables = input_variable_names_list.size();
+            for (int i = 0; i < number_of_variables; ++i)
+            {
+                const std::string& r_variable_input_name = input_variable_names_list[i];
+                const std::string& r_variable_1_output_name =
+                    output_variable_1_names_list[i];
+                const std::string& r_variable_2_output_name =
+                    output_variable_2_names_list[i];
+                ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(
+                    rModelPart, rNormType, r_variable_input_name, r_variable_1_output_name,
+                    r_variable_2_output_name, method_list, NormMethod)
+            }
+        }
+
+        return method_list;
+
+        KRATOS_CATCH("");
+    }
 
 private:
     template <typename TDataType>

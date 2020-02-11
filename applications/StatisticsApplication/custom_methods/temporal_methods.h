@@ -107,6 +107,25 @@ const Variable<double>&, const Variable<double>&
 }
 #endif
 
+#ifndef ADD_KRATOS_STATISTICS_TEMPORAL_CREATE_METHOD_PYTHON_INTERFACE
+#define ADD_KRATOS_STATISTICS_TEMPORAL_CREATE_METHOD_PYTHON_INTERFACE(method, method_name, python_application_module) \
+{                                                                                                               \
+    py::module temporal_module = (py::module) python_application_module.attr("TemporalMethods"); \
+    py::module historical_module = (py::module) temporal_module.attr("Historical"); \
+    py::module historical_historical_output_module = (py::module) historical_module.attr("HistoricalOutput"); \
+    py::module historical_non_historical_output_module = (py::module) historical_module.attr("NonHistoricalOutput"); \
+    py::module non_historical_module = (py::module) temporal_module.attr("NonHistorical"); \
+    py::module non_historical_nodal_module = (py::module) non_historical_module.attr("Nodes"); \
+    py::module non_historical_condition_module = (py::module) non_historical_module.attr("Conditions"); \
+    py::module non_historical_element_module = (py::module) non_historical_module.attr("Elements"); \
+    historical_historical_output_module.def(method_name, &TemporalMethods::HistoricalInputHistoricalOutputTemporalMethods::method::CreateTemporalMethodObject); \
+    historical_non_historical_output_module.def(method_name, &TemporalMethods::HistoricalInputNonHistoricalOutputTemporalMethods::method::CreateTemporalMethodObject); \
+    non_historical_nodal_module.def(method_name, &TemporalMethods::NodalNonHistoricalTemporalMethods::method::CreateTemporalMethodObject); \
+    non_historical_condition_module.def(method_name, &TemporalMethods::ConditionNonHistoricalTemporalMethods::method::CreateTemporalMethodObject); \
+    non_historical_element_module.def(method_name, &TemporalMethods::ElementNonHistoricalTemporalMethods::method::CreateTemporalMethodObject); \
+}
+#endif
+
 #ifndef ADD_KRATOS_STATISTICS_TEMPORAL_VALUE_METHOD_PYTHON_INTERFACE
 #define ADD_KRATOS_STATISTICS_TEMPORAL_VALUE_METHOD_PYTHON_INTERFACE(method, method_name, python_application_module, output_type)       \
 {                                                                                                                                       \

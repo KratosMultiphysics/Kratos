@@ -88,6 +88,12 @@ public:
                 TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
                                                               TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputVariable, mrInputVariable);
+
+            KRATOS_INFO("TemporalValueSumMethod")
+                << "Initialized temporal value sum method for "
+                << mrInputVariable.Name() << " input variable with "
+                << mrOutputVariable.Name() << " output variable for "
+                << this->GetModelPart().Name() << ".\n";
         }
 
     private:
@@ -146,6 +152,12 @@ public:
             auto& initializer_method =
                 TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
             initializer_method(r_container, mrOutputVariable, 0.0);
+
+            KRATOS_INFO("TemporalNormSumMethod")
+                << "Initialized temporal norm sum method for "
+                << mrInputVariable.Name() << " input variable with "
+                << mrOutputVariable.Name() << " output variable for "
+                << this->GetModelPart().Name() << ".\n";
         }
 
     private:
@@ -153,6 +165,60 @@ public:
         const Variable<TDataType>& mrInputVariable;
         const Variable<double>& mrOutputVariable;
     };
+
+    std::vector<TemporalMethod::Pointer> static CreateTemporalMethodObject(
+        ModelPart& rModelPart, const std::string& rNormType, Parameters Params)
+    {
+        KRATOS_TRY
+
+        Parameters default_parameters = Parameters(R"(
+            {
+                "input_variables"  : [],
+                "output_variables" : []
+            })");
+        Params.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        const std::vector<std::string>& input_variable_names_list =
+            Params["input_variables"].GetStringArray();
+        const std::vector<std::string>& output_variable_names_list =
+            Params["output_variables"].GetStringArray();
+
+        std::vector<TemporalMethod::Pointer> method_list;
+        if (rNormType == "none") // for non norm types
+        {
+            MethodsUtilities::CheckInputOutputVariables(
+                input_variable_names_list, output_variable_names_list);
+            const int number_of_variables = input_variable_names_list.size();
+            for (int i = 0; i < number_of_variables; ++i)
+            {
+                const std::string& r_variable_input_name = input_variable_names_list[i];
+                const std::string& r_variable_output_name =
+                    output_variable_names_list[i];
+                ADD_TEMPORAL_VALUE_METHOD_ONE_OUTPUT_VARIABLE_OBJECT(
+                    rModelPart, rNormType, r_variable_input_name,
+                    r_variable_output_name, method_list, ValueMethod)
+            }
+        }
+        else // for values with norms
+        {
+            MethodsUtilities::CheckVariableType<double>(output_variable_names_list);
+
+            const int number_of_variables = input_variable_names_list.size();
+            for (int i = 0; i < number_of_variables; ++i)
+            {
+                const std::string& r_variable_input_name = input_variable_names_list[i];
+                const std::string& r_variable_output_name =
+                    output_variable_names_list[i];
+                ADD_TEMPORAL_NORM_METHOD_ONE_OUTPUT_VARIABLE_OBJECT(
+                    rModelPart, rNormType, r_variable_input_name,
+                    r_variable_output_name, method_list, NormMethod)
+            }
+        }
+
+        return method_list;
+
+        KRATOS_CATCH("");
+    }
 
 private:
     template <typename TDataType>
