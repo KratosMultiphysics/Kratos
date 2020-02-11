@@ -24,37 +24,37 @@
 
 namespace Kratos
 {
-typedef typename MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
+typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-typedef InterfaceVectorContainer<MPISparseSpaceType, DenseSpaceType> MPIVectorContainerType;
+typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContainerType;
 
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
 template<>
-void MPIVectorContainerType::UpdateSystemVectorFromModelPart(const DoubleVariableType& rVariable,
+void VectorContainerType::UpdateSystemVectorFromModelPart(const DoubleVariableType& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void MPIVectorContainerType::UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
+void VectorContainerType::UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void MPIVectorContainerType::UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
+void VectorContainerType::UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void MPIVectorContainerType::UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
+void VectorContainerType::UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
@@ -62,6 +62,6 @@ void MPIVectorContainerType::UpdateModelPartFromSystemVector(const ComponentVari
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class InterfaceVectorContainer< MPISparseSpaceType, DenseSpaceType >;
+template class InterfaceVectorContainer< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
