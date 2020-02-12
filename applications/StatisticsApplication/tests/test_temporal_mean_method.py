@@ -15,7 +15,7 @@ from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVa
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
 
-class TemporalSumMethodTests(KratosUnittest.TestCase):
+class TemporalMeanMethodTests(KratosUnittest.TestCase):
     def setUp(self):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test_model_part")
@@ -25,54 +25,54 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
         CreateModelPart(self.model_part)
         InitializeModelPartVariables(self.model_part)
 
-    def testSumHistoricalHistoricalValueMethod(self):
+    def testMeanHistoricalHistoricalValueMethod(self):
         norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, HistoricalRetrievalMethod)
 
-    def testSumHistoricalNonHistoricalValueMethod(self):
+    def testMeanHistoricalNonHistoricalValueMethod(self):
         norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumHistoricalHistoricalNormMethod(self):
+    def testMeanHistoricalHistoricalNormMethod(self):
         norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, HistoricalRetrievalMethod)
 
-    def testSumHistoricalNonHistoricalNormMethod(self):
+    def testMeanHistoricalNonHistoricalNormMethod(self):
         norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumNodalNonHistoricalValueMethod(self):
+    def testMeanNodalNonHistoricalValueMethod(self):
         norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "nodal_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Nodes, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumNodalNonHistoricalNormMethod(self):
+    def testMeanNodalNonHistoricalNormMethod(self):
         norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "nodal_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Nodes, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumConditionNonHistoricalValueMethod(self):
+    def testMeanConditionNonHistoricalValueMethod(self):
         norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "condition_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "condition_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Conditions, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumConditionNonHistoricalNormMethod(self):
+    def testMeanConditionNonHistoricalNormMethod(self):
         norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "condition_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "condition_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Conditions, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumElementNonHistoricalValueMethod(self):
+    def testMeanElementNonHistoricalValueMethod(self):
         norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "element_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "element_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Elements, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
-    def testSumElementNonHistoricalNormMethod(self):
+    def testMeanElementNonHistoricalNormMethod(self):
         norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "element_non_historical")
+        settings = TemporalMeanMethodTests.__GetDefaultSettings(norm_type, "element_non_historical")
         self.__TestMethod(norm_type, settings, self.model_part.Elements, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
 
@@ -100,10 +100,10 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
                     vec_list[index].append(current_vector)
                     mat_list[index].append(current_matrix)
 
-                analytical_method_scalar = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.PRESSURE, scalar_list[index])
-                analytical_method_vec_3d = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.VELOCITY, vec_3d_list[index])
-                analytical_method_vec = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.LOAD_MESHES, vec_list[index])
-                analytical_method_mat = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, mat_list[index])
+                analytical_method_scalar = TemporalMeanMethodTests.__AnalyticalMethod(norm_type, Kratos.PRESSURE, scalar_list[index])
+                analytical_method_vec_3d = TemporalMeanMethodTests.__AnalyticalMethod(norm_type, Kratos.VELOCITY, vec_3d_list[index])
+                analytical_method_vec = TemporalMeanMethodTests.__AnalyticalMethod(norm_type, Kratos.LOAD_MESHES, vec_list[index])
+                analytical_method_mat = TemporalMeanMethodTests.__AnalyticalMethod(norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, mat_list[index])
 
                 if (norm_type == "none"):
                     method_scalar = output_method(item, KratosStats.PRESSURE_MEAN)
@@ -118,7 +118,7 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
 
                 CheckValues(self, analytical_method_scalar, method_scalar, 8)
                 CheckValues(self, analytical_method_vec_3d, method_vec_3d, 8)
-                CheckValues(self, analytical_method_vec, method_vec, 16)
+                CheckValues(self, analytical_method_vec, method_vec, 8)
                 CheckValues(self, analytical_method_mat, method_mat, 8)
 
     @staticmethod
@@ -126,13 +126,14 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
         if (norm_type == "none"):
             result = GetInitialVariableValue(variable, "none")
             for item in value_array:
-                result += item
+                result += item * 2.0
         else:
             result = 0.0
             norm_method = KratosStats.MethodUtilities.GetNormMethod(variable, norm_type)
             for item in value_array:
-                result += norm_method(item)
+                result += norm_method(item) * 2.0
 
+        result = result * (1.0 / max(len(value_array) * 2.0, 1.0))
         return result
 
     @staticmethod
@@ -146,7 +147,7 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
                     "model_part_name"                : "test_model_part",
                     "input_variable_settings" : [
                         {
-                             "method_name"     : "sum",
+                             "method_name"     : "mean",
                              "norm_type"       : "<TEST_NORM_TYPE>",
                              "container"       : "<TEST_CONTAINER>",
                              "echo_level"      : 0,
