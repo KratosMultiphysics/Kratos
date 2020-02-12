@@ -59,6 +59,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
 
+        if Parameters.Has("material_import_settings"):
+            self.material_import_settings = Parameters["material_import_settings"]
 
     def Execute(self):
         """This function executes the process
@@ -81,7 +83,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                 print("[Model_Prepare]::Body Creation", body_model_part_name)
                 body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
-                body_model_part.Properties  = self.main_model_part.Properties
+
+                with open(self.material_import_settings["materials_filename"].GetString(), 'r') as parameter_file:
+                    materials = KratosMultiphysics.Parameters(parameter_file.read())
 
                 #build body from their parts
                 body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
@@ -89,6 +93,11 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 for j in range(body_parts_name_list.size()):
 
                     body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
+
+                    for k in range(materials["properties"].size()):
+                        if materials["properties"][k]["model_part_name"].GetString() == self.main_model_part.Name + "." + body_parts_name_list[j].GetString():
+                            property_id = self.main_model_part.GetProperties()[materials["properties"][k]["properties_id"].GetInt()]
+                            body_model_part.AddProperties(property_id)
 
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
@@ -206,5 +215,5 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
         print(" Main Model Part", self.main_model_part )
 
-   
+
 

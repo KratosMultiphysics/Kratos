@@ -255,6 +255,7 @@ class PfemFluidSolver(PythonSolver):
         params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        params.AddValue("material_import_settings",self.settings["material_import_settings"])
         if( self.settings.Has("bodies_list") ):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
