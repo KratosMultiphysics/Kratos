@@ -123,9 +123,12 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENRICHED_PRESSURE_3)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENRICHED_PRESSURE_4)
 
-     // Last known velocity and pressure to recalculate the last increment
+    // Last known velocity and pressure to recalculate the last increment
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY_STAR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_STAR)
+
+    // Pressure gradient to calculate its jump over interface
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, PRESSURE_GRADIENT_AUX)
 }
 
 

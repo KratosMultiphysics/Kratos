@@ -43,6 +43,7 @@
 #include "custom_processes/lumped_eikonal_distance_calculation.h"  //MRH
 #include "custom_processes/variational_non_eikonal_distance.h"   //MRH
 #include "custom_processes/lumped_interface_curvature_calculation.h" //MRH
+#include "custom_processes/lumped_interface_positive_negative_pressure_gradient.h" //MRH
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -167,6 +168,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<LumpedInterfaceCurvatureCalculation, LumpedInterfaceCurvatureCalculation::Pointer, Process> (m, "LumpedInterfaceCurvatureCalculation")
+    .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<LumpedInterfacePositiveNegativePressureGradient, LumpedInterfacePositiveNegativePressureGradient::Pointer, Process> (m, "LumpedInterfacePositiveNegativePressureGradient")
     .def(py::init<ModelPart&>())
     ;
 }

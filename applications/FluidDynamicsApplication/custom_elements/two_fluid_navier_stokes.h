@@ -87,6 +87,10 @@ public:
     typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesArrayType ShapeFunctionDerivativesArrayType;
     constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
+
+    /* static constexpr int TNumNodes = NumNodes;
+    static constexpr int TDim = Dim; */
+    
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
     constexpr static unsigned int StrainSize = (Dim - 1) * 3;
@@ -619,6 +623,25 @@ private:
      * @brief Computes the LHS terms associated with the pressure stabilizations at the interface
      * This method is derived from what is done for Nitsche-XFEM
      * @param rIntWeights Weights associated with interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+    void PressureGradientStabilization(
+        TElementData& rData,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntEnrShapeFunctionsPos,
+        const Matrix& rIntEnrShapeFunctionsNeg,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        MatrixType& rKeeTot,
+		VectorType& rRHSeeTot);
+
+    /**
+     * @brief Computes the LHS terms associated with the pressure stabilizations at the interface
+     * This method is derived from what is done for Nitsche-XFEM
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntEnrShapeFunctionsPos (negative nodes) Enriched Shape functions calculated at the interface gauss points
+     * @param rIntEnrShapeFunctionsNeg (positive nodes) Enriched Shape functions calculated at the interface gauss points
      * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
      * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
      */

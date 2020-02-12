@@ -104,4 +104,7 @@ KRATOS_CREATE_VARIABLE( double, ENRICHED_PRESSURE_4)
 // Last known velocity and pressure to recalculate the last increment
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_STAR)
 KRATOS_CREATE_VARIABLE( double, PRESSURE_STAR)
+
+// Pressure gradient to calculate its jump over interface
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( PRESSURE_GRADIENT_AUX)
 }

@@ -297,11 +297,26 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 //    for (unsigned int j = 0; j < Dim; j++)
                 //        data.BodyForce(i,j) +=  1.0/(volume_neg*(data.Density))*surface_tension(j);
 
-                PressureGradientStabilization(
+                /* PressureGradientStabilization(
                     data,
                     int_gauss_pts_weights,
                     int_shape_derivatives_neg,
-                    Kee_tot);
+                    Kee_tot); */
+
+                /* PressureGradientStabilization(
+                    data,
+                    int_gauss_pts_weights,
+                    int_shape_derivatives_neg,
+                    Kee_tot); */
+
+                PressureGradientStabilization(
+                    data,
+                    int_gauss_pts_weights,
+                    int_shape_function_enr_pos,
+                    int_shape_function_enr_neg,
+                    int_shape_derivatives_neg,
+                    Kee_tot,
+                    rhs_ee_tot);
 
                 /* Vector gauss_weights;
                 Matrix shape_functions;
@@ -2787,6 +2802,129 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 }
 
 template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
+        TElementData& rData,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntEnrShapeFunctionsPos, // Negative nodes
+        const Matrix& rIntEnrShapeFunctionsNeg, // Positive nodes
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        MatrixType& rKeeTot,
+		VectorType& rRHSeeTot)
+{
+    const unsigned int NumIntGP = rIntWeights.size();
+    MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
+    VectorType rhs_enr = ZeroVector(NumNodes);
+
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
+
+    double positive_density = 0.0;
+    double negative_density = 0.0;
+    double positive_viscosity = 0.0;
+    double negative_viscosity = 0.0;
+
+    for (unsigned int i = 0; i < NumNodes; i++){
+        if (rData.Distance[i] > 0.0){
+            enr_neg_interp(i, i) = 1.0;
+            positive_density = rData.NodalDensity[i];
+            positive_viscosity = rData.NodalDynamicViscosity[i];
+        } else /* if (rData.Distance[i] < 0.0) */{
+            enr_pos_interp(i, i) = 1.0;
+            negative_density = rData.NodalDensity[i];
+            negative_viscosity = rData.NodalDynamicViscosity[i];
+        }
+    }
+
+    GeometryType::ShapeFunctionsGradientsType EnrichedIntShapeDerivativesPos = rInterfaceShapeDerivativesNeg;
+    GeometryType::ShapeFunctionsGradientsType EnrichedIntShapeDerivativesNeg = rInterfaceShapeDerivativesNeg;
+
+    for (unsigned int i = 0; i < rInterfaceShapeDerivativesNeg.size(); i++){
+        EnrichedIntShapeDerivativesPos[i] = prod(enr_pos_interp, rInterfaceShapeDerivativesNeg[i]);
+    }
+
+    for (unsigned int i = 0; i < rInterfaceShapeDerivativesNeg.size(); i++){
+        EnrichedIntShapeDerivativesNeg[i] = prod(enr_neg_interp, rInterfaceShapeDerivativesNeg[i]);
+    }
+
+    double positive_volume = 0.0;
+    double negative_volume = 0.0;
+    for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); ++igauss_pos){
+        positive_volume += rData.w_gauss_pos_side[igauss_pos];
+    }
+
+    for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); ++igauss_neg){
+        negative_volume += rData.w_gauss_neg_side[igauss_neg];
+    }
+    const double element_volume = positive_volume + negative_volume;
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(*p_geom);
+
+    double cut_area = 0.0;
+    for (unsigned int gp = 0; gp < NumIntGP; gp++){
+        cut_area += rIntWeights[gp];
+    }
+
+    const double density = 1.0/(1.0/positive_density + 1.0/negative_density);
+    const double viscosity = 1.0/(1.0/positive_viscosity + 1.0/negative_viscosity);
+
+    // Stabilization parameters
+    const double coefficient = 1.0;
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    const double dyn_tau = rData.DynamicTau;
+
+    const double dt = rData.DeltaTime;
+
+    const auto v_convection = rData.Velocity - rData.MeshVelocity;
+
+    for (unsigned int gp = 0; gp < NumIntGP; gp++){
+
+        Vector vconv = ZeroVector(Dim);
+        double positive_weight = 0.0;
+        double negative_weight = 0.0;
+
+        for (unsigned int j = 0; j < NumNodes; j++){
+            for (unsigned int dim = 0; dim < Dim; dim++){
+                vconv[dim] += 
+                    (rIntEnrShapeFunctionsNeg(gp, j) + rIntEnrShapeFunctionsPos(gp, j)) * v_convection(j,dim);
+            }
+            positive_weight += rIntEnrShapeFunctionsNeg(gp, j);
+            negative_weight += rIntEnrShapeFunctionsPos(gp, j);
+        }
+
+        const double v_conv_norm = norm_2(vconv);
+
+        const double penalty_coefficient = coefficient *
+            density * 1.0 / (dyn_tau * density / dt + stab_c1 * viscosity / h_elem / h_elem +
+                                stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
+
+        for (unsigned int i = 0; i < NumNodes; i++){
+
+            for (unsigned int j = 0; j < NumNodes; j++){
+
+                const array_1d<double, 3> pressure_gradient_j = (*p_geom)[j].FastGetSolutionStepValue(PRESSURE_GRADIENT_AUX);
+
+                for (unsigned int dim = 0; dim < Dim; dim++){
+                    kee(i, j) += penalty_coefficient * rIntWeights[gp] * 
+                        ( (EnrichedIntShapeDerivativesPos[gp])(i,dim) - (EnrichedIntShapeDerivativesNeg[gp])(i,dim) )*
+                        ( (EnrichedIntShapeDerivativesPos[gp])(j,dim) - (EnrichedIntShapeDerivativesNeg[gp])(j,dim) );
+
+                    rhs_enr(i) += penalty_coefficient * rIntWeights[gp] *
+                        ( (EnrichedIntShapeDerivativesPos[gp])(i,dim) - (EnrichedIntShapeDerivativesNeg[gp])(i,dim) )*
+                        (rIntEnrShapeFunctionsNeg(gp, j)/positive_weight - rIntEnrShapeFunctionsPos(gp, j)/negative_weight)*
+                        pressure_gradient_j(dim);
+                }
+            }
+        }
+    }
+
+    noalias(rKeeTot) += kee;
+    noalias(rRHSeeTot) += rhs_enr;
+
+}
+
+template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::GhostPressureGradientStabilization(
         TElementData& rData,
         const Kratos::Vector& rWeights,
@@ -3394,7 +3532,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
     //const double min_area_ratio = 1e-7;
 
     // Compute positive side, negative side and total volumes
-    double positive_volume = 0.0;
+    /* double positive_volume = 0.0;
     double negative_volume = 0.0;
     for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); ++igauss_pos){
         positive_volume += rData.w_gauss_pos_side[igauss_pos];
@@ -3403,7 +3541,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
     for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); ++igauss_neg){
         negative_volume += rData.w_gauss_neg_side[igauss_neg];
     }
-    const double Vol = positive_volume + negative_volume;
+    const double Vol = positive_volume + negative_volume; */
     
     //We only enrich elements which are not almost empty/full
     //if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio) {

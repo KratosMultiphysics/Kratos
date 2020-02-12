@@ -48,7 +48,7 @@ void LumpedInterfaceCurvatureCalculation::Execute(){
     // Current domain size
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-    #pragma omp parallel for
+    /* #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node = it_node_begin + i;
 
@@ -57,7 +57,7 @@ void LumpedInterfaceCurvatureCalculation::Execute(){
         if ( distance == 0.0 ){
             it_node->FastGetSolutionStepValue(DISTANCE) = 1.0e-15;
         }
-    }
+    } */
 
     // Auxiliar containers
     /* Matrix DN_DX, J0;

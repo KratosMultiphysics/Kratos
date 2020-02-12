@@ -206,6 +206,9 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_STAR)
     KRATOS_REGISTER_VARIABLE( PRESSURE_STAR)
 
+    // Pressure gradient to calculate its jump over interface
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( PRESSURE_GRADIENT_AUX)
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention

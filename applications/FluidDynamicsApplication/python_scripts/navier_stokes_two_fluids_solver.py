@@ -124,6 +124,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR)                 # Auxiliary contact vector    
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_STAR)                  # Last known velocity
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_STAR)                  # Last known pressure
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_GRADIENT_AUX)          # Pressure gradient on positive and negative sides
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
@@ -214,6 +215,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
         #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
+        self.interface_pressure_gradient_calculation = self._set_interface_pressure_gradient_calculation()
+        #(self.interface_pressure_gradient_calculation).Execute()
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
 
@@ -247,6 +251,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_2, 0.0)
         #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_3, 0.0)
         #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 0.0)
+
+        with open("ZeroDistance.log", "w") as distLogFile:
+            distLogFile.write( "time_step" + "\t" + "YZero" + "\n" )
+
+        with open("solver_iteration.log", "w") as iterLogFile:
+            iterLogFile.write( "TimeStep" + "\t" + "iter_number" + "\n" )
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
@@ -353,6 +363,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             #for node in self.main_model_part.Nodes:
             #    node.SetSolutionStepValue(KratosCFD.CURVATURE, 2.0/0.003)
+
+            # Calculate nodal pressure gradient excluding the cut elements
+            (self.interface_pressure_gradient_calculation).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -600,5 +613,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "mass_conservation.log")
 
         return surface_smoothing_process
+
+    def _set_interface_pressure_gradient_calculation(self):
+        #Calculate pressure gradient on positive and negative sides (separately) using LumpedInterfacePositiveNegativePressureGradient
+        interface_pressure_gradient_calculation = KratosCFD.LumpedInterfacePositiveNegativePressureGradient(
+                self.main_model_part)
+
+        return interface_pressure_gradient_calculation
 
     
