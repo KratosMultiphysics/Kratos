@@ -18,11 +18,9 @@
 // External includes
 #include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
-#include "boost/numeric/ublas/vector.hpp"
 
 
 // Project includes
-#include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
@@ -211,7 +209,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ComplexLinearSolverPointer, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, bool, bool >())
         .def("GetBuilderAndSolver", &FrequencyResponseAnalysisStrategyType::GetBuilderAndSolver)
         ;
 

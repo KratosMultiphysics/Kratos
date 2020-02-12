@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Quirin Aumann
 //
 
 #if !defined(FREQUENCY_RESPONSE_ANALYSIS_STRATEGY)
@@ -20,19 +20,13 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/qr_utility.h"
 
-//default builder and solver
-#include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
-
-// Linear solvers
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/dirichlet_utility.hpp"
 
 namespace Kratos
 {
-    using complex = std::complex<double>;
 
 ///@name Kratos Globals
 ///@{
@@ -71,6 +65,8 @@ template <class TSparseSpace,
 class FrequencyResponseAnalysisStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
+    using complex = std::complex<double>;
+
   public:
     ///@name Type Definitions
     ///@
@@ -82,7 +78,7 @@ class FrequencyResponseAnalysisStrategy
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
+    typedef BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -130,31 +126,26 @@ class FrequencyResponseAnalysisStrategy
     ///@{
 
     /**
-     * Default constructor -> damped
+     * Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
-     * @param UseModalDamping If set to true, RAYLEIGH_BETA is used as modal damping ratio. RAYLEIGH_ALPHA should be 0
+     * @param UseModalDamping The flag if modal damping is used
      */
     FrequencyResponseAnalysisStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename ComplexLinearSolverType::Pointer pNewcomplexLinearSolver,
         bool MoveMeshFlag = false,
         bool UseModalDamping = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+            mpScheme(pScheme),
+            mpBuilderAndSolver(pBuilderAndSolver),
+            mpComplexLinearSolver(pNewcomplexLinearSolver),
+            mUseModalDamping(UseModalDamping)
     {
         KRATOS_TRY;
-
-        // Saving the scheme
-        mpScheme = pScheme;
-
-        // Setting default linear solver
-        mpLinearSolver = typename TLinearSolver::Pointer(new TLinearSolver);
-
-        // Setting up the default builder and solver
-         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(mpLinearSolver));   
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -171,16 +162,13 @@ class FrequencyResponseAnalysisStrategy
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
-        // By default the matrices are rebuilt at each iteration
+        // By default the matrices are never rebuilt
         this->SetRebuildLevel(0);
-
-        // Set member variables
-        mUseModalDamping = UseModalDamping;
-        mpComplexLinearSolver = pNewcomplexLinearSolver;
         
         mpA = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpK = TSparseSpace::CreateEmptyMatrixPointer();
-        mpC = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        mpKi = TSparseSpace::CreateEmptyMatrixPointer();
+        mpC = TSparseSpace::CreateEmptyMatrixPointer();
         mpM = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHS = ComplexSparseSpaceType::CreateEmptyVectorPointer();
         mpDx = ComplexSparseSpaceType::CreateEmptyVectorPointer();
@@ -334,10 +322,12 @@ class FrequencyResponseAnalysisStrategy
             TSolutionSpace::Clear(mpA);
         if (mpK != nullptr)
             SparseSpaceType::Clear(mpK);
+        if (mpKi != nullptr)
+            SparseSpaceType::Clear(mpKi);
         if (mpM != nullptr)
             SparseSpaceType::Clear(mpM);
         if (mpC != nullptr)
-            TSolutionSpace::Clear(mpC);
+            SparseSpaceType::Clear(mpC);
         if (mpRHS != nullptr)
             TSolutionSpace::Clear(mpRHS);
         if (mpDx != nullptr)
@@ -366,16 +356,16 @@ class FrequencyResponseAnalysisStrategy
         {
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+            ModelPart& r_model_part = BaseType::GetModelPart();
 
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
-            TSolutionMatrixType& rA  = *mpA;
-            TSystemMatrixType& rK  = *mpK;
-            TSystemMatrixType& rM = *mpM;
-            TSolutionMatrixType& rC  = *mpC;
-            TSolutionVectorType& rRHS  = *mpRHS;
-            TSolutionVectorType& rDx  = *mpDx;
+            TSystemMatrixType& r_K  = *mpK;
+            TSystemMatrixType& r_Ki  = *mpKi;
+            TSystemMatrixType& r_M = *mpM;
+            TSystemMatrixType& r_C  = *mpC;
+            TSolutionVectorType& r_RHS  = *mpRHS;
 
             BuiltinTimer system_construction_time;
             if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
@@ -396,45 +386,55 @@ class FrequencyResponseAnalysisStrategy
                 //setting up the Vectors involved to the correct size
                 TSystemVectorPointerType tmp_RHS = TSparseSpace::CreateEmptyVectorPointer();
                 TSystemVectorType& r_tmp_RHS = *tmp_RHS;
-                TSystemMatrixPointerType tmpC = TSparseSpace::CreateEmptyMatrixPointer();
-                TSystemMatrixType& r_tmp_C = *tmpC;
+
                 BuiltinTimer system_matrix_resize_time;
-                // p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpRHS,
-                //                                                  BaseType::GetModelPart());
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpK, tmp_RHS, tmp_RHS,
                                                                  BaseType::GetModelPart());
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, tmp_RHS, tmp_RHS,
-                                                                 BaseType::GetModelPart()); 
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, tmpC, tmp_RHS, tmp_RHS,
+                                                                 BaseType::GetModelPart());
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpC, tmp_RHS, tmp_RHS,
                                                                  BaseType::GetModelPart());
                 if (mpDx->size() != p_builder_and_solver->GetEquationSystemSize())
                     mpDx->resize(p_builder_and_solver->GetEquationSystemSize(), false);
-
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
                 //set up system matrices
-                TSystemVectorType tmp(rK.size1(), 0.0);
+                std::vector<unsigned int> fixed_dofs;
+                DirichletUtility::GetDirichletConstraints<typename TBuilderAndSolverType::DofsArrayType>(p_builder_and_solver->GetDofSet(), fixed_dofs);
 
-                p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), rK, tmp);
-                p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), rK, tmp, r_tmp_RHS);
+                TSystemVectorType tmp(r_K.size1(), 0.0);
 
-                p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), rM, tmp);
-                p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), rM);
-
-                p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_tmp_C, tmp);
-                p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_tmp_C);
-                
+                //set up the stiffness matrix and rhs
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
                 TSparseSpace::SetToZero(r_tmp_RHS);
-                p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_tmp_RHS);
+                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_K, r_tmp_RHS);
+                DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_K, r_tmp_RHS, fixed_dofs, 1.0);
 
-                rC = TSolutionMatrixType(r_tmp_C);
-                rC *= complex(0,1);
-                rA = TSolutionMatrixType(rK);
-                rRHS = TSolutionVectorType(r_tmp_RHS);
-                
-                mpComplexLinearSolver->Initialize( rA, rDx, rRHS);
+                //if required, set up the imaginary part of the stiffness
+                if( mUseModalDamping )
+                {
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpKi, tmp_RHS, tmp_RHS,
+                                                                    BaseType::GetModelPart());
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 111;
+                    p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Ki, tmp);
+                    DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Ki, tmp, fixed_dofs, 0.0);
+                }
+
+                //set up the damping matrix
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 101;
+                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_C, tmp);
+                DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_C, tmp, fixed_dofs, 0.0);
+
+                //set up the mass matrix
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 201;
+                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_M, tmp);
+                DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_M, tmp, fixed_dofs, 0.0);
+
+                //copy the rhs to the complex space
+                r_RHS = TSolutionVectorType(r_tmp_RHS);
+                // mpComplexLinearSolver->Initialize( rA, rDx, rRHS);
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -467,11 +467,11 @@ class FrequencyResponseAnalysisStrategy
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
-            // TComplexSparseSpaceType::Clear(mpA);
             TSolutionSpace::Clear(mpA);
             SparseSpaceType::Clear(mpK);
+            SparseSpaceType::Clear(mpKi);
             SparseSpaceType::Clear(mpM);
-            TSolutionSpace::Clear(mpC);
+            SparseSpaceType::Clear(mpC);
             TSolutionSpace::Clear(mpRHS);
             TSolutionSpace::Clear(mpDx);
 
@@ -513,31 +513,33 @@ class FrequencyResponseAnalysisStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSolutionMatrixType& rA = *mpA;
-        TSystemMatrixType& rK = *mpK;
-        TSystemMatrixType& rM = *mpM;
-        TSolutionMatrixType& rC  = *mpC;
-        TSolutionVectorType& rRHS = *mpRHS;
-        TSolutionVectorType& rDx = *mpDx;
+        TSolutionMatrixType& r_A = *mpA;
+        TSystemMatrixType& r_K = *mpK;
+        TSystemMatrixType& r_Ki = *mpKi;
+        TSystemMatrixType& r_M = *mpM;
+        TSystemMatrixType& r_C  = *mpC;
+        TSolutionVectorType& r_RHS = *mpRHS;
+        TSolutionVectorType& r_Dx = *mpDx;
 
         auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        double excitation_frequency = r_process_info[FREQUENCY];
+        const double excitation_frequency = r_process_info[FREQUENCY];
 
-        //Build the dynamic stiffnes matrix
+        //Build imaginary part
+        r_A = r_C;
+        r_A *= excitation_frequency;
         if( mUseModalDamping )
-        {
-            rA = - (std::pow(excitation_frequency, 2.0) * rM) + rC + rK;
-        }
-        else
-        {
-            rA = - (std::pow(excitation_frequency, 2.0) * rM) + excitation_frequency * rC + rK;
-        }
-        
+            r_A += r_Ki;
+        r_A *= complex(0,1);
+
+        //Build real part
+        r_A += r_K;
+        r_A -= std::pow(excitation_frequency, 2.0) * r_M;
+
         //Solve the system
-        mpComplexLinearSolver->Solve( rA, rDx, rRHS);
+        mpComplexLinearSolver->Solve( r_A, r_Dx, r_RHS);
 
         //Assign the computed values
-        AssignVariables(rDx);
+        AssignVariables(r_Dx);
 
 		return true;
 
@@ -669,9 +671,10 @@ class FrequencyResponseAnalysisStrategy
     TSolutionVectorPointerType mpRHS; /// The RHS vector
     TSolutionVectorPointerType mpDx; /// The solution vector
     TSolutionMatrixPointerType mpA; /// The system matrix (dynamic stiffness matrix)
-    TSystemMatrixPointerType mpK; /// The stiffness matrix
+    TSystemMatrixPointerType mpK; /// The stiffness matrix (real part)
+    TSystemMatrixPointerType mpKi; /// The stiffness matrix (imaginary part)
     TSystemMatrixPointerType mpM; /// The mass matrix
-    TSolutionMatrixPointerType mpC; /// The damping matrix
+    TSystemMatrixPointerType mpC; /// The damping matrix
 
     bool mReformDofSetAtEachStep;
 
@@ -694,7 +697,7 @@ class FrequencyResponseAnalysisStrategy
         TSystemMatrixType& rK  = *mpK;
         TSystemMatrixType& rM = *mpM;
         TSolutionVectorType& rRHS  = *mpRHS;
-        TSolutionMatrixType& rC  = *mpC;
+        TSystemMatrixType& rC  = *mpC;
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
@@ -722,21 +725,6 @@ class FrequencyResponseAnalysisStrategy
         // std::stringstream matrix_market_vectname;
         // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
         // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
-    }
-
-    /**
-     * @brief This method prints information after reach the max number of iterations
-     * @todo Replace by logger
-     */
-
-    virtual void MaxIterationsExceeded()
-    {
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
-            std::cout << "***************************************************" << std::endl;
-            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-            std::cout << "***************************************************" << std::endl;
-        }
     }
 
     ///@}
