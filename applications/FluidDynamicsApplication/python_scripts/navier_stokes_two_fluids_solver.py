@@ -334,10 +334,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
             # Smoothing the surface to filter oscillatory surface
-            #(self.surface_smoothing_process).Execute()
-            #for node in self.main_model_part.Nodes:
-            #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            (self.surface_smoothing_process).Execute()
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             #it_number=self.linear_solver.GetIterationsNumber()
             #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)

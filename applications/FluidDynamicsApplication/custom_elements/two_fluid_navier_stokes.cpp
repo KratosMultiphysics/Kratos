@@ -2119,7 +2119,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     for (unsigned int i = 0; i < NumNodes; i++){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
-        } else{
+        } else /* if (rData.Distance[i] < 0.0) */{
             enr_pos_interp(i, i) = 1.0;
         }
     }
@@ -2196,7 +2196,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     for (unsigned int i = 0; i < NumNodes; i++){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
-        } else{
+        } else /* if (rData.Distance[i] < 0.0) */{
             enr_pos_interp(i, i) = 1.0;
         }
     }
@@ -2310,7 +2310,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
             continue;
         } else */ if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
-        } else if (rData.Distance[i] < 0.0){
+        } else /* if (rData.Distance[i] < 0.0) */{
             enr_pos_interp(i, i) = 1.0;
         }
     }
@@ -2594,7 +2594,7 @@ void TwoFluidNavierStokes<TElementData>::PressureDiscontinuity(
     //{
     //    if (rData.Distance[i] > 0.0){
     //        pressure_enr_est[i] = pressure_neg - pressure_pos;
-    //    } else{
+    //    } else /* if (rData.Distance[i] < 0.0) */{
     //        pressure_enr_est[i] = 0.0;
     //    } 
     //}
@@ -2720,7 +2720,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const unsigned int NumIntGP = rIntWeights.size();
     MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
 
-    const double coefficient = 1.0e0;
+    const double coefficient = 1.0e-2;
 
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
@@ -2728,7 +2728,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     for (unsigned int i = 0; i < NumNodes; i++){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
-        } else if (rData.Distance[i] < 0.0){
+        } else /* if (rData.Distance[i] < 0.0) */{
             enr_pos_interp(i, i) = 1.0;
         }
     }
@@ -2804,7 +2804,7 @@ void TwoFluidNavierStokes<TElementData>::GhostPressureGradientStabilization(
     for (unsigned int i = 0; i < NumNodes; i++){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
-        } else if (rData.Distance[i] < 0.0) {
+        } else /* if (rData.Distance[i] < 0.0) */ {
             enr_pos_interp(i, i) = 1.0;
         }
     }
