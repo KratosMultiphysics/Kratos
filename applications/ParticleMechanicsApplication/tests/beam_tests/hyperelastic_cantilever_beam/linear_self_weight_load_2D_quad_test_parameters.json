@@ -66,7 +66,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT"],
-                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results.json",
+                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/linear_self_weight_load_2D_quad_test_results.json",
                 "model_part_name"  : "Background_Grid",
                 "time_frequency"   : 1.0
             }

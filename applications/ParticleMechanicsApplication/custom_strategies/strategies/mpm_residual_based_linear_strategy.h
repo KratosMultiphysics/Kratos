@@ -115,16 +115,6 @@ namespace Kratos
 
          /** Constructors.
           */
-        /*
-        MPMResidualBasedLinearStrategy(
-            ModelPart& rModelPart,
-            bool MoveMeshFlag = false
-        )
-            : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
-        {
-        }
-        */ //lin
-
         MPMResidualBasedLinearStrategy(
             ModelPart& rModelPart,
             typename TSchemeType::Pointer pScheme,
@@ -138,14 +128,12 @@ namespace Kratos
         {
             KRATOS_TRY;
 
-            std::cout << "\n\n LINEAR IMPLICIT SOLVER \n\n" << std::endl;
-
             mKeepSystemConstantDuringIterations = false;
 
             // Set flags to default values
             mReformDofSetAtEachStep = ReformDofSetAtEachStep;
             mCalculateReactionsFlag = CalculateReactionFlag;
-            mCalculateNormDxFlag = CalculateNormDxFlag; //lin
+            mCalculateNormDxFlag = CalculateNormDxFlag;
 
             // Saving the scheme
             mpScheme = pScheme;
@@ -157,7 +145,7 @@ namespace Kratos
             mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
             (
                 new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(mpLinearSolver)
-            ); //pjw maybe change to block builder and solver
+            );
 
             // Set flags to start correcty the calculations
             mSolutionStepIsInitialized = false;
@@ -174,7 +162,7 @@ namespace Kratos
             SetEchoLevel(1);
 
             // By default the matrices are rebuilt at each solution step 
-            this->SetRebuildLevel(1); //lin
+            this->SetRebuildLevel(1);
 
             KRATOS_CATCH("");
         }
@@ -224,7 +212,7 @@ namespace Kratos
             SetEchoLevel(1);
 
             // By default the matrices are rebuilt at each solution step
-            this->SetRebuildLevel(1); //lin
+            this->SetRebuildLevel(1);
 
             KRATOS_CATCH("");
         }

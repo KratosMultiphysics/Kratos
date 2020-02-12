@@ -94,6 +94,8 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
+    nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -106,22 +108,11 @@ def AssembleTestSuites():
 
     return suites
 
-def pjwTests():
-    suites = KratosUnittest.KratosSuites
-    allSuite = suites['all']
-    allSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-
-    return suites
-
 if __name__ == '__main__':
-    #KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    #run_cpp_unit_tests.run()
-    #KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    #KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    #KratosUnittest.runTests(AssembleTestSuites())
-
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning PJW python tests ...")
-    KratosUnittest.runTests(pjwTests())
-
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
