@@ -7,7 +7,7 @@ import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.apply_thermal_face_process import ApplyThermalFaceProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
-from KratosMultiphysics.RomApplication import ConvectionDiffusionROMsolver
+from KratosMultiphysics.RomApplication import convection_diffusion_rom_solver
 
 import json
 import sys
@@ -18,7 +18,7 @@ class ConvDiffROM(ConvectionDiffusionAnalysis):
         super(ConvDiffROM,self).__init__(model,project_parameters)
 
     def _CreateSolver(self):
-        return ConvectionDiffusionROMsolver.ROMSolver(self.model, self.project_parameters["solver_settings"])
+        return convection_diffusion_rom_solver.ROMSolver(self.model, self.project_parameters["solver_settings"])
 
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
