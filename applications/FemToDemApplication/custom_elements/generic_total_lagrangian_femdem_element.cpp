@@ -316,8 +316,12 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         Vector damages_edges = ZeroVector(NumberOfEdges);
 
         // to remove!!!!!!
-        if (rCurrentProcessInfo[TIME] >= 0.225)
+        if (rCurrentProcessInfo[TIME] >= 0.15) {
             yield_surface = "Elastic";
+            damages_edges = mDamages;
+        }
+
+            
 
         if (yield_surface != "Elastic") {
             // Loop over edges of the element...
@@ -444,8 +448,9 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
         // to remove!!!!!!
-        if (rCurrentProcessInfo[TIME] >= 0.225)
+        if (rCurrentProcessInfo[TIME] >= 0.15) {
             yield_surface = "Elastic";
+        }
 
         bool is_damaging = false;
         if (yield_surface != "Elastic") {
