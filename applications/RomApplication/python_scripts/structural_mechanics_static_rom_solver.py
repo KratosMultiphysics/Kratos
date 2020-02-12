@@ -16,10 +16,7 @@ def CreateSolver(main_model_part, custom_settings):
 class ROMSolver(StaticMechanicalSolver):
     """The stationary class for ROM structural mechanics solvers.
 
-    Public member variables:
-    stationary_settings -- settings for the implicit dynamic solvers.
-
-    See structural_mechanics_solver.py for more information.
+    See structural_mechanics_static_solver.py for more information.
     """
 
     def __init__(self, main_model_part, custom_settings):
