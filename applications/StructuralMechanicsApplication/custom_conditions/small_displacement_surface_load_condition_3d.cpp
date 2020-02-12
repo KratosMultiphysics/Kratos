@@ -117,12 +117,20 @@ void SmallDisplacementSurfaceLoadCondition3D::CalculateAll(
     const std::size_t number_of_nodes = r_geometry.size();
     const std::size_t mat_size = number_of_nodes * 3;
 
+    // Resizing as needed the LHS
+    if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+        if (rLeftHandSideMatrix.size1() != mat_size) {
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+        }
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+    }
+
     // Resizing as needed the RHS
     if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
         if (rRightHandSideVector.size() != mat_size) {
             rRightHandSideVector.resize(mat_size, false);
         }
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
 
     // Reading integration points and local gradients
