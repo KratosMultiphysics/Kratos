@@ -149,7 +149,6 @@ void SmallDisplacementMixedVolumetricStrainElement::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-//TODO: Change to Initialize(const ProcessInfo& rCurrentProcessInfo)
 void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
