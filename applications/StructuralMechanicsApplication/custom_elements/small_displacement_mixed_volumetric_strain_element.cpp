@@ -541,9 +541,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         // Calculate and add the LHS contributions
         const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
         const Vector trans_m_T = prod(trans(voigt_identity), mAnisotropyTensor);
-        const Vector C_invT_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), invT_m);
-        const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
-        const Vector m_T_tau_1_body = m_T_tau_1 * body_force;
 
         for (IndexType i = 0; i < n_nodes; ++i) {
             const double N_i = kinematic_variables.N[i];
@@ -683,7 +680,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
         // Calculate and add the LHS contributions
         const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
-        const Vector trans_m_T = prod(trans(voigt_identity), mAnisotropyTensor);
         const Vector C_invT_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), invT_m);
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
         const Vector m_T_tau_1_body = m_T_tau_1 * body_force;
@@ -711,7 +707,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
             for (IndexType j = 0; j < n_nodes; ++j) {
                 const double N_j = kinematic_variables.N[j];
-                G_j = row(kinematic_variables.DN_DX, j);
                 for (IndexType k = 0;  k < strain_size; ++k) {
                     for (IndexType l = 0; l < dim; ++l) {
                         B_j(k,l) = kinematic_variables.B(k, j * dim + l);
