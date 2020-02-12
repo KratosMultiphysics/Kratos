@@ -154,7 +154,10 @@ public:
             for (int i = 0; i < number_of_elements; ++i)
             {
                 auto it_elem = r_elements_array.begin() + i;
-
+                //detect whether the element has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
+                if (!((it_elem)->Has(HROM_WEIGHT)))
+                    it_elem->SetValue(HROM_WEIGHT, 1.0);
+                    
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -167,6 +170,9 @@ public:
             for (int i = 0; i < number_of_conditions; ++i)
             {
                 auto it_cond = r_conditions_array.begin() + i;
+                //detect whether the condition has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
+                if (!((it_cond)->Has(HROM_WEIGHT)))
+                    it_cond->SetValue(HROM_WEIGHT, 1.0);
 
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
@@ -342,10 +348,7 @@ public:
             //is active by default
             bool element_is_active = true;
             if ((it_el)->IsDefined(ACTIVE))
-                element_is_active = (it_el)->Is(ACTIVE);
-            //detect if the element has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
-            if (!((it_el)->Has(HROM_WEIGHT)))
-                it_el->SetValue(HROM_WEIGHT, 1.0);           
+                element_is_active = (it_el)->Is(ACTIVE);         
 
             if (element_is_active){
                 //calculate elemental contribution
@@ -366,11 +369,11 @@ public:
                             row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
                     }
                 }
-                double H_ROM_WEIGHT = it_el->GetValue(HROM_WEIGHT);
+                double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
 
-                noalias(Arom) += prod(trans(PhiElemental), aux) * H_ROM_WEIGHT;
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * H_ROM_WEIGHT;
+                noalias(Arom) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
                 // clean local elemental me overridemory
                 pScheme->CleanMemory(*(it_el.base()));
@@ -384,10 +387,7 @@ public:
             //is active by default
             bool condition_is_active = true;
             if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
-            //detect if the condition has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
-            if (!((it)->Has(HROM_WEIGHT)))
-                it->SetValue(HROM_WEIGHT, 1.0);   
+                condition_is_active = (it)->Is(ACTIVE);  
 
             if (condition_is_active){
                 Condition::DofsVectorType dofs;
@@ -409,11 +409,11 @@ public:
                             row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
                     }
                 }
-                double H_ROM_WEIGHT = it->GetValue(HROM_WEIGHT);
+                double h_rom_weight = it->GetValue(HROM_WEIGHT);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
 
-                noalias(Arom) += prod(trans(PhiElemental), aux) * H_ROM_WEIGHT;
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * H_ROM_WEIGHT;
+                noalias(Arom) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
