@@ -20,17 +20,34 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.parameters = parameters
         self.settings = parameters["settings"]
 
-        self.echo_level = self.settings["echo_level"].GetInt()
+        self.n = self.settings["timestep_start"].GetInt()  # Time step
+        self.delta_t = self.settings["delta_t"].GetDouble()  # Time step size
 
         self.predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self.convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
         self.solver_wrappers = []
-        self.solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][0]))
-        self.solver_wrappers.append(cs_tools.CreateInstance(self.parameters["solver_wrappers"][1]))
-        self.components = [self.predictor, self.convergence_criterion,
-                            self.solver_wrappers[0], self.solver_wrappers[1]]
+        for index in range(2):
+            solver_wrapper_parameters = self.parameters["solver_wrappers"][index]
+            solver_wrapper_settings = solver_wrapper_parameters["settings"]
+            # Add time_step_start and delta_t to solver_wrapper_settings
+            solver_wrapper_settings.AddValue("timestep_start", self.settings["timestep_start"])
+            solver_wrapper_settings.AddValue("delta_t", self.settings["delta_t"])
+            solver_wrapper_parameters.RemoveValue("settings")
+            solver_wrapper_parameters.AddValue("settings", solver_wrapper_settings)
+            self.solver_wrappers.append(cs_tools.CreateInstance(solver_wrapper_parameters))
+        self.components = [self.predictor, self.convergence_criterion, self.solver_wrappers[0], self.solver_wrappers[1]]
 
         self.x = []
+        self.iteration = None  # Iteration
+
+        self.save_iterations = False  # Set True in order to save iteration related information
+        if self.save_iterations:
+            self.complete_solution = None
+            self.complete_solution_y = None
+            self.iterations = []
+            self.start_time = None
+            self.stop_time = None
+            self.residual = []
 
     def Initialize(self):
         super().Initialize()
@@ -62,11 +79,8 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.x = self.solver_wrappers[1].GetInterfaceOutput()
         self.predictor.Initialize(self.x)
 
-    def Finalize(self):
-        super().Finalize()
-
-        for component in self.components:
-            component.Finalize()
+        if self.save_iterations:
+            self.start_time = time.time()
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
@@ -74,23 +88,63 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         for component in self.components:
             component.InitializeSolutionStep()
 
+        self.n += 1  # Increment time step
+        self.iteration = 0
+
+        # Print timestep
+        out = f"=======================================" \
+              f"====================\n" \
+              f"\tTime step {self.n}\n" \
+              f"=======================================" \
+              f"====================\n" \
+              f"Iteration\tNorm residual"
+        cs_tools.PrintInfo(out)
+
+        if self.save_iterations:
+            self.residual.append([])
+
     def SolveSolutionStep(self):
-        # Initial values
+        # Initial value
         self.x = self.predictor.Predict(self.x)
+        # First coupling iteration
         y = self.solver_wrappers[0].SolveSolutionStep(self.x)
         xt = self.solver_wrappers[1].SolveSolutionStep(y)
         r = xt - self.x
-        self.convergence_criterion.Update(r)
+        self.FinalizeIteration(r)
         # Coupling iteration loop
         while not self.convergence_criterion.IsSatisfied():
             self.x += r
             y = self.solver_wrappers[0].SolveSolutionStep(self.x)
             xt = self.solver_wrappers[1].SolveSolutionStep(y)
             r = xt - self.x
-            self.convergence_criterion.Update(r)
+            self.FinalizeIteration(r)
+
+    def FinalizeIteration(self, r):
+        self.iteration += 1
+        self.convergence_criterion.Update(r)
+        # Print iteration information
+        norm = np.linalg.norm(r.GetNumpyArray())
+        out = f"{self.iteration:<9d}\t{norm:<22.17e}"
+        cs_tools.PrintInfo(out)
+
+        if self.save_iterations:
+            self.residual[self.n - 1].append(np.linalg.norm(r.GetNumpyArray()))
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
+
+        if self.save_iterations:
+            self.n += 1
+            timestep_solution = self.x.GetNumpyArray().reshape(-1, 1)
+            y = self.solver_wrappers[0].SolveSolutionStep(self.x)
+            timestep_solution_y = y.GetNumpyArray().reshape(-1, 1)
+            if self.complete_solution is None:
+                self.complete_solution = timestep_solution
+                self.complete_solution_y = timestep_solution_y
+            else:
+                self.complete_solution = np.hstack((self.complete_solution, timestep_solution))
+                self.complete_solution_y = np.hstack((self.complete_solution_y, timestep_solution_y))
+            self.iterations = self.iterations + [self.iteration]
 
         self.predictor.Update(self.x)
         for component in self.components:
@@ -101,6 +155,35 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
 
         for component in self.components:
             component.OutputSolutionStep()
+
+    def Finalize(self):
+        super().Finalize()
+
+        for component in self.components:
+            component.Finalize()
+
+        if self.save_iterations:
+            self.stop_time = time.time()
+            type = self.parameters["type"].GetString()
+            if self.parameters["settings"].Has("model"):
+                model = '_' + self.parameters["settings"]["model"]["type"].GetString()
+                if self.parameters["settings"]["model"]["settings"].Has("q") and model == "_coupled_solvers.models.ls":
+                    q = '_q' + str(self.parameters["settings"]["model"]["settings"]["q"].GetDouble())
+                else:
+                    q = ''
+            else:
+                model = ''
+                q = ''
+            if self.parameters["settings"].Has("surrogate"):
+                sur = '_' + self.parameters["settings"]["surrogate"]["type"].GetString()[23:]
+            else:
+                sur = ''
+
+            output_name = 'result.' + type + model + q + sur
+            output = {"solution": self.complete_solution, "solution_y": self.complete_solution_y,
+                      "iterations": self.iterations, "time": self.stop_time - self.start_time,
+                      "residual": np.array(self.residual)}
+            np.save(output_name, output)
 
     def Check(self):
         super().Check()
