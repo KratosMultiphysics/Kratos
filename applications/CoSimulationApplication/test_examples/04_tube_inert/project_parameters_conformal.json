@@ -69,7 +69,7 @@
                 }
             },
             {
-                "type" : "solver_wrappers.pipe.structure_solver",
+                "type" : "solver_wrappers.pipe.structure_solver_inert",
                 "settings" :
                 {
                     "working_directory" : "CSM",

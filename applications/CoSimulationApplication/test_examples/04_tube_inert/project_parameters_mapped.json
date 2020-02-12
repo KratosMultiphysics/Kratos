@@ -69,18 +69,52 @@
                 }
             },
             {
-                "type" : "solver_wrappers.pipe.structure_solver",
-                "settings" :
-                {
-                    "working_directory" : "CSM",
-                    "input_file"  : "solver_parameters.json",
-                    "interface_input" :
+                "type": "solver_wrappers.mapped",
+                "settings": {
+                    "solver_wrapper" :
                     {
-                        "wall" : "PRESSURE"
+                        "type" : "solver_wrappers.pipe.structure_solver_inert",
+                        "settings" :
+                        {
+                            "working_directory" : "CSM",
+                            "input_file"  : "solver_parameters.json",
+                            "interface_input" :
+                            {
+                                "wall" : "PRESSURE"
+                            },
+                            "interface_output" :
+                            {
+                                "wall": "AREA"
+                            }
+                        }
                     },
-                    "interface_output" :
+                    "mapper_interface_input":
                     {
-                        "wall": "AREA"
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type": "mappers.linear",
+                            "settings":
+                            {
+                                "directions" : ["Z"],
+                                "balanced_tree" : false,
+                                "parallel" : true
+                            }
+						}
+                    },
+                    "mapper_interface_output":
+                    {
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type": "mappers.linear",
+                            "settings":
+                            {
+                                "directions" : ["Z"],
+                                "balanced_tree" : false,
+                                "parallel" : true
+                            }
+						}
                     }
                 }
             }
