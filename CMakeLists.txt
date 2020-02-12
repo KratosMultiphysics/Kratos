@@ -1,5 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
+set (CMAKE_CXX_STANDARD 11)
 
 # Setting some policies
 # No recursive dereferencing
@@ -11,6 +12,11 @@ endif(POLICY CMP0054)
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
+
+# Find package based on <packagename>_ROOT variable
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 7)
@@ -414,6 +420,9 @@ endforeach()
 message("")
 message("***********************************************************************")
 message("")
+
+message("List of upcoming api-breaking changes:")
+message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

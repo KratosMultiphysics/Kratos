@@ -29,6 +29,22 @@ The application provides the following direct sparse solvers:
 }
 ```
 
+## Direct dense solvers
+
+The application provides the following direct solvers for dense systems of equations:
+
+| Python class                          | solver_type                         | Matrix requirements | Domain  | Dependencies |
+| ------------------------------------- | ----------------------------------- | :-----------------: | :-----: | :----------: |
+| DenseColPivHouseholderQRSolver        | `dense_col_piv_householder_qr`      |        None         |  Real   |     None     |
+| DenseHouseholderQRSolver              | `dense_householder_qr`              |        None         |  Real   |     None     |
+| DenseLLTSolver                        | `dense_llt`                         |        SPD*         |  Real   |     None     |
+| DensePartialPivLUSolver               | `dense_partial_piv_lu`              |     Invertible      |  Real   |     None     |
+| ComplexDenseColPivHouseholderQRSolver | `complex_dense_col_piv_householder_qr` |        None         | Complex |     None     |
+| ComplexDenseHouseholderQRSolver       | `complex_dense_householder_qr`       |        None         | Complex |     None     |
+| ComplexDensePartialPivLUSolver        | `complex_dense_partial_piv_lu`       |     Invertible      | Complex |     None     |
+
+*SPD = Symmetric Positive Definite
+
 ## Generalized eigensystem solver
 
 The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
@@ -47,9 +63,7 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
 ## Build instructions
 
-1. Download and unpack [Eigen](http://eigen.tuxfamily.org/)
-
-2. Set the required definitions for cmake
+1. Set the required definitions for cmake
 
     As any other app:
 
@@ -59,33 +73,23 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
     ```
 
-    ```batch
-    -DEIGEN_ROOT="<path to eigen>" ^
-    ```
-
     **Linux:** in `configure.sh`
-    
+
     ```bash
     add_app ${KRATOS_APP_DIR}/EigenSolversApplication
     ```
 
-    ```bash
-    -DEIGEN_ROOT="<path to eigen>" \
-    ```
+2. Build Kratos
 
-    > **Hint:** The `EIGEN_ROOT` directory should contain a file called `README.md`.
-
-3. Build Kratos
-
-4. Setup the `ProjectParameters.json`
+3. Setup the `ProjectParameters.json`
 
     ```json
     "linear_solver_settings": {
-        "solver_type" : "sparse_lu"
+        "solver_type" : "EigenSolversApplication.sparse_lu"
     }
     ```
 
-5. Run the simulation
+4. Run the simulation
 
 ## Enable MKL (optional)
 
@@ -135,3 +139,26 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     ```batch
     source ~/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
+
+## Install MKL on Ubuntu with apt
+
+Open a terminal window and run the following commands to install MKL from the official Intel repository:
+
+```bash
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y gnupg2 software-properties-common wget
+wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB -P/tmp
+apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list
+add-apt-repository ppa:git-core/ppa -y
+apt-get update -y
+apt-get install -y intel-mkl-2020.0-088
+```
+
+To enable the MKL environment use 
+    
+```bash
+source /opt/intel/compilers_and_libraries_2020.0.166/linux/mkl/bin/mklvars.sh intel64 lp64
+```
