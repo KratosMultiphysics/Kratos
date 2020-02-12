@@ -164,7 +164,9 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
             min_value = min(item_values)
             max_value = max(item_values)
-            group_limits = [min_value + (max_value - min_value) * i / 10 for i in range(11)]
+            group_limits = [
+                min_value + (max_value - min_value) * i / 10 for i in range(11)
+            ]
             group_limits[-1] += 1.0
             group_limits.append(1e+100)
 
@@ -176,13 +178,15 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                         break
             percentage_data_distribution = []
             for i in range(len(group_limits)):
-                percentage_data_distribution.append(data_distribution[i] / len(item_values))
+                percentage_data_distribution.append(data_distribution[i] /
+                                                    len(item_values))
 
             group_limits[-2] -= 1.0
             group_limits[-1] = max_value
             return min_value, max_value, group_limits, data_distribution, percentage_data_distribution
 
-        self.__TestMethod("distribution", analytical_method, default_parameters)
+        self.__TestMethod("distribution", analytical_method,
+                          default_parameters)
 
     def __TestMethod(self,
                      test_method_name,

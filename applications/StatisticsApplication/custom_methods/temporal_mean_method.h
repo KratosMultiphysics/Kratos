@@ -237,7 +237,8 @@ private:
                               const double DeltaTime,
                               const double TotalTime)
     {
-        rMean = (rMean * TotalTime + rNewDataPoint * DeltaTime) * (1.0 / (TotalTime + DeltaTime));
+        rMean = (rMean * TotalTime + rNewDataPoint * DeltaTime) *
+                (1.0 / (TotalTime + DeltaTime));
     }
 };
 } // namespace TemporalMethods

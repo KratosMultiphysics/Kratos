@@ -60,6 +60,17 @@ public:
               mrOutputVariable(rOutputVariable),
               mrMaxTimeValueVariable(rMaxTimeValueVariable)
         {
+            KRATOS_TRY
+
+            KRATOS_ERROR_IF(rOutputVariable == rMaxTimeValueVariable)
+                << "Same variable is given for maximum and its time value "
+                   "variable in norm min method for input variable "
+                << rInputVariable.Name()
+                << ". Please provide two different "
+                   "variables. [ variable = "
+                << rOutputVariable.Name() << " ].\n";
+
+            KRATOS_CATCH("");
         }
 
         void CalculateStatistics(const double DeltaTime) override

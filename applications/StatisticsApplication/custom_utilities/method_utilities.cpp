@@ -608,6 +608,30 @@ const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>&
     KRATOS_CATCH("");
 }
 
+template <>
+std::string GetVariableTypeName<double>()
+{
+    return "Double";
+}
+
+template <>
+std::string GetVariableTypeName<array_1d<double, 3>>()
+{
+    return "Array3D";
+}
+
+template <>
+std::string GetVariableTypeName<Vector>()
+{
+    return "Vector";
+}
+
+template <>
+std::string GetVariableTypeName<Matrix>()
+{
+    return "Matrix";
+}
+
 template <typename TDataType>
 void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
 {
@@ -616,7 +640,8 @@ void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
     for (const std::string& r_variable_name : rVariableNamesList)
     {
         KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(r_variable_name))
-            << r_variable_name << " variable type mismatch.\n";
+            << r_variable_name << " variable type mismatch. Required variable type: "
+            << GetVariableTypeName<TDataType>() << ".\n";
     }
 
     KRATOS_CATCH("");

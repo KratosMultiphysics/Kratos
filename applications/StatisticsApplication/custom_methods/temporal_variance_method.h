@@ -57,6 +57,17 @@ public:
               mrOutputMeanVariable(rOutputMeanVariable),
               mrOutputVarianceVariable(rOutputVarianceVariable)
         {
+            KRATOS_TRY
+
+            KRATOS_ERROR_IF(rOutputMeanVariable == rOutputVarianceVariable) << "Same variable is given for mean and variance in value variance method with input variable "
+                                                                            << rInputVariable
+                                                                                   .Name()
+                                                                            << ". Please provide two different variables. [ variable = "
+                                                                            << rOutputMeanVariable
+                                                                                   .Name()
+                                                                            << " ].\n";
+
+            KRATOS_CATCH("");
         }
 
         void CalculateStatistics(const double DeltaTime) override
@@ -136,6 +147,17 @@ public:
               mrOutputMeanVariable(rOutputMeanVariable),
               mrOutputVarianceVariable(rOutputVarianceVariable)
         {
+            KRATOS_TRY
+
+            KRATOS_ERROR_IF(rOutputMeanVariable == rOutputVarianceVariable) << "Same variable is given for mean and variance in norm variance method with input variable "
+                                                                            << rInputVariable
+                                                                                   .Name()
+                                                                            << ". Please provide two different variables. [ variable = "
+                                                                            << rOutputMeanVariable
+                                                                                   .Name()
+                                                                            << " ].\n";
+
+            KRATOS_CATCH("");
         }
 
         void CalculateStatistics(const double DeltaTime) override
@@ -273,11 +295,12 @@ private:
     {
         const double new_total_time = TotalTime + DeltaTime;
         const TDataType new_mean =
-            (rMean * TotalTime + rNewDataPoint) * (1.0 / new_total_time);
+            (rMean * TotalTime + rNewDataPoint * DeltaTime) * (1.0 / new_total_time);
         rVariance =
-            ((rVariance + MethodsUtilities::RaiseToPower<TDataType>(new_mean - rMean, 2)) * TotalTime +
-             MethodsUtilities::RaiseToPower<TDataType>(rNewDataPoint - new_mean, 2)) *
-            (1.0 / new_total_time);
+            ((rVariance + MethodsUtilities::RaiseToPower<TDataType>(rMean, 2)) * TotalTime +
+             MethodsUtilities::RaiseToPower<TDataType>(rNewDataPoint, 2) * DeltaTime) *
+                (1 / new_total_time) -
+            MethodsUtilities::RaiseToPower<TDataType>(new_mean, 2);
         rMean = new_mean;
     }
 };
