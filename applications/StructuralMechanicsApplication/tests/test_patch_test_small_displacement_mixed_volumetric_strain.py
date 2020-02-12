@@ -464,9 +464,5 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
             self.vtk_output_process.ExecuteFinalize()
 
 if __name__ == '__main__':
-    # test = TestPatchTestSmallDisplacementMixedVolumetricStrain()
-    # test.setUp()
-    # # test.testSmallDisplacementMixedVolumetricStrainElement3DTetrahedra()
-    # test.testSmallDisplacementMixedVolumetricStrainElement3DTetrahedraAnisotropic()
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
