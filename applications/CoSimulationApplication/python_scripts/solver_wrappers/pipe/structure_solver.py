@@ -20,9 +20,9 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         # Reading
         self.parameters = parameters
         self.settings = parameters["settings"]
-        working_directory = self.settings["working_directory"].GetString()
+        self.working_directory = self.settings["working_directory"].GetString()
         input_file = self.settings["input_file"].GetString()
-        settings_file_name = path.join(working_directory, input_file)
+        settings_file_name = path.join(self.working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
             self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
@@ -66,6 +66,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
         self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
 
+        # Debug
+        self.debug = True  # Set on true to save solution of each time step
+        self.OutputSolutionStep()
+
     def Initialize(self):
         super().Initialize()
 
@@ -82,8 +86,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         for i in range(len(self.p)):
             if self.p[i] > 2.0 * self.c02 + self.p0:
                 raise ValueError("Unphysical pressure")
-        for i in range(len(self.a)):
-            self.a[i] = self.a0 * (2.0 / (2.0 + (self.p0 - self.p[i]) / self.c02)) ** 2
+        self.a = self.a0 * (2.0 / (2.0 + (self.p0 - self.p) / self.c02)) ** 2
 
         self.interface_output.SetNumpyArray(self.a)
         return self.interface_output.deepcopy()
@@ -93,6 +96,14 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
     def Finalize(self):
         super().Finalize()
+
+    def OutputSolutionStep(self):
+        if self.debug:
+            file_name = self.working_directory + f"/Area_TS{self.n}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'area':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f'{self.z[i]:<22}\t{self.a[i]:<22}\n')
 
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()

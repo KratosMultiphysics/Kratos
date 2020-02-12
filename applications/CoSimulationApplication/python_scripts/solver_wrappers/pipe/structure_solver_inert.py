@@ -24,9 +24,9 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         # Reading
         self.parameters = parameters
         self.settings = parameters["settings"]
-        working_directory = self.settings["working_directory"].GetString()
+        self.working_directory = self.settings["working_directory"].GetString()
         input_file = self.settings["input_file"].GetString()
-        settings_file_name = path.join(working_directory, input_file)
+        settings_file_name = path.join(self.working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
             self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
@@ -44,14 +44,13 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.b1 = (self.h * e) / (1 - nu ** 2) * (self.h ** 2) / 12
         self.b2 = self.b1 * (2 * nu) / self.r0 ** 2
         self.b3 = (self.h * e) / (1 - nu ** 2) * 1 / self.r0 ** 2
-        print(f"b3 {self.b3}  = {(self.h * e) / (1 - nu ** 2) * 1 / self.r0 ** 2} + {self.b1 * 1 / self.r0 ** 4}")
 
         self.m = self.settings["m"].GetInt()  # Number of segments
         self.dz = l / self.m  # Segment length
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
-        self.n = 0  # Time step
-        self.dt = self.settings["dt"].GetDouble()  # Time step size
+        self.n = 0  # Time step (no restart implemented)
+        self.dt = self.settings["delta_t"].GetDouble()  # Time step size
 
         self.gamma = self.settings["gamma"].GetDouble()  # Newmark parameter: gamma >= 1/2
         self.beta = self.settings["beta"].GetDouble()  # Newmark parameter: beta >= 1/4 * (1/2 + gamma) ^ 2
@@ -67,7 +66,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.p = np.ones(self.m) * self.p0  # Pressure
         self.a = np.ones(self.m) * self.a0  # Area of cross section
         self.r = np.ones(self.m + 4) * self.r0  # Radius of cross section
-        self.rn = np.ones(self.m + 4) * self.r0
+        self.rn = np.ones(self.m + 4) * self.r0  # Previous radius of cross section
 
         self.rdot = np.zeros(self.m)
         self.rddot = np.zeros(self.m)
@@ -92,6 +91,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
         self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
 
+        # Debug
+        self.debug = True  # Set on true to save solution of each time step
+        self.OutputSolutionStep()
+
     def Initialize(self):
         super().Initialize()
 
@@ -108,8 +111,6 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         p = interface_input.GetNumpyArray()
         self.interface_input.SetNumpyArray(p)
         self.p = np.array(p)
-
-        print(np.mean(p))
 
         # Newton iterations
         converged = False
@@ -131,8 +132,6 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         # Output does not contain boundary conditions
         self.a = self.r[2:self.m + 2] ** 2 * m.pi
-        print(np.mean(self.a))
-        print(np.mean(self.r))
         self.interface_output.SetNumpyArray(self.a)
         return self.interface_output.deepcopy()
 
@@ -145,6 +144,14 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
     def Finalize(self):
         super().Finalize()
+
+    def OutputSolutionStep(self):
+        if self.debug:
+            file_name = self.working_directory + f"/Area_TS{self.n}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'area':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f'{self.z[i]:<22}\t{self.a[i]:<22}\n')
 
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()
