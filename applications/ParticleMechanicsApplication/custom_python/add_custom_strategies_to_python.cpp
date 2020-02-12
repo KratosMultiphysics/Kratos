@@ -59,7 +59,6 @@ namespace Python{
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
         typedef MPMResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMResidualBasedNewtonRaphsonStrategyType;
-        //typedef MPMResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MPMResidualBasedLinearStrategyType;
 
         //custom scheme types
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
