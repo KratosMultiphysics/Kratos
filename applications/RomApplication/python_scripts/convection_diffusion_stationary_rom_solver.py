@@ -16,7 +16,7 @@ def CreateSolver(model, custom_settings):
 class ROMSolver(ConvectionDiffusionStationarySolver):
     """The stationary class for ROM convection-diffusion solvers.
 
-    See convection_diffusion_base_solver.py for more information.
+    See convection_diffusion_stationary_solver.py for more information.
     """
 
     def __init__(self, model, custom_settings):
