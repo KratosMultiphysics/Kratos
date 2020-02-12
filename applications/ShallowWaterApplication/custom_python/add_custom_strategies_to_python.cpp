@@ -55,7 +55,7 @@ namespace Python
         typename RungeKuttaStrategyType::Pointer,
         BaseStrategyType>
         (m, "RungeKuttaStrategy")
-        .def(py::init<ModelPart&, bool, bool, bool>())
+        .def(py::init<ModelPart&, int, bool, bool, bool>())
         ;
 
     // Schemes

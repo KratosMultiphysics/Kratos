@@ -86,10 +86,12 @@ public:
     /// Default constructor.
     RungeKuttaStrategy(
         ModelPart& rModelPart,
+        int Dimension = 2,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+          mDimension(Dimension),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
           mSolutionStepIsInitialized(false)
@@ -289,11 +291,12 @@ private:
     ///@name Member Variables
     ///@{
 
+    int mDimension;
+    int mNumberOfSteps;
+
     bool mReformDofSetAtEachStep;
     bool mCalculateReactionsFlag;
     bool mSolutionStepIsInitialized;
-
-    int mNumberOfSteps;
 
     DofsArrayType mFixedDofsSet;
     DoubleVectorType mFixedDofsValues;
@@ -449,32 +452,43 @@ private:
 
         auto& r_model_part = BaseType::GetModelPart();
 
-        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        if (r_model_part.NodesBegin() != r_model_part.NodesEnd())
         {
-            auto it_node = r_model_part.NodesBegin() + i;
+            const size_t pos_mom_x = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_X);
+            const size_t pos_mom_y = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_Y);
+            const size_t pos_mom_z = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_Z);
+            const size_t pos_height = (r_model_part.NodesBegin())->GetDofPosition(HEIGHT);
 
-            if(it_node->IsFixed(MOMENTUM_X) == true)
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
             {
-                mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_X));
-                mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_X));
-            }
+                auto it_node = r_model_part.NodesBegin() + i;
 
-            if(it_node->IsFixed(MOMENTUM_Y) == true)
-            {
-                mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Y));
-                mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Y));
-            }
+                if (it_node->GetDof(MOMENTUM_X, pos_mom_x).IsFixed())
+                {
+                    mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_X));
+                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_X));
+                }
 
-            if(it_node->IsFixed(MOMENTUM_Z) == true)
-            {
-                mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Z));
-                mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Z));
-            }
+                if (it_node->GetDof(MOMENTUM_Y, pos_mom_y).IsFixed())
+                {
+                    mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Y));
+                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Y));
+                }
 
-            if(it_node->IsFixed(HEIGHT) == true)
-            {
-                mFixedDofsSet.push_back(it_node->pGetDof(HEIGHT));
-                mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(HEIGHT));
+                if (mDimension == 3)
+                {
+                    if (it_node->GetDof(MOMENTUM_Z, pos_mom_z).IsFixed())
+                    {
+                        mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Z));
+                        mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Z));
+                    }
+                }
+
+                if (it_node->GetDof(HEIGHT, pos_height).IsFixed())
+                {
+                    mFixedDofsSet.push_back(it_node->pGetDof(HEIGHT));
+                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(HEIGHT));
+                }
             }
         }
     }
