@@ -434,7 +434,7 @@ public:
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
-        SystemSolveWithPhysics(A, Dx, b, rModelPart);
+        SystemSolveWithPhysics(A, Dx, b, rModelPart);   // Indagare da questa parte che cosa fa risolvendo il sistema
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();

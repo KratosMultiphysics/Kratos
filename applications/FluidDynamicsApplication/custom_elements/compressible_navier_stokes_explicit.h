@@ -11,7 +11,7 @@
 //  Main authors:    Andrea Montanino
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES)
+#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT)
 #define  KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT
 
 // System includes
@@ -89,6 +89,7 @@ public:
         double c_v;
         double gamma;               //gamma
 
+        double dt;
         //double c;               // TO DO : temporarily use for testing
         //double time;               // TO DO: used for manufactured solution
     };
@@ -168,11 +169,11 @@ public:
         {
             noalias(data.N) = row(Ncontainer, igauss);
 
-            double v_sc = ShockCapturingViscosity(data);
-            double k_sc = ShockCapturingConductivity(data);
+//            double v_sc = ShockCapturingViscosity(data);
+//            double k_sc = ShockCapturingConductivity(data);
 
-            ComputeGaussPointRHSContribution(rhs_local, data, v_sc, k_sc);
-            ComputeGaussPointLHSContribution(lhs_local, data, v_sc, k_sc);
+            ComputeGaussPointLHSContribution(lhs_local, data);
+            ComputeGaussPointRHSContribution(rhs_local, data);
 
             // here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
             noalias(rLeftHandSideMatrix) += lhs_local;
@@ -220,10 +221,10 @@ public:
         {
             noalias(data.N) = row(Ncontainer, igauss);
 
-            double v_sc = ShockCapturingViscosity(data);
-            double k_sc = ShockCapturingConductivity(data);
+        //    double v_sc = ShockCapturingViscosity(data);
+        //    double k_sc = ShockCapturingConductivity(data);
 
-            ComputeGaussPointRHSContribution(rhs_local, data,v_sc,k_sc);
+            ComputeGaussPointRHSContribution(rhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
             noalias(rRightHandSideVector) += rhs_local;
@@ -366,10 +367,11 @@ protected:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    double ShockCapturingViscosity(const ElementDataStruct& data);
-    double ShockCapturingConductivity(const ElementDataStruct& data);
-    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(BlockSize),TNumNodes*(BlockSize)>& lhs, const ElementDataStruct& data, double v_sc, double k_sc);
-    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(BlockSize)>& rhs, const ElementDataStruct& data,double v_sc, double k_sc);
+//    double ShockCapturingViscosity(const ElementDataStruct& data);
+//    double ShockCapturingConductivity(const ElementDataStruct& data);
+ 
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(BlockSize),TNumNodes*(BlockSize)>& lhs, const ElementDataStruct& data);
+    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(BlockSize)>& rhs, const ElementDataStruct& data);
 
     double SubscaleErrorEstimate(const ElementDataStruct& data);
 
@@ -400,7 +402,7 @@ protected:
         rData.bdf0 = BDFVector[0];
         rData.bdf1 = BDFVector[1];
         rData.bdf2 = BDFVector[2];
-        //rData.time = rCurrentProcessInfo[TIME];
+        rData.dt = rCurrentProcessInfo[DELTA_TIME];
 
         Properties& r_properties = this->GetProperties();
         rData.nu = r_properties.GetValue(KINEMATIC_VISCOSITY);

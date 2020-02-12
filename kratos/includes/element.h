@@ -421,7 +421,7 @@ public:
      * this is called in the beginning of each solution step
      */
     virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-    {
+    {   
         InitializeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")

@@ -266,9 +266,9 @@ public:
         ) override
     {
         KRATOS_TRY
-
+        // Goes into the custom_element
         (pCurrentElement)->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
-
+                // Cerca CalculateLocalSystem nell'elemento, e lo trova.
         (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
