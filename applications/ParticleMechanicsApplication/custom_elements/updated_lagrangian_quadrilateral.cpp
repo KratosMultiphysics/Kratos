@@ -537,7 +537,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddInternalForces(VectorType& r
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight, const ProcessInfo& rCurrentProcessInfo)
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
