@@ -531,7 +531,7 @@ public:
         }
         // Filling with ones the LM dofs
         #pragma omp parallel for firstprivate(ndofs)
-        for (int k = ndofs; k<system_size; ++k) {
+        for (int k = ndofs; k<static_cast<int>(system_size); ++k) {
             scaling_factors[k] = 1.0;
         }
         
