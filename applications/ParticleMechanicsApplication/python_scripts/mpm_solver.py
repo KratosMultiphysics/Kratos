@@ -411,7 +411,7 @@ class MPMSolver(PythonSolver):
         linear_solver = self._GetLinearSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
-        return KratosParticle.MPMResidualBasedLinearStrategy(computing_model_part,
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               solution_scheme,
                                                               linear_solver,
                                                               self.settings["compute_reactions"].GetBool(),
