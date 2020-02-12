@@ -240,6 +240,9 @@ double GetDoubleValue(const std::string& rInput)
     const int seperator_length = std::count_if(
         rInput.begin(), rInput.end(), [](unsigned char c) { return (c == '.'); });
 
+    KRATOS_ERROR_IF(seperator_length > 1)
+        << "Invalid double number provided as input. [ Input = \"" << rInput << "\" ].\n";
+
     KRATOS_ERROR_IF(string_length != digit_length + seperator_length)
         << "Invalid double number provided as input. [ Input = \"" << rInput << "\" ].\n";
 
@@ -472,6 +475,11 @@ const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>&
         return
             [](const Matrix& rValue) -> double { return norm_frobenius(rValue); };
     }
+    else if (rNormType == "magnitude")
+    {
+        return
+            [](const Matrix& rValue) -> double { return norm_frobenius(rValue); };
+    }
     else if (rNormType == "infinity")
     {
         return [](const Matrix& rValue) -> double { return norm_inf(rValue); };
@@ -587,6 +595,7 @@ const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>&
     KRATOS_ERROR << "Unknown norm type for matrix variable " << rVariable.Name()
                  << ". [ NormType = " << rNormType << " ]\n"
                  << "   Allowed norm types are:\n"
+                 << "        magnitude\n"
                  << "        frobenius\n"
                  << "        infinity\n"
                  << "        trace\n"
