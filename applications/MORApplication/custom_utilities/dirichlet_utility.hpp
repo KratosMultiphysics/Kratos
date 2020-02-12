@@ -114,21 +114,6 @@ namespace DirichletUtility
         }
     }
 
-    // template <typename DenseSpaceType>
-    // void OrthogonalizeQR(typename DenseSpaceType::MatrixType& rA)
-    // {
-    //     typedef typename DenseSpaceType::DataType ScalarType;
-
-    //     Eigen::Map<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>> A(rA.data().begin(), rA.size1(), rA.size2());
-    //     Eigen::HouseholderQR<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>> qr(A);
-
-    //     Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> thinQ;
-    //     Eigen::MatrixXd I(Eigen::MatrixXd::Identity(rA.size1(),rA.size2()));
-
-    //     thinQ = qr.householderQ() * I;
-    //     A = thinQ;
-    // }
-
 } // namespace DirichletUtility
 
 } // namespace Kratos
