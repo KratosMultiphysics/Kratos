@@ -11,6 +11,8 @@ from test_spatial_methods import SpatialMethodTests
 from test_temporal_sum_method import TemporalSumMethodTests
 from test_temporal_mean_method import TemporalMeanMethodTests
 from test_temporal_variance_method import TemporalVarianceMethodTests
+from test_temporal_min_method import TemporalMinMethodTests
+from test_temporal_max_method import TemporalMaxMethodTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -36,17 +38,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalSumMethodTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMeanMethodTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalVarianceMethodTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMinMethodTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMaxMethodTests]))
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
 
