@@ -15,6 +15,14 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.parameters = parameters
         self.settings = parameters["settings"]
 
+        solver_wrapper_parameters = self.settings["solver_wrapper"]
+        solver_wrapper_settings = solver_wrapper_parameters["settings"]
+        # Add time_step_start and delta_t to solver_wrapper_settings
+        solver_wrapper_settings.AddValue("timestep_start", self.settings["timestep_start"])
+        solver_wrapper_settings.AddValue("delta_t", self.settings["delta_t"])
+        solver_wrapper_parameters.RemoveValue("settings")
+        solver_wrapper_parameters.AddValue("settings", solver_wrapper_settings)
+
         # Create solver
         self.solver_wrapper = cs_tools.CreateInstance(self.settings["solver_wrapper"])
 
@@ -47,6 +55,11 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.mapper_interface_input.Finalize()
         self.mapper_interface_output.Finalize()
 
+    def OutputSolutionStep(self):
+        super().OutputSolutionStep()
+
+        self.solver_wrapper.OutputSolutionStep()
+
     def GetInterfaceInput(self):
         # Does not contain most recent data
         return self.interface_input_from.deepcopy()
@@ -72,3 +85,12 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.mapper_interface_output = cs_tools.CreateInstance(self.settings["mapper_interface_output"])
         self.mapper_interface_output.Initialize(self.interface_output_from, self.interface_output_to)
 
+    def PrintInfo(self):
+        cs_tools.PrintInfo("\tThe mapped solver wrapper ", self.__class__.__name__, " has the following solver wrapper:")
+        print("\t", end='')
+        self.solver_wrapper.PrintInfo()
+        cs_tools.PrintInfo("\tAnd following input and output mappers:")
+        # print("\t", end='')
+        # self.mapper_interface_input.PrintInfo()
+        # print("\t", end='')
+        # self.mapper_interface_output.PrintInfo()
