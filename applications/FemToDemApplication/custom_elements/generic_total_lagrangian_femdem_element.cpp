@@ -251,7 +251,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const SizeType number_of_nodes   = this->GetGeometry().size();
     const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size           = GetStrainSize();
-    std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -385,7 +385,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     const SizeType number_of_nodes   = this->GetGeometry().size();
     const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size           = GetStrainSize();
-    std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
