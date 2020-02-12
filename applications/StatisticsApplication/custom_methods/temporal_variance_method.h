@@ -49,9 +49,10 @@ public:
         ValueMethod(ModelPart& rModelPart,
                     const std::string& rNormType,
                     const Variable<TDataType>& rInputVariable,
+                    const int EchoLevel,
                     const Variable<TDataType>& rOutputMeanVariable,
                     const Variable<TDataType>& rOutputVarianceVariable)
-            : TemporalMethod(rModelPart),
+            : TemporalMethod(rModelPart, EchoLevel),
               mrInputVariable(rInputVariable),
               mrOutputMeanVariable(rOutputMeanVariable),
               mrOutputVarianceVariable(rOutputVarianceVariable)
@@ -84,6 +85,12 @@ public:
             }
 
             TemporalMethod::CalculateStatistics(DeltaTime);
+            KRATOS_INFO_IF("TemporalValueVarianceMethod", this->GetEchoLevel() > 1)
+                << "Calculated temporal value variance for "
+                << mrInputVariable.Name() << " input variable with "
+                << mrOutputMeanVariable.Name() << " mean variable and "
+                << mrOutputVarianceVariable.Name() << " variance variable for "
+                << this->GetModelPart().Name() << ".\n";
         }
 
         void InitializeStatisticsVariables() override
@@ -97,7 +104,7 @@ public:
             initializer_method(r_container, mrOutputMeanVariable, mrInputVariable);
             initializer_method(r_container, mrOutputVarianceVariable, mrInputVariable);
 
-            KRATOS_INFO("TemporalValueVarianceMethod")
+            KRATOS_INFO_IF("TemporalValueVarianceMethod", this->GetEchoLevel() > 0)
                 << "Initialized temporal value variance method for "
                 << mrInputVariable.Name() << " input variable with "
                 << mrOutputMeanVariable.Name() << " mean variable and "
@@ -120,9 +127,10 @@ public:
         NormMethod(ModelPart& rModelPart,
                    const std::string& rNormType,
                    const Variable<TDataType>& rInputVariable,
+                   const int EchoLevel,
                    const Variable<double>& rOutputMeanVariable,
                    const Variable<double>& rOutputVarianceVariable)
-            : TemporalMethod(rModelPart),
+            : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
               mrOutputMeanVariable(rOutputMeanVariable),
@@ -157,6 +165,11 @@ public:
             }
 
             TemporalMethod::CalculateStatistics(DeltaTime);
+            KRATOS_INFO_IF("TemporalNormVarianceMethod", this->GetEchoLevel() > 1)
+                << "Calculated temporal norm variance for " << mrInputVariable.Name()
+                << " input variable with " << mrOutputMeanVariable.Name()
+                << " mean variable and " << mrOutputVarianceVariable.Name()
+                << " variance variable for " << this->GetModelPart().Name() << ".\n";
         }
 
         // norm output variable initialization
@@ -170,7 +183,7 @@ public:
             initializer_method(r_container, mrOutputMeanVariable, 0.0);
             initializer_method(r_container, mrOutputVarianceVariable, 0.0);
 
-            KRATOS_INFO("TemporalNormVarianceMethod")
+            KRATOS_INFO_IF("TemporalNormVarianceMethod", this->GetEchoLevel() > 0)
                 << "Initialized temporal norm variance method for "
                 << mrInputVariable.Name() << " input variable with "
                 << mrOutputMeanVariable.Name() << " mean variable and "
@@ -186,7 +199,7 @@ public:
     };
 
     std::vector<TemporalMethod::Pointer> static CreateTemporalMethodObject(
-        ModelPart& rModelPart, const std::string& rNormType, Parameters Params)
+        ModelPart& rModelPart, const std::string& rNormType, const int EchoLevel, Parameters Params)
     {
         KRATOS_TRY
 
@@ -222,8 +235,8 @@ public:
                 const std::string& r_variable_2_output_name =
                     output_variable_2_names_list[i];
                 ADD_TEMPORAL_VALUE_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(
-                    rModelPart, rNormType, r_variable_input_name, r_variable_1_output_name,
-                    r_variable_2_output_name, method_list, ValueMethod)
+                    rModelPart, rNormType, r_variable_input_name, EchoLevel,
+                    r_variable_1_output_name, r_variable_2_output_name, method_list, ValueMethod)
             }
         }
         else // for values with norms
@@ -240,8 +253,8 @@ public:
                 const std::string& r_variable_2_output_name =
                     output_variable_2_names_list[i];
                 ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(
-                    rModelPart, rNormType, r_variable_input_name, r_variable_1_output_name,
-                    r_variable_2_output_name, method_list, NormMethod)
+                    rModelPart, rNormType, r_variable_input_name, EchoLevel,
+                    r_variable_1_output_name, r_variable_2_output_name, method_list, NormMethod)
             }
         }
 

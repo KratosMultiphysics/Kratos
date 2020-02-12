@@ -51,9 +51,10 @@ public:
         NormMethod(ModelPart& rModelPart,
                    const std::string& rNormType,
                    const Variable<TDataType>& rInputVariable,
+                   const int EchoLevel,
                    const Variable<double>& rOutputVariable,
                    const Variable<double>& rMinTimeValueVariable)
-            : TemporalMethod(rModelPart),
+            : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
               mrOutputVariable(rOutputVariable),
@@ -91,6 +92,11 @@ public:
             }
 
             TemporalMethod::CalculateStatistics(DeltaTime);
+            KRATOS_INFO_IF("TemporalNormMinMethod", this->GetEchoLevel() > 1)
+                << "Calculated temporal norm min for " << mrInputVariable.Name()
+                << " input variable with " << mrOutputVariable.Name()
+                << " min variable and " << mrMinTimeValueVariable.Name()
+                << " time value variable for " << this->GetModelPart().Name() << ".\n";
         }
 
         void InitializeStatisticsVariables() override
@@ -104,7 +110,7 @@ public:
                                std::numeric_limits<double>::max());
             initializer_method(r_container, mrMinTimeValueVariable, 0.0);
 
-            KRATOS_INFO("TemporalNormMinMethod")
+            KRATOS_INFO_IF("TemporalNormMinMethod", this->GetEchoLevel() > 0)
                 << "Initialized temporal norm min method for "
                 << mrInputVariable.Name() << " input variable with "
                 << mrOutputVariable.Name() << " min variable and "
@@ -120,7 +126,7 @@ public:
     };
 
     std::vector<TemporalMethod::Pointer> static CreateTemporalMethodObject(
-        ModelPart& rModelPart, const std::string& rNormType, Parameters Params)
+        ModelPart& rModelPart, const std::string& rNormType, const int EchoLevel, Parameters Params)
     {
         KRATOS_TRY
 
@@ -158,8 +164,8 @@ public:
                 const std::string& r_variable_2_output_name =
                     output_variable_2_names_list[i];
                 ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(
-                    rModelPart, rNormType, r_variable_input_name, r_variable_1_output_name,
-                    r_variable_2_output_name, method_list, NormMethod)
+                    rModelPart, rNormType, r_variable_input_name, EchoLevel,
+                    r_variable_1_output_name, r_variable_2_output_name, method_list, NormMethod)
             }
         }
 

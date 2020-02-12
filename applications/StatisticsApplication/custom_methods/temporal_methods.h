@@ -51,6 +51,11 @@ const Variable<double>&
 const Variable<double>&, const Variable<double>&
 #endif
 
+#ifndef KRATOS_STATISTICS_DEFAULT_INPUTS
+#define KRATOS_STATISTICS_DEFAULT_INPUTS(type)\
+ModelPart&, const std::string&, const Variable<type>&, const int
+#endif
+
 #ifndef ADD_KRATOS_STATISTICS_TEMPORAL_CONTAINER_VALUE_METHOD_PYTHON_INTERFACE
 #define ADD_KRATOS_STATISTICS_TEMPORAL_CONTAINER_VALUE_METHOD_PYTHON_INTERFACE(method, method_name, value_method_module, container, output_type)  \
 {                                                                                                                                       \
@@ -62,19 +67,19 @@ const Variable<double>&, const Variable<double>&
     using current_method = TemporalMethods::container::method;                                                                          \
     py::class_<current_method::ValueMethod<type_double>, current_method::ValueMethod<type_double>::Pointer,                             \
                 TemporalMethods::TemporalMethod>(method_module, "Double")                                                               \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,                                                     \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_double),                                                     \
                         output_type(type_double)>());                                                                                   \
     py::class_<current_method::ValueMethod<type_array>, current_method::ValueMethod<type_array>::Pointer,                               \
                 TemporalMethods::TemporalMethod>(method_module, "Array")                                                                \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,                                                      \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_array),                                                      \
                         output_type(type_array)>());                                                                                    \
     py::class_<current_method::ValueMethod<type_vector>, current_method::ValueMethod<type_vector>::Pointer,                             \
                 TemporalMethods::TemporalMethod>(method_module, "Vector")                                                               \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,                                                     \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_vector),                                                     \
                         output_type(type_vector)>());                                                                                   \
     py::class_<current_method::ValueMethod<type_matrix>, current_method::ValueMethod<type_matrix>::Pointer,                             \
                 TemporalMethods::TemporalMethod>(method_module, "Matrix")                                                               \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,                                                     \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_matrix),                                                     \
                         output_type(type_matrix)>());                                                                                   \
 }
 #endif
@@ -90,19 +95,19 @@ const Variable<double>&, const Variable<double>&
     using current_method = TemporalMethods::container::method;                                                                          \
     py::class_<current_method::NormMethod<type_double>, current_method::NormMethod<type_double>::Pointer,                               \
                 TemporalMethods::TemporalMethod>(method_module, "Double")                                                               \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_double>&,                                                     \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_double),                                                     \
                         output_type(type_double)>());                                                                                                \
     py::class_<current_method::NormMethod<type_array>, current_method::NormMethod<type_array>::Pointer,                                 \
                 TemporalMethods::TemporalMethod>(method_module, "Array")                                                                \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_array>&,                                                      \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_array),                                                      \
                         output_type(type_array)>());                                                                                                \
     py::class_<current_method::NormMethod<type_vector>, current_method::NormMethod<type_vector>::Pointer,                               \
                 TemporalMethods::TemporalMethod>(method_module, "Vector")                                                               \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_vector>&,                                                     \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_vector),                                                     \
                         output_type(type_vector)>());                                                                                                \
     py::class_<current_method::NormMethod<type_matrix>, current_method::NormMethod<type_matrix>::Pointer,                               \
                 TemporalMethods::TemporalMethod>(method_module, "Matrix")                                                               \
-        .def(py::init<ModelPart&, const std::string&, const Variable<type_matrix>&,                                                     \
+        .def(py::init<KRATOS_STATISTICS_DEFAULT_INPUTS(type_matrix),                                                     \
                         output_type(type_matrix)>());                                                                                                \
 }
 #endif

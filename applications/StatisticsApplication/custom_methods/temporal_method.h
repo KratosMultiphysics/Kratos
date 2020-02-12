@@ -41,8 +41,8 @@ public:
     /// Pointer definition of RansApplyFlagProcess
     KRATOS_CLASS_POINTER_DEFINITION(TemporalMethod);
 
-    TemporalMethod(ModelPart& rModelPart)
-        : mrModelPart(rModelPart), mTotalTime(0.0)
+    TemporalMethod(ModelPart& rModelPart, const int EchoLevel)
+        : mrModelPart(rModelPart), mEchoLevel(EchoLevel), mTotalTime(0.0)
     {
     }
 
@@ -82,8 +82,14 @@ public:
         return mTotalTime;
     }
 
+    int GetEchoLevel() const
+    {
+        return mEchoLevel;
+    }
+
 private:
     ModelPart& mrModelPart;
+    int mEchoLevel;
     double mTotalTime;
 };
 } // namespace TemporalMethods

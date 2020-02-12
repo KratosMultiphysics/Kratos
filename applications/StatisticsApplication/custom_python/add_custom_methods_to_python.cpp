@@ -66,7 +66,7 @@ void AddCustomMethodsToPython(pybind11::module& m)
     auto temporal_method_module = m.def_submodule("TemporalMethods");
 
     py::class_<TemporalMethods::TemporalMethod, TemporalMethods::TemporalMethod::Pointer>(temporal_method_module,"TemporalMethod")
-        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const int>())
         .def("GetModelPart", &TemporalMethods::TemporalMethod::GetModelPart)
         .def("GetTotalTime", &TemporalMethods::TemporalMethod::GetTotalTime)
         .def("InitializeStatisticsMethod", &TemporalMethods::TemporalMethod::InitializeStatisticsMethod)

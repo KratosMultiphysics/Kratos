@@ -29,9 +29,11 @@ class TemporalStatisticsProcess(Kratos.Process):
                     "method_name"     : "sum",
                     "norm_type"       : "none",
                     "container"       : "nodal_historical_non_historical",
+                    "echo_level"      : 0,
                     "method_settings" : {}
                 }
             ],
+            "echo_level" : 0,
             "statistics_start_point_control_variable_name" : "TIME",
             "statistics_start_point_control_value"         : 0.0
         }  """)
@@ -39,6 +41,7 @@ class TemporalStatisticsProcess(Kratos.Process):
         self.model = model
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
+        self.echo_level = self.settings["echo_level"].GetInt()
         self.variables_settings_list = self.settings["input_variable_settings"]
 
         for variable_settings in self.variables_settings_list:
@@ -64,7 +67,8 @@ class TemporalStatisticsProcess(Kratos.Process):
         else:
             raise Exception("Unsupported statistics control variable type. Only supports Integer, and Double.")
 
-        Kratos.Logger.PrintInfo("TemporalStatisticsProcess", "Initialized statistics process.")
+        if (self.echo_level > 0):
+            Kratos.Logger.PrintInfo("TemporalStatisticsProcess", "Initialized statistics process.")
 
     def Check(self):
         if (not self.model.HasModelPart(self.model_part_name)):
@@ -78,10 +82,11 @@ class TemporalStatisticsProcess(Kratos.Process):
             container_name = variable_settings["container"].GetString()
             norm_type = variable_settings["norm_type"].GetString()
             method_name = variable_settings["method_name"].GetString()
+            echo_level = variable_settings["echo_level"].GetInt()
 
             item_container = GetItemContainer(container_name)
             method = GetMethod(item_container, method_name)
-            method_objects = method(self.model_part, norm_type, variable_settings["method_settings"])
+            method_objects = method(self.model_part, norm_type, echo_level, variable_settings["method_settings"])
 
             self.method_list.extend(method_objects)
 

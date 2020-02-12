@@ -12,21 +12,21 @@ from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
 from random import uniform
 
 
-class TemporalMethodTests(KratosUnittest.TestCase):
+class TemporalSumMethodTests(KratosUnittest.TestCase):
     def setUp(self):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test_model_part")
         self.model_part.SetBufferSize(10)
 
-        TemporalMethodTests.__AddNodalSolutionStepVariables(self.model_part)
-        TemporalMethodTests.__CreateModelPart(self.model_part)
-        TemporalMethodTests.__InitializeVariables(self.model_part)
+        TemporalSumMethodTests.__AddNodalSolutionStepVariables(self.model_part)
+        TemporalSumMethodTests.__CreateModelPart(self.model_part)
+        TemporalSumMethodTests.__InitializeVariables(self.model_part)
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    def testSumMethod(self):
+    def testSumHistoricalHistoricalMethod(self):
         settings = Kratos.Parameters(r'''
         [
             {
@@ -39,6 +39,7 @@ class TemporalMethodTests(KratosUnittest.TestCase):
                              "method_name"     : "sum",
                              "norm_type"       : "none",
                              "container"       : "nodal_historical_historical",
+                             "echo_level"      : 0,
                              "method_settings" : {
                                  "input_variables"  : ["VELOCITY", "PRESSURE"],
                                  "output_variables" : ["VELOCITY_MEAN", "PRESSURE_MEAN"]
@@ -62,26 +63,30 @@ class TemporalMethodTests(KratosUnittest.TestCase):
             pressure_list.append([])
 
         def analytical_method(value_array, variable):
-            result = TemporalMethodTests.__GetInitialValue(variable, "none")
+            result = TemporalSumMethodTests.__GetInitialValue(variable, "none")
             for item in value_array:
                 result += item
             return result
 
         for step in range(0, 12, 2):
-            TemporalMethodTests.__InitializeVariables(self.model_part)
+            TemporalSumMethodTests.__InitializeVariables(self.model_part)
             self.__ExecuteFinalizeSolutionStep()
 
-            for index, node  in enumerate(self.model_part.Nodes):
+            for index, node in enumerate(self.model_part.Nodes):
                 current_velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
                 current_pressure = node.GetSolutionStepValue(Kratos.PRESSURE)
                 if (step > 4):
                     velocity_list[index].append(current_velocity)
                     pressure_list[index].append(current_pressure)
-                analytical_velocity = analytical_method(velocity_list[index], Kratos.VELOCITY)
-                analytical_pressure = analytical_method(pressure_list[index], Kratos.PRESSURE)
+                analytical_velocity = analytical_method(
+                    velocity_list[index], Kratos.VELOCITY)
+                analytical_pressure = analytical_method(
+                    pressure_list[index], Kratos.PRESSURE)
 
-                method_velocity = node.GetSolutionStepValue(KratosStats.VELOCITY_MEAN)
-                method_pressure = node.GetSolutionStepValue(KratosStats.PRESSURE_MEAN)
+                method_velocity = node.GetSolutionStepValue(
+                    KratosStats.VELOCITY_MEAN)
+                method_pressure = node.GetSolutionStepValue(
+                    KratosStats.PRESSURE_MEAN)
 
                 self.__CheckValues(analytical_pressure, method_pressure, 8)
                 self.__CheckValues(analytical_velocity, method_velocity, 8)
@@ -115,17 +120,24 @@ class TemporalMethodTests(KratosUnittest.TestCase):
 
     @staticmethod
     def __AddNodalSolutionStepVariables(model_part):
+        # input variables
         model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
+        model_part.AddNodalSolutionStepVariable(
+            Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+
+        # output variables for output_1 (eg: mean)
         model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_MEAN)
         model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_MEAN)
+        model_part.AddNodalSolutionStepVariable(Kratos.CAUCHY_STRESS_TENSOR)
+        model_part.AddNodalSolutionStepVariable(Kratos.MATERIAL_PARAMETERS)
+
+        # output variables for output_2 (eg: variance)
         model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_VARIANCE)
         model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_VARIANCE)
-        model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_NORM)
-        model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_NORM)
-        model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
-        model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
-
+        model_part.AddNodalSolutionStepVariable(Kratos.LOCAL_INERTIA_TENSOR)
+        model_part.AddNodalSolutionStepVariable(Kratos.ELEMENTAL_DISTANCES)
 
     @staticmethod
     def __CreateModelPart(model_part):
@@ -157,13 +169,13 @@ class TemporalMethodTests(KratosUnittest.TestCase):
     def __InitializeVariables(model_part):
 
         for node in model_part.Nodes:
-            s, a, v, m = TemporalMethodTests.__GetNewValue()
+            s, a, v, m = TemporalSumMethodTests.__GetNewValue()
             node.SetValue(Kratos.PRESSURE, s)
             node.SetValue(Kratos.VELOCITY, a)
             node.SetValue(Kratos.LOAD_MESHES, v)
             node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, m)
 
-            s, a, v, m = TemporalMethodTests.__GetNewValue()
+            s, a, v, m = TemporalSumMethodTests.__GetNewValue()
             node.SetSolutionStepValue(Kratos.PRESSURE, 0, s)
             node.SetSolutionStepValue(Kratos.VELOCITY, 0, a)
             node.SetSolutionStepValue(Kratos.LOAD_MESHES, 0, v)
@@ -171,14 +183,14 @@ class TemporalMethodTests(KratosUnittest.TestCase):
                                       m)
 
         for condition in model_part.Conditions:
-            s, a, v, m = TemporalMethodTests.__GetNewValue()
+            s, a, v, m = TemporalSumMethodTests.__GetNewValue()
             condition.SetValue(Kratos.PRESSURE, s)
             condition.SetValue(Kratos.VELOCITY, a)
             condition.SetValue(Kratos.LOAD_MESHES, v)
             condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, m)
 
         for element in model_part.Elements:
-            s, a, v, m = TemporalMethodTests.__GetNewValue()
+            s, a, v, m = TemporalSumMethodTests.__GetNewValue()
             element.SetValue(Kratos.PRESSURE, s)
             element.SetValue(Kratos.VELOCITY, a)
             element.SetValue(Kratos.LOAD_MESHES, v)

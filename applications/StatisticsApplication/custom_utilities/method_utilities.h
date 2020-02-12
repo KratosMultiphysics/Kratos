@@ -24,129 +24,129 @@
 // Application includes
 
 #ifndef ADD_TEMPORAL_VALUE_METHOD_ONE_OUTPUT_VARIABLE_OBJECT
-#define ADD_TEMPORAL_VALUE_METHOD_ONE_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, output_variable, object_list, method)                \
+#define ADD_TEMPORAL_VALUE_METHOD_ONE_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, echo_level, output_variable, object_list, method)                \
 {                                                                                                                                           \
     if (KratosComponents<Variable<double>>::Has(input_variable))                                                                            \
     {                                                                                                                                       \
         const Variable<double>& r_variable_input = KratosComponents<Variable<double>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output = KratosComponents<Variable<double>>::Get(output_variable);                               \
-        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, r_variable_output));                \
+        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(input_variable))                                                          \
     {                                                                                                                                       \
         const Variable<array_1d<double, 3>>& r_variable_input = KratosComponents<Variable<array_1d<double, 3>>>::Get(input_variable);       \
         const Variable<array_1d<double, 3>>& r_variable_output = KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable);     \
-        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, r_variable_output));   \
+        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));   \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Vector>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Vector>& r_variable_input = KratosComponents<Variable<Vector>>::Get(input_variable);                                 \
         const Variable<Vector>& r_variable_output = KratosComponents<Variable<Vector>>::Get(output_variable);                               \
-        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, r_variable_output));                \
+        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Matrix>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Matrix>& r_variable_input = KratosComponents<Variable<Matrix>>::Get(input_variable);                                 \
         const Variable<Matrix>& r_variable_output = KratosComponents<Variable<Matrix>>::Get(output_variable);                               \
-        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, r_variable_output));                \
+        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));                \
     }                                                                                                                                       \
 }
 #endif
 
 #ifndef ADD_TEMPORAL_NORM_METHOD_ONE_OUTPUT_VARIABLE_OBJECT
-#define ADD_TEMPORAL_NORM_METHOD_ONE_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, output_variable, object_list, method)                \
+#define ADD_TEMPORAL_NORM_METHOD_ONE_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, echo_level, output_variable, object_list, method)                \
 {                                                                                                                                           \
     if (KratosComponents<Variable<double>>::Has(input_variable))                                                                            \
     {                                                                                                                                       \
         const Variable<double>& r_variable_input = KratosComponents<Variable<double>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output = KratosComponents<Variable<double>>::Get(output_variable);                               \
-        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, r_variable_output));                \
+        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(input_variable))                                                          \
     {                                                                                                                                       \
         const Variable<array_1d<double, 3>>& r_variable_input = KratosComponents<Variable<array_1d<double, 3>>>::Get(input_variable);       \
         const Variable<double>& r_variable_output = KratosComponents<Variable<double>>::Get(output_variable);     \
-        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, r_variable_output));   \
+        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));   \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Vector>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Vector>& r_variable_input = KratosComponents<Variable<Vector>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output = KratosComponents<Variable<double>>::Get(output_variable);                               \
-        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, r_variable_output));                \
+        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Matrix>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Matrix>& r_variable_input = KratosComponents<Variable<Matrix>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output = KratosComponents<Variable<double>>::Get(output_variable);                               \
-        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, r_variable_output));                \
+        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output));                \
     }                                                                                                                                       \
 }
 #endif
 
 #ifndef ADD_TEMPORAL_VALUE_METHOD_TWO_OUTPUT_VARIABLE_OBJECT
-#define ADD_TEMPORAL_VALUE_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, output_variable_1, output_variable_2, object_list, method)                \
+#define ADD_TEMPORAL_VALUE_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, echo_level, output_variable_1, output_variable_2, object_list, method)                \
 {                                                                                                                                           \
     if (KratosComponents<Variable<double>>::Has(input_variable))                                                                            \
     {                                                                                                                                       \
         const Variable<double>& r_variable_input = KratosComponents<Variable<double>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output_1 = KratosComponents<Variable<double>>::Get(output_variable_1);                               \
         const Variable<double>& r_variable_output_2 = KratosComponents<Variable<double>>::Get(output_variable_2);                               \
-        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));                \
+        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(input_variable))                                                          \
     {                                                                                                                                       \
         const Variable<array_1d<double, 3>>& r_variable_input = KratosComponents<Variable<array_1d<double, 3>>>::Get(input_variable);       \
         const Variable<array_1d<double, 3>>& r_variable_output_1 = KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable_1);     \
         const Variable<array_1d<double, 3>>& r_variable_output_2 = KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable_1);     \
-        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));   \
+        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));   \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Vector>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Vector>& r_variable_input = KratosComponents<Variable<Vector>>::Get(input_variable);                                 \
         const Variable<Vector>& r_variable_output_1 = KratosComponents<Variable<Vector>>::Get(output_variable_1);                               \
         const Variable<Vector>& r_variable_output_2 = KratosComponents<Variable<Vector>>::Get(output_variable_2);                               \
-        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));                \
+        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Matrix>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Matrix>& r_variable_input = KratosComponents<Variable<Matrix>>::Get(input_variable);                                 \
         const Variable<Matrix>& r_variable_output_1 = KratosComponents<Variable<Matrix>>::Get(output_variable_1);                               \
         const Variable<Matrix>& r_variable_output_2 = KratosComponents<Variable<Matrix>>::Get(output_variable_2);                               \
-        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));                \
+        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));                \
     }                                                                                                                                       \
 }
 #endif
 
 #ifndef ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT
-#define ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, output_variable_1, output_variable_2, object_list, method)                \
+#define ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(model_part, norm_type, input_variable, echo_level, output_variable_1, output_variable_2, object_list, method)                \
 {                                                                                                                                           \
     if (KratosComponents<Variable<double>>::Has(input_variable))                                                                            \
     {                                                                                                                                       \
         const Variable<double>& r_variable_input = KratosComponents<Variable<double>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output_1 = KratosComponents<Variable<double>>::Get(output_variable_1);                               \
         const Variable<double>& r_variable_output_2 = KratosComponents<Variable<double>>::Get(output_variable_2);                               \
-        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));                \
+        object_list.push_back(std::make_shared<method<double>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(input_variable))                                                          \
     {                                                                                                                                       \
         const Variable<array_1d<double, 3>>& r_variable_input = KratosComponents<Variable<array_1d<double, 3>>>::Get(input_variable);       \
         const Variable<double>& r_variable_output_1 = KratosComponents<Variable<double>>::Get(output_variable_1);     \
         const Variable<double>& r_variable_output_2 = KratosComponents<Variable<double>>::Get(output_variable_1);     \
-        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));   \
+        object_list.push_back(std::make_shared<method<array_1d<double, 3>>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));   \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Vector>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Vector>& r_variable_input = KratosComponents<Variable<Vector>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output_1 = KratosComponents<Variable<double>>::Get(output_variable_1);                               \
         const Variable<double>& r_variable_output_2 = KratosComponents<Variable<double>>::Get(output_variable_2);                               \
-        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));                \
+        object_list.push_back(std::make_shared<method<Vector>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));                \
     }                                                                                                                                       \
     else if (KratosComponents<Variable<Matrix>>::Has(input_variable))                                                                       \
     {                                                                                                                                       \
         const Variable<Matrix>& r_variable_input = KratosComponents<Variable<Matrix>>::Get(input_variable);                                 \
         const Variable<double>& r_variable_output_1 = KratosComponents<Variable<double>>::Get(output_variable_1);                               \
         const Variable<double>& r_variable_output_2 = KratosComponents<Variable<double>>::Get(output_variable_2);                               \
-        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, r_variable_output_1, r_variable_output_2));                \
+        object_list.push_back(std::make_shared<method<Matrix>>(model_part, norm_type, r_variable_input, echo_level, r_variable_output_1, r_variable_output_2));                \
     }                                                                                                                                       \
 }
 #endif

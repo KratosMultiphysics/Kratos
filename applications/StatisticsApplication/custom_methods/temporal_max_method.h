@@ -51,9 +51,10 @@ public:
         NormMethod(ModelPart& rModelPart,
                    const std::string& rNormType,
                    const Variable<TDataType>& rInputVariable,
+                   const int EchoLevel,
                    const Variable<double>& rOutputVariable,
                    const Variable<double>& rMaxTimeValueVariable)
-            : TemporalMethod(rModelPart),
+            : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
               mrOutputVariable(rOutputVariable),
@@ -91,6 +92,12 @@ public:
             }
 
             TemporalMethod::CalculateStatistics(DeltaTime);
+
+            KRATOS_INFO_IF("TemporalNormMaxMethod", this->GetEchoLevel() > 1)
+                << "Calculated temporal norm max for " << mrInputVariable.Name()
+                << " input variable with " << mrOutputVariable.Name()
+                << " max variable and " << mrMaxTimeValueVariable.Name()
+                << " time value variable in " << this->GetModelPart().Name() << ".\n";
         }
 
         void InitializeStatisticsVariables() override
@@ -104,11 +111,11 @@ public:
                                std::numeric_limits<double>::lowest());
             initializer_method(r_container, mrMaxTimeValueVariable, 0.0);
 
-            KRATOS_INFO("TemporalNormMaxMethod")
+            KRATOS_INFO_IF("TemporalNormMaxMethod", this->GetEchoLevel() > 0)
                 << "Initialized temporal norm max method for "
                 << mrInputVariable.Name() << " input variable with "
                 << mrOutputVariable.Name() << " max variable and "
-                << mrMaxTimeValueVariable.Name() << " time value variable for "
+                << mrMaxTimeValueVariable.Name() << " time value variable in "
                 << this->GetModelPart().Name() << ".\n";
         }
 
@@ -119,9 +126,8 @@ public:
         const Variable<double>& mrMaxTimeValueVariable;
     };
 
-    std::vector<TemporalMethod::Pointer> static CreateTemporalMethodObject(ModelPart& rModelPart,
-                                           const std::string& rNormType,
-                                           Parameters Params)
+    std::vector<TemporalMethod::Pointer> static CreateTemporalMethodObject(
+        ModelPart& rModelPart, const std::string& rNormType, const int EchoLevel, Parameters Params)
     {
         KRATOS_TRY
 
@@ -159,8 +165,8 @@ public:
                 const std::string& r_variable_2_output_name =
                     output_variable_2_names_list[i];
                 ADD_TEMPORAL_NORM_METHOD_TWO_OUTPUT_VARIABLE_OBJECT(
-                    rModelPart, rNormType, r_variable_input_name, r_variable_1_output_name,
-                    r_variable_2_output_name, method_list, NormMethod)
+                    rModelPart, rNormType, r_variable_input_name, EchoLevel,
+                    r_variable_1_output_name, r_variable_2_output_name, method_list, NormMethod)
             }
         }
 
