@@ -8,7 +8,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemContainer
 from KratosMultiphysics.StatisticsApplication.method_utilities import GetNormTypeContainer
 from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
-
+from KratosMultiphysics.StatisticsApplication.test_utilities import HistoricalRetrievalMethod
+from KratosMultiphysics.StatisticsApplication.test_utilities import NonHistoricalRetrievalMethod
 from random import uniform
 
 
@@ -22,76 +23,130 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
         TemporalSumMethodTests.__CreateModelPart(self.model_part)
         TemporalSumMethodTests.__InitializeVariables(self.model_part)
 
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
+    def testSumHistoricalHistoricalValueMethod(self):
+        norm_type = "none"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, HistoricalRetrievalMethod)
 
-    def testSumHistoricalHistoricalMethod(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.StatisticsApplication",
-                "python_module" : "temporal_statistics_process",
-                "Parameters" : {
-                    "model_part_name"                : "test_model_part",
-                    "input_variable_settings" : [
-                        {
-                             "method_name"     : "sum",
-                             "norm_type"       : "none",
-                             "container"       : "nodal_historical_historical",
-                             "echo_level"      : 0,
-                             "method_settings" : {
-                                 "input_variables"  : ["VELOCITY", "PRESSURE"],
-                                 "output_variables" : ["VELOCITY_MEAN", "PRESSURE_MEAN"]
-                             }
-                        }
-                    ],
-                    "statistics_start_point_control_variable_name" : "TIME",
-                    "statistics_start_point_control_value"         : 4.0
-                }
-            }
-        ]''')
+    def testSumHistoricalNonHistoricalValueMethod(self):
+        norm_type = "none"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
 
+    def testSumHistoricalHistoricalNormMethod(self):
+        norm_type = "magnitude"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, HistoricalRetrievalMethod)
+
+    def testSumHistoricalNonHistoricalNormMethod(self):
+        norm_type = "magnitude"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_historical_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Nodes, HistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+    def testSumNodalNonHistoricalValueMethod(self):
+        norm_type = "none"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Nodes, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+    def testSumNodalNonHistoricalNormMethod(self):
+        norm_type = "magnitude"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "nodal_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Nodes, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+    def testSumConditionNonHistoricalValueMethod(self):
+        norm_type = "none"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "condition_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Conditions, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+    def testSumConditionNonHistoricalNormMethod(self):
+        norm_type = "magnitude"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "condition_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Conditions, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+    def testSumElementNonHistoricalValueMethod(self):
+        norm_type = "none"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "element_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Elements, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+    def testSumElementNonHistoricalNormMethod(self):
+        norm_type = "magnitude"
+        settings = TemporalSumMethodTests.__GetDefaultSettings(norm_type, "element_non_historical")
+        self.__TestMethod(norm_type, settings, self.model_part.Elements, NonHistoricalRetrievalMethod, NonHistoricalRetrievalMethod)
+
+
+    def __TestMethod(self, norm_type, settings, container, input_method, output_method):
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__Initializerocesses()
 
-        velocity_list = []
-        pressure_list = []
-        for _ in self.model_part.Nodes:
-            velocity_list.append([])
-            pressure_list.append([])
-
-        def analytical_method(value_array, variable):
-            result = TemporalSumMethodTests.__GetInitialValue(variable, "none")
-            for item in value_array:
-                result += item
-            return result
+        scalar_list, vec_3d_list, vec_list, mat_list = TemporalSumMethodTests.__InitializeArrays(container)
 
         for step in range(0, 12, 2):
             TemporalSumMethodTests.__InitializeVariables(self.model_part)
             self.__ExecuteFinalizeSolutionStep()
 
-            for index, node in enumerate(self.model_part.Nodes):
-                current_velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
-                current_pressure = node.GetSolutionStepValue(Kratos.PRESSURE)
+            for index, item in enumerate(container):
+                current_scalar = input_method(item, Kratos.PRESSURE)
+                current_vector_3d = input_method(item, Kratos.VELOCITY)
+                current_vector = input_method(item, Kratos.LOAD_MESHES)
+                current_matrix = input_method(item, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+
                 if (step > 4):
-                    velocity_list[index].append(current_velocity)
-                    pressure_list[index].append(current_pressure)
-                analytical_velocity = analytical_method(
-                    velocity_list[index], Kratos.VELOCITY)
-                analytical_pressure = analytical_method(
-                    pressure_list[index], Kratos.PRESSURE)
+                    scalar_list[index].append(current_scalar)
+                    vec_3d_list[index].append(current_vector_3d)
+                    vec_list[index].append(current_vector)
+                    mat_list[index].append(current_matrix)
 
-                method_velocity = node.GetSolutionStepValue(
-                    KratosStats.VELOCITY_MEAN)
-                method_pressure = node.GetSolutionStepValue(
-                    KratosStats.PRESSURE_MEAN)
+                analytical_method_scalar = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.PRESSURE, scalar_list[index])
+                analytical_method_vec_3d = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.VELOCITY, vec_3d_list[index])
+                analytical_method_vec = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.LOAD_MESHES, vec_list[index])
+                analytical_method_mat = TemporalSumMethodTests.__AnalyticalMethod(norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, mat_list[index])
 
-                self.__CheckValues(analytical_pressure, method_pressure, 8)
-                self.__CheckValues(analytical_velocity, method_velocity, 8)
+                if (norm_type == "none"):
+                    method_scalar = output_method(item, KratosStats.PRESSURE_MEAN)
+                    method_vec_3d = output_method(item, KratosStats.VELOCITY_MEAN)
+                    method_vec = output_method(item, Kratos.MATERIAL_PARAMETERS)
+                    method_mat = output_method(item, Kratos.CAUCHY_STRESS_TENSOR)
+                else:
+                    method_scalar = output_method(item, KratosStats.PRESSURE_NORM)
+                    method_vec_3d = output_method(item, KratosStats.VELOCITY_NORM)
+                    method_vec = output_method(item, Kratos.DENSITY)
+                    method_mat = output_method(item, Kratos.VISCOSITY)
+
+                self.__CheckValues(analytical_method_scalar, method_scalar, 8)
+                self.__CheckValues(analytical_method_vec_3d, method_vec_3d, 8)
+                self.__CheckValues(analytical_method_vec, method_vec, 16)
+                self.__CheckValues(analytical_method_mat, method_mat, 8)
 
             self.model_part.CloneTimeStep(step)
+
+    @staticmethod
+    def __InitializeArrays(container):
+        scalar_list = []
+        vector_3d_list = []
+        vector_list = []
+        matrix_list = []
+        for _ in container:
+            scalar_list.append([])
+            vector_3d_list.append([])
+            vector_list.append([])
+            matrix_list.append([])
+
+        return scalar_list, vector_3d_list, vector_list, matrix_list
+
+    @staticmethod
+    def __AnalyticalMethod(norm_type, variable, value_array):
+        if (norm_type == "none"):
+            result = TemporalSumMethodTests.__GetInitialValue(variable, "none")
+            for item in value_array:
+                result += item
+        else:
+            result = 0.0
+            norm_method = KratosStats.MethodUtilities.GetNormMethod(variable, norm_type)
+            for item in value_array:
+                result += norm_method(item)
+
+        return result
 
     def __Initializerocesses(self):
         for process in self.process_list:
@@ -119,6 +174,41 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(value_a, value_b, tolerance)
 
     @staticmethod
+    def __GetDefaultSettings(norm_type, container_name):
+        settings_str = r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.StatisticsApplication",
+                "python_module" : "temporal_statistics_process",
+                "Parameters" : {
+                    "model_part_name"                : "test_model_part",
+                    "input_variable_settings" : [
+                        {
+                             "method_name"     : "sum",
+                             "norm_type"       : "<TEST_NORM_TYPE>",
+                             "container"       : "<TEST_CONTAINER>",
+                             "echo_level"      : 0,
+                             "method_settings" : {
+                                 "input_variables"  : ["VELOCITY", "PRESSURE", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
+                                 "output_variables" : [<OUTPUT_VARIABLES>]
+                             }
+                        }
+                    ],
+                    "statistics_start_point_control_variable_name" : "TIME",
+                    "statistics_start_point_control_value"         : 4.0
+                }
+            }
+        ]'''
+        settings_str = settings_str.replace("<TEST_NORM_TYPE>", norm_type)
+        settings_str = settings_str.replace("<TEST_CONTAINER>", container_name)
+        if (norm_type == "none"):
+            settings_str = settings_str.replace("<OUTPUT_VARIABLES>", r'"VELOCITY_MEAN", "PRESSURE_MEAN", "MATERIAL_PARAMETERS", "CAUCHY_STRESS_TENSOR"')
+        else:
+            settings_str = settings_str.replace("<OUTPUT_VARIABLES>", r'"VELOCITY_NORM", "PRESSURE_NORM", "DENSITY", "VISCOSITY"')
+
+        return Kratos.Parameters(settings_str)
+
+    @staticmethod
     def __AddNodalSolutionStepVariables(model_part):
         # input variables
         model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
@@ -127,17 +217,16 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
-        # output variables for output_1 (eg: mean)
+        # output variables for output_1
         model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_MEAN)
         model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_MEAN)
-        model_part.AddNodalSolutionStepVariable(Kratos.CAUCHY_STRESS_TENSOR)
         model_part.AddNodalSolutionStepVariable(Kratos.MATERIAL_PARAMETERS)
+        model_part.AddNodalSolutionStepVariable(Kratos.CAUCHY_STRESS_TENSOR)
 
-        # output variables for output_2 (eg: variance)
-        model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_VARIANCE)
-        model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_VARIANCE)
-        model_part.AddNodalSolutionStepVariable(Kratos.LOCAL_INERTIA_TENSOR)
-        model_part.AddNodalSolutionStepVariable(Kratos.ELEMENTAL_DISTANCES)
+        model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_NORM)
+        model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_NORM)
+        model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
 
     @staticmethod
     def __CreateModelPart(model_part):

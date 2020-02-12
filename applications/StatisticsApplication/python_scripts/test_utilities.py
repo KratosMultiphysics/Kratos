@@ -23,3 +23,9 @@ def GetRandomMatrix(size_1=5, size_2=5, min_value=-10.0, max_value=10.0):
             m[i, j] = GetRandomValue(min_value, max_value)
 
     return m
+
+def HistoricalRetrievalMethod(item, variable):
+    return item.GetSolutionStepValue(variable)
+
+def NonHistoricalRetrievalMethod(item, variable):
+    return item.GetValue(variable)
