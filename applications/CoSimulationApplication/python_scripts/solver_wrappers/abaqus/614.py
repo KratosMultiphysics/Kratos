@@ -566,6 +566,11 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             disp_file = join(self.dir_csm, tmp)
             disp = np.loadtxt(disp_file, skiprows=1)
 
+            if debug:
+                tmp2 = f"CSM_Time{self.timestep}Surface{mp.thread_id}Output_Iter{self.iteration}.dat"
+                cmd = f"cp {disp_file} {join(self.dir_csm,tmp2)}"
+                os.system(cmd)
+
             if disp.shape[1] != self.dimensions:
                 raise ValueError(f"given dimension does not match coordinates")
 
@@ -813,9 +818,14 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     pressure = node.GetSolutionStepValue(self.pressure)
                     traction = node.GetSolutionStepValue(self.traction)
                     if self.dimensions == 2:
-                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:27.17e}\n')
+                        file.write(f'{pressure:27.17e}{traction[0]:27.17e}{traction[1]:27.17e}\n')
                     else:
-                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:27.17e} {traction[2]:27.17e}\n')
+                        file.write(f'{pressure:27.17e}{traction[0]:27.17e}{traction[1]:27.17e}{traction[2]:27.17e}\n')
+
+            if debug:
+                tmp2 = f"CSM_Time{self.timestep}Surface{mp.thread_id}Cpu0Input_Iter{self.iteration}.dat"
+                cmd = f"cp {file_name} {join(self.dir_csm, tmp2)}"
+                os.system(cmd)
 
             if self.iteration == 1 and self.timestep == 1 and self.settings[
                 'ramp'].GetInt() == 1:  # Start of a simulation with ramp, needs an initial load at time 0
