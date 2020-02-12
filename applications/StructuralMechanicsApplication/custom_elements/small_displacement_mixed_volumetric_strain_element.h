@@ -494,10 +494,9 @@ protected:
      * @param PointNumber The id of the integration point considered
      * @return The vector of body forces
      */
-    virtual array_1d<double, 3> GetBodyForce(
+    virtual Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const IndexType PointNumber
-        ) const;
+        const IndexType PointNumber) const;
 
     ///@}
     ///@name Protected  Access

@@ -352,7 +352,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            noalias(aux) += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
@@ -374,17 +374,17 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
         for (IndexType i = 0; i < n_nodes; ++i) {
             const double N_i = kinematic_variables.N[i];
-            G_i = row(kinematic_variables.DN_DX, i);
+            noalias(G_i) = row(kinematic_variables.DN_DX, i);
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i * dim + l);
                 }
             }
-            psi_i = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
-            transBi_C_invT_m = prod(trans(B_i), C_invT_m_voigt);
+            noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
+            noalias(transBi_C_invT_m) = prod(trans(B_i), C_invT_m_voigt);
 
             // Add momentum body force RHS contribution
-            rhs_mom_i = w_gauss * N_i * body_force;
+            noalias(rhs_mom_i) = w_gauss * N_i * body_force;
             // Add momentum internal force RHS contribution
             // Note that this includes both the deviatoric and volumetric internal force RHS contributions
             noalias(rhs_mom_i) -= w_gauss * prod(trans(B_i), cons_law_values.GetStressVector());
@@ -395,13 +395,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
             for (IndexType j = 0; j < n_nodes; ++j) {
                 const double N_j = kinematic_variables.N[j];
-                G_j = row(kinematic_variables.DN_DX, j);
+                noalias(G_j) = row(kinematic_variables.DN_DX, j);
                 for (IndexType k = 0;  k < strain_size; ++k) {
                     for (IndexType l = 0; l < dim; ++l) {
                         B_j(k,l) = kinematic_variables.B(k, j * dim + l);
                     }
                 }
-                psi_j = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
+                noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
 
                 // Add the extra terms in the RHS momentum equation
                 Vector disp_j(dim);
@@ -416,12 +416,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
                 // Add momentum internal force LHS contribution
                 const Vector m_T_Bj = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
-                lhs_uu_ij = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
+                noalias(lhs_uu_ij) = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
                 noalias(lhs_uu_ij) -= w_gauss * (1 - tau_2) * bulk_modulus * outer_prod(psi_i, trans(psi_j));
                 // Add momentum volumetric strain LHS contribution
-                lhs_ue_ij = w_gauss * (1 - tau_2) * bulk_modulus * psi_i * N_j;
+                noalias(lhs_ue_ij) = w_gauss * (1 - tau_2) * bulk_modulus * psi_i * N_j;
                 // Add mass conservation displacement divergence LHS contribution
-                lhs_eu_ij = w_gauss * (1 - tau_2) * bulk_modulus * N_i * trans(psi_j);
+                noalias(lhs_eu_ij) = w_gauss * (1 - tau_2) * bulk_modulus * N_i * trans(psi_j);
                 // Add mass conservation volumetric strain LHS contribution
                 lhs_ee_ij = - w_gauss * (1 - tau_2) * bulk_modulus * N_i * N_j;
                 lhs_ee_ij -= w_gauss * std::pow(bulk_modulus, 2) * m_T_tau_1 * inner_prod(G_i, G_j);
@@ -525,7 +525,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            noalias(aux) += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
@@ -544,32 +544,32 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
         for (IndexType i = 0; i < n_nodes; ++i) {
             const double N_i = kinematic_variables.N[i];
-            G_i = row(kinematic_variables.DN_DX, i);
+            noalias(G_i) = row(kinematic_variables.DN_DX, i);
             for (IndexType k = 0; k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k, l) = kinematic_variables.B(k, i * dim + l);
                 }
             }
-            psi_i = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
+            noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
 
             for (IndexType j = 0; j < n_nodes; ++j) {
                 const double N_j = kinematic_variables.N[j];
-                G_j = row(kinematic_variables.DN_DX, j);
+                noalias(G_j) = row(kinematic_variables.DN_DX, j);
                 for (IndexType k = 0; k < strain_size; ++k) {
                     for (IndexType l = 0; l < dim; ++l) {
                         B_j(k, l) = kinematic_variables.B(k, j * dim + l);
                     }
                 }
-                psi_j = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
+                noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
 
                 // Add momentum internal force LHS contribution
                 const Vector m_T_Bj = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
-                lhs_uu_ij = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
+                noalias(lhs_uu_ij) = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
                 noalias(lhs_uu_ij) -= w_gauss * (1 - tau_2) * bulk_modulus * outer_prod(psi_i, trans(psi_j));
                 // Add momentum volumetric strain LHS contribution
-                lhs_ue_ij = w_gauss * (1 - tau_2) * bulk_modulus * psi_i * N_j;
+                noalias(lhs_ue_ij) = w_gauss * (1 - tau_2) * bulk_modulus * psi_i * N_j;
                 // Add mass conservation displacement divergence LHS contribution
-                lhs_eu_ij = w_gauss * (1 - tau_2) * bulk_modulus * N_i * trans(psi_j);
+                noalias(lhs_eu_ij) = w_gauss * (1 - tau_2) * bulk_modulus * N_i * trans(psi_j);
                 // Add mass conservation volumetric strain LHS contribution
                 lhs_ee_ij = -w_gauss * (1 - tau_2) * bulk_modulus * N_i * N_j;
                 lhs_ee_ij -= w_gauss * std::pow(bulk_modulus, 2) * m_T_tau_1 * inner_prod(G_i, G_j);
@@ -665,7 +665,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            noalias(aux) += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
@@ -686,17 +686,17 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
         for (IndexType i = 0; i < n_nodes; ++i) {
             const double N_i = kinematic_variables.N[i];
-            G_i = row(kinematic_variables.DN_DX, i);
+            noalias(G_i) = row(kinematic_variables.DN_DX, i);
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i * dim + l);
                 }
             }
-            psi_i = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
-            transBi_C_invT_m = prod(trans(B_i), C_invT_m_voigt);
+            noalias(psi_i) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_i)));
+            noalias(transBi_C_invT_m) = prod(trans(B_i), C_invT_m_voigt);
 
             // Add momentum body force RHS contribution
-            rhs_mom_i = w_gauss * N_i * body_force;
+            noalias(rhs_mom_i) = w_gauss * N_i * body_force;
             // Add momentum internal force RHS contribution
             // Note that this includes both the deviatoric and volumetric internal force RHS contributions
             noalias(rhs_mom_i) -= w_gauss * prod(trans(B_i), cons_law_values.GetStressVector());
@@ -712,7 +712,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
                         B_j(k,l) = kinematic_variables.B(k, j * dim + l);
                     }
                 }
-                psi_j = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
+                noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
 
                 // Add the extra terms in the RHS momentum equation
                 Vector disp_j(dim);
@@ -811,12 +811,17 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateConstitutiveVariabl
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
+Vector SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-    const IndexType PointNumber
-    ) const
+    const IndexType PointNumber) const
 {
-    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+    const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const auto aux_body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+    Vector body_force(dim);
+    for (IndexType d = 0; d < dim; ++d) {
+        body_force(d) = aux_body_force(d);
+    }
+    return body_force;
 }
 
 /***********************************************************************************/
@@ -970,7 +975,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     Matrix inv_b;
     double det_b;
     MathUtils<double>::InvertMatrix(b, inv_b, det_b);
-    mAnisotropyTensor = prod(inv_b, a);
+    noalias(mAnisotropyTensor) = prod(inv_b, a);
 }
 
 /***********************************************************************************/
