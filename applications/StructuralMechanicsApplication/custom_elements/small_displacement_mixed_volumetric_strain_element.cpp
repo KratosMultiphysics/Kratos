@@ -347,15 +347,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
-        const Matrix devC = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(devC, B_i)));
-            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
@@ -522,15 +520,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
-        const Matrix devC = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(devC, B_i)));
-            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);
@@ -667,15 +663,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
-        const Matrix devC = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(devC, B_i)));
-            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
         }
         double det;
         Matrix tau_1_mat(dim, dim);

@@ -80,7 +80,6 @@ protected:
         Matrix J0;
         Matrix InvJ0;
         Matrix DN_DX;
-        Matrix DevStrainOp;
         Vector Displacements;
         Vector VolumetricNodalStrains;
         Vector EquivalentStrain;
@@ -107,31 +106,7 @@ protected:
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             Displacements = ZeroVector(Dimension * NumberOfNodes);
             VolumetricNodalStrains = ZeroVector(NumberOfNodes);
-            DevStrainOp = SetDeviatoricStrainOperator(StrainSize, Dimension);
             EquivalentStrain = ZeroVector(StrainSize);
-        }
-
-        Matrix SetDeviatoricStrainOperator(
-            const SizeType StrainSize,
-            const SizeType Dimension)
-        {
-            KRATOS_TRY;
-
-            DevStrainOp = IdentityMatrix(StrainSize, StrainSize);
-            const double aux = 1.0/Dimension;
-
-            if (StrainSize == 3) {
-                DevStrainOp(0,0) -= aux; DevStrainOp(0,1) -= aux;
-                DevStrainOp(1,0) -= aux; DevStrainOp(1,1) -= aux;
-            } else if (StrainSize == 6) {
-                DevStrainOp(0,0) -= aux; DevStrainOp(0,1) -= aux; DevStrainOp(0,2) -= aux;
-                DevStrainOp(1,0) -= aux; DevStrainOp(1,1) -= aux; DevStrainOp(1,2) -= aux;
-                DevStrainOp(2,0) -= aux; DevStrainOp(2,1) -= aux; DevStrainOp(2,2) -= aux;
-            }
-
-            return DevStrainOp;
-
-            KRATOS_CATCH( "" );
         }
     };
 
