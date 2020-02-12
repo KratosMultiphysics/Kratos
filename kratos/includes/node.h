@@ -842,6 +842,40 @@ public:
 
     }
 
+    /**
+     * @brief Get DoF counted pointer with a given position. If not found it is search
+     * @param rDofVariable Name of the variable
+     * @param Position Position of the DoF
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
+    template<class TVariableType>
+    inline const typename DofType::Pointer pGetDof(
+        TVariableType const& rDofVariable, 
+        IndexType Position
+        ) const
+    {
+        const auto it_begin = mDofs.begin();
+        const auto it_end = mDofs.end();
+        // If the guess is exact return the guess
+        if(Position < it_end-it_begin) {
+            auto it_dof = it_begin + Position;
+            if( (*it_dof)->GetVariable() == rDofVariable) {
+                return (*it_dof).get();
+            }
+        }
+
+        // Otherwise do a find
+        for(auto it_dof = it_begin; it_dof != it_end; ++it_dof){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return (*it_dof).get();
+            }
+        }
+
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
+    }
+
+    
     /** adds a Dof to the node and return new added dof or existed one. */
     template<class TVariableType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
