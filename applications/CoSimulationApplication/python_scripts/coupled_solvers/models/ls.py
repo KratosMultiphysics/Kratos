@@ -25,6 +25,7 @@ class ModelLS(CoSimulationComponent):
         self.vcurr = None
         self.wcurr = None
         self.vprev = None
+        self.wprev = None
 
     def Initialize(self):
         super().Initialize()
@@ -128,3 +129,13 @@ class ModelLS(CoSimulationComponent):
             if len(self.vprev) > self.q:
                 self.vprev.pop()
                 self.wprev.pop()
+
+    def FilterQ(self, r_in):
+        r = r_in.GetNumpyArray().reshape(-1, 1)
+        r_out = r_in.deepcopy()
+        v = np.hstack((self.vcurr, np.hstack(self.vprev)))
+        if v.shape[1]:
+            qq, *_ = np.linalg.qr(v, mode='reduced')
+            r = r - qq @ (qq.T @ r)
+            r_out.SetNumpyArray(r.flatten())
+        return r_out
