@@ -1,6 +1,6 @@
 ## Particle Mechanics Application Frequently Asked Questions (FAQs)
 
-The aim of this page is to pull together all the tips and tricks for managing issues that arrise when using the Particle Mechanics application. So far, this mainly means the MPM aspects within it. 
+The aim of this page is to pull together some common tips and tricks for managing issues that arrise when using the Particle Mechanics application (mainly MPM). 
 
 This page isn't an exhaustive list of fixes. If you encounter a problem that you don't find on here please:
 1. Check the [issues page](https://github.com/KratosMultiphysics/Kratos/issues)
