@@ -166,7 +166,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
     InitializeMaterial();
 
     // Calculate the and save the anisotropy transformation tensor
-    CalculateAnisotropyTensor(rCurrentProcessInfo); //TODO: Use this when we change to Initialize(const ProcessInfo&)
+    CalculateAnisotropyTensor(rCurrentProcessInfo);
     CalculateInverseAnisotropyTensor();
 
     KRATOS_CATCH( "" )
