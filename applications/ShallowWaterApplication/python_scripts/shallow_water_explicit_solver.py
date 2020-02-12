@@ -36,6 +36,7 @@ class ShallowWaterExplicitSolver(ShallowWaterBaseSolver):
 
         self.solver = SW.RungeKuttaStrategy(
             self.GetComputingModelPart(),
+            self.GetComputingModelPart().ProcessInfo[KM.DOMAIN_SIZE],
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
