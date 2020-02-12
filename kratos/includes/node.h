@@ -746,7 +746,12 @@ public:
     ///@name Dofs
     ///@{
 
-    //advanced functions by Riccardo
+    /**
+     * @brief Get DoF  position with a given position
+     * @param rDofVariable Name of the variable to search the position
+     * @tparam TVariableType The variable type template argument
+     * @return The position of the given DoF variable
+     */
     template<class TVariableType>
     inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
@@ -759,7 +764,14 @@ public:
 
         return it_dof - mDofs.begin();
     }
-
+    
+    /**
+     * @brief Get dof with a given position. If not found it is search
+     * @param rDofVariable Name of the variable
+     * @param pos Position of the DoF
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
     template<class TVariableType>
     inline const DofType& GetDof(TVariableType const& rDofVariable, int pos) const
     {
@@ -786,7 +798,12 @@ public:
         KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
-    /** returns the Dof asociated with variable  */
+    /**
+     * @brief Get DoF for a given variable
+     * @param rDofVariable Name of the variable
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
     template<class TVariableType>
     inline const DofType& GetDof(TVariableType const& rDofVariable) const
     {
@@ -806,7 +823,12 @@ public:
         return mDofs;
     }
 
-    /** returns a counted pointer to the Dof asociated with variable  */
+    /**
+     * @brief Get DoF counted pointer for a given variable
+     * @param rDofVariable Name of the variable
+     * @tparam TVariableType The variable type template argument
+     * @return The DoF associated to the given variable
+     */
     template<class TVariableType>
     inline const typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
