@@ -251,7 +251,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const SizeType number_of_nodes   = this->GetGeometry().size();
     const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size           = GetStrainSize();
-    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
+    std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -389,7 +389,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     const SizeType number_of_nodes   = this->GetGeometry().size();
     const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size           = GetStrainSize();
-    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
+    std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -446,7 +446,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         // to remove!!!!!!
         if (rCurrentProcessInfo[TIME] >= 0.225)
             yield_surface = "Elastic";
-            
+
         bool is_damaging = false;
         if (yield_surface != "Elastic") {
             // Loop over edges of the element...
