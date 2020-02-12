@@ -226,6 +226,65 @@ const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
     return rModelPart.Conditions();
 }
 
+double GetDoubleValue(const std::string& rInput)
+{
+    KRATOS_TRY
+    const int string_length = rInput.size();
+
+    KRATOS_ERROR_IF(string_length == 0)
+        << "Empty string provided, where double value is required.\n";
+
+    const int digit_length =
+        std::count_if(rInput.begin(), rInput.end(),
+                      [](unsigned char c) { return std::isdigit(c); });
+    const int seperator_length = std::count_if(
+        rInput.begin(), rInput.end(), [](unsigned char c) { return (c == '.'); });
+
+    KRATOS_ERROR_IF(string_length != digit_length + seperator_length)
+        << "Invalid double number provided as input. [ Input = \"" << rInput << "\" ].\n";
+
+    return std::stod(rInput);
+
+    KRATOS_CATCH("");
+}
+
+int GetIntegerValue(const std::string& rInput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rInput.size() == 0)
+        << "Empty string provided, where interger value is required.";
+
+    KRATOS_ERROR_IF(static_cast<int>(rInput.size()) !=
+                    static_cast<int>(std::count_if(
+                        rInput.begin(), rInput.end(),
+                        [](unsigned char c) { return std::isdigit(c); })))
+        << "Found non digit characters in input where integer value is "
+           "required. [ Input = \""
+        << rInput << "\" ].\n";
+
+    return std::stoi(rInput);
+
+    KRATOS_CATCH("");
+}
+
+void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput)
+{
+    const std::size_t str_size = rInput.size();
+    KRATOS_ERROR_IF(str_size == 0) << "Empty string provided for splitting.\n";
+
+    const std::size_t str_sep = rInput.find(",");
+    KRATOS_ERROR_IF(str_sep == std::string::npos)
+        << "Seperator \",\" not found. [ Input = \"" << rInput << "\" ].\n";
+
+    KRATOS_ERROR_IF(str_sep == 0)
+        << "Invalid first value. [ Input = \"" << rInput << "\" ].\n";
+    KRATOS_ERROR_IF(str_sep == str_size - 1)
+        << "Invalid second value. [ Input = \"" << rInput << "\" ].\n";
+    rOutput1 = rInput.substr(0, str_sep);
+    rOutput2 = rInput.substr(str_sep + 1);
+}
+
 template <typename TDataType>
 const std::function<double(const TDataType&)> GetNormMethod(const Variable<TDataType>& rVariable,
                                                             const std::string& rNormType)
@@ -266,6 +325,16 @@ const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
             return norm_2(rValue);
         };
     }
+    else if (rNormType == "infinity")
+    {
+        return [](const Vector& rValue) -> double { return norm_inf(rValue); };
+    }
+    else if (rNormType == "euclidean")
+    {
+        return [](const array_1d<double, 3>& rValue) -> double {
+            return norm_2(rValue);
+        };
+    }
     else if (rNormType == "component_x")
     {
         return
@@ -281,12 +350,34 @@ const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
         return
             [](const array_1d<double, 3>& rValue) -> double { return rValue[2]; };
     }
+    else if (rNormType.size() > 6 && rNormType.substr(0, 6) == "pnorm_")
+    {
+        const std::string p_str = rNormType.substr(6, rNormType.size() - 6);
+        const double p = GetDoubleValue(p_str);
+
+        KRATOS_ERROR_IF(p < 1.0)
+            << "p-norm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
+
+        return [p, rVariable](const array_1d<double, 3>& rValue) -> double {
+            KRATOS_TRY
+
+            return std::pow(std::pow(std::abs(rValue[0]), p) +
+                                std::pow(std::abs(rValue[1]), p) +
+                                std::pow(std::abs(rValue[2]), p),
+                            1 / p);
+
+            KRATOS_CATCH("");
+        };
+    }
     else
     {
         KRATOS_ERROR << "Unknown norm type for 3d variable " << rVariable.Name()
                      << ". [ NormType = " << rNormType << " ]\n"
                      << "   Allowed norm types are:\n"
                      << "        magnitude\n"
+                     << "        euclidean\n"
+                     << "        infinity\n"
+                     << "        pnorm_p\n"
                      << "        component_x\n"
                      << "        component_y\n"
                      << "        component_z\n";
@@ -307,46 +398,62 @@ const std::function<double(const Vector&)> GetNormMethod(const Variable<Vector>&
     {
         return [](const Vector& rValue) -> double { return norm_2(rValue); };
     }
-    else if (rNormType.size() > 6)
+    else if (rNormType == "euclidean")
     {
-        if (rNormType.substr(0, 6) == "index_")
-        {
-            const std::string index_str = rNormType.substr(6, rNormType.size() - 6);
+        return [](const Vector& rValue) -> double { return norm_2(rValue); };
+    }
+    else if (rNormType == "infinity")
+    {
+        return [](const Vector& rValue) -> double { return norm_inf(rValue); };
+    }
+    else if (rNormType.size() > 6 && rNormType.substr(0, 6) == "pnorm_")
+    {
+        const std::string p_str = rNormType.substr(6, rNormType.size() - 6);
+        const double p = GetDoubleValue(p_str);
 
-            KRATOS_ERROR_IF(index_str.size() == 0)
-                << "No index value is provided for " << rVariable.Name()
-                << " variable. Please provide an index as in "
-                   "\"index_i\" [ NormType = "
-                << rNormType << " ]\n";
+        KRATOS_ERROR_IF(p < 1.0)
+            << "p-norm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
 
-            KRATOS_ERROR_IF(static_cast<int>(index_str.size()) !=
-                            static_cast<int>(std::count_if(
-                                index_str.begin(), index_str.end(),
-                                [](unsigned char c) { return std::isdigit(c); })))
-                << "Found non digit characters in norm type index for "
-                << rVariable.Name()
-                << " variable. Please use index_i format [ NormType = " << rNormType
-                << " ]\n.";
+        return [p, rVariable](const Vector& rValue) -> double {
+            KRATOS_TRY
 
-            const int index = std::stoi(rNormType.substr(6, rNormType.size() - 6));
-            return [index, rVariable](const Vector& rValue) -> double {
-                KRATOS_TRY
+            const int n = rValue.size();
+            double result = 0.0;
+            for (int i = 0; i < n; ++i)
+            {
+                result += std::pow(std::abs(rValue[i]), p);
+            }
 
-                KRATOS_ERROR_IF(index >= static_cast<int>(rValue.size()))
-                    << "Index is larger than vector size for " << rVariable.Name()
-                    << " variable. [ " << index << " >= " << rValue.size() << " ]\n.";
+            return std::pow(result, 1 / p);
 
-                return rValue[index];
+            KRATOS_CATCH("");
+        };
+    }
+    else if (rNormType.size() > 6 && rNormType.substr(0, 6) == "index_")
+    {
+        const std::string index_str = rNormType.substr(6, rNormType.size() - 6);
+        const int index = GetIntegerValue(index_str);
 
-                KRATOS_CATCH("");
-            };
-        }
+        return [index, rVariable](const Vector& rValue) -> double {
+            KRATOS_TRY
+
+            KRATOS_ERROR_IF(index >= static_cast<int>(rValue.size()))
+                << "Index is larger than vector size for " << rVariable.Name()
+                << " variable. [ " << index << " >= " << rValue.size() << " ]\n.";
+
+            return rValue[index];
+
+            KRATOS_CATCH("");
+        };
     }
 
     KRATOS_ERROR << "Unknown norm type for vector variable " << rVariable.Name()
                  << ". [ NormType = " << rNormType << " ]\n"
                  << "   Allowed norm types are:\n"
                  << "        magnitude\n"
+                 << "        infinity\n"
+                 << "        euclidean\n"
+                 << "        pnorm_p\n"
                  << "        index_i\n";
 
     return [](const Vector&) -> double { return 0.0; };
@@ -365,76 +472,126 @@ const std::function<double(const Matrix&)> GetNormMethod(const Variable<Matrix>&
         return
             [](const Matrix& rValue) -> double { return norm_frobenius(rValue); };
     }
-    else if (rNormType.size() > 7)
+    else if (rNormType == "infinity")
     {
-        if (rNormType.substr(0, 7) == "index_(")
-        {
-            const std::string& r_indices = rNormType.substr(
-                7, rNormType.size() - std::min(8, static_cast<int>(rNormType.size() - 1)));
-            KRATOS_ERROR_IF(r_indices.size() <= 1)
-                << "No index value is provided for " << rVariable.Name()
-                << " variable. Please provide an index as in "
-                   "\"index_(i,j)\" [ NormType = "
-                << rNormType << " ]\n";
+        return [](const Matrix& rValue) -> double { return norm_inf(rValue); };
+    }
+    else if (rNormType == "trace")
+    {
+        return [](const Matrix& rValue) -> double {
+            const int n1 = rValue.size1();
+            const int n2 = rValue.size2();
 
-            const std::size_t sep_index = r_indices.find(',');
-            KRATOS_ERROR_IF(sep_index == std::string::npos)
-                << "Index seperator not found for " << rVariable.Name()
-                << " variable. Please use index_(i,j) format. [ NormType = " << rNormType
-                << " ]\n.";
-            const std::string& i_str = r_indices.substr(0, sep_index);
-            KRATOS_ERROR_IF(i_str.size() == 0)
-                << "Row index was not provided for " << rVariable.Name()
-                << " variable. Please use index_(i,j) format. [ NormType = " << rNormType
-                << " ]\n.";
-            KRATOS_ERROR_IF(static_cast<int>(i_str.size()) !=
-                            static_cast<int>(std::count_if(
-                                i_str.begin(), i_str.end(),
-                                [](unsigned char c) { return std::isdigit(c); })))
-                << "Found non digit characters in norm type row index for "
-                << rVariable.Name()
-                << " variable. Please use index_(i,j) format [ NormType = " << rNormType
-                << " ]\n.";
-            const int i = std::stoi(i_str);
+            KRATOS_ERROR_IF(n1 != n2)
+                << "Trace is only supported for square matrices.\n";
+            double result = 0.0;
+            for (int i = 0; i < n1; ++i)
+            {
+                result += rValue(i, i);
+            }
+            return result;
+        };
+    }
+    else if (rNormType.size() > 6 && rNormType.substr(0, 6) == "pnorm_")
+    {
+        const std::string p_str = rNormType.substr(6, rNormType.size() - 6);
+        const double p = GetDoubleValue(p_str);
 
-            const std::string& j_str = r_indices.substr(sep_index + 1);
-            KRATOS_ERROR_IF(j_str.size() == 0)
-                << "Column index was not provided for " << rVariable.Name()
-                << " variable. Please use index_(i,j) format. [ NormType = " << rNormType
-                << " ]\n.";
-            KRATOS_ERROR_IF(static_cast<int>(j_str.size()) !=
-                            static_cast<int>(std::count_if(
-                                j_str.begin(), j_str.end(),
-                                [](unsigned char c) { return std::isdigit(c); })))
-                << "Found non digit characters in norm type column index for "
-                << rVariable.Name()
-                << " variable. Please use index_(i,j) format [ NormType = " << rNormType
-                << " ]\n.";
+        KRATOS_ERROR_IF(p < 1.0)
+            << "p-norm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
 
-            const int j = std::stoi(j_str);
-            return [i, j, rVariable](const Matrix& rValue) -> double {
-                KRATOS_TRY
+        return [p, rVariable](const Matrix& rValue) -> double {
+            KRATOS_TRY
 
-                KRATOS_ERROR_IF(i >= static_cast<int>(rValue.size1()))
-                    << "Row index is larger than size1 of " << rVariable.Name()
-                    << " matrix variable. [ " << i << " >= " << rValue.size1() << " ]\n.";
+            const int n1 = rValue.size1();
+            const int n2 = rValue.size2();
+            double result = 0.0;
+            for (int i = 0; i < n1; ++i)
+            {
+                for (int j = 0; j < n2; ++j)
+                {
+                    result += std::pow(std::abs(rValue(i, j)), p);
+                }
+            }
 
-                KRATOS_ERROR_IF(j >= static_cast<int>(rValue.size2()))
-                    << "Column index is larger than size2 of "
-                    << rVariable.Name() << " matrix variable. [ " << j
-                    << " >= " << rValue.size2() << " ]\n.";
+            return std::pow(result, 1 / p);
 
-                return rValue(i, j);
+            KRATOS_CATCH("");
+        };
+    }
+    else if (rNormType.size() > 7 && rNormType.substr(0, 7) == "index_(")
+    {
+        const std::string& r_values_str = rNormType.substr(
+            7, rNormType.size() - std::min(8, static_cast<int>(rNormType.size() - 1)));
 
-                KRATOS_CATCH("");
-            };
-        }
+        std::string i_str, j_str;
+        SplitString(i_str, j_str, r_values_str);
+        const int i = GetIntegerValue(i_str);
+        const int j = GetIntegerValue(j_str);
+
+        return [i, j, rVariable](const Matrix& rValue) -> double {
+            KRATOS_TRY
+
+            KRATOS_ERROR_IF(i >= static_cast<int>(rValue.size1()))
+                << "Row index is larger than size1 of " << rVariable.Name()
+                << " matrix variable. [ " << i << " >= " << rValue.size1() << " ]\n.";
+
+            KRATOS_ERROR_IF(j >= static_cast<int>(rValue.size2()))
+                << "Column index is larger than size2 of " << rVariable.Name()
+                << " matrix variable. [ " << j << " >= " << rValue.size2() << " ]\n.";
+
+            return rValue(i, j);
+
+            KRATOS_CATCH("");
+        };
+    }
+    else if (rNormType.size() > 9 && rNormType.substr(0, 9) == "lpqnorm_(")
+    {
+        const std::string& r_values_str = rNormType.substr(
+            9, rNormType.size() - std::min(10, static_cast<int>(rNormType.size() - 1)));
+
+        std::string p_str, q_str;
+        SplitString(p_str, q_str, r_values_str);
+        const double p = GetDoubleValue(p_str);
+        const double q = GetDoubleValue(q_str);
+
+        KRATOS_ERROR_IF(p < 1.0)
+            << "lpqnorm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
+        KRATOS_ERROR_IF(q < 1.0)
+            << "lpqnorm only supports q >= 1 values. [ " << q << " !>= 1 ].\n";
+
+        return [p, q, rVariable](const Matrix& rValue) -> double {
+            KRATOS_TRY
+
+            const int n1 = rValue.size1();
+            const int n2 = rValue.size2();
+            const double coeff = q / p;
+
+            double result = 0.0;
+            for (int j = 0; j < n2; ++j)
+            {
+                double col_sum = 0.0;
+                for (int i = 0; i < n1; ++i)
+                {
+                    col_sum += std::pow(std::abs(rValue(i, j)), p);
+                }
+                result += std::pow(col_sum, coeff);
+            }
+
+            return std::pow(result, 1.0 / q);
+
+            KRATOS_CATCH("");
+        };
     }
 
     KRATOS_ERROR << "Unknown norm type for matrix variable " << rVariable.Name()
                  << ". [ NormType = " << rNormType << " ]\n"
                  << "   Allowed norm types are:\n"
                  << "        frobenius\n"
+                 << "        infinity\n"
+                 << "        trace\n"
+                 << "        pnorm_p\n"
+                 << "        lpqnorm_(p,q)\n"
                  << "        index_(i,j)\n";
 
     return [](const Matrix&) -> double { return 0.0; };
@@ -471,25 +628,26 @@ void CheckInputOutputVariables(const std::vector<std::string>& rInputVariableNam
         const std::string& r_variable_input = rInputVariableNamesList[i];
         const std::string& r_variable_output = rOutputVariableNamesList[i];
         KRATOS_ERROR_IF((KratosComponents<Variable<double>>::Has(r_variable_input) &&
-                        !KratosComponents<Variable<double>>::Has(r_variable_output)))
+                         !KratosComponents<Variable<double>>::Has(r_variable_output)))
             << "Input and output variable type mismatch. Input "
             << r_variable_input << " is of type double and " << r_variable_output
             << " variable is not found in Kratos double components.\n";
 
-        KRATOS_ERROR_IF((KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_input) &&
-                        !KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_output)))
+        KRATOS_ERROR_IF(
+            (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_input) &&
+             !KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_output)))
             << "Input and output variable type mismatch. Input "
             << r_variable_input << " is of type array_1d<double, 3> and "
             << r_variable_output << " variable is not found in Kratos array_1d<double, 3> components.\n";
 
         KRATOS_ERROR_IF((KratosComponents<Variable<Vector>>::Has(r_variable_input) &&
-                        !KratosComponents<Variable<Vector>>::Has(r_variable_output)))
+                         !KratosComponents<Variable<Vector>>::Has(r_variable_output)))
             << "Input and output variable type mismatch. Input "
             << r_variable_input << " is of type Vector and " << r_variable_output
             << " variable is not found in Kratos Vector components.\n";
 
         KRATOS_ERROR_IF((KratosComponents<Variable<Matrix>>::Has(r_variable_input) &&
-                        !KratosComponents<Variable<Matrix>>::Has(r_variable_output)))
+                         !KratosComponents<Variable<Matrix>>::Has(r_variable_output)))
             << "Input and output variable type mismatch. Input "
             << r_variable_input << " is of type Matrix and " << r_variable_output
             << " variable is not found in Kratos Matrix components.\n";
@@ -531,4 +689,4 @@ template class NonHistoricalDataValueRetrievalFunctor<ElementType>;
 
 } // namespace MethodsUtilities
 
-} // namespace Kratos.
+} // namespace Kratos

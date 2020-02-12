@@ -216,6 +216,12 @@ public:
     }
 };
 
+double GetDoubleValue(const std::string& rInput);
+
+int GetIntegerValue(const std::string& rInput);
+
+void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput);
+
 template <typename TDataType>
 void DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData);
 
