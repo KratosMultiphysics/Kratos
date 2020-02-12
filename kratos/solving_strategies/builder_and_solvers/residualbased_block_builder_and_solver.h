@@ -1388,7 +1388,7 @@ protected:
             return 1.0;
         } else {
             if (mOptions.Is(CONSIDER_PRESCRIBED_DIAGONAL)) {
-                KRATOS_DEBUG_ERROR_IF(mScaleFactor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
+                KRATOS_ERROR_IF(mScaleFactor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
                 return mScaleFactor;
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
