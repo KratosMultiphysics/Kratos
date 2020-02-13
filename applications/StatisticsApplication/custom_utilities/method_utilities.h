@@ -268,7 +268,8 @@ using ConditionsContainerType = ModelPart::ConditionsContainerType;
 using ElementsContainerType = ModelPart::ElementsContainerType;
 
 template <typename TDataType>
-TDataType RaiseToPower(const TDataType& rData, const double Power);
+TDataType KRATOS_API(STATISTICS_APPLICATION)
+    RaiseToPower(const TDataType& rData, const double Power);
 
 template <typename TContainerItemType>
 class NonHistoricalDataValueRetrievalFunctor
@@ -339,8 +340,8 @@ template <typename TContainerType>
 const TContainerType& GetDataContainer(const ModelPart& rModelPart);
 
 template <typename TDataType>
-const std::function<double(const TDataType&)> GetNormMethod(const Variable<TDataType>& rVariable,
-                                                            const std::string& rNormType);
+const std::function<double(const TDataType&)> KRATOS_API(STATISTICS_APPLICATION)
+    GetNormMethod(const Variable<TDataType>& rVariable, const std::string& rNormType);
 
 template <typename TDataType>
 std::string GetVariableTypeName();
