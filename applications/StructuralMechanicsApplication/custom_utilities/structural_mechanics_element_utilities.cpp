@@ -178,6 +178,24 @@ double GetRayleighBeta(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double GetSystemDampingRatio(
+    const Properties& rProperties,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Giving the locally defined setting (through Properties) priority
+    // over the globally defined one (through ProcessInfo)
+    if (rProperties.Has(SYSTEM_DAMPING_RATIO)) {
+        return rProperties[SYSTEM_DAMPING_RATIO];
+    } else if (rCurrentProcessInfo.Has(SYSTEM_DAMPING_RATIO)) {
+        return rCurrentProcessInfo[SYSTEM_DAMPING_RATIO];
+    }
+
+    return 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GetDensityForMassMatrixComputation(const Element& rElement)
 {
     // Getting the properties of the element
@@ -214,21 +232,36 @@ void CalculateRayleighDampingMatrix(
     }
     noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
 
-    // 2.-Calculate StiffnessMatrix (if needed):
-    const double beta = GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo);
-    if (std::abs(beta) > 0.0) {
-        Element::MatrixType stiffness_matrix;
-        rElement.CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
-        noalias(rDampingMatrix) += beta  * stiffness_matrix;
+    if( rCurrentProcessInfo.Has(BUILD_LEVEL) && 
+        (rCurrentProcessInfo[BUILD_LEVEL] > 110 && rCurrentProcessInfo[BUILD_LEVEL] < 120) )
+    {
+        const double damping_ratio = GetSystemDampingRatio(rElement.GetProperties(), rCurrentProcessInfo);
+        if (std::abs(damping_ratio) > 0.0)
+        {
+            Element::MatrixType stiffness_matrix;
+            rElement.CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += damping_ratio * stiffness_matrix;
+        }
     }
+    else
+    {
+        // 2.-Calculate StiffnessMatrix (if needed):
+        const double beta = GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo);
+        if (std::abs(beta) > 0.0) {
+            Element::MatrixType stiffness_matrix;
+            rElement.CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += beta  * stiffness_matrix;
+        }
 
-    // 3.-Calculate MassMatrix (if needed):
-    const double alpha = GetRayleighAlpha(rElement.GetProperties(), rCurrentProcessInfo);
-    if (std::abs(alpha) > 0.0) {
-        Element::MatrixType mass_matrix;
-        rElement.CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-        noalias(rDampingMatrix) += alpha * mass_matrix;
+        // 3.-Calculate MassMatrix (if needed):
+        const double alpha = GetRayleighAlpha(rElement.GetProperties(), rCurrentProcessInfo);
+        if (std::abs(alpha) > 0.0) {
+            Element::MatrixType mass_matrix;
+            rElement.CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha * mass_matrix;
+        }
     }
+    
 
     KRATOS_CATCH("CalculateRayleighDampingMatrix")
 }
