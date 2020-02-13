@@ -502,7 +502,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
     // Calculate the anisotropy tensor products
     const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
-    const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
     // Calculate the LHS contributions
     rLeftHandSideMatrix.clear();
@@ -539,9 +538,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         const double tau_2 = std::min(1.0e-2, 4.0 * shear_modulus / bulk_modulus);
 
         // Calculate and add the LHS contributions
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
-        const Vector trans_m_T = prod(trans(voigt_identity), mAnisotropyTensor);
-
         for (IndexType i = 0; i < n_nodes; ++i) {
             const double N_i = kinematic_variables.N[i];
             noalias(G_i) = row(kinematic_variables.DN_DX, i);
@@ -563,7 +559,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
                 noalias(psi_j) = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
 
                 // Add momentum internal force LHS contribution
-                const Vector m_T_Bj = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
                 noalias(lhs_uu_ij) = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
                 noalias(lhs_uu_ij) -= w_gauss * (1 - tau_2) * bulk_modulus * outer_prod(psi_i, trans(psi_j));
                 // Add momentum volumetric strain LHS contribution
