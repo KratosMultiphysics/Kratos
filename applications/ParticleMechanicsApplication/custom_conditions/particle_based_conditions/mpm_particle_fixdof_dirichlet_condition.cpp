@@ -90,7 +90,7 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
 
         // Normal Vector
         const array_1d<double,3> & unit_normal_vector = this->GetValue(MPC_NORMAL);
-
+        
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -98,10 +98,11 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
             r_geometry[i].Set(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
-            r_geometry[i].UnSetLock();
+            r_geometry[i].UnSetLock();     
         }
     }
 
+    const array_1d<double,3> & prescribed_displacement = ZeroVector(3);
     if (this->GetValue(FIX_DOF))
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
@@ -113,6 +114,7 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
                 if(dimension == 3)
                     r_geometry[i].pGetDof(DISPLACEMENT_Z)->FixDof();
             }
+            r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1) = prescribed_displacement;
 
             r_geometry[i].UnSetLock();
         }
