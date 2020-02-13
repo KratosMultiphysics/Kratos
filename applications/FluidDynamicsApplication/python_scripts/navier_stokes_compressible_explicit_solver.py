@@ -33,7 +33,7 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
             },
             "maximum_iterations": 1,
             "echo_level": 1,
-            "time_order": 2,
+            "time_order": 2,  
             "compute_reactions": false,
             "reform_dofs_at_each_step" : true,
             "relative_tolerance" : 1e-3,
@@ -79,12 +79,57 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
         self.element_has_nodal_properties = True
 
         ## Construct the linear solver
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])     ## Vedere
 
         ## Set the element replace settings
         #self._SetCompressibleElementReplaceSettings()
 
         print("Construction of NavierStokesCompressibleExplicitSolver finished.")
+
+    def AddVariables(self):     ## Che cosa fa questa funzione? Devono esistere da qualche parte le variabili che aggiungo?
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RK4)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RK4)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_RK4)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_CAPACITY_RATIO)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) ## ?
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA) ## ?
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)  #for momentum
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_DENSITY)  #for momentum
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_ENERGY)  #for momentum
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE) ## ?
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL) ## ?
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
+
+        # Post-process
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)  #for momentum
+
+        print("Monolithic compressible fluid solver variables added correctly")
+
+    def AddDofs(self):
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
+
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
@@ -102,30 +147,37 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
             raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
 
         # Creating the solution strategy
-        self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
-                                                                 self.settings["absolute_tolerance"].GetDouble())
+##        self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
+##                                                                 self.settings["absolute_tolerance"].GetDouble())
 
 
         #(self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt()
-        (self.conv_criteria).SetEchoLevel(3)
+##        (self.conv_criteria).SetEchoLevel(3)
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP)
-        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
-        #time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme() # DOFs (4,5)
+        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP) ## AM: See implementation for the explicit case
+##        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
 
 
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+
+##        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
-                                                                            time_scheme,
-                                                                            self.linear_solver,
-                                                                            self.conv_criteria,
-                                                                            builder_and_solver,
-                                                                            self.settings["maximum_iterations"].GetInt(),
-                                                                            self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool())
+        # self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
+        #                                                                     time_scheme,
+        #                                                                     self.linear_solver,
+        #                                                                     self.conv_criteria,
+        #                                                                     builder_and_solver,
+        #                                                                     self.settings["maximum_iterations"].GetInt(),
+        #                                                                     self.settings["compute_reactions"].GetBool(),
+        #                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+        #                                                                     self.settings["move_mesh_flag"].GetBool())
+
+        self.solver = KratosFluid.RungeKuttaStrategy(
+            self.GetComputingModelPart(),
+            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["move_mesh_flag"].GetBool())
 
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -141,10 +193,17 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 
 
     def InitializeSolutionStep(self):
-        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        ##Qui sostituire roba sull'avanzamento esplicito
+##        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+## AM:Credo che questa roba sia già implementata in RungeKuttaStrategy
         (self.solver).InitializeSolutionStep()
 
+
+    def SolveSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            is_converged = self.solver.SolveSolutionStep()
+            return is_converged
+        else:
+            return True
 
     def Solve(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
