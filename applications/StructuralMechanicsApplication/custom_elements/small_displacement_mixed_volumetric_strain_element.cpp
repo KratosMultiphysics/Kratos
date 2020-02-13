@@ -367,7 +367,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
         // Calculate and add the LHS contributions
         const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
-        const Vector trans_m_T = prod(trans(voigt_identity), mAnisotropyTensor);
         const Vector C_invT_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), invT_m);
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
         const Vector m_T_tau_1_body = m_T_tau_1 * body_force;
@@ -415,7 +414,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                 rhs_mass_i += w_gauss * (1 - tau_2) * bulk_modulus * N_i * aux_vol_j;
 
                 // Add momentum internal force LHS contribution
-                const Vector m_T_Bj = prod(trans(voigt_identity), Matrix(prod(mAnisotropyTensor, B_j)));
                 noalias(lhs_uu_ij) = w_gauss * prod(trans(B_i), Matrix(prod(cons_law_values.GetConstitutiveMatrix(), B_j)));
                 noalias(lhs_uu_ij) -= w_gauss * (1 - tau_2) * bulk_modulus * outer_prod(psi_i, trans(psi_j));
                 // Add momentum volumetric strain LHS contribution
