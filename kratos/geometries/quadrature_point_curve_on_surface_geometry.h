@@ -55,6 +55,7 @@ public:
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
+    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
