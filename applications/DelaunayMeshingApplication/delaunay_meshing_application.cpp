@@ -82,6 +82,8 @@ namespace Kratos
 
     //Register Variables (variables created in delaunay_meshing_application_variables.cpp)
 
+    KRATOS_REGISTER_VARIABLE(PROPERTY_ID)
+
     //geometrical definition
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
     KRATOS_REGISTER_VARIABLE( SHRINK_FACTOR )

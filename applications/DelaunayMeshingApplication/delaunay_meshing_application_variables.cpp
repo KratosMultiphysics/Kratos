@@ -25,6 +25,8 @@ namespace Kratos
 
   //Create Variables
 
+  KRATOS_CREATE_VARIABLE(double, PROPERTY_ID)
+
   //geometrical definition
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
   KRATOS_CREATE_VARIABLE(double, SHRINK_FACTOR )
