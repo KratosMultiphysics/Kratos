@@ -6,6 +6,7 @@ import KratosMultiphysics.StatisticsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
+import run_cpp_unit_tests
 from test_norms import NormTests
 from test_spatial_methods import SpatialMethodTests
 from test_temporal_sum_method import TemporalSumMethodTests
@@ -53,4 +54,10 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
