@@ -68,6 +68,9 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/interpolative_mapper_base.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosMappingApplication)
 endif(USE_COTIRE MATCHES ON)
 
