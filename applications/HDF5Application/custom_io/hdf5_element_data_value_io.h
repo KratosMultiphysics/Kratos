@@ -84,10 +84,9 @@ public:
         this->WriteContainerComponents(rElements);
     }
 
-    void ReadElementResults(ElementsContainerType& rElements)
+    void ReadElementResults(ElementsContainerType& rElements, Communicator& rComm)
     {
-        Communicator dummy_communicator;
-        this->ReadContainerComponents(rElements, dummy_communicator);
+        this->ReadContainerComponents(rElements, rComm);
     }
 
     ///@}

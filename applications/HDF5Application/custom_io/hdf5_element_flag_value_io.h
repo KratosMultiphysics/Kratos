@@ -73,10 +73,9 @@ public:
         this->WriteContainerComponents(rElements);
     }
 
-    void ReadElementFlags(ElementsContainerType& rElements)
+    void ReadElementFlags(ElementsContainerType& rElements, Communicator& rComm)
     {
-        Communicator dummy_communicator;
-        this->ReadContainerComponents(rElements, dummy_communicator);
+        this->ReadContainerComponents(rElements, rComm);
     }
 
     ///@}

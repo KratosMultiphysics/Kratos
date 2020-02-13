@@ -298,19 +298,19 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ElementDataValueIO.return_value.ReadElementResults.call_count, 1)
         self.HDF5ElementDataValueIO.return_value.ReadElementResults.assert_called_with(
-            self.model_part.Elements)
+            self.model_part.Elements, self.model_part.GetCommunicator())
         self.assertEqual(
             self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.call_count, 1)
         self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.assert_called_with(
-            self.model_part.Elements)
+            self.model_part.Elements, self.model_part.GetCommunicator())
         self.assertEqual(
             self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.call_count, 1)
         self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.assert_called_with(
-            self.model_part.Conditions)
+            self.model_part.Conditions, self.model_part.GetCommunicator())
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 1)
         self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
-            self.model_part.Conditions)
+            self.model_part.Conditions, self.model_part.GetCommunicator())
 
     def test_SingleMeshTemporalInputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -342,7 +342,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ElementDataValueIO.return_value.ReadElementResults.call_count, 2)
         self.HDF5ElementDataValueIO.return_value.ReadElementResults.assert_called_with(
-            self.model_part.Elements)
+            self.model_part.Elements, self.model_part.GetCommunicator())
         self.assertEqual(
             self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 2)
         self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
@@ -350,11 +350,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.call_count, 2)
         self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.assert_called_with(
-            self.model_part.Elements)
+            self.model_part.Elements, self.model_part.GetCommunicator())
         self.assertEqual(
             self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.call_count, 2)
         self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.assert_called_with(
-            self.model_part.Conditions)
+            self.model_part.Conditions, self.model_part.GetCommunicator())
         self.assertEqual(
             self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 2)
         self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
@@ -362,7 +362,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 2)
         self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
-            self.model_part.Conditions)
+            self.model_part.Conditions, self.model_part.GetCommunicator())
 
     def test_SingleMeshXdmfOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''

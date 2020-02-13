@@ -65,7 +65,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementFlags, KratosHDF5TestSuite)
 
     HDF5::ElementFlagValueIO data_io(io_params, p_test_file);
     data_io.WriteElementFlags(r_write_model_part.Elements());
-    data_io.ReadElementFlags(r_read_model_part.Elements());
+    data_io.ReadElementFlags(r_read_model_part.Elements(),
+                             r_read_model_part.GetCommunicator());
 
     for (auto& r_write_element : r_write_model_part.Elements())
     {
