@@ -67,19 +67,19 @@ class SpatialStatisticsProcessMPITest(KratosUnittest.TestCase):
         kratos_utilities.DeleteFileIfExisting("spatial_statistics_process/spatial_statistics_process_"+str(rank)+".time")
         self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-    def testSpatialStatisticsProcessNodalHistorical(self):
+    def testSpatialStatisticsMIProcessNodalHistorical(self):
         settings = SpatialStatisticsProcessMPITest.__GetDefaultSettings("nodal_historical")
         self.__TestMethod(settings)
 
-    def testSpatialStatisticsProcessNodalNonHistorical(self):
+    def testSpatialStatisticsMIProcessNodalNonHistorical(self):
         settings = SpatialStatisticsProcessMPITest.__GetDefaultSettings("nodal_non_historical")
         self.__TestMethod(settings)
 
-    def testSpatialStatisticsProcessElementNonHistorical(self):
+    def testSpatialStatisticsMIProcessElementNonHistorical(self):
         settings = SpatialStatisticsProcessMPITest.__GetDefaultSettings("element_non_historical")
         self.__TestMethod(settings)
 
-    def testSpatialStatisticsProcessConditionNonHistorical(self):
+    def testSpatialStatisticsMIProcessConditionNonHistorical(self):
         settings = SpatialStatisticsProcessMPITest.__GetDefaultSettings("condition_non_historical")
         self.__TestMethod(settings)
 
