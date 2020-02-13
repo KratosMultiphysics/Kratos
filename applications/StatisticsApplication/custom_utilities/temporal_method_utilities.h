@@ -30,7 +30,7 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-namespace TemporalMethodsUtilities
+namespace TemporalMethodUtilities
 {
 template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor, typename TDataType>
 void InitializeVariables(TContainerType& rContainer,
@@ -49,7 +49,7 @@ void InitializeVariables(TContainerType& rContainer,
             TDataType& r_output_value =
                 TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
             r_output_value = rOutputVariable.Zero();
-            MethodsUtilities::DataTypeSizeInitializer<TDataType>(
+            MethodUtilities::DataTypeSizeInitializer<TDataType>(
                 r_output_value, r_reference_value);
         }
     }
@@ -74,6 +74,6 @@ void InitializeVariables(TContainerType& rContainer,
     }
 }
 
-} // namespace TemporalMethodsUtilities
+} // namespace TemporalMethodUtilities
 } // namespace Kratos
 #endif // KRATOS_TEMPORAL_METHOD_UTILITIES_H_INCLUDED

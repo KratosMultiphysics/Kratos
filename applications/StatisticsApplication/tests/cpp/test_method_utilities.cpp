@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Int, KratosStatisticsFastSuite)
     KRATOS_TRY
 
     const int test_value = 10;
-    const int return_value = MethodsUtilities::RaiseToPower(test_value, 2);
+    const int return_value = MethodUtilities::RaiseToPower(test_value, 2);
     KRATOS_CHECK_EQUAL(std::pow(test_value, 2), return_value);
 
     KRATOS_CATCH("");
@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Double, KratosStatisticsFastSuite)
     KRATOS_TRY
 
     const double test_value = 10.2;
-    const double return_value = MethodsUtilities::RaiseToPower(test_value, 2);
+    const double return_value = MethodUtilities::RaiseToPower(test_value, 2);
     KRATOS_CHECK_NEAR(std::pow(test_value, 2), return_value, 1e-12);
 
     KRATOS_CATCH("");
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Array, KratosStatisticsFastSuite)
     test_value[1] = 3.1;
     test_value[2] = 6.4;
     const array_1d<double, 3>& return_value =
-        MethodsUtilities::RaiseToPower(test_value, 2);
+        MethodUtilities::RaiseToPower(test_value, 2);
 
     array_1d<double, 3> analytical_value;
     analytical_value[0] = std::pow(test_value[0], 2);
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Vector, KratosStatisticsFastSuite)
     test_value[3] = 2.0;
     test_value[4] = 3.1;
     test_value[5] = 6.4;
-    const Vector& return_value = MethodsUtilities::RaiseToPower(test_value, 2);
+    const Vector& return_value = MethodUtilities::RaiseToPower(test_value, 2);
 
     Vector analytical_value(6);
     analytical_value[0] = std::pow(test_value[0], 2);
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Matrix, KratosStatisticsFastSuite)
     test_value(0, 1) = 3.0;
     test_value(1, 0) = 4.0;
     test_value(1, 1) = 6.0;
-    const Matrix& return_value = MethodsUtilities::RaiseToPower(test_value, 2);
+    const Matrix& return_value = MethodUtilities::RaiseToPower(test_value, 2);
 
     Matrix analytical_value{2, 2};
     analytical_value(0, 0) = std::pow(test_value(0, 0), 2);

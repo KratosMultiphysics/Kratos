@@ -151,7 +151,7 @@ public:
     int static CalculateSum(const ModelPart& rModelPart, const Flags& rVariable)
     {
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
         int sum = 0;
 
 #pragma omp parallel for reduction(+ : sum)
@@ -172,7 +172,7 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         TDataType global_sum = rVariable.Zero();
 
@@ -181,12 +181,12 @@ public:
             const TDataType& r_initial_value =
                 TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
 
-            MethodsUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
+            MethodUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
 
 #pragma omp parallel
             {
                 TDataType sum = rVariable.Zero();
-                MethodsUtilities::DataTypeSizeInitializer(sum, r_initial_value);
+                MethodUtilities::DataTypeSizeInitializer(sum, r_initial_value);
 
 #pragma omp for
                 for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
@@ -194,7 +194,7 @@ public:
                     const TContainerItemType& r_item = *(r_container.begin() + i);
                     const TDataType& current_value =
                         TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                    MethodsUtilities::DataTypeSizeChecker(current_value, sum);
+                    MethodUtilities::DataTypeSizeChecker(current_value, sum);
                     sum += current_value;
                 }
 #pragma omp critical
@@ -220,11 +220,11 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_sum = 0.0;
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -256,7 +256,7 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         TDataType global_sum = rVariable.Zero();
 
@@ -265,12 +265,12 @@ public:
             const TDataType& r_initial_value =
                 TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
 
-            MethodsUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
+            MethodUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
 
 #pragma omp parallel
             {
                 TDataType sum = rVariable.Zero();
-                MethodsUtilities::DataTypeSizeInitializer(sum, r_initial_value);
+                MethodUtilities::DataTypeSizeInitializer(sum, r_initial_value);
 
 #pragma omp for
                 for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
@@ -278,8 +278,8 @@ public:
                     const TContainerItemType& r_item = *(r_container.begin() + i);
                     const TDataType& current_value =
                         TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                    MethodsUtilities::DataTypeSizeChecker(current_value, sum);
-                    sum += MethodsUtilities::RaiseToPower<TDataType>(current_value, 2);
+                    MethodUtilities::DataTypeSizeChecker(current_value, sum);
+                    sum += MethodUtilities::RaiseToPower<TDataType>(current_value, 2);
                 }
 #pragma omp critical
                 {
@@ -291,7 +291,7 @@ public:
             const unsigned int number_of_items =
                 rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
                     r_container.size());
-            global_sum = MethodsUtilities::RaiseToPower<TDataType>(
+            global_sum = MethodUtilities::RaiseToPower<TDataType>(
                 global_sum * (1.0 / number_of_items), 0.5);
         }
 
@@ -309,11 +309,11 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_sum = 0.0;
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -347,7 +347,7 @@ public:
     {
         const TDataType& sum = CalculateSum<TDataType>(rModelPart, rVariable);
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         if (r_container.size() > 0)
         {
@@ -373,7 +373,7 @@ public:
         const double sum =
             CalculateNormSum<TDataType>(rNormType, rModelPart, rVariable, Params);
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         const unsigned int number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
@@ -395,19 +395,19 @@ public:
         TDataType global_variance = rVariable.Zero();
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         if (r_container.size() > 0)
         {
             const TDataType& r_initial_value =
                 TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
 
-            MethodsUtilities::DataTypeSizeInitializer(global_variance, r_initial_value);
+            MethodUtilities::DataTypeSizeInitializer(global_variance, r_initial_value);
 
 #pragma omp parallel
             {
                 TDataType variance = rVariable.Zero();
-                MethodsUtilities::DataTypeSizeInitializer(variance, r_initial_value);
+                MethodUtilities::DataTypeSizeInitializer(variance, r_initial_value);
 
 #pragma omp for
                 for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
@@ -415,9 +415,9 @@ public:
                     const TContainerItemType& r_item = *(r_container.begin() + i);
                     const TDataType& current_value =
                         TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                    MethodsUtilities::DataTypeSizeChecker(current_value, variance);
+                    MethodUtilities::DataTypeSizeChecker(current_value, variance);
 
-                    variance += MethodsUtilities::RaiseToPower(current_value, 2);
+                    variance += MethodUtilities::RaiseToPower(current_value, 2);
                 }
 #pragma omp critical
                 {
@@ -433,7 +433,7 @@ public:
             if (number_of_items > 0)
             {
                 global_variance *= (1.0 / static_cast<double>(number_of_items));
-                global_variance -= MethodsUtilities::RaiseToPower(mean, 2);
+                global_variance -= MethodUtilities::RaiseToPower(mean, 2);
             }
         }
 
@@ -450,11 +450,11 @@ public:
         double mean = CalculateNormMean<TDataType>(rNormType, rModelPart, rVariable, Params);
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_variance = 0.0;
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -483,7 +483,7 @@ public:
         if (number_of_items > 0)
         {
             global_variance *= (1.0 / static_cast<double>(number_of_items));
-            global_variance -= MethodsUtilities::RaiseToPower(mean, 2);
+            global_variance -= MethodUtilities::RaiseToPower(mean, 2);
         }
 
         return std::make_tuple<double, double>(
@@ -499,12 +499,12 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_max = std::numeric_limits<double>::lowest();
         std::size_t global_id = 0;
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -564,12 +564,12 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_min = std::numeric_limits<double>::max();
         std::size_t global_id = 0;
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
@@ -629,10 +629,10 @@ public:
         KRATOS_TRY
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
         std::vector<double> local_values;
         local_values.resize(r_container.size());
@@ -735,10 +735,10 @@ public:
         const int number_of_groups = Params["number_of_value_groups"].GetInt();
 
         const TContainerType& r_container =
-            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+            MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         const auto& norm_method =
-            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+            MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
         std::vector<double> group_limits;
         for (int i = 0; i < number_of_groups + 1; ++i)
@@ -828,22 +828,22 @@ using ElementsContainerType = ModelPart::ElementsContainerType;
 using ConditionsContainerType = ModelPart::ConditionsContainerType;
 
 class HistoricalSpatialMethods
-    : public SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor>
+    : public SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodUtilities::HistoricalDataValueRetrievalFunctor>
 {
 };
 
 class NodalNonHistoricalSpatialMethods
-    : public SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public SpatialMethods::ContainerSpatialMethods<NodesContainerType, NodeType, MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 
 class ConditionNonHistoricalSpatialMethods
-    : public SpatialMethods::ContainerSpatialMethods<ConditionsContainerType, ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public SpatialMethods::ContainerSpatialMethods<ConditionsContainerType, ConditionType, MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 
 class ElementNonHistoricalSpatialMethods
-    : public SpatialMethods::ContainerSpatialMethods<ElementsContainerType, ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public SpatialMethods::ContainerSpatialMethods<ElementsContainerType, ElementType, MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 

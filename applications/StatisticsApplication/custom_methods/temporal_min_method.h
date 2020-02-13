@@ -76,10 +76,10 @@ public:
         void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
-                MethodsUtilities::GetNormMethod(mrInputVariable, mNormType);
+                MethodUtilities::GetNormMethod(mrInputVariable, mNormType);
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -113,10 +113,10 @@ public:
         void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
             initializer_method(r_container, mrOutputVariable,
                                std::numeric_limits<double>::max());
             initializer_method(r_container, mrMinTimeValueVariable, 0.0);
@@ -163,8 +163,8 @@ public:
         }
         else // for values with norms
         {
-            MethodsUtilities::CheckVariableType<double>(output_variable_1_names_list);
-            MethodsUtilities::CheckVariableType<double>(output_variable_2_names_list);
+            MethodUtilities::CheckVariableType<double>(output_variable_1_names_list);
+            MethodUtilities::CheckVariableType<double>(output_variable_2_names_list);
 
             const int number_of_variables = input_variable_names_list.size();
             for (int i = 0; i < number_of_variables; ++i)

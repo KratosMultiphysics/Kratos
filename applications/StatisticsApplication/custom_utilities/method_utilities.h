@@ -257,7 +257,7 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-namespace MethodsUtilities
+namespace MethodUtilities
 {
 using NodeType = ModelPart::NodeType;
 using ConditionType = ModelPart::ConditionType;
@@ -351,7 +351,7 @@ void CheckVariableType(const std::vector<std::string>& rVariableNamesList);
 void CheckInputOutputVariables(const std::vector<std::string>& rInputVariableNamesList,
                                const std::vector<std::string>& rOutputVariableNamesList);
 
-} // namespace MethodsUtilities
+} // namespace MethodUtilities
 
 ///@}
 ///@name Type Definitions

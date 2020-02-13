@@ -287,32 +287,32 @@ using ConditionsContainerType = ModelPart::ConditionsContainerType;
 
 template <template <typename T> typename TDataStorageFunctor>
 class HistoricalTemporalMethods
-    : public ContainerTemporalMethods<NodesContainerType, NodeType, MethodsUtilities::HistoricalDataValueRetrievalFunctor, TDataStorageFunctor>
+    : public ContainerTemporalMethods<NodesContainerType, NodeType, MethodUtilities::HistoricalDataValueRetrievalFunctor, TDataStorageFunctor>
 {
 };
 
 class HistoricalInputHistoricalOutputTemporalMethods
-    : public HistoricalTemporalMethods<MethodsUtilities::HistoricalDataValueRetrievalFunctor>
+    : public HistoricalTemporalMethods<MethodUtilities::HistoricalDataValueRetrievalFunctor>
 {
 };
 
 class HistoricalInputNonHistoricalOutputTemporalMethods
-    : public HistoricalTemporalMethods<MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public HistoricalTemporalMethods<MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 
 class NodalNonHistoricalTemporalMethods
-    : public ContainerTemporalMethods<NodesContainerType, NodeType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public ContainerTemporalMethods<NodesContainerType, NodeType, MethodUtilities::NonHistoricalDataValueRetrievalFunctor, MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 
 class ConditionNonHistoricalTemporalMethods
-    : public ContainerTemporalMethods<ConditionsContainerType, ConditionType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public ContainerTemporalMethods<ConditionsContainerType, ConditionType, MethodUtilities::NonHistoricalDataValueRetrievalFunctor, MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 
 class ElementNonHistoricalTemporalMethods
-    : public ContainerTemporalMethods<ElementsContainerType, ElementType, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor, MethodsUtilities::NonHistoricalDataValueRetrievalFunctor>
+    : public ContainerTemporalMethods<ElementsContainerType, ElementType, MethodUtilities::NonHistoricalDataValueRetrievalFunctor, MethodUtilities::NonHistoricalDataValueRetrievalFunctor>
 {
 };
 

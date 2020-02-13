@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )

@@ -60,7 +60,7 @@ public:
         void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -71,7 +71,7 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, mrInputVariable);
                 TDataType& r_output_value =
                     TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputVariable);
-                MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_value);
+                MethodUtilities::DataTypeSizeChecker(r_input_value, r_output_value);
 
                 TemporalRootMeanSquareMethod::CalculateRootMeanSquare<TDataType>(
                     r_output_value, r_input_value, DeltaTime, this->GetTotalTime());
@@ -88,10 +88,10 @@ public:
         void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
                                                               TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputVariable, mrInputVariable);
 
@@ -128,10 +128,10 @@ public:
         void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
-                MethodsUtilities::GetNormMethod(mrInputVariable, mNormType);
+                MethodUtilities::GetNormMethod(mrInputVariable, mNormType);
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -159,10 +159,10 @@ public:
         void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
             initializer_method(r_container, mrOutputVariable, 0.0);
 
             KRATOS_INFO_IF("TemporalNormRootMeanSquareMethod", this->GetEchoLevel() > 0)
@@ -198,7 +198,7 @@ public:
         std::vector<TemporalMethod::Pointer> method_list;
         if (rNormType == "none") // for non norm types
         {
-            MethodsUtilities::CheckInputOutputVariables(
+            MethodUtilities::CheckInputOutputVariables(
                 input_variable_names_list, output_variable_names_list);
             const int number_of_variables = input_variable_names_list.size();
             for (int i = 0; i < number_of_variables; ++i)
@@ -213,7 +213,7 @@ public:
         }
         else // for values with norms
         {
-            MethodsUtilities::CheckVariableType<double>(output_variable_names_list);
+            MethodUtilities::CheckVariableType<double>(output_variable_names_list);
 
             const int number_of_variables = input_variable_names_list.size();
             for (int i = 0; i < number_of_variables; ++i)
@@ -239,9 +239,9 @@ private:
                                         const double DeltaTime,
                                         const double TotalTime)
     {
-        rRootMeanSquare = MethodsUtilities::RaiseToPower<TDataType>(
-            (MethodsUtilities::RaiseToPower<TDataType>(rRootMeanSquare, 2) * TotalTime +
-             MethodsUtilities::RaiseToPower(rNewDataPoint, 2) * DeltaTime) *
+        rRootMeanSquare = MethodUtilities::RaiseToPower<TDataType>(
+            (MethodUtilities::RaiseToPower<TDataType>(rRootMeanSquare, 2) * TotalTime +
+             MethodUtilities::RaiseToPower(rNewDataPoint, 2) * DeltaTime) *
                 (1.0 / (TotalTime + DeltaTime)),
             0.5);
     }

@@ -73,7 +73,7 @@ public:
         void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -87,8 +87,8 @@ public:
                 TDataType& r_output_variance_value =
                     TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputVarianceVariable);
 
-                MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_mean_value);
-                MethodsUtilities::DataTypeSizeChecker(r_input_value, r_output_variance_value);
+                MethodUtilities::DataTypeSizeChecker(r_input_value, r_output_mean_value);
+                MethodUtilities::DataTypeSizeChecker(r_input_value, r_output_variance_value);
 
                 TemporalVarianceMethod::CalculateMeanAndVariance<TDataType>(
                     r_output_mean_value, r_output_variance_value, r_input_value,
@@ -107,10 +107,10 @@ public:
         void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
                                                               TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputMeanVariable, mrInputVariable);
             initializer_method(r_container, mrOutputVarianceVariable, mrInputVariable);
@@ -163,10 +163,10 @@ public:
         void CalculateStatistics(const double DeltaTime) override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
-                MethodsUtilities::GetNormMethod(mrInputVariable, mNormType);
+                MethodUtilities::GetNormMethod(mrInputVariable, mNormType);
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -198,10 +198,10 @@ public:
         void InitializeStatisticsVariables() override
         {
             TContainerType& r_container =
-                MethodsUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+                MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodsUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
             initializer_method(r_container, mrOutputMeanVariable, 0.0);
             initializer_method(r_container, mrOutputVarianceVariable, 0.0);
 
@@ -243,9 +243,9 @@ public:
         std::vector<TemporalMethod::Pointer> method_list;
         if (rNormType == "none") // for non norm types
         {
-            MethodsUtilities::CheckInputOutputVariables(
+            MethodUtilities::CheckInputOutputVariables(
                 input_variable_names_list, output_variable_1_names_list);
-            MethodsUtilities::CheckInputOutputVariables(
+            MethodUtilities::CheckInputOutputVariables(
                 input_variable_names_list, output_variable_2_names_list);
 
             const int number_of_variables = input_variable_names_list.size();
@@ -263,8 +263,8 @@ public:
         }
         else // for values with norms
         {
-            MethodsUtilities::CheckVariableType<double>(output_variable_1_names_list);
-            MethodsUtilities::CheckVariableType<double>(output_variable_2_names_list);
+            MethodUtilities::CheckVariableType<double>(output_variable_1_names_list);
+            MethodUtilities::CheckVariableType<double>(output_variable_2_names_list);
 
             const int number_of_variables = input_variable_names_list.size();
             for (int i = 0; i < number_of_variables; ++i)
@@ -297,10 +297,10 @@ private:
         const TDataType new_mean =
             (rMean * TotalTime + rNewDataPoint * DeltaTime) * (1.0 / new_total_time);
         rVariance =
-            ((rVariance + MethodsUtilities::RaiseToPower<TDataType>(rMean, 2)) * TotalTime +
-             MethodsUtilities::RaiseToPower<TDataType>(rNewDataPoint, 2) * DeltaTime) *
+            ((rVariance + MethodUtilities::RaiseToPower<TDataType>(rMean, 2)) * TotalTime +
+             MethodUtilities::RaiseToPower<TDataType>(rNewDataPoint, 2) * DeltaTime) *
                 (1 / new_total_time) -
-            MethodsUtilities::RaiseToPower<TDataType>(new_mean, 2);
+            MethodUtilities::RaiseToPower<TDataType>(new_mean, 2);
         rMean = new_mean;
     }
 };

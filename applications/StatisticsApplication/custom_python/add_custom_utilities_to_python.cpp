@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
 
@@ -33,16 +32,16 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     m.def_submodule("MethodUtilities")
-        .def("GetNormMethod", &MethodsUtilities::GetNormMethod<int>)
-        .def("GetNormMethod", &MethodsUtilities::GetNormMethod<double>)
-        .def("GetNormMethod", &MethodsUtilities::GetNormMethod<array_1d<double, 3>>)
-        .def("GetNormMethod", &MethodsUtilities::GetNormMethod<Vector>)
-        .def("GetNormMethod", &MethodsUtilities::GetNormMethod<Matrix>)
-        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<int>)
-        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<double>)
-        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<array_1d<double, 3>>)
-        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<Vector>)
-        .def("RaiseToPower", &MethodsUtilities::RaiseToPower<Matrix>)
+        .def("GetNormMethod", &MethodUtilities::GetNormMethod<int>)
+        .def("GetNormMethod", &MethodUtilities::GetNormMethod<double>)
+        .def("GetNormMethod", &MethodUtilities::GetNormMethod<array_1d<double, 3>>)
+        .def("GetNormMethod", &MethodUtilities::GetNormMethod<Vector>)
+        .def("GetNormMethod", &MethodUtilities::GetNormMethod<Matrix>)
+        .def("RaiseToPower", &MethodUtilities::RaiseToPower<int>)
+        .def("RaiseToPower", &MethodUtilities::RaiseToPower<double>)
+        .def("RaiseToPower", &MethodUtilities::RaiseToPower<array_1d<double, 3>>)
+        .def("RaiseToPower", &MethodUtilities::RaiseToPower<Vector>)
+        .def("RaiseToPower", &MethodUtilities::RaiseToPower<Matrix>)
         ;
 
 

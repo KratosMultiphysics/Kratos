@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-namespace MethodsUtilities
+namespace MethodUtilities
 {
 template <typename TDataType>
 TDataType RaiseToPower(const TDataType& rData, const double Power)
@@ -721,6 +721,6 @@ template class NonHistoricalDataValueRetrievalFunctor<ElementType>;
 
 //
 
-} // namespace MethodsUtilities
+} // namespace MethodUtilities
 
 } // namespace Kratos
