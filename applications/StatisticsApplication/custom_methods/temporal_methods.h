@@ -27,6 +27,7 @@
 #include "custom_methods/temporal_max_method.h"
 #include "custom_methods/temporal_mean_method.h"
 #include "custom_methods/temporal_min_method.h"
+#include "custom_methods/temporal_rms_method.h"
 #include "custom_methods/temporal_sum_method.h"
 #include "custom_methods/temporal_variance_method.h"
 
@@ -268,6 +269,8 @@ public:
         TemporalMeanMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
     using VarianceMethod =
         TemporalVarianceMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
+    using RootMeanSquareMethod =
+        TemporalRootMeanSquareMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
     using MinMethod =
         TemporalMinMethod<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor>;
     using MaxMethod =

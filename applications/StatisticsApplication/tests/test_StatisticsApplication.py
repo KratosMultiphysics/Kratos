@@ -13,6 +13,7 @@ from test_temporal_mean_method import TemporalMeanMethodTests
 from test_temporal_variance_method import TemporalVarianceMethodTests
 from test_temporal_min_method import TemporalMinMethodTests
 from test_temporal_max_method import TemporalMaxMethodTests
+from test_temporal_rms_method import TemporalRootMeanSquareMethodTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -40,6 +41,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalVarianceMethodTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMinMethodTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMaxMethodTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalRootMeanSquareMethodTests]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
