@@ -54,11 +54,11 @@ class ConvergenceCriterionCombined(CoSimulationComponent):
         for convergence_criterion in self.convergence_criteria:
             convergence_criterion.Check()
 
-    def PrintInfo(self):
-        super().PrintInfo()
+    def PrintInfo(self, label):
+        super().PrintInfo(label)
 
         for convergence_criterion in self.convergence_criteria:
-            convergence_criterion.PrintInfo()
+            convergence_criterion.PrintInfo(label + '\t')
 
     def Update(self, r):
         for convergence_criterion in self.convergence_criteria:

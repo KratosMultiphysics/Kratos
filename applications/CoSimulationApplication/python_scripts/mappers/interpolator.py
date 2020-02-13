@@ -1,6 +1,7 @@
 from scipy.spatial import cKDTree
 import numpy as np
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
@@ -10,13 +11,24 @@ def Create(parameters):
 
 
 # Class MapperInterpolator: base class for interpolators.
-class MapperInterpolator():
+class MapperInterpolator(CoSimulationComponent):
     def __init__(self, parameters):
+        super().__init__()
+
         # store settings
         self.settings = parameters['settings']
         self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()  # *** optional parameter?
         self.n_nearest = 0  # must be set in sub-class!
+
+        # initialization
+        self.n_from = None
+        self.coords_from = None
+        self.n_to = None
+        self.coords_to = None
+        self.tree = None
+        self.distances = None
+        self.nearest = None
 
         # get list with directions
         self.directions = []
@@ -28,6 +40,8 @@ class MapperInterpolator():
                 raise ValueError(f'too many directions given')
 
     def Initialize(self, model_part_from, model_part_to):
+        super().Initialize()
+
         # get coords_from
         self.n_from = model_part_from.NumberOfNodes()
         self.coords_from = np.zeros((self.n_from, len(self.directions)))
@@ -59,10 +73,6 @@ class MapperInterpolator():
 
         # check for duplicate points
         self.check_duplicate_points(model_part_from)
-
-
-    def Finalize(self):
-        pass
 
     def __call__(self, args_from, args_to):
         model_part_from, var_from = args_from

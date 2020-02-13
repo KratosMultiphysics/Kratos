@@ -47,7 +47,7 @@ class ModelLS(CoSimulationComponent):
             m = min(abs(diag))
             if m < self.min_significant:
                 i = np.argmin(abs(diag))
-                print("Removing column " + str(i) + ": " + str(m) + " < minsignificant")
+                cs_tools.Print("Removing column " + str(i) + ": " + str(m) + " < minsignificant", layout='warning')
                 if i < self.vcurr.shape[1]:
                     self.vcurr = np.delete(self.vcurr, i, 1)
                     self.wcurr = np.delete(self.wcurr, i, 1)

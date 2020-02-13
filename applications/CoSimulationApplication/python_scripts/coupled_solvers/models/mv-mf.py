@@ -45,7 +45,7 @@ class ModelMV(CoSimulationComponent):
             m = min(abs(diag))
             if m < self.min_significant:
                 i = np.argmin(abs(diag))
-                print("Removing column " + str(i) + ": " + str(m) + " < minsignificant")
+                cs_tools.Print("Removing column " + str(i) + ": " + str(m) + " < minsignificant", layout='warning')
                 self.v = np.delete(self.v, i, 1)
                 self.w = np.delete(self.w, i, 1)
             else:
