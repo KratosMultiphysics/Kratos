@@ -86,7 +86,7 @@ void TrussElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void TrussElement3D2N::Initialize()
+void TrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
@@ -94,6 +94,8 @@ void TrussElement3D2N::Initialize()
     } else {
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
     }
+
+    GetConstitutiveLawTrialResponse(rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
@@ -947,11 +949,6 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
     rElasticStiffnessMatrix(4, 5) = rElasticStiffnessMatrix(1, 2);
     rElasticStiffnessMatrix(5, 4) = rElasticStiffnessMatrix(4, 5);
     KRATOS_CATCH("")
-}
-
-void TrussElement3D2N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    InitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 

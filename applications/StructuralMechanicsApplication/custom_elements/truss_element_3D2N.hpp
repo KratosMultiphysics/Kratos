@@ -102,7 +102,7 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
@@ -260,8 +260,6 @@ namespace Kratos
         double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
         void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
