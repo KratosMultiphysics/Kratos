@@ -22,57 +22,65 @@
 
 namespace Kratos {
 
-template<>
-void CompressibleNavierStokesExplicit<2>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+template <>
+void CompressibleNavierStokesExplicit<2>::GetDofList(
+    DofsVectorType &ElementalDofList,
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int block_size = Dim+2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(block_size);
+    constexpr unsigned int n_nodes = 3;
+    constexpr unsigned int block_size = 4;
+    constexpr unsigned int dof_size = n_nodes * block_size;
 
-    if (rResult.size() != DofSize) {
-        rResult.resize(DofSize, false);
+    if (ElementalDofList.size() != dof_size) {
+        ElementalDofList.resize(dof_size);
     }
 
-    for(unsigned int i=0; i<NumNodes; i++) {
-       rResult[i*(block_size)  ]  =  this->GetGeometry()[i].GetDof(DENSITY).EquationId();
-        rResult[i*(block_size)+1]  =  this->GetGeometry()[i].GetDof(MOMENTUM_X).EquationId();
-        rResult[i*(block_size)+2]  =  this->GetGeometry()[i].GetDof(MOMENTUM_Y).EquationId();
-        rResult[i*(block_size)+3]  =  this->GetGeometry()[i].GetDof(TOTAL_ENERGY).EquationId();
+    unsigned int local_index = 0;
+    const auto& r_geometry = GetGeometry();
+    const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(DENSITY, den_pos);
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_X, mom_pos);
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_Y, mom_pos + 1);
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(TOTAL_ENERGY, enr_pos);
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("");
 }
 
 template <>
-void CompressibleNavierStokesExplicit<3>::EquationIdVector(
-    EquationIdVectorType &rResult,
-    ProcessInfo &rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<3>::GetDofList(
+    DofsVectorType &ElementalDofList,
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int block_size = Dim + 2;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize = NumNodes * (block_size);
+    constexpr unsigned int n_nodes = 4;
+    constexpr unsigned int block_size = 5;
+    unsigned int dof_size = n_nodes * block_size;
 
-    if (rResult.size() != DofSize) {
-        rResult.resize(DofSize, false);
+    if (ElementalDofList.size() != dof_size) {
+        ElementalDofList.resize(dof_size);
     }
 
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        rResult[i * (block_size)] = this->GetGeometry()[i].GetDof(DENSITY).EquationId();
-        rResult[i * (block_size) + 1] = this->GetGeometry()[i].GetDof(MOMENTUM_X).EquationId();
-        rResult[i * (block_size) + 2] = this->GetGeometry()[i].GetDof(MOMENTUM_Y).EquationId();
-        rResult[i * (block_size) + 3] = this->GetGeometry()[i].GetDof(MOMENTUM_Z).EquationId();
-        rResult[i * (block_size) + 4] = this->GetGeometry()[i].GetDof(TOTAL_ENERGY).EquationId();
+    unsigned int local_index = 0;
+    const auto &r_geometry = GetGeometry();
+    const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DENSITY, den_pos);
+        ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(MOMENTUM_X, mom_pos);
+        ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(MOMENTUM_Y, mom_pos + 1);
+        ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(MOMENTUM_Z, mom_pos + 2);
+        ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(TOTAL_ENERGY, enr_pos);
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TBlockSize, unsigned int TNumNodes>
@@ -106,12 +114,12 @@ int CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::Check(const P
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE)) << "Missing EXTERNAL_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
 
         // Activate as soon as we start using the explicit DOF based strategy
-        // KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
-        // KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_X) || this->GetGeometry()[i].HasDofFor(MOMENTUM_Y)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
-        // if (TDim == 3) {
-        //     KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_Z)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
-        // }
-        // KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_X) || this->GetGeometry()[i].HasDofFor(MOMENTUM_Y)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
+        if (TDim == 3) {
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_Z)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
+        }
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
     }
 
     return 0;
@@ -125,7 +133,8 @@ void CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::FillElementD
     const ProcessInfo &rCurrentProcessInfo)
 {
     // Getting data for the given geometry
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), rData.DN_DX, rData.N, rData.volume);
+    const auto& r_geometry = GetGeometry();
+    GeometryUtils::CalculateGeometryData(r_geometry, rData.DN_DX, rData.N, rData.volume);
 
     // Compute element size
     rData.h = ComputeH(rData.DN_DX);
@@ -139,16 +148,16 @@ void CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::FillElementD
     rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const array_1d<double, 3> &r_momentum = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM);
-        const array_1d<double, 3> &r_body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3> &r_momentum = r_geometry[i].FastGetSolutionStepValue(MOMENTUM);
+        const array_1d<double, 3> &r_body_force = r_geometry[i].FastGetSolutionStepValue(BODY_FORCE);
 
         for (unsigned int k = 0; k < TDim; ++k) {
             rData.U(i, k + 1) = r_momentum[k];
             rData.f_ext(i, k) = r_body_force[k];
         }
-        rData.U(i, 0) = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-        rData.U(i, TDim + 1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY);
-        rData.r(i) = this->GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+        rData.U(i, 0) = r_geometry[i].FastGetSolutionStepValue(DENSITY);
+        rData.U(i, TDim + 1) = r_geometry[i].FastGetSolutionStepValue(TOTAL_ENERGY);
+        rData.r(i) = r_geometry[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
     }
 
     // Get shock capturing viscosity and heat conductivity
@@ -3213,6 +3222,60 @@ const double crRightHandSideVector2030 =             2*crRightHandSideVector1232
     rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
 
     KRATOS_CATCH("")
+}
+
+template <>
+void CompressibleNavierStokesExplicit<2>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
+{
+    constexpr IndexType dim = 2;
+    constexpr IndexType n_nodes = 3;
+    constexpr IndexType block_size = 4;
+
+    // Calculate the explicit residual vector
+    VectorType rhs;
+    CalculateRightHandSide(rhs, rCurrentProcessInfo);
+
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    auto& r_geometry = GetGeometry();
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+#pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[i_node * block_size];
+        auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
+        for (IndexType d = 0; d < dim; ++d) {
+#pragma omp atomic
+            r_mom[d] += rhs[i_node * block_size + (d + 1)];
+        }
+#pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_ENERGY) += rhs[i_node * block_size + 3];
+    }
+}
+
+template <>
+void CompressibleNavierStokesExplicit<3>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
+{
+    constexpr IndexType dim = 3;
+    constexpr IndexType n_nodes = 4;
+    constexpr IndexType block_size = 5;
+
+    // Calculate the explicit residual vector
+    VectorType rhs;
+    CalculateRightHandSide(rhs, rCurrentProcessInfo);
+
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    auto& r_geometry = GetGeometry();
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+#pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[i_node * block_size];
+        auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
+        for (IndexType d = 0; d < dim; ++d) {
+#pragma omp atomic
+            r_mom[d] += rhs[i_node * block_size + (d + 1)];
+        }
+#pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_ENERGY) += rhs[i_node * block_size + 4];
+    }
 }
 
 // TODO: We still require to decide the shock capturing technique

@@ -152,6 +152,8 @@ public:
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override;
+
     /// Checks the input and that all required Kratos variables have been registered.
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -225,9 +227,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(
+        DofsVectorType &ElementalDofList,
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     // double ShockCapturingViscosity(const ElementDataStruct& rData) const;
 
