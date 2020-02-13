@@ -124,6 +124,33 @@ public:
     {
     }
 
+    /// Constructor with points, N, Vector<DN_De, ...>
+    QuadraturePointCurveOnSurfaceGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
+        array_1d<double, 2> LocalTangents2d)
+        : BaseType(ThisPoints, ThisIntegrationPoint,
+            ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives)
+        , mLocalTangents2d(LocalTangents2d)
+    {
+    }
+
+    /// Constructor with points, N, Vector<DN_De, ...>, parent
+    QuadraturePointCurveOnSurfaceGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
+        array_1d<double, 2> LocalTangents2d,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, ThisIntegrationPoint,
+            ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives, pGeometryParent)
+        , mLocalTangents2d(LocalTangents2d)
+    {
+    }
+
     QuadraturePointCurveOnSurfaceGeometry()
         : BaseType()
         , mLocalTangents2d(
