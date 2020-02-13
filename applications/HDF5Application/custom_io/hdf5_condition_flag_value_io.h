@@ -73,10 +73,9 @@ public:
         this->WriteContainerComponents(rConditions);
     }
 
-    void ReadConditionFlags(ConditionsContainerType& rConditions)
+    void ReadConditionFlags(ConditionsContainerType& rConditions, Communicator& rComm)
     {
-        Communicator dummy_communicator;
-        this->ReadContainerComponents(rConditions, dummy_communicator);
+        this->ReadContainerComponents(rConditions, rComm);
     }
 
     ///@}

@@ -103,7 +103,8 @@ class ElementDataValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ElementDataValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadElementResults(model_part.Elements)
+            self.GetSettings(model_part).Get(), hdf5_file).ReadElementResults(model_part.Elements,
+                                                                              model_part.GetCommunicator())
 
 class ElementFlagValueOutput(VariableIO):
     '''Writes non-historical element flag values to a file.'''
@@ -124,7 +125,8 @@ class ElementFlagValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ElementFlagValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements)
+            self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements,
+                                                                            model_part.GetCommunicator())
 
 class ConditionDataValueOutput(VariableIO):
     '''Writes non-historical element data values to a file.'''
@@ -145,7 +147,8 @@ class ConditionDataValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ConditionDataValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionResults(model_part.Conditions)
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionResults(model_part.Conditions,
+                                                                                model_part.GetCommunicator())
 
 class ConditionFlagValueOutput(VariableIO):
     '''Writes non-historical element flag values to a file.'''
@@ -166,7 +169,8 @@ class ConditionFlagValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ConditionFlagValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions)
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions,
+                                                                              model_part.GetCommunicator())
 
 
 class NodalSolutionStepDataOutput(VariableIO):

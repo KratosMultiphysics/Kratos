@@ -291,7 +291,8 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_element_data_value_io.WriteElementResults(write_model_part.Elements)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_element_data_value_io.ReadElementResults(read_model_part.Elements)
+            hdf5_element_data_value_io.ReadElementResults(read_model_part.Elements,
+                                                          read_model_part.GetCommunicator())
 
             assert_variables_list = [PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
             # Check data.
@@ -311,7 +312,8 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_element_flag_value_io.WriteElementFlags(write_model_part.Elements)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_element_flag_value_io.ReadElementFlags(read_model_part.Elements)
+            hdf5_element_flag_value_io.ReadElementFlags(read_model_part.Elements,
+                                                        read_model_part.GetCommunicator())
 
             assert_variables_list = [SLIP, ACTIVE, STRUCTURE]
             # Check data.
@@ -331,7 +333,8 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_condition_data_value_io.WriteConditionResults(write_model_part.Conditions)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_condition_data_value_io.ReadConditionResults(read_model_part.Conditions)
+            hdf5_condition_data_value_io.ReadConditionResults(read_model_part.Conditions,
+                                                              read_model_part.GetCommunicator())
 
             assert_variables_list = [PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
             # Check data.
@@ -351,7 +354,8 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_condition_flag_value_io.WriteConditionFlags(write_model_part.Conditions)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_condition_flag_value_io.ReadConditionFlags(read_model_part.Conditions)
+            hdf5_condition_flag_value_io.ReadConditionFlags(read_model_part.Conditions,
+                                                            read_model_part.GetCommunicator())
 
             assert_variables_list = [SLIP, ACTIVE, STRUCTURE]
             # Check data.

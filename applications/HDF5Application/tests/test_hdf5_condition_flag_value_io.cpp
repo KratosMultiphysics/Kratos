@@ -44,7 +44,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}},
                                           {{"Condition2D2N"}});
-    TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}}, {{"Condition2D2N"}});
+    TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}},
+                                          {{"Condition2D2N"}});
 
     r_read_model_part.SetBufferSize(2);
     r_write_model_part.SetBufferSize(2);
@@ -65,7 +66,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
 
     HDF5::ConditionFlagValueIO data_io(io_params, p_test_file);
     data_io.WriteConditionFlags(r_write_model_part.Conditions());
-    data_io.ReadConditionFlags(r_read_model_part.Conditions());
+    data_io.ReadConditionFlags(r_read_model_part.Conditions(),
+                               r_read_model_part.GetCommunicator());
 
     for (auto& r_write_condition : r_write_model_part.Conditions())
     {

@@ -16,20 +16,19 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
+#include "testing/testing.h"
 
 // Application includes
-#include "tests/test_utils.h"
-#include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_condition_data_value_io.h"
+#include "custom_io/hdf5_file_serial.h"
+#include "tests/test_utils.h"
 
 namespace Kratos
 {
 namespace Testing
 {
-
 KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSuite)
 {
     Parameters file_params(R"(
@@ -43,20 +42,21 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSui
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
-    TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}}, {{"Condition2D2N"}});
-    TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}}, {{"Condition2D2N"}});
+    TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}},
+                                          {{"Condition2D2N"}});
+    TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}},
+                                          {{"Condition2D2N"}});
 
     r_read_model_part.SetBufferSize(2);
     r_write_model_part.SetBufferSize(2);
 
-    std::vector<std::string> variables_list = {{"DISPLACEMENT"},
-                                               {"PRESSURE"},
-                                               {"REFINEMENT_LEVEL"},
-                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+    std::vector<std::string> variables_list = {
+        {"DISPLACEMENT"}, {"PRESSURE"}, {"REFINEMENT_LEVEL"}, {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
 
     for (auto& r_condition : r_write_model_part.Conditions())
     {
-        TestModelPartFactory::AssignDataValueContainer(r_condition.Data(), r_condition, variables_list);
+        TestModelPartFactory::AssignDataValueContainer(
+            r_condition.Data(), r_condition, variables_list);
     }
 
     Parameters io_params(R"(
@@ -67,12 +67,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSui
 
     HDF5::ConditionDataValueIO data_io(io_params, p_test_file);
     data_io.WriteConditionResults(r_write_model_part.Conditions());
-    data_io.ReadConditionResults(r_read_model_part.Conditions());
+    data_io.ReadConditionResults(r_read_model_part.Conditions(),
+                                 r_read_model_part.GetCommunicator());
 
     for (auto& r_write_condition : r_write_model_part.Conditions())
     {
-        HDF5::ConditionType& r_read_condition = r_read_model_part.Conditions()[r_write_condition.Id()];
-        CompareDataValueContainers(r_read_condition.Data(), r_read_condition, r_write_condition.Data(), r_write_condition);
+        HDF5::ConditionType& r_read_condition =
+            r_read_model_part.Conditions()[r_write_condition.Id()];
+        CompareDataValueContainers(r_read_condition.Data(), r_read_condition,
+                                   r_write_condition.Data(), r_write_condition);
     }
 }
 

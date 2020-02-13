@@ -138,7 +138,6 @@ protected:
     public:
         void operator()(TComponent const& rComponent,
                         std::vector<TContainerItemType*>& rLocalItems,
-                        std::vector<TContainerItemType*>& rGhostItems,
                         Communicator& rCommunicator,
                         File& rFile,
                         std::string const& rPath,
@@ -149,7 +148,7 @@ protected:
             Vector<typename TComponent::Type> data;
             rFile.ReadDataSet(rPath + "/" + rComponent.Name(), data, StartIndex, BlockSize);
             SetItemDataValues(rComponent, data, rLocalItems);
-            TSynchronizingFunctor<TComponent>()(rComponent, rGhostItems, rCommunicator);
+            TSynchronizingFunctor<TComponent>()(rComponent, rCommunicator);
         }
     };
 
@@ -159,7 +158,6 @@ protected:
     public:
         void operator()(Flags const& rComponent,
                         std::vector<TContainerItemType*>& rLocalItems,
-                        std::vector<TContainerItemType*>& rGhostItems,
                         Communicator& rCommunicator,
                         File& rFile,
                         std::string const& rPath,
@@ -179,7 +177,6 @@ protected:
     public:
         void operator()(Variable<Vector<double>> const& rComponent,
                         std::vector<TContainerItemType*>& rLocalItems,
-                        std::vector<TContainerItemType*>& rGhostItems,
                         Communicator& rCommunicator,
                         File& rFile,
                         std::string const& rPath,
@@ -190,8 +187,7 @@ protected:
             Matrix<double> data;
             rFile.ReadDataSet(rPath + "/" + rComponent.Name(), data, StartIndex, BlockSize);
             SetItemDataValues(rComponent, data, rLocalItems);
-            TSynchronizingFunctor<Variable<Vector<double>>>()(
-                rComponent, rGhostItems, rCommunicator);
+            TSynchronizingFunctor<Variable<Vector<double>>>()(rComponent, rCommunicator);
         }
     };
 
@@ -201,7 +197,6 @@ protected:
     public:
         void operator()(Variable<Matrix<double>> const& rComponent,
                         std::vector<TContainerItemType*>& rLocalItems,
-                        std::vector<TContainerItemType*>& rGhostItems,
                         Communicator& rCommunicator,
                         File& rFile,
                         std::string const& rPath,
@@ -215,8 +210,7 @@ protected:
             rFile.ReadAttribute(rPath + "/" + rComponent.Name(), "Size1", size1);
             rFile.ReadAttribute(rPath + "/" + rComponent.Name(), "Size2", size2);
             SetItemDataValues(rComponent, data, rLocalItems, size1, size2);
-            TSynchronizingFunctor<Variable<Matrix<double>>>()(
-                rComponent, rGhostItems, rCommunicator);
+            TSynchronizingFunctor<Variable<Matrix<double>>>()(rComponent, rCommunicator);
         }
     };
 };
@@ -225,9 +219,7 @@ template <typename TComponent>
 class ComponentElementSynchronizingFunctor
 {
 public:
-    void operator()(TComponent const& rComponent,
-                    std::vector<ElementType*>& rGhostItems,
-                    Communicator& rCommunicator)
+    void operator()(TComponent const& rComponent, Communicator& rCommunicator)
     {
     }
 };
@@ -236,9 +228,7 @@ template <typename TComponent>
 class ComponentConditionSynchronizingFunctor
 {
 public:
-    void operator()(TComponent const& rComponent,
-                    std::vector<ConditionType*>& rGhostItems,
-                    Communicator& rCommunicator)
+    void operator()(TComponent const& rComponent, Communicator& rCommunicator)
     {
     }
 };
@@ -247,13 +237,9 @@ template <typename TComponent>
 class ComponentNodeSynchronizingFunctor
 {
 public:
-    void operator()(TComponent const& rComponent,
-                    std::vector<NodeType*>& rGhostNodes,
-                    Communicator& rCommunicator)
+    void operator()(TComponent const& rComponent, Communicator& rCommunicator)
     {
-        for (auto& p_node : rGhostNodes)
-            p_node->GetValue(rComponent) = rComponent.Zero();
-        rCommunicator.AssembleNonHistoricalData(rComponent);
+        rCommunicator.SynchronizeNonHistoricalVariable(rComponent);
     }
 };
 
@@ -303,11 +289,9 @@ class ReadNodeComponent
 };
 
 void GetContainerItemReferences(std::vector<ElementType*>& rLocalElements,
-                                std::vector<ElementType*>& rGhostElements,
                                 ElementsContainerType const& rElements)
 {
     rLocalElements.resize(rElements.size());
-    rGhostElements.clear();
 
 #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
@@ -318,11 +302,9 @@ void GetContainerItemReferences(std::vector<ElementType*>& rLocalElements,
 }
 
 void GetContainerItemReferences(std::vector<ConditionType*>& rLocalConditions,
-                                std::vector<ConditionType*>& rGhostConditions,
                                 ConditionsContainerType const& rConditions)
 {
     rLocalConditions.resize(rConditions.size());
-    rGhostConditions.clear();
 
 #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rConditions.size()); ++i)
@@ -333,10 +315,9 @@ void GetContainerItemReferences(std::vector<ConditionType*>& rLocalConditions,
 }
 
 void GetContainerItemReferences(std::vector<NodeType*>& rLocalNodes,
-                                std::vector<NodeType*>& rGhostNodes,
                                 NodesContainerType const& rNodes)
 {
-    SplitNodesIntoLocalAndGhost(rNodes, rLocalNodes, rGhostNodes);
+    GetLocalNodes(rNodes, rLocalNodes);
 }
 
 } // unnamed namespace
@@ -535,8 +516,8 @@ void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::W
         return;
 
     WriteInfo info;
-    std::vector<TContainerItemType*> local_items, ghost_items;
-    GetContainerItemReferences(local_items, ghost_items, rContainer);
+    std::vector<TContainerItemType*> local_items;
+    GetContainerItemReferences(local_items, rContainer);
 
     // Write each variable.
     for (const std::string& r_component_name : mComponentNames)
@@ -558,16 +539,15 @@ void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::R
     if (mComponentNames.size() == 0)
         return;
 
-    std::vector<TContainerItemType*> local_items, ghost_items;
-    GetContainerItemReferences(local_items, ghost_items, rContainer);
+    std::vector<TContainerItemType*> local_items;
+    GetContainerItemReferences(local_items, rContainer);
     std::size_t start_index, block_size;
     std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mComponentPath);
 
     // Read local data for each variable.
     for (const std::string& r_component_name : mComponentNames)
-        ReadRegisteredComponent(r_component_name, local_items, ghost_items,
-                                rCommunicator, *mpFile, mComponentPath,
-                                start_index, block_size, r_component_name);
+        ReadRegisteredComponent(r_component_name, local_items, rCommunicator, *mpFile,
+                                mComponentPath, start_index, block_size, r_component_name);
 
     KRATOS_CATCH("");
 }
@@ -748,7 +728,7 @@ template class ContainerComponentIO<ConditionsContainerType,
                                     Variable<double>,
                                     Variable<int>,
                                     Variable<Vector<double>>,
-                                    Variable<Matrix<double>>>;                                    
+                                    Variable<Matrix<double>>>;
 
 template class ContainerComponentIO<NodesContainerType, NodeType, Flags>;
 template class ContainerComponentIO<NodesContainerType,
