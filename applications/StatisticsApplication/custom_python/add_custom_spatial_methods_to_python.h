@@ -10,29 +10,23 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
+#if !defined(KRATOS_ADD_SPATIAL_METHODS_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_SPATIAL_METHODS_TO_PYTHON_H_INCLUDED
+
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
-
-// Application includes
-#include "custom_python/add_custom_spatial_methods_to_python.h"
-#include "custom_python/add_custom_temporal_methods_to_python.h"
-
-// Include base h
-#include "custom_python/add_custom_methods_to_python.h"
+#include "includes/define_python.h"
 
 namespace Kratos
 {
 namespace Python
 {
-void AddCustomMethodsToPython(pybind11::module& m)
-{
-    AddCustomSpatialMethodsToPython(m);
-    AddCustomTemporalMethodsToPython(m);
-}
+void AddCustomSpatialMethodsToPython(pybind11::module& m);
 
 } // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos.
+
+#endif // KRATOS_ADD_SPATIAL_METHODS_TO_PYTHON_H_INCLUDED  defined
