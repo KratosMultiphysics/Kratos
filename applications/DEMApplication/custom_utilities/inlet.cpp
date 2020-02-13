@@ -718,20 +718,16 @@ namespace Kratos {
 
         const double radius = tan(angle_in_radians) * vector_modulus;
         const double radius_square = radius * radius;
-        double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
+        double local_added_vector_modulus_square = radius_square + 1.0;
         array_1d<double, 3> local_added_vector; local_added_vector[0] = local_added_vector[1] = local_added_vector[2] = 0.0;
 
         while (local_added_vector_modulus_square > radius_square) {
-            //Random in a range: (max - min) * ( (double)rand() / (double)RAND_MAX ) + min
-            local_added_vector[0] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
-            local_added_vector[1] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
-            local_added_vector_modulus_square = local_added_vector[0]*local_added_vector[0] + local_added_vector[1]*local_added_vector[1];
+            local_added_vector[0] = 2.0*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_vector_modulus_square = local_added_vector[0]*local_added_vector[0];
         }
-
-        noalias(vector) += local_added_vector[0] * normal_1 + local_added_vector[1] * normal_1;
+        noalias(vector) += local_added_vector[0] * normal_1;
         KRATOS_CATCH("")
     }
-
 
 
     void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_radians)
