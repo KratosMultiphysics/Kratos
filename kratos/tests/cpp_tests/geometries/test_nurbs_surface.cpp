@@ -442,25 +442,23 @@ namespace Testing {
         }
         KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
 
-        const Element& rReferenceElement = KratosComponents<Element>::Get("Element");
-
-        auto p_element = rReferenceElement.Create(0, quadrature_points[2], nullptr);
+        auto element = Element(0, quadrature_points(2));
 
         // Check shape functions
         KRATOS_CHECK_MATRIX_NEAR(
-            p_element->pGetGeometry()->ShapeFunctionsValues(),
+            element.pGetGeometry()->ShapeFunctionsValues(),
             quadrature_points(2)->ShapeFunctionsValues(),
             TOLERANCE);
 
         // Check first derivatives
         KRATOS_CHECK_MATRIX_NEAR(
-            p_element->GetGeometry().ShapeFunctionDerivatives(1, 0),
+            element.GetGeometry().ShapeFunctionDerivatives(1, 0),
             quadrature_points(2)->ShapeFunctionLocalGradient(0),
             TOLERANCE);
 
         // Check second derivatives
         KRATOS_CHECK_MATRIX_NEAR(
-            p_element->GetGeometry().ShapeFunctionDerivatives(2, 0),
+            element.GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
             TOLERANCE);
     }
