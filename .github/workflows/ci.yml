@@ -127,7 +127,7 @@ jobs:
           -DBOOST_ROOT="%BOOST_ROOT%"                        ^
           -DINCLUDE_FEAST=OFF                                ^
           -DINSTALL_RUNKRATOS=OFF                            ^
-          -DUSE_COTIRE=ON                                    || goto :error
+          -DUSE_COTIRE=OFF                                   || goto :error
 
         cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity || goto :error
 
