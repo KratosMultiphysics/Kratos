@@ -20,7 +20,8 @@ namespace ComplexDofUpdater
         Node<3>& node,
         const std::complex<double>& Z)
     {
-        node.FastGetSolutionStepValue(var) = std::abs(Z);
+        const int sign = std::real(Z) >= 0 ? 1 : -1;
+        node.FastGetSolutionStepValue(var) = sign * std::abs(Z);
         node.FastGetSolutionStepValue(var_real) = std::real(Z);
         node.FastGetSolutionStepValue(var_imag) = std::imag(Z);
     }
@@ -32,7 +33,8 @@ namespace ComplexDofUpdater
         Node<3>& node,
         const std::complex<double>& Z)
     {
-        node.FastGetSolutionStepValue(var) = std::abs(Z);
+        const int sign = std::real(Z) >= 0 ? 1 : -1;
+        node.FastGetSolutionStepValue(var) = sign * std::abs(Z);
         node.FastGetSolutionStepValue(var_real) = std::real(Z);
         node.FastGetSolutionStepValue(var_imag) = std::imag(Z);
     }
