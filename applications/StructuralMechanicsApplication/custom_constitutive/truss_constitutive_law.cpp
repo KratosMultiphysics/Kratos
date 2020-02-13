@@ -159,7 +159,7 @@ int TrussConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
+    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] < 0.00)
      << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
     KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
