@@ -59,7 +59,7 @@ void SetItemDataValues(Variable<Matrix<double>> const&,
 template <typename TContainerItemType>
 class ContainerItemComponentIO
 {
-protected:
+public:
     template <typename TComponent, typename dummy = void>
     class WriteComponentFunctor
     {
