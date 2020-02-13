@@ -24,6 +24,7 @@
 #include "utilities/builtin_timer.h"
 
 #include "custom_utilities/dirichlet_utility.hpp"
+#include "custom_utilities/complex_dof_updater.hpp"
 
 namespace Kratos
 {
@@ -481,28 +482,6 @@ class FrequencyResponseAnalysisStrategy
         KRATOS_CATCH("");
     }
 
-    void AssignVariables(TSolutionVectorType& rDisplacement, int step=0)
-    {
-        auto& r_model_part = BaseType::GetModelPart();
-        for( auto& node : r_model_part.Nodes() )
-        {
-            ModelPart::NodeType::DofsContainerType& rNodeDofs = node.GetDofs();
-            
-            for( auto it_dof = std::begin(rNodeDofs); it_dof != std::end(rNodeDofs); it_dof++ )
-            {
-                if( !(*it_dof)->IsFixed() )
-                {
-                    (*it_dof)->GetSolutionStepValue(step) = std::real(rDisplacement((*it_dof)->EquationId()));
-                    (*it_dof)->GetSolutionStepReactionValue(step) = std::imag(rDisplacement((*it_dof)->EquationId()));
-                }
-                else
-                {
-                    (*it_dof)->GetSolutionStepValue(step) = 0.0;
-                }
-            }
-        }
-    }
-
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -539,7 +518,7 @@ class FrequencyResponseAnalysisStrategy
         mpComplexLinearSolver->Solve( r_A, r_Dx, r_RHS);
 
         //Assign the computed values
-        AssignVariables(r_Dx);
+        ComplexDofUpdater::AssignDofs<TSolutionVectorType>(BaseType::GetModelPart(), r_Dx);
 
 		return true;
 
