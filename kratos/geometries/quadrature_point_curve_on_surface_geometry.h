@@ -124,21 +124,20 @@ public:
     {
     }
 
+    QuadraturePointCurveOnSurfaceGeometry()
+        : BaseType()
+        , mLocalTangents2d(
+            ZeroVector(2))
+    {
+    }
+
     explicit QuadraturePointCurveOnSurfaceGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints)
         , mLocalTangents2d(ZeroVector(2))
     {
     }
 
-    /**
-     * Copy constructor.
-     * Constructs this geometry as a copy of given geometry.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     */
+    /// Copy constructor.
     QuadraturePointCurveOnSurfaceGeometry(QuadraturePointCurveOnSurfaceGeometry const& rOther )
         : BaseType( rOther )
         , mLocalTangents2d(rOther.mLocalTangents2d)
@@ -165,7 +164,7 @@ public:
     {
     }
 
-    /// Destructor. Does nothing!!!
+    /// Destructor.
     ~QuadraturePointCurveOnSurfaceGeometry() override = default;
 
     ///@}
@@ -303,13 +302,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("LocalTangents2d", mLocalTangents2d);
-    }
-
-    QuadraturePointCurveOnSurfaceGeometry()
-        : BaseType()
-        , mLocalTangents2d(
-            ZeroVector(2))
-    {
     }
 
     ///@}
