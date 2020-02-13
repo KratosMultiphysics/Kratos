@@ -83,7 +83,8 @@ public:
         ShapeFunctionsValuesContainerType& rShapeFunctionValues,
         ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
         array_1d<double, 2> LocalTangents2d)
-        : BaseType(ThisPoints, rIntegrationPoints, rShapeFunctionValues, rShapeFunctionsDerivativesVector)
+        : BaseType(ThisPoints, rIntegrationPoints,
+            rShapeFunctionValues, rShapeFunctionsDerivativesVector)
         , mLocalTangents2d(LocalTangents2d)
     {
     }
@@ -96,7 +97,8 @@ public:
         const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
         array_1d<double, 2> LocalTangents2d,
         GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, rIntegrationPoints, rShapeFunctionValues, rShapeFunctionsDerivativesVector, pGeometryParent)
+        : BaseType(ThisPoints, rIntegrationPoints,
+            rShapeFunctionValues, rShapeFunctionsDerivativesVector, pGeometryParent)
         , mLocalTangents2d(LocalTangents2d)
     {
     }
@@ -110,6 +112,7 @@ public:
         , mLocalTangents2d(LocalTangents2d)
     {
     }
+
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
