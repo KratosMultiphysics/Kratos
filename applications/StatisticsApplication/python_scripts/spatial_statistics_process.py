@@ -7,6 +7,7 @@ from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemContainer
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethodHeaders
 from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetMethodValues
+from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetVariableHeaders
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 from datetime import datetime
 
@@ -181,6 +182,11 @@ class SpatialStatisticsProcess(Kratos.Process):
 
         self.previous_process_info_value = self.process_info_value
 
+    def ExecuteFinalize(self):
+        for output_file in self.output_files:
+            output_file.file.write("# End of file\n")
+            output_file.file.close()
+
     def CalculateOutput(self):
         for variable_settings, output_file in zip(self.variables_settings_list, self.output_files):
             self.is_output_control_variable_value_written = False
@@ -198,35 +204,37 @@ class SpatialStatisticsProcess(Kratos.Process):
                 variable_list.append(Kratos.KratosGlobals.GetVariable(variable_name))
 
             if (norm_type == "none"):
-                for variable in variable_list:
+                for index, variable in enumerate(variable_list):
                     output = method(self.__get_model_part(), variable)
                     method_headers = GetMethodHeaders(method_name, variable_settings["method_settings"])
-                    self.__write_output(output, variable_names_list, norm_type, method_name, method_headers, output_file)
+                    self.__write_output(output,  variable_names_list[index], variable_names_list, norm_type, method_name, method_headers, output_file)
             else:
-                for variable in variable_list:
+                for index, variable in enumerate(variable_list):
                     output = method(norm_type, self.__get_model_part(), variable, variable_settings["method_settings"])
                     method_headers = GetMethodHeaders(method_name, variable_settings["method_settings"])
-                    self.__write_output(output, variable_names_list, norm_type, method_name, method_headers, output_file)
+                    self.__write_output(output, variable_names_list[index], variable_names_list, norm_type, method_name, method_headers, output_file)
 
 
-    def __write_output(self, output, variable_names_list, norm_type, method_name, method_headers, output_file):
-        self.__write_headers(variable_names_list, method_headers, output_file)
+    def __write_output(self, output, variable_name, variable_names_list, norm_type, method_name, method_headers, output_file):
+        self.__write_headers(norm_type, variable_names_list, method_headers, output_file)
         if (not self.is_output_control_variable_value_written):
             output_file.file.write(str(self.process_info_value))
             self.is_output_control_variable_value_written = True
-        output_file.file.write(",")
-        output_file.file.write(GetMethodValues(method_name, output))
+        output_file.file.write(" ")
+        output_file.file.write(GetMethodValues(method_name, norm_type, variable_name, output))
 
 
-    def __write_headers(self, variable_names_list, method_headers, output_file):
+    def __write_headers(self, norm_type, variable_names_list, method_headers, output_file):
         if (not hasattr(output_file, "is_variable_headers_written")):
             output_file.is_variable_headers_written = False
 
         if (not output_file.is_variable_headers_written):
             msg = "# OutputControlVariableValue"
             for variable_name in variable_names_list:
+                variable_sub_list = GetVariableHeaders(norm_type, variable_name)
                 for header in method_headers:
-                    msg += "," + variable_name + header
+                    for variable_sub_name in variable_sub_list:
+                        msg += " " + variable_sub_name + header
             msg += "\n"
             output_file.file.write(msg)
             output_file.is_variable_headers_written = True

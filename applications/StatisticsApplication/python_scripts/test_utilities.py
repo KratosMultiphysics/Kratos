@@ -83,40 +83,52 @@ def CreateModelPart(model_part):
     model_part.CreateNewCondition("Condition2D2N", 6, [6, 7], prop)
     model_part.CreateNewCondition("Condition2D2N", 7, [7, 1], prop)
 
-def InitializeModelPartVariables(model_part):
-    for node in model_part.Nodes:
-        node.SetValue(Kratos.PRESSURE, GetRandomValue())
-        node.SetValue(Kratos.VELOCITY, GetRandomVector())
-        node.SetValue(Kratos.LOAD_MESHES, GetRandomVector(5))
-        node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, GetRandomMatrix())
+def InitializeModelPartVariables(model_part, is_random = True):
+    if is_random:
+        scalar_method = lambda item : GetRandomValue()
+        array_3d_method = lambda item : GetRandomVector()
+        vector_method = lambda item : GetRandomVector(5)
+        matrix_method = lambda item : GetRandomMatrix()
+    else:
+        t = model_part.ProcessInfo[Kratos.STEP]
+        scalar_method = lambda item : GetInitialVariableValue(Kratos.PRESSURE, "none", (t+1) * (item.Id+1))
+        array_3d_method = lambda item : GetInitialVariableValue(Kratos.VELOCITY, "none", (t+1) * (item.Id +1) * 2.0)
+        vector_method = lambda item : GetInitialVariableValue(Kratos.LOAD_MESHES, "none", (t+1) * (item.Id + 2.0))
+        matrix_method = lambda item : GetInitialVariableValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, "none", (t+1) * (item.Id+3)* 2.0)
 
-        node.SetSolutionStepValue(Kratos.PRESSURE, 0, GetRandomValue())
-        node.SetSolutionStepValue(Kratos.VELOCITY, 0, GetRandomVector())
-        node.SetSolutionStepValue(Kratos.LOAD_MESHES, 0, GetRandomVector(5))
-        node.SetSolutionStepValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, 0, GetRandomMatrix())
+    for node in model_part.Nodes:
+        node.SetValue(Kratos.PRESSURE, scalar_method(node))
+        node.SetValue(Kratos.VELOCITY, array_3d_method(node))
+        node.SetValue(Kratos.LOAD_MESHES, vector_method(node))
+        node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, matrix_method(node))
+
+        node.SetSolutionStepValue(Kratos.PRESSURE, 0, scalar_method(node))
+        node.SetSolutionStepValue(Kratos.VELOCITY, 0, array_3d_method(node))
+        node.SetSolutionStepValue(Kratos.LOAD_MESHES, 0, vector_method(node))
+        node.SetSolutionStepValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, 0, matrix_method(node))
 
     for condition in model_part.Conditions:
-        condition.SetValue(Kratos.PRESSURE, GetRandomValue())
-        condition.SetValue(Kratos.VELOCITY, GetRandomVector())
-        condition.SetValue(Kratos.LOAD_MESHES, GetRandomVector(5))
-        condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, GetRandomMatrix())
+        condition.SetValue(Kratos.PRESSURE, scalar_method(condition))
+        condition.SetValue(Kratos.VELOCITY, array_3d_method(condition))
+        condition.SetValue(Kratos.LOAD_MESHES, vector_method(condition))
+        condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, matrix_method(condition))
 
     for element in model_part.Elements:
-        element.SetValue(Kratos.PRESSURE, GetRandomValue())
-        element.SetValue(Kratos.VELOCITY, GetRandomVector())
-        element.SetValue(Kratos.LOAD_MESHES, GetRandomVector(5))
-        element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, GetRandomMatrix())
+        element.SetValue(Kratos.PRESSURE, scalar_method(element))
+        element.SetValue(Kratos.VELOCITY, array_3d_method(element))
+        element.SetValue(Kratos.LOAD_MESHES, vector_method(element))
+        element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, matrix_method(element))
 
-def GetInitialVariableValue(variable, norm_type):
+def GetInitialVariableValue(variable, norm_type, value = 0.0):
     if (norm_type == "none"):
         if (variable == Kratos.PRESSURE):
-            return 0.0
+            return value
         elif (variable == Kratos.VELOCITY):
-            return Kratos.Vector(3, 0.0)
+            return Kratos.Vector(3, value)
         elif (variable == Kratos.LOAD_MESHES):
-            return Kratos.Vector(5, 0.0)
+            return Kratos.Vector(5, value)
         elif (variable == Kratos.GREEN_LAGRANGE_STRAIN_TENSOR):
-            return Kratos.Matrix(5, 5, 0.0)
+            return Kratos.Matrix(5, 5, value)
     else:
         return 0.0
 
