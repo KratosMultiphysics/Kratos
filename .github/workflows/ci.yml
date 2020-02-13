@@ -15,8 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
 
     container:
       image: oberbichler/kratos-dev:latest
@@ -27,8 +30,6 @@ jobs:
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
         FC: gfortran-7
-        CC: /usr/lib/ccache/gcc
-        CXX: /usr/lib/ccache/g++
 
     steps:
     - uses: actions/checkout@v2
@@ -38,13 +39,23 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-ccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-ccache-
+        key: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
 
     - name: Build
       run: |
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/lib/ccache/gcc
+          export CXX=/usr/lib/ccache/g++
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=clang-9
+          export CXX=clang++-9
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
@@ -53,8 +64,6 @@ jobs:
     - name: Running small tests
       if: github.event_name == 'pull_request'
       run: |
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
@@ -63,8 +72,6 @@ jobs:
     - name: Running nightly tests
       if: github.event_name == 'schedule' # this is the nightly build
       run: |
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
