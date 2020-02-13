@@ -2,7 +2,7 @@ import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
@@ -68,17 +68,16 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         self.spheres_model_part.AddProperties(properties)
         self.rigid_face_model_part.AddProperties(properties_walls)
 
-        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+        DiscontinuumConstitutiveLaw = getattr(DEM, properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
-        translational_scheme = ForwardEulerScheme()
+        translational_scheme = DEM.ForwardEulerScheme()
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
-        rotational_scheme = ForwardEulerScheme()
+        rotational_scheme = DEM.ForwardEulerScheme()
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
         element_name = "SphericParticle3D"
-        PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
+        DEM.PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
 
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
@@ -103,24 +102,24 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
-        properties[PARTICLE_DENSITY] = 4000.0
+        properties[DEM.PARTICLE_DENSITY] = 4000.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 3.8e11
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
-        properties[FRICTION] = 0.0
-        properties[PARTICLE_COHESION] = 0.0
-        properties[COEFFICIENT_OF_RESTITUTION] = 1.0
+        properties[DEM.FRICTION] = 0.0
+        properties[DEM.PARTICLE_COHESION] = 0.0
+        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 1.0
         self.coeff = 1.0963606640305437
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
-        properties[ROLLING_FRICTION] = 0.0
-        properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
-        properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
+        properties[DEM.ROLLING_FRICTION] = 0.0
+        properties[DEM.DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
+        properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
 
-        properties_walls[FRICTION] = 0.0
-        properties_walls[WALL_COHESION] = 0.0
-        properties_walls[COMPUTE_WEAR] = 0
-        properties_walls[SEVERITY_OF_WEAR] = 0.001
-        properties_walls[IMPACT_WEAR_SEVERITY] = 0.001
-        properties_walls[BRINELL_HARDNESS] = 200.0
+        properties_walls[DEM.FRICTION] = 0.0
+        properties_walls[DEM.WALL_COHESION] = 0.0
+        properties_walls[DEM.COMPUTE_WEAR] = 0
+        properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001
+        properties_walls[DEM.IMPACT_WEAR_SEVERITY] = 0.001
+        properties_walls[DEM.BRINELL_HARDNESS] = 200.0
         properties_walls[KratosMultiphysics.YOUNG_MODULUS] = 1.0e20
         properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.23
 
@@ -130,24 +129,24 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
-        properties[PARTICLE_DENSITY] = 4000.0
+        properties[DEM.PARTICLE_DENSITY] = 4000.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 3.8e11
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
-        properties[FRICTION] = 0.0
-        properties[PARTICLE_COHESION] = 0.0
-        properties[COEFFICIENT_OF_RESTITUTION] = 0.5
+        properties[DEM.FRICTION] = 0.0
+        properties[DEM.PARTICLE_COHESION] = 0.0
+        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
         self.coeff = 0.5472000544114178
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
-        properties[ROLLING_FRICTION] = 0.0
-        properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
-        properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
+        properties[DEM.ROLLING_FRICTION] = 0.0
+        properties[DEM.DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
+        properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
 
-        properties_walls[FRICTION] = 0.0
-        properties_walls[WALL_COHESION] = 0.0
-        properties_walls[COMPUTE_WEAR] = 0
-        properties_walls[SEVERITY_OF_WEAR] = 0.001
-        properties_walls[IMPACT_WEAR_SEVERITY] = 0.001
-        properties_walls[BRINELL_HARDNESS] = 200.0
+        properties_walls[DEM.FRICTION] = 0.0
+        properties_walls[DEM.WALL_COHESION] = 0.0
+        properties_walls[DEM.COMPUTE_WEAR] = 0
+        properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001
+        properties_walls[DEM.IMPACT_WEAR_SEVERITY] = 0.001
+        properties_walls[DEM.BRINELL_HARDNESS] = 200.0
         properties_walls[KratosMultiphysics.YOUNG_MODULUS] = 1.0e20
         properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.23
 

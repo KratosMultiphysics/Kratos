@@ -156,7 +156,7 @@ void Clear(pybind11::list& my_list);
 ///@{
 
 /// Assignment operator.
-PostProcessUtilities & operator=(PostProcessUtilities const& rOther);
+PostProcessUtilities & operator=(PostProcessUtilities const& rOther){};
 
 
 ///@}
