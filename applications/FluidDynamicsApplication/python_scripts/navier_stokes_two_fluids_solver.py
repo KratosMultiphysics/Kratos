@@ -195,8 +195,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-        it_number=self.linear_solver.GetIterationsNumber()
-        KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
+        #it_number=self.linear_solver.GetIterationsNumber()
+        #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
 
         self.distance_gradient_process = self._set_distance_gradient_process()
         #(self.distance_gradient_process).Execute()
@@ -208,12 +208,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.interface_curvature_calculation).Execute()
 
         self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
-        #(self.distance_gradient_process).Execute()
+        (self.distance_gradient_process).Execute()
         #(self.curvature_calculation_process).Execute()
-        #(self.variational_non_eikonal_distance).Execute()
-        #for node in self.main_model_part.Nodes:
-        #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-        #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+        (self.variational_non_eikonal_distance).Execute()
+        for node in self.main_model_part.Nodes:
+            smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+
+        it_number=self.linear_solver.GetIterationsNumber()
+        KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, non_eikonal_distance", it_number)
 
         self.interface_pressure_gradient_calculation = self._set_interface_pressure_gradient_calculation()
         #(self.interface_pressure_gradient_calculation).Execute()
@@ -331,23 +334,23 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    (self.lumped_eikonal_distance_calculation).Execute()
 
             # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
-            #if (TimeStep % 1 == 0):
-            #    (self.distance_gradient_process).Execute()
-            #    #(self.curvature_calculation_process).Execute()
+            if (TimeStep % 1 == 0):
+                (self.distance_gradient_process).Execute()
+            #    (self.curvature_calculation_process).Execute()
             #    (self.interface_curvature_calculation).Execute()
-            #    (self.variational_non_eikonal_distance).Execute()
-            #    for node in self.main_model_part.Nodes:
-            #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+                (self.variational_non_eikonal_distance).Execute()
+                for node in self.main_model_part.Nodes:
+                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
                 
-            #    it_number=self.linear_solver.GetIterationsNumber()
-            #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
+                it_number=self.linear_solver.GetIterationsNumber()
+                KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
             # Smoothing the surface to filter oscillatory surface
-            (self.surface_smoothing_process).Execute()
-            for node in self.main_model_part.Nodes:
-                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #(self.surface_smoothing_process).Execute()
+            #for node in self.main_model_part.Nodes:
+            #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             #it_number=self.linear_solver.GetIterationsNumber()
             #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)

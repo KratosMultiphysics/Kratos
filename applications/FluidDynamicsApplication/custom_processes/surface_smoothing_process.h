@@ -117,6 +117,16 @@ public:
 
     void ExecuteFinalizeSolutionStep() override;
 
+    virtual void Clear()
+    {
+        Model& r_model = mrModelPart.GetModel();
+        ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
+        r_smoothing_model_part.Nodes().clear();
+        r_smoothing_model_part.Conditions().clear();
+        r_smoothing_model_part.Elements().clear();
+        mp_solving_strategy->Clear();
+    }
+
     ///@}
     ///@name Operations
     ///@{

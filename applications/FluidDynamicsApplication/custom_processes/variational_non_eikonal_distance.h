@@ -117,6 +117,16 @@ public:
 
     void ExecuteFinalizeSolutionStep() override;
 
+    virtual void Clear()
+    {
+        Model& r_model = mrModelPart.GetModel();
+        ModelPart& r_non_eikonal_distance_model_part = r_model.GetModelPart( mAuxModelPartName );
+        r_non_eikonal_distance_model_part.Nodes().clear();
+        r_non_eikonal_distance_model_part.Conditions().clear();
+        r_non_eikonal_distance_model_part.Elements().clear();
+        mp_solving_strategy->Clear();
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -186,14 +196,14 @@ private:
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
     
         Model& r_model = mrModelPart.GetModel();
-        ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
+        ModelPart& r_non_eikonal_distance_model_part = r_model.GetModelPart( mAuxModelPartName );
     
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
     
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
-            r_smoothing_model_part,
+            r_non_eikonal_distance_model_part,
             p_scheme,
             pLinearSolver,
             pBuilderAndSolver,

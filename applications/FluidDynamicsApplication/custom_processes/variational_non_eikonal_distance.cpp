@@ -109,6 +109,13 @@ void VariationalNonEikonalDistance::Execute()
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
 
+        const double temp_X = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
+        it_node->SetValue(DISTANCE_GRADIENT_X, temp_X);
+        const double temp_Y = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
+        it_node->SetValue(DISTANCE_GRADIENT_Y, temp_Y);
+        const double temp_Z = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
+        it_node->SetValue(DISTANCE_GRADIENT_Z, temp_Z);
+
         if (abs(distance) <= distance_min){
             #pragma omp critical
             distance_min = abs(distance);
@@ -134,11 +141,11 @@ void VariationalNonEikonalDistance::Execute()
        }
     } */
 
-    auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
+    /* auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
     it_node->Fix(DISTANCE_AUX);
-    KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << it_node->FastGetSolutionStepValue(DISTANCE) << std::endl;
+    KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << it_node->FastGetSolutionStepValue(DISTANCE) << std::endl; */
 
-    /* const double epsilon = 1.0e-6;
+    const double epsilon = 1.0e-15;
     #pragma omp parallel for
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
@@ -146,9 +153,9 @@ void VariationalNonEikonalDistance::Execute()
 
         if (abs((abs(distance) - distance_min)/(distance_min + epsilon)) <= epsilon){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
             it_node->Fix(DISTANCE_AUX);
-            KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << distance << std::endl;
+            //KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << distance << std::endl;
         }
-    } */
+    }
 
     //#pragma omp parallel for
     //for (int i_elem = 0; i_elem < NumElements; ++i_elem){

@@ -250,7 +250,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
 
     const double tau = 0.5;
-    const double penalty_curvature = 0.0e0; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
+    const double penalty_curvature = 1.0e8; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
     const double penalty_phi0 = 1.0e8;
     //const double dissipative_coefficient = 1.0e-8;
 
@@ -305,9 +305,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         values(i_node*(num_dim + 1) + 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
         values(i_node*(num_dim + 1) + 3) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
 
-        distance_gradient0(i_node, 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
-        distance_gradient0(i_node, 1) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
-        distance_gradient0(i_node, 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
+        distance_gradient0(i_node, 0) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_X);
+        distance_gradient0(i_node, 1) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Y);
+        distance_gradient0(i_node, 2) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Z);
     }
 
     unsigned int nneg=0, npos=0;
