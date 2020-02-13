@@ -47,7 +47,6 @@
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D4N.hpp"
@@ -349,8 +348,6 @@ private:
     const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element
-    const PrestressMembraneElement mPreStressMembraneElement3D3N;
-    const PrestressMembraneElement mPreStressMembraneElement3D4N;
     const MembraneElement mMembraneElement3D4N;
     const MembraneElement mMembraneElement3D3N;
 

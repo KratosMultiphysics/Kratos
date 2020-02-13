@@ -8,17 +8,44 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
     def __init__(self, model, project_parameters):
         super(DEMAnalysisStage2DSpRigidFem, self).__init__(model, project_parameters)
 
+    def Initialize(self):
+        super(DEMAnalysisStage2DSpRigidFem, self).Initialize()
+
+        self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
+
+    def CreateSPMeasuringRingSubmodelpart(self, spheres_model_part):
+
+        if not self.spheres_model_part.HasSubModelPart("RingSubmodelPart"):
+            self.spheres_model_part.CreateSubModelPart('RingSubmodelPart')
+        self.ring_submodelpart = self.spheres_model_part.GetSubModelPart('RingSubmodelPart')
+
+        zone_radius_to_measure_2d_sp = 0.02 # In meters. This is a little bit less than half the CTW16 radius
+        nodes_in_zone_radius_list = []
+        elements_in_zone_radius_list = []
+
+        for element in self.spheres_model_part.Elements:
+            node = element.GetNode(0)
+            x = node.X
+            y = node.Y
+
+            if (x * x + y * y) < zone_radius_to_measure_2d_sp * zone_radius_to_measure_2d_sp:
+                nodes_in_zone_radius_list.append(node.Id)
+                elements_in_zone_radius_list.append(element.Id)
+
+        self.ring_submodelpart.AddNodes(nodes_in_zone_radius_list)
+        self.ring_submodelpart.AddElements(elements_in_zone_radius_list)
+
     def PrintResultsForGid(self, time):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
 
-        DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.spheres_model_part)
+        DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.ring_submodelpart)
 
         self.SettingGeometricalSPValues()
 
-        self.creator_destructor.MarkParticlesForErasingGivenCylinder(self.spheres_model_part, self.center, self.axis, self.radius)
+        self.creator_destructor.MarkParticlesForErasingGivenCylinder(self.ring_submodelpart, self.center, self.axis, self.radius)
 
-        DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.spheres_model_part, self.rigid_face_model_part, self.time)
-        DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.spheres_model_part, self.rigid_face_model_part, self.time)
+        DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.ring_submodelpart, self.rigid_face_model_part, self.time)
+        DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.ring_submodelpart, self.rigid_face_model_part, self.time)
 
     def SettingGeometricalSPValues(self):
 
