@@ -53,6 +53,7 @@ class NodalDampingTests(KratosUnittest.TestCase):
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
         time = time - delta_time * (buffer_size)
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         for size in range(0, buffer_size):
             step = size - (buffer_size -1)
             mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)

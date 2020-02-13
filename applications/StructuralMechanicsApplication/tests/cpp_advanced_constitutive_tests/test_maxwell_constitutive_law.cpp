@@ -33,8 +33,25 @@ namespace Testing
 typedef Node<3> NodeType;
 
 /**
-    * Check the correct calculation of the integrated stress with the CL's
-    */
+* Check the correct calculation of the integrated stress with the CL's
+*/
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwellInternalVariables, KratosStructuralMechanicsFastSuite)
+{
+    //
+    // Test: check correct behavior of internal and calculated variables
+    //
+
+    ViscousGeneralizedMaxwell<ElasticIsotropic3D> cl = ViscousGeneralizedMaxwell<ElasticIsotropic3D>();
+
+    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+
+    // This constitutive law does not use internal variables
+    // TODO (marandra): check that this is compatible con API
+    KRATOS_CHECK_IS_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
+}
+
+
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;

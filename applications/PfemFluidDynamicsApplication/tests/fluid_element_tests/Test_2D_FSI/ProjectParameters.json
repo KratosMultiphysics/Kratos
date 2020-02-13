@@ -278,16 +278,14 @@
     }],
     "processes": {
         "constraints_process_list" : [{
-            "python_module" : "assign_vector_components_to_nodes_process",
-            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-            "help"          : "This process fixes the selected components of a given vector variable",
-            "process_name"  : "AssignVectorComponentsToNodesProcess",
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name"     : "VELOCITY_Velocity_Auto1",
-                "variable_name"       : "VELOCITY",
-                "value"               : [0.0,0.0,0.0],
-                "compound_assignment" : "direct",
-                "interval"            : [0.0,"End"]
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
             }
         }],
         "loads_process_list"       : [],

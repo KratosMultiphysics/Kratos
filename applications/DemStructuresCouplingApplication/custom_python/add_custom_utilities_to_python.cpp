@@ -30,6 +30,7 @@ namespace Kratos {
                 .def("SmoothLoadTrasferredToFem", &DemStructuresCouplingUtilities::SmoothLoadTrasferredToFem)
                 .def("ComputeSandProduction", &DemStructuresCouplingUtilities::ComputeSandProduction)
                 .def("ComputeSandProductionWithDepthFirstSearch", &DemStructuresCouplingUtilities::ComputeSandProductionWithDepthFirstSearch)
+                .def("ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation", &DemStructuresCouplingUtilities::ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation)
                 .def("ComputeTriaxialSandProduction", &DemStructuresCouplingUtilities::ComputeTriaxialSandProduction)
                 .def("MarkBrokenSpheres", &DemStructuresCouplingUtilities::MarkBrokenSpheres)
             ;
@@ -59,7 +60,7 @@ namespace Kratos {
                 .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
 
-            class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+            class_<PostProcessUtilities,PostProcessUtilities::Pointer>(m, "PostProcessUtilities", module_local())
                 .def(init<ModelPart&>())
                 .def("GetStickyStatus", &PostProcessUtilities::GetStickyStatus)
                 .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)

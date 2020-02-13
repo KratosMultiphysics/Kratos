@@ -186,6 +186,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -433,6 +434,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.formulation.SetProcessInfo(self.computing_model_part)
 
         (self.solver).Initialize()
+
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.SetParentSolvingStrategy(self.solver)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 

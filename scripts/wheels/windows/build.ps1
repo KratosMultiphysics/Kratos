@@ -1,37 +1,73 @@
-$pythons = "37","36","35"
+$pythons = "38","37","36","35"
+$env:kratos_version = "7.0.3"
+
+$kratosRoot = "c:\kratos\kratos"
+$env:kratos_root = $kratosRoot
+$wheelRoot = "c:\wheel"
+$wheelOutDir = "c:\out"
+
+function build ($python, $pythonPath) {
+    cd $kratosRoot
+    cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot)"
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+}
+
+function  setup_wheel_dir {
+    cd $kratosRoot
+    mkdir c:\wheel
+    cp scripts\wheels\setup.py c:\wheel\setup.py
+    mkdir c:\wheel\KratosMultiphysics
+    mkdir c:\wheel\KratosMultiphysics\.libs
+}
+
+function create_core_wheel ($pythonPath) {
+    setup_wheel_dir
+    cd $kratosRoot
+    cp bin\release\KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
+    cp scripts\wheels\windows\KratosMultiphysics.json "$($wheelRoot)\wheel.json"
+
+
+    cp scripts\wheels\__init__.py "$($wheelRoot)\KratosMultiphysics\__init__.py"
+    cd $wheelRoot
+    & $pythonPath setup.py bdist_wheel
+    cp "$($wheelRoot)\dist\*" $wheelOutDir
+    cd c:\
+    rm -r $wheelRoot
+}
+
+function create_application_wheel ($pythonPath, $app) {
+    setup_wheel_dir
+    cp "$($kratosRoot)\scripts\wheels\windows\applications\$($app)" c:\wheel\wheel.json
+    cd $wheelRoot
+    & $pythonPath setup.py bdist_wheel #pythonpath
+    cp "$($wheelRoot)\dist\*" $wheelOutDir
+    cd c:\
+    rm -r $wheelRoot
+}
 
 foreach ($python in $pythons){
     echo "Begining build for python $($python)"
+    $env:python = $python
 
-    #env cleanup
-    mkdir c:\wheel
-    cd c:\kratos\kratos
+    #mkdir c:\wheel
+    cd $kratosRoot
     git clean -ffxd
     $env:hash=$(git show -s --format=%h) #used in version number
-    cd cmake_build
-    cp c:\kratos\Kratos\scripts\wheels\windows\configure.bat .\configure.bat
+    $pythonPath = "$($env:pythonRoot)\$($python)\python.exe"
 
-
-    $pythonPath = "$($env:python)\$($python)\python.exe"
-    cmd.exe /c "call configure.bat $($pythonPath)"
-    MSBuild.exe /m INSTALL.vcxproj /p:Configuration=Custom /p:Platform="x64"
+    build $python $pythonPath
 
     echo "Finished build"
     echo "Begining wheel construction for python $($python)"
 
-    cd c:\kratos\kratos
-    cp -r KratosMultiphysics c:\wheel
-    mkdir c:\wheel\KratosMultiphysics\.libs
-    cp -r libs\* c:\wheel\KratosMultiphysics\.libs
-    cp scripts\wheels\windows\__init__.py c:\wheel\KratosMultiphysics\__init__.py
-    cp scripts\wheels\windows\setup.py c:\wheel\setup.py
-    cp scripts\wheels\windows\README.md c:\wheel\README.md
-    cd c:\wheel
+    create_core_wheel $pythonPath
 
-    & $pythonPath setup.py bdist_wheel
-    cp c:\wheel\dist\* c:\out\
-    cd c:\
-    rm -r c:\wheel
+    $applications = Get-ChildItem "$($kratosRoot)\scripts\wheels\windows\applications"
+
+    foreach($app in $applications) {
+        create_application_wheel $pythonPath $app
+    }
 
     echo "Finished wheel construction for python $($python)"
 }

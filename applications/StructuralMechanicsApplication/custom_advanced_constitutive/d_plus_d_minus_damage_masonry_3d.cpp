@@ -304,36 +304,60 @@ bool DamageDPlusDMinusMasonry3DLaw::Has(const Variable<double>& rThisVariable)
 /***********************************************************************************/
 bool DamageDPlusDMinusMasonry3DLaw::Has(const Variable<Vector>& rThisVariable)
 {
+    if(rThisVariable == INTERNAL_VARIABLES){
+        return true;
+    }
     return BaseType::Has(rThisVariable);
 }
 /***********************************************************************************/
 /***********************************************************************************/
 bool DamageDPlusDMinusMasonry3DLaw::Has(const Variable<Matrix>& rThisVariable)
 {
+    if(rThisVariable == INTEGRATED_STRESS_TENSOR) {
+        // explicitly returning "false", so we know we must call CalculateValue(...)
+        return false;
+    }
     return BaseType::Has(rThisVariable);
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry3DLaw::SetValue(
-    const Variable<double>& rThisVariable,
-    const double& rValue,
+   const Variable<double>& rThisVariable,
+   const double& rValue,
+   const ProcessInfo& rCurrentProcessInfo
+   )
+{
+    if (rThisVariable == DAMAGE_TENSION) {
+        mTensionDamage = rValue;
+    } else if (rThisVariable == THRESHOLD_TENSION) {
+        mTensionThreshold = rValue;
+    } else if (rThisVariable == DAMAGE_COMPRESSION) {
+        mCompressionDamage = rValue;
+    } else if (rThisVariable == THRESHOLD_COMPRESSION) {
+        mCompressionThreshold = rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
+        mCompressionUniaxialStress = rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
+        mTensionUniaxialStress = rValue;
+    } else {
+        return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+void DamageDPlusDMinusMasonry3DLaw::SetValue(
+    const Variable<Vector>& rThisVariable,
+    const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if (rThisVariable == DAMAGE_TENSION) {
-       mTensionDamage = rValue;
-    } else if (rThisVariable == THRESHOLD_TENSION) {
-       mTensionThreshold = rValue;
-    } else if (rThisVariable == DAMAGE_COMPRESSION) {
-       mCompressionDamage = rValue;
-    } else if (rThisVariable == THRESHOLD_COMPRESSION) {
-       mCompressionThreshold = rValue;
-    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
-       mCompressionUniaxialStress = rValue;
-    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
-       mTensionUniaxialStress = rValue;
-    } else {
-       return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        mTensionDamage = rValue[0];
+        mTensionThreshold = rValue[1];
+        mCompressionDamage = rValue[2];
+        mCompressionThreshold = rValue[3];
+        mCompressionUniaxialStress = rValue[4];
+        mTensionUniaxialStress = rValue[5];
     }
 }
 /***********************************************************************************/
@@ -367,7 +391,16 @@ Vector& DamageDPlusDMinusMasonry3DLaw::GetValue(
     Vector& rValue
     )
 {
-    return BaseType::GetValue(rThisVariable, rValue);
+    if(rThisVariable == INTERNAL_VARIABLES){
+        rValue.resize(6);
+        rValue[0] = mTensionDamage;
+        rValue[1] = mTensionThreshold;
+        rValue[2] = mCompressionDamage;
+        rValue[3] = mCompressionThreshold;
+        rValue[4] = mCompressionUniaxialStress;
+        rValue[5] = mTensionUniaxialStress;
+    }
+    return rValue;
 }
 /***********************************************************************************/
 /***********************************************************************************/

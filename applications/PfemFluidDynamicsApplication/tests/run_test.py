@@ -3,7 +3,6 @@ import sys
 
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication
-import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
 # Import Kratos "wrapper" for unittests

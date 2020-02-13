@@ -1,29 +1,22 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: jirazabal $
-//   Date:                $Date: 2011-12-05 11:51:35 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//                       license: MeshingApplication/license.txt
 //
+//  Main authors:    jirazabal
 //
 
 #if !defined(KRATOS_CUTTING_ISOSURFACE_APPLICATION)
 #define  KRATOS_CUTTING_ISOSURFACE_APPLICATION
 
-
+// External excludes
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include "boost/smart_ptr.hpp"
-#include <boost/timer.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-
 
 // System includes
 #include <string>
@@ -32,24 +25,17 @@
 #include <cmath>
 #include <algorithm>
 
-
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
-#include "includes/dof.h"
 #include "includes/variables.h"
-#include "containers/array_1d.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
 #include "utilities/math_utils.h"
 #include "utilities/split_tetrahedra.h"
 #include "utilities/split_triangle.c"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
-#include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 
 namespace Kratos

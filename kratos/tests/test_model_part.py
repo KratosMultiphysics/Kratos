@@ -296,6 +296,33 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(inlets_model_part.NumberOfProperties(), 5)
         self.assertEqual(model_part.NumberOfProperties(), 7)
 
+        # Testing subproperties
+        prop_4 = model_part.GetProperties()[4]
+        prop_4.AddSubProperties(model_part.GetProperties()[3])
+        self.assertEqual(prop_4.NumberOfSubproperties(), 1)
+        self.assertEqual(prop_4.HasSubProperties(3), True)
+        self.assertEqual(prop_4.HasSubProperties(120), False)
+
+    def test_model_part_sub_properties(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        prop1 = model_part.CreateNewProperties(1)
+        subprop2 = KratosMultiphysics.Properties(2)
+        prop1.AddSubProperties(subprop2)
+        subprop3 = KratosMultiphysics.Properties(3)
+        prop1.AddSubProperties(subprop3)
+        subsubprop2 = KratosMultiphysics.Properties(2)
+        subprop3.AddSubProperties(subsubprop2)
+        subsubprop4 = KratosMultiphysics.Properties(4)
+        subprop3.AddSubProperties(subsubprop4)
+
+        self.assertEqual(model_part.HasProperties("1"), True)
+        self.assertEqual(model_part.HasProperties("1.2"), True)
+        self.assertEqual(model_part.HasProperties("1.3.2"), True)
+        self.assertEqual(model_part.HasProperties("1.2.3"), False)
+        self.assertEqual(model_part.HasProperties("3.1.1"), False)
+
     def test_model_part_elements(self):
         current_model = KratosMultiphysics.Model()
 
@@ -653,6 +680,41 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue( e4.Id in sub1.Elements )
         self.assertTrue( e5.Id in sub1.Elements )
         self.assertFalse( e5.Id in sub2.Elements )
+
+    def test_geometry_container(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        geom_1 = KratosMultiphysics.Geometry("geom_1")
+        geom_2 = KratosMultiphysics.Geometry(2)
+
+        self.assertEqual(model_part.NumberOfGeometries(), 0)
+
+        model_part.AddGeometry(geom_1)
+        model_part.AddGeometry(geom_2)
+
+        # Check container and correct access
+        self.assertEqual(model_part.NumberOfGeometries(), 2)
+        self.assertEqual(model_part.GetGeometry(2).Id, 2)
+        self.assertEqual(model_part.GetGeometry("geom_1").Id, KratosMultiphysics.Geometry.GenerateId("geom_1"))
+
+        # Check remove
+        model_part.RemoveGeometry("geom_1")
+        self.assertEqual(model_part.HasGeometry("geom_1"), False)
+        self.assertEqual(model_part.HasGeometry(2), True)
+
+        # Check map access
+        self.assertEqual(len(model_part.Geometries), 1)
+        self.assertEqual(model_part.Geometries[2].Id, 2)
+        counter = 0
+        for geometry in model_part.Geometries:
+            counter += geometry.Id
+        self.assertEqual(counter, 2)
+
+        # Check correct geometries
+        for geometry in model_part.Geometries:
+            geometry.Id = 60
+            self.assertEqual(geometry.Id, geom_2.Id)
 
     def test_model_part_iterators(self):
         current_model = KratosMultiphysics.Model()

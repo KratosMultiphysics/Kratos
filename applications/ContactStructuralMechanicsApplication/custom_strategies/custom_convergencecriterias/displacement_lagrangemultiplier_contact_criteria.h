@@ -217,7 +217,7 @@ public:
             const std::size_t number_active_dofs = rb.size();
 
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num,dof_id,dof_value,dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, lm_solution_norm, disp_increase_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
@@ -225,7 +225,7 @@ public:
 
                 // Check dof id is solved
                 if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id]) {
+                    if (mActiveDofs[dof_id] == 1) {
                         dof_value = it_dof->GetSolutionStepValue(0);
                         dof_incr = rDx[dof_id];
 
@@ -430,7 +430,7 @@ private:
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
 
-    std::vector<bool> mActiveDofs; /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs; /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

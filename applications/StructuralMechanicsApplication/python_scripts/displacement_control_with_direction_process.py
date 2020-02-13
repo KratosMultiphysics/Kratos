@@ -37,13 +37,11 @@ class AssignDisplacementControlProcess(asvtep.AssignScalarVariableToEntitiesProc
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process assigns given POINT_LOAD and PRESCRIBED_DISPLACEMENT values (scalar) to the DisplacementControl belonging a certain submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "direction"       : "x, y, or z",
             "interval"        : [0.0, 1e30],
-            "POINT_LOAD_value"              : 1.0,
-            "PRESCRIBED_DISPLACEMENT_value" : "please give an expression in terms of the variable x, y, z, t",
-            "local_axes"      : {}
+            "point_load_value"              : 1.0,
+            "prescribed_displacement_value" : "please give an expression in terms of the variable x, y, z, t"
         }
         """
         )
@@ -62,33 +60,22 @@ class AssignDisplacementControlProcess(asvtep.AssignScalarVariableToEntitiesProc
 
         params_load = KratosMultiphysics.Parameters("{}")
         params_load.AddValue("model_part_name", settings["model_part_name"])
-        params_load.AddValue("mesh_id", settings["mesh_id"])
         params_load.AddValue("interval", settings["interval"])
-        params_load.AddValue("value", settings["POINT_LOAD_value"])
+        params_load.AddValue("value", settings["point_load_value"])
         params_load.AddValue("variable_name", tmp["variable_name_load"])
         params_load.AddValue("entities", tmp["entities"])
 
         params_disp = KratosMultiphysics.Parameters("{}")
         params_disp.AddValue("model_part_name", settings["model_part_name"])
-        params_disp.AddValue("mesh_id", settings["mesh_id"])
         params_disp.AddValue("interval", settings["interval"])
-        params_disp.AddValue("value", settings["PRESCRIBED_DISPLACEMENT_value"])
+        params_disp.AddValue("value", settings["prescribed_displacement_value"])
         params_disp.AddValue("variable_name", tmp["variable_name_disp"])
         params_disp.AddValue("entities", tmp["entities"])
 
         # Set processes
         self.aux_processes = []
-        if settings["POINT_LOAD_value"].IsNumber():
-            self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_load))
-        else:
-            params_load.AddValue("local_axes", settings["local_axes"])
-            self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_load))
-
-        if settings["PRESCRIBED_DISPLACEMENT_value"].IsNumber():
-            self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_disp))
-        else:
-            params_disp.AddValue("local_axes", settings["local_axes"])
-            self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_disp))
+        self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_load))
+        self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_disp))
 
         self.step_is_active = False
 

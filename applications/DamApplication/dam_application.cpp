@@ -33,6 +33,9 @@
 #include "geometries/prism_interface_3d_6.h"
 #include "geometries/hexahedra_interface_3d_8.h"
 
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
@@ -66,6 +69,19 @@ KratosDamApplication::KratosDamApplication()
         mSmallDisplacementThermoMechanicElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
         mSmallDisplacementThermoMechanicElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType(20)))),
         mSmallDisplacementThermoMechanicElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType(27)))),
+
+        mSmallDisplacementElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+        mSmallDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+        mSmallDisplacementElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+        mSmallDisplacementElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+        mSmallDisplacementElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(Element::GeometryType::PointsArrayType(9)))),
+        mSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+        mSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+        mSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+        mSmallDisplacementElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+        mSmallDisplacementElement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15)))),
+        mSmallDisplacementElement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20)))),
+        mSmallDisplacementElement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
 
 	    mFreeSurfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
         mFreeSurfaceCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
@@ -112,6 +128,20 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D10N", mSmallDisplacementThermoMechanicElement3D10N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D20N", mSmallDisplacementThermoMechanicElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D27N", mSmallDisplacementThermoMechanicElement3D27N )
+
+    //Register small displacement elements
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D3N", mSmallDisplacementElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D4N", mSmallDisplacementElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D6N", mSmallDisplacementElement2D6N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D8N", mSmallDisplacementElement2D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement2D9N", mSmallDisplacementElement2D9N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D4N", mSmallDisplacementElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D6N", mSmallDisplacementElement3D6N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D8N", mSmallDisplacementElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D10N", mSmallDisplacementElement3D10N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D15N", mSmallDisplacementElement3D15N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D20N", mSmallDisplacementElement3D20N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementSolidElement3D27N", mSmallDisplacementElement3D27N)
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "FreeSurfaceCondition2D2N", mFreeSurfaceCondition2D2N )
@@ -185,6 +215,10 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_REGISTER_VARIABLE( INITIAL_NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_REGISTER_VARIABLE( PLACEMENT_TEMPERATURE )
+
+    //From Solid
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FORCE_LOAD)
+    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
 }
 
 }// namespace Kratos.

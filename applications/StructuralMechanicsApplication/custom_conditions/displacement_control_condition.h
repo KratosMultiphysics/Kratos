@@ -329,8 +329,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    Array1DComponentType* GetDisplacementInDirection();
-    Array1DComponentType* GetPointLoadInDirection();
+    Array1DComponentType* GetDisplacementInDirection() const;
+    Array1DComponentType* GetPointLoadInDirection() const;
 
     ///@}
     ///@name Private  Access

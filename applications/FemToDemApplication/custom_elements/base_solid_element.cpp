@@ -1847,6 +1847,9 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
     KRATOS_CATCH( "" )
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
@@ -1880,9 +1883,6 @@ void BaseSolidElement::CalculateRayleighDampingMatrix(
 
     KRATOS_CATCH("CalculateRayleighDampingMatrix")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 /***********************************************************************************/
 /***********************************************************************************/

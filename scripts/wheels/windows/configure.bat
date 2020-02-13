@@ -1,29 +1,34 @@
+@echo off
 
-%CMAKE% .. -G "Visual Studio 16 2019"                                     ^
--DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 	                    ^
--DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 		                    ^
--DBOOST_ROOT=%BOOST%                                                            ^
--DLAPACK_LIBRARIES=%LAPACK%                                                     ^
--DBLAS_LIBRARIES=%BLAS%                                                         ^
--DPYTHON_EXECUTABLE=%1                          		 	                ^
--DCMAKE_BUILD_TYPE="Release"  							                        ^
--DDEM_APPLICATION=ON                                                            ^
--DEXTERNAL_SOLVERS_APPLICATION=OFF                                               ^
--DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
--DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
--DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                  ^
--DSWIMMING_DEM_APPLICATION=OFF                                                   ^
--DMESH_MOVING_APPLICATION=OFF                                                    ^
--DSOLID_MECHANICS_APPLICATION=OFF                                                ^
--DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
--DDELAUNAY_MESHING_APPLICATION=OFF                                               ^
--DCONTACT_MECHANICS_APPLICATION=OFF                                              ^
--DPFEM_APPLICATION=OFF                                                           ^
--DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                           ^
--DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                            ^
--DMETIS_APPLICATION=OFF                                                         ^
--DPARMETIS_ROOT_DIR="UNSET"                                                     ^
--DTRILINOS_APPLICATION=OFF                                                      ^
--DTRILINOS_ROOT="UNSET"                                                         ^
--DINSTALL_EMBEDDED_PYTHON=OFF                                                    ^
--DINCLUDE_FEAST=OFF                                                             
+set CC=cl.exe
+set CXX=cl.exe
+
+
+set KRATOS_SOURCE=%2
+set KRATOS_BUILD=%KRATOS_SOURCE%/build
+set KRATOS_APP_DIR=applications
+
+set KRATOS_BUILD_TYPE=Release
+set BOOST_ROOT=%BOOST%
+set PYTHON_EXECUTABLE=%1
+
+set KRATOS_APPLICATIONS=
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
+CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
+
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+%cmake% -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"        ^
+-DINCLUDE_FEAST=OFF                                                                                 ^
+-DINSTALL_EMBEDDED_PYTHON=OFF                                                                       ^
+-DLAPACK_LIBRARIES=%LAPACK%                                                                         ^
+-DBLAS_LIBRARIES=%BLAS%                                                                             ^
+-DINSTALL_RUNKRATOS=OFF
+
+:add_app
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
+goto:eof

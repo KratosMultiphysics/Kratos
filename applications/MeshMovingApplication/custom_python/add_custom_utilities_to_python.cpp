@@ -66,6 +66,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     m.def("CalculateMeshVelocities", CalculateMeshVelocitiesGeneralizedAlpha );
 
     m.def("MoveMesh", &MoveMeshUtilities::MoveMesh );
+    m.def("SuperImposeMeshDisplacement", &MoveMeshUtilities::SuperImposeMeshDisplacement );
+    m.def("SuperImposeMeshVelocity", &MoveMeshUtilities::SuperImposeMeshVelocity);
 
 }
 

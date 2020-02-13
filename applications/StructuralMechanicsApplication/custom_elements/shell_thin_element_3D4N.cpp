@@ -611,7 +611,7 @@ void ShellThinElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix& 
         // Compute the local coordinate system.
         ShellQ4_LocalCoordinateSystem localCoordinateSystem(
             mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = localCoordinateSystem.Orientation();
+        Output = trans(localCoordinateSystem.Orientation());
     }
 }
 

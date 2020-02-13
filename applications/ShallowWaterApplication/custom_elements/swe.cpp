@@ -31,14 +31,12 @@ template< size_t TNumNodes, ElementFramework TFramework >
 int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     // Base class checks for positive Jacobian and Id > 0
-    int ierr = Element::Check(rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
+    int err = Element::Check(rCurrentProcessInfo);
+    if(err != 0) return err;
 
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
     KRATOS_CHECK_VARIABLE_KEY(FREE_SURFACE_ELEVATION)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
     KRATOS_CHECK_VARIABLE_KEY(TOPOGRAPHY)
     KRATOS_CHECK_VARIABLE_KEY(RAIN)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
@@ -55,8 +53,6 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FREE_SURFACE_ELEVATION, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
 
@@ -65,7 +61,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_DOF_IN_NODE(FREE_SURFACE_ELEVATION, node)
     }
 
-    return ierr;
+    return err;
 }
 
 
@@ -181,8 +177,11 @@ void SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(
 {
     if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM)
     {
-        for (size_t PointNumber = 0; PointNumber < 1; PointNumber++)
-            rValues[PointNumber] = double(this->GetValue(rVariable));
+        if (rValues.size() != TNumNodes)
+            rValues.resize(TNumNodes);
+
+        for (size_t PointNumber = 0; PointNumber < TNumNodes; PointNumber++)
+            rValues[PointNumber] = this->GetValue(rVariable);
     }
 }
 
@@ -202,6 +201,7 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.porosity = 0.0;
     rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
     rVariables.permeability = rCurrentProcessInfo[PERMEABILITY];
+    rVariables.discharge_penalty = rCurrentProcessInfo[DRY_DISCHARGE_PENALTY];
 
     GeometryType& rGeom = GetGeometry();
     for (size_t i = 0; i < TNumNodes; i++)
@@ -213,6 +213,9 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.manning2 = std::pow(rVariables.manning2, 2);
 
     rVariables.porosity *= rVariables.lumping_factor;
+    if (rVariables.porosity < 1.0) {
+        rVariables.porosity = 0.0;
+    }
 }
 
 
@@ -242,24 +245,17 @@ void SWE<TNumNodes, TFramework>::GetNodalValues(ElementVariables& rVariables)
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
         counter++;
 
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
         counter++;
 
         rVariables.rain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
         counter++;
-    }
-    if (TFramework == PFEM2)
-    {
-        rVariables.prev_unk = rVariables.proj_unk;
     }
 }
 
@@ -292,7 +288,7 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
         rVariables.momentum_div += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
         rVariables.velocity_div += rDN_DX(i,0) * rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
         rVariables.velocity_div += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
-        rVariables.projected_momentum += rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1);
+        rVariables.projected_momentum += rGeom[i].FastGetSolutionStepValue(MOMENTUM, 1);
     }
 
     rVariables.velocity *= rVariables.lumping_factor;
@@ -430,8 +426,9 @@ void SWE<TNumNodes, TFramework>::AddWaveTerms(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
-    rLeftHandSideMatrix += rVariables.wave_vel_2 * prod(trans(rVariables.N_q), rVariables.DN_DX_h); // q * grad_h (momentum balance)
-    rLeftHandSideMatrix += rVariables.porosity * outer_prod(rVariables.N_h, rVariables.DN_DX_q); // h * div_q (mass balance)
+    const double p = rVariables.porosity;
+    rLeftHandSideMatrix += p * rVariables.wave_vel_2 * prod(trans(rVariables.N_q), rVariables.DN_DX_h); // q * grad_h (momentum balance)
+    rLeftHandSideMatrix += p * outer_prod(rVariables.N_h, rVariables.DN_DX_q); // h * div_q (mass balance)
 }
 
 
@@ -441,10 +438,10 @@ void SWE<TNumNodes, TFramework>::AddFrictionTerms(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
-    const double abs_momentum = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
-    const double height73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
+    const double q = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
+    const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
     LocalMatrixType vector_mass_matrix = prod(trans(rVariables.N_q), rVariables.N_q);
-    rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_momentum / height73 * vector_mass_matrix;
+    rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * q / h73 * vector_mass_matrix;
 }
 
 
@@ -457,12 +454,42 @@ void SWE<TNumNodes, TFramework>::AddStabilizationTerms(
     double tau_u;
     double tau_f;
     this->ComputeStabilizationParameters(rVariables, tau_u, tau_f);
+
+    // Wave term stabilization
     LocalMatrixType vector_diffusion = outer_prod(rVariables.DN_DX_q, rVariables.DN_DX_q);
     LocalMatrixType scalar_diffusion = prod(trans(rVariables.DN_DX_h), rVariables.DN_DX_h);
     const double p = rVariables.porosity;
-    rLeftHandSideMatrix += p * tau_f * vector_diffusion;
-    rLeftHandSideMatrix += p * tau_u * rVariables.wave_vel_2 * scalar_diffusion;
+    rLeftHandSideMatrix += p * tau_u * vector_diffusion;
+    rLeftHandSideMatrix += p * tau_f * rVariables.wave_vel_2 * scalar_diffusion;
+
+    // Dry domain stabilization
+    LocalMatrixType vector_lumped_mass = ZeroMatrix(rVariables.LocalSize, rVariables.LocalSize);
+    for (size_t i = 0; i < TNumNodes; ++i)
+    {
+        vector_lumped_mass(  3*i,  3*i) = 1.0;
+        vector_lumped_mass(1+3*i,1+3*i) = 1.0;
+    }
+    vector_lumped_mass *= rVariables.lumping_factor;
+    rLeftHandSideMatrix += (1 - p) * rVariables.discharge_penalty * vector_lumped_mass;
     rLeftHandSideMatrix += (1 - p) * rVariables.permeability * scalar_diffusion;
+
+    bool full_subscales = false;
+    if (full_subscales) {
+        // Friction stabilization
+        const double q = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
+        const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
+        LocalMatrixType friction_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
+        rLeftHandSideMatrix += p * tau_f * rVariables.gravity * rVariables.manning2 * q / h73 * friction_stab;
+
+        // Dynamic stabilization
+        const double dt_inv = rVariables.dt_inv;
+        LocalMatrixType vector_dyn_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
+        LocalMatrixType scalar_dyn_stab = outer_prod(rVariables.DN_DX_q, rVariables.N_h);
+        rLeftHandSideMatrix += p * tau_f * dt_inv * vector_dyn_stab;
+        rLeftHandSideMatrix += p * tau_f * dt_inv * scalar_dyn_stab;
+        rRightHandSideVector += p * tau_f * dt_inv * prod(vector_dyn_stab, rVariables.prev_unk);
+        rRightHandSideVector += p * tau_f * dt_inv * prod(scalar_dyn_stab, rVariables.prev_unk);
+    }
 }
 
 
