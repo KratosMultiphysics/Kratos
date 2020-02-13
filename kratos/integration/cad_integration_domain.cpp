@@ -205,7 +205,7 @@ namespace Kratos
 
         for (IndexType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
         {
-            auto p_condition = rReferenceCondition.Create(rIdCounter, rQuadraturePointGeometryList[i], nullptr);
+            auto p_condition = rReferenceCondition.Create(rIdCounter, rQuadraturePointGeometryList(i), nullptr);
             rIdCounter++;
             new_condition_list.push_back(p_condition);
         }
