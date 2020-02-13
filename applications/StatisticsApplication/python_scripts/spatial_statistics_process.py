@@ -156,8 +156,10 @@ class SpatialStatisticsProcess(Kratos.Process):
             current_output_file_settings.AddEmptyValue("folder_name")
             current_output_file_settings["folder_name"].SetString(output_file_settings["folder_name"].GetString())
             # restarting is not supported if STEP is used as the control variable
-            self.output_files.append(TimeBasedAsciiFileWriterUtility(self.__get_model_part(), current_output_file_settings, msg_header))
-
+            if (self.__is_writing_process()):
+                self.output_files.append(TimeBasedAsciiFileWriterUtility(self.__get_model_part(), current_output_file_settings, msg_header))
+            else:
+                self.output_files.append("dummy")
 
     def ExecuteFinalizeSolutionStep(self):
         output_settings = self.settings["output_settings"]
@@ -177,15 +179,17 @@ class SpatialStatisticsProcess(Kratos.Process):
         if (self.output_control_counter >= current_output_control_variable_value):
             self.CalculateOutput()
             self.output_control_counter = 0
-            for output_file in self.output_files:
-                output_file.file.write("\n")
+            if (self.__is_writing_process()):
+                for output_file in self.output_files:
+                    output_file.file.write("\n")
 
         self.previous_process_info_value = self.process_info_value
 
     def ExecuteFinalize(self):
-        for output_file in self.output_files:
-            output_file.file.write("# End of file\n")
-            output_file.file.close()
+        if (self.__is_writing_process()):
+            for output_file in self.output_files:
+                output_file.file.write("# End of file\n")
+                output_file.file.close()
 
     def CalculateOutput(self):
         for variable_settings, output_file in zip(self.variables_settings_list, self.output_files):
@@ -216,31 +220,36 @@ class SpatialStatisticsProcess(Kratos.Process):
 
 
     def __write_output(self, output, variable_name, variable_names_list, norm_type, method_name, method_headers, output_file):
-        self.__write_headers(norm_type, variable_names_list, method_headers, output_file)
-        if (not self.is_output_control_variable_value_written):
-            output_file.file.write(str(self.process_info_value))
-            self.is_output_control_variable_value_written = True
-        output_file.file.write(" ")
-        output_file.file.write(GetMethodValues(method_name, norm_type, variable_name, output))
+        if (self.__is_writing_process()):
+            self.__write_headers(norm_type, variable_names_list, method_headers, output_file)
+            if (not self.is_output_control_variable_value_written):
+                output_file.file.write(str(self.process_info_value))
+                self.is_output_control_variable_value_written = True
+            output_file.file.write(" ")
+            output_file.file.write(GetMethodValues(method_name, norm_type, variable_name, output))
 
 
     def __write_headers(self, norm_type, variable_names_list, method_headers, output_file):
-        if (not hasattr(output_file, "is_variable_headers_written")):
-            output_file.is_variable_headers_written = False
+        if (self.__is_writing_process()):
+            if (not hasattr(output_file, "is_variable_headers_written")):
+                output_file.is_variable_headers_written = False
 
-        if (not output_file.is_variable_headers_written):
-            msg = "# OutputControlVariableValue"
-            for variable_name in variable_names_list:
-                variable_sub_list = GetVariableHeaders(norm_type, variable_name)
-                for header in method_headers:
-                    for variable_sub_name in variable_sub_list:
-                        msg += " " + variable_sub_name + header
-            msg += "\n"
-            output_file.file.write(msg)
-            output_file.is_variable_headers_written = True
+            if (not output_file.is_variable_headers_written):
+                msg = "# OutputControlVariableValue"
+                for variable_name in variable_names_list:
+                    variable_sub_list = GetVariableHeaders(norm_type, variable_name)
+                    for header in method_headers:
+                        for variable_sub_name in variable_sub_list:
+                            msg += " " + variable_sub_name + header
+                msg += "\n"
+                output_file.file.write(msg)
+                output_file.is_variable_headers_written = True
 
     def __get_model_part(self):
         if (not hasattr(self, "model_part")):
             self.model_part = self.model[self.model_part_name]
 
         return self.model_part
+
+    def __is_writing_process(self):
+        return (self.__get_model_part().GetCommunicator().MyPID() == 0)

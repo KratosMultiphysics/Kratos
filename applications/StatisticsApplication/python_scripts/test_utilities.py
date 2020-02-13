@@ -83,7 +83,7 @@ def CreateModelPart(model_part):
     model_part.CreateNewCondition("Condition2D2N", 6, [6, 7], prop)
     model_part.CreateNewCondition("Condition2D2N", 7, [7, 1], prop)
 
-def InitializeModelPartVariables(model_part, is_random = True):
+def InitializeModelPartVariables(model_part, is_random = True, is_local_variables = False):
     if is_random:
         scalar_method = lambda item : GetRandomValue()
         array_3d_method = lambda item : GetRandomVector()
@@ -96,7 +96,10 @@ def InitializeModelPartVariables(model_part, is_random = True):
         vector_method = lambda item : GetInitialVariableValue(Kratos.LOAD_MESHES, "none", (t+1) * (item.Id + 2.0))
         matrix_method = lambda item : GetInitialVariableValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, "none", (t+1) * (item.Id+3)* 2.0)
 
-    for node in model_part.Nodes:
+    communicator = model_part.GetCommunicator()
+    container = communicator.LocalMesh()
+
+    for node in container.Nodes:
         node.SetValue(Kratos.PRESSURE, scalar_method(node))
         node.SetValue(Kratos.VELOCITY, array_3d_method(node))
         node.SetValue(Kratos.LOAD_MESHES, vector_method(node))
@@ -107,17 +110,29 @@ def InitializeModelPartVariables(model_part, is_random = True):
         node.SetSolutionStepValue(Kratos.LOAD_MESHES, 0, vector_method(node))
         node.SetSolutionStepValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, 0, matrix_method(node))
 
-    for condition in model_part.Conditions:
+    communicator.GetDataCommunicator().Barrier()
+    model_part.GetCommunicator().SynchronizeVariable(Kratos.PRESSURE)
+    model_part.GetCommunicator().SynchronizeVariable(Kratos.VELOCITY)
+    model_part.GetCommunicator().SynchronizeVariable(Kratos.LOAD_MESHES)
+    model_part.GetCommunicator().SynchronizeVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+    model_part.GetCommunicator().SynchronizeNonHistoricalVariable(Kratos.PRESSURE)
+    model_part.GetCommunicator().SynchronizeNonHistoricalVariable(Kratos.VELOCITY)
+    model_part.GetCommunicator().SynchronizeNonHistoricalVariable(Kratos.LOAD_MESHES)
+    model_part.GetCommunicator().SynchronizeNonHistoricalVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+
+    for condition in container.Conditions:
         condition.SetValue(Kratos.PRESSURE, scalar_method(condition))
         condition.SetValue(Kratos.VELOCITY, array_3d_method(condition))
         condition.SetValue(Kratos.LOAD_MESHES, vector_method(condition))
         condition.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, matrix_method(condition))
 
-    for element in model_part.Elements:
+    for element in container.Elements:
         element.SetValue(Kratos.PRESSURE, scalar_method(element))
         element.SetValue(Kratos.VELOCITY, array_3d_method(element))
         element.SetValue(Kratos.LOAD_MESHES, vector_method(element))
         element.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, matrix_method(element))
+
+    communicator.GetDataCommunicator().Barrier()
 
 def GetInitialVariableValue(variable, norm_type, value = 0.0):
     if (norm_type == "none"):
@@ -133,11 +148,17 @@ def GetInitialVariableValue(variable, norm_type, value = 0.0):
         return 0.0
 
 def InitializeProcesses(test):
+    communicator = test.model_part.GetCommunicator().GetDataCommunicator()
     for process in test.process_list:
+        communicator.Barrier()
         process.Check()
+
     for process in test.process_list:
+        communicator.Barrier()
         process.ExecuteInitialize()
 
 def ExecuteProcessFinalizeSolutionStep(test):
+    communicator = test.model_part.GetCommunicator().GetDataCommunicator()
     for process in test.process_list:
+        communicator.Barrier()
         process.ExecuteFinalizeSolutionStep()
