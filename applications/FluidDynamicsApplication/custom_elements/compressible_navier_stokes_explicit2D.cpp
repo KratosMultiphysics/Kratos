@@ -274,18 +274,18 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     LocalMassMatrix(LumpedMassMatrix,N,nodesElement);
 
 
-    U(0) = 1;
-    U(4) = 1.1;
-    U(8) = 0.9;
+    U(0) = 1.0;
+    U(4) = 1.0;
+    U(8) = 1.0;
     U(1) = 2.0;
-    U(5) = 2.2;
-    U(9) = 2.1;
-    U(2) = -1.3;
-    U(6) = -1.4;
-    U(10) = -1.5;
+    U(5) = 2.0;
+    U(9) = 2.0;
+    U(2) = -1.0;
+    U(6) = -1.0;
+    U(10) = -1.0;
     U(3) = 1000;
-    U(7) = 1010;
-    U(11) = 1080;
+    U(7) = 1000;
+    U(11) = 1000;
 
     Un(0) = 1.001;
     Un(4) = 1.11;
@@ -541,7 +541,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 					t = cont(i,j,k,0,nScalarVariables,SpaceDimension,nScalarVariables,1);
 
 					Lstar[p] += (-A[t]*gradV[(SpaceDimension*i+j)*nNodalVariables + s]);
-
+                    
 					for (m = 0; m < nScalarVariables; m++){
 
 						tt = cont(i,j,k,m,nScalarVariables,SpaceDimension,nScalarVariables,nScalarVariables);
@@ -626,10 +626,10 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     // // Here introduce the shock capturing
     // printf("preSHOCK");
-    // for (i = 0; i < 4; i++){
-    //     printf("%.3e ", tau[i]);
-    // }
-    // printf("\n");
+    for (i = 0; i < 4; i++){
+        printf("%.3e ", tau[i]);
+    }
+    printf("\n");
     ShockCapturing(mu, lambda, cv, h, tau, q, ro_el, gradU, R);
     // printf("postSHOCK");
     // for (i = 0; i < 4; i++){
