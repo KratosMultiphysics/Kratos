@@ -17,9 +17,10 @@ class SpatialStatisticsProcessTest(KratosUnittest.TestCase):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test_model_part")
         self.model_part.SetBufferSize(1)
+        self.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
 
         self.__AddNodalSolutionStepVariables()
-        CreateModelPart(self.model_part)
+        Kratos.ModelPartIO("spatial_statistics_process/spatial_statistics_process").ReadModelPart(self.model_part)
         InitializeModelPartVariables(self.model_part, False)
         self.model_part.ProcessInfo[Kratos.STEP] = 0
 
@@ -189,7 +190,6 @@ class SpatialStatisticsProcessTest(KratosUnittest.TestCase):
         method_list["distribution"] = ["magnitude"]
 
         for method, norm_types in method_list.items():
-            print(method, norm_types)
             for norm_type in norm_types:
                 name_prefix = "test_model_part_" + container_name + "_" + norm_type + "_" + method
                 file_output_name = name_prefix + ".dat"
