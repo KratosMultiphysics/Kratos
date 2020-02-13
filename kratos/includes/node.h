@@ -852,7 +852,7 @@ public:
     template<class TVariableType>
     inline const typename DofType::Pointer pGetDof(
         TVariableType const& rDofVariable, 
-        IndexType Position
+        int Position
         ) const
     {
         const auto it_begin = mDofs.begin();
