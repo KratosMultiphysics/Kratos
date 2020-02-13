@@ -8,10 +8,10 @@
 # Output control variable name : STEP
 # ----------------------------------------------------------------------
 # Headers:
-# OutputControlVariableValue,PRESSURE_Sum,VELOCITY_Sum
-2,60.0,[3](120,120,120)
-4,100.0,[3](200,200,200)
-6,140.0,[3](280,280,280)
-8,180.0,[3](360,360,360)
-10,220.0,[3](440,440,440)
+# OutputControlVariableValue PRESSURE_Sum VELOCITY_X_Sum VELOCITY_Y_Sum VELOCITY_Z_Sum
+2 60.0 120.0 120.0 120.0
+4 100.0 200.0 200.0 200.0
+6 140.0 280.0 280.0 280.0
+8 180.0 360.0 360.0 360.0
+10 220.0 440.0 440.0 440.0
 # End of file
