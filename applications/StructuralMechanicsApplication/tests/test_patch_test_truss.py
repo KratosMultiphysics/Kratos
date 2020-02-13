@@ -1017,8 +1017,11 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         for i in range(2): self.assertAlmostEqual(reaction_nodes[0][2*i], 0.0,6)
         for i in range(3): self.assertAlmostEqual(reaction_nodes[1][i], 0.0,6)
 
-        plastic_disp = 0.170945051
-        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
+        plastic_disp = 0.17094823447089938
+        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp,4)
+
+
+
 
     def test_truss3D2N_nonlinear_plasticity_prestress(self):
         dim = 3

@@ -83,18 +83,12 @@ public:
      */
     void GetLawFeatures(Features& rFeatures) override;
 
-    void SetValue(const Variable<bool>& rVariable,
-                          const bool& rValue,
-                          const ProcessInfo& rCurrentProcessInfo) override;
-
     void SetValue(const Variable<double>& rThisVariable,
                           const double& rValue,
                           const ProcessInfo& rCurrentProcessInfo) override;
 
     double& GetValue(const Variable<double>& rThisVariable,
                     double& rValue) override;
-
-    bool& GetValue(const Variable<bool>& rThisVariable,bool& rValue) override;
 
     array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
         array_1d<double, 3 > & rValue) override;
@@ -124,12 +118,7 @@ public:
      * @param rMaterialProperties Material Properties of the problem
      * @param rCurrentStress Current stress value
      */
-    bool CheckIfIsPlasticRegime(Parameters& rValues);
-
-    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-					    const GeometryType& rElementGeometry,
-					    const Vector& rShapeFunctionsValues,
-					    const ProcessInfo& rCurrentProcessInfo) override;
+    bool CheckIfIsPlasticRegime(Parameters& rValues,const double& rCurrentStress);
 
     void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
@@ -139,10 +128,10 @@ public:
      * @brief This function checks if the predicted stress state is in the elastic regime
      * but was in the plastic regime in the previous non_linear iteration step
      */
-    bool CheckPlasticIterationHistory() const
+    bool CheckPlasticIterationHistory(bool rCurrentInElasticFlag) const
     {
         bool check_flag = false;
-        if(this->mPreviousInElasticFlag && !this->mCurrentInElasticFlag)
+        if(mPreviousInElasticFlag && !rCurrentInElasticFlag)
         {
             check_flag = true;
         }
@@ -198,8 +187,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mStressState = 0.0; // The current stress state
-
     //the following members are
     //mCurrentInElasticFlag is the current non_linear iteration step
     //mPreviousInElasticFlag is the previous non_linear iteration step
@@ -234,21 +221,19 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.save("StressState", this->mStressState);
-        rSerializer.save("PlasticAlpha", this->mPlasticAlphaVector);
-        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
-        rSerializer.save("PreviousInelasticFlag", this->mPreviousInElasticFlag);
-        rSerializer.save("CurrentInElasticFlag", this->mCurrentInElasticFlag);
+        rSerializer.save("PlasticAlpha", mPlasticAlphaVector);
+        rSerializer.save("AccumulatedPlasticStrain", mAccumulatedPlasticStrainVector);
+        rSerializer.save("PreviousInelasticFlag", mPreviousInElasticFlag);
+        rSerializer.save("CurrentInElasticFlag", mCurrentInElasticFlag);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.load("StressState", this->mStressState);
-        rSerializer.load("PlasticAlpha", this->mPlasticAlphaVector);
-        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
-        rSerializer.load("PreviousInelasticFlag", this->mPreviousInElasticFlag);
-        rSerializer.load("CurrentInElasticFlag", this->mCurrentInElasticFlag);
+        rSerializer.load("PlasticAlpha", mPlasticAlphaVector);
+        rSerializer.load("AccumulatedPlasticStrain", mAccumulatedPlasticStrainVector);
+        rSerializer.load("PreviousInelasticFlag", mPreviousInElasticFlag);
+        rSerializer.load("CurrentInElasticFlag", mCurrentInElasticFlag);
     }
 
 
