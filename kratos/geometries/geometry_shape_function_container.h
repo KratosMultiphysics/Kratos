@@ -340,7 +340,7 @@ public:
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
         }
 
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size() >= IntegrationPointIndex)
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size() < IntegrationPointIndex)
             << "Not enough integration points within geometry_shape_function_container. Geometry_shape_function_container has "
             << mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size()
             << " integration points. Called integration point index: " << IntegrationPointIndex << std::endl;
