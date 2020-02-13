@@ -28,6 +28,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
+                "mach_number_limit": 0.94,
                 "initialize_flow_field": true
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -42,6 +43,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.free_stream_speed_of_sound = settings["speed_of_sound"].GetDouble()
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
+        self.mach_number_limit = settings["mach_number_limit"].GetDouble()
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
 
         # Computing free stream velocity
@@ -56,6 +58,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(KratosCFD.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
 
     def ExecuteInitializeSolutionStep(self):
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
