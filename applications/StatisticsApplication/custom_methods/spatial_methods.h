@@ -202,9 +202,9 @@ public:
                     global_sum += sum;
                 }
             }
-
-            global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
         }
+
+        global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
 
         return global_sum;
 
@@ -286,14 +286,14 @@ public:
                     global_sum += sum;
                 }
             }
-
-            global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
-            const unsigned int number_of_items =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                    r_container.size());
-            global_sum = MethodUtilities::RaiseToPower<TDataType>(
-                global_sum * (1.0 / number_of_items), 0.5);
         }
+
+        global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
+        const unsigned int number_of_items =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                r_container.size());
+        global_sum = MethodUtilities::RaiseToPower<TDataType>(
+            global_sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0)), 0.5);
 
         return global_sum;
 
@@ -349,19 +349,11 @@ public:
         const TContainerType& r_container =
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
-        if (r_container.size() > 0)
-        {
-            const unsigned int number_of_items =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                    r_container.size());
+        const unsigned int number_of_items =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                r_container.size());
 
-            if (number_of_items > 0)
-            {
-                return sum * (1.0 / static_cast<double>(number_of_items));
-            }
-        }
-
-        return rVariable.Zero();
+        return sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0));
     }
 
     template <typename TDataType>
@@ -424,17 +416,18 @@ public:
                     global_variance += variance;
                 }
             }
-            global_variance =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
-            const unsigned int number_of_items =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                    r_container.size());
+        }
 
-            if (number_of_items > 0)
-            {
-                global_variance *= (1.0 / static_cast<double>(number_of_items));
-                global_variance -= MethodUtilities::RaiseToPower(mean, 2);
-            }
+        global_variance =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
+        const unsigned int number_of_items =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                r_container.size());
+
+        if (number_of_items > 0)
+        {
+            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance -= MethodUtilities::RaiseToPower(mean, 2);
         }
 
         return std::make_tuple<TDataType, TDataType>(
@@ -647,23 +640,34 @@ public:
             local_values[i] = norm_method(current_value);
         }
 
+        std::sort(local_values.begin(), local_values.end());
+
         const DataCommunicator& r_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
+        const std::vector<std::vector<double>>& global_values =
+            r_communicator.Gatherv(local_values, 0);
 
-        std::vector<double> global_values = r_communicator.AllGather(local_values);
-        std::sort(global_values.begin(), global_values.end());
-        const int number_of_values = global_values.size();
+        double median = 0.0;
+        if (r_communicator.Rank() == 0)
+        {
+            const std::vector<double>& sorted_values_list =
+                MethodUtilities::SortSortedValuesList(global_values);
+            const int number_of_values = sorted_values_list.size();
 
-        if (number_of_values % 2 != 0)
-        {
-            return global_values[number_of_values / 2];
+            if (number_of_values % 2 != 0)
+            {
+                median = sorted_values_list[number_of_values / 2];
+            }
+            else
+            {
+                median = (sorted_values_list[(number_of_values - 1) / 2] +
+                          sorted_values_list[number_of_values / 2]) *
+                         0.5;
+            }
         }
-        else
-        {
-            return (global_values[(number_of_values - 1) / 2] +
-                    global_values[number_of_values / 2]) *
-                   0.5;
-        }
+
+        r_communicator.Broadcast(median, 0);
+        return median;
 
         KRATOS_CATCH("");
     }
