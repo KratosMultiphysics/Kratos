@@ -137,6 +137,9 @@ public:
     {
     }
 
+    /// Destructor.
+    ~QuadraturePointCurveOnSurfaceGeometry() override = default;
+
     /// Copy constructor.
     QuadraturePointCurveOnSurfaceGeometry(QuadraturePointCurveOnSurfaceGeometry const& rOther )
         : BaseType( rOther )
@@ -144,47 +147,12 @@ public:
     {
     }
 
-    /**
-     * Copy constructor from a geometry with other point type.
-     * Construct this geometry as a copy of given geometry which
-     * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
-     * geometry PointType.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     */
-    template<class TOtherPointType>
-    QuadraturePointCurveOnSurfaceGeometry(
-        QuadraturePointCurveOnSurfaceGeometry<TOtherPointType> const& rOther )
-        : BaseType( rOther )
-        , mLocalTangents2d(rOther.mLocalTangents2d)
-    {
-    }
-
-    /// Destructor.
-    ~QuadraturePointCurveOnSurfaceGeometry() override = default;
-
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
     QuadraturePointCurveOnSurfaceGeometry& operator=( const QuadraturePointCurveOnSurfaceGeometry& rOther )
-    {
-        BaseType::operator=( rOther );
-
-        mLocalTangents2d = rOther.mLocalTangents2d;
-
-        return *this;
-    }
-
-    /// Assignment operator for geometries with different point type.
-    template<class TOtherPointType>
-    QuadraturePointCurveOnSurfaceGeometry& operator=(
-        QuadraturePointCurveOnSurfaceGeometry<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
 
