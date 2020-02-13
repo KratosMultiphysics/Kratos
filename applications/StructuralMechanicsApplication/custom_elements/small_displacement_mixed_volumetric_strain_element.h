@@ -98,15 +98,15 @@ protected:
         {
             detF = 1.0;
             detJ0 = 1.0;
-            N = ZeroVector(NumberOfNodes);
-            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            F = IdentityMatrix(Dimension);
-            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ0 = ZeroMatrix(Dimension, Dimension);
-            Displacements = ZeroVector(Dimension * NumberOfNodes);
-            VolumetricNodalStrains = ZeroVector(NumberOfNodes);
-            EquivalentStrain = ZeroVector(StrainSize);
+            noalias(N) = ZeroVector(NumberOfNodes);
+            noalias(B )= ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            noalias(F) = IdentityMatrix(Dimension);
+            noalias(DN_DX) = ZeroMatrix(NumberOfNodes, Dimension);
+            noalias(J0) = ZeroMatrix(Dimension, Dimension);
+            noalias(InvJ0) = ZeroMatrix(Dimension, Dimension);
+            noalias(Displacements) = ZeroVector(Dimension * NumberOfNodes);
+            noalias(VolumetricNodalStrains) = ZeroVector(NumberOfNodes);
+            noalias(EquivalentStrain) = ZeroVector(StrainSize);
         }
     };
 
@@ -125,9 +125,9 @@ protected:
          */
         ConstitutiveVariables(const SizeType StrainSize)
         {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D) = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 
