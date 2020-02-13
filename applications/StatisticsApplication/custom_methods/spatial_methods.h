@@ -237,10 +237,8 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
                 sum += norm_method(current_value);
             }
-#pragma omp critical
-            {
-                global_sum += sum;
-            }
+#pragma omp atomic update
+            global_sum += sum;
         }
 
         global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
@@ -326,10 +324,8 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
                 sum += std::pow(norm_method(current_value), 2);
             }
-#pragma omp critical
-            {
-                global_sum += sum;
-            }
+#pragma omp atomic update
+            global_sum += sum;
         }
 
         global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
@@ -462,10 +458,8 @@ public:
 
                 variance += std::pow(norm_method(current_value), 2);
             }
-#pragma omp critical
-            {
-                global_variance += variance;
-            }
+#pragma omp atomic update
+            global_variance += variance;
         }
         global_variance =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
