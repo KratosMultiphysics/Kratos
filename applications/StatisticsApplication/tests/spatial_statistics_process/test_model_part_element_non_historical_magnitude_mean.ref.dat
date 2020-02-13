@@ -3,15 +3,15 @@
 # Timestamp                    : not_specified
 # Method Name                  : mean
 # Norm type                    : magnitude
-# Container type               : condition_non_historical
+# Container type               : element_non_historical
 # Modelpart name               : test_model_part
 # Output control variable name : STEP
 # ----------------------------------------------------------------------
 # Headers:
 # OutputControlVariableValue,PRESSURE_Mean,VELOCITY_Mean,LOAD_MESHES_Mean,GREEN_LAGRANGE_STRAIN_TENSOR_Mean
-2,15.0,51.96152422706632,40.24922359499622,210.0
-4,25.0,86.60254037844386,67.08203932499369,350.0
-6,35.0,121.2435565298214,93.91485505499118,490.0
-8,45.0,155.88457268119896,120.74767078498864,630.0
-10,55.0,190.52558883257652,147.58048651498612,770.0
+2,12.0,41.569219381653056,33.54101966249685,180.0
+4,20.0,69.2820323027551,55.901699437494734,300.0
+6,28.0,96.99484522385713,78.26237921249265,420.0
+8,36.0,124.70765814495917,100.62305898749054,540.0
+10,44.0,152.4204710660612,122.98373876248846,660.0
 # End of file
