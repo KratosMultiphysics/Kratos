@@ -176,7 +176,7 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
             for item in value_array:
                 result += norm_method(item)
 
-        return result
+        return result * 2.0
 
     @staticmethod
     def __GetDefaultSettings(norm_type, container_name):

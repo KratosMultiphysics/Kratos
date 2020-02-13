@@ -237,7 +237,7 @@ private:
                              const double DeltaTime,
                              const double TotalTime)
     {
-        rSum = (rSum + rNewDataPoint);
+        rSum = (rSum + rNewDataPoint * DeltaTime);
     }
 };
 } // namespace TemporalMethods
