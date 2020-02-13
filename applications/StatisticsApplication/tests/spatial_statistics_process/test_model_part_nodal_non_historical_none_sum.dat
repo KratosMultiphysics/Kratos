@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : sum
+# Norm type                    : none
+# Container type               : nodal_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue,PRESSURE_Sum,VELOCITY_Sum
+2,56.0,[3](112,112,112)
+4,112.0,[3](224,224,224)
+6,168.0,[3](336,336,336)
+8,224.0,[3](448,448,448)
+10,280.0,[3](560,560,560)
+# End of file

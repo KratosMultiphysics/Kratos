@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : rootmeansquare
+# Norm type                    : none
+# Container type               : element_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue,PRESSURE_RootMeanSquare,VELOCITY_RootMeanSquare
+2,14.0,[3](28,28,28)
+4,28.0,[3](56,56,56)
+6,42.0,[3](84,84,84)
+8,56.0,[3](112,112,112)
+10,70.0,[3](140,140,140)
+# End of file

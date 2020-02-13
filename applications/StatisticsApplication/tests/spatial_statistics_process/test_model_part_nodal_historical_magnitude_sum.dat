@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : sum
+# Norm type                    : magnitude
+# Container type               : nodal_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue,PRESSURE_Sum,VELOCITY_Sum,LOAD_MESHES_Sum,GREEN_LAGRANGE_STRAIN_TENSOR_Sum
+2,56.0,193.98969044771425,187.82971010998233,160.0
+4,112.0,387.9793808954285,375.65942021996466,320.0
+6,168.0,581.9690713431428,563.489130329947,480.0
+8,224.0,775.958761790857,751.3188404399294,640.0
+10,280.0,969.9484522385713,939.1485505499115,800.0
+# End of file

@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : min
+# Norm type                    : magnitude
+# Container type               : element_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue,PRESSURE_Min,PRESSURE_Id,VELOCITY_Min,VELOCITY_Id,LOAD_MESHES_Min,LOAD_MESHES_Id,GREEN_LAGRANGE_STRAIN_TENSOR_Min,GREEN_LAGRANGE_STRAIN_TENSOR_Id
+2,14.0,3,48.49742261192856,2,40.24922359499622,4,50.0,3
+4,28.0,1,96.99484522385713,4,80.49844718999243,1,100.0,3
+6,42.0,1,145.4922678357857,3,120.74767078498864,2,150.0,5
+8,56.0,3,193.98969044771425,5,160.99689437998487,3,200.0,5
+10,70.0,5,242.4871130596428,4,201.24611797498108,5,250.0,5
+# End of file

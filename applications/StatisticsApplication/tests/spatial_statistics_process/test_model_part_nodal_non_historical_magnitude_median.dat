@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : median
+# Norm type                    : magnitude
+# Container type               : nodal_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue,PRESSURE_Median,VELOCITY_Median,LOAD_MESHES_Median,GREEN_LAGRANGE_STRAIN_TENSOR_Median
+2,8.0,27.712812921102035,26.832815729997478,20.0
+4,16.0,55.42562584220407,53.665631459994955,40.0
+6,24.0,83.13843876330611,80.49844718999243,60.0
+8,32.0,110.85125168440814,107.33126291998991,80.0
+10,40.0,138.5640646055102,134.16407864998737,100.0
+# End of file

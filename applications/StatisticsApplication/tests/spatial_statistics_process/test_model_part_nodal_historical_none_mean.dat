@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : mean
+# Norm type                    : none
+# Container type               : nodal_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue,PRESSURE_Mean,VELOCITY_Mean
+2,8.0,[3](16,16,16)
+4,16.0,[3](32,32,32)
+6,24.0,[3](48,48,48)
+8,32.0,[3](64,64,64)
+10,40.0,[3](80,80,80)
+# End of file
