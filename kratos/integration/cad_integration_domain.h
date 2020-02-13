@@ -89,6 +89,7 @@ private:
         const Parameters& rParameters,
         int EchoLevel = 0);
 
+public:
     /// Creates elements from the quadrature_point_geometries
     static void CreateElements(
         GeometriesArrayType& rQuadraturePointGeometryList,
@@ -105,6 +106,7 @@ private:
         int& rIdCounter,
         int EchoLevel = 0);
 
+private:
     /// Searches for nodes with geometrical criteria
     static void GetGeometryPointsAt(
         GeometriesArrayType& rGeometryList,
