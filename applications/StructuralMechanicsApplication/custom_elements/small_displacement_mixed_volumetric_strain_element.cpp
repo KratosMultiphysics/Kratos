@@ -975,7 +975,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     Matrix inv_b;
     double det_b;
     MathUtils<double>::InvertMatrix(b, inv_b, det_b);
-    noalias(mAnisotropyTensor) = prod(inv_b, a);
+    mAnisotropyTensor = prod(inv_b, a);
 }
 
 /***********************************************************************************/
