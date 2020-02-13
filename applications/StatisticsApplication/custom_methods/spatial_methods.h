@@ -250,6 +250,98 @@ public:
     }
 
     template <typename TDataType>
+    TDataType static CalculateRootMeanSquare(const ModelPart& rModelPart,
+                                             const Variable<TDataType>& rVariable)
+    {
+        KRATOS_TRY
+
+        const TContainerType& r_container =
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+
+        TDataType global_sum = rVariable.Zero();
+
+        if (r_container.size() > 0)
+        {
+            const TDataType& r_initial_value =
+                TDataRetrievalFunctor<TContainerItemType>()(*r_container.begin(), rVariable);
+
+            MethodsUtilities::DataTypeSizeInitializer(global_sum, r_initial_value);
+
+#pragma omp parallel
+            {
+                TDataType sum = rVariable.Zero();
+                MethodsUtilities::DataTypeSizeInitializer(sum, r_initial_value);
+
+#pragma omp for
+                for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+                {
+                    const TContainerItemType& r_item = *(r_container.begin() + i);
+                    const TDataType& current_value =
+                        TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
+                    MethodsUtilities::DataTypeSizeChecker(current_value, sum);
+                    sum += MethodsUtilities::RaiseToPower<TDataType>(current_value, 2);
+                }
+#pragma omp critical
+                {
+                    global_sum += sum;
+                }
+            }
+
+            global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
+            const unsigned int number_of_items =
+                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                    r_container.size());
+            global_sum = MethodsUtilities::RaiseToPower<TDataType>(
+                global_sum * (1.0 / number_of_items), 0.5);
+        }
+
+        return global_sum;
+
+        KRATOS_CATCH("");
+    }
+
+    template <typename TDataType>
+    double static CalculateNormRootMeanSquare(const std::string& rNormType,
+                                              const ModelPart& rModelPart,
+                                              const Variable<TDataType>& rVariable,
+                                              Parameters Params)
+    {
+        KRATOS_TRY
+
+        const TContainerType& r_container =
+            MethodsUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
+
+        double global_sum = 0.0;
+        const auto& norm_method =
+            MethodsUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
+
+#pragma omp parallel
+        {
+            double sum = 0.0;
+#pragma omp for
+            for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
+            {
+                const TContainerItemType& r_item = *(r_container.begin() + i);
+                const TDataType& current_value =
+                    TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
+                sum += std::pow(norm_method(current_value), 2);
+            }
+#pragma omp critical
+            {
+                global_sum += sum;
+            }
+        }
+
+        global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
+        const unsigned int number_of_items =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
+                r_container.size());
+        return std::sqrt(global_sum / std::max(static_cast<double>(number_of_items), 1.0));
+
+        KRATOS_CATCH("");
+    }
+
+    template <typename TDataType>
     TDataType static CalculateMean(const ModelPart& rModelPart,
                                    const Variable<TDataType>& rVariable)
     {

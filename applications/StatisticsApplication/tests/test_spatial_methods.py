@@ -55,6 +55,22 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
         self.__TestMethod("sum", analytical_method)
 
+    def testRootMeanSquareMethod(self):
+        def analytical_method(container, container_type, norm_type, variable):
+            analytical_value = SpatialMethodTests.__GetInitialValue(
+                variable, norm_type)
+            for item in container:
+                analytical_value += KratosStats.MethodUtilities.RaiseToPower(
+                    SpatialMethodTests.__GetNormValue(
+                        variable,
+                        SpatialMethodTests.__GetValue(item, container_type,
+                                                      variable), norm_type), 2)
+
+            return KratosStats.MethodUtilities.RaiseToPower(
+                analytical_value * (1.0 / len(container)), 0.5)
+
+        self.__TestMethod("rootmeansquare", analytical_method)
+
     def testMeanMethod(self):
         def analytical_method(container, container_type, norm_type, variable):
             analytical_value = SpatialMethodTests.__GetInitialValue(
