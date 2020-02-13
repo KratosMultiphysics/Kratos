@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-class IntegrationPointUtilities
+class KRATOS_API(KRATOS_CORE) IntegrationPointUtilities
 {
 
 public:
