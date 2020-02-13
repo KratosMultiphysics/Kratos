@@ -1,6 +1,4 @@
 import KratosMultiphysics as Kratos
-
-import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.StatisticsApplication import MethodUtilities
@@ -9,7 +7,6 @@ from KratosMultiphysics.StatisticsApplication.test_utilities import GetRandomVec
 from KratosMultiphysics.StatisticsApplication.test_utilities import GetRandomMatrix
 
 from math import fabs
-from math import pow
 
 
 class NormTests(KratosUnittest.TestCase):

@@ -1,6 +1,4 @@
 import KratosMultiphysics as Kratos
-
-import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
@@ -11,7 +9,6 @@ from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeCo
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
 from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
-from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVariableValue
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
 

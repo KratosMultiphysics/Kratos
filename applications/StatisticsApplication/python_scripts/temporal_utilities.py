@@ -1,7 +1,4 @@
-import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as Statistics
-from KratosMultiphysics.StatisticsApplication.method_utilities import GetNormTypeContainer
-from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
 
 def GetItemContainer(item_container_name):
     item_container_types = [

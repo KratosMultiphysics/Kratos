@@ -45,16 +45,16 @@ def InitializeContainerArrays(container):
 
 def CheckValues(test_unit, value_a, value_b, tolerance):
     if (isinstance(value_a, tuple)):
-        for i in range(len(value_a)):
-            test_unit.__CheckValues(value_a[i], value_b[i], tolerance)
+        for i, v_a in enumerate(value_a):
+            CheckValues(test_unit, v_a, value_b[i], tolerance)
     else:
         if (isinstance(value_a, Kratos.Matrix)):
             test_unit.assertMatrixAlmostEqual(value_a, value_b, tolerance)
         elif (isinstance(value_a, Kratos.Vector)):
             test_unit.assertVectorAlmostEqual(value_a, value_b, tolerance)
         elif (isinstance(value_a, list)):
-            for i in range(len(value_a)):
-                test_unit.assertAlmostEqual(value_a[i], value_b[i], tolerance)
+            for i, v_a in enumerate(value_a):
+                test_unit.assertAlmostEqual(v_a, value_b[i], tolerance)
         else:
             test_unit.assertAlmostEqual(value_a, value_b, tolerance)
 

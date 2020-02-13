@@ -1,6 +1,4 @@
 import KratosMultiphysics as Kratos
-
-import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
