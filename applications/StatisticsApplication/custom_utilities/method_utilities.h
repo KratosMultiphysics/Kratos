@@ -351,6 +351,8 @@ void CheckVariableType(const std::vector<std::string>& rVariableNamesList);
 void CheckInputOutputVariables(const std::vector<std::string>& rInputVariableNamesList,
                                const std::vector<std::string>& rOutputVariableNamesList);
 
+std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>& rValues);
+
 } // namespace MethodUtilities
 
 ///@}

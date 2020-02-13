@@ -690,6 +690,55 @@ void CheckInputOutputVariables(const std::vector<std::string>& rInputVariableNam
     KRATOS_CATCH("");
 }
 
+std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>& rValues)
+{
+    const int number_of_arrays = rValues.size();
+    if (number_of_arrays == 1)
+    {
+        return rValues[0];
+    }
+    else
+    {
+        std::vector<int> indices;
+        indices.resize(number_of_arrays);
+        indices.shrink_to_fit();
+
+        std::size_t total_items = 0;
+        for (int i = 0; i < number_of_arrays; ++i)
+        {
+            total_items += rValues[i].size();
+            indices[i] = 0;
+        }
+
+        std::vector<double> result;
+        result.resize(total_items);
+        result.shrink_to_fit();
+        std::size_t index = 0;
+        while (index < total_items)
+        {
+            double min = std::numeric_limits<double>::max();
+            int min_index = 0;
+            for (int i = 0; i < number_of_arrays; ++i)
+            {
+                if (indices[i] < static_cast<int>(rValues[i].size()))
+                {
+                    const double current_value = rValues[i][indices[i]];
+                    if (current_value < min)
+                    {
+                        min = current_value;
+                        min_index = i;
+                    }
+                }
+            }
+            result[index] = min;
+            ++indices[min_index];
+            ++index;
+        }
+
+        return result;
+    }
+}
+
 // method template instantiations
 
 template double RaiseToPower(const double&, const double);
