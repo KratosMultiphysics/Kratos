@@ -36,7 +36,7 @@ namespace Kratos
 /* Provides functionalities and processes to
 * create a numerical model from a CAD model.
 */
-class CadIntegrationDomain
+class KRATOS_API(KRATOS_CORE) CadIntegrationDomain
 {
 public:
     ///@name Type Definitions
