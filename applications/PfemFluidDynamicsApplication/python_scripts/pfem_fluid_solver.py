@@ -212,7 +212,7 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
 
         print("::[PfemFluidSolver]:: Variables ADDED")
 
