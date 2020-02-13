@@ -171,10 +171,7 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
         rValue = ZeroVector(dofs);
         double current_stress = this->mStressState;
 
-        double prestress = 0.00;
-        if (r_material_properties.Has(TRUSS_PRESTRESS_PK2)) {
-            prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
-        }
+        const double prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
 
 
         if (this->mCurrentInElasticFlag)
@@ -214,10 +211,7 @@ array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::CalculateValue(
         if (rVariable == FORCE)
         {
             const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
-            double prestress = 0.00;
-            if (r_material_properties.Has(TRUSS_PRESTRESS_PK2)) {
-                prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
-            }
+            const double prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
             constexpr SizeType dimension = 3;
             rValue = ZeroVector(dimension);
             rValue[0] = this->mStressState-prestress;
@@ -239,12 +233,9 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rV
     this->GetValue(PLASTIC_STRAIN,current_plastic_strain);
 
     const double elastic_trial_strain = axial_strain-current_plastic_strain;
-    const double youngs_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-
-    double prestress = 0.00;
-    if (rValues.GetMaterialProperties().Has(TRUSS_PRESTRESS_PK2)) {
-        prestress = rValues.GetMaterialProperties()[TRUSS_PRESTRESS_PK2];
-    }
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
+    const double prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
 
 
     Vector& stress_vector = rValues.GetStressVector();
