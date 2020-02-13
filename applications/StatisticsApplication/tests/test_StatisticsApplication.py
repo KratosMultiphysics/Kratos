@@ -15,6 +15,7 @@ from test_temporal_variance_method import TemporalVarianceMethodTests
 from test_temporal_min_method import TemporalMinMethodTests
 from test_temporal_max_method import TemporalMaxMethodTests
 from test_temporal_rms_method import TemporalRootMeanSquareMethodTests
+from test_spatial_statistics_process import SpatialStatisticsProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -46,6 +47,7 @@ def AssembleTestSuites():
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialStatisticsProcessTest]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
