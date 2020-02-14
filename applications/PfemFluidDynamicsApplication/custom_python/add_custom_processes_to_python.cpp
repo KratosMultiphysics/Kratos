@@ -31,7 +31,6 @@
 #include "custom_processes/inlet_management_process.hpp"
 #include "custom_processes/set_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
-#include "custom_processes/model_start_end_meshing_with_conditions_for_fluids_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/set_active_flag_mesher_process.hpp"
@@ -108,9 +107,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>(m, "AdaptiveTimeIntervalProcess")
         .def(py::init<ModelPart &, int>());
-
-    py::class_<ModelStartEndMeshingWithConditionsForFluidsProcess, ModelStartEndMeshingWithConditionsForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>(m, "ModelMeshingWithConditionsForFluids")
-        .def(py::init<ModelPart &, Flags, int>());
 
     py::class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>(m, "ModelMeshingForFluids")
         .def(py::init<ModelPart &, Flags, int>());
