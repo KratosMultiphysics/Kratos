@@ -2,6 +2,20 @@
 
 Statistics application consist of widely used methods to calculate statistics in various containers of KratosMultiphysics. There are mainly two groups of statistical methods namely **Spatial** and **Temporal**. **Spatial** methods calculate statistics on spatial containers and output the values whenever they are called. **Temporal** methods calculate statistics on the fly in a transient simulation. All the temporal methods gurantee that, the resultant statistics will be same as the ones if one calculates accumulating all the data upto that time instance and calculate the same statistics. All of these methods in each group is `OpenMP` and `MPI` compatible, and tested.
 
+Following table summarize capabilities of Statistics Application.
+
+| Statistical Methods                   | Norm Types | Spatial Containers       | Temporal Containers             | Data types |
+|---------------------------------------|------------|--------------------------|---------------------------------|------------|
+| [Sum](#sum)                           | Value      | nodal_historical         | nodal_historical_historical     | Double     |
+| [Mean](#mean)                         | Magnitude  | nodal_non_historical     | nodal_historical_non_historical | Array 3D   |
+| [Root mean square](#root-mean-square) | Euclidean  | element_non_historical   | nodal_non_historical            | Vector     |
+| [Variance](#variance)                 | Infinity   | condition_non_historical | element_non_historical          | Matrix     |
+| [Min](#min)                           | P-Norm     |                          | condition_non_historical        |            |
+| [Max](#max)                           | Lpq-Norm   |                          |                                 |            |
+| [Median](#median)                     | Frobenius  |                          |                                 |            |
+| [Distribution](#distribution)         | Trace      |                          |                                 |            |
+| [Norm methods](#norm-methods)         | Index      |                          |                                 |            |
+
 ## Method definitions
 
 There are two types of methods under each **Spatial** and **Temporal** method groups. They are namely **Value** and **Norm** methods.
@@ -240,7 +254,7 @@ median_value = KratosStats.SpatialMethods.NonHistorical.Nodes.NormMethods.Median
 
 #### Distribution
 
-Distribution methods calculates distribution of a given variable with respect to given norm in a given container. x<sub>i</sub> is the i<sup>th</sup> element's variable value of the corresponding container. Result will be a tuple with followings in the same order:
+Distribution methods calculates distribution of a given variable with respect to given norm in a given container in spatial domain. x<sub>i</sub> is the i<sup>th</sup> element's variable value of the corresponding container. Result will be a tuple with followings in the same order:
 
 1. min in the domain or user specified min value
 2. max in the domain or user specified min value
@@ -272,17 +286,93 @@ min_value, max_value, group_upper_values, group_histogram, group_percentage_dist
 
 ### Norm methods
 
+All of the value methods mentioned before supports norm version of it, in these methods, higher dimensional values are transformed in to scalar values by a use specified norm, and then statistics are calculated based on the chosen method. Supported norm types may differ based on the variable data type being used. There are few methods, which only supports norm methods. Following table summarize availability of value and norm methods.
+
+| Statistical Methods                   | Value Method | Norm Method |
+|---------------------------------------|--------------|-------------|
+| [Sum](#sum)                           | [x]          | [x]         |
+| [Mean](#mean)                         | [x]          | [x]         |
+| [Root mean square](#root-mean-square) | [x]          | [x]         |
+| [Variance](#variance)                 | [x]          | [x]         |
+| [Min](#min)                           |              | [x]         |
+| [Max](#max)                           |              | [x]         |
+| [Median](#median)                     |              | [x]         |
+| [Distribution](#distribution)         |              | [x]         |
+
+Following example shows variance method, under **value** category and **norm** category for nodal non historical velocity. Norm method uses `"magnitude"` as the norm to reduce `VELOCITY` to a scalar value. `value_mean` and `value_variance` will be of `Array 3D` type, whereas `norm_mean` and `norm_variance` will be of `Double` type.
+
+```python
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.StatisticsApplication as KratosStats
+model = Kratos.Model()
+model_part = model.CreateModelPart("test_model_part")
+value_mean, value_variance = KratosStats.SpatialMethods.NonHistorical.Nodes.ValueMethods.Variance(model_part, Kratos.VELOCITY)
+norm_mean, norm_variance = KratosStats.SpatialMethods.NonHistorical.Nodes.NormMethods.Variance(model_part, Kratos.VELOCITY, "magnitude")
+```
+
 ## Norm definitions
+
+Few different norms are predefined in this application. Following table summarize
+
+|           | Double | Array 3D | Vector | Matrix |
+|-----------|--------|----------|--------|--------|
+| Value     | [x]    |          |        |        |
+| Magnitude | [x]    | [x]      | [x]    | [x]    |
+| Euclidean |        | [x]      | [x]    |        |
+| Infinity  |        | [x]      | [x]    | [x]    |
+| P-Norm    |        | [x]      | [x]    | [x]    |
+| Lpq-Norm  |        |          |        | [x]    |
+| Frobenius |        |          |        | [x]    |
+| Trace     |        |          |        | [x]    |
+| Index     |        |          | [x]    | [x]    |
+| Component |        | [x]      |        |        |
 
 ### Value
 
+This returns the exact value. Only available for `Double` type variables.
+
 ### Magnitude
+
+This returns the second norm of the variable.
+
+1. For a `Double` type, it returns the absolute value.
+2. For a `Array 3D` type, it returns the magnitude of the 3D vector.
+3. For a `Vector` type, it returns root square sum of the vector.
+4. For a `Matrix` type, it returns the [frobenius](#frobenius) norm.
 
 ### Euclidean
 
+This again returns the second norm of the variable for following variable types.
+
+1. For a `Array 3D` type, it returns the magnitude of the 3D vector.
+2. For a `Vector` type, it returns root square sum of the vector.
+
+### Frobenius
+
+This is only available for `Matrix` data type variables only. Following equation illustrates the norm, where `A` is the matrix and a<sub>ij</sub> is the i<sup>th</sup> row, j<sup>th</sup> column value.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex={\color{White}&space;||A||_F&space;=&space;\sqrt{\sum_i&space;{\sum_j{||a_{ij}||^2}}}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?{\color{White}&space;||A||_F&space;=&space;\sqrt{\sum_i&space;{\sum_j{||a_{ij}||^2}}}}" title="{\color{White} ||A||_F = \sqrt{\sum_i {\sum_j{||a_{ij}||^2}}}}" /></a>
+
 ### Infinity
 
+This is infinity (i.e. max norm) which is available for `Array 3D`, `Vector` and `Matrix` type.
+For an `Array 3D` variable following equation is used.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex={\color{White}&space;||\underline{V}||_\infty&space;=&space;\max\left&space;\lbrace&space;{|V_X|,&space;|V_Y|,&space;|V_Z|}\right&space;\rbrace}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?{\color{White}&space;||\underline{V}||_\infty&space;=&space;\max\left&space;\lbrace&space;{|V_X|,&space;|V_Y|,&space;|V_Z|}\right&space;\rbrace}" title="{\color{White} ||\underline{V}||_\infty = \max\left \lbrace {|V_X|, |V_Y|, |V_Z|}\right \rbrace}" /></a>
+
+For a `Vector` variable following equation is used.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex={\color{White}&space;||\underline{V}||_\infty&space;=&space;\max\left&space;\lbrace&space;{|V_0|,&space;|V_1|,&space;|V_2|,...,{V_{n-1}}}\right&space;\rbrace}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?{\color{White}&space;||\underline{V}||_\infty&space;=&space;\max\left&space;\lbrace&space;{|V_0|,&space;|V_1|,&space;|V_2|,...,{V_{n-1}}}\right&space;\rbrace}" title="{\color{White} ||\underline{V}||_\infty = \max\left \lbrace {|V_0|, |V_1|, |V_2|,...,{V_{n-1}}}\right \rbrace}" /></a>
+
+For a `Matrix` variable following equation is used.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex={\color{Black}&space;||\underline{A}||_\infty&space;=&space;\max_{0&space;\leq&space;i&space;<&space;n}\left(&space;\sum_{j=0}^{n-1}&space;|a_{ij}|\right&space;)}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?{\color{Black}&space;||\underline{A}||_\infty&space;=&space;\max_{0&space;\leq&space;i&space;<&space;n}\left(&space;\sum_{j=0}^{n-1}&space;|a_{ij}|\right&space;)}" title="{\color{Black} ||\underline{A}||_\infty = \max_{0 \leq i < n}\left( \sum_{j=0}^{n-1} |a_{ij}|\right )}" /></a>
+
 ### Trace
+
+Trace is only for `Matrix` type variables. If the given matrix is not squre, an error is thrown.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex={\color{Black}&space;||\underline{A}||_{trace}&space;=&space;\sum_{i=0}^{n-1}a_{ij}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?{\color{Black}&space;||\underline{A}||_{trace}&space;=&space;\sum_{i=0}^{n-1}a_{ij}}" title="{\color{Black} ||\underline{A}||_{trace} = \sum_{i=0}^{n-1}a_{ij}}" /></a>
 
 ### P norm
 
@@ -290,9 +380,8 @@ min_value, max_value, group_upper_values, group_histogram, group_percentage_dist
 
 ### Index based
 
-## Variable types and supported norms
+### Component based
 
-ADD the table here...
 
 ## Spatial methods
 
