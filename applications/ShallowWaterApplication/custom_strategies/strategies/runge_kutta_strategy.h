@@ -165,26 +165,37 @@ public:
 
         // Initialize the first step
         SetVariablesToZero(HEIGHT_RK4, MOMENTUM_RK4);
+        int step = 0;
+
+        // Compute the slope
+        AddExplicitRHSContributions();
+
+        // Compute the RK step
+        RungeKuttaStep(step);
 
         // Perform the RK steps
-        for (int step = 0; step < mNumberOfSteps; ++step)
+        for (step = 1; step < mNumberOfSteps; ++step)
         {
-            // Compute the slope
-            AddExplicitRHSContributions();
-
-            // Compute the RK step
-            RungeKuttaStep(step);
-
             // Boundary conditions
             ApplyDirichletBoundaryConditions();
             ApplySlipBoundaryConditions();
 
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+            // Compute the slope
+            AddExplicitRHSContributions();
+
+            // Compute the RK step
+            RungeKuttaStep(step);
         }
 
-        // // Finalize the last step
+        // Finalize the last step
         AssembleLastRungeKuttaStep();
+
+        // Boundary conditions
+        ApplyDirichletBoundaryConditions();
+        ApplySlipBoundaryConditions();
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
