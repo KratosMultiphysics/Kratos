@@ -28,7 +28,12 @@ class ShallowWaterExplicitSolver(ShallowWaterBaseSolver):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.main_model_part)
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
-        
+
+    def InitializeSolutionStep(self):
+        super(ShallowWaterExplicitSolver, self).InitializeSolutionStep()
+        epsilon = self.main_model_part.ProcessInfo[SW.DRY_HEIGHT]
+        SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, epsilon)
+
     def Initialize(self):
         # The time step utility needs the NODAL_H
         KM.FindNodalHProcess(self.GetComputingModelPart()).Execute()
@@ -49,3 +54,10 @@ class ShallowWaterExplicitSolver(ShallowWaterBaseSolver):
         self.solver.Initialize()
 
         KM.Logger.PrintInfo("::[ShallowWaterExplicitSolver]::", "Mesh stage solver initialization finished")
+
+    def FinalizeSolutionStep(self):
+        super(ShallowWaterExplicitSolver, self).FinalizeSolutionStep()
+        epsilon = self.main_model_part.ProcessInfo[SW.DRY_HEIGHT]
+        SW.ComputeVelocityProcess(self.main_model_part, epsilon).Execute()
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
+        SW.ShallowWaterUtilities().ComputeAccelerations(self.main_model_part)
