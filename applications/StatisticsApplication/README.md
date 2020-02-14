@@ -6,7 +6,7 @@ Statistics application consist of widely used methods to calculate statistics in
 
 ### Sum
 
-$$ sum = \rho $$
+$ sum = \rho $
 
 ### Mean
 
