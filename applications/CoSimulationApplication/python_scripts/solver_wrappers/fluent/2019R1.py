@@ -23,39 +23,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
-        # settings
-        """
-        JSON settings of solver_wrappers.fluent.2019R1:
-        
-            working_directory       string      absolute path to working directory
-                                                or relative path w.r.t current directory
-            case_file               string      name of the case file; it must be present
-                                                in the above defined working_directory
-            dimensions              int         2 for 2D and axisymmetric, 3 for 3D
-            unsteady                bool        true for transient FSI        
-            delta_t                 double      fixed timestep size in flow solver
-            timestep_start          int         index of timestep to start transient FSI;
-                                                0 to start from case_file;
-            thread_names            list        list with Fluent names of the interface threads
-            interface_input         dict        keys are names of ModelParts for nodes, they must
-                                                consist of an entry from thread_names + '_nodes';
-                                                value are (lists of) names of Variables
-            interace_output         dict        idem, but for faces
-            cores                   int         number of processor cores to use
-                                                (tested only on single node!)
-            fluent_gui              bool        true will run Fluent with graphical interface
-            max_nodes_per_face      int         used to get unique ID for faces, based on
-                                                unique IDs of nodes; e.g. 4 for rectangular
-                                                faces, 3 for triangular faces
-            hybrid_initialization   bool        true will run the hybrid initialization in 
-                                                Fluent before the first time-step;
-                                                false requires that adequate reference 
-                                                values have been set in the case_file
-            flow_iterations         int         number of Fluent iterations per coupling 
-                                                iteration
-            save_iterations         int         number of timesteps between consecutive
-                                                saves of the Fluent case and data files
-        """
         self.settings = parameters['settings']
         self.check_software()
         self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())
