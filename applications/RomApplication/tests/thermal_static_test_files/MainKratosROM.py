@@ -12,17 +12,17 @@ from KratosMultiphysics.RomApplication import convection_diffusion_stationary_ro
 import json
 import sys
 
-class ConvDiffROM(ConvectionDiffusionAnalysis):
+class ConvDiffStationaryROM(ConvectionDiffusionAnalysis):
 
     def __init__(self,model,project_parameters):
-        super(ConvDiffROM,self).__init__(model,project_parameters)
+        super(ConvDiffStationaryROM,self).__init__(model,project_parameters)
 
     def _CreateSolver(self):
         return convection_diffusion_stationary_rom_solver.ROMSolver(self.model, self.project_parameters["solver_settings"])
 
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super(ConvDiffROM,self).ModifyInitialGeometry()
+        super(ConvDiffStationaryROM,self).ModifyInitialGeometry()
 
         computing_model_part = self.model["ThermalModelPart"]
 
@@ -141,5 +141,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = ConvDiffROM(model,parameters)
+    simulation = ConvDiffStationaryROM(model,parameters)
     simulation.Run()
