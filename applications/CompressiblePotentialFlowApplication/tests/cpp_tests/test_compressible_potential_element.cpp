@@ -15,6 +15,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/embedded_compressible_potential_flow_element.h"
 
@@ -39,6 +40,7 @@ void GenerateCompressibleElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.1;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -65,6 +67,7 @@ void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.1;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
