@@ -13,6 +13,7 @@
 #include "custom_utilities/control_module_fem_dem_utilities.hpp"
 #include "custom_utilities/stress_failure_check_utilities.hpp"
 #include "custom_utilities/post_process_utilities.hpp"
+#include "custom_utilities/sand_production_utilities.hpp"
 
 namespace Kratos {
 
@@ -29,6 +30,7 @@ namespace Kratos {
                 .def("SmoothLoadTrasferredToFem", &DemStructuresCouplingUtilities::SmoothLoadTrasferredToFem)
                 .def("ComputeSandProduction", &DemStructuresCouplingUtilities::ComputeSandProduction)
                 .def("ComputeSandProductionWithDepthFirstSearch", &DemStructuresCouplingUtilities::ComputeSandProductionWithDepthFirstSearch)
+                .def("ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation", &DemStructuresCouplingUtilities::ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation)
                 .def("ComputeTriaxialSandProduction", &DemStructuresCouplingUtilities::ComputeTriaxialSandProduction)
                 .def("MarkBrokenSpheres", &DemStructuresCouplingUtilities::MarkBrokenSpheres)
             ;
@@ -58,12 +60,19 @@ namespace Kratos {
                 .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
 
-            class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+            class_<PostProcessUtilities,PostProcessUtilities::Pointer>(m, "PostProcessUtilities", module_local())
                 .def(init<ModelPart&>())
                 .def("GetStickyStatus", &PostProcessUtilities::GetStickyStatus)
                 .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)
                 .def("GetCurrentContinuumBonds", &PostProcessUtilities::GetCurrentContinuumBonds)
                 ;
+
+            class_<SandProductionUtilities, SandProductionUtilities::Pointer>(m, "SandProductionUtilities")
+                .def(init<>())
+                .def("MarkSandProductionParticlesForErasing", &SandProductionUtilities::MarkSandProductionParticlesForErasing)
+                ;
+
+
 
         }
     }  // namespace Python

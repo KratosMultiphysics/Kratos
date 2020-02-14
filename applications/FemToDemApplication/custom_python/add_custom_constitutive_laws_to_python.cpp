@@ -36,6 +36,8 @@
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 
 namespace Kratos
 {
@@ -53,6 +55,14 @@ namespace Python
 
         py::class_<ElasticIsotropic3D, typename ElasticIsotropic3D::Pointer, ConstitutiveLaw >
             (m, "ElasticIsotropic3D").def(py::init<>() )
+            ;
+
+        py::class_<HyperElasticIsotropicNeoHookean3D, typename HyperElasticIsotropicNeoHookean3D::Pointer, ConstitutiveLaw >
+            (m, "HyperElasticIsotropicNeoHookean3D").def(py::init<>() )
+            ;
+
+        py::class_<HyperElasticIsotropicNeoHookeanPlaneStrain2D, typename HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer, ConstitutiveLaw >
+            (m, "HyperElasticIsotropicNeoHookeanPlaneStrain2D").def(py::init<>() )
             ;
     }
 }  // namespace Python.

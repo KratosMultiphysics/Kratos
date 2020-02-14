@@ -308,6 +308,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
 
         for node in main_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, abs(node.X))
+            node.SetValue(MeshingApplication.METRIC_SCALAR, 0.0)
 
         # We calculate the gradient of the distance variable
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, main_model_part.Nodes)

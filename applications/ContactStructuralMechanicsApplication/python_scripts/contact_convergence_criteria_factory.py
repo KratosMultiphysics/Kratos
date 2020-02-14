@@ -37,10 +37,14 @@ class ContactConvergenceCriteriaFactory:
             CD_AT = convergence_criterion_parameters["contact_displacement_absolute_tolerance"].GetDouble()
             CR_RT = convergence_criterion_parameters["contact_residual_relative_tolerance"].GetDouble()
             CR_AT = convergence_criterion_parameters["contact_residual_absolute_tolerance"].GetDouble()
-            FCD_RT = convergence_criterion_parameters["frictional_contact_displacement_relative_tolerance"].GetDouble()
-            FCD_AT = convergence_criterion_parameters["frictional_contact_displacement_absolute_tolerance"].GetDouble()
-            FCR_RT = convergence_criterion_parameters["frictional_contact_residual_relative_tolerance"].GetDouble()
-            FCR_AT = convergence_criterion_parameters["frictional_contact_residual_absolute_tolerance"].GetDouble()
+            FSTCD_RT = convergence_criterion_parameters["frictional_stick_contact_displacement_relative_tolerance"].GetDouble()
+            FSTCD_AT = convergence_criterion_parameters["frictional_stick_contact_displacement_absolute_tolerance"].GetDouble()
+            FSTCR_RT = convergence_criterion_parameters["frictional_stick_contact_residual_relative_tolerance"].GetDouble()
+            FSTCR_AT = convergence_criterion_parameters["frictional_stick_contact_residual_absolute_tolerance"].GetDouble()
+            FSLCD_RT = convergence_criterion_parameters["frictional_slip_contact_displacement_relative_tolerance"].GetDouble()
+            FSLCD_AT = convergence_criterion_parameters["frictional_slip_contact_displacement_absolute_tolerance"].GetDouble()
+            FSLCR_RT = convergence_criterion_parameters["frictional_slip_contact_residual_relative_tolerance"].GetDouble()
+            FSLCR_AT = convergence_criterion_parameters["frictional_slip_contact_residual_absolute_tolerance"].GetDouble()
             RNTT = convergence_criterion_parameters["ratio_normal_tangent_threshold"].GetDouble()
             condn_convergence_criterion = convergence_criterion_parameters["condn_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
@@ -54,7 +58,7 @@ class ContactConvergenceCriteriaFactory:
                         pure_slip = True
                     else:
                         pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierFrictionalContactCriteria(D_RT, D_AT, CD_RT, CD_AT, FCD_RT, FCD_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierFrictionalContactCriteria(D_RT, D_AT, CD_RT, CD_AT, FSTCD_RT, FSTCD_AT, FSLCD_RT, FSLCD_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementContactCriteria(D_RT, D_AT, self.print_convergence_criterion)
                 else:
@@ -68,7 +72,7 @@ class ContactConvergenceCriteriaFactory:
                         pure_slip = True
                     else:
                         pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FSTCD_RT, FSTCR_AT, FSLCD_RT, FSLCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
                 else:
@@ -81,7 +85,7 @@ class ContactConvergenceCriteriaFactory:
                         pure_slip = True
                     else:
                         pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
-                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FSTCD_RT, FSTCR_AT, FSLCD_RT, FSLCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
                 else:

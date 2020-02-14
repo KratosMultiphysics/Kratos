@@ -90,14 +90,23 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_EmbeddedCircle(self):
         if not hdf5_is_available:
             self.skipTest("Missing required application: HDF5Application")
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
+        settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.5405047994795951, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.04198874676923284, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
+            self._runTest(settings_penalty_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.12976919914058177, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.4636936459965071, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.08091879125682809, 0.0, 1e-9)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):

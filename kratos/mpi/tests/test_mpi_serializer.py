@@ -80,7 +80,7 @@ class TestMPISerializer(UnitTest.TestCase):
             },
             "echo_level" : 0
         }""")
-        mdpa_name = GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_mpi_serializer")
+        mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
         importer_settings["model_import_settings"]["input_filename"].SetString(mdpa_name)
 
         model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part_to_read, importer_settings)

@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as MainFEM_for_coupling
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DEMApplication as DEM
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
@@ -29,6 +30,13 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DEM_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DELTA_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.ELASTIC_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.TANGENTIAL_ELASTIC_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.SHEAR_STRESS)
 
         # Adding PFEM Variables TODO put in another place
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -80,7 +88,8 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
-
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.ACCELERATION_BACKUP)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_BACKUP)
         
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()

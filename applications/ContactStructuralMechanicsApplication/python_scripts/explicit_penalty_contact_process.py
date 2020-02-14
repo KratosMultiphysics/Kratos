@@ -43,7 +43,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
-            "computing_model_part_name"     : "computing_domain",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
@@ -53,6 +52,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
             "tangent_factor"                : 1.0e-4,
+            "operator_threshold"            : 1.0e-3,
             "slip_augmentation_coefficient" : 0.0,
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
@@ -133,7 +133,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             process_info[CSMA.MAX_GAP_THRESHOLD] = self.contact_settings["advance_explicit_parameters"]["max_gap_threshold"].GetDouble()
         else:
             empty_settings = KM.Parameters("""{}""")
-            mean_nodal_h = CSMA.ContactUtilities.CalculateMeanNodalH(self.computing_model_part)
+            mean_nodal_h = CSMA.ContactUtilities.CalculateMeanNodalH(self.main_model_part)
             process_info[CSMA.MAX_GAP_THRESHOLD] = mean_nodal_h
 
         # Create the dynamic factor process
@@ -160,27 +160,27 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         super(ExplicitPenaltyContactProcess, self).ExecuteInitializeSolutionStep()
 
         # Check if the contact is active
-        active_contact = CSMA.ContactUtilities.CheckActivity(self.computing_model_part, False)
+        active_contact = CSMA.ContactUtilities.CheckActivity(self.main_model_part, False)
         if active_contact:
-            self.computing_model_part.Set(KM.CONTACT, True)
+            self.main_model_part.Set(KM.CONTACT, True)
         else:
-            self.computing_model_part.Set(KM.CONTACT, False)
+            self.main_model_part.Set(KM.CONTACT, False)
 
         # Specific operations for explicit contact
         if self._get_if_is_interval() and active_contact:
             # Updating value of weighted gap
-            KM.VariableUtils().SetNonHistoricalVariable(KM.NODAL_AREA, 0.0, self.computing_model_part.Nodes)
-            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_GAP, 0.0, self.computing_model_part.Nodes)
-            CSMA.ContactUtilities.ComputeExplicitContributionConditions(self.computing_model_part)
+            KM.VariableUtils().SetNonHistoricalVariable(KM.NODAL_AREA, 0.0, self.main_model_part.Nodes)
+            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_GAP, 0.0, self.main_model_part.Nodes)
+            CSMA.ContactUtilities.ComputeExplicitContributionConditions(self.main_model_part)
 
             # Calling for the active set utilities (to activate deactivate nodes)
             if self.contact_settings["contact_type"].GetString() == "Frictionless":
-                CSMA.ActiveSetUtilities.ComputePenaltyFrictionlessActiveSet(self.computing_model_part)
+                CSMA.ActiveSetUtilities.ComputePenaltyFrictionlessActiveSet(self.main_model_part)
             else:
-                CSMA.ActiveSetUtilities.ComputePenaltyFrictionalActiveSet(self.computing_model_part)
+                CSMA.ActiveSetUtilities.ComputePenaltyFrictionalActiveSet(self.main_model_part)
 
             # Activate/deactivate conditions
-            CSMA.ContactUtilities.ActivateConditionWithActiveNodes(self.computing_model_part)
+            CSMA.ContactUtilities.ActivateConditionWithActiveNodes(self.main_model_part)
 
             # Update the dynamic factors
             self.dynamic_factor_process.Execute()
@@ -255,7 +255,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
 
         if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
             # We compute NODAL_H that can be used in the search and some values computation
-            self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+            self.find_nodal_h = KM.FindNodalHProcess(self.main_model_part)
             self.find_nodal_h.Execute()
 
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
@@ -276,7 +276,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
 
         # Setting on nodes
         initial_penalty = process_info[KM.INITIAL_PENALTY]
-        KM.VariableUtils().SetNonHistoricalVariable(KM.INITIAL_PENALTY, initial_penalty, self.computing_model_part.Nodes)
+        KM.VariableUtils().SetNonHistoricalVariable(KM.INITIAL_PENALTY, initial_penalty, self.main_model_part.Nodes)
 
         # We print the parameters considered
         KM.Logger.PrintInfo("INITIAL_PENALTY: ", "{:.2e}".format(process_info[KM.INITIAL_PENALTY]))

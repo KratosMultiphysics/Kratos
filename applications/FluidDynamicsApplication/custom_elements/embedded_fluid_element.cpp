@@ -5,7 +5,7 @@
 #include "custom_elements/symbolic_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 

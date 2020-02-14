@@ -25,9 +25,7 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            Bingham_Dam_Break_2D_Test,
             Water_Sloshing_3D_Test,
-            FSI_2D_Test
         ])
     )
 

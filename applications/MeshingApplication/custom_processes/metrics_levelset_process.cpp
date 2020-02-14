@@ -21,7 +21,7 @@ namespace Kratos
 template<SizeType TDim>
 ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const Variable<array_1d<double,3>> rVariableGradient,
+        const Variable<array_1d<double,3>>& rVariableGradient,
         Parameters ThisParameters
         ):mThisModelPart(rThisModelPart),
           mVariableGradient(rVariableGradient)

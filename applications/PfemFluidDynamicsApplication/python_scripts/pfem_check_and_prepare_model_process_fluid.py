@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
 import time as timer
 
@@ -98,15 +98,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                     if (body_model_part_type=="Fluid"):
                         assign_flags = [KratosMultiphysics.FLUID]
-                        transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
+                        transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
                     elif (body_model_part_type=="Solid"):
                         assign_flags  = [KratosMultiphysics.SOLID]
-                        transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
+                        transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
                     elif (body_model_part_type=="Rigid"):
                         assign_flags  = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
-                        transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
+                        transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
 
                     StopTimeMeasuring(clock_time,"1. for node in part.Nodes", True);
@@ -114,7 +114,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     clock_time = StartTimeMeasuring()
 
                     entity_type = "Elements"
-                    transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type)
+                    transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type)
                     transfer_process.Execute()
 
                     StopTimeMeasuring(clock_time,"1. part.Elements", True);
@@ -122,7 +122,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     clock_time = StartTimeMeasuring()
 
                     entity_type = "Conditions"
-                    transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type)
+                    transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type)
 
                     StopTimeMeasuring(clock_time,"1. part.Conditions", True);
 
@@ -156,7 +156,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 for rigid_part in rigid_body_model_parts:
                     set_rigid_material_process=KratosPfemFluid.SetMaterialPropertiesFromFluidToRigidNodes(rigid_part,fluid_part)
                     set_rigid_material_process.Execute()
-                    transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,rigid_part,entity_type,transfer_flags)
+                    transfer_process = KratosDelaunay.TransferEntitiesProcess(fluid_part,rigid_part,entity_type,transfer_flags)
                     transfer_process.Execute()
             StopTimeMeasuring(clock_time,"1.rigid_body_model_parts  part.Nodes", True);
 
@@ -181,19 +181,19 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computing_model_part.Set(KratosMultiphysics.ACTIVE)
 
         entity_type = "Nodes"
-        transfer_process = KratosSolid.TransferEntitiesProcess(fluid_computing_model_part,self.main_model_part,entity_type)
+        transfer_process = KratosDelaunay.TransferEntitiesProcess(fluid_computing_model_part,self.main_model_part,entity_type)
         transfer_process.Execute()
 
         for part in domain_parts:
             entity_type = "Elements"
-            transfer_process = KratosSolid.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type)
+            transfer_process = KratosDelaunay.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type)
             transfer_process.Execute()
 
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
             entity_type = "Conditions"
             #condition flags as BOUNDARY or CONTACT are reserved to composite or contact conditions (do not set it here)
-            transfer_process = KratosSolid.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type)
+            transfer_process = KratosDelaunay.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type)
             transfer_process.Execute()
 
         #delete body parts: (materials have to be already assigned)
