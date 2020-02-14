@@ -46,7 +46,7 @@ namespace Kratos
 	/** This class works tightly with VariablesListDataValueContainer and provides the
 	the positions of variables for that containers
 	*/
-	class VariablesList
+	class KRATOS_API(KRATOS_CORE) VariablesList
 	{
 	public:
 		///@name Type Definitions
