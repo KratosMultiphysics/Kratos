@@ -46,18 +46,30 @@
 #endif
 
 #ifndef ADD_KRATOS_STATISTICS_SPATIAL_CONTAINER_NORM_METHOD_PYTHON_INTERFACE
-#define ADD_KRATOS_STATISTICS_SPATIAL_CONTAINER_NORM_METHOD_PYTHON_INTERFACE(         \
-    method, method_name, norm_method_module, container)                               \
-    {                                                                                 \
-        using type_double = double;                                                   \
-        using type_array = array_1d<double, 3>;                                       \
-        using type_vector = Vector;                                                   \
-        using type_matrix = Matrix;                                                   \
-        using current_container = SpatialMethods::container;                          \
-        norm_method_module.def(method_name, &current_container::method<type_double>); \
-        norm_method_module.def(method_name, &current_container::method<type_array>);  \
-        norm_method_module.def(method_name, &current_container::method<type_vector>); \
-        norm_method_module.def(method_name, &current_container::method<type_matrix>); \
+#define ADD_KRATOS_STATISTICS_SPATIAL_CONTAINER_NORM_METHOD_PYTHON_INTERFACE(        \
+    method, method_name, norm_method_module, container)                              \
+    {                                                                                \
+        using type_double = double;                                                  \
+        using type_array = array_1d<double, 3>;                                      \
+        using type_vector = Vector;                                                  \
+        using type_matrix = Matrix;                                                  \
+        using current_container = SpatialMethods::container;                         \
+        norm_method_module.def(method_name, &current_container::method<type_double>, \
+                               py::arg("model_part"), py::arg("variable"),           \
+                               py::arg("norm_type"),                                 \
+                               py::arg("parameters") = Parameters(R"({})"));         \
+        norm_method_module.def(method_name, &current_container::method<type_array>,  \
+                               py::arg("model_part"), py::arg("variable"),           \
+                               py::arg("norm_type"),                                 \
+                               py::arg("parameters") = Parameters(R"({})"));         \
+        norm_method_module.def(method_name, &current_container::method<type_vector>, \
+                               py::arg("model_part"), py::arg("variable"),           \
+                               py::arg("norm_type"),                                 \
+                               py::arg("parameters") = Parameters(R"({})"));         \
+        norm_method_module.def(method_name, &current_container::method<type_matrix>, \
+                               py::arg("model_part"), py::arg("variable"),           \
+                               py::arg("norm_type"),                                 \
+                               py::arg("parameters") = Parameters(R"({})"));         \
     }
 #endif
 
