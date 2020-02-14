@@ -20,15 +20,9 @@ class ROMDynamicConvDiff(KratosUnittest.TestCase):
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
             ExpectedOutput = np.load('ExpectedOutput.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
-
             for i in range (np.shape(ObtainedOutput)[1]):
-                UP=0
-                DOWN=0
-                for j in range((np.shape(ObtainedOutput)[0])):
-                    UP += (NodalArea[j]*(    (ExpectedOutput[j,i] - ObtainedOutput[j,i]   )**2)  )
-                    DOWN +=  NodalArea[j]
-                L2 = np.sqrt(UP/DOWN)
-                self.assertLess(L2, 0.02)
+                L2 = np.sqrt(      (sum(NodalArea*((ExpectedOutput[:,i]/ExpectedOutput[:,i] - ObtainedOutput[:,i]/ExpectedOutput[:,i] )**2)))  /     (sum(NodalArea))      )*100
+                self.assertLess(L2, 0.1) #percent
 
 
 ##########################################################################################
