@@ -87,11 +87,11 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.mapper_interface_output = cs_tools.CreateInstance(self.settings["mapper_interface_output"])
         self.mapper_interface_output.Initialize(self.interface_output_from, self.interface_output_to)
 
-    def PrintInfo(self, label):
-        cs_tools.Print(label, "The component ", self.__class__.__name__, "  maps the following solver wrapper:")
-        self.solver_wrapper.PrintInfo(label + '\t')
-        label += '\t'
-        cs_tools.Print(label, "With input mapper:")
-        self.mapper_interface_input.PrintInfo(label + '\t')
-        cs_tools.Print(label, "And output mapper:")
-        self.mapper_interface_output.PrintInfo(label + '\t')
+    def PrintInfo(self, indent):
+        cs_tools.Print('\t' * indent, "The component ", self.__class__.__name__, "  maps the following solver wrapper:")
+        self.solver_wrapper.PrintInfo(indent + 1)
+        indent += 1
+        cs_tools.Print('\t' * indent, "With input mapper:")
+        self.mapper_interface_input.PrintInfo(indent + 1)
+        cs_tools.Print('\t' * indent, "And output mapper:")
+        self.mapper_interface_output.PrintInfo(indent + 1)

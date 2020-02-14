@@ -22,10 +22,13 @@ class MapperInterface(CoSimulationComponent):
 
         # Loop over ModelParts and create mappers
         self.mappers = []
+        self.keys = []
         for item_from, item_to in zip(interface_from.model_parts_variables,
                                       interface_to.model_parts_variables):
             key_from = item_from[0]
             key_to = item_to[0]
+            self.keys.append((key_from, key_to))  # for PrintInfo
+
             self.mappers.append(cs_tools.CreateInstance(self.settings))
             self.mappers[-1].Initialize(interface_from.model[key_from],
                                         interface_to.model[key_to])
@@ -51,7 +54,11 @@ class MapperInterface(CoSimulationComponent):
         for mapper in self.mappers:
             mapper.OutputSolutionStep()
 
-    def PrintInfo(self, label):
-        cs_tools.Print(label, "The component ", self.__class__.__name__, " containing the following mapper:")
-        for mapper in self.mappers:
-            mapper.PrintInfo(label + '\t')
+    def PrintInfo(self, indent):
+        cs_tools.Print('\t' * indent, "The component ", self.__class__.__name__, " has the following mapper(s):")
+        for i, mapper in enumerate(self.mappers):
+            mapper.PrintInfo(indent + 1)
+
+            cs_tools.Print('\t' * (indent + 2),
+                           f"(which maps ModelPart '{self.keys[i][0]}' to ModelPart '{self.keys[i][1]}')")
+

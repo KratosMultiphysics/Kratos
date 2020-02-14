@@ -99,7 +99,7 @@ class MapperCombined(CoSimulationComponent):
         for mapper in self.mappers:
             mapper.OutputSolutionStep()
 
-    def PrintInfo(self, label):
-        cs_tools.Print(label, "The component ", self.__class__.__name__, " combining the following mappers:")
+    def PrintInfo(self, indent):
+        cs_tools.Print('\t' * indent, "The component ", self.__class__.__name__, " combining the following mappers:")
         for mapper in self.mappers:
-            mapper.PrintInfo(label + '\t')
+            mapper.PrintInfo(indent + 1)

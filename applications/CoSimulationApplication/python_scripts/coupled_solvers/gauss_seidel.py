@@ -191,7 +191,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         for component in self.components:
             component.Check()
 
-    def PrintInfo(self, label):
-        cs_tools.Print(label, "The coupled solver ", self.__class__.__name__, " has the following components:")
+    def PrintInfo(self, indent):
+        cs_tools.Print('\n', '\t' * indent, "The coupled solver ", self.__class__.__name__, " has the following components:")
         for component in self.components:
-            component.PrintInfo(label + '\t')
+            component.PrintInfo(indent + 1)
