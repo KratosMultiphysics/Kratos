@@ -141,4 +141,5 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         set PYTHONPATH=${env:GITHUB_WORKSPACE}\bin\Release
+        dir %PYTHONPATH%
         python kratos\python_scripts\run_tests.py -l small -c python
