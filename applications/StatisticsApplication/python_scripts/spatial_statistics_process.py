@@ -213,7 +213,7 @@ class SpatialStatisticsProcess(Kratos.Process):
                     self.__write_output(output,  variable_names_list[index], variable_names_list, norm_type, method_name, method_headers, output_file)
             else:
                 for index, variable in enumerate(variable_list):
-                    output = method(norm_type, self.__get_model_part(), variable, variable_settings["method_settings"])
+                    output = method(self.__get_model_part(), variable, norm_type, variable_settings["method_settings"])
                     method_headers = GetMethodHeaders(method_name, variable_settings["method_settings"])
                     self.__write_output(output, variable_names_list[index], variable_names_list, norm_type, method_name, method_headers, output_file)
 

@@ -224,8 +224,8 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                     if (norm_type == "none"):
                         method_value = test_method(self.model_part, variable)
                     else:
-                        method_value = test_method(norm_type, self.model_part,
-                                                   variable, method_params)
+                        method_value = test_method(self.model_part, variable,
+                                                   norm_type, method_params)
 
                     analytical_value = analytical_method(
                         container, container_type, norm_type, variable)
