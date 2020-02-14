@@ -159,7 +159,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
             return surface
 
         surface = Shell3pElementTests.solve_cantilever(create_geometry)
-        
+
         for node in surface:
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Y), 0)
