@@ -660,15 +660,18 @@ public:
                 MethodUtilities::SortSortedValuesList(global_values);
             const int number_of_values = sorted_values_list.size();
 
-            if (number_of_values % 2 != 0)
+            if (number_of_values > 0)
             {
-                median = sorted_values_list[number_of_values / 2];
-            }
-            else
-            {
-                median = (sorted_values_list[(number_of_values - 1) / 2] +
-                          sorted_values_list[number_of_values / 2]) *
-                         0.5;
+                if (number_of_values % 2 != 0)
+                {
+                    median = sorted_values_list[number_of_values / 2];
+                }
+                else
+                {
+                    median = (sorted_values_list[(number_of_values - 1) / 2] +
+                              sorted_values_list[number_of_values / 2]) *
+                             0.5;
+                }
             }
         }
 
