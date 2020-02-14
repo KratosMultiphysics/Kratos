@@ -28,7 +28,7 @@ class ControlModuleFemDemUtility(object):
             {
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
-                "limit_velocity" : -30.0,
+                "limit_velocity" : -10.0,
                 "velocity_factor" : 0.5,
                 "compression_length" : 1.0,
                 "young_modulus" : 7.0e9,
