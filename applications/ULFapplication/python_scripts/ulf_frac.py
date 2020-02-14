@@ -4,8 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
-# Check that KratosMultiphysics was imported in the main script
-# CheckForPreviousImport()
 
 import time
 
@@ -146,7 +144,7 @@ class ULF_FSISolver:
         (self.fluid_neigh_finder).Execute();
         self.Hfinder = FindNodalHProcess(fluid_model_part);
         self.Hfinder.Execute();
-        
+
         self.ResetNodalHAtLonelyNodes()
         #assigning average nodal h to lonely nodes
         self.AssignHtoLonelyStructureNodes()
@@ -268,7 +266,7 @@ class ULF_FSISolver:
         timeRemesh = time.time()
         # preventing the nodes from coming tooo close to wall
         self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
-        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.000005)	
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.000005)
         # erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
@@ -333,7 +331,7 @@ class ULF_FSISolver:
         av_nodal_h=0.0
         for node in self.fluid_model_part.Nodes:
             if (node.GetSolutionStepValue(NODAL_H)!=0.0):
-               nnodes=nnodes+1;	    
+               nnodes=nnodes+1;
                nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
 
         av_nodal_h=nodal_h/nnodes

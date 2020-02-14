@@ -55,14 +55,14 @@ void PostProcessUtilities::DefineAuxiliaryProperties()
     }
 }
 
-void PostProcessUtilities::AssignDryWetProperties(Flags DryStateFlag)
+void PostProcessUtilities::AssignDryWetProperties(Flags WetStateFlag)
 {
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
     {
         auto elem = mrModelPart.ElementsBegin() + i;
 
-        if (elem->Is(DryStateFlag))
+        if (elem->Is(WetStateFlag))
         {
             auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
             if (search != mDryToWetPropertiesMap.end()) // The element was dry

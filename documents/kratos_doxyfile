@@ -654,7 +654,7 @@ EXCLUDE                = ../applications/ULFapplication/custom_external_librarie
                          ../applications/structural_application/custom_external_libraries \
                          ../applications/MeshingApplication/custom_external_libraries \
                          ../applications/PFEMapplication/custom_external_libraries \
-                         ../applications/FSIapplication/custom_external_libraries \
+                         ../applications/FSIApplication/custom_external_libraries \
                          ../applications/petsc_application/custom_external_libraries \
                          ../applications/ExternalSolversApplication/custom_external_libraries
 

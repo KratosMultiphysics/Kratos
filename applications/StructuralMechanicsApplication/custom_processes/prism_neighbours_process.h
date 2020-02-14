@@ -76,8 +76,8 @@ public:
     typedef ElementsArrayType::iterator          ElementsIteratorType;
 
     // Weak pointers vectors types
-    typedef WeakPointerVector<NodeType> NodePointerVector;
-    typedef WeakPointerVector<Element> ElementPointerVector;
+    typedef GlobalPointersVector<NodeType> NodePointerVector;
+    typedef GlobalPointersVector<Element> ElementPointerVector;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -251,13 +251,13 @@ private:
      */
     template< class TDataType >
     void  AddUniqueWeakPointer(
-        WeakPointerVector< TDataType >& rPointerVector,
+        GlobalPointersVector< TDataType >& rPointerVector,
         const typename TDataType::WeakPointer Candidate
         )
     {
-        typename WeakPointerVector< TDataType >::iterator beginit = rPointerVector.begin();
-        typename WeakPointerVector< TDataType >::iterator endit   = rPointerVector.end();
-        while ( beginit != endit && beginit->Id() != (Candidate.lock())->Id()) {
+        typename GlobalPointersVector< TDataType >::iterator beginit = rPointerVector.begin();
+        typename GlobalPointersVector< TDataType >::iterator endit   = rPointerVector.end();
+        while ( beginit != endit && beginit->Id() != (Candidate)->Id()) {
             beginit++;
         }
         if( beginit == endit ) {

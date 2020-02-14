@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Pointer definition of EmbeddedFluidElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedFluidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElement);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -170,6 +170,11 @@ public:
     Element::Pointer Create(IndexType NewId,
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
+
+    /// Set up the element for solution.
+    /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY)
+     */
+    void Initialize() override;
 
     /// Calculates both LHS and RHS contributions
     /**

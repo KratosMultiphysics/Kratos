@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
-import swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import math
-import swimming_DEM_analysis
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis as swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
 class ColloidsAnalysis(BaseAnalysis):

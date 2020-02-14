@@ -4,7 +4,7 @@
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 #include "custom_utilities/embedded_discontinuous_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
@@ -52,7 +52,7 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElementDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElementDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -62,7 +62,34 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
     Geometry<NodeType>::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElementDiscontinuous>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElementDiscontinuous>(NewId, pGeom, pProperties);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize()
+{
+    KRATOS_TRY;
+
+    // Call the base element initialize method to set the constitutive law
+    TBaseElement::Initialize();
+
+    // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
+    if (!this->Has(ELEMENTAL_DISTANCES)) {
+        Vector zero_vector(NumNodes, 0.0);
+        this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+    }
+
+    // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
+    const array_1d<double,3> zero_vel = ZeroVector(3);
+    for (auto &r_node : this->GetGeometry()) {
+        if (!r_node.Has(EMBEDDED_VELOCITY)) {
+            r_node.SetLock();
+            r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
+            r_node.UnSetLock();
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <class TBaseElement>
@@ -385,18 +412,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
 
-    // If there is embedded velocity, substract it to the previous iteration solution
-    if (this->Has(EMBEDDED_VELOCITY)){
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
-
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
-
-        noalias(values) -= embedded_vel_exp;
     }
 
     // Compute the Nitsche normal imposition penalty coefficient
@@ -461,18 +483,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
 
-    // If there is embedded velocity, substract it to the previous iteration solution
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
-
-        noalias(values) -= embedded_vel_exp;
     }
 
     // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
@@ -701,18 +718,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
     noalias(rRHS) -= prod(aux_LHS_1, values);
     noalias(rRHS) -= prod(aux_LHS_2, values);
 
-    // If level set velocity is not 0, add its contribution to the RHS
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
-        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
     }
+    noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
 }
 
 template <class TBaseElement>
@@ -826,19 +841,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
     noalias(rLHS) += aux_LHS_2;
 
     // RHS outside Nitsche contribution assembly
-    // If level set velocity is not 0, add its contribution to the RHS
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
-
-        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
     }
+    noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
 
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(aux_LHS_1, values);

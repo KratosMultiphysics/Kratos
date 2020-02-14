@@ -45,7 +45,7 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElementLinear);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElementLinear);
 
     AdjointFiniteDifferenceTrussElementLinear(IndexType NewId = 0)
     : BaseType(NewId)
@@ -68,7 +68,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -76,10 +76,13 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                 std::vector< array_1d<double, 3 > >& rOutput,
+                const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;

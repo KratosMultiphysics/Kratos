@@ -25,7 +25,7 @@
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
 
 #undef  KRATOS_EXPORT_MACRO
@@ -40,6 +40,7 @@ namespace Kratos
    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS);
 
    KRATOS_DEFINE_VARIABLE(int, LAPLACIAN_DIRECTION);
+   KRATOS_DEFINE_VARIABLE(double, MESH_POISSON_RATIO);
 
 } // namespace Kratos
 

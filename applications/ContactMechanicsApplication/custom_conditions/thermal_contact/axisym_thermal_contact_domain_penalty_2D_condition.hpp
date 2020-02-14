@@ -68,7 +68,7 @@ public:
 
 
     /// Counted pointer of AxisymThermalContactDomainPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymThermalContactDomainPenalty2DCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymThermalContactDomainPenalty2DCondition);
     ///@}
     ///@name Life Cycle
     ///@{

@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -51,14 +51,14 @@ namespace Kratos
 */
 
 class MPMGridLineLoadCondition2D
-    : public MPMBaseLoadCondition
+    : public MPMGridBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of MPMGridLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( MPMGridLineLoadCondition2D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridLineLoadCondition2D );
 
 #if KRATOS_USE_AMATRIX
     typedef MatrixRow<const Matrix> RowMatrix;
@@ -88,7 +88,7 @@ public:
 
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 
@@ -165,9 +165,9 @@ protected:
         ) override;
 
     void CalculateAndSubKp(
-        Matrix& K,
-        const Matrix& DN_De,
-        const RowMatrix& N,
+        Matrix& rK,
+        const Matrix& rDN_De,
+        const RowMatrix& rN,
         const double Pressure,
         const double IntegrationWeight
         );
@@ -233,12 +233,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
     }
 
 

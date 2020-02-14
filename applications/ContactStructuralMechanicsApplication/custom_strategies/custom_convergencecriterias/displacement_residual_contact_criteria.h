@@ -64,6 +64,11 @@ public:
     /// Pointer definition of DisplacementResidualContactCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementResidualContactCriteria );
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
+    KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
+
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
     typedef typename BaseType::TDataType                    TDataType;
@@ -74,7 +79,7 @@ public:
     /// The sparse space used
     typedef TSparseSpace                              SparseSpaceType;
 
-    /// The table stream definition TODO: Replace by logger
+    /// The r_table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer       TablePrinterPointerType;
 
     /// The index type definition
@@ -91,7 +96,7 @@ public:
      * @brief Default constructor (parameters)
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
-     * @param pTable The pointer to the output table
+     * @param pTable The pointer to the output r_table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementResidualContactCriteria(
@@ -99,14 +104,15 @@ public:
         const TDataType DispAbsTolerance,
         const bool PrintingOutput = false
         )
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mPrintingOutput(PrintingOutput),
-          mTableIsInitialized(false)
+        : BaseType()
     {
+        // Set local flags
+        mOptions.Set(DisplacementResidualContactCriteria::PRINTING_OUTPUT, PrintingOutput);
+        mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
-
-        mInitialResidualIsSet = false;
     }
 
     /**
@@ -114,8 +120,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit DisplacementResidualContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mTableIsInitialized(false)
+        : BaseType()
     {
         // The default parameters
         Parameters default_parameters = Parameters(R"(
@@ -132,23 +137,20 @@ public:
         mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
 
-        // Additional flags -> NOTE: Replace for a ral flag?¿
-        mPrintingOutput = ThisParameters["print_convergence_criterion"].GetBool();
-
-        // We "initialize" the flag-> NOTE: Replace for a ral flag?¿
-        mInitialResidualIsSet = false;
+        // Set local flags
+        mOptions.Set(DisplacementResidualContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
     }
 
     //* Copy constructor.
     DisplacementResidualContactCriteria( DisplacementResidualContactCriteria const& rOther )
       :BaseType(rOther)
-      ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
+      ,mOptions(rOther.mOptions)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
       ,mDispInitialResidualNorm(rOther.mDispInitialResidualNorm)
       ,mDispCurrentResidualNorm(rOther.mDispCurrentResidualNorm)
-      ,mPrintingOutput(rOther.mPrintingOutput)
-      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
 
@@ -181,13 +183,17 @@ public:
             TDataType disp_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0);
 
-            // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = rDofSet.begin() + i;
+            // First iterator
+            const auto it_dof_begin = rDofSet.begin();
 
-                std::size_t dof_id;
-                TDataType residual_dof_value;
+            // Auxiliar values
+            std::size_t dof_id = 0;
+            TDataType residual_dof_value = 0.0;
+
+            // Loop over Dofs
+            #pragma omp parallel for reduction(+:disp_residual_solution_norm,disp_dof_num,dof_id,residual_dof_value)
+            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                auto it_dof = it_dof_begin + i;
 
                 if (it_dof->IsFree()) {
                     dof_id = it_dof->EquationId();
@@ -204,10 +210,10 @@ public:
             TDataType residual_disp_ratio = 1.0;
 
             // We initialize the solution
-            if (mInitialResidualIsSet == false) {
+            if (mOptions.IsNot(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
                 mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
-                mInitialResidualIsSet = true;
+                mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
 
             // We calculate the ratio of the displacements
@@ -224,11 +230,11 @@ public:
                 if (r_process_info.Has(TABLE_UTILITY)) {
                     std::cout.precision(4);
                     TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-                    auto& Table = p_table->GetTable();
-                    Table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance;
+                    auto& r_table = p_table->GetTable();
+                    r_table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance;
                 } else {
                     std::cout.precision(4);
-                    if (mPrintingOutput == false) {
+                    if (mOptions.IsNot(DisplacementResidualContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                     } else {
@@ -248,13 +254,13 @@ public:
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-                        auto& Table = p_table->GetTable();
-                        if (mPrintingOutput == false)
-                            Table << BOLDFONT(FGRN("       Achieved"));
+                        auto& r_table = p_table->GetTable();
+                        if (mOptions.IsNot(DisplacementResidualContactCriteria::PRINTING_OUTPUT))
+                            r_table << BOLDFONT(FGRN("       Achieved"));
                         else
-                            Table << "Achieved";
+                            r_table << "Achieved";
                     } else {
-                        if (mPrintingOutput == false)
+                        if (mOptions.IsNot(DisplacementResidualContactCriteria::PRINTING_OUTPUT))
                             KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                         else
                             KRATOS_INFO("DisplacementResidualContactCriteria") << "\tResidual convergence is achieved" << std::endl;
@@ -265,13 +271,13 @@ public:
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-                        auto& table = p_table->GetTable();
-                        if (mPrintingOutput == false)
-                            table << BOLDFONT(FRED("   Not achieved"));
+                        auto& r_table = p_table->GetTable();
+                        if (mOptions.IsNot(DisplacementResidualContactCriteria::PRINTING_OUTPUT))
+                            r_table << BOLDFONT(FRED("   Not achieved"));
                         else
-                            table << "Not achieved";
+                            r_table << "Not achieved";
                     } else {
-                        if (mPrintingOutput == false)
+                        if (mOptions.IsNot(DisplacementResidualContactCriteria::PRINTING_OUTPUT))
                             KRATOS_INFO("DisplacementResidualContactCriteria") << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
                         else
                             KRATOS_INFO("DisplacementResidualContactCriteria") << "\tResidual convergence is not achieved" << std::endl;
@@ -292,15 +298,15 @@ public:
         BaseType::mConvergenceCriteriaIsInitialized = true;
 
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+        if (r_process_info.Has(TABLE_UTILITY) && mOptions.IsNot(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-            auto& table = p_table->GetTable();
-            table.AddColumn("DP RATIO", 10);
-            table.AddColumn("EXP. RAT", 10);
-            table.AddColumn("ABS", 10);
-            table.AddColumn("EXP. ABS", 10);
-            table.AddColumn("CONVERGENCE", 15);
-            mTableIsInitialized = true;
+            auto& r_table = p_table->GetTable();
+            r_table.AddColumn("DP RATIO", 10);
+            r_table.AddColumn("EXP. RAT", 10);
+            r_table.AddColumn("ABS", 10);
+            r_table.AddColumn("EXP. ABS", 10);
+            r_table.AddColumn("CONVERGENCE", 15);
+            mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, true);
         }
     }
 
@@ -320,7 +326,7 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        mInitialResidualIsSet = false;
+        mOptions.Set(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
     }
 
     ///@}
@@ -377,10 +383,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mInitialResidualIsSet; /// This "flag" is set in order to set that the initial residual is already computed
-
-    bool mPrintingOutput;      /// If the colors and bold are printed
-    bool mTableIsInitialized;  /// If the table is already initialized
+    Flags mOptions; /// Local flags
 
     TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
     TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
@@ -411,11 +414,24 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-};
+};  // Kratos DisplacementResidualContactCriteria
 
-///@} // Kratos classes
+///@name Local flags creation
+///@{
 
-///@} // Application group
+/// Local Flags
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(1, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::NOT_INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3, false));
 }
 
 #endif /* KRATOS_DISPLACEMENT_RESIDUAL_CONTACT_CRITERIA_H */

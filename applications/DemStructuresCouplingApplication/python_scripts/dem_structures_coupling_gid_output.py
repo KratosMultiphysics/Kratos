@@ -1,9 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.DemStructuresCouplingApplication import *
-import gid_output
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import MultiFileFlag
+from KratosMultiphysics import GiDPostMode
+from KratosMultiphysics import Logger
+from KratosMultiphysics import DEMApplication
+from KratosMultiphysics import DemStructuresCouplingApplication
+from KratosMultiphysics import StructuralMechanicsApplication
+from KratosMultiphysics import gid_output # this is deprecated
 
 
 class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
@@ -19,6 +23,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
                  balls_model_part,
                  clusters_model_part,
                  rigid_faces_model_part,
+                 contact_model_part,
                  mixed_model_part
                  ):
         gid_output.GiDOutput.__init__(self,
@@ -37,12 +42,14 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
         self.balls_model_part = balls_model_part
         self.clusters_model_part = clusters_model_part
         self.rigid_faces_model_part = rigid_faces_model_part
+        self.contact_model_part = contact_model_part
         self.mixed_model_part = mixed_model_part
 
         self.structures_nodal_results = []
         self.dem_nodal_results = []
         self.clusters_nodal_results = []
         self.rigid_faces_nodal_results = []
+        self.contact_gauss_points_results = []
         self.mixed_nodal_results = []
         self.structures_gauss_points_results = []
 
@@ -51,12 +58,14 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
                                     dem_nodal_results,
                                     clusters_nodal_results,
                                     rigid_faces_nodal_results,
+                                    contact_gauss_points_results,
                                     mixed_nodal_results,
                                     structures_gauss_points_results):
         self.structures_nodal_results = structures_nodal_results
         self.dem_nodal_results = dem_nodal_results
         self.clusters_nodal_results = clusters_nodal_results
         self.rigid_faces_nodal_results = rigid_faces_nodal_results
+        self.contact_gauss_points_results = contact_gauss_points_results
         self.mixed_nodal_results = mixed_nodal_results
         self.structures_gauss_points_results = structures_gauss_points_results
 
@@ -67,6 +76,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             self.io.WriteSphereMesh(self.balls_model_part.GetMesh())
             self.io.WriteMesh(self.clusters_model_part.GetMesh())
             self.io.WriteMesh(self.rigid_faces_model_part.GetMesh())
+            self.io.WriteMesh(self.contact_model_part.GetMesh())
             self.io.WriteMesh(self.mixed_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(mesh_name, self.mixed_model_part.GetMesh())
@@ -128,9 +138,10 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             self.mixed_model_part.Elements.clear()
             self.mixed_model_part.Nodes.clear()
             # here order is important!
-            PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.balls_model_part)
-            PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
-            PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.structures_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.balls_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.contact_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.structures_model_part)
 
         self.write_dem_fem_results(time)
 
@@ -149,31 +160,36 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             self.io.WriteSphereMesh(self.balls_model_part.GetMesh())
             self.io.WriteMesh(self.mixed_model_part.GetMesh())
             self.io.WriteMesh(self.rigid_faces_model_part.GetMesh())
+            self.io.WriteMesh(self.contact_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(label, self.mixed_model_part.GetMesh())
 
         for var in  self.structures_nodal_results:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, self.structures_model_part, kratos_variable)
 
         for var in self.dem_nodal_results:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, self.balls_model_part, kratos_variable)
 
         for var in self.clusters_nodal_results:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, self.clusters_model_part, kratos_variable)
 
         for var in self.rigid_faces_nodal_results:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, self.rigid_faces_model_part, kratos_variable)
 
+        for var in self.contact_gauss_points_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_gp_results(label, self.contact_model_part, kratos_variable)
+
         for var in self.mixed_nodal_results:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, self.mixed_model_part, kratos_variable)
 
         for var in self.structures_gauss_points_results:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_gp_results(label, self.structures_model_part, kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:

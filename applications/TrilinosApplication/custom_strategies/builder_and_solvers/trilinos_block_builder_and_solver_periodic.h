@@ -144,12 +144,6 @@ public:
     {
         KRATOS_TRY;
 
-        // This sort helps us preserve consistency of dof ordering across processors (as searching for a dof in
-        // the nodal list of dofs will sort the list first).
-        // If/when the DofList becomes a static array, this step can be skipped.
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-            itNode->GetDofs().Sort();
-
         unsigned int Rank = this->mrComm.MyPID();
 
         // Count the Dofs on this partition (on periodic node pairs, only the dofs on the node with higher Id are counted)
@@ -334,7 +328,7 @@ private:
                         ModelPart::NodeType& rDest)
     {
         for ( Node<3>::DofsContainerType::iterator itDof = rOrigin.GetDofs().begin(); itDof != rOrigin.GetDofs().end(); itDof++)
-            rDest.pGetDof( itDof->GetVariable() )->SetEquationId( itDof->EquationId() );
+            rDest.pGetDof( (*itDof)->GetVariable() )->SetEquationId( (*itDof)->EquationId() );
     }
 
     /// Send the Equation Id of periodic nodes to the owner of the node, so it can be sync'ed across processes.
@@ -371,7 +365,7 @@ private:
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_origin_nodes.begin(); i_node != r_origin_nodes.end(); ++i_node)
                     for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin(); i_dof != i_node->GetDofs().end(); i_dof++)
-                        send_buffer[position++] = i_dof->EquationId();
+                        send_buffer[position++] = (*i_dof)->EquationId();
 
 
                 MPI_Status status;
@@ -393,8 +387,8 @@ private:
                     for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin(); i_dof != i_node->GetDofs().end(); i_dof++)
                     {
                         unsigned int NewId = static_cast<unsigned int>(receive_buffer[position++]);
-                        if (NewId > i_dof->EquationId()) // Note: in a general case, only one rank will have assinged an EquationId, the others will send 0s
-                            i_dof->SetEquationId(NewId);
+                        if (NewId > (*i_dof)->EquationId()) // Note: in a general case, only one rank will have assinged an EquationId, the others will send 0s
+                            (*i_dof)->SetEquationId(NewId);
                     }
 
                 if (position > receive_buffer_size)

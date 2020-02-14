@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -42,15 +41,15 @@ namespace Testing
 
     typedef Node<3> NodeType;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef ExponentialStrainSofteningLaw ExpSSL;
 
-    typedef MPMYieldCriterion YC;
+    typedef ParticleYieldCriterion YC;
 
     typedef MCYieldCriterion MCYC;
 
-    typedef MPMFlowRule FR;
+    typedef ParticleFlowRule FR;
 
     typedef MCPlasticFlowRule MCFR;
 

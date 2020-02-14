@@ -7,28 +7,10 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
-# Other imports
-import os
-
-# This utility will control the execution scope in case we need to access files or we depend
-# on specific relative locations of the files.
-
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
-
 class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
 
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
@@ -53,12 +35,12 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
 ### Axis-Symmetric Tests
@@ -71,6 +53,9 @@ class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestF
 
 class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
+
+class BeamCantileverStaticLinearElasticParticlePointLoad2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/cantilever_beam/particle_point_load_2D_tri_test"
 
 class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_surface_load_3D_hexa_test"

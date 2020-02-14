@@ -851,7 +851,7 @@ public:
         			int base = ( iii->Id() - 1 )*4;
 
         			(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
-        			WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+        			GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
         			for(int i = 0; i<4; i++)
         			{
@@ -1528,7 +1528,7 @@ private:
                 array_1d<int,3> str_pts = ZeroVector(3);
 //                                int str_num = 0;
 //                                int cnt = 0;
-                WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
+                GlobalPointersVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
                 for(int ii=0; ii<4; ++ii)
                 {
                     if(neighbor_els[ii].Id() == elem->Id())

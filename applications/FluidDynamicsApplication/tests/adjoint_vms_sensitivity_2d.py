@@ -4,17 +4,16 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 missing_applications_message = ["Missing required application(s):",]
-have_required_applications = True
-
-try:
+have_required_applications = CheckIfApplicationsAvailable("HDF5Application")
+if have_required_applications:
     import KratosMultiphysics.HDF5Application as kh5
-except ImportError:
-    have_required_applications = False
+else:
     missing_applications_message.append("HDF5Application")
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -120,7 +119,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./Structure_drag.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._removeH5Files("MainModelPart")
@@ -142,7 +141,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'NoSlip2D_Cylinder_drag.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'MainModelPart.NoSlip2D_Cylinder_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
             self._removeH5Files("MainModelPart")
@@ -164,7 +163,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/steady_cylinder_test',[1.0,0.0,0.0],'NoSlip2D_Cylinder_drag.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/steady_cylinder_test',[1.0,0.0,0.0],'MainModelPart.NoSlip2D_Cylinder_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
             self._removeH5Files("MainModelPart")

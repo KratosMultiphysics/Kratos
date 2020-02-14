@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+from KratosMultiphysics import eigen_solver_factory
 
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
@@ -71,14 +72,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        import KratosMultiphysics.kratos_utilities as kratos_utils
-        if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-            from KratosMultiphysics import ExternalSolversApplication
-        elif kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-            from KratosMultiphysics import EigenSolversApplication
-        else:
-            raise Exception("ExternalSolversApplication or EigenSolversApplication not available")
-
         # The general damping ratios
         damping_ratio_0 = self.settings["damping_ratio_0"].GetDouble()
         damping_ratio_1 = self.settings["damping_ratio_1"].GetDouble()
@@ -122,7 +115,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
             # If not computed eigen values already
             if not existing_computation:
                 KM.Logger.PrintInfo("::[MechanicalSolver]::", "EIGENVALUE_VECTOR not previously computed. Computing automatically, take care")
-                from KratosMultiphysics import eigen_solver_factory
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.settings["eigen_system_settings"])
                 builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
                 eigen_scheme = SMA.EigensolverDynamicScheme()

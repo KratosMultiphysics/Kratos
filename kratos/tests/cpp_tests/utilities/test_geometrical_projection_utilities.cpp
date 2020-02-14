@@ -155,7 +155,17 @@ void TestFastProjectOnLine2D(TGeometryType& rGeom)
     const Point point_to_proj(x_coord, expected_proj_dist, 0.0);
     Point projected_point;
 
-    const double proj_distance = GeometricalProjectionUtilities::FastProjectOnLine(
+    double proj_distance = GeometricalProjectionUtilities::FastProjectOnLine(
+        rGeom,
+        point_to_proj,
+        projected_point);
+
+    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+
+    proj_distance = GeometricalProjectionUtilities::FastProjectOnLine2D(
         rGeom,
         point_to_proj,
         projected_point);

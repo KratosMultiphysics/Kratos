@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(Stokes3D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Stokes3D);
 
     template <unsigned int TNumNodes, unsigned int TDim>
     struct element_data
@@ -116,14 +116,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< Stokes3D >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< Stokes3D >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< Stokes3D >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< Stokes3D >(NewId, pGeom, pProperties);
     }
 
 

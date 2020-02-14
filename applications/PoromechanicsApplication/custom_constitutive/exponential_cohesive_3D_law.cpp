@@ -42,6 +42,13 @@ int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const 
         KRATOS_ERROR << "SHEAR_FRACTURE_ENERGY not defined" << std::endl;
     }
 
+    KRATOS_CHECK_VARIABLE_KEY(STATE_VARIABLE);
+    if(rMaterialProperties.Has(STATE_VARIABLE)) {
+        KRATOS_ERROR_IF(rMaterialProperties[STATE_VARIABLE] < 0.0) << "STATE_VARIABLE has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "STATE_VARIABLE not defined" << std::endl;
+    }
+
     return 0;
 }
 
@@ -49,7 +56,7 @@ int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const 
 
 void ExponentialCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
-    mStateVariable = 1.0e-12;
+    mStateVariable = rMaterialProperties[STATE_VARIABLE];
 }
 
 //----------------------------------------------------------------------------------------

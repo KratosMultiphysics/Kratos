@@ -59,7 +59,7 @@ public:
     typedef GeometryData::SizeType                                        SizeType;
 
     /// Counted pointer of CompositeCondition
-    KRATOS_CLASS_POINTER_DEFINITION( CompositeCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( CompositeCondition );
 
     ///@}
     ///@name Life Cycle

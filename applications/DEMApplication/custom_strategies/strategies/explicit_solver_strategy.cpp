@@ -158,6 +158,7 @@ namespace Kratos {
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
 
         InitializeDEMElements();
+
         InitializeFEMElements();
         UpdateMaxIdOfCreatorDestructor();
         InitializeClusters(); // This adds elements to the balls modelpart
@@ -299,6 +300,7 @@ namespace Kratos {
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
                 node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes
             }
+
         }
 
         KRATOS_CATCH("")
@@ -443,16 +445,14 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double ExplicitSolverStrategy::Solve() {
+    double ExplicitSolverStrategy::SolveSolutionStep() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
-        InitializeSolutionStep();
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
 
         return 0.00;
 
@@ -676,7 +676,7 @@ namespace Kratos {
 
             #pragma omp for nowait
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
-                 ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
+                ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
@@ -704,6 +704,10 @@ namespace Kratos {
         ModelPart& r_fem_model_part = GetFemModelPart();
         ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+        RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+
+        SetNormalRadiiOnAllParticles(*mpDem_model_part);
 
         #pragma omp parallel
         {
@@ -808,6 +812,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         if (fem_model_part.NumberOfSubModelParts()) {
+
             for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
                 ModelPart& submp = *sub_model_part;
@@ -816,9 +821,10 @@ namespace Kratos {
                 #pragma omp parallel for
                 for (int i=0; i<(int)pTConditions.size(); i++) {
                     ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                    (it)->Initialize();
+                    (it)->Initialize(r_process_info);
                 }
 
+                if (!r_process_info[IS_RESTARTED]){
                 // Central Node
                 Node<3>::Pointer central_node;
                 Geometry<Node<3> >::PointsArrayType central_node_list;
@@ -897,6 +903,20 @@ namespace Kratos {
 
                 rigid_body_element->Initialize(r_process_info);
                 rigid_body_element->CustomInitialize(submp);
+                }
+                else {
+
+                    // There is no need to create the rigid body elements, they already there
+                    // But they need to be initialized
+                    ElementsArrayType& pFemElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
+
+                    for (int k = 0; k < (int) pFemElements.size(); k++) {
+                        ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
+                        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+                        rigid_body_element.Initialize(r_process_info);
+                        rigid_body_element.CustomInitialize(submp);
+                    }
+                }
             }
         }
 
@@ -933,9 +953,9 @@ namespace Kratos {
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);
 
-                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
-
                 const unsigned int& dim = geom.WorkingSpaceDimension();
+
+                if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
 
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
                     //we are studying a certain condition here
@@ -946,6 +966,7 @@ namespace Kratos {
                     array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
                     double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
                     array_1d<double, 3> rhs_cond_comp;
+                    noalias(rhs_cond_comp) = ZeroVector(3);
 
                     geom[i].SetLock();
 
@@ -1008,8 +1029,10 @@ namespace Kratos {
             double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
             array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
 
-            node_pressure = node_pressure / node_area;
-            shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
+            if (node_area > 0.0){
+                node_pressure = node_pressure / node_area;
+                shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
+            }
         }
         KRATOS_CATCH("")
     }
@@ -1390,6 +1413,7 @@ namespace Kratos {
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*> (p_neighbour_element);
                 if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
+                if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) continue;
                 mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
             }
             this->GetResults()[i].clear();
@@ -1539,6 +1563,7 @@ namespace Kratos {
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
         std::vector<unsigned int> contact_element_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
@@ -1546,7 +1571,7 @@ namespace Kratos {
             ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
             for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->Initialize();
+                (it_contact)->Initialize(r_process_info);
             } //loop over CONTACT ELEMENTS
         }// loop threads OpenMP
 
@@ -1628,6 +1653,23 @@ namespace Kratos {
                 for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
                     Condition* p_neighbour_condition = (*neighbour_it).get();
                     DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
+                    if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) {
+                        bool must_skip_this_one = false;
+                        auto& geom = p_wall->GetGeometry();
+                        const unsigned int number_of_nodes = geom.size();
+                        const array_1d<double, 3>& sphere_center = mListOfSphericParticles[i]->GetGeometry()[0];
+                        const double epsilon = std::numeric_limits<double>::epsilon();
+                        for(unsigned int k = 0; k < number_of_nodes; k++) {
+                            const double distance_x = std::abs(geom[k][0] - sphere_center[0]);
+                            const double distance_y = std::abs(geom[k][1] - sphere_center[1]);
+                            const double distance_z = std::abs(geom[k][2] - sphere_center[2]);
+                            if(distance_x < epsilon && distance_y < epsilon && distance_z < epsilon) {
+                                must_skip_this_one= true;
+                                break;
+                            }
+                        }
+                        if (must_skip_this_one) continue;
+                    }
                     mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.push_back(p_wall);
                 }//for results iterator
                 this->GetRigidFaceResults()[i].clear();

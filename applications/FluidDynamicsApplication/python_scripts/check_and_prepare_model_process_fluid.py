@@ -34,7 +34,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
 
     def Execute(self):
-        self.volume_model_part = self.main_model_part.GetSubModelPart(self.volume_model_part_name)
+        if self.main_model_part.Name == self.volume_model_part_name:
+            self.volume_model_part = self.main_model_part
+        else:
+            self.volume_model_part = self.main_model_part.GetSubModelPart(self.volume_model_part_name)
 
         skin_parts = []
         for i in range(self.skin_name_list.size()):

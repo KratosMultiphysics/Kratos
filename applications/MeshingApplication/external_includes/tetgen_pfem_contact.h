@@ -253,7 +253,7 @@ public:
             int base = ( iii->Id() - 1 )*4;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
             for(int i = 0; i<4; i++)
             {

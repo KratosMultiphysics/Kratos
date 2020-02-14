@@ -8,7 +8,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import math
 import sys
 
-import assign_vector_components_to_nodes_process as BaseProcess
+from KratosMultiphysics.SolidMechanicsApplication.assign_vector_components_to_nodes_process import AssignVectorComponentsToNodesProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
@@ -16,7 +16,7 @@ def Factory(custom_settings, Model):
     return AssignModulusAndDirectionToNodesProcess(Model, custom_settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponentsToNodesProcess):
+class AssignModulusAndDirectionToNodesProcess(AssignVectorComponentsToNodesProcess):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -104,4 +104,4 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
         params.AddValue("interval",self.settings["interval"])
         params.AddValue("local_axes", self.settings["local_axes"])
 
-        BaseProcess.AssignVectorComponentsToNodesProcess.__init__(self, Model, params)
+        AssignVectorComponentsToNodesProcess.__init__(self, Model, params)

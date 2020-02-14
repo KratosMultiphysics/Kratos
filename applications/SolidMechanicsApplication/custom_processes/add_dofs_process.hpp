@@ -312,7 +312,7 @@ public:
 	*/
 
 	//2nd way:  (faster)
-        #pragma omp parallel for
+        // #pragma omp parallel for
 	for (int k=0; k<number_of_nodes; k++)
 	  {
 	    ModelPart::NodeConstantIterator it = nodes_begin + k;
@@ -553,7 +553,7 @@ private:
       VariablesListDataValueContainer VariablesList = (node_it)->SolutionStepData();
 
       std::cout<<" list size "<<VariablesList.pGetVariablesList()->size()<<std::endl;
-      std::cout<<" Variable: "<<VariablesList.pGetVariablesList()[0]<<std::endl;
+      std::cout<<" Variable: "<<(*VariablesList.pGetVariablesList())[0]<<std::endl;
       std::cout<<" end "<<std::endl;
 
       KRATOS_CATCH(" ")

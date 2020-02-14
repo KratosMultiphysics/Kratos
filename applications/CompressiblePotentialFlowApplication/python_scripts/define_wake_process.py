@@ -42,8 +42,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
 
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10

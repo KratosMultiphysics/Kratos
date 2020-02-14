@@ -1,9 +1,12 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.kratos_utilities as KratosUtilities
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
+import KratosMultiphysics.process_factory as process_factory
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as python_solvers_wrapper_fluid
+
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedReservoirTest(UnitTest.TestCase):
@@ -66,7 +69,6 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             self.model = KratosMultiphysics.Model()
 
             ## Solver construction
-            import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
@@ -86,7 +88,6 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             self.solver.Initialize()
 
             ## Processes construction
-            import process_factory
             self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
             self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 

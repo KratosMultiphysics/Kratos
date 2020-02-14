@@ -52,7 +52,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     // Counted pointer of MomentCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MomentCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MomentCondition );
 
     ///@}
     ///@name Life Cycle

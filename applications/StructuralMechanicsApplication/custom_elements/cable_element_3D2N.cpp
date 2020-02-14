@@ -37,7 +37,7 @@ CableElement3D2N::Create(IndexType NewId, NodesArrayType const& rThisNodes,
                          PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_shared<CableElement3D2N>(NewId, rGeom.Create(rThisNodes),
+    return Kratos::make_intrusive<CableElement3D2N>(NewId, rGeom.Create(rThisNodes),
             pProperties);
 }
 
@@ -45,7 +45,7 @@ Element::Pointer
 CableElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
                          PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<CableElement3D2N>(NewId, pGeom,
+    return Kratos::make_intrusive<CableElement3D2N>(NewId, pGeom,
             pProperties);
 }
 
@@ -144,6 +144,31 @@ void CableElement3D2N::UpdateInternalForces(
     rInternalForces = ZeroVector(msLocalSize);
     noalias(rInternalForces) = prod(transformation_matrix, f_local);
     KRATOS_CATCH("");
+}
+
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE){
+        TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
+}
+
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) || (rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)){
+        TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
 }
 
 void CableElement3D2N::save(Serializer& rSerializer) const

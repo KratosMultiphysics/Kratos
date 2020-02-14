@@ -84,6 +84,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
     .def(py::init<double, double, unsigned int, Process::Pointer>())
+    .def(py::init<double, double, unsigned int, double, Process::Pointer>())
     .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
     .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
     ;
@@ -106,8 +107,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulent")
     .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                             // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Variable<double> &>()) // constructor with a non-default flag for slip conditions
+    .def(py::init<unsigned int>())                  // constructor without a turbulence model
+    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
     ;
 
     py::class_<
@@ -116,8 +117,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>>
         (m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction")
     .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                             // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Variable<double> &>()) // constructor with a non-default flag for slip conditions
+    .def(py::init<unsigned int>())                  // constructor without a turbulence model
+    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
     ;
 
     py::class_<

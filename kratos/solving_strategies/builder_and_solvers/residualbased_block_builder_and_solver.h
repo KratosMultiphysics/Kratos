@@ -423,7 +423,7 @@ public:
 
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             Timer::Start("ApplyConstraints");
-            ApplyConstraints(pScheme,A,Dx,b,rModelPart);
+            ApplyConstraints(pScheme, rModelPart, A, b);
             Timer::Stop("ApplyConstraints");
         }
 
@@ -596,7 +596,7 @@ public:
         Doftemp.reserve(dof_global_set.size());
         for (auto it= dof_global_set.begin(); it!= dof_global_set.end(); it++)
         {
-            Doftemp.push_back( it->get() );
+            Doftemp.push_back( *it );
         }
         Doftemp.Sort();
 
@@ -871,6 +871,52 @@ public:
         }
     }
 
+    void ApplyConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
+
+            // We compute the transposed matrix of the global relation matrix
+            TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+
+            TSystemVectorType b_modified(rb.size());
+            TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+            TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); //free memory
+
+            TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
+            T_transpose_matrix.resize(0, 0, false);                                                             //free memory
+
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+            auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+
+            double max_diag = 0.0;
+            for(IndexType i = 0; i < rA.size1(); ++i) {
+                max_diag = std::max(std::abs(rA(i,i)), max_diag);
+            }
+
+            // Apply diagonal values on slaves
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
+                const IndexType slave_equation_id = mSlaveIds[i];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    rA(slave_equation_id, slave_equation_id) = max_diag;
+                    rb[slave_equation_id] = 0.0;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /**
      * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
      */
@@ -958,7 +1004,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
+    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -1056,7 +1102,7 @@ protected:
         }
     }
 
-    void BuildMasterSlaveConstraints(ModelPart& rModelPart)
+    virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -1134,53 +1180,6 @@ protected:
         for (auto eq_id : mInactiveSlaveDofs) {
             mConstantVector[eq_id] = 0.0;
             mT(eq_id, eq_id) = 1.0;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void ApplyConstraints(
-        typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb,
-        ModelPart &rModelPart)
-    {
-        KRATOS_TRY
-
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
-            BuildMasterSlaveConstraints(rModelPart);
-
-            // We compute the transposed matrix of the global relation matrix
-            TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
-            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
-
-            TSystemVectorType b_modified(rb.size());
-            TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
-            TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); //free memory
-
-            TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
-            T_transpose_matrix.resize(0, 0, false);                                                             //free memory
-
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
-            auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
-
-            double max_diag = 0.0;
-            for(IndexType i = 0; i < rA.size1(); ++i) {
-                max_diag = std::max(std::abs(rA(i,i)), max_diag);
-            }
-
-            // Apply diagonal values on slaves
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
-                const IndexType slave_equation_id = mSlaveIds[i];
-                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    rA(slave_equation_id, slave_equation_id) = max_diag;
-                    rb[slave_equation_id] = 0.0;
-                }
-            }
         }
 
         KRATOS_CATCH("")

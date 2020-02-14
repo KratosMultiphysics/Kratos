@@ -38,7 +38,6 @@ void GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>
 void Model::Reset()
 {
     mRootModelPartMap.clear();
-    //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
 }
 
 ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize )
@@ -47,12 +46,11 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
 
     auto search = mRootModelPartMap.find(ModelPartName);
     if( search == mRootModelPartMap.end()) {
-        auto pvar_list = Kratos::make_unique<VariablesList>();
+        auto pvar_list = Kratos::make_intrusive<VariablesList>();
 
-            ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list.get(), *this );
+            ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list, *this );
         mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 
-        mListOfVariablesLists.insert(std::move(pvar_list));
         return *(mRootModelPartMap[ModelPartName].get());
     } else {
         KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
@@ -128,10 +126,7 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
                         msg << "." << model_part_names[1];
                     }
 
-                    KRATOS_INFO("Model") << "DEPREATION_WARNING: The ModelPart \"" // TODO make a warning at some point
-                        << subparts_list[0] << "\"\nis retrieved from the Model by using the "
-                        << "flat-map!\nPlease prepend the Parent-ModelPart-Names like this:\n\""
-                        << msg.str() << "\"" << std::endl;
+                    KRATOS_ERROR << "DEPRECATION: The ModelPart \"" << subparts_list[0] << "\" is retrieved from the Model by using the flat-map!\nThis was removed end of November 2019\nPlease prepend the Parent-ModelPart-Names like this:\n\"" << msg.str() << "\"" << std::endl;
 
                     return *pmodel_part;
                 }
@@ -204,10 +199,7 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
                         msg << "." << model_part_names[1];
                     }
 
-                    KRATOS_INFO("Model") << "DEPREATION_WARNING: The ModelPart \"" // TODO make a warning at some point
-                        << subparts_list[0] << "\"\nis retrieved from the Model by using the "
-                        << "flat-map!\nPlease prepend the Parent-ModelPart-Names like this:\n\""
-                        << msg.str() << "\"" << std::endl;
+                    KRATOS_ERROR << "DEPRECATION: The ModelPart \"" << subparts_list[0] << "\" is retrieved from the Model by using the flat-map!\nThis was removed end of November 2019\nPlease prepend the Parent-ModelPart-Names like this:\n\"" << msg.str() << "\"" << std::endl;
 
                     return *pmodel_part;
                 }
@@ -364,9 +356,7 @@ ModelPart* Model::RecursiveSearchByName(const std::string& ModelPartName, ModelP
 void Model::save(Serializer& rSerializer) const
 {
     //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
-    std::vector<VariablesList* > aux_var_lists;
     std::vector<std::string> aux_names;
-    aux_var_lists.reserve(GetListOfVariableLists().size());
     aux_names.reserve(mRootModelPartMap.size());
 
     for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
@@ -374,10 +364,6 @@ void Model::save(Serializer& rSerializer) const
         aux_names.push_back(it->first);
     }
 
-    for(auto it = GetListOfVariableLists().begin(); it!=GetListOfVariableLists().end(); ++it)
-        aux_var_lists.push_back(it->get());
-
-    rSerializer.save("ListOfVariablesLists", aux_var_lists);
     rSerializer.save("ModelPartNames", aux_names);
 
     for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
@@ -389,21 +375,14 @@ void Model::save(Serializer& rSerializer) const
 void Model::load(Serializer& rSerializer)
 {
     //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
-    std::vector<VariablesList* > aux_var_lists;
     std::vector<std::string> aux_names;
 
-    rSerializer.load("ListOfVariablesLists", aux_var_lists);
     rSerializer.load("ModelPartNames", aux_names);
-
-    for(IndexType i=0; i<aux_var_lists.size(); ++i) {
-        auto p_aux_list = std::unique_ptr<VariablesList>(aux_var_lists[i]);
-        mListOfVariablesLists.insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
-    }
 
     for(IndexType i=0; i<aux_names.size(); ++i) {
         //NOTE: CreateModelPart CANNOT be used here
-        auto dummy_list = Kratos::make_unique<VariablesList>();
-        ModelPart* pmodel_part = new ModelPart(aux_names[i], 1, dummy_list.get(), *this );
+        auto dummy_list = Kratos::make_intrusive<VariablesList>();
+        ModelPart* pmodel_part = new ModelPart(aux_names[i], 1, dummy_list, *this );
         rSerializer.load(aux_names[i], pmodel_part);
         mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(pmodel_part)));
     }

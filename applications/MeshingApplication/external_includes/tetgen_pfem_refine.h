@@ -28,14 +28,11 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
-
-
+#include "includes/global_pointer_variables.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
-#include "includes/deprecated_variables.h"
-
 #include "spatial_containers/spatial_containers.h"
 //#include "containers/bucket.h"
 //#include "containers/kd_tree.h"
@@ -774,7 +771,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				int base = ( iii->Id() - 1 )*4;
 
 				(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
-				WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+				GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
 				for(int i = 0; i<4; i++)
 				{

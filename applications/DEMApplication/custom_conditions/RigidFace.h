@@ -22,15 +22,15 @@ class KRATOS_API(DEM_APPLICATION) RigidFace3D : public DEMWall
 public:
 
     // Counted pointer of RigidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( RigidFace3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidFace3D );
 
 
-    typedef WeakPointerVector<Element> ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-    typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+    typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -66,7 +66,7 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;

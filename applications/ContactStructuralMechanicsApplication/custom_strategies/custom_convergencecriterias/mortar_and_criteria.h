@@ -63,6 +63,11 @@ public:
     /// Pointer definition of MortarAndConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( MortarAndConvergenceCriteria );
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
+    KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( CONDITION_NUMBER_IS_INITIALIZED );
+
     /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
 
@@ -97,29 +102,28 @@ public:
      * Constructor.
      */
     explicit MortarAndConvergenceCriteria(
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
+        typename ConvergenceCriteriaBaseType::Pointer pFirstCriterion,
+        typename ConvergenceCriteriaBaseType::Pointer pSecondCriterion,
         const bool PrintingOutput = false,
         ConditionNumberUtilityPointerType pConditionNumberUtility = nullptr
         )
-        :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
-        mPrintingOutput(PrintingOutput),
-        mpConditionNumberUtility(pConditionNumberUtility),
-        mTableIsInitialized(false)
+        :BaseType(pFirstCriterion, pSecondCriterion),
+        mpConditionNumberUtility(pConditionNumberUtility)
     {
+        // Set local flags
+        mOptions.Set(MortarAndConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
+        mOptions.Set(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED, false);
     }
 
     /**
      * Copy constructor.
      */
     MortarAndConvergenceCriteria(MortarAndConvergenceCriteria const& rOther)
-      :BaseType(rOther)
-      ,mPrintingOutput(rOther.mPrintingOutput)
-      ,mTableIsInitialized(rOther.mTableIsInitialized)
-      ,mpConditionNumberUtility(rOther.mpConditionNumberUtility)
+        :BaseType(rOther)
+        ,mOptions(rOther.mOptions)
+        ,mpConditionNumberUtility(rOther.mpConditionNumberUtility)
      {
-         BaseType::mpFirstCriterion  = rOther.mpFirstCriterion;
-         BaseType::mpSecondCriterion = rOther.mpSecondCriterion;
      }
 
     /** Destructor.
@@ -160,16 +164,16 @@ public:
         bool criterion_result = BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         if (mpConditionNumberUtility != nullptr) {
-            TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
+            TSystemMatrixType copy_A(rA); // NOTE: Can not be const, TODO: Change the solvers to const
             const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
 
             if (r_process_info.Has(TABLE_UTILITY)) {
                 std::cout.precision(4);
                 TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-                auto& Table = p_table->GetTable();
-                Table  << condition_number;
+                auto& r_table = p_table->GetTable();
+                r_table  << condition_number;
             } else {
-                if (mPrintingOutput == false)
+                if (mOptions.IsNot(MortarAndConvergenceCriteria::PRINTING_OUTPUT))
                     KRATOS_INFO("MortarAndConvergenceCriteria") << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
                 else
                     KRATOS_INFO("MortarAndConvergenceCriteria") << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
@@ -194,18 +198,20 @@ public:
         // The process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
-        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+        if (r_process_info.Has(TABLE_UTILITY) && mOptions.IsNot(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
-            (p_table->GetTable()).SetBold(!mPrintingOutput);
+            (p_table->GetTable()).SetBold(mOptions.IsNot(MortarAndConvergenceCriteria::PRINTING_OUTPUT));
             (p_table->GetTable()).AddColumn("ITER", 4);
         }
 
-        mTableIsInitialized = true;
+        mOptions.Set(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED, true);
         BaseType::Initialize(rModelPart);
 
-        if (r_process_info.Has(TABLE_UTILITY) && mpConditionNumberUtility != nullptr) {
+        if (r_process_info.Has(TABLE_UTILITY) && mpConditionNumberUtility != nullptr
+            && mOptions.IsNot(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             (p_table->GetTable()).AddColumn("COND.NUM.", 10);
+            mOptions.Set(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED, true);
         }
     }
 
@@ -230,7 +236,7 @@ public:
 
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             std::cout.precision(4);
-            if (mPrintingOutput == false)
+            if (mOptions.IsNot(MortarAndConvergenceCriteria::PRINTING_OUTPUT))
                 std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
             else
                 std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
@@ -320,9 +326,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mPrintingOutput;                                       /// If the colors and bold are printed
+    Flags mOptions; /// Local flags
+
     ConditionNumberUtilityPointerType mpConditionNumberUtility; /// The utility to compute the condition number
-    bool mTableIsInitialized;                                   /// If the table is already initialized
 
     ///@}
     ///@name Private Operators
@@ -346,14 +352,24 @@ private:
 
     ///@}
 
-}; /* Class MortarAndConvergenceCriteria */
+};  // Kratos MortarAndConvergenceCriteria
 
-///@}
-
-///@name Type Definitions */
+///@name Local flags creation
 ///@{
 
-///@}
+/// Local Flags
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(0));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(0, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(1, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 
 }  /* namespace Kratos.*/
 

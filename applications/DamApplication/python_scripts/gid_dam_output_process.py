@@ -98,7 +98,7 @@ class GiDDamOutputProcess(Process):
 
         point_data_configuration = self.param["point_data_configuration"]
         if point_data_configuration.size() > 0:
-            import point_output_process
+            from KratosMultiphysics import point_output_process
             self.point_output_process = point_output_process.PointOutputProcess(self.model_part,point_data_configuration)
         else:
             self.point_output_process = None

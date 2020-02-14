@@ -5,7 +5,7 @@
 #include "custom_elements/symbolic_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
@@ -49,14 +49,35 @@ EmbeddedFluidElement<TBaseElement>::~EmbeddedFluidElement()
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geometry<NodeType>::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElement>(NewId, pGeom, pProperties);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::Initialize()
+{
+    KRATOS_TRY;
+
+    // Call the base element initialize method to set the constitutive law
+    TBaseElement::Initialize();
+
+    // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
+    const array_1d<double,3> zero_vel = ZeroVector(3);
+    for (auto &r_node : this->GetGeometry()) {
+        if (!r_node.Has(EMBEDDED_VELOCITY)) {
+            r_node.SetLock();
+            r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
+            r_node.UnSetLock();
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <class TBaseElement>
@@ -210,11 +231,16 @@ void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
 {
     if (rVariable == EMBEDDED_VELOCITY) {
         const auto &r_geom = this->GetGeometry();
+        const auto &r_N_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
         const auto &r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
         const std::size_t n_gauss_pts = r_integration_points.size();
         rValues.resize(n_gauss_pts);
         for (std::size_t i_gauss = 0; i_gauss < n_gauss_pts; ++i_gauss) {
-            rValues[i_gauss] = this->GetValue(EMBEDDED_VELOCITY);
+            const auto i_gauss_N = row(r_N_container, i_gauss);
+            rValues[i_gauss] = ZeroVector(3);
+            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                rValues[i_gauss] += i_gauss_N[i_node] * r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            }
         }
     } else {
         TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
@@ -353,18 +379,13 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
 
-    // If there is embedded velocity, substract it to the previous iteration solution
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
-
-        noalias(values) -= embedded_vel_exp;
     }
 
     // Compute the Nitsche normal imposition penalty coefficient
@@ -411,18 +432,13 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
 
-    // If there is embedded velocity, substract it to the previous iteration solution
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
-
-        noalias(values) -= embedded_vel_exp;
     }
 
     // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
@@ -568,18 +584,16 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
     noalias(rRHS) -= prod(aux_LHS_1, values);
     noalias(rRHS) -= prod(aux_LHS_2, values);
 
-    // If level set velocity is not 0, add its contribution to the RHS
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
-        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
     }
+    noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
 }
 
 template <class TBaseElement>
@@ -655,19 +669,16 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
     noalias(rLHS) += aux_LHS_2;
 
     // RHS outside Nitsche contribution assembly
-    // If level set velocity is not 0, add its contribution to the RHS
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
-
-        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
     }
+    noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
 
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(aux_LHS_1, values);
@@ -745,6 +756,15 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
 
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
+        }
+    }
+
     // Set the penalty matrix
     BoundedMatrix<double,NumNodes,NumNodes> p_gamma = ZeroMatrix(NumNodes, NumNodes);
 
@@ -778,22 +798,6 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
     }
 
     noalias(rLHS) += penalty_lhs;
-
-    // RHS penalty contribution assembly
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        VectorType penalty_rhs = ZeroVector(LocalSize);
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> aux_embedded_vel = ZeroVector(LocalSize);
-
-        for (unsigned int i=0; i<NumNodes; i++) {
-            for (unsigned int comp=0; comp<Dim; comp++) {
-                aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-            }
-        }
-
-        noalias(rRHS) += prod(penalty_lhs, aux_embedded_vel);
-    }
-
     noalias(rRHS) -= prod(penalty_lhs, values); // Residual contribution assembly
 }
 
@@ -939,32 +943,27 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(nitsche_lhs, values);
 
-    // Compute f_gamma if level set velocity is not 0
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        nitsche_lhs.clear();
-
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> aux_embedded_vel = ZeroVector(LocalSize);
-
-        for (unsigned int i=0; i<NumNodes; i++) {
-            aux_embedded_vel(i*BlockSize) = embedded_vel(0);
-            aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
-            aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+    // Compute and assemble f_gamma (EMBEDDED_VELOCITY) contribution to the RHS
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
+    }
 
-        // Asemble the RHS f_gamma contribution
-        for (unsigned int i=0; i<rData.NumNegativeNodes; i++) {
-            unsigned int out_node_row_id = rData.NegativeIndices[i];
-
-            for (unsigned int j=0; j<NumNodes; j++) {
-                for (unsigned int comp = 0; comp<Dim; comp++) {
-                    nitsche_lhs(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
-                }
+    nitsche_lhs.clear();
+    for (unsigned int i=0; i<rData.NumNegativeNodes; i++) {
+        unsigned int out_node_row_id = rData.NegativeIndices[i];
+        for (unsigned int j=0; j<NumNodes; j++) {
+            for (unsigned int comp = 0; comp<Dim; comp++) {
+                nitsche_lhs(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
             }
         }
-
-        noalias(rRHS) += prod(nitsche_lhs, aux_embedded_vel);
     }
+
+    noalias(rRHS) += prod(nitsche_lhs, embedded_vel_exp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

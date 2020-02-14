@@ -47,7 +47,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosTrilinosApplication : public KratosApplication {
+class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public KratosApplication {
    public:
     ///@name Type Definitions
     ///@{

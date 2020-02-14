@@ -72,7 +72,7 @@ ThermalContactDomainCondition&  ThermalContactDomainCondition::operator=(Thermal
 
 Condition::Pointer ThermalContactDomainCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ThermalContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<ThermalContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************

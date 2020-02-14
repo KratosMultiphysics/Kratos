@@ -26,7 +26,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
     def setUp(self):
         self.domain_size = 2
         self.input_file = "redistribution_test"
-        self.work_folder = "auxiliar_files_for_python_unnitest/RedistributionTest"
+        self.work_folder = "auxiliar_files_for_python_unittest/RedistributionTest"
 
         self.redistribution_iterations = 100
         self.redistribution_tolerance = 1e-7

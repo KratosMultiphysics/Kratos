@@ -57,7 +57,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of AdjointSemiAnalyticBaseCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AdjointSemiAnalyticBaseCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AdjointSemiAnalyticBaseCondition );
 
     ///@}
     ///@name Life Cycle
@@ -65,13 +65,13 @@ public:
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId = 0)
     : Condition(NewId),
-      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGetGeometry()))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry),
-      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGeometry))
     {
     }
 
@@ -79,7 +79,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties),
-      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry, pProperties))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGeometry, pProperties))
     {
     }
 
@@ -99,7 +99,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -107,7 +107,7 @@ public:
                               GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
             NewId, pGeometry, pProperties);
     }
 

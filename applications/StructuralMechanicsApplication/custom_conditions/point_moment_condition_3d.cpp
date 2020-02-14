@@ -43,7 +43,7 @@ PointMomentCondition3D::PointMomentCondition3D( IndexType NewId, GeometryType::P
 
 Condition::Pointer PointMomentCondition3D::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<PointMomentCondition3D>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<PointMomentCondition3D>( NewId, pGeom, pProperties );
 }
 
 //************************************************************************************
@@ -51,7 +51,7 @@ Condition::Pointer PointMomentCondition3D::Create(IndexType NewId,GeometryType::
 
 Condition::Pointer PointMomentCondition3D::Create( IndexType NewId, NodesArrayType const& rThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<PointMomentCondition3D>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive<PointMomentCondition3D>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -64,7 +64,7 @@ Condition::Pointer PointMomentCondition3D::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<PointMomentCondition3D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<PointMomentCondition3D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;

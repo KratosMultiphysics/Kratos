@@ -53,11 +53,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                         "echo_level": 1
                     },
                     "model_part_output_settings": {
-                        "prefix": "/ModelData/<identifier>"
+                        "prefix": "/ModelData/<model_part_name>"
                     },
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": ["DISPLACEMENT"],
-                        "prefix": "/ResultsData/<identifier>/<time>",
+                        "prefix": "/ResultsData/<model_part_name>/<time>",
                         "time_format": "0.2f"
                     },
                     "element_data_value_settings": {
@@ -271,11 +271,12 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 }
             }
             ''')
-        patcher1 = patch('KratosMultiphysics.HDF5Application.create_xdmf_file.WriteXdmfFile', autospec=True)
+        patcher1 = patch(
+            'KratosMultiphysics.HDF5Application.xdmf_utils.WriteMultifileTemporalAnalysisToXdmf', autospec=True)
         patcher2 = patch(
             'KratosMultiphysics.kratos_utilities.DeleteFileIfExisting', autospec=True)
         patcher3 = patch('os.listdir', autospec=True)
-        WriteXdmfFile = patcher1.start()
+        WriteMultifileTemporalAnalysisToXdmf = patcher1.start()
         DeleteFileIfExisting = patcher2.start()
         listdir = patcher3.start()
         listdir.return_value = [
@@ -286,8 +287,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         for time in [0.09999999, 0.19999998]:
             self.model_part.CloneTimeStep(time)
             process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(WriteXdmfFile.call_count, 2)
-        WriteXdmfFile.assert_called_with('test_model_part.h5')
+        self.assertEqual(WriteMultifileTemporalAnalysisToXdmf.call_count, 2)
+        WriteMultifileTemporalAnalysisToXdmf.assert_called_with(
+            'test_model_part.h5', '/ModelData', '/ResultsData')
         DeleteFileIfExisting.assert_called_once_with(
             './test_model_part-0.1000.h5')
         patcher1.stop()

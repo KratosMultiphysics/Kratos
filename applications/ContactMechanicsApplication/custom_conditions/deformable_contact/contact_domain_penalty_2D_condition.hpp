@@ -71,7 +71,7 @@ public:
 
 
     /// Counted pointer of ContactDomainPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ContactDomainPenalty2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ContactDomainPenalty2DCondition );
 
     ///@}
     ///@name Life Cycle

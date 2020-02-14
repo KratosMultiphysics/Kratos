@@ -67,7 +67,7 @@ public:
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
     /// Counted pointer of AdjointSemiAnalyticPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AdjointSemiAnalyticPointLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AdjointSemiAnalyticPointLoadCondition );
 
     ///@}
     ///@name Life Cycle
@@ -98,7 +98,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -106,7 +106,7 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>>(
             NewId, pGeometry, pProperties);
     }
 

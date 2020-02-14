@@ -85,7 +85,7 @@ namespace Kratos
         ) const
     {
         //NEEDED TO CREATE AN ELEMENT   
-        return Kratos::make_shared<TestElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
+        return Kratos::make_intrusive<TestElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
     }
 
 
@@ -102,7 +102,7 @@ namespace Kratos
 
         TestElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mResidualType );
 
-        return Kratos::make_shared<TestElement>(new_element);
+        return Kratos::make_intrusive<TestElement>(new_element);
     }
 
 

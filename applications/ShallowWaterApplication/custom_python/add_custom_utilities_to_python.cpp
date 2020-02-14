@@ -19,10 +19,11 @@
 // Project includes
 #include "add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
-#include "custom_utilities/shallow_water_variables_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
 #include "custom_utilities/replicate_model_part_utility.h"
+#include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
+#include "custom_utilities/bfecc_convection_utility.h"
 
 
 namespace Kratos
@@ -51,16 +52,27 @@ namespace Python
         .def("ExecuteParticlesPrintingTool", &MoveShallowWaterParticleUtility<2>::ExecuteParticlesPrintingTool)
         ;
 
-    py::class_< ShallowWaterVariablesUtility > (m, "ShallowWaterVariablesUtility")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, double&>())
-        .def("ComputeFreeSurfaceElevation", &ShallowWaterVariablesUtility::ComputeFreeSurfaceElevation)
-        .def("ComputeHeightFromFreeSurface", &ShallowWaterVariablesUtility::ComputeHeightFromFreeSurface)
-        .def("ComputeVelocity", &ShallowWaterVariablesUtility::ComputeVelocity)
-        .def("CheckDryConservedVariables", &ShallowWaterVariablesUtility::CheckDryConservedVariables)
-        .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
-        .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
-        .def("DeactivateDryElements", &ShallowWaterVariablesUtility::DeactivateDryElements)
+    py::class_< ShallowWaterUtilities > (m, "ShallowWaterUtilities")
+        .def(py::init<>())
+        .def("ComputeFreeSurfaceElevation", &ShallowWaterUtilities::ComputeFreeSurfaceElevation)
+        .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
+        .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
+        .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
+        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
+        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&,double>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
+        .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
+        .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
+        .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
+        .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
+        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
+        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
+        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
+        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
+        .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
+        .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
+        .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
+        .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
+        .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
@@ -89,6 +101,18 @@ namespace Python
         .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
         .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
         .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
+        ;
+
+    py::class_< BFECCConvectionUtility<2> > (m, "BFECCConvectionUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<double>,double>)
+        .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>,array_1d<double,3>>)
+        .def("UpdateSearchDatabase", &BFECCConvectionUtility<2>::UpdateSearchDatabase)
+        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
+        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
+        .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
+        .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
   }

@@ -48,7 +48,7 @@ namespace Kratos
 							       NodesArrayType const& ThisNodes,
 							       PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<AxisymmetricPointElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<AxisymmetricPointElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -62,7 +62,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared<AxisymmetricPointElasticCondition>(NewCondition);
+    return Kratos::make_intrusive<AxisymmetricPointElasticCondition>(NewCondition);
   }
 
 

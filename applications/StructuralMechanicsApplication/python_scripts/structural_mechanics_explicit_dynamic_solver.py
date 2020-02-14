@@ -17,48 +17,50 @@ class ExplicitMechanicalSolver(MechanicalSolver):
 
     This class creates the mechanical solvers for explicit dynamic analysis.
 
-    Public member variables:
-    dynamic_settings -- settings for the explicit dynamic solvers.
-
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-         # Set defaults and validate custom settings.
-        self.dynamic_settings = KratosMultiphysics.Parameters("""
-        {
-            "scheme_type"                : "central_differences",
-            "time_step_prediction_level" : 0,
-            "delta_time_refresh"         : 1000,
-            "max_delta_time"             : 1.0e0,
-            "fraction_delta_time"        : 0.9,
-            "rayleigh_alpha"             : 0.0,
-            "rayleigh_beta"              : 0.0
-        }
-        """)
-
-        self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
-        # Validate the remaining settings in the base class.
-
-        # Delta time refresh counter
-        self.delta_time_refresh_counter = self.dynamic_settings["delta_time_refresh"].GetInt()
-
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(model, custom_settings)
         # Lumped mass-matrix is necessary for explicit analysis
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
-        # Print finished work
+        self.delta_time_refresh_counter = self.settings["delta_time_refresh"].GetInt()
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "time_integration_method"    : "explicit",
+            "scheme_type"                : "central_differences",
+            "time_step_prediction_level" : 0,
+            "delta_time_refresh"         : 1000,
+            "max_delta_time"             : 1.0e0,
+            "fraction_delta_time"        : 0.333333333333333333333333333333333333,
+            "rayleigh_alpha"             : 0.0,
+            "rayleigh_beta"              : 0.0
+        }""")
+        this_defaults.AddMissingParameters(super(ExplicitMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         super(ExplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+
+        scheme_type = self.settings["scheme_type"].GetString()
+        if(scheme_type == "central_differences"):
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            if (self.settings["rotation_dofs"].GetBool()):
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+        if(scheme_type == "multi_stage"):
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+            if (self.settings["rotation_dofs"].GetBool()):
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
 
         if (self.settings["rotation_dofs"].GetBool()):
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
@@ -70,8 +72,8 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
     def ComputeDeltaTime(self):
-        if self.dynamic_settings["time_step_prediction_level"].GetInt() > 1:
-            if self.delta_time_refresh_counter >= self.dynamic_settings["delta_time_refresh"].GetInt():
+        if self.settings["time_step_prediction_level"].GetInt() > 1:
+            if self.delta_time_refresh_counter >= self.settings["delta_time_refresh"].GetInt():
                 self.delta_time = StructuralMechanicsApplication.CalculateDeltaTime(self.GetComputingModelPart(), self.delta_time_settings)
                 self.delta_time_refresh_counter = 0
             else:
@@ -84,30 +86,33 @@ class ExplicitMechanicalSolver(MechanicalSolver):
 
         # Initilize delta_time
         self.delta_time_settings = KratosMultiphysics.Parameters("""{}""")
-        self.delta_time_settings.AddValue("time_step_prediction_level", self.dynamic_settings["time_step_prediction_level"])
-        self.delta_time_settings.AddValue("max_delta_time", self.dynamic_settings["max_delta_time"])
-        if self.dynamic_settings["time_step_prediction_level"].GetInt() > 0:
+        self.delta_time_settings.AddValue("time_step_prediction_level", self.settings["time_step_prediction_level"])
+        self.delta_time_settings.AddValue("max_delta_time", self.settings["max_delta_time"])
+        if self.settings["time_step_prediction_level"].GetInt() > 0:
             self.delta_time = StructuralMechanicsApplication.CalculateDeltaTime(self.GetComputingModelPart(), self.delta_time_settings)
         else:
             self.delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
     #### Specific internal functions ####
     def _create_solution_scheme(self):
-        scheme_type = self.dynamic_settings["scheme_type"].GetString()
+        scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
         process_info = self.main_model_part.ProcessInfo
-        process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+        process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
+        process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
 
         # Setting the time integration schemes
         if(scheme_type == "central_differences"):
-            mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.dynamic_settings["max_delta_time"].GetDouble(),
-                                                                             self.dynamic_settings["fraction_delta_time"].GetDouble(),
-                                                                             self.dynamic_settings["time_step_prediction_level"].GetDouble())
+            mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.settings["max_delta_time"].GetDouble(),
+                                                                             self.settings["fraction_delta_time"].GetDouble(),
+                                                                             self.settings["time_step_prediction_level"].GetDouble())
+        elif(scheme_type == "multi_stage"):
+            mechanical_scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(self.settings["fraction_delta_time"].GetDouble())
+
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"central_differences\""
+            err_msg += "Available options are: \"central_differences\", \"multi_stage\""
             raise Exception(err_msg)
         return mechanical_scheme
 

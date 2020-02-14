@@ -70,7 +70,7 @@ namespace Kratos
 
   Element::Pointer LargeDisplacementBeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LargeDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LargeDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************

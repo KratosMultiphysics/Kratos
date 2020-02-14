@@ -81,7 +81,7 @@ public:
     MCStrainSofteningPlasticFlowRule& operator=(MCStrainSofteningPlasticFlowRule const& rOther);
 
     // CLONE
-    MPMFlowRule::Pointer Clone() const override;
+    ParticleFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~MCStrainSofteningPlasticFlowRule() override;

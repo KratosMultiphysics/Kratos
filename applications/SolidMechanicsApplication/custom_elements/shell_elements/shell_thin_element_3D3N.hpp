@@ -63,7 +63,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@name Type Definitions
   ///@{
 
-  KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D3N);
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D3N);
 
   typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 

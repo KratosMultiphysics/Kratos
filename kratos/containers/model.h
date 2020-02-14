@@ -79,7 +79,6 @@ public:
     virtual ~Model()
     {
         mRootModelPartMap.clear();
-        //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
 
     Model(const Model&) = delete;
@@ -231,8 +230,6 @@ private:
 
     std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
 
-    std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;      /// The set containing the list of variables
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -256,15 +253,6 @@ private:
      * @return The vector containing each part of the name defining the model part hierarchy
      */
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
-
-    /**
-     * @brief This method returns the list of variables considered on the model
-     * @return The list of variables contained on the model
-     */
-    const std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
-    {
-        return mListOfVariablesLists;
-    }
 
     ///@}
     ///@name Private  Access

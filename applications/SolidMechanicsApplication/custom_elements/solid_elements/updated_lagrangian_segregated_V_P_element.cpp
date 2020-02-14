@@ -70,7 +70,7 @@ UpdatedLagrangianSegregatedVPElement&  UpdatedLagrangianSegregatedVPElement::ope
 
 Element::Pointer UpdatedLagrangianSegregatedVPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< UpdatedLagrangianSegregatedVPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< UpdatedLagrangianSegregatedVPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -115,7 +115,7 @@ Element::Pointer UpdatedLagrangianSegregatedVPElement::Clone( IndexType NewId, N
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared< UpdatedLagrangianSegregatedVPElement >(NewElement);
+  return Kratos::make_intrusive< UpdatedLagrangianSegregatedVPElement >(NewElement);
 }
 
 

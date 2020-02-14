@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/deprecated_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "containers/array_1d.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
@@ -83,7 +84,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -94,7 +94,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "pfem_particle_fluidonly.h"
 
 //#include "utilities/enrich_2d_2dofs.h"
@@ -181,10 +181,10 @@ namespace Kratos
 					array_1d<double,3> position_node;
 					double distance=0.0;
 					position_node = pnode->Coordinates();
-					WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+					GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
 					//we loop all the nodes to check all the edges
 					const double number_of_neighbours = double(rneigh.size());
-					for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+					for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
 					{
 						array_1d<double,3> position_difference;
 						position_difference = inode->Coordinates() - position_node;
@@ -774,7 +774,7 @@ namespace Kratos
 					{
 							ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-							if(inode->FastGetSolutionStepValue(IS_STRUCTURE)!=0.0)
+							if(inode->Is(SLIP))
 							{
 
 								array_1d<double, 3 >& velocity = inode->FastGetSolutionStepValue(VELOCITY);
@@ -975,7 +975,7 @@ namespace Kratos
 			  const array_1d<double,3> mesh_displacement = mcalculation_domain_added_displacement; //if it is a standard problem, displacements are zero and therefore nothing is added.
 			  ResultContainerType results(max_results);
 
-			  WeakPointerVector< Element > elements_in_trajectory;
+			  GlobalPointersVector< Element > elements_in_trajectory;
 			  elements_in_trajectory.resize(20);
 
 			  for(unsigned int ielem=element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -1528,10 +1528,10 @@ namespace Kratos
 
 
 		template< class TDataType > void  AddUniqueWeakPointer
-			(WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+			(GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
 		{
-			typename WeakPointerVector< TDataType >::iterator i = v.begin();
-			typename WeakPointerVector< TDataType >::iterator endit = v.end();
+			typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+			typename GlobalPointersVector< TDataType >::iterator endit = v.end();
 			while ( i != endit && (i)->Id() != (candidate.lock())->Id())
 			{
 				i++;
@@ -2261,7 +2261,7 @@ namespace Kratos
 	///of Dt
 	void MoveParticle(  PFEM_Particle_Fluid & pparticle,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 GlobalPointersVector< Element >& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults,
@@ -2712,7 +2712,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements; it is a bit more expensive
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2742,7 +2742,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement = neighb_elems[i].shared_from_this();
 					return true;
 				}
 		}
@@ -2777,7 +2777,7 @@ namespace Kratos
 		bool FindNodeOnMesh( array_1d<double,3>& position,
 						 array_1d<double,TDim+1>& N,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 GlobalPointersVector< Element >& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 unsigned int & check_from_element_number,
 						 ResultIteratorType result_begin,
@@ -2802,7 +2802,7 @@ namespace Kratos
 			bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 			if (is_found_2)
 			{
-				pelement=Element::Pointer(((elements_in_trajectory(i))));
+				pelement = elements_in_trajectory[i].shared_from_this();
 				N=aux_N;
 				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
 				return true;
@@ -2811,7 +2811,7 @@ namespace Kratos
 		}
 
 		//now we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2841,7 +2841,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement = neighb_elems[i].shared_from_this();
 					if (number_of_elements_in_trajectory<20)
 					{
 						elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
@@ -2912,7 +2912,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 
@@ -2920,7 +2920,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement = neighb_elems[i].shared_from_this();
 					return true;
 				}
 		}

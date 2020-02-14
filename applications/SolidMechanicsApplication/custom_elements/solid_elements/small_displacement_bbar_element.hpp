@@ -62,7 +62,7 @@ public:
     typedef SmallDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of SmallDisplacementBbarElement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbarElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementBbarElement);
     ///@}
 
     ///@name Life Cycle

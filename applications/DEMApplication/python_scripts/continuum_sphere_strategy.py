@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-import sphere_strategy as SolverStrategy
+import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 import math
@@ -57,6 +57,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
             self.compute_stress_tensor_option = 1
 
+        if not "MaxNumberOfIntactBondsToConsiderASphereBroken" in DEM_parameters.keys():
+            self.max_number_of_intact_bonds_to_consider_a_sphere_broken = 0
+        else:
+            self.max_number_of_intact_bonds_to_consider_a_sphere_broken = DEM_parameters["MaxNumberOfIntactBondsToConsiderASphereBroken"].GetDouble()
 
     def CreateCPlusPlusStrategy(self):
 
@@ -73,6 +77,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
+        self.spheres_model_part.ProcessInfo.SetValue(MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN, self.max_number_of_intact_bonds_to_consider_a_sphere_broken)
 
         for properties in self.spheres_model_part.Properties:
             ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]

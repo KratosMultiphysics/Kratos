@@ -2,10 +2,10 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
@@ -18,14 +18,14 @@ class FluidTransportSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
 
-        settings = self._ValidateSettings(custom_settings)
+        self._validate_settings_in_baseclass=True # To be removed eventually
 
-        super(FluidTransportSolver,self).__init__(model, settings)
+        super(FluidTransportSolver,self).__init__(model, custom_settings)
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
-        self.min_buffer_size = 2
+        self.min_buffer_size = 3
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -42,6 +42,57 @@ class FluidTransportSolver(PythonSolver):
                                                   self.settings["domain_size"].GetInt())
 
         KratosMultiphysics.Logger.PrintInfo("FluidTransportSolver", "Construction of FluidTransportSolver finished.")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type": "fluid_transport_solver",
+            "model_part_name": "FluidTransportDomain",
+            "domain_size": 2,
+            "start_time": 0.0,
+            "time_step": 0.1,
+            "model_import_settings":{
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "input_file_label": 0
+            },
+            "buffer_size":                        2,
+            "echo_level":                         0,
+            "clear_storage":                      false,
+            "compute_reactions":                  false,
+            "move_mesh_flag":                     false,
+            "reform_dofs_at_each_step":           false,
+            "block_builder":                      true,
+            "solution_type":                      "Steady",
+            "scheme_type":                        "Implicit",
+            "newmark_theta":                      0.5,
+            "strategy_type":                      "Linear",
+            "convergence_criterion":              "And_criterion",
+            "displacement_relative_tolerance":    1.0E-4,
+            "displacement_absolute_tolerance":    1.0E-9,
+            "residual_relative_tolerance":        1.0E-4,
+            "residual_absolute_tolerance":        1.0E-9,
+            "max_iteration":                      15,
+            "linear_solver_settings":             {
+                "solver_type":   "ExternalSolversApplication.super_lu",
+                "tolerance": 1.0e-6,
+                "max_iteration": 100,
+                "scaling": false,
+                "verbosity": 0,
+                "preconditioner_type": "ilu0",
+                "smoother_type": "ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation"
+            },
+            "problem_domain_sub_model_part_list": [""],
+            "processes_sub_model_part_list": [""],
+            "pfem2_convection_settings"    : {
+                "use_pfem2_convection"         : false
+	        }
+        }""")
+
+        this_defaults.AddMissingParameters(super(FluidTransportSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
 
@@ -63,18 +114,28 @@ class FluidTransportSolver(PythonSolver):
         thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
         thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
+
+        if self.settings["pfem2_convection_settings"]["use_pfem2_convection"].GetBool():
+            thermal_settings.SetProjectionVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
+
+        ## ConvectionDiffusionSettings Variable
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
 
         ## Convection Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.PROJECTED_SCALAR1) # Required by PFEM2 convection
+        self.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.DELTA_SCALAR1) # Required by PFEM2 convection
+        self.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.MEAN_SIZE) # Required by PFEM2 convection
 
         # Add thermal variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.PHI_THETA) # Phi variable refering to the n+theta step
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.NODAL_PHI_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.NODAL_ANALYTIC_SOLUTION)
@@ -164,10 +225,19 @@ class FluidTransportSolver(PythonSolver):
 
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
+        # Calculate Nodal Area
+        self.nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size)
+        self.nodal_area_process.Execute()
+
         # KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
+
+        KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
         # Check if everything is assigned correctly
         self.Solver.Check()
+        self._GetParticlesStage().Check()
+
+        self._GetParticlesStage().ExecuteBeforeSolutionLoop()
 
         KratosMultiphysics.Logger.PrintInfo("FluidTransportSolver", "Solver initialization finished.")
 
@@ -193,6 +263,7 @@ class FluidTransportSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        self._GetParticlesStage().ExecuteInitializeSolutionStep()
         self.Solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -204,6 +275,7 @@ class FluidTransportSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.Solver.FinalizeSolutionStep()
+        self._GetParticlesStage().ExecuteFinalizeSolutionStep()
 
     def Solve(self):
         message = "".join([
@@ -226,57 +298,6 @@ class FluidTransportSolver(PythonSolver):
 
     #### Specific internal functions ####
 
-    def _ValidateSettings(self, settings):
-
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "fluid_transport_solver",
-            "model_part_name": "FluidTransportDomain",
-            "domain_size": 2,
-            "start_time": 0.0,
-            "time_step": 0.1,
-            "model_import_settings":{
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            },
-            "buffer_size":                        2,
-            "echo_level":                         0,
-            "clear_storage":                      false,
-            "compute_reactions":                  false,
-            "move_mesh_flag":                     false,
-            "reform_dofs_at_each_step":           false,
-            "block_builder":                      true,
-            "solution_type":                      "Steady",
-            "scheme_type":                        "Implicit",
-            "newmark_theta":                      0.5,
-            "strategy_type":                      "Linear",
-            "convergence_criterion":              "And_criterion",
-            "displacement_relative_tolerance":    1.0E-4,
-            "displacement_absolute_tolerance":    1.0E-9,
-            "residual_relative_tolerance":        1.0E-4,
-            "residual_absolute_tolerance":        1.0E-9,
-            "max_iteration":                      15,
-            "linear_solver_settings":             {
-                "solver_type":   "ExternalSolversApplication.super_lu",
-                "tolerance": 1.0e-6,
-                "max_iteration": 100,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "ilu0",
-                "smoother_type": "ilu0",
-                "krylov_type": "gmres",
-                "coarsening_type": "aggregation"
-            },
-            "problem_domain_sub_model_part_list": [""],
-            "processes_sub_model_part_list": [""]
-        }
-        """)
-
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
-
     def _ExecuteCheckAndPrepare(self):
 
         self.computing_model_part_name = "fluid_transport_computing_domain"
@@ -288,7 +309,7 @@ class FluidTransportSolver(PythonSolver):
         aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_model_process_fluid_transport
+        from KratosMultiphysics.FluidTransportApplication import check_and_prepare_model_process_fluid_transport
         check_and_prepare_model_process_fluid_transport.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
     def _SetBufferSize(self):
@@ -403,3 +424,20 @@ class FluidTransportSolver(PythonSolver):
                                                                         move_mesh_flag)
 
         return solver
+
+    def _GetParticlesStage(self):
+        if not hasattr(self, '_particles_stage'):
+            self._particles_stage = self._CreateParticlesStage()
+        return self._particles_stage
+
+    def _CreateParticlesStage(self):
+        if self.settings["pfem2_convection_settings"]["use_pfem2_convection"].GetBool():
+            convection_settings = KratosMultiphysics.Parameters("""{"Parameters" : {}}""")
+            convection_settings["Parameters"] = self.settings["pfem2_convection_settings"].Clone()
+            convection_settings["Parameters"].RemoveValue("use_pfem2_convection")
+            convection_settings["Parameters"].AddValue("model_part_name", self.settings["model_part_name"])
+            convection_settings["Parameters"].AddValue("crank_nicolson_theta", self.settings["newmark_theta"])
+            import KratosMultiphysics.FluidTransportApplication.pfem2_fluid_transport_process as module
+            return module.Factory(convection_settings, self.model)
+        else:
+            return KratosMultiphysics.Process()

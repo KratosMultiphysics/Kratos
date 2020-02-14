@@ -18,7 +18,7 @@
         "move_mesh_flag"                    : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_nodal_reaction",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-6,
                 "adapt_step_size"   : true,
@@ -34,9 +34,6 @@
                 "build_mode": "static"
             },
         "echo_level"                   : 0,
-        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_support","ROTATION_support","PointLoad3D_load"],
-        "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
@@ -118,7 +115,7 @@
                 "check_variables"  : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY"],
                 "gauss_points_check_variables" : ["I22_SENSITIVITY"],
                 "input_file_name"  : "beam_test_nodal_reaction_results.json",
-                "model_part_name"  : "test_model_part",
+                "model_part_name"  : "Structure.test_model_part",
                 "tolerance"            : 1e-5,
                 "time_frequency"   : -2.0
             }
@@ -135,7 +132,7 @@
                 "output_variables" : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY"],
                 "gauss_points_output_variables" : ["I22_SENSITIVITY"],
                 "output_file_name" : "beam_test_nodal_reaction_results.json",
-                "model_part_name"  : "test_model_part",
+                "model_part_name"  : "Structure.test_model_part",
                 "time_frequency"   : -2.0
             }
         }]

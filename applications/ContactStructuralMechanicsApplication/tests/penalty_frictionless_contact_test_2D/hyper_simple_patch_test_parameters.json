@@ -34,9 +34,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
                 "solver_type": "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -101,7 +99,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "penalty_frictionless_contact_test_2D/hyper_simple_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0e-3
             }
         }
@@ -116,7 +114,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "penalty_frictionless_contact_test_2D/hyper_simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.0e-3
         }
     }
@@ -128,7 +126,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
         "result_file_configuration" : {

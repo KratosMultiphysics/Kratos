@@ -66,35 +66,44 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The matrix type
     typedef Matrix MatrixType;
 
+    /// The vector type
     typedef Vector VectorType;
 
+    /// The size type
     typedef std::size_t SizeType;
 
+    /// The index type
     typedef std::size_t IndexType;
 
+    /// The indirect array type
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
+    /// The machine precision
     static constexpr TDataType ZeroTolerance = std::numeric_limits<TDataType>::epsilon();
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /* Constructor */
-
-
-    /** Destructor */
-
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This function returns the machine precision
+     * @return The corresponding epsilon for the TDataType
+     */
+    static inline TDataType GetZeroTolerance()
+    {
+        return ZeroTolerance;
+    }
 
     /**
      * @brief This function calculates the number of elements between first and last.
@@ -102,7 +111,6 @@ public:
      * @param rSecondData Second element
      * @return Distance Number of elements
      */
-
     static TDataType Distance(
         const TDataType& rFirstData,
         const TDataType& rSecondData
@@ -848,12 +856,13 @@ public:
      * @param b Second input vector
      * @return The resulting vector
      */
-    static inline Vector CrossProduct(
-        const Vector& a,
-        const Vector& b
+    template<class T>
+    static inline T CrossProduct(
+        const T& a,
+        const T& b
         )
     {
-        Vector c(3);
+        T c(a);
 
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
@@ -1240,7 +1249,7 @@ public:
     static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY;
-        
+
         const SizeType matrix_size = rStressVector.size() == 3 ? 2 : 3;
         TMatrixType stress_tensor(matrix_size, matrix_size);
 
@@ -1421,7 +1430,7 @@ public:
                 rSize = 6;
             }
         }
-        
+
         Vector strain_vector(rSize);
 
         if (rSize == 3) {
@@ -1476,7 +1485,7 @@ public:
                 rSize = 6;
             }
         }
-        
+
         TVector stress_vector(rSize);
 
         if (rSize == 3) {
@@ -1528,7 +1537,7 @@ public:
                 rSize = 6;
             }
         }
-        
+
         Vector vector(rSize);
 
         if (rSize == 3) {
@@ -1689,6 +1698,10 @@ public:
         TDataType a, u, c, s, gamma, teta;
         IndexType index1, index2;
 
+        aux_A.resize(size,size,false);
+        aux_V_matrix.resize(size,size,false);
+        rotation_matrix.resize(size,size,false);
+
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
@@ -1799,6 +1812,45 @@ public:
                 rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }
         }
+
+        return is_converged;
+    }
+
+    /**
+     * @brief Calculates the square root of a matrix
+     * @details This function calculates the square root of a matrix by doing an eigenvalue decomposition
+     * The square root of a matrix A is defined as A = V*S*inv(V) where A is the eigenvectors matrix
+     * and S the diagonal matrix containing the square root of the eigenvalues. Note that the previous
+     * expression can be rewritten as A = V*S*trans(V) since V is orthogonal.
+     * @tparam TMatrixType1 Input matrix type
+     * @tparam TMatrixType2 Output matrix type
+     * @param rA Input matrix
+     * @param rMatrixSquareRoot Square root output matrix
+     * @param Tolerance Tolerance of the eigenvalue decomposition
+     * @param MaxIterations Maximum iterations of the eigenvalue decomposition
+     * @return true The eigenvalue decomposition problem converged
+     * @return false The eigenvalue decomposition problem did not converge
+     */
+    template<class TMatrixType1, class TMatrixType2>
+    static inline bool MatrixSquareRoot(
+        const TMatrixType1 &rA,
+        TMatrixType2 &rMatrixSquareRoot,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20)
+    {
+        // Do an eigenvalue decomposition of the input matrix
+        TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
+        const bool is_converged = GaussSeidelEigenSystem(rA, eigenvectors_matrix, eigenvalues_matrix, Tolerance, MaxIterations);
+        KRATOS_WARNING_IF("MatrixSquareRoot", !is_converged) << "GaussSeidelEigenSystem did not converge.\n";
+
+        // Get the square root of the eigenvalues
+        SizeType size = eigenvalues_matrix.size1();
+        for (SizeType i = 0; i < size; ++i) {
+            eigenvalues_matrix(i,i) = std::sqrt(eigenvalues_matrix(i,i));
+        }
+
+        // Calculate the solution from the previous decomposition and eigenvalues square root
+        BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
 
         return is_converged;
     }

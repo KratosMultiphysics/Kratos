@@ -14,25 +14,18 @@ VALUE: 0.25
 HELP: Units in IS: s
 QUESTION: Echo_Level
 VALUE: 1
-QUESTION: Activate_MMG_Remeshing#CB#(true,false)
+QUESTION: Activate_MMG_Remeshing_Technique#CB#(true,false)
 VALUE: false
 HELP: Enables the adaptative meshing technique
 QUESTION: Use_Hexahedrons#CB#(true,false)
 VALUE: false
-HELP: Are you using hexahedron elements?
+HELP: Are you using hexahedra elements?
 
 TITLE:Solver_Settings
 QUESTION: Solution_Type#CB#(Static,Dynamic)
 VALUE: Dynamic
 QUESTION: Scheme_Type#CB#(Newmark)
 VALUE: Newmark
-QUESTION: Newmark_Beta
-VALUE: 0.25
-QUESTION: Newmark_Gamma
-VALUE: 0.5
-QUESTION: Newmark_Theta
-VALUE: 0.5
-HELP: 0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson
 QUESTION: Rayleigh_Mass
 VALUE: 0.0
 QUESTION: Rayleigh_Stiffness
@@ -40,8 +33,8 @@ VALUE: 0.0
 QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
 VALUE: Newton-Raphson
 DEPENDENCIES: (Newton-Raphson,HIDE,Desired_Iterations,#CURRENT#,HIDE,Max_Radius_Factor,#CURRENT#,HIDE,Min_Radius_Factor,#CURRENT#)(Arc-Length,RESTORE,Desired_Iterations,#CURRENT#,RESTORE,Max_Radius_Factor,#CURRENT#,RESTORE,Min_Radius_Factor,#CURRENT#)
-QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion)
-VALUE: Residual_criterion
+QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion,FemDem_Residual_criterion)
+VALUE: FemDem_Residual_criterion
 DEPENDENCIES: (Displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(Residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(And_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(Or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
 QUESTION: Line_search#CB#(true,false)
 VALUE: false
@@ -64,17 +57,11 @@ HELP: Times the initial radius. In order to use a constant radius, choose the sa
 QUESTION: Min_Radius_Factor
 VALUE: 0.1
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
-QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
-VALUE: true
 QUESTION: Move_Mesh#CB#(true,false)
 VALUE: false
-QUESTION: Block_Builder#CB#(true,false)
-VALUE: true
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
 VALUE: SuperLUSolver
 HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
-QUESTION: Scaling#CB#(true,false)
-VALUE: false
 QUESTION: Verbosity
 VALUE: 0
 
@@ -92,12 +79,12 @@ VALUE: true
 QUESTION: Write_Damage#CB#(true,false)
 VALUE: true
 QUESTION: Write_Is_Damaged#CB#(true,false)
-VALUE: true
+VALUE: false
 QUESTION: Stress_Threshold#CB#(true,false)
-VALUE: true
+VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
-VALUE: GiD_PostAscii
+VALUE: GiD_PostBinary
 QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
 VALUE: WriteDeformed
 HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
@@ -107,9 +94,9 @@ HELP: Write Gauss points results also on the conditions.
 QUESTION: Multi_file_flag#CB#(SingleFile,MultipleFiles)
 VALUE: MultipleFiles
 QUESTION: File_label#CB#(step,time)
-VALUE: time
+VALUE: step
 QUESTION: Output_control_type#CB#(step,time)
-VALUE: time
+VALUE: step
 QUESTION: Output_frequency
 VALUE: 1
 QUESTION: Body_output#CB#(true,false)

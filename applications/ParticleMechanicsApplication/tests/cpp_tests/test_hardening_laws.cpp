@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -37,7 +36,7 @@ namespace Testing
 
     typedef Node<3> NodeType;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 

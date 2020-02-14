@@ -49,7 +49,8 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     mVisualizationVectorVariables(rVisualizationVectorVariables),
     mVisualizationComponentVariables(rVisualizationComponentVariables),
     mShapeFunctions(rShapeFunctions),
-    mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep){
+    mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep)
+{
 }
 
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
@@ -58,8 +59,8 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     Parameters& rParameters) :
     Process(),
     mrModelPart(rModelPart),
-    mrVisualizationModelPart(rVisualizationModelPart) {
-
+    mrVisualizationModelPart(rVisualizationModelPart)
+{
     Parameters default_parameters( R"(
     {
         "shape_functions"                     : "standard",
@@ -98,7 +99,8 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     }
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
+void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
+{
     KRATOS_TRY;
 
     // Check that model part is not empty
@@ -123,29 +125,25 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationComponentVariables[i_var], r_orig_node);
     }
 
+    // Initialize the visualization mesh creation flag
+    mSetVisualizationMesh = true;
+
     KRATOS_CATCH("");
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
-    if (mSetVisualizationMesh){
-        // Copy the original nodes to the visualization model part
-        this->CopyOriginNodes();
-
-        // Creates the visualization model part geometrical entities (elements and conditions)
-        this->CreateVisualizationGeometries();
-
-        // Avoid creating the visualization mesh again
-        mSetVisualizationMesh = false;
-    }
+void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep()
+{
+    mrVisualizationModelPart.GetProcessInfo().GetValue(STEP) = mrModelPart.GetProcessInfo().GetValue(STEP);
+    mrVisualizationModelPart.GetProcessInfo().GetValue(TIME) = mrModelPart.GetProcessInfo().GetValue(TIME);
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
-    if (mReformModelPartAtEachTimeStep){
-        this->ExecuteBeforeSolutionLoop();
+void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep()
+{
+    // If required, set the visualization mesh
+    if (mSetVisualizationMesh) {
+        this->CreateVisualizationMesh();
     }
-}
 
-void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
     // Copy the origin model part nodal values for the non-intersection nodes
     this->CopyOriginNodalValues();
 
@@ -153,7 +151,8 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
     this->ComputeNewNodesInterpolation();
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteFinalizeSolutionStep(){
+void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep()
+{
     if (mReformModelPartAtEachTimeStep){
         // Clear the new nodes hash map
         mCutNodesMap.clear();
@@ -171,6 +170,9 @@ void EmbeddedSkinVisualizationProcess::ExecuteFinalizeSolutionStep(){
         mrVisualizationModelPart.RemoveElements(TO_ERASE);
         mrVisualizationModelPart.RemoveConditions(TO_ERASE);
 
+        // Remove the positive and negative sides properties
+        RemoveVisualizationProperties();
+
         // Initialize the create visualization mesh flag again
         mSetVisualizationMesh = true;
     }
@@ -180,7 +182,8 @@ void EmbeddedSkinVisualizationProcess::ExecuteFinalizeSolutionStep(){
 
 /* Private functions ******************************************************/
 
-void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
+void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
+{
     // For all the new elements, compute the interpolation with the proper shape functions
     // Note that this can be done in parallel since the intersection nodes are duplicated
     const int n_new_elems = mNewElementsPointers.size();
@@ -238,7 +241,20 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
     }
 }
 
-void EmbeddedSkinVisualizationProcess::CopyOriginNodes(){
+void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
+{
+    // Copy the original nodes to the visualization model part
+    this->CopyOriginNodes();
+
+    // Creates the visualization model part geometrical entities (elements and conditions)
+    this->CreateVisualizationGeometries();
+
+    // Set the visualization mesh flag to false
+    mSetVisualizationMesh = false;
+}
+
+void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
+{
     // Creates a copy of all the origin model part nodes to the visualization model part
     // Note that the original nodes will be reused when creating the splitting geometries
     const int n_nodes = mrModelPart.NumberOfNodes();
@@ -249,7 +265,8 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes(){
     }
 }
 
-void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues(){
+void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues()
+{
     const unsigned int n_old_nodes = mrModelPart.NumberOfNodes();
 
     #pragma omp parallel for
@@ -274,8 +291,8 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues(){
     }
 }
 
-void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
-
+void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
+{
     int n_nodes = mrModelPart.NumberOfNodes();
     int n_elems = mrModelPart.NumberOfElements();
     int n_conds = mrModelPart.NumberOfConditions();
@@ -443,7 +460,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
                 Properties::Pointer p_cond_prop = (i_int_geom < n_pos_interface_geom)? p_pos_prop : p_neg_prop;
 
                 // Create the new condition
-                Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(temp_cond_id, p_new_geom, p_cond_prop);
+                Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(temp_cond_id, p_new_geom, p_cond_prop);
                 new_conds_vect.push_back(p_new_cond);
                 mrVisualizationModelPart.AddCondition(p_new_cond);
 
@@ -465,21 +482,28 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
 
     // Once all the entities have been created, renumber the ids.
     // Created entities local number partial reduction
+    const DataCommunicator& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
     int n_nodes_local = new_nodes_vect.size();
-    int n_conds_local = new_conds_vect.size();
     int n_elems_local = mNewElementsPointers.size();
-    int n_nodes_local_scansum, n_elems_local_scansum, n_conds_local_scansum;
-    mrModelPart.GetCommunicator().ScanSum(n_nodes_local, n_nodes_local_scansum);
-    mrModelPart.GetCommunicator().ScanSum(n_elems_local, n_elems_local_scansum);
-    mrModelPart.GetCommunicator().ScanSum(n_conds_local, n_conds_local_scansum);
+    int n_conds_local = new_conds_vect.size();
+
+    std::vector<int> local_data{n_nodes_local, n_elems_local, n_conds_local};
+    std::vector<int> reduced_data{0, 0, 0};
+    r_comm.ScanSum(local_data, reduced_data);
+
+    int n_nodes_local_scansum = reduced_data[0];
+    int n_elems_local_scansum = reduced_data[1];
+    int n_conds_local_scansum = reduced_data[2];
 
     // Origin model part number of entities
     int n_nodes_orig = mrModelPart.NumberOfNodes();
     int n_elems_orig = mrModelPart.NumberOfElements();
     int n_conds_orig = mrModelPart.NumberOfConditions();
-    mrModelPart.GetCommunicator().SumAll(n_nodes_orig);
-    mrModelPart.GetCommunicator().SumAll(n_elems_orig);
-    mrModelPart.GetCommunicator().SumAll(n_conds_orig);
+    local_data = {n_nodes_orig, n_elems_orig, n_conds_orig};
+    r_comm.SumAll(local_data, reduced_data);
+    n_nodes_orig = reduced_data[0];
+    n_elems_orig = reduced_data[1];
+    n_conds_orig = reduced_data[2];
 
     // Initialize the new ids. values
     std::size_t new_node_id(n_nodes_orig + n_nodes_local_scansum - n_nodes_local + 1);
@@ -513,13 +537,13 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
     mrVisualizationModelPart.AddConditions(new_conds_vect.begin(), new_conds_vect.end());
 
     // Wait for all nodes to renumber its nodes
-    mrModelPart.GetCommunicator().Barrier();
+    r_comm.Barrier();
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
     Geometry<Node<3>>::Pointer pGeometry,
-    const Vector &rNodalDistances){
-
+    const Vector &rNodalDistances)
+{
     const unsigned int pts_number = pGeometry->PointsNumber();
     unsigned int n_pos (0);
 
@@ -535,8 +559,8 @@ bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
 
 bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     Geometry<Node<3>>::Pointer pGeometry,
-    const Vector &rNodalDistances){
-
+    const Vector &rNodalDistances)
+{
     const unsigned int pts_number = pGeometry->PointsNumber();
     unsigned int n_pos (0), n_neg(0);
 
@@ -552,9 +576,9 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     return is_split;
 }
 
-const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem){
-
-    auto &r_geom = ItElem->GetGeometry();
+const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem)
+{
+    const auto &r_geom = ItElem->GetGeometry();
     Vector nodal_distances(r_geom.PointsNumber());
 
     if (mShapeFunctions == "standard"){
@@ -574,8 +598,8 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
     const Geometry<Node<3>>::Pointer pGeometry,
-    const Vector& rNodalDistances){
-
+    const Vector& rNodalDistances)
+{
     // Get the geometry type
     const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
 
@@ -605,8 +629,8 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
 
 Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeometry(
     const GeometryData::KratosGeometryType &rOriginGeometryType,
-    const Condition::NodesArrayType &rNewNodesArray){
-
+    const Condition::NodesArrayType &rNewNodesArray)
+{
     switch(rOriginGeometryType){
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
             return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
@@ -617,10 +641,8 @@ Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGe
     }
 }
 
-std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizationProcess::SetVisualizationProperties(){
-    // Set the properties for the new elements depending if the
-    // element is in the positive or negative side of the cut.
-    // In this way, two layers will appear in GiD.
+std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizationProcess::SetVisualizationProperties()
+{
     unsigned int max_prop_id = 0;
     for (auto it_prop = mrModelPart.GetRootModelPart().PropertiesBegin(); it_prop < mrModelPart.GetRootModelPart().PropertiesEnd(); ++it_prop){
         if (max_prop_id < it_prop->Id()){
@@ -633,6 +655,25 @@ std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizatio
     mrVisualizationModelPart.AddProperties(p_neg_prop);
 
     return std::make_tuple(p_pos_prop , p_neg_prop);
+}
+
+void EmbeddedSkinVisualizationProcess::RemoveVisualizationProperties()
+{
+    // Search for the maximum property id in the base model part
+    unsigned int max_prop_id = 0;
+    for (auto it_prop = mrModelPart.GetRootModelPart().PropertiesBegin(); it_prop < mrModelPart.GetRootModelPart().PropertiesEnd(); ++it_prop){
+        if (max_prop_id < it_prop->Id()){
+            max_prop_id = it_prop->Id();
+        }
+    }
+
+    // Check that the positive and negative sides properties exist
+    KRATOS_ERROR_IF_NOT(mrVisualizationModelPart.HasProperties(max_prop_id + 1)) << "Visualization model part has no property " << max_prop_id + 1 << std::endl;
+    KRATOS_ERROR_IF_NOT(mrVisualizationModelPart.HasProperties(max_prop_id + 2)) << "Visualization model part has no property " << max_prop_id + 2 << std::endl;
+
+    // Remove the positive and negative sides properties
+    mrVisualizationModelPart.RemoveProperties(max_prop_id + 1);
+    mrVisualizationModelPart.RemoveProperties(max_prop_id + 2);
 }
 
 };  // namespace Kratos.

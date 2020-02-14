@@ -6,18 +6,20 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
+from importlib import import_module
+
 class ShallowWaterAnalysis(AnalysisStage):
     ''' Main script for shallow water simulations '''
 
     def _CreateSolver(self):
         python_module_name = "KratosMultiphysics.ShallowWaterApplication"
         full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
-        solver_module = __import__(full_module_name, fromlist=[python_module_name])
+        solver_module = import_module(full_module_name)
         solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
 
     def _GetOrderOfProcessesInitialization(self):
-        return ["bathymetry_process_list",
+        return ["topography_process_list",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list"]
 

@@ -345,14 +345,17 @@ public:
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
             GeometryType& r_geometry = it_cond->GetGeometry();
-            is_active = false;
-            for ( IndexType i_node = 0; i_node < r_geometry.size(); ++i_node ) {
-                if (r_geometry[i_node].Is(ACTIVE)) {
-                    is_active = true;
-                    break;
+            if (r_geometry.NumberOfGeometryParts() > 0) {
+                GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
+                is_active = false;
+                for ( IndexType i_node = 0; i_node < r_parent_geometry.size(); ++i_node ) {
+                    if (r_parent_geometry[i_node].Is(ACTIVE)) {
+                        is_active = true;
+                        break;
+                    }
                 }
+                it_cond->Set(ACTIVE, is_active);
             }
-            it_cond->Set(ACTIVE, is_active);
         }
     }
 
@@ -381,6 +384,53 @@ public:
             center[i] += new_delta_disp_center[i];
 
         return center;
+    }
+
+    /**
+     * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
+     * @param rGeometry The geometry to calculate
+     * @param StepSlip The considered step slip
+     * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
+     */
+    template< std::size_t TDim, std::size_t TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(
+        const GeometryType& rGeometry,
+        const std::size_t StepSlip = 1
+        )
+    {
+        /* DEFINITIONS */
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+        // Tangent matrix
+        BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
+
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const array_1d<double, 3>& r_gt = rGeometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP, StepSlip);
+            const double norm_slip = norm_2(r_gt);
+            if (norm_slip > zero_tolerance) { // Non zero r_gt
+                const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
+                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
+                    tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
+            } else { // We consider the tangent direction as auxiliar
+                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
+                array_1d<double, 3> tangent_xi, tangent_eta;
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                if (TDim == 3) {
+                    for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
+                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                } else  {
+                    if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+                    } else {
+                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                    }
+                }
+            }
+        }
+
+        return tangent_matrix;
     }
 
 private:

@@ -73,9 +73,47 @@ proc WriteMdpa { basename dir problemtypedir } {
     set Groups [GiD_Info conditions Body_Part groups]
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
+    set ElementName ""
+        if {[lindex [lindex $Groups $i] 15] eq "false"} {
+            if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
+                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
+                set ElementName "SmallStrainRankineFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
+                set ElementName "SmallStrainSimoJuFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
+                set ElementName "SmallStrainDruckerPragerFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
+                set ElementName "SmallStrainVonMisesFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
+                set ElementName "SmallStrainTrescaFemDemElement2D"
+            }  elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
+                set ElementName "SmallStrainMohrCoulombFemDemElement2D"
+            } else {
+                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement2D"
+            }        
+        } else {
+            if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
+                set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
+                set ElementName "TotalLagrangianRankineFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
+                set ElementName "TotalLagrangianSimoJuFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
+                set ElementName "TotalLagrangianDruckerPragerFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
+                set ElementName "TotalLagrangianVonMisesFemDemElement2D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
+                set ElementName "TotalLagrangianTrescaFemDemElement2D"
+            }   elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
+                set ElementName "TotalLagrangianMohrCoulombFemDemElement2D"
+            } else {
+                set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement2D"
+            }  
+        }
          # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-        WriteElements FileVar [lindex $Groups $i] triangle FemDem2DElement $BodyElemsProp Triangle2D3Connectivities
+        WriteElements FileVar [lindex $Groups $i] triangle $ElementName $BodyElemsProp Triangle2D3Connectivities
     }
     puts $FileVar ""
 

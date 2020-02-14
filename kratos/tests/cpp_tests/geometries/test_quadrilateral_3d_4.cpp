@@ -86,11 +86,52 @@ namespace Testing
     /** Checks if the number of edges is correct.
     * Checks if the number of edges is correct.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgesNumber, KratosCoreGeometriesFastSuite) 
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgesNumber, KratosCoreGeometriesFastSuite)
     {
         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
 
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 4);
+    }
+
+    /** Checks if the number of edges is correct.
+    * Checks if the number of edges is correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Edges, KratosCoreGeometriesFastSuite)
+    {
+        auto p_geom = GenerateRightQuadrilateral3D4<Node<3>>();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(3))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(3))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[3])[0].X(), (p_geom->pGetPoint(3))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[0].Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[0].Z(), (p_geom->pGetPoint(3))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[3])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[3])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
     }
 
     /** Checks if the number of faces is correct.
@@ -101,7 +142,31 @@ namespace Testing
         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
 
         // That for planar geometries it also return the number of edges.
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 4);
+        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 1);
+    }
+
+    /** Checks if the faces are correct.
+    * Checks if the faces are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Faces, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRightQuadrilateral3D4<Node<3>>();
+
+        const auto& r_faces = p_geom->GenerateFaces();
+        KRATOS_CHECK_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[2].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[3].X(), (p_geom->pGetPoint(3))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[3].Y(), (p_geom->pGetPoint(3))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[3].Z(), (p_geom->pGetPoint(3))->Z(), TOLERANCE);
     }
 
     /** Checks if the area of the quadrilateral is calculated correctly.

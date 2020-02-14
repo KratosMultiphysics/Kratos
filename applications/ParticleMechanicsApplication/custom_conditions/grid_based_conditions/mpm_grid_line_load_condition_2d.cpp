@@ -27,7 +27,7 @@ namespace Kratos
 //************************************************************************************
 
 MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
-    : MPMBaseLoadCondition( NewId, pGeometry )
+    : MPMGridBaseLoadCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -36,7 +36,7 @@ MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, Geometr
 //************************************************************************************
 
 MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-    : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
+    : MPMGridBaseLoadCondition( NewId, pGeometry, pProperties )
 {
 }
 
@@ -45,11 +45,11 @@ MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, Geometr
 
 Condition::Pointer MPMGridLineLoadCondition2D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -61,7 +61,7 @@ Condition::Pointer MPMGridLineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMGridLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -84,43 +84,43 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 {
     KRATOS_TRY;
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
 
     // Resizing as needed the LHS
-    unsigned int mat_size = number_of_nodes * block_size;
+    unsigned int matrix_size = number_of_nodes * block_size;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != mat_size )
+        if ( rLeftHandSideMatrix.size1() != matrix_size )
         {
-            rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
         }
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(mat_size,mat_size); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
     }
 
     //resizing as needed the RHS
     if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size( ) != mat_size )
+        if ( rRightHandSideVector.size( ) != matrix_size )
         {
-            rRightHandSideVector.resize( mat_size, false );
+            rRightHandSideVector.resize( matrix_size, false );
         }
 
-        noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
+        noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
 
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(rGeom);
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(integration_method);
+    const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients(integration_method);
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
 
-    const Matrix& Ncontainer = rGeom.ShapeFunctionsValues(integration_method);
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Sizing work matrices
     Vector pressure_on_nodes = ZeroVector( number_of_nodes );
@@ -143,13 +143,13 @@ void MPMGridLineLoadCondition2D::CalculateAll(
     for ( unsigned int i = 0; i < pressure_on_nodes.size(); i++ )
     {
         pressure_on_nodes[i] = pressure_on_condition;
-        if( rGeom[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] += rGeom[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] += r_geometry[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
         }
-        if( rGeom[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+        if( r_geometry[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
         {
-            pressure_on_nodes[i] -= rGeom[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+            pressure_on_nodes[i] -= r_geometry[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
         }
     }
 
@@ -162,21 +162,21 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
     for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
     {
-        const double det_j = rGeom.DeterminantOfJacobian( integration_points[point_number] );
+        const double det_j = r_geometry.DeterminantOfJacobian( integration_points[point_number] );
 
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
 
         array_1d<double, 3> normal;
-        if(rGeom.WorkingSpaceDimension() == 2 )
+        if(r_geometry.WorkingSpaceDimension() == 2 )
         {
-            noalias(normal) = rGeom.UnitNormal( integration_points[point_number] );
+            noalias(normal) = r_geometry.UnitNormal( integration_points[point_number] );
         }
         else{
             if(!Has(LOCAL_AXIS_2))
                 KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
             const auto& v2 = GetValue(LOCAL_AXIS_2);
 
-            array_1d<double,3> v1 = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+            array_1d<double,3> v1 = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();
 
             MathUtils<double>::CrossProduct(normal,v1,v2 );
             normal /= norm_2(normal);
@@ -187,14 +187,14 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         double gauss_pressure = 0.0;
         for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
         {
-            gauss_pressure += Ncontainer( point_number, ii ) * pressure_on_nodes[ii];
+            gauss_pressure += r_N( point_number, ii ) * pressure_on_nodes[ii];
         }
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
             if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
-                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[point_number], row( Ncontainer, point_number ), gauss_pressure, integration_weight );
+                CalculateAndSubKp( rLeftHandSideMatrix, r_DN_De[point_number], row( r_N, point_number ), gauss_pressure, integration_weight );
             }
         }
         // Adding contributions to the residual vector
@@ -202,16 +202,16 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         {
             if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
-                CalculateAndAddPressureForce( rRightHandSideVector, row( Ncontainer, point_number ), normal, gauss_pressure, integration_weight );
+                CalculateAndAddPressureForce( rRightHandSideVector, row( r_N, point_number ), normal, gauss_pressure, integration_weight );
             }
         }
 
         array_1d<double,3> gauss_load = line_load;
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
-            if( rGeom[ii].SolutionStepsDataHas( LINE_LOAD ) )
+            if( r_geometry[ii].SolutionStepsDataHas( LINE_LOAD ) )
             {
-                noalias(gauss_load) += ( Ncontainer( point_number, ii )) * rGeom[ii].FastGetSolutionStepValue( LINE_LOAD );
+                noalias(gauss_load) += ( r_N( point_number, ii )) * r_geometry[ii].FastGetSolutionStepValue( LINE_LOAD );
             }
         }
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
@@ -220,7 +220,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
             for(unsigned int k = 0; k < dimension; ++k)
             {
-                rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
+                rRightHandSideVector[base + k] += integration_weight * r_N( point_number, ii ) * gauss_load[k];
             }
         }
     }
@@ -234,9 +234,9 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 //***********************************************************************
 
 void MPMGridLineLoadCondition2D::CalculateAndSubKp(
-    Matrix& K,
-    const Matrix& DN_De,
-    const RowMatrix& N,
+    Matrix& rK,
+    const Matrix& rDN_De,
+    const RowMatrix& rN,
     const double Pressure,
     const double IntegrationWeight
     )
@@ -262,11 +262,11 @@ void MPMGridLineLoadCondition2D::CalculateAndSubKp(
         {
             const unsigned int ColIndex = j * 2;
 
-            const double coeff = Pressure * N[i] * DN_De( j, 0 ) * IntegrationWeight;
+            const double coeff = Pressure * rN[i] * rDN_De( j, 0 ) * IntegrationWeight;
             Kij = -coeff * Cross_gn;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix( K, Kij, RowIndex, ColIndex );
+            MathUtils<double>::SubtractMatrix( rK, Kij, RowIndex, ColIndex );
         }
     }
 

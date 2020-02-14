@@ -132,7 +132,7 @@ namespace Kratos {
         PFEM2MonolithicSlipScheme(unsigned int DomainSize)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,SLIP)
 	{
 	}
 

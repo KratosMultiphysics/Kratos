@@ -17,9 +17,17 @@
 // // Linear solvers
 #include "trilinos_linear_solver_factory.h"
 
+#ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
 #include "external_includes/aztec_solver.h"
+#endif
+
+#ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
 #include "external_includes/amesos_solver.h"
+#endif
+
+#ifndef TRILINOS_EXCLUDE_ML_SOLVER
 #include "external_includes/ml_solver.h"
+#endif
 
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
@@ -31,6 +39,7 @@ void RegisterTrilinosLinearSolvers()
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
+#ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
     typedef AztecSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > AztecSolverType;
     static auto AztecSolverFactory = TrilinosLinearSolverFactory<
@@ -41,7 +50,9 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("cg",       AztecSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("bicgstab", AztecSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("gmres",    AztecSolverFactory);
+#endif
 
+#ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
     typedef AmesosSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > AmesosSolverType;
     static auto AmesosSolverFactory = TrilinosLinearSolverFactory<
@@ -52,7 +63,9 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu",           AmesosSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("super_lu_dist", AmesosSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumps",         AmesosSolverFactory);
+#endif
 
+#ifndef TRILINOS_EXCLUDE_ML_SOLVER
     typedef MultiLevelSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > MLSolverType;
     static auto MultiLevelSolverFactory = TrilinosLinearSolverFactory<
@@ -60,6 +73,7 @@ void RegisterTrilinosLinearSolvers()
         TrilinosLocalSpaceType,
         MLSolverType>();
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("multi_level", MultiLevelSolverFactory);
+#endif
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > AmgclMPISolverType;

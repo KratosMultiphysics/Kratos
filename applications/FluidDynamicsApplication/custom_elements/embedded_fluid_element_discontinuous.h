@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Pointer definition of EmbeddedFluidElementDiscontinuous
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedFluidElementDiscontinuous);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElementDiscontinuous);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -170,6 +170,12 @@ public:
     Element::Pointer Create(IndexType NewId,
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
+
+    /// Set up the element for solution.
+    /** For EmbeddedFluidElementDiscontinuous, this initializes the discontinuous
+     * level set (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
+     */
+    void Initialize() override;
 
     /// Calculates both LHS and RHS contributions
     /**
@@ -292,7 +298,7 @@ protected:
     void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-     * @brief Non-intersected element geometry data fill 
+     * @brief Non-intersected element geometry data fill
      * This method sets the data structure geometry fields (shape functions, gradients, ...) for a non-intersected element.
      * @param rData reference to the element data structure
      */
@@ -300,7 +306,7 @@ protected:
 
     /**
      * @brief Intersected element geometry data fill
-     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an 
+     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
      * intersected element. To do that, the modified shape functions utility is firstly created and then called to perform
      * all operations in both the positive and negative sides of the element.
      * @param rData reference to the element data structure

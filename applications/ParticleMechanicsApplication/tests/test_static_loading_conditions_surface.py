@@ -3,7 +3,7 @@ import KratosMultiphysics
 
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import math
+from math import sqrt
 
 
 class TestStaticLoadingConditionsSurface(KratosUnittest.TestCase):
@@ -19,8 +19,8 @@ class TestStaticLoadingConditionsSurface(KratosUnittest.TestCase):
         # Create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,0.0,0.0,1.0)
-        mp.CreateNewNode(3,math.sqrt(2),math.sqrt(2.0),0.0)
-        mp.CreateNewNode(4,math.sqrt(2),math.sqrt(2.0),1.0)
+        mp.CreateNewNode(3,sqrt(2),sqrt(2.0),0.0)
+        mp.CreateNewNode(4,sqrt(2),sqrt(2.0),1.0)
         length = 2.0
         width = 1.0
 
@@ -52,8 +52,8 @@ class TestStaticLoadingConditionsSurface(KratosUnittest.TestCase):
         cond.SetValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,10.0)
         cond.SetValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE,5.0)
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
-        nodal_fx = (1.0 + 5.0*math.sqrt(2.0)/2.0) * length*width / 4.0
-        nodal_fy = (2.0 - 5.0*math.sqrt(2.0)/2.0) * length*width / 4.0
+        nodal_fx = (1.0 + 5.0*sqrt(2.0)/2.0) * length*width / 4.0
+        nodal_fy = (2.0 - 5.0*sqrt(2.0)/2.0) * length*width / 4.0
         for i in range(4):
             base = i*3
             self.assertAlmostEqual(rhs[base+0],nodal_fx)

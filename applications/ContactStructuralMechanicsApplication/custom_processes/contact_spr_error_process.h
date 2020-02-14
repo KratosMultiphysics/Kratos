@@ -77,7 +77,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                      WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 
@@ -95,18 +95,17 @@ public:
     ///@{
 
     /**
-     * This is the default constructor
+     * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
      * @param ThisParameters The input parameters
      */
-
     ContactSPRErrorProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
-    virtual ~ContactSPRErrorProcess() {}
+    ~ContactSPRErrorProcess() override {}
 
     ///@}
     ///@name Operators
@@ -114,7 +113,7 @@ public:
 
     void operator()()
     {
-        BaseType::Execute();
+        this->Execute();
     }
 
     ///@}
@@ -136,19 +135,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "ContactSPRErrorProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ContactSPRErrorProcess";
     }
 
     /// Print object"s data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -181,7 +180,7 @@ protected:
     void CalculatePatch(
         NodeItType itNode,
         NodeItType itPatchNode,
-        SizeType NeighbourSize,
+        const SizeType NeighbourSize,
         Vector& rSigmaRecovered
         ) override;
 
@@ -220,6 +219,20 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method computes the tangents and normal matrices
+     * @param rNk Normal matrix
+     * @param rTk1 First tangent matrix
+     * @param rTk2 Second tangent matrix
+     * @param rNormal The normal vector
+     */
+    void ComputeNormalTangentMatrices(
+        BoundedMatrix<double, 1, SigmaSize>& rNk,
+        BoundedMatrix<double, 1, SigmaSize>& rTk1,
+        BoundedMatrix<double, 1, SigmaSize>& rTk2,
+        const array_1d<double, 3>& rNormal
+        );
 
     ///@}
     ///@name Private  Access

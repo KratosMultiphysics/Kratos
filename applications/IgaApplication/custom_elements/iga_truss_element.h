@@ -28,7 +28,7 @@ class IgaTrussElement
     : public IgaBaseElement<3>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION( IgaTrussElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( IgaTrussElement );
 
     using IgaBaseElementType::IgaBaseElementType;
 

@@ -380,12 +380,12 @@ Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType c
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
 
-    return Kratos::make_shared< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
+    return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
 }
 
 Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< ShellThickElement3D4N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom));
+    return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 
 void ShellThickElement3D4N::Initialize()
@@ -820,7 +820,7 @@ void ShellThickElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix&
         // Compute the local coordinate system.
         ShellQ4_LocalCoordinateSystem localCoordinateSystem(
             mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = localCoordinateSystem.Orientation();
+        Output = trans(localCoordinateSystem.Orientation());
     }
 }
 

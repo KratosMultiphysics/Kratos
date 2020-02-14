@@ -32,8 +32,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 30,
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2","CUSTOM","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1"],
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
         }
@@ -46,7 +44,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -58,7 +56,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,null,0.0],
                 "interval"        : [0.0,"End"]
@@ -70,7 +68,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "CUSTOM",
+                "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,null,0.0],
                 "interval"        : [0.0,1.1]
@@ -81,7 +79,7 @@
             "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "CUSTOM",
+                "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT_X",
                 "value"           : 0.0,
                 "interval"        : [0.0,2.0]
@@ -92,7 +90,7 @@
             "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "CUSTOM",
+                "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT_X",
                 "value"           : "1.0*(t-2.0)/8.0",
                 "interval"        : [2.0,10.0]
@@ -103,7 +101,7 @@
             "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "CUSTOM",
+                "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT_X",
                 "value"           : "1.0 - 1.0*(t-10.0)/8.0",
                 "interval"        : [10.0,18.0]
@@ -118,7 +116,7 @@
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "CUSTOM",
+                "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "LINE_LOAD",
                 "interval"             : [0.0, 1e0],
                 "value"                : [0.0, "-1.0e3*t", 0.0]
@@ -131,7 +129,7 @@
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "CUSTOM",
+                "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "LINE_LOAD",
                 "interval"             : [1.0e0, 18e0],
                 "value"                : [0.0, -1.0e3, 0.0]
@@ -158,7 +156,7 @@
             "Parameters"            : {
                 "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
                 "input_file_name"     : "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test_results.json",
-                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
                 "time_frequency"       : 1.0
             }
         }
@@ -171,7 +169,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -203,7 +201,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test_results.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
+            "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
         }
     }

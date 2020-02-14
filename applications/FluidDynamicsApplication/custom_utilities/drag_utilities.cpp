@@ -39,7 +39,7 @@ namespace Kratos
     }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
-        
+
         // Initialize total drag force
         array_1d<double, 3> drag_force = ZeroVector(3);
         double& drag_x = drag_force[0];
@@ -62,13 +62,13 @@ namespace Kratos
             drag_y_red += elem_drag[1];
             drag_z_red += elem_drag[2];
         }
-        
+
         drag_x += drag_x_red;
         drag_y += drag_y_red;
         drag_z += drag_z_red;
 
         // Perform MPI synchronization
-        rModelPart.GetCommunicator().SumAll(drag_force);
+        drag_force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_force);
 
         return drag_force;
     }

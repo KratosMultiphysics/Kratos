@@ -35,14 +35,14 @@ SymbolicNavierStokes<TElementData>::~SymbolicNavierStokes() {}
 template< class TElementData >
 Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SymbolicNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, pGeom, pProperties);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

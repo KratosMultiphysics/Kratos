@@ -195,7 +195,7 @@ class InletMesherProcess
             //free dofs
             for(Node<3>::DofsContainerType::iterator i_dof = Dofs.begin(); i_dof != Dofs.end(); ++i_dof)
             {
-              i_dof->FreeDof();
+              (*i_dof)->FreeDof();
             }
 
             noalias(pnode->FastGetSolutionStepValue(DISPLACEMENT))   = ZeroVector(3);

@@ -40,6 +40,7 @@ namespace Kratos
                 for (iterator j = mData.begin(); j != mData.end(); ++j) {
                     if (i->first == j->first) {
                         variable_already_exist = true;
+                        j->first->Delete(j->second);
                         j->second = i->first->Clone(i->second);
                     }
                 }

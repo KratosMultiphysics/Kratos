@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -51,14 +51,14 @@ namespace Kratos
 */
 
 class MPMGridPointLoadCondition
-    : public MPMBaseLoadCondition
+    : public MPMGridBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of MPMGridPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMGridPointLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridPointLoadCondition );
 
     ///@}
     ///@name Life Cycle
@@ -90,7 +90,7 @@ public:
 
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 
@@ -223,12 +223,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
     }
 
 

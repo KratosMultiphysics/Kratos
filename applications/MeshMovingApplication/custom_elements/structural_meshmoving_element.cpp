@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/mesh_moving_variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 
@@ -39,7 +40,7 @@ StructuralMeshMovingElement::Create(IndexType NewId,
                                     PropertiesType::Pointer pProperties) const {
   const GeometryType &rgeom = this->GetGeometry();
 
-  return Kratos::make_shared<StructuralMeshMovingElement>(
+  return Kratos::make_intrusive<StructuralMeshMovingElement>(
       NewId, rgeom.Create(rThisNodes), pProperties);
 }
 
@@ -49,7 +50,7 @@ Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     GeometryType::Pointer pGeom,
                                     PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom,
+  return Kratos::make_intrusive<StructuralMeshMovingElement>(NewId, pGeom,
                                                           pProperties);
 }
 
@@ -117,7 +118,8 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
                          // elements; 0 = no stiffening
   const double quotient = factor / detJ0[PointNumber];
   const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
-  const double poisson_coefficient = 0.3;
+  const double poisson_coefficient = this->pGetProperties()->Has(MESH_POISSON_RATIO)
+    ? this->pGetProperties()->GetValue(MESH_POISSON_RATIO) : 0.3;
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.

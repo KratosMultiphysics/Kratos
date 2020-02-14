@@ -27,7 +27,7 @@
 /* Utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/derivatives_utilities.h"
-#include "custom_utilities/logging_settings.hpp"
+// #include "custom_utilities/logging_settings.hpp"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
@@ -81,7 +81,7 @@ public:
     ///@{
 
     /// Counted pointer of MortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MortarContactCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;
@@ -156,16 +156,14 @@ public:
 
     /// Default constructor
     MortarContactCondition()
-        : PairedCondition(),
-          mIntegrationOrder(2)
+        : PairedCondition()
     {}
 
     // Constructor 1
     MortarContactCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
-        ) :PairedCondition(NewId, pGeometry),
-           mIntegrationOrder(2)
+        ) :PairedCondition(NewId, pGeometry)
     {}
 
     // Constructor 2
@@ -173,8 +171,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
-        ) :PairedCondition( NewId, pGeometry, pProperties ),
-           mIntegrationOrder(2)
+        ) :PairedCondition( NewId, pGeometry, pProperties )
     {}
 
     // Constructor 3
@@ -184,8 +181,7 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pMasterGeometry
         )
-        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry),
-         mIntegrationOrder(2)
+        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry)
     {}
 
     ///Copy constructor
@@ -294,21 +290,15 @@ public:
         ) const override;
 
     /**
-     * @brief This is called during the assembling process in order
-     * to calculate the condition contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @brief This is called during the assembling process in order to calculate the condition contribution in explicit calculation.
+     * @details NodalData is modified Inside the function, so the the "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rCurrentProcessInfo the current process info instance
      */
     void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector input variable containing the RHS vector to be assembled
      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
      * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
@@ -471,7 +461,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -488,10 +478,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    IntegrationMethod mThisIntegrationMethod; /// Integration order of the element
-
-    IndexType mIntegrationOrder;              /// The integration order to consider
 
     ///@}
     ///@name Protected Operators
@@ -595,7 +581,7 @@ protected:
      * @param CurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
-    virtual IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const
+    virtual IndexType GetActiveInactiveValue(const GeometryType& CurrentGeometry) const
     {
         KRATOS_ERROR << "You are calling to the base class method GetActiveInactiveValue, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
 
@@ -618,7 +604,8 @@ protected:
     IntegrationMethod GetIntegrationMethod() override
     {
         // Setting the auxiliar integration points
-        switch (mIntegrationOrder) {
+        const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+        switch (integration_order) {
         case 1:
             return GeometryData::GI_GAUSS_1;
         case 2:
@@ -718,13 +705,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.save("IntegrationOrder", mIntegrationOrder);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.load("IntegrationOrder", mIntegrationOrder);
     }
 
     ///@}

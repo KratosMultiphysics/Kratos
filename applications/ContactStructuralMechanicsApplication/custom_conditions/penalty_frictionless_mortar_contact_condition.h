@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Counted pointer of PenaltyMethodFrictionlessMortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionlessMortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionlessMortarContactCondition );
 
     typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster> BaseType;
 
@@ -327,7 +327,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -358,13 +358,12 @@ protected:
     /********************************************************************************/
 
     /**
-     * Calculates the local contibution of the LHS
+     * @brief Calculates the local contibution of the LHS
      * @param rLocalLHS The local LHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
      * @param rActiveInactive The integer that is used to identify which case is the currectly computed
      */
-
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
@@ -374,13 +373,12 @@ protected:
         ) override;
 
     /**
-     * Calculates the local contibution of the RHS
+     * @brief Calculates the local contibution of the RHS
      * @param rLocalRHS The local RHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
      * @param rActiveInactive The integer that is used to identify which case is the currectly computed
      */
-
     void CalculateLocalRHS(
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
@@ -394,12 +392,11 @@ protected:
     /******************************************************************/
 
     /**
-     * Returns a value depending of the active/inactive set
+     * @brief Returns a value depending of the active/inactive set
      * @param rCurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
-
-    IndexType GetActiveInactiveValue(GeometryType& rCurrentGeometry) const override
+    IndexType GetActiveInactiveValue(const GeometryType& rCurrentGeometry) const override
     {
         IndexType value = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)

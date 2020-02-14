@@ -61,9 +61,8 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         self._GetSolver().InitializeSolutionStep()
 
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def RunSolutionLoop(self):
 

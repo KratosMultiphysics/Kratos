@@ -1,7 +1,7 @@
 import sys
 import os
-from DEM_procedures import KratosPrintInfo as Say
-import KratosSwimmingDEM as script
+from KratosMultiphysics.SwimmingDEMApplication.DEM_procedures import KratosPrintInfo as Say
+import KratosMultiphysics.SwimmingDEMApplication.KratosSwimmingDEM as script
 
 
 class CaseRunner:

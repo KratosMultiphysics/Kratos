@@ -13,7 +13,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "custom_elements/rigid_body_element.h"
 
 namespace Kratos
@@ -23,7 +23,7 @@ namespace Kratos
 
     public:
         /// Pointer definition of ShipElement3D
-        KRATOS_CLASS_POINTER_DEFINITION(ShipElement3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShipElement3D);
 
         ShipElement3D();
         ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry);

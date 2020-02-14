@@ -73,7 +73,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) EPPointRigidContactPenalty3DCond
 
     ///@{
     // Counted pointer of PointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( EPPointRigidContactPenalty3DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( EPPointRigidContactPenalty3DCondition );
     ///@}
 
     ///@name Life Cycle
