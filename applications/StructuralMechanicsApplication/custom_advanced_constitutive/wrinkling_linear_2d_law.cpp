@@ -442,12 +442,12 @@ void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parame
     Flags& r_constitutive_law_options = rValues.GetOptions();
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
-        r_stress_vector = stress_vector;
+        noalias(r_stress_vector) = stress_vector;
     }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        r_constitutive_matrix = material_tangent_modulus;
+        noalias(r_constitutive_matrix) = material_tangent_modulus;
     }
     KRATOS_CATCH("");
 }
