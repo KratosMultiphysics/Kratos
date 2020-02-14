@@ -130,6 +130,7 @@ class StructStaticROM(StructuralMechanicsAnalysis):
         ArrayOfAreas = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+            ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))            
         return ArrayOfAreas    
 
 
