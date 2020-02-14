@@ -363,14 +363,26 @@ private:
             for (int i = 0; i < n_elements; ++i)
             {
                 auto it_elem = elements_begin + i;
-                it_elem->AddExplicitContribution(r_process_info);
+                if(it_elem->IsDefined(ACTIVE))
+                {
+                    if (it_elem->Is(ACTIVE))
+                    {
+                        it_elem->AddExplicitContribution(r_process_info);
+                    }
+                }
             }
 
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < n_conditions; ++i)
             {
                 auto it_cond = conditions_begin + i;
-                it_cond->AddExplicitContribution(r_process_info);
+                if (it_cond->IsDefined(ACTIVE))
+                {
+                    if (it_cond->Is(ACTIVE))
+                    {
+                        it_cond->AddExplicitContribution(r_process_info);
+                    }
+                }
             }
         }
     }
