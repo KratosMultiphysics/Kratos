@@ -18,6 +18,7 @@ from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
 from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from particle_mechanics_test_factory import LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
 # Import from Test Factories (with different analysis flows)
@@ -85,6 +86,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
 
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

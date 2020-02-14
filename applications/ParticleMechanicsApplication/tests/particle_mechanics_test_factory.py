@@ -85,6 +85,9 @@ class GravityApplicationTest(ParticleMechanicsTestFactory):
 class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test"
 
+class LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_self_weight_load_2D_quad_test"
+
 ### Slip Boundary Tests
 class SlipBoundaryTest(ParticleMechanicsTestFactory):
     file_name = "slip_tests/slip_boundary_test"
