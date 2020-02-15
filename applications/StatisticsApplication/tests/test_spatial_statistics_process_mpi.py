@@ -1,6 +1,4 @@
 import KratosMultiphysics as Kratos
-
-import KratosMultiphysics as Kratos
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.mpi as KratosMPI
 from KratosMultiphysics.process_factory import KratosProcessFactory
@@ -8,11 +6,9 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 import KratosMultiphysics.StatisticsApplication as KratosStats
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
-from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVariableValue
 
 
 class SpatialStatisticsProcessMPITest(KratosUnittest.TestCase):

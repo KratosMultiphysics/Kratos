@@ -10,8 +10,6 @@ from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelP
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVariableValue
 
-from random import uniform
-
 
 class SpatialMethodTests(KratosUnittest.TestCase):
     def setUp(self):
