@@ -27,9 +27,9 @@ parameter|type|description
 `working_directory`|string|Absolute path to the working directory or relative path w.r.t the current directory.
 
 
-`timestep_start` and `delta_t` are necessary parameters, but are usually defined in a higher CoSimulationObject; however, they can also be given directly as parameter of  solver wrapper (e.g. for standalone testing); if they are defined both in higher object and in solver wrapper, then the former is used and warning printed
+`timestep_start` and `delta_t` are necessary parameters, but are usually defined in a higher CoSimulationObject. However, they can also be given directly as parameter of the solver wrapper (e.g. for standalone testing). If they are defined both in higher object and in the solver wrapper, then the former value is used and a warning is printed.
 
-if different parameters are needed for different versions, this should be specified in the description here and mentioned also in the version specific documentation section
+If different parameters are used with different Fluent versions, this should be specified both in this section and in the version specific documentation section.
 
 
 ## Overview of operation
@@ -57,7 +57,19 @@ In the file conventions, `A` is the timestep number and `B` the Fluent thread ID
 
 ## Setting up a new case
 
-TODO: go through setup of test case, write down procedure (what should be included, what shouldn't)
+Following items should be set up and saved in the `case_file` (this list may be non-exhaustive):
+- additional UDFs must be configured
+- steady/unsteady (should match with the `unsteady` parameter)
+- 2D, 3D or axisymmetric (should match with the `dimensions` parameter)
+- dynamic mesh for all zones, except the FSI interfaces
+- boundary conditions, material properties, numerical models, discretization schemes, operating conditions, turbulence modeling, convergence criteria
+- if `hybrid_initialization` is `false`, then default should be set for standard initialization
+
+Following items are done after starting the FSI simulation, and must therefore not be included in the `case_file`:
+- dynamic mesh for the FSI interfaces (which are defined in `thread_names`)
+- the timestep (`delta_t`) 
+- initialization
+
 
 
 ## Version specific documentation
