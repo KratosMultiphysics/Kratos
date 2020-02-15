@@ -32,7 +32,7 @@ JSON setting|type|version|description
 `save_iterations`|int|all|number of timesteps between consecutive saves of the Fluent case and data files
 
 
-TODO: timestep etc is optionally give from higher object 
+`timestep_start` and `delta_t` are necessary parameters, but are usually defined in a higher CoSimulationObject; however, they can also be given directly as parameter of  solver wrapper; if they are defined both in higher object and in solver wrapper, then the former is used and warning printed (TODO!!)
 
 
 ## Version specific documentation

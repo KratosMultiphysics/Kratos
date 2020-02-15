@@ -27,14 +27,56 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
         self.solver_wrappers = []
         for index in range(2):
-            solver_wrapper_parameters = self.parameters["solver_wrappers"][index]
-            solver_wrapper_settings = solver_wrapper_parameters["settings"]
-            # Add time_step_start and delta_t to solver_wrapper_settings
-            solver_wrapper_settings.AddValue("timestep_start", self.settings["timestep_start"])
-            solver_wrapper_settings.AddValue("delta_t", self.settings["delta_t"])
-            solver_wrapper_parameters.RemoveValue("settings")
-            solver_wrapper_parameters.AddValue("settings", solver_wrapper_settings)
-            self.solver_wrappers.append(cs_tools.CreateInstance(solver_wrapper_parameters))
+            # Add timestep_start and delta_t to solver_wrapper settings
+            parameters = self.parameters["solver_wrappers"][index]
+            if parameters["type"].GetString() == "solver_wrappers.mapped":
+                settings = parameters["settings"]["solver_wrapper"]["settings"]
+            else:
+                settings = parameters["settings"]
+
+            for key in ["timestep_start", "delta_t"]:
+                if settings.Has(key):
+                    cs_tools.Print(f'WARNING: parameter "{key}" is defined multiple times in JSON file', layout='warning')
+                    settings.RemoveValue(key)
+                settings.AddValue(key, self.settings[key])
+
+            # print('\n\nPRINT PARAMETERS\n\n')
+            # print(parameters)
+
+            self.solver_wrappers.append(cs_tools.CreateInstance(parameters))
+
+            # old code
+            if False:
+                solver_wrapper_parameters = self.parameters["solver_wrappers"][index]
+
+
+                solver_wrapper_settings = solver_wrapper_parameters["settings"]
+                # print('\n\nPOSITION 1\n\n')
+                # print(solver_wrapper_parameters)
+                # print(solver_wrapper_settings)
+
+                # Add timestep_start and delta_t to solver_wrapper_settings
+                # you're working with references, so remove and add not necessary
+
+                solver_wrapper_settings.AddValue("timestep_start", self.settings["timestep_start"])
+                solver_wrapper_settings.AddValue("delta_t", self.settings["delta_t"])
+
+                # print('\n\nPOSITION 2\n\n')
+                # print(solver_wrapper_settings)
+                # print(solver_wrapper_parameters)
+
+
+                solver_wrapper_parameters.RemoveValue("settings")
+                solver_wrapper_parameters.AddValue("settings", solver_wrapper_settings)
+
+                print('\n\nPOSITION 3\n\n')
+                print(solver_wrapper_parameters)
+
+
+                self.solver_wrappers.append(cs_tools.CreateInstance(solver_wrapper_parameters))
+
+        # raise ValueError('\n\n\nFORCE CRASH')
+
         self.components = [self.predictor, self.convergence_criterion, self.solver_wrappers[0], self.solver_wrappers[1]]
 
         self.x = []

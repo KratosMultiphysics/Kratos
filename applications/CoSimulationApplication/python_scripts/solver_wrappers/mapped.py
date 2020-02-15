@@ -15,14 +15,6 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.parameters = parameters
         self.settings = parameters["settings"]
 
-        solver_wrapper_parameters = self.settings["solver_wrapper"]
-        solver_wrapper_settings = solver_wrapper_parameters["settings"]
-        # Add time_step_start and delta_t to solver_wrapper_settings
-        solver_wrapper_settings.AddValue("timestep_start", self.settings["timestep_start"])
-        solver_wrapper_settings.AddValue("delta_t", self.settings["delta_t"])
-        solver_wrapper_parameters.RemoveValue("settings")
-        solver_wrapper_parameters.AddValue("settings", solver_wrapper_settings)
-
         # Create solver
         self.solver_wrapper = cs_tools.CreateInstance(self.settings["solver_wrapper"])
 

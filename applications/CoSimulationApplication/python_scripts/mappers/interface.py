@@ -60,5 +60,5 @@ class MapperInterface(CoSimulationComponent):
             mapper.PrintInfo(indent + 1)
 
             cs_tools.Print('\t' * (indent + 2),
-                           f"(which maps ModelPart '{self.keys[i][0]}' to ModelPart '{self.keys[i][1]}')")
+                           f"which maps ModelPart '{self.keys[i][0]}' to ModelPart '{self.keys[i][1]}'")
 
