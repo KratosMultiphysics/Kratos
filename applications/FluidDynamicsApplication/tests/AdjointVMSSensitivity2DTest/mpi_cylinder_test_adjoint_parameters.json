@@ -75,7 +75,7 @@
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Outlet2D_Outlet",
+                "model_part_name" : "MainModelPart.Outlet2D_Outlet",
                 "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
                 "value"           : 0
             }
@@ -85,7 +85,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Inlet2D_Inlet",
+                "model_part_name" : "MainModelPart.Inlet2D_Inlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
             }
@@ -95,7 +95,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Wall",
+                "model_part_name" : "MainModelPart.NoSlip2D_Wall",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
             }
@@ -105,7 +105,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Cylinder",
+                "model_part_name" : "MainModelPart.NoSlip2D_Cylinder",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
             }
@@ -115,8 +115,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "constrained"     : false,
@@ -145,7 +144,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [0.020957, 0.0055272, 0.0],
-                "model_part_name"  : "Parts_Fluid",
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe1.dat",
                     "folder_name": "AdjointVMSSensitivity2DTest",
@@ -160,7 +159,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [0.014931,-0.0034173, 0.0],
-                "model_part_name"  : "Parts_Fluid",
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe2.dat",
                     "folder_name": "AdjointVMSSensitivity2DTest",
@@ -175,7 +174,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [0.023303,-0.0037623, 0.0],
-                "model_part_name"  : "Parts_Fluid",
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe3.dat",
                     "folder_name": "AdjointVMSSensitivity2DTest",

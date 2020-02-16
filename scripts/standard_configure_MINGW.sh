@@ -40,6 +40,7 @@ add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication
 cmake ..                                                                                            \
 -G "MinGW Makefiles"                                                                                \
 -DWIN32=TRUE                                                                                        \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
 -DCMAKE_EXE_LINKER_FLAGS="-s"                                                                       \
 -DCMAKE_SHARED_LINKER_FLAGS="-s"                                                                    \
 -DLAPACK_LIBRARIES="location_msys64/msys64/mingw64/lib/liblapack.dll.a"                             \
@@ -49,4 +50,4 @@ cmake ..                                                                        
 -DUSE_MPI=OFF                                                                                       \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

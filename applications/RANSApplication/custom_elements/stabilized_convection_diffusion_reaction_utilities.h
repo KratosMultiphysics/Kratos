@@ -72,7 +72,7 @@ inline void CalculateStabilizationTau(double& rTau,
     noalias(temp) = prod(rContravariantMetricTensor, velocity);
     const double velocity_norm = norm_2(rVelocity);
 
-    if (velocity_norm > std::numeric_limits<double>::epsilon())
+    if (velocity_norm > 0.0)
     {
         rElementLength = 2.0 * velocity_norm / std::sqrt(inner_prod(velocity, temp));
     }

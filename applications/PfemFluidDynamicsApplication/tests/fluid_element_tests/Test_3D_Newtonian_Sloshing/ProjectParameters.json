@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "fluid_element_tests/Test_3D_Newtonian_Sloshing/Test_3D_Newtonian_Sloshing",
         "start_time"      : 0.0,
-        "end_time"        : 0.005,
+        "end_time"        : 0.003,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
         "threads"         : 1,
@@ -20,7 +20,7 @@
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_3D_Newtonian_Sloshing/Test_3D_Newtonian_Sloshing"
         },
-        "maximum_pressure_iterations"        : 5,
+        "maximum_pressure_iterations"        : 2,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
         "echo_level"                         : 0,

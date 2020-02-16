@@ -12,6 +12,7 @@ class WrlIOTest(TestCase):
         with KM.KratosUnittest.WorkFolderScope(".", __file__):
             model = KM.Model()
             model_part = model.CreateModelPart("wrl_model_part")
+            model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
             model_part_io = WrlIO("joined")
             model_part_io.ReadModelPart(model_part)
 
@@ -81,6 +82,7 @@ class WrlIOTest(TestCase):
         with KM.KratosUnittest.WorkFolderScope(".", __file__):
             model = KM.Model()
             model_part = model.CreateModelPart("wrl_model_part")
+            model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
             model_part_io = WrlIO("split")
             model_part_io.ReadModelPart(model_part)
 

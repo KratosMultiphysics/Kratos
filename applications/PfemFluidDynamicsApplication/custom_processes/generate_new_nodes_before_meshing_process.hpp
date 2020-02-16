@@ -2131,7 +2131,7 @@ private:
 	{
 
 		KRATOS_TRY
-
+        MasterNode->FastGetSolutionStepValue(PROPERTY_ID) = SlaveNode->FastGetSolutionStepValue(PROPERTY_ID);
 		MasterNode->FastGetSolutionStepValue(BULK_MODULUS) = SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
 		MasterNode->FastGetSolutionStepValue(DENSITY) = SlaveNode->FastGetSolutionStepValue(DENSITY);
 		MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = SlaveNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);

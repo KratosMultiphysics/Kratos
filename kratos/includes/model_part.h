@@ -28,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "containers/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -234,6 +235,21 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
+
+    /// The Geometry Container.
+    /**
+    * Contains all geometries, which can be adressed by specific identifiers.
+    */
+    typedef GeometryContainer<GeometryType> GeometryContainerType;
+
+    /// Geometry Iterator
+    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+
+    /// Const Geometry Iterator
+    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
+
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -1369,6 +1385,117 @@ public:
         return GetMesh(ThisIndex).ConditionsArray();
     }
 
+    ///@}
+    ///@name Geometry Container
+    ///@{
+
+    SizeType NumberOfGeometries() const
+    {
+        return mGeometries.NumberOfGeometries();
+    }
+
+
+    /// Adds a geometry to the geometry container.
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
+
+
+    /// Returns the Geometry::Pointer corresponding to the Id
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the const Geometry::Pointer corresponding to the Id
+    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns a reference geometry corresponding to the id
+    GeometryType& GetGeometry(IndexType GeometryId) {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a const reference geometry corresponding to the id
+    const GeometryType& GetGeometry(IndexType GeometryId) const {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a reference geometry corresponding to the name
+    GeometryType& GetGeometry(std::string GeometryName) {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+    /// Returns a const reference geometry corresponding to the name
+    const GeometryType& GetGeometry(std::string GeometryName) const {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+
+    /// Checks if has geometry by id.
+    bool HasGeometry(IndexType GeometryId) const {
+        return mGeometries.HasGeometry(GeometryId);
+    }
+
+    /// Checks if has geometry by name.
+    bool HasGeometry(std::string GeometryName) const {
+        return mGeometries.HasGeometry(GeometryName);
+    }
+
+
+    /// Removes a geometry by id.
+    void RemoveGeometry(IndexType GeometryId);
+
+    /// Removes a geometry by name.
+    void RemoveGeometry(std::string GeometryName);
+
+    /// Removes a geometry by id from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(IndexType GeometryId);
+
+    /// Removes a geometry by name from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(std::string GeometryName);
+
+
+    /// Begin geometry iterator
+    GeometryIterator GeometriesBegin() {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// End geometry iterator
+    GeometryIterator GeometriesEnd() {
+        return mGeometries.GeometriesEnd();
+    }
+
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
+
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
 
     ///@}
     ///@name Sub model parts
@@ -1676,6 +1803,8 @@ private:
     TablesContainerType mTables; /// The tables contained on the model part
 
     MeshesContainerType mMeshes; /// The container of all meshes
+
+    GeometryContainerType mGeometries; /// The container of geometries
 
     VariablesList::Pointer mpVariablesList; /// The variable list
 
