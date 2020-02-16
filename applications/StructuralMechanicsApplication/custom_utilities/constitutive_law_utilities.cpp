@@ -474,20 +474,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     if (rStrainVector.size() != VoigtSize)
         rStrainVector.resize(VoigtSize, false);
 
-    // Declare the different matrix
-    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
-
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (IndexType i = 0; i < Dimension; ++i) {
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-    }
-
-    // Calculate E matrix
+    // Compute square root matrix
     BoundedMatrixType E_matrix;
-    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils<double>::MatrixSquareRoot(rCauchyTensor, E_matrix, 1.0e-16, 20);
 
     // Biot Strain Calculation
     rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);

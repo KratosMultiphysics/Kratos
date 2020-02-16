@@ -35,6 +35,8 @@ class ExplicitStrategy(object):
         self.DEM_parameters = DEM_parameters
         self.mesh_motion = DEMFEMUtilities()
 
+        self.dimension = DEM_parameters["Dimension"].GetInt()
+
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
         else:
@@ -215,6 +217,9 @@ class ExplicitStrategy(object):
         # Setting ProcessInfo variables
         for name in self.all_model_parts.model_parts.keys():
             self.all_model_parts.Get(name).ProcessInfo.SetValue(IS_RESTARTED, self._GetInputType() == 'rest')
+
+        # DIMENSION PARAMETERS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.dimension)
 
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
