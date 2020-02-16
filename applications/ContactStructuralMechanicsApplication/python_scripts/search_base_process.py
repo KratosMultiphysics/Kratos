@@ -112,28 +112,28 @@ class SearchBaseProcess(KM.Process):
         """
 
         # First we generate or identify the different model parts
-        if self.computing_model_part.HasSubModelPart("Contact"):
+        if self.main_model_part.HasSubModelPart("Contact"):
             # If remeshed we remove and redo everything from scratch
-            if self.computing_model_part.GetRootModelPart().Is(KM.MODIFIED):
+            if self.main_model_part.GetRootModelPart().Is(KM.MODIFIED):
                 self.preprocess = True
 
                 # We remove the submodelpart
-                KM.VariableUtils().SetFlag(KM.TO_ERASE, True, self.computing_model_part.GetSubModelPart("ComputingContact").Conditions)
-                self.computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KM.TO_ERASE)
+                KM.VariableUtils().SetFlag(KM.TO_ERASE, True, self.main_model_part.GetSubModelPart("ComputingContact").Conditions)
+                self.main_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KM.TO_ERASE)
 
-                self.computing_model_part.RemoveSubModelPart("Contact")
-                self.computing_model_part.RemoveSubModelPart("ComputingContact")
+                self.main_model_part.RemoveSubModelPart("Contact")
+                self.main_model_part.RemoveSubModelPart("ComputingContact")
 
                 if meshing_dependencies:
-                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part)
-                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
+                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.main_model_part)
+                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.main_model_part.GetRootModelPart())
 
                 # We create the submodelpart
-                self.search_model_part = self.computing_model_part.CreateSubModelPart("Contact")
+                self.search_model_part = self.main_model_part.CreateSubModelPart("Contact")
             else:
                 self.preprocess = False
                 # We get the submodelpart
-                self.search_model_part = self.computing_model_part.GetSubModelPart("Contact")
+                self.search_model_part = self.main_model_part.GetSubModelPart("Contact")
         else:
             self.preprocess = True
             # We create the submodelpart
