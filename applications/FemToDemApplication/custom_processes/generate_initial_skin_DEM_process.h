@@ -70,6 +70,11 @@ class GenerateInitialSkinDEMProcess : public Process
      */
   int GetMaximumDEMId();
 
+    /**
+     * @brief This returns the maximum Id of the FEM nodes
+     */
+  int GetMaximumFEMId();
+
 protected:
 
   // Member Variables

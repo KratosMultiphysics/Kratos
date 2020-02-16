@@ -137,6 +137,11 @@ public:
         mpPrimalElement->Initialize();
     }
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->Initialize(rCurrentProcessInfo);
+    }
+
     void ResetConstitutiveLaw() override
     {
         mpPrimalElement->ResetConstitutiveLaw();
