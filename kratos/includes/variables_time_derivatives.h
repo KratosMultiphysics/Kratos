@@ -68,6 +68,11 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method adds a new variable to the derivative database
+     * @param rVariable The variable to be added
+     * @param rDerivativeVariable The derivative variable
+     */
     static void Add(TComponentType const& rVariable, TComponentType const& rDerivativeVariable)
     {
         // check if a different object was already registered with this name, since this is undefined behavior
@@ -77,12 +82,21 @@ public:
         msVariablesTimeDerivatives.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
     }
 
+    /**
+     * @brief This method removes a variable from the derivative database
+     * @param rVariable The variable to be removed
+     */
     static void Remove(TComponentType const& rVariable)
     {
         const std::size_t num_erased = msVariablesTimeDerivatives.erase(rVariable.Key());
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << rVariable.Key() << "\"." << std::endl;
     }
 
+    /**
+     * @brief This method returns the first derivative
+     * @param rVariable The variable
+     * @return The first derivative
+     */
     static TComponentType const& GetFirstDerivative(TComponentType const& rVariable)
     {
         const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
@@ -90,16 +104,39 @@ public:
         return *(it_der->second);
     }
 
+    /**
+     * @brief This method returns the second derivative
+     * @param rVariable The variable
+     * @return The second derivative
+     */
+    static TComponentType const& GetSecondDerivative(TComponentType const& rVariable)
+    {
+        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
+        return GetFirstDerivative(*(it_der->second));
+    }
+
+    /**
+     * @brief This method returns the database
+     * @return The derivative database
+     */
     static DerivativesDatabaseType & GetVariableTimeDerivatives()
     {
         return msVariablesTimeDerivatives;
     }
 
+    /**
+     * @brief This method returns the database (pointer version)
+     * @return The derivative database
+     */
     static DerivativesDatabaseType * pGetVariableTimeDerivatives()
     {
         return &msVariablesTimeDerivatives;
     }
 
+    /**
+     * @brief This method registers the dabatase
+     */
     static void Register()
     {
 
@@ -114,6 +151,10 @@ public:
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief This method returns if the variable is registered
+     * @return Trus if registered, false otherwise
+     */
     static bool Has(TComponentType const& rVariable)
     {
         return (msVariablesTimeDerivatives.find(rVariable.Key()) != msVariablesTimeDerivatives.end());
@@ -192,7 +233,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static DerivativesDatabaseType msVariablesTimeDerivatives;
+    static DerivativesDatabaseType msVariablesTimeDerivatives;  /// The database of derivatives
 
     ///@}
     ///@name Member Variables
@@ -277,11 +318,20 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method adds a new variable to the derivative database
+     * @param rVariable The variable to be added
+     * @param rDerivativeVariable The derivative variable
+     */
     static void Add(VariableData const& rVariable, VariableData& rDerivativeVariable)
     {
         msVariablesTimeDerivatives.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
     }
 
+    /**
+     * @brief This method removes a variable from the derivative database
+     * @param rVariable The variable to be removed
+     */
     static void Remove(VariableData const& rVariable)
     {
         std::size_t num_erased = msVariablesTimeDerivatives.erase(rVariable.Key());
@@ -293,6 +343,11 @@ public:
         return msVariablesTimeDerivatives.size();
     }
 
+    /**
+     * @brief This method returns the first derivative
+     * @param rVariable The variable
+     * @return The first derivative
+     */
     static const VariableData & GetFirstDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
@@ -300,6 +355,11 @@ public:
         return *(it_der->second);
     }
 
+    /**
+     * @brief This method returns the first derivative (pointer version)
+     * @param rVariable The variable
+     * @return The first derivative
+     */
     static const VariableData* pGetFirstDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
@@ -307,6 +367,11 @@ public:
         return it_der->second;
     }
 
+    /**
+     * @brief This method returns the second derivative
+     * @param rVariable The variable
+     * @return The second derivative
+     */
     static const VariableData& GetSecondDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
@@ -314,6 +379,11 @@ public:
         return GetFirstDerivative(*(it_der->second));
     }
 
+    /**
+     * @brief This method returns the second derivative (pointer version)
+     * @param rVariable The variable
+     * @return The second derivative
+     */
     static const VariableData* pGetSecondDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
@@ -321,16 +391,27 @@ public:
         return pGetFirstDerivative(*(it_der->second));
     }
 
+    /**
+     * @brief This method returns the database
+     * @return The derivative database
+     */
     static DerivativesDatabaseType & GetVariableTimeDerivatives()
     {
         return msVariablesTimeDerivatives;
     }
 
+    /**
+     * @brief This method returns the database (pointer version)
+     * @return The derivative database
+     */
     static DerivativesDatabaseType * pGetVariableTimeDerivatives()
     {
         return &msVariablesTimeDerivatives;
     }
 
+    /**
+     * @brief This method registers the dabatase
+     */
     static void Register()
     {
 
@@ -345,6 +426,10 @@ public:
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief This method returns if the variable is registered
+     * @return Trus if registered, false otherwise
+     */
     static bool Has(VariableData const& rVariable)
     {
         return (msVariablesTimeDerivatives.find(rVariable.Key()) != msVariablesTimeDerivatives.end());
@@ -424,7 +509,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static DerivativesDatabaseType msVariablesTimeDerivatives;
+    static DerivativesDatabaseType msVariablesTimeDerivatives; /// The database of derivatives
 
     ///@}
     ///@name Member Variables
