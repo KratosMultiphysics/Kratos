@@ -486,6 +486,74 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
 //-----------------------------------------------------------------
 //
+//  Variables time derivatives
+//
+//-----------------------------------------------------------------
+
+#ifdef KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE
+#undef KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE
+#endif
+#define KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
+    AddVariableTimeDerivative(variable, variable_derivative); \
+    KratosComponents<VariableData>::Add(variable, variable_derivative);
+
+#ifdef KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_X, variable_derivative##_X) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_Y, variable_derivative##_Y) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_Z, variable_derivative##_Z)
+
+#ifdef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY)
+
+#ifdef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZZ, variable_derivative##_ZZ) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YZ, variable_derivative##_YZ) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XZ, variable_derivative##_XZ)
+
+#ifdef KRATOS_REGISTER_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YX, variable_derivative##_YX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY)
+
+#ifdef KRATOS_REGISTER_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XZ, variable_derivative##_XZ) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YX, variable_derivative##_YX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YZ, variable_derivative##_YZ) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZX, variable_derivative##_ZX) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZY, variable_derivative##_ZY) \
+    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZZ, variable_derivative##_ZZ)
+
+//-----------------------------------------------------------------
+//
 // Flags
 //
 //-----------------------------------------------------------------
