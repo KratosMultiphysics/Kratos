@@ -24,7 +24,6 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/dem_variables.h"  //TODO: must be removed eventually
-#include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 
 #include "custom_utilities/statistics_record.h"
 #include "custom_utilities/statistics_data.h"
