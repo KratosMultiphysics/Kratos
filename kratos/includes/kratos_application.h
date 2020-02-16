@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_components.h"
+#include "includes/variables_time_derivatives.h"
 #include "includes/element.h"
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
@@ -202,6 +203,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpMasterSlaveConstraints;
     }
 
+
     void SetComponents(
         KratosComponents<VariableData>::ComponentsContainerType const&
             VariableDataComponents)
@@ -236,6 +238,61 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     {
         mpConditions->insert(
             ConditionComponents.begin(), ConditionComponents.end());
+    }
+
+    VariablesTimeDerivatives<Variable<double>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        Variable<double> const& rComponentType) {
+        return *mpDoubleVariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<Variable<array_1d<double, 3>>>::DerivativesDatabaseType&
+    GetVariableTimeDerivatives(Variable<array_1d<double, 3>> const& rComponentType) {
+        return *mpArray1DVariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<Variable<array_1d<double, 4>>>::DerivativesDatabaseType&
+    GetVariableTimeDerivatives(Variable<array_1d<double, 4>> const& rComponentType) {
+        return *mpArray1D4VariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<Variable<array_1d<double, 6>>>::DerivativesDatabaseType&
+    GetVariableTimeDerivatives(Variable<array_1d<double, 6>> const& rComponentType) {
+        return *mpArray1D6VariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<Variable<array_1d<double, 9>>>::DerivativesDatabaseType&
+    GetVariableTimeDerivatives(Variable<array_1d<double, 9>> const& rComponentType) {
+        return *mpArray1D9VariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<Variable<Vector>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        Variable<Vector> const& rComponentType) {
+        return *mpVectorVariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<Variable<Matrix>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        Variable<Matrix> const& rComponentType) {
+        return *mpMatrixVariablesTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 3>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rComponentType) {
+        return *mpArray1DVariableComponentsTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 4>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rComponentType) {
+        return *mpArray1D4VariableComponentsTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 6>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rComponentType) {
+        return *mpArray1D6VariableComponentsTimeDerivatives;
+    }
+
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 9>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rComponentType) {
+        return *mpArray1D9VariableComponentsTimeDerivatives;
     }
 
     Serializer::RegisteredObjectsContainerType& GetRegisteredObjects() {
@@ -426,6 +483,19 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
 
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
+
+    // Time derivatives variables
+    VariablesTimeDerivatives<Variable<double> >::DerivativesDatabaseType* mpDoubleVariablesTimeDerivatives;
+    VariablesTimeDerivatives<Variable<array_1d<double, 3> > >::DerivativesDatabaseType* mpArray1DVariablesTimeDerivatives;
+    VariablesTimeDerivatives<Variable<array_1d<double, 4> > >::DerivativesDatabaseType* mpArray1D4VariablesTimeDerivatives;
+    VariablesTimeDerivatives<Variable<array_1d<double, 6> > >::DerivativesDatabaseType* mpArray1D6VariablesTimeDerivatives;
+    VariablesTimeDerivatives<Variable<array_1d<double, 9> > >::DerivativesDatabaseType* mpArray1D9VariablesTimeDerivatives;
+    VariablesTimeDerivatives<Variable<Vector> >::DerivativesDatabaseType* mpVectorVariablesTimeDerivatives;
+    VariablesTimeDerivatives<Variable<Matrix> >::DerivativesDatabaseType* mpMatrixVariablesTimeDerivatives;
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::DerivativesDatabaseType* mpArray1DVariableComponentsTimeDerivatives;
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::DerivativesDatabaseType* mpArray1D4VariableComponentsTimeDerivatives;
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::DerivativesDatabaseType* mpArray1D6VariableComponentsTimeDerivatives;
+    VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::DerivativesDatabaseType* mpArray1D9VariableComponentsTimeDerivatives;
 
     // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
