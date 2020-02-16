@@ -495,7 +495,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
     AddVariableTimeDerivative(variable, variable_derivative); \
-    KratosComponents<VariableData>::Add(variable, variable_derivative);
+    VariablesTimeDerivatives<VariableData>::Add(variable, variable_derivative);
 
 #ifdef KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
