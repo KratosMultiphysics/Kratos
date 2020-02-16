@@ -296,19 +296,19 @@ namespace Kratos
 
 	         // Residual Based Newmark Scheme Type
 	         py::class_< ResidualBasedNewmarkDisplacementSchemeType,
-                   typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
-                   BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
-                   .def(py::init<Parameters >() )
-                   .def(py::init< >() )
-                   ;
+               typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
+               BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
+               .def(py::init<Parameters >() )
+               .def(py::init< >() )
+               ;
 
 	         // Residual Based Pseudo-Static Scheme Type
 	         py::class_< ResidualBasedPseudoStaticDisplacementSchemeType,
-                   typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
-                   BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
-                   .def(py::init<Parameters >() )
-                   .def(py::init< const Variable<double> >() )
-                   ;
+               typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
+               BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
+               .def(py::init<Parameters >() )
+               .def(py::init< const Variable<double> >() )
+               ;
 
             // Residual Based BDF displacement Scheme Type
             py::class_< ResidualBasedBDFDisplacementSchemeType,typename ResidualBasedBDFDisplacementSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFDisplacementScheme")

@@ -1,39 +1,16 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.MeshMovingApplication as KMM
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 import os
 
-class MeshMovingAnalysisForTesting(MeshMovingAnalysis):
-
-    def __init__(self, model, project_parameters, mesh_vel_calc_helper):
-        super(MeshMovingAnalysisForTesting, self).__init__(model, project_parameters)
-        self.mesh_vel_calc_helper = mesh_vel_calc_helper
-        # Variables needed for the mesh-velocity-calculation
-        self.model["MainModelPart"].AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
-        self.model["MainModelPart"].AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
-
-    def RunSolutionLoop(self):
-        """custom to also compute the mesh-velocities"""
-        while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-
-            KMM.CalculateMeshVelocities(
-                self._GetSolver().GetComputingModelPart(),
-                self.mesh_vel_calc_helper)
-
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
 class MeshMovingTestCase(KratosUnittest.TestCase):
 
-    def executeTest(self):
+    def executeTest(self, additional_parameters=KM.Parameters("""{}""")):
         with KratosUnittest.WorkFolderScope(".", __file__):
             with open('generic_rectangle_test_parameters.json', 'r') as parameter_file:
                 self.project_parameters = KM.Parameters(parameter_file.read())
+
+            self.project_parameters["solver_settings"].AddMissingParameters(additional_parameters)
 
             self.__SetProblemData()
             self.__SetSolverSettings()
@@ -43,7 +20,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
             self.__SetLoggerSeverity()
 
             model = KM.Model()
-            MeshMovingAnalysisForTesting(model, self.project_parameters, self.mesh_vel_calc_helper).Run()
+            MeshMovingAnalysis(model, self.project_parameters).Run()
 
     def __SetProblemData(self):
         problem_data = self.project_parameters["problem_data"]
@@ -59,7 +36,6 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         solver_settings = self.project_parameters["solver_settings"]
 
         solver_settings["domain_size"].SetInt(self.domain_size)
-        solver_settings["buffer_size"].SetInt(KM.TimeDiscretization.GetMinimumBufferSize(self.mesh_vel_calc_helper))
         solver_settings["solver_type"].SetString(self.solver_type)
         input_file_name = os.path.join("test_mdpa_files", "rectangle_{}_test".format(self.__GetElementTopology()))
         solver_settings["model_import_settings"]["input_filename"].SetString(input_file_name)
