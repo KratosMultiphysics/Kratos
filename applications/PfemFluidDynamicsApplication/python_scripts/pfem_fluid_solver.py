@@ -212,6 +212,8 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+
         print("::[PfemFluidSolver]:: Variables ADDED")
 
 
@@ -279,7 +281,7 @@ class PfemFluidSolver(PythonSolver):
         pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
     def _ComputeDeltaTime(self):
-        
+
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
         return delta_time
