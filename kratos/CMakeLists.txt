@@ -96,7 +96,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/constraint_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sensitivity_builder.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/os_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;

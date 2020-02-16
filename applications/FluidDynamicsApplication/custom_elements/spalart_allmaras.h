@@ -259,7 +259,7 @@ protected:
 
     template< class TVariableType >
     void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType> Var,
+                         const Kratos::Variable<TVariableType>& Var,
                          const ShapeFunctionsType& rShapeFunc)
     {
         rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(Var);
