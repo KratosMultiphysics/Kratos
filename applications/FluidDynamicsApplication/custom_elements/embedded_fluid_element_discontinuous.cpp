@@ -125,7 +125,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     // Iterate over the negative side volume integration points
     const unsigned int number_of_negative_gauss_points = data.NegativeSideWeights.size();
     for (unsigned int g = 0; g < number_of_negative_gauss_points; ++g){
-        const size_t gauss_pt_index = g + number_of_negative_gauss_points;
+        const size_t gauss_pt_index = g + number_of_positive_gauss_points;
         this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeSideWeights[g], row(data.NegativeSideN, g), data.NegativeSideDNDX[g]);
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
@@ -184,6 +184,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
         const unsigned int number_of_positive_gauss_points = data.PositiveSideWeights.size();
+        const unsigned int number_of_negative_gauss_points = data.NegativeSideWeights.size();
+        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
 
         if ( data.IsCut() ){
             // Integrate positive interface side drag
@@ -191,7 +193,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
             for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
 
                 // Update the Gauss pt. data and the constitutive law
-                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
+                this->UpdateIntegrationPointData(
+                    data,
+                    g + volume_gauss_points,
+                    data.PositiveInterfaceWeights[g],
+                    row(data.PositiveInterfaceN, g),
+                    data.PositiveInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
                 const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
@@ -216,7 +223,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
             for (unsigned int g = 0; g < n_int_neg_gauss; ++g) {
 
                 // Update the Gauss pt. data and the constitutive law
-                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,data.NegativeInterfaceWeights[g],row(data.NegativeInterfaceN, g),data.NegativeInterfaceDNDX[g]);
+                this->UpdateIntegrationPointData(
+                    data,
+                    g + volume_gauss_points + n_int_pos_gauss,
+                    data.NegativeInterfaceWeights[g],
+                    row(data.NegativeInterfaceN, g),
+                    data.NegativeInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
                 const auto &aux_unit_normal = data.NegativeInterfaceUnitNormals[g];
