@@ -39,6 +39,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.delta_t = self.settings['delta_t'].GetDouble()
         self.timestep_start = self.settings['timestep_start'].GetInt()
         self.timestep = self.timestep_start
+        self.iteration = None
 
         self.thread_names = [_.GetString() for _ in self.settings['thread_names'].list()]
         self.n_threads = len(self.thread_names)
@@ -87,7 +88,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         else:
             cmd = cmd1 + '-gu ' + cmd2 + f' >> {log} 2>&1'
             # cmd = cmd1 + '-gu ' + cmd2 + f' 2> >(tee -a {log}) 1>> {log}'
-        print(cmd)
         self.fluent_process = subprocess.Popen(cmd, executable='/bin/bash',
                                                shell=True, cwd=self.dir_cfd)
 
@@ -228,7 +228,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def Initialize(self):
         super().Initialize()
-        print('\nInitialize')
         # self.timestep = self.timestep_start
 
     def InitializeSolutionStep(self):
@@ -236,14 +235,12 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         self.iteration = 0
         self.timestep += 1
-        print(f'\tTimestep {self.timestep}')
 
         self.send_message('next')
         self.wait_message('next_ready')
 
     def SolveSolutionStep(self, interface_input):
         self.iteration += 1
-        print(f'\t\tIteration {self.iteration}')
 
         # store incoming displacements
         self.interface_input.SetPythonList(interface_input.GetPythonList())
@@ -312,7 +309,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.send_message('stop')
         self.wait_message('stop_ready')
         self.fluent_process.wait()
-        print('Finalize')
 
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()
