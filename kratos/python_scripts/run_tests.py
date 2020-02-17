@@ -182,6 +182,13 @@ def main():
 
     # Set default values
     applications = KtsUtls.GetListOfAvailableApplications()
+
+    sys.stdout.flush()
+    KtsMp.Logger.Flush()
+    print("\n\nAPPLICATIONS:\n", applications)
+    sys.stdout.flush()
+    KtsMp.Logger.Flush()
+
     verbosity = 1
     level = 'all'
     is_mpi = False
@@ -287,7 +294,9 @@ def main():
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
+        KtsMp.Logger.Flush()
+        sys.stdout.flush()
+        print('\n\nRunning tests for {}'.format(application), file=sys.stderr)
         sys.stderr.flush()
 
         with KtsUt.SupressConsoleOutput():
@@ -303,8 +312,10 @@ def main():
 
         exit_code = max(exit_code, commander.exitCode)
 
+    KtsMp.Logger.Flush()
+    sys.stdout.flush()
     # Run the cpp tests (does the same as run_cpp_tests.py)
-    print('Running cpp tests', file=sys.stderr)
+    print('\n\nRunning cpp tests', file=sys.stderr)
     with KtsUt.SupressConsoleOutput():
         commander.RunCppTests(applications)
 
