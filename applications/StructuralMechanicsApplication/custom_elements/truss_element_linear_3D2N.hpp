@@ -123,6 +123,8 @@ public:
     void UpdateInternalForces(
         BoundedVector<double,msLocalSize>& rInternalForces) override;
 
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
 private:
 
     friend class Serializer;
