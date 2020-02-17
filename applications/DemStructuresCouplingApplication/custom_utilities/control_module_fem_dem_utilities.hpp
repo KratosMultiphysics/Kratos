@@ -72,16 +72,16 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
             "reaction_stress_variable_name": "REACTION_STRESS",
             "loading_velocity_variable_name": "LOADING_VELOCITY",
             "imposed_direction" : 2,
-            "target_stress_table_id" : 1,
+            "target_stress_table_id" : 0,
             "initial_velocity" : 0.0,
             "limit_velocity" : 1.0,
             "velocity_factor" : 1.0,
-            "compression_length" : 0.0,
+            "compression_length" : 1.0,
+            "face_area": 1.0,
             "young_modulus" : 1.0e7,
             "stress_increment_tolerance": 1000.0,
             "update_stiffness": true,
-            "start_time" : 0.0,
-            "face_area": 1.0
+            "start_time" : 0.0
         }  )" );
 
     // Now validate agains defaults -- this also ensures no type mismatch
@@ -124,14 +124,14 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     mrDemModelPart[DemVelocityVar] = mVelocity;
     mLimitVelocity = rParameters["limit_velocity"].GetDouble();
     mVelocityFactor = rParameters["velocity_factor"].GetDouble();
-    mCompressionLength = rParameters["compression_length"].GetDouble();
-    mYoungModulus = rParameters["young_modulus"].GetDouble();
     mStartTime = rParameters["start_time"].GetDouble();
     mFaceArea = rParameters["face_area"].GetDouble();
     mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
     mUpdateStiffness = rParameters["update_stiffness"].GetBool();
     mReactionStressOld = 0.0;
-    mStiffness = mYoungModulus/mCompressionLength;
+    mStiffness = rParameters["young_modulus"].GetDouble()*mFaceArea/rParameters["compression_length"].GetDouble();
+
+    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
     KRATOS_CATCH("");
 }
@@ -281,6 +281,9 @@ void ExecuteFinalizeSolutionStep()
             // it->FastGetSolutionStepValue(ReactionStressVarComponent) = pTargetStressTable->GetValue(CurrentTime)-ReactionStress;
             it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
         }
+
+        mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
+
     }
 }
 
@@ -341,8 +344,6 @@ protected:
     double mVelocity;
     double mLimitVelocity;
     double mVelocityFactor;
-    double mCompressionLength;
-    double mYoungModulus;
     double mStartTime;
     double mFaceArea;
     double mReactionStressOld;

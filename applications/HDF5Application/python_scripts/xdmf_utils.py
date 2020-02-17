@@ -27,6 +27,7 @@ from KratosMultiphysics.HDF5Application.core.xdmf import UniformMeshTopology
 from KratosMultiphysics.HDF5Application.core.xdmf import UniformGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import NodalData
 from KratosMultiphysics.HDF5Application.core.xdmf import ElementData
+from KratosMultiphysics.HDF5Application.core.xdmf import ConditionData
 from KratosMultiphysics.HDF5Application.core.xdmf import TemporalGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
@@ -121,7 +122,16 @@ def CreateXdmfSpatialGrid(h5_model_part):
     sgrid = SpatialGrid()
     geom = Geometry(HDF5UniformDataItem(
         h5_model_part["Nodes/Local/Coordinates"]))
-    for name, value in h5_model_part["Xdmf/Elements"].items():
+    if ("Xdmf/Elements" in h5_model_part and "Xdmf/Conditions" in h5_model_part):
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid", "Element and Condition blocks found. Spacial grid is made from Elements block only.")
+        spatial_grid_block_name = "Xdmf/Elements"
+    elif "Xdmf/Elements" in h5_model_part:
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Elements.")
+        spatial_grid_block_name = "Xdmf/Elements"
+    elif "Xdmf/Conditions" in h5_model_part:
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Conditions.")
+        spatial_grid_block_name = "Xdmf/Conditions"
+    for name, value in h5_model_part[spatial_grid_block_name].items():
         cell_type = TopologyCellType(
             value.attrs["Dimension"], value.attrs["NumberOfNodes"])
         connectivities = HDF5UniformDataItem(value["Connectivities"])
@@ -168,6 +178,36 @@ def XdmfNodalResults(h5_results):
     return list(results.values())
 
 
+def XdmfNodalFlags(h5_results):
+    """Return a list of XDMF Attribute objects for nodal flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the flags
+
+    Checks for flags stored in data sets by variable name in:
+    - h5_flags["NodalFlagValues/<flag-name>"]
+
+    Expects:
+    - each flag variable occurs only once
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.NodalFlagsValueOutput.
+    """
+
+    results_path = "NodalFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = NodalData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+
 def XdmfElementResults(h5_results):
     """Return a list of XDMF Attribute objects for element results in an HDF5 file.
 
@@ -193,6 +233,81 @@ def XdmfElementResults(h5_results):
         results.append(r)
     return results
 
+def XdmfElementFlags(h5_results):
+    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_flags -- the HDF5 group containing the flags
+
+    Checks for flags stored by variable name in:
+    - h5_flags["ElementFlagValues/<flag-name>"]
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.ElementFlagValueOutput.
+    """
+    results_path = "ElementFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+def XdmfConditionResults(h5_results):
+    """Return a list of XDMF Attribute objects for element results in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the results
+
+    Checks for results stored by variable name in:
+    - h5_results["ConditionDataValues/<variable>"]
+
+    If no results are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionDataValueOutput.
+    """
+    results_path = "ConditionDataValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ConditionData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+def XdmfConditionFlags(h5_results):
+    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_flags -- the HDF5 group containing the flags
+
+    Checks for flags stored by variable name in:
+    - h5_flags["ConditionFlagValues/<flag-name>"]
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionFlagValueOutput.
+    """
+    results_path = "ConditionFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ConditionData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
 
 def XdmfResults(h5_results):
     """Return a list of XDMF Attribute objects for results in an HDF5 file.
@@ -203,7 +318,11 @@ def XdmfResults(h5_results):
     return list(
         chain(
             XdmfNodalResults(h5_results),
-            XdmfElementResults(h5_results)
+            XdmfNodalFlags(h5_results),
+            XdmfElementResults(h5_results),
+            XdmfElementFlags(h5_results),
+            XdmfConditionResults(h5_results),
+            XdmfConditionFlags(h5_results),
         )
     )
 
@@ -218,11 +337,17 @@ def TimeLabel(file_path):
 
     Returns empty string if not found.
     """
-    timepat = re.compile(r"\d+(\.\d+)?((e|E)(\+|-)\d+)?")
-    file_path = ".".join(file_path.split(".")[:-1]) # Strip any suffixes.
-    m = timepat.search(file_path)
-    if m:
-        return m.string[m.start():m.end()]
+    # Is there a better way to do this?
+    temp_file_path = file_path.replace("E-", "E*")
+    temp_file_path = temp_file_path.replace("e-", "e*")
+
+    dash_split = temp_file_path[:temp_file_path.rfind(".")].split("-")
+    dash_split[-1] = dash_split[-1].replace("E*", "E-")
+    dash_split[-1] = dash_split[-1].replace("e*", "e-")
+
+    float_regex = re.compile(r'^[-+]?([0-9]+|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?$')
+    if (float_regex.match(dash_split[-1])):
+        return dash_split[-1]
     else:
         return ""
 

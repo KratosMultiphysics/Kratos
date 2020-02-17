@@ -43,7 +43,6 @@ class ContactRemeshMmgProcess(MmgProcess):
             "automatic_normalization_factor"   : true,
             "consider_strain_energy"           : false,
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "computing_model_part_name"        : "computing_domain",
             "blocking_threshold_size"          : false,
             "threshold_sizes" : {
                 "minimal_size"                     : 0.1,
@@ -160,9 +159,6 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.automatic_normalization_factor = settings["automatic_normalization_factor"].GetBool()
         self.consider_strain_energy = settings["consider_strain_energy"].GetBool()
 
-        # The computing model part name
-        computing_model_part_name = settings["computing_model_part_name"].GetString()
-
         # Refill missing
         number_of_metric_variable = settings["hessian_strategy_parameters"]["metric_variable"].size()
         number_of_non_historical_metric_variable = settings["hessian_strategy_parameters"]["non_historical_metric_variable"].size()
@@ -209,7 +205,6 @@ class ContactRemeshMmgProcess(MmgProcess):
         # Avoid conflict with mother class
         settings.RemoveValue("automatic_normalization_factor")
         settings.RemoveValue("consider_strain_energy")
-        settings.RemoveValue("computing_model_part_name")
 
         # Construct the base process.
         super(ContactRemeshMmgProcess, self).__init__(Model, settings)
@@ -217,7 +212,6 @@ class ContactRemeshMmgProcess(MmgProcess):
         # Create model parts
         model_part_name = settings["model_part_name"].GetString()
         self.main_model_part = Model[model_part_name]
-        self.computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
 
         # Create extrapolation process
         extrapolation_parameters = KratosMultiphysics.Parameters("""
@@ -363,30 +357,30 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # We remove the submodelpart
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.GetSubModelPart("ComputingContact").Conditions)
-        self.computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.GetSubModelPart("ComputingContact").Conditions)
+        self.main_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
         # We clean the computing before remesh
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.Conditions)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.Elements)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.MasterSlaveConstraints)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Conditions)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Elements)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.MasterSlaveConstraints)
 
-        self.computing_model_part.RemoveNodes(KratosMultiphysics.TO_ERASE)
-        self.computing_model_part.RemoveConditions(KratosMultiphysics.TO_ERASE)
-        self.computing_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
-        self.computing_model_part.RemoveMasterSlaveConstraints(KratosMultiphysics.TO_ERASE)
+        self.main_model_part.RemoveNodes(KratosMultiphysics.TO_ERASE)
+        self.main_model_part.RemoveConditions(KratosMultiphysics.TO_ERASE)
+        self.main_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
+        self.main_model_part.RemoveMasterSlaveConstraints(KratosMultiphysics.TO_ERASE)
 
         # We remove the contact submodelparts
-        self.computing_model_part.RemoveSubModelPart("Contact")
-        self.computing_model_part.RemoveSubModelPart("ComputingContact")
+        self.main_model_part.RemoveSubModelPart("Contact")
+        self.main_model_part.RemoveSubModelPart("ComputingContact")
 
         # Ensure properties defined
-        MeshingApplication.MeshingUtilities.RecursiveEnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
+        MeshingApplication.MeshingUtilities.RecursiveEnsureModelPartOwnsProperties(self.main_model_part.GetRootModelPart())
 
         # We create the contact submodelparts
-        self.computing_model_part.CreateSubModelPart("Contact")
-        self.computing_model_part.CreateSubModelPart("ComputingContact")
+        self.main_model_part.CreateSubModelPart("Contact")
+        self.main_model_part.CreateSubModelPart("ComputingContact")
 
     def _AuxiliarCallsAfterRemesh(self):
         """ This method is executed right after execute the remesh
@@ -394,7 +388,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.computing_model_part, self.computing_model_part.GetParentModelPart()).Execute()
+        KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.main_model_part, self.main_model_part.GetParentModelPart()).Execute()
 
     def _GenerateErrorProcess(self):
         """ This method creates an erro process to compute the metric

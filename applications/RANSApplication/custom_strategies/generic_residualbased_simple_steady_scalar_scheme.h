@@ -72,9 +72,7 @@ public:
             << std::scientific << mRelaxationFactor << "\n";
     }
 
-    ~GenericResidualBasedSimpleSteadyScalarScheme() override
-    {
-    }
+    ~GenericResidualBasedSimpleSteadyScalarScheme() override = default;
 
     ///@}
     ///@name Operators

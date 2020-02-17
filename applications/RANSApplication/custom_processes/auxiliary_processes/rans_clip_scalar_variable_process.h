@@ -73,7 +73,7 @@ public:
     RansClipScalarVariableProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansClipScalarVariableProcess() override;
+    ~RansClipScalarVariableProcess() override = default;
 
     ///@}
     ///@name Operators

@@ -465,6 +465,7 @@ namespace Testing {
         // Set the model part containing the origin skin
         Model model;
         ModelPart &r_skin_model_part = model.CreateModelPart("OriginModelPart");
+        r_skin_model_part.AddNodalSolutionStepVariable(PRESSURE);
         r_skin_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
         GenerateTestSkinModelPart(r_skin_model_part);
 
@@ -495,6 +496,11 @@ namespace Testing {
         partitioned_fsi_utilities.EmbeddedPressureToPositiveFacePressureInterpolator(
             r_background_model_part,
             r_skin_model_part);
+
+        // Copy the obtained values from PRESSURE to POSITIVE_FACE_PRESSURE
+        for (auto &r_node : r_skin_model_part.Nodes()) {
+            r_node.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = r_node.FastGetSolutionStepValue(PRESSURE);
+        }
 
         // Check results
         unsigned int i = 0;

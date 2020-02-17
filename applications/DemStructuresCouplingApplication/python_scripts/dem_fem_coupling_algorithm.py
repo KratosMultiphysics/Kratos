@@ -54,9 +54,9 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.TARGET_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.REACTION_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.LOADING_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.TARGET_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.REACTION_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()

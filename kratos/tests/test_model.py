@@ -36,7 +36,8 @@ class TestModel(KratosUnittest.TestCase):
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
 
-        self.assertEqual(aaa, current_model["aaa"]) #search by flat name - should be eventually deprecated
+        with self.assertRaisesRegex(RuntimeError, "Error: DEPRECATION: The ModelPart \"aaa\" is retrieved from the Model by using the flat-map!"):
+            self.assertEqual(aaa, current_model["aaa"]) #search by flat name was removed
 
         #check that a meaningful error is thrown
         with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found either as root-ModelPart or as a flat name. The total input string was \"abc\""):

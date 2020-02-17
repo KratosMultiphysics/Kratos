@@ -78,7 +78,9 @@ public:
                                               array_1d<double, 4>& Weight,
                                               array_1d<double, 3>& wall_delta_disp_at_contact_point,
                                               array_1d<double, 3>& wall_velocity_at_contact_point,
-                                              int& ContactType){}
+                                              int& ContactType){
+        KRATOS_ERROR << "Base class DemWall method ComputeConditionRelativeData was called!" << std::endl;
+    }
     virtual bool IsPhantom(){return false;}
     virtual int CheckSide(SphericParticle* p_particle){return 1.0;}
 

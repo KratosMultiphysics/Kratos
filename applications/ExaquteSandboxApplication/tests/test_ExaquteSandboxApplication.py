@@ -35,7 +35,7 @@ def AssembleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
     nightSuite = suites['nightly']
-    nightSuite.addTests(KratosExaquteSandboxGeneralTests)
+    nightSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:

@@ -14,6 +14,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 # Import the tests o test_classes to create the suites
 from evm_k_epsilon_tests import EvmKEpsilonTest
 from custom_process_tests import CustomProcessTest
+from adjoint_k_epsilon_sensitivity_2d import AdjointKEpsilonSensitivity2D
 import run_cpp_unit_tests
 
 
@@ -48,12 +49,17 @@ def AssembleTestSuites():
     nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
     nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
     nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
+    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusVelocitySensitivitiesProcessFlow'))
     nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReCalculationProcess'))
-
+    nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReSensitivitiesProcess'))
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
     nightSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
+
+    # Adjoint tests
+    nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))
+
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
