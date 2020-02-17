@@ -44,7 +44,7 @@ def GetListOfAvailableApplications():
 
     apps = sorted([
         f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
-    ], reverse=True)
+    ])
 
     return apps
 
