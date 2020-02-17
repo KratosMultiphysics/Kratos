@@ -345,7 +345,7 @@ class NodalData(Attribute):
         return e
 
 
-class ElementData(Attribute):
+class GeometrycalObjectData(Attribute):
     """An XDMF Attribute for element data value container data."""
 
     @property
@@ -382,6 +382,17 @@ class ElementData(Attribute):
         e.set("AttributeType", self.attribute_type)
         e.append(self.data.create_xml_element())
         return e
+
+
+class ElementData(GeometrycalObjectData):
+    """An XDMF Attribute for element data value container data."""
+    def __init__(self, name, data):
+        super(ElementData, self).__init__(name, data)
+
+
+class ConditionData(GeometrycalObjectData):
+    def __init__(self, name, data):
+        super(ConditionData, self).__init__(name, data)
 
 
 class SpatialGrid(Grid):
