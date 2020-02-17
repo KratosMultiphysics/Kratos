@@ -1067,7 +1067,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_nonlinear(mp)
 
         displacement_node2_x = mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        self.assertAlmostEqual(displacement_node2_x, -0.08330688074374619,4)
+        self.assertAlmostEqual(displacement_node2_x, -0.09407182775540882,4)
 
 
 
