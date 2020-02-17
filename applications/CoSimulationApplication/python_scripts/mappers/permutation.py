@@ -47,7 +47,7 @@ class MapperPermutation(CoSimulationComponent):
             self.permutation.append(par.GetInt())
 
     def Initialize(self, model_part_in, forward):
-        super().Finalize()
+        super().Initialize()
 
         permutation = self.permutation
         if not forward:
