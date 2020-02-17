@@ -42,7 +42,7 @@ def GetListOfAvailableApplications():
     """
     kratos_path = GetKratosMultiphysicsPath()
 
-    apps = sorted([
+    apps = reversed([
         f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
     ])
 
