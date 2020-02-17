@@ -420,9 +420,9 @@ class SpatialGrid(Grid):
         for grid in self.grids:
             if (attr.center == "Cell"):
                 if (isinstance(attr, ConditionData) and (grid.name.startswith("RootModelPart.Conditions"))):
-                    grid.add_attribute(attr)    
+                    grid.add_attribute(attr)
                 if (isinstance(attr, ElementData) and (grid.name.startswith("RootModelPart.Elements"))):
-                    grid.add_attribute(attr)                        
+                    grid.add_attribute(attr)
             else:
                 grid.add_attribute(attr)
 

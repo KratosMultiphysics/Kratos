@@ -129,7 +129,7 @@ def CreateXdmfSpatialGrid(h5_model_part):
     sgrid = SpatialGrid()
     geom = Geometry(HDF5UniformDataItem(
         h5_model_part["Nodes/Local/Coordinates"]))
-    
+
     spatial_grids_list = []
     GetListOfSpatialGrids(spatial_grids_list, h5_model_part["Xdmf"], "RootModelPart")
 
