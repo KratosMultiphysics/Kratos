@@ -6,23 +6,6 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import numpy as np
 import os
 
-import time
-from contextlib import contextmanager
-@contextmanager
-def timer(name=None, t=0, n=0, ms=False):
-    startTime = time.time()
-    yield
-    elapsedTime = time.time() - startTime
-    if ms:
-        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
-        s.replace(',', ' ')
-    else:
-        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
-    if name is not None:
-        s += f' - {name}'
-    s += '\n' * n
-    print(s)
-
 class TestMapperCombined(KratosUnittest.TestCase):
     def test_mapper_combined(self):
         parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_combined.json')
@@ -39,7 +22,7 @@ class TestMapperCombined(KratosUnittest.TestCase):
             model_part_from.AddNodalSolutionStepVariable(var_from)
 
             for i in range(100):
-                node = model_part_from.CreateNewNode(i, np.random.rand(), np.random.rand(), np.random.rand())
+                node = model_part_from.CreateNewNode(i, i, i ** 2, i ** 3)
                 node.SetSolutionStepValue(var_from, 0, np.random.rand())
 
             # create model_part_to
@@ -49,7 +32,7 @@ class TestMapperCombined(KratosUnittest.TestCase):
             model_part_to.AddNodalSolutionStepVariable(var_to)
 
             for i in range(100):
-                model_part_to.CreateNewNode(i, np.random.rand(), np.random.rand(), np.random.rand())
+                model_part_to.CreateNewNode(i, (99 - i), (99 - i) ** 2, (99 - i) ** 3)
 
             # create mappers, get output data
             data = []
