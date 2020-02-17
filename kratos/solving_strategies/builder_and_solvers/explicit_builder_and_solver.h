@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_BUILDER_AND_SOLVER )
-#define  KRATOS_BUILDER_AND_SOLVER
+#if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER )
+#define  KRATOS_EXPLICIT_BUILDER_AND_SOLVER
 
 /* System includes */
 #include <set>
@@ -22,7 +22,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
+// #include "solving_strategies/schemes/scheme.h"
 
 namespace Kratos
 {
@@ -48,19 +48,16 @@ namespace Kratos
 ///@{
 
 /**
- * @class BuilderAndSolver
+ * @class ExplicitBuilderAndSolver
  * @ingroup KratosCore
- * @brief Current class provides an implementation for the base builder and solving operations.
+ * @brief Current class provides an implementation for the base explicit builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
- * @author Riccardo Rossi
+ * @author Ruben Zorrilla
  */
-template<class TSparseSpace,
-         class TDenseSpace, // = DenseSpace<double>,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
-class BuilderAndSolver
+template<class TSparseSpace, class TDenseSpace >
+class ExplicitBuilderAndSolver
 {
 public:
     ///@name Type Definitions
@@ -93,8 +90,8 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    /// Definition of the scheme type
-    typedef Scheme<TSparseSpace, TDenseSpace> TSchemeType;
+    // /// Definition of the scheme type
+    // typedef Scheme<TSparseSpace, TDenseSpace> TSchemeType;
 
     /// Definition of the DoF class
     typedef ModelPart::DofType TDofType;
@@ -102,9 +99,15 @@ public:
     /// Definition of the DoF array type
     typedef ModelPart::DofsArrayType DofsArrayType;
 
+    /// Definition of the DoF vector type
+    typedef ModelPart::DofsVectorType DofsVectorType;
+
     /// The definition of the DoF objects
-    typedef typename DofsArrayType::iterator DofIterator;
-    typedef typename DofsArrayType::const_iterator DofConstantIterator;
+    typedef typename DofsArrayType::iterator DofIteratorType;
+    typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
+
+    /// The definition of the DoF set type
+    typedef typename std::unordered_set<TDofType::Pointer, DofPointerHasher> DofSetType;
 
     /// The containers of the entities
     typedef ModelPart::NodesContainerType NodesArrayType;
@@ -114,8 +117,9 @@ public:
     /// The definition of the element container type
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
-    /// Pointer definition of BuilderAndSolver
-    KRATOS_CLASS_POINTER_DEFINITION(BuilderAndSolver);
+
+    /// Pointer definition of ExplicitBuilderAndSolver
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilderAndSolver);
 
     /**
      * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise builder and solver
@@ -198,10 +202,9 @@ public:
 
     /**
      * @brief Default constructor with Parameters
-     * @param pNewLinearSystemSolver The linear solver for the system of equations
      * @param ThisParameters The configuration parameters
      */
-    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+    explicit ExplicitBuilderAndSolver(Parameters ThisParameters)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -209,25 +212,16 @@ public:
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        // We set the other member variables
-        mpLinearSystemSolver = pNewLinearSystemSolver;
     }
 
     /**
      * @brief Default constructor.
-     * @param pNewLinearSystemSolver The linear solver for the system of equations
      */
-    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
-    {
-        mpLinearSystemSolver = pNewLinearSystemSolver;
-    }
+    explicit ExplicitBuilderAndSolver() = default;
 
     /** Destructor.
      */
-    virtual ~BuilderAndSolver()
-    {
-    }
+    virtual ~ExplicitBuilderAndSolver() = default;
 
 
     ///@}
@@ -305,47 +299,131 @@ public:
         return mEquationSystemSize;
     }
 
+    // /**
+    //  * @brief Function to perform the building of the LHS, depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
+    //  * @param pScheme The pointer to the integration scheme
+    //  * @param rModelPart The model part to compute
+    //  * @param rA The LHS matrix of the system of equations
+    //  */
+    // virtual void BuildLHS(
+    //     typename TSchemeType::Pointer pScheme,
+    //     ModelPart& rModelPart,
+    //     TSystemMatrixType& rA
+    //     )
+    // {
+    // }
+
     /**
-     * @brief This method return the linear solver used
-     * @return mpLinearSystemSolver The linear solver used
+     * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param rModelPart The model part to compute
+     * @param rb The RHS vector of the system of equations
      */
-    typename TLinearSolver::Pointer GetLinearSystemSolver()
+    virtual void BuildRHS(
+        ModelPart& rModelPart,
+        TSystemVectorType& rb)
     {
-        return mpLinearSystemSolver;
+        KRATOS_TRY
+
+        // Build the Right Hand Side without Dirichlet conditions
+        // We skip setting the Dirichlet nodes residual to zero for the sake of efficiency
+        // Note that this is not required as the Dirichlet conditions are set in the strategy
+        BuildRHSNoDirichlet(rModelPart);
+
+        KRATOS_CATCH("")
     }
 
     /**
-     * @brief This method sets the linear solver to be used
-     * @param pLinearSystemSolver The linear solver to be used
+     * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param rModelPart The model part to compute
+     * @param rb The RHS vector of the system of equations
      */
-    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
+    virtual void BuildRHSNoDirichlet(ModelPart& rModelPart)
     {
-       mpLinearSystemSolver = pLinearSystemSolver;
+        KRATOS_TRY
+
+        // Initialize the reaction (residual)
+        InitializeDofSetReactions();
+
+        // Gets the array of elements, conditions and constraints from the modeler
+        const auto &r_elements_array = rModelPart.Elements();
+        const auto &r_conditions_array = rModelPart.Conditions();
+        const auto &r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const SizeType n_elems = static_cast<int>(r_elements_array.size());
+        const SizeType n_conds = static_cast<int>(r_conditions_array.size());
+        const SizeType n_constraints = static_cast<int>(r_constraints_array.size());
+
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+
+#pragma omp parallel firstprivate(n_elems, n_conds, n_constraints)
+        {
+#pragma omp for schedule(guided, 512) nowait
+            // Assemble all elements
+            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                auto it_elem = r_elements_array.begin() + i_elem;
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                // TODO: We will require to update this as soon as we remove the mIsDefined from the Flags
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE)) {
+                    element_is_active = it_elem->Is(ACTIVE);
+                }
+
+                if (element_is_active) {
+                    // Calculate elemental explicit residual contribution
+                    // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
+                    it_elem->AddExplicitContribution(r_process_info);
+                }
+            }
+
+            // Assemble all conditions
+#pragma omp for schedule(guided, 512)
+            for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
+                auto it_cond = r_conditions_array.begin() + i_cond;
+                // Detect if the condition is active or not. If the user did not make any choice the condition is active by default
+                // TODO: We will require to update this as soon as we remove the mIsDefined from the Flags
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE)) {
+                    condition_is_active = it_cond->Is(ACTIVE);
+                }
+
+                if (condition_is_active) {
+                    // Calculate condition explicit residual contribution
+                    // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
+                    it_cond->AddExplicitContribution(r_process_info);
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
-     * @brief Function to perform the building of the LHS, depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
-     * @param pScheme The pointer to the integration scheme
+     * @brief It applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * @details For explanation of how it works for a particular implementation the user should refer to the particular Builder And Solver choosen
+    //  * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
      */
-    virtual void BuildLHS(
-        typename TSchemeType::Pointer pScheme,
+    virtual void ApplyDirichletConditions(
         ModelPart& rModelPart,
-        TSystemMatrixType& rA
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         )
     {
     }
 
     /**
-     * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
-     * @param pScheme The pointer to the integration scheme
+     * @brief The same of the precedent but affecting only the RHS
+    //  * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
      * @param rb The RHS vector of the system of equations
      */
-    virtual void BuildRHS(
-        typename TSchemeType::Pointer pScheme,
+    virtual void ApplyDirichletConditions_RHS(
         ModelPart& rModelPart,
+        TSystemVectorType& rDx,
         TSystemVectorType& rb
         )
     {
@@ -353,159 +431,24 @@ public:
 
     /**
      * @brief equivalent (but generally faster) then performing BuildLHS and BuildRHS
-     * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
      * @param rb The RHS vector of the system of equations
      */
     virtual void Build(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rb
-        )
-    {
-    }
-
-    /**
-     * @brief It builds a rectangular matrix of size n*N where "n" is the number of unrestrained degrees of freedom and "N" is the total number of degrees of freedom involved.
-     * @details This matrix is obtained by building the total matrix without the lines corresponding to the fixed degrees of freedom (but keeping the columns!!)
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     */
-    virtual void BuildLHS_CompleteOnFreeRows(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA
-        )
-    {
-    }
-
-    /**
-     * @brief It builds a  matrix of size N*N where "N" is the total number of degrees of freedom involved.
-     * @details This matrix is obtained by building the total matrix including the lines and columns corresponding to the fixed degrees of freedom
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     */
-    virtual void BuildLHS_Complete(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA
-        )
-    {
-    }
-
-    /**
-     * @brief This is a call to the linear system solver
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void SystemSolve(
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-    )
-    {
-    }
-
-    /**
-     * @brief Function to perform the building and solving phase at the same time.
-     * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void BuildAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb)
-    {
-    }
-
-    /**
-     * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void BuildRHSAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
-    {
-    }
-
-    /**
-     * @brief It applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
-     * @details For explanation of how it works for a particular implementation the user should refer to the particular Builder And Solver choosen
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void ApplyDirichletConditions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
-    {
-    }
-
-    /**
-     * @brief The same of the precedent but affecting only the LHS
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     */
-    virtual void ApplyDirichletConditions_LHS(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx
-        )
-    {
-    }
-
-    /**
-     * @brief The same of the precedent but affecting only the RHS
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void ApplyDirichletConditions_RHS(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
+        ModelPart &rModelPart,
+        TSystemMatrixType &rA,
+        TSystemVectorType &rb)
     {
     }
 
     /**
      * @brief Applies the constraints
-     * @param pScheme The pointer to the integration scheme
+    //  * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rb The RHS vector of the system of equations
      */
     virtual void ApplyConstraints(
-        typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
         TSystemVectorType& rb
@@ -515,15 +458,103 @@ public:
 
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
-     * @param pScheme The pointer to the integration scheme
+     * @details The list of dofs is stores insde the ExplicitBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
      */
-    virtual void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart
-        )
+    virtual void SetUpDofSet(ModelPart& rModelPart)
     {
+        KRATOS_TRY;
+
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << OpenMPUtils::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+
+        // Gets the array of elements, conditions and constraints from the modeler
+        const auto &r_elements_array = rModelPart.Elements();
+        const auto &r_conditions_array = rModelPart.Conditions();
+        const auto &r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const SizeType n_elems = static_cast<int>(r_elements_array.size());
+        const SizeType n_conds = static_cast<int>(r_conditions_array.size());
+        const SizeType n_constraints = static_cast<int>(r_constraints_array.size());
+
+        // Global dof set
+        DofSetType dof_global_set;
+        dof_global_set.reserve(n_elems*20);
+
+        // Auxiliary DOFs list
+        DofsVectorType dof_list;
+        DofsVectorType second_dof_list; // The second_dof_list is only used on constraints to include master/slave relations
+
+#pragma omp parallel firstprivate(dof_list, second_dof_list)
+        {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
+            // We cleate the temporal set and we reserve some space on them
+            DofSetType dofs_tmp_set;
+            dofs_tmp_set.reserve(20000);
+
+            // Get the DOFs list from each element and insert it in the temporary set
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                const auto it_elem = r_elements_array.begin() + i_elem;
+                it_elem->GetDofList(dof_list, r_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // Get the DOFs list from each condition and insert it in the temporary set
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
+                const auto it_cond = r_conditions_array.begin() + i_cond;
+                it_cond->GetDofList(dof_list, r_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // Get the DOFs list from each constraint and insert it in the temporary set
+            #pragma omp for  schedule(guided, 512) nowait
+            for (int i_const = 0; i_const < n_constraints; ++i_const) {
+                auto it_const = r_constraints_array.begin() + i_const;
+                it_const->GetDofList(dof_list, second_dof_list, r_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+            }
+
+            // We merge all the sets in one thread
+#pragma omp critical
+            {
+                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+            }
+        }
+
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+
+        // Ordering the global DOF set
+        mDofSet = DofsArrayType();
+        DofsArrayType temp_dof_set;
+        temp_dof_set.reserve(dof_global_set.size());
+        for (auto it_dof = dof_global_set.begin(); it_dof != dof_global_set.end(); ++it_dof) {
+            temp_dof_set.push_back(*it_dof);
+        }
+        temp_dof_set.Sort();
+        mDofSet = temp_dof_set;
+
+        // DoFs set checks
+        // Throws an exception if there are no Degrees Of Freedom involved in the analysis
+        KRATOS_ERROR_IF(mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
+
+        // Check if each DOF has a reaction. Note that the explicit residual is stored in these
+        for (auto it_dof = mDofSet.begin(); it_dof != mDofSet.end(); ++it_dof) {
+            KRATOS_ERROR_IF_NOT(it_dof->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                << "Node : " << it_dof->Id() << std::endl
+                << "Dof : " << (*it_dof) << std::endl << "Not possible to calculate reactions." << std::endl;
+        }
+
+        mDofSetIsInitialized = true;
+
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << mDofSet.size() << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -544,14 +575,12 @@ public:
 
     /**
      * @brief This method initializes and resizes the system of equations
-     * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param pA The pointer to LHS matrix of the system of equations
      * @param pDx The pointer to  vector of unkowns
      * @param pb The pointer to  RHS vector of the system of equations
      */
     virtual void ResizeAndInitializeVectors(
-        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
@@ -561,18 +590,28 @@ public:
     }
 
     /**
+     * @brief Initialize the DOF set reactions
+     * For an already initialized dof set (mDofSet), this method sets to
+     * zero the corresponding reaction variable values. Note that in the
+     * explicit build the reactions are used as residual container.
+     */
+    virtual void InitializeDofSetReactions()
+    {
+        KRATOS_ERROR_IF_NOT(mDofSetIsInitialized) << "Trying to initialize the explicit residual but the DOFs set is not initialized yet." << std::endl;
+
+#pragma parallel for
+        for (int i_dof = 0; i_dof < mDofSet.size(); ++i_dof) {
+            auto it_dof = mDofSet.begin() + i_dof;
+            auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
+            r_reaction_value = 0.0;
+        }
+    }
+
+    /**
      * @brief It applies certain operations at the system of equations at the begining of the solution step
      * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
      */
-    virtual void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
+    virtual void InitializeSolutionStep(ModelPart& rModelPart)
     {
     }
 
@@ -594,20 +633,22 @@ public:
 
     /**
      * @brief It computes the reactions of the system
-     * @param pScheme The pointer to the integration scheme
+    //  * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
      * @param rDx The vector of unkowns
      * @param rb The RHS vector of the system of equations
      */
     virtual void CalculateReactions(
-        typename TSchemeType::Pointer pScheme,
+        // typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
         TSystemVectorType& rb
         )
     {
+        // TODO
+        // THIS IS MINUS THE RHS
     }
 
     /**
@@ -618,9 +659,8 @@ public:
     {
         this->mDofSet = DofsArrayType();
         this->mpReactionsVector.reset();
-        if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
-        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
     }
 
     /**
@@ -681,7 +721,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "BuilderAndSolver";
+        return "ExplicitBuilderAndSolver";
     }
 
     /// Print information about this object.
@@ -709,8 +749,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    typename TLinearSolver::Pointer mpLinearSystemSolver; /// Pointer to the linear solver
 
     DofsArrayType mDofSet; /// The set containing the DoF of the system
 
@@ -779,7 +817,7 @@ private:
 
     ///@}
 
-}; /* Class BuilderAndSolver */
+}; /* Class ExplicitBuilderAndSolver */
 
 ///@}
 
@@ -791,4 +829,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_BUILDER_AND_SOLVER  defined */
+#endif /* KRATOS_EXPLICIT_BUILDER_AND_SOLVER  defined */
