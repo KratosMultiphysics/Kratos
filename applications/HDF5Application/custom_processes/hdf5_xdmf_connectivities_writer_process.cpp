@@ -60,17 +60,17 @@ void XdmfConnectivitiesWriterProcess::Execute()
 
 void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const
 {
-    for (const auto& name : mpFile->GetGroupNames(rPath))
+    for (const auto& r_name : mpFile->GetGroupNames(rPath))
     {
-        if (name == "Conditions" ||  name == "Elements")
+        if (r_name == "Conditions" ||  r_name == "Elements")
         {
-            for (const auto& item_name : mpFile->GetGroupNames(rPath + "/" + name))
-                CreateXdmfConnectivities(rPath + "/" + name + "/" + item_name,  rDestinationPrefix + "/" + name + "/" + item_name); 
+            for (const auto& r_item_name : mpFile->GetGroupNames(rPath + "/" + r_name))
+                CreateXdmfConnectivities(rPath + "/" + r_name + "/" + r_item_name,  rDestinationPrefix + "/" + r_name + "/" + r_item_name);
 
         }
         else
         {
-            CreateXdmfConnectivitiesForSubModelParts(rPath + "/" + name, rDestinationPrefix + "/" + name);
+            CreateXdmfConnectivitiesForSubModelParts(rPath + "/" + r_name, rDestinationPrefix + "/" + r_name);
         }
     }
 }
