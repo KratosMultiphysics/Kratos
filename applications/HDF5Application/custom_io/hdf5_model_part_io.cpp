@@ -262,36 +262,33 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     return ids;
 }
 
-void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart, const std::string& GroupName)
+void ModelPartIO::WriteSubModelParts(ModelPart& rModelPart, const std::string& GroupName)
 {
     mpFile->AddPath(mPrefix + GroupName);
-    for (auto it = rModelPart.SubModelPartsBegin(); it != rModelPart.SubModelPartsEnd(); ++it)
+    for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())
     {
-        if (it->SubModelParts().size() > 0)
+        for (ModelPart& r_sub_sub_model_part : r_sub_model_part.SubModelParts())
         {
-            for (auto it_sub = it->SubModelPartsBegin(); it_sub != it->SubModelPartsEnd(); ++it)
-            {
-                WriteSubModelParts(*it, mPrefix + GroupName + "/" + it_sub->Name());
-            }
+            WriteSubModelParts(r_sub_sub_model_part, mPrefix + GroupName + "/" + r_sub_model_part.Name());
         }
 
         WriteInfo info;
-        const std::string sub_model_part_path = mPrefix + GroupName + "/" + it->Name();
+        const std::string sub_model_part_path = mPrefix + GroupName + "/" + r_sub_model_part.Name();
         mpFile->AddPath(sub_model_part_path);
-        if (GlobalNumberOfNodes(*it) > 0)
+        if (GlobalNumberOfNodes(r_sub_model_part) > 0)
         {
-            WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", it->Nodes(), info);
+            WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", r_sub_model_part.Nodes(), info);
             StoreWriteInfo(sub_model_part_path + "/NodeIds", info);
         }
-        if (GlobalNumberOfElements(*it) > 0)
+        if (GlobalNumberOfElements(r_sub_model_part) > 0)
         {
             ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
-            current_model_part_io.WriteElements(it->Elements());
+            current_model_part_io.WriteElements(r_sub_model_part.Elements());
         }
-        if (GlobalNumberOfConditions(*it) > 0)
+        if (GlobalNumberOfConditions(r_sub_model_part) > 0)
         {
             ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
-            current_model_part_io.WriteConditions(it->Conditions());
+            current_model_part_io.WriteConditions(r_sub_model_part.Conditions());
         }
     }
 }
