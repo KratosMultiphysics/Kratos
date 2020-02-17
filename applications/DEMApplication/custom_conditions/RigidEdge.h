@@ -15,6 +15,7 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "dem_wall.h"
+#include "../custom_strategies/schemes/glued_to_wall_scheme.h"
 
 namespace Kratos
 {
@@ -61,6 +62,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
+    void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
