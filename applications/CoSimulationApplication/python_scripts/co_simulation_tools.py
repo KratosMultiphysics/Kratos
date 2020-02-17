@@ -94,7 +94,7 @@ class LayoutStyles:
               'blue':      '\033[94m',
               'green':     '\033[92m',
               'red':       '\033[96m',
-              'warning':   '\033[93m',
+              'warning':   '\033[1;33;41m',
               'fail':      '\033[91m',
               'bold':      '\033[1m',
               'underline': '\033[4m',
@@ -167,4 +167,4 @@ def quicktimer(name=None, t=0, n=0, ms=False):
     if name is not None:
         s += f' - {name}'
     s += '\n' * n
-    print(s)
+    Print(s)
