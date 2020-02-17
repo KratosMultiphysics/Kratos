@@ -35,7 +35,7 @@ namespace Kratos
     template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
-        auto& adjoint_geometry_data = this->GetGeometry().GetData();
+        auto adjoint_geometry_data = this->GetGeometry().GetData();
         mpPrimalElement->GetGeometry().SetData(adjoint_geometry_data);
         mpPrimalElement->Set(Flags(*this));
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
