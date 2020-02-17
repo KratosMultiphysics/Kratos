@@ -41,6 +41,7 @@ VariationalNonEikonalDistance::VariationalNonEikonalDistance(
     CreateAuxModelPart();
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+    //auto p_builder_solver = Kratos::make_unique<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
     InitializeSolutionStrategy(plinear_solver, p_builder_solver);
 }
@@ -51,22 +52,25 @@ void VariationalNonEikonalDistance::CreateAuxModelPart()
     ModelPart::ElementsContainerType& r_elems = mrModelPart.Elements();
 
     KRATOS_INFO("VariationalNonEikonalDistanceProcess") << "Here 1" << std::endl;
-
-    // Adding DISTANCE_AUX and DISTANCE_GRADIENT_X,Y,Z to the solution variables is not needed if it is already a solution variable of the problem
-    mrModelPart.AddNodalSolutionStepVariable(DISTANCE_AUX);
-    mrModelPart.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
     
     Model& current_model = mrModelPart.GetModel();
     if(current_model.HasModelPart( mAuxModelPartName ))
         current_model.DeleteModelPart( mAuxModelPartName );
 
+    // Adding DISTANCE_AUX2 and DISTANCE_GRADIENT_X,Y,Z to the solution variables is not needed if it is already a solution variable of the problem
+    mrModelPart.AddNodalSolutionStepVariable(DISTANCE_AUX2);
+    mrModelPart.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
+
+    // Ensure that the nodes have distance as a DOF
+    VariableUtils().AddDof<Variable<double> >(DISTANCE_AUX2, mrModelPart);
+
     KRATOS_INFO("VariationalNonEikonalDistanceProcess") << "Here 2" << std::endl;
 
-    // Ensure that the nodes have DISTANCE_AUX and DISTANCE_GRADIENT_X,Y,Z as a DOF !!!! NOT NEEDED HERE IF IT IS DONE IN THE PYTHON SCRIPT !!!!
+    // Ensure that the nodes have DISTANCE_AUX2 and DISTANCE_GRADIENT_X,Y,Z as a DOF !!!! NOT NEEDED HERE IF IT IS DONE IN THE PYTHON SCRIPT !!!!
     //#pragma omp parallel for
        for (int k = 0; k < static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
             auto it_node = mrModelPart.NodesBegin() + k;
-            it_node->AddDof(DISTANCE_AUX);
+            //it_node->AddDof(DISTANCE_AUX2);
             it_node->AddDof(DISTANCE_GRADIENT_X);
             it_node->AddDof(DISTANCE_GRADIENT_Y);
             it_node->AddDof(DISTANCE_GRADIENT_Z);
@@ -87,6 +91,8 @@ void VariationalNonEikonalDistance::CreateAuxModelPart()
 
 void VariationalNonEikonalDistance::Execute()
 {
+    KRATOS_TRY; 
+
     const unsigned int NumNodes = mrModelPart.NumberOfNodes();
     const unsigned int NumElements = mrModelPart.NumberOfElements();
 
@@ -105,9 +111,9 @@ void VariationalNonEikonalDistance::Execute()
     #pragma omp parallel for
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
-        it_node->Free(DISTANCE_AUX);
+        it_node->Free(DISTANCE_AUX2);
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
-        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = distance;
 
         const double temp_X = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
         it_node->SetValue(DISTANCE_GRADIENT_X, temp_X);
@@ -128,34 +134,34 @@ void VariationalNonEikonalDistance::Execute()
             //node_farthest = i_node;
         } */
 
-        //if (abs(distance) > 7*elem_size){
-        //    it_node->Fix(DISTANCE_AUX);
-        //}
+        /* if (abs(distance) > 7*elem_size){
+            it_node->Fix(DISTANCE_AUX2);
+        } */
     }
 
-    /* for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
+    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
        Geometry< Node<3> >& geom = it_cond->GetGeometry();
 
        for(unsigned int i=0; i<geom.size(); i++){
-           geom[i].Fix(DISTANCE_AUX);
+           geom[i].Fix(DISTANCE_AUX2);
        }
-    } */
+    }
 
     /* auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
-    it_node->Fix(DISTANCE_AUX);
+    it_node->Fix(DISTANCE_AUX2);
     KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << it_node->FastGetSolutionStepValue(DISTANCE) << std::endl; */
 
-    const double epsilon = 1.0e-15;
+    /* const double epsilon = 1.0e-15;
     #pragma omp parallel for
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
         if (abs((abs(distance) - distance_min)/(distance_min + epsilon)) <= epsilon){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
-            it_node->Fix(DISTANCE_AUX);
+            it_node->Fix(DISTANCE_AUX2);
             //KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << distance << std::endl;
         }
-    }
+    } */
 
     //#pragma omp parallel for
     //for (int i_elem = 0; i_elem < NumElements; ++i_elem){
@@ -194,12 +200,12 @@ void VariationalNonEikonalDistance::Execute()
         //         const double distance = geom[i_node].FastGetSolutionStepValue(DISTANCE);
         //         if (distance >= 0.0){
         //             geom[i_node].SetLock();
-        //             geom[i_node].Fix(DISTANCE_AUX);
+        //             geom[i_node].Fix(DISTANCE_AUX2);
         //             geom[i_node].UnSetLock();
         //         }
         //     }
     //         geom[node_nearest].SetLock();
-    //         geom[node_nearest].Fix(DISTANCE_AUX);
+    //         geom[node_nearest].Fix(DISTANCE_AUX2);
     //         geom[node_nearest].UnSetLock();
     //    }
     //}
@@ -207,6 +213,8 @@ void VariationalNonEikonalDistance::Execute()
     KRATOS_INFO("VariationalNonEikonalDistance") << "About to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();
     KRATOS_INFO("VariationalNonEikonalDistance") << "LSE is solved" << std::endl;
+
+    KRATOS_CATCH("")
 }
 
 void VariationalNonEikonalDistance::ExecuteInitialize()

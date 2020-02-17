@@ -115,6 +115,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_AUX)                   # Auxiliary distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_AUX2)                   # Auxiliary distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_GRADIENT_AUX)     # Auxiliary Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CURVATURE)                      # Store curvature as a nodal variable
@@ -175,28 +176,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.mass_conservation_correction).Initialize();
 
         self.parallel_distance_process = self._set_parallel_distance_process()
-        #(self.parallel_distance_process).CalculateDistances(
-        #            self.main_model_part, 
-        #            KratosMultiphysics.DISTANCE, 
-        #            KratosCFD.AREA_VARIABLE_AUX, 
-        #            2000, 
-        #            0.01,
-        #            (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        (self.parallel_distance_process).CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    2000, 
+                    0.3,
+                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
 
         #self.lumped_eikonal_distance_calculation = self._set_lumped_eikonal_distance_calculation()
         #(self.lumped_eikonal_distance_calculation).Execute()
-
-        self.surface_smoothing_process = self._set_surface_smoothing_process()
-        (self.surface_smoothing_process).Execute()
-        for node in self.main_model_part.Nodes:
-            smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
-
-        #it_number=self.linear_solver.GetIterationsNumber()
-        #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
 
         self.distance_gradient_process = self._set_distance_gradient_process()
         #(self.distance_gradient_process).Execute()
@@ -208,15 +200,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.interface_curvature_calculation).Execute()
 
         self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
-        (self.distance_gradient_process).Execute()
+        #(self.distance_gradient_process).Execute()
         #(self.curvature_calculation_process).Execute()
-        (self.variational_non_eikonal_distance).Execute()
+        #(self.variational_non_eikonal_distance).Execute()
+        #for node in self.main_model_part.Nodes:
+        #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+        #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+        #it_number=self.linear_solver.GetIterationsNumber()
+        #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, non_eikonal_distance", it_number)
+        
+        self.surface_smoothing_process = self._set_surface_smoothing_process()
+        (self.surface_smoothing_process).Execute()
         for node in self.main_model_part.Nodes:
             smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
-
         it_number=self.linear_solver.GetIterationsNumber()
-        KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, non_eikonal_distance", it_number)
+        KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
 
         self.interface_pressure_gradient_calculation = self._set_interface_pressure_gradient_calculation()
         #(self.interface_pressure_gradient_calculation).Execute()
@@ -276,6 +275,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "About to impose mass conservation!")
             #    (self.mass_conservation_correction).ExecuteInTimeStep();
 
+            # Recompute the distance field according to the new level-set position
+            #if (TimeStep % 1 == 0):
+            #    (self.variational_distance_process).Execute()
+
+            # Recompute the distance field according to the new level-set position
+            if (TimeStep % 20 == 0):
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    1000, 
+                    0.3)#,
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+            # Reinitialize distance according to time dependent Eikonal equation
+            #if (TimeStep % 1 == 0):
+            #    (self.lumped_eikonal_distance_calculation).Execute()
+
+            # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
+            #if (TimeStep % 20 == 0):
+            #    (self.distance_gradient_process).Execute()
+            #    (self.curvature_calculation_process).Execute()
+            #    (self.interface_curvature_calculation).Execute()
+            #    (self.variational_non_eikonal_distance).Execute()
+            #    for node in self.main_model_part.Nodes:
+            #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+            #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)    
+            #    it_number=self.linear_solver.GetIterationsNumber()
+            #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
+
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
                 KratosMultiphysics.Logger.PrintInfo("LevelSetSolver", "BFECCconvect will be called")
@@ -315,45 +344,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_3, 0.0)
             #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 0.0)
 
-            # Recompute the distance field according to the new level-set position
-            #if (TimeStep % 1 == 0):
-            #    (self.variational_distance_process).Execute()
-
-            # Recompute the distance field according to the new level-set position
-            #if (TimeStep % 20 == 0):
-            #    (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-            #        self.main_model_part, 
-            #        KratosMultiphysics.DISTANCE, 
-            #        KratosCFD.AREA_VARIABLE_AUX, 
-            #        500, 
-            #        0.3)#,
-                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-            # Reinitialize distance according to time dependent Eikonal equation
-            #if (TimeStep % 1 == 0):
-            #    (self.lumped_eikonal_distance_calculation).Execute()
-
-            # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
-            if (TimeStep % 1 == 0):
-                (self.distance_gradient_process).Execute()
-            #    (self.curvature_calculation_process).Execute()
-            #    (self.interface_curvature_calculation).Execute()
-                (self.variational_non_eikonal_distance).Execute()
-                for node in self.main_model_part.Nodes:
-                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
-                
-                it_number=self.linear_solver.GetIterationsNumber()
-                KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
-
             # Smoothing the surface to filter oscillatory surface
-            #(self.surface_smoothing_process).Execute()
-            #for node in self.main_model_part.Nodes:
-            #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
-
-            #it_number=self.linear_solver.GetIterationsNumber()
-            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
+            (self.surface_smoothing_process).Execute()
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            it_number=self.linear_solver.GetIterationsNumber()
+            KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
@@ -367,7 +364,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #for node in self.main_model_part.Nodes:
             #    node.SetSolutionStepValue(KratosCFD.CURVATURE, 2.0/0.003)
 
-            # Calculate nodal pressure gradient excluding the cut elements
+            # Calculate nodal pressure gradient excluding the cut elements needed for stabilization of Kee_inv
             (self.interface_pressure_gradient_calculation).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
@@ -382,10 +379,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()
 
-            YPlus = 0.005
+            YPlus = 1.0
             YMinus = 0.0
             DistPlus = 1.0e5
             DistMinus = -1.0e5
+            YZero = YPlus
 
             for node in self.main_model_part.Nodes:
                 NodeX = node.X
@@ -396,11 +394,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                         if (Dist >= 0.0 and Dist < DistPlus):
                             DistPlus = Dist
                             YPlus = NodeY
-                        elif (Dist < 0.0 and Dist > DistMinus):
+                        elif (Dist <= 0.0 and Dist > DistMinus):
                             DistMinus = Dist
                             YMinus = NodeY
 
-            YZero = YMinus + (-DistMinus)/(DistPlus - DistMinus)*(YPlus - YMinus)
+            if (abs(DistPlus - DistMinus) > 1.0e-15):
+                YZero = YMinus + (-DistMinus)/(DistPlus - DistMinus)*(YPlus - YMinus)
+            else:
+                YZero = YMinus
 
             with open("ZeroDistance.log", "a") as distLogFile:
                 distLogFile.write( str(TimeStep) + "\t" + str(YZero) + "\n" )

@@ -107,7 +107,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
             bool has_contact_line = false;
 
-            const double surface_tension_coefficient = 0.1;//0.072; //Surface tension coefficient, TODO: get from properties
+            const double surface_tension_coefficient = 0.0728; //Surface tension coefficient, TODO: get from properties
             
             ComputeSplitting(
                 data,

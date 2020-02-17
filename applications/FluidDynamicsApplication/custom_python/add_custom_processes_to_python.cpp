@@ -150,6 +150,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SurfaceSmoothingProcess, SurfaceSmoothingProcess::Pointer, Process> (m, "SurfaceSmoothingProcess")
     .def(py::init<ModelPart&, LinearSolverType::Pointer>())
+    .def("Clear", &SurfaceSmoothingProcess::Clear)
     ;
 
     py::class_<MassConservationCorrection, MassConservationCorrection::Pointer, Process>
@@ -165,6 +166,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<VariationalNonEikonalDistance, VariationalNonEikonalDistance::Pointer, Process> (m, "VariationalNonEikonalDistance")
     .def(py::init<ModelPart&, LinearSolverType::Pointer>())
+    .def("Clear", &VariationalNonEikonalDistance::Clear)
     ;
 
     py::class_<LumpedInterfaceCurvatureCalculation, LumpedInterfaceCurvatureCalculation::Pointer, Process> (m, "LumpedInterfaceCurvatureCalculation")

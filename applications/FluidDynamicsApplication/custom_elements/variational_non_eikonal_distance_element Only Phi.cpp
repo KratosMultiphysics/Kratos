@@ -180,7 +180,7 @@ void VariationalNonEikonalDistanceElement::EquationIdVector(EquationIdVectorType
     }
 
     for(unsigned int i=0; i<num_nodes; i++){
-        rResult[i]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX).EquationId();
+        rResult[i]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
     }
 }
 
@@ -202,7 +202,7 @@ void VariationalNonEikonalDistanceElement::GetDofList(DofsVectorType& rElemental
     }
 
     for(unsigned int i=0; i<num_nodes; i++){
-        rElementalDofList[i] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX);
+        rElementalDofList[i] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
     }
 }
 
@@ -234,6 +234,8 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
 
     const double penalty_phi0 = 1.0e8;
+
+    const double f = 1.0e0;
 
     GeometryData::ShapeFunctionsGradientsType DN_DX;  
     Matrix N;
@@ -267,7 +269,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     for (unsigned int i_node=0; i_node < num_nodes; ++i_node){
         distances0(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
-        values(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX);
+        values(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
     }
 
     unsigned int nneg=0, npos=0;
@@ -317,7 +319,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         for (unsigned int pos_gp = 0; pos_gp < number_of_pos_gauss_points; pos_gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
-                rhs(i_node) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                rhs(i_node) += f * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
             }
         }
 
@@ -331,7 +333,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
-                rhs(i_node) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                rhs(i_node) -= f * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
             }
         }
 
@@ -362,9 +364,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         
         double source;
         if (npos != 0)
-            source = 1.0;
+            source = f;
         else
-            source = -1.0;
+            source = -f;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
@@ -552,7 +554,7 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
   
       // Check that all required variables have been registered
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
-      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_AUX)
+      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_AUX2)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_X)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Y)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Z)
@@ -564,8 +566,8 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
           Node<3> &rnode = this->GetGeometry()[i];
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode)
-          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_AUX,rnode)
-          KRATOS_CHECK_DOF_IN_NODE(DISTANCE_AUX,rnode)
+          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_AUX2,rnode)
+          KRATOS_CHECK_DOF_IN_NODE(DISTANCE_AUX2,rnode)
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_X,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_X,rnode)
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_Y,rnode)

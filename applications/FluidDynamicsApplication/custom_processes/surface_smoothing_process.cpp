@@ -41,6 +41,7 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     CreateAuxModelPart();
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+    //auto p_builder_solver = Kratos::make_unique<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
     InitializeSolutionStrategy(plinear_solver, p_builder_solver);
 }
@@ -49,20 +50,23 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
 {
     ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
     ModelPart::ElementsContainerType& r_elems = mrModelPart.Elements();
-
-    // Adding DISTANCE to the solution variables is not needed if it is already a solution variable of the problem
-    mrModelPart.AddNodalSolutionStepVariable(DISTANCE_AUX);
     
     Model& current_model = mrModelPart.GetModel();
     if(current_model.HasModelPart( mAuxModelPartName ))
         current_model.DeleteModelPart( mAuxModelPartName );
 
+    // Adding DISTANCE to the solution variables is not needed if it is already a solution variable of the problem
+    mrModelPart.AddNodalSolutionStepVariable(DISTANCE_AUX);
+
+    // Ensure that the nodes have distance as a DOF
+    VariableUtils().AddDof<Variable<double> >(DISTANCE_AUX, mrModelPart);
+
     // Ensure that the nodes have DISTANCE_AUX as a DOF !!!! NOT NEEDED HERE IF IT IS DONE IN THE PYTHON SCRIPT !!!!
-    #pragma omp parallel for
-       for (int k = 0; k < static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
-            auto it_node = mrModelPart.NodesBegin() + k;
-            it_node->AddDof(DISTANCE_AUX);
-        }
+    /* #pragma omp parallel for
+    for (int k = 0; k < static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        it_node->AddDof(DISTANCE_AUX);
+    } */
 
     // Generate AuxModelPart
     ModelPart& r_smoothing_model_part = current_model.CreateModelPart( mAuxModelPartName );
@@ -75,6 +79,8 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
 
 void SurfaceSmoothingProcess::Execute()
 {
+    KRATOS_TRY;
+    
     const unsigned int NumNodes = mrModelPart.NumberOfNodes();
     const unsigned int NumElements = mrModelPart.NumberOfElements();
 
@@ -155,9 +161,13 @@ void SurfaceSmoothingProcess::Execute()
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
-        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = 
-            it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
+        //KRATOS_INFO("SurfaceSmoothingProcess, Nodes Id") << it_node->Id() << std::endl;
+        if (NumNeighbors[it_node->Id()-1] != 0.0)
+            it_node->FastGetSolutionStepValue(DISTANCE_AUX) = 
+                it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
     }
+
+    KRATOS_CATCH("");
 }
 
 void SurfaceSmoothingProcess::ExecuteInitialize()

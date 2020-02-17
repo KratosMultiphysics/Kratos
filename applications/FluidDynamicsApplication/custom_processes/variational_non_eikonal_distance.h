@@ -34,7 +34,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-//#include "utilities/variable_utils.h" Not necessary!!!!
+#include "utilities/variable_utils.h" //Now necessary!
 //#include "processes/compute_nodal_normal_divergence_process.h" //Not needed, already done in python
 #include "custom_utilities/element_size_calculator.h"
 
@@ -84,6 +84,8 @@ public:
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef typename SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
+    //typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::UniquePointer BuilderSolverPointerType;
+
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
     ///@}
@@ -192,9 +194,10 @@ private:
         TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver)
     {
-        // Generate a linear strategy
+        // Generate a linear solver strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
-    
+        //auto p_scheme = Kratos::make_unique< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+
         Model& r_model = mrModelPart.GetModel();
         ModelPart& r_non_eikonal_distance_model_part = r_model.GetModelPart( mAuxModelPartName );
     

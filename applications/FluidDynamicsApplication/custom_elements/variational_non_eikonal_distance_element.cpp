@@ -180,12 +180,12 @@ void VariationalNonEikonalDistanceElement::EquationIdVector(EquationIdVectorType
     }
 
     for(unsigned int i=0; i<num_nodes; i++){
-        /* rResult[i]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX).EquationId();
+        /* rResult[i]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
         rResult[i*num_dim + num_nodes + 0]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_X).EquationId();
         rResult[i*num_dim + num_nodes + 1]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Y).EquationId();
         rResult[i*num_dim + num_nodes + 2]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Z).EquationId(); */
 
-        rResult[i*(num_dim+1)]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX).EquationId();
+        rResult[i*(num_dim+1)]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
         rResult[i*(num_dim+1) + 1]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_X).EquationId();
         rResult[i*(num_dim+1) + 2]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Y).EquationId();
         rResult[i*(num_dim+1) + 3]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Z).EquationId();
@@ -210,12 +210,12 @@ void VariationalNonEikonalDistanceElement::GetDofList(DofsVectorType& rElemental
     }
 
     for(unsigned int i=0; i<num_nodes; i++){
-        /* rElementalDofList[i] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX);
+        /* rElementalDofList[i] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
         rElementalDofList[i*num_dim + num_nodes + 0] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_X);
         rElementalDofList[i*num_dim + num_nodes + 1] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Y);
         rElementalDofList[i*num_dim + num_nodes + 2] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Z); */
 
-        rElementalDofList[i*(num_dim+1)] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX);
+        rElementalDofList[i*(num_dim+1)] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
         rElementalDofList[i*(num_dim+1) + 1] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_X);
         rElementalDofList[i*(num_dim+1) + 2] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Y);
         rElementalDofList[i*(num_dim+1) + 3] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Z);
@@ -250,8 +250,8 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
 
     const double tau = 0.5;
-    const double penalty_curvature = 1.0e8; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e8;
+    const double penalty_curvature = 1.0e5; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
+    const double penalty_phi0 = 1.0e5;
     //const double dissipative_coefficient = 1.0e-8;
 
     GeometryData::ShapeFunctionsGradientsType DN_DX;  
@@ -295,12 +295,12 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
         distances0(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
 
-        /* values(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX);
+        /* values(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
         values(i_node*num_dim + num_nodes + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
         values(i_node*num_dim + num_nodes + 1) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
         values(i_node*num_dim + num_nodes + 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z); */
 
-        values(i_node*(num_dim + 1) + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX);
+        values(i_node*(num_dim + 1) + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
         values(i_node*(num_dim + 1) + 1) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
         values(i_node*(num_dim + 1) + 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
         values(i_node*(num_dim + 1) + 3) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
@@ -655,7 +655,7 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
   
       // Check that all required variables have been registered
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
-      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_AUX)
+      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_AUX2)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_X)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Y)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Z)
@@ -667,8 +667,8 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
           Node<3> &rnode = this->GetGeometry()[i];
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode)
-          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_AUX,rnode)
-          KRATOS_CHECK_DOF_IN_NODE(DISTANCE_AUX,rnode)
+          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_AUX2,rnode)
+          KRATOS_CHECK_DOF_IN_NODE(DISTANCE_AUX2,rnode)
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_X,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_X,rnode)
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_Y,rnode)

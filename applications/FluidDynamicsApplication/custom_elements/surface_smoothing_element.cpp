@@ -227,7 +227,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
 
-    const double epsilon = 1.0e-8;
+    const double epsilon = 1.0e-6;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
     array_1d<double,num_nodes> N; //dimension = number of nodes . Position of the gauss point 
