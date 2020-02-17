@@ -202,7 +202,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
-    WriteSubModelParts(rModelPart, "/SubModelParts");
+    WriteSubModelParts(rModelPart, mPrefix + "/SubModelParts");
 
     KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to write model part \"" << rModelPart.Name()
@@ -264,16 +264,16 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
 
 void ModelPartIO::WriteSubModelParts(ModelPart& rModelPart, const std::string& GroupName)
 {
-    mpFile->AddPath(mPrefix + GroupName);
+    mpFile->AddPath(GroupName);
     for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())
     {
         for (ModelPart& r_sub_sub_model_part : r_sub_model_part.SubModelParts())
         {
-            WriteSubModelParts(r_sub_sub_model_part, mPrefix + GroupName + "/" + r_sub_model_part.Name());
+            WriteSubModelParts(r_sub_sub_model_part, GroupName + "/" + r_sub_model_part.Name());
         }
 
         WriteInfo info;
-        const std::string sub_model_part_path = mPrefix + GroupName + "/" + r_sub_model_part.Name();
+        const std::string sub_model_part_path = GroupName + "/" + r_sub_model_part.Name();
         mpFile->AddPath(sub_model_part_path);
         if (GlobalNumberOfNodes(r_sub_model_part) > 0)
         {
