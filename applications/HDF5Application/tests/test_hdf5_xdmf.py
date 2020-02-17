@@ -150,6 +150,7 @@ class TestXdmfElementResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].data.dtype, "float64")
         self.assertEqual(results[0].attribute_type, "Scalar")
 
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfElementFlags(self):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_dataset(
@@ -190,6 +191,7 @@ class TestXdmfConditionResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].data.dtype, "float64")
         self.assertEqual(results[0].attribute_type, "Scalar")
 
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfConditionFlags(self):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_dataset(
