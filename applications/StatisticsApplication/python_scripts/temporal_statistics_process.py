@@ -73,8 +73,6 @@ class TemporalStatisticsProcess(Kratos.Process):
         if (not self.model.HasModelPart(self.model_part_name)):
             raise Exception(self.model_part_name + " not found.")
 
-        self.model_part = self.model[self.model_part_name]
-
     def ExecuteInitialize(self):
         self.method_list = []
         for variable_settings in self.variables_settings_list:
@@ -85,7 +83,7 @@ class TemporalStatisticsProcess(Kratos.Process):
 
             item_container = GetItemContainer(container_name)
             method = GetMethod(item_container, method_name)
-            method_objects = method(self.model_part, norm_type, echo_level, variable_settings["method_settings"])
+            method_objects = method(self.__get_model_part(), norm_type, echo_level, variable_settings["method_settings"])
 
             self.method_list.extend(method_objects)
 
@@ -100,3 +98,9 @@ class TemporalStatisticsProcess(Kratos.Process):
             for method in self.method_list:
                 method.CalculateStatistics(delta_time)
         self.previous_value = current_value
+
+    def __get_model_part(self):
+        if (not hasattr(self, "model_part")):
+            self.model_part = self.model[self.model_part_name]
+
+        return self.model_part
