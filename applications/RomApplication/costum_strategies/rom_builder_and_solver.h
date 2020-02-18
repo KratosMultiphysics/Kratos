@@ -162,18 +162,26 @@ public:
             // Gets the array of conditions from the modeler
             ConditionsArrayType &r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            #pragma omp for schedule(guided, 512) nowait
+            std::vector<int> mSelectedConditions_private;
+            #pragma omp for schedule(guided, 512) nowait            
             for (int i = 0; i < number_of_conditions; ++i)
             {
-                auto it_cond = r_conditions_array.begin() + i;
+                auto it_cond = r_conditions_array.begin() + i;                
+                // Assemble a vector with the H-reduced conditions. 
                 //detect whether the condition has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
-                if (!((it_cond)->Has(HROM_WEIGHT)))
+                if ((it_cond)->Has(HROM_WEIGHT)){
+                    mSelectedConditions_private.push_back(i);
+                }
+                else{
                     it_cond->SetValue(HROM_WEIGHT, 1.0);
+                }
 
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
+            #pragma omp critical
+            mSelectedConditions.insert(mSelectedConditions.end(), mSelectedConditions_private.begin(), mSelectedConditions_private.end());            
 
             // Gets the array of constraints from the modeler
             auto &r_constraints_array = rModelPart.MasterSlaveConstraints();
@@ -329,6 +337,9 @@ public:
         auto el_begin = rModelPart.ElementsBegin();
         auto cond_begin = rModelPart.ConditionsBegin();
 
+
+        KRATOS_WATCH(mSelectedConditions)
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -339,7 +350,6 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-
         for (int k = 0; k < nelements; k++)
         {
             auto it_el = el_begin + k;
@@ -379,45 +389,83 @@ public:
             }
         }
 
-        for (int k = 0; k < nconditions; k++){
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+        //creating a conditions array
+        ConditionsArrayType &r_conditions_array = rModelPart.Conditions();
 
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);  
+        for (auto mCondition : mSelectedConditions){
+            //ModelPart::ConditionsContainerType::iterator it = r_conditions_array(mCondition)            
+            auto it = r_conditions_array(mCondition);
+            KRATOS_WATCH(mCondition)
+            KRATOS_WATCH(it)            
+            Condition::DofsVectorType dofs;
+            it->GetDofList(dofs, CurrentProcessInfo);
+            //calculate elemental contribution
+            pScheme->Condition_CalculateSystemContributions(it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-            if (condition_is_active){
-                Condition::DofsVectorType dofs;
-                it->GetDofList(dofs, CurrentProcessInfo);
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+            //assemble the elemental contribution - here is where the ROM acts
+            //compute the elemental reduction matrix Phi
+            const auto &r_geom = it->GetGeometry();
+            Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
 
-                //assemble the elemental contribution - here is where the ROM acts
-                //compute the elemental reduction matrix Phi
-                const auto &r_geom = it->GetGeometry();
-                Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
-
-                for (unsigned int i = 0; i < r_geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
-                        if (dofs[i * mNodalDofs + k]->IsFixed())
-                            row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
-                        else
-                            row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
-                    }
+            for (unsigned int i = 0; i < r_geom.size(); ++i){
+                const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
+                for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
+                    if (dofs[i * mNodalDofs + k]->IsFixed())
+                        row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+                    else
+                        row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
                 }
-                double h_rom_weight = it->GetValue(HROM_WEIGHT);
-                Matrix aux = prod(LHS_Contribution, PhiElemental);
-
-                noalias(Arom) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
             }
+            double h_rom_weight = it->GetValue(HROM_WEIGHT);
+            Matrix aux = prod(LHS_Contribution, PhiElemental);
+
+            noalias(Arom) += prod(trans(PhiElemental), aux) * h_rom_weight;
+            noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+
+            // clean local elemental memory
+            pScheme->CleanMemory(it);
         }
+
+
+        // for (int k = 0; k < nconditions; k++){
+        //     ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+
+        //     //detect if the element is active or not. If the user did not make any choice the element
+        //     //is active by default
+        //     bool condition_is_active = true;
+        //     if ((it)->IsDefined(ACTIVE))
+        //         condition_is_active = (it)->Is(ACTIVE);  
+
+        //     if (condition_is_active){
+        //         Condition::DofsVectorType dofs;
+        //         it->GetDofList(dofs, CurrentProcessInfo);
+        //         //calculate elemental contribution
+        //         pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+        //         //assemble the elemental contribution - here is where the ROM acts
+        //         //compute the elemental reduction matrix Phi
+        //         const auto &r_geom = it->GetGeometry();
+        //         Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
+
+        //         for (unsigned int i = 0; i < r_geom.size(); ++i){
+        //             const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
+        //             for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
+        //                 if (dofs[i * mNodalDofs + k]->IsFixed())
+        //                     row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+        //                 else
+        //                     row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+        //             }
+        //         }
+        //         double h_rom_weight = it->GetValue(HROM_WEIGHT);
+        //         Matrix aux = prod(LHS_Contribution, PhiElemental);
+
+        //         noalias(Arom) += prod(trans(PhiElemental), aux) * h_rom_weight;
+        //         noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+
+        //         // clean local elemental memory
+        //         pScheme->CleanMemory(*(it.base()));
+        //     }
+        // }
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
@@ -547,6 +595,7 @@ protected:
 
     int mNodalDofs;
     int mRomDofs;
+    std::vector<int> mSelectedConditions;
 
     /*@} */
     /**@name Protected Operations*/
