@@ -24,7 +24,7 @@
         "maximum_pressure_iterations"        : 7,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "velocity_linear_solver_settings"    : {
             "solver_type"         : "bicgstab",
             "max_iteration"       : 5000,
@@ -63,6 +63,7 @@
             "model_part_name"       : "PfemFluidModelPart",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
+            "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
             "meshing_domains"       : [{
                 "model_part_name"      : "Fluid",
@@ -87,7 +88,7 @@
                     "use_bounding_box" : true,
                     "initial_time"     : 0.0,
                     "final_time"       : 1000.0,
-                    "upper_point"      : [0.005,0.005,0.01],
+                    "upper_point"      : [0.005,0.005,0.005],
                     "lower_point"      : [-0.005,-0.005,-0.02]
                 },
                 "spatial_refining_box" : {
