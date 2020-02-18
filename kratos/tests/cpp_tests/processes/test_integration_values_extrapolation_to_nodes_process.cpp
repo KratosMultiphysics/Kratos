@@ -216,7 +216,7 @@ namespace Kratos
 //             GiDIODebugInternalExtrapolation(r_model_part, "1");
 
             const double tolerance = 1.0e-8;
-            auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+            const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
                 KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
@@ -260,7 +260,7 @@ namespace Kratos
 //             GiDIODebugInternalExtrapolation(r_model_part, "2");
 
             const double tolerance = 1.0e-8;
-            auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+            const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
                 KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
@@ -304,7 +304,7 @@ namespace Kratos
 //             GiDIODebugInternalExtrapolation(r_model_part, "3");
 
             const double tolerance = 1.0e-6;
-            auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+            const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
                 KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
