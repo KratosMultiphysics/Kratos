@@ -106,9 +106,6 @@ class SpatialStatisticsProcess(Kratos.Process):
         if (output_control_variable_type not in ["Integer", "Double"]):
             raise Exception("Unsupported output control variable type for " + output_control_variable_name + " of " + output_control_variable_type + " type. Supported types are Integer and Double only")
 
-        if (not process_info.Has(output_control_variable)):
-            raise Exception("Output control variable " + output_control_variable_name + " not found in process info of " + self.model_part_name)
-
         process_info_value = self.__get_model_part().ProcessInfo[output_control_variable]
         self.output_control_counter = process_info_value
         self.previous_process_info_value = process_info_value
@@ -181,6 +178,7 @@ class SpatialStatisticsProcess(Kratos.Process):
             if (self.__is_writing_process()):
                 for output_file in self.output_files:
                     output_file.file.write("\n")
+                    output_file.file.flush()
 
         self.previous_process_info_value = self.process_info_value
 
