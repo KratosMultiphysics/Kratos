@@ -1,9 +1,8 @@
-name: CI
+name: Nightly Build
 
 on:
-  pull_request:
-    branches:
-      - master
+  schedule:
+    - cron:  '0 1 * * *'
 
 jobs:
   ubuntu:
@@ -11,41 +10,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [Custom, FullDebug]
         compiler: [gcc, clang]
     env:
-      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      KRATOS_BUILD_TYPE: Release
       MKLVARS_ARCHITECTURE: intel64
       MKLVARS_INTERFACE: lp64
+      FC: gfortran-7
 
     container:
       image: oberbichler/kratos-dev:latest
-      env:
-        CCACHE_SLOPPINESS: pch_defines,time_macros
-        CCACHE_COMPILERCHECK: content
-        CCACHE_COMPRESS: true
-        CCACHE_NODISABLE: true
-        CCACHE_MAXSIZE: 500M
-        FC: gfortran-7
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Cache Build
-      id: cache-build
-      uses: actions/cache@v1
-      with:
-        path: ~/.ccache
-        key: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
-
     - name: Build
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/lib/ccache/gcc
-          export CXX=/usr/lib/ccache/g++
+          export CC=gcc
+          export CXX=g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
@@ -54,16 +38,15 @@ jobs:
           exit 1
         fi
         . /opt/intel/mkl/bin/mklvars.sh
-        cp .github/workflows/configure.sh configure.sh
+        cp .github/workflows/configure.sh configure.sh # maybe use different configure script in the future
         bash configure.sh
-        ccache -s
 
-    - name: Running small tests
+    - name: Running tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
 
   windows:
@@ -71,16 +54,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - uses: actions/setup-python@v1
       with:
         python-version: '3.6'
-    - name: Cache Build
-      id: cache-build
-      uses: actions/cache@v1
-      with:
-        path: build
-        key: ${{ runner.os }}-build-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-build-
+
     - name: Build
       shell: cmd
       run: |
