@@ -92,7 +92,6 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10
         })");
 
@@ -101,9 +100,6 @@ public:
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
 
-        mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
-
-        mNodalDofs = mNodalVariablesNames.size();
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
 
@@ -326,6 +322,9 @@ public:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
+        //Infering the number of nodal DOFs for the ROM projection       
+        mNodalDofs = Dx.size() / static_cast<int>(rModelPart.Nodes().size()) ;
+
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
         auto el_begin = rModelPart.ElementsBegin();
         auto cond_begin = rModelPart.ConditionsBegin();
@@ -546,7 +545,6 @@ protected:
 
     TSystemVectorPointerType mpReactionsVector;
 
-    std::vector<std::string> mNodalVariablesNames;
     int mNodalDofs;
     int mRomDofs;
 
