@@ -82,7 +82,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = Flags::Unset(REMOVE_FROM_ALL_LEVELS) | Flags::Unset(ERASE_ALL_ENTITIES)
+        Flags Options = REMOVE_FROM_ALL_LEVELS.False() | ERASE_ALL_ENTITIES.False()
         );
 
     /**

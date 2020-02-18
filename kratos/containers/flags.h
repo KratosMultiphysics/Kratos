@@ -238,11 +238,11 @@ public:
         mFlags = BlockType();
     }
 
-    static const Flags Unset(Flags ThisFlag)
+    const Flags False() const
     {
-        Flags unset_this_flag(ThisFlag);
-        unset_this_flag.mFlags = !ThisFlag.mFlags;
-        return  unset_this_flag;
+        Flags this_flag_false(*this);
+        this_flag_false.mFlags = !((*this).mFlags);
+        return this_flag_false;
     }
 
     ///@}

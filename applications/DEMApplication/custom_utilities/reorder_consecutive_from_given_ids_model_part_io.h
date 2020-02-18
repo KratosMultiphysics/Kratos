@@ -16,8 +16,13 @@ class ReorderConsecutiveFromGivenIdsModelPartIO : public ReorderConsecutiveModel
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ReorderConsecutiveFromGivenIdsModelPartIO);
-    ReorderConsecutiveFromGivenIdsModelPartIO(std::string const& Filename, const int node_id=0, const int element_id=0, const int condition_id=0, const Flags Options = IO::READ|Flags::Unset(IO::IGNORE_VARIABLES_ERROR)):
-                ReorderConsecutiveModelPartIO(Filename, Options)
+    ReorderConsecutiveFromGivenIdsModelPartIO(
+        std::string const& Filename,
+        const int node_id = 0,
+        const int element_id = 0,
+        const int condition_id = 0,
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.False()):
+            ReorderConsecutiveModelPartIO(Filename, Options)
     {
         mNumberOfNodes = node_id;
         mNumberOfElements = element_id;

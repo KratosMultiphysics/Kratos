@@ -239,10 +239,10 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Reset", &Flags::Reset)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
+    .def("False", &Flags::False)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
     .def("__str__", PrintObject<Flags>)
-    .def_static("__unset__", &Flags::Unset)
     ;
 
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,STRUCTURE);

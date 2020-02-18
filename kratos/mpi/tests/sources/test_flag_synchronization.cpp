@@ -145,10 +145,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, Kra
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | Flags::Unset(RIGID)  | STRUCTURE    | MPI_BOUNDARY | Flags::Unset(PERIODIC);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE    | MPI_BOUNDARY | PERIODIC.False();
     }
     else {
-        flags = ACTIVE | Flags::Unset(RIGID)  | Flags::Unset(STRUCTURE) |                              INLET       | Flags::Unset(OUTLET);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE.False() |                              INLET       | OUTLET.False();
     }
 
     // Setting an extra flag, not involved in communication
@@ -206,10 +206,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, Krat
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | Flags::Unset(RIGID)  | STRUCTURE     | MPI_BOUNDARY | Flags::Unset(PERIODIC);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE     | MPI_BOUNDARY | PERIODIC.False();
     }
     else {
-        flags = ACTIVE | Flags::Unset(RIGID)  | Flags::Unset(STRUCTURE) |                              INLET       | Flags::Unset(OUTLET);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE.False() |                              INLET       | OUTLET.False();
     }
 
     // Setting an extra flag, not involved in communication
@@ -268,10 +268,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, 
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | Flags::Unset(RIGID)  | STRUCTURE     | MPI_BOUNDARY | Flags::Unset(PERIODIC);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE     | MPI_BOUNDARY | PERIODIC.False();
     }
     else {
-        flags = ACTIVE | Flags::Unset(RIGID)  | Flags::Unset(STRUCTURE) |                              INLET       | Flags::Unset(OUTLET);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE.False() |                              INLET       | OUTLET.False();
     }
 
     // Setting an extra flag, not involved in communication
@@ -329,10 +329,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, K
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | Flags::Unset(RIGID)  | STRUCTURE     | MPI_BOUNDARY | Flags::Unset(PERIODIC);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE     | MPI_BOUNDARY | PERIODIC.False();
     }
     else {
-        flags = ACTIVE | Flags::Unset(RIGID)  | Flags::Unset(STRUCTURE) |                              INLET       | Flags::Unset(OUTLET);
+        flags = ACTIVE | RIGID.False()  | STRUCTURE.False() |                              INLET       | OUTLET.False();
     }
 
     // Setting an extra flag, not involved in communication
