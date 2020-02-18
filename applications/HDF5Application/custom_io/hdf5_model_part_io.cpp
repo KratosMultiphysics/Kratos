@@ -262,12 +262,12 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     return ids;
 }
 
-void ModelPartIO::WriteSubModelParts(ModelPart& rModelPart, const std::string& GroupName)
+void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart, const std::string& GroupName)
 {
     mpFile->AddPath(GroupName);
-    for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())
+    for (ModelPart const& r_sub_model_part : rModelPart.SubModelParts())
     {
-        for (ModelPart& r_sub_sub_model_part : r_sub_model_part.SubModelParts())
+        for (ModelPart const& r_sub_sub_model_part : r_sub_model_part.SubModelParts())
         {
             WriteSubModelParts(r_sub_sub_model_part, GroupName + "/" + r_sub_model_part.Name());
         }
