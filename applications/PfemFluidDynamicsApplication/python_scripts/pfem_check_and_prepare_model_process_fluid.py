@@ -59,6 +59,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
 
+        if Parameters.Has("material_import_settings"):
+            self.material_import_settings = Parameters["material_import_settings"]
 
     def Execute(self):
         """This function executes the process
@@ -73,6 +75,12 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         void_flags  = []
 
         if self.bodies_list == True:
+
+            max_property_id = 0
+            for prop in self.main_model_part.Properties:
+                if prop.Id > max_property_id:
+                    max_property_id = prop.Id
+
             for i in range(self.bodies_parts_list.size()):
                 #create body model part
                 body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
@@ -81,14 +89,32 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                 print("[Model_Prepare]::Body Creation", body_model_part_name)
                 body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
-                body_model_part.Properties  = self.main_model_part.Properties
+
+                with open(self.material_import_settings["materials_filename"].GetString(), 'r') as parameter_file:
+                    materials = KratosMultiphysics.Parameters(parameter_file.read())
 
                 #build body from their parts
                 body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
                 body_parts_list = []
+
                 for j in range(body_parts_name_list.size()):
 
                     body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
+
+                    # Add to the fluid and solid domains only the properties that belongs to their native SubModelParts
+                    is_solid_or_fluid = False
+                    for k in range(materials["properties"].size()):
+                        if materials["properties"][k]["model_part_name"].GetString() == self.main_model_part.Name + "." + body_parts_name_list[j].GetString():
+                            property_id = self.main_model_part.GetProperties()[materials["properties"][k]["properties_id"].GetInt()]
+                            body_model_part.AddProperties(property_id)
+                            is_solid_or_fluid = True
+
+                    # Assign a new dummy property to the rigid boundaries to keep them separated in the GiD post process
+                    if not is_solid_or_fluid:
+                        max_property_id += 1
+                        new_dummy_property = KratosMultiphysics.Properties(max_property_id)
+                        for elem in self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()).Elements:
+                            elem.Properties = new_dummy_property
 
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
@@ -206,5 +232,5 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
         print(" Main Model Part", self.main_model_part )
 
-   
+
 
