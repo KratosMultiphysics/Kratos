@@ -78,7 +78,7 @@ void CompressibleNavierStokesExplicit<3>::ComputeGaussPointLHSContribution(Bound
  
     const BoundedMatrix<double,nnodes,BlockSize>& U = data.U;
     const BoundedMatrix<double,nnodes,BlockSize>& Un = data.Un;
-    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Un; //Temporary
     const BoundedMatrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
     const double mu = data.mu;
@@ -4109,7 +4109,7 @@ void CompressibleNavierStokesExplicit<3>::ComputeGaussPointRHSContribution(array
     
     const BoundedMatrix<double,nnodes,BlockSize>& U = data.U;
     const BoundedMatrix<double,nnodes,BlockSize>& Un = data.Un;
-    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Unn;
+    const BoundedMatrix<double,nnodes,BlockSize>& Unn = data.Un;    // Temporary
     const BoundedMatrix<double,nnodes,dim>& f_ext = data.f_ext;
     const array_1d<double,nnodes>& r = data.r;
     const double mu = data.mu;

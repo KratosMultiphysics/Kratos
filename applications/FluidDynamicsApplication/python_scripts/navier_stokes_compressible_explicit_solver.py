@@ -73,7 +73,7 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 ##        self.element_name = "CompressibleNavierStokes"
         self.element_name = "CompressibleNavierStokesExplicit"
         self.condition_name = "Condition"
-        self.min_buffer_size = 3
+        self.min_buffer_size = 2
 
         ## Set the nodal properties flag
         self.element_has_nodal_properties = True

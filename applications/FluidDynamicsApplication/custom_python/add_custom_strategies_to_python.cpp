@@ -36,6 +36,7 @@
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
 #include "custom_strategies/strategies/gear_scheme.h"
+#include "custom_strategies/strategies/runge_kutta_strategy.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -58,9 +59,24 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
+    
+  
 
     //********************************************************************
     //********************************************************************
+
+
+    
+    typedef RungeKuttaStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> RungeKuttaStrategyType;
+    py::class_<
+        RungeKuttaStrategyType,
+        typename RungeKuttaStrategyType::Pointer,
+        BaseSolvingStrategyType>
+        (m, "RungeKuttaStrategy")
+        .def(py::init<ModelPart&, int, bool, bool, bool>())
+        ;
+
+
 
     py::class_<
         ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>,
