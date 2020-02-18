@@ -275,7 +275,7 @@ This method requires followings as the parameters as a object of Kratos.Paramete
 
 In here, `"min_value"` can either be `"min"` or a `double` value. In the case of a double, it will be used as the minimum when creating groups to identify distribution. `"max_value"` also can either be `"max"` of `double` value, which will determine the maximum value when creating the groups. This will create 2 additional groups to represent values below the specified `"min_value"` and `"max_value"` apart from the `"number_of_value_groups"` specified by the user.
 
-Following is an example of median method of non historical `VELOCITY`'s magnitude over the whole model part's nodes. It returns a double which is the median.
+Following is an example of median method of non historical `VELOCITY`'s magnitude over the whole model part's nodes.
 
 ```python
 import KratosMultiphysics as Kratos
