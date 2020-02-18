@@ -29,7 +29,6 @@
 #include "solving_strategies/schemes/scheme.h"
 
 // Application includes
-// #include "structural_mechanics_application_variables.h"
 #include "mor_application_variables.h"
 
 namespace Kratos
@@ -69,9 +68,9 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     ///@}
     ///@name Life Cycle
