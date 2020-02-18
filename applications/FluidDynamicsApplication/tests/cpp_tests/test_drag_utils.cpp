@@ -157,7 +157,8 @@ namespace Kratos {
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the fluid element
-            p_element->Initialize();
+            const auto& r_process_info = model_part.GetProcessInfo();
+            p_element->Initialize(r_process_info);
 
             // Set the reaction values manually. Note that the body fitted drag utilities assume
             // that the REACTION has been already computed. Since this is assumed to be done by
@@ -190,8 +191,9 @@ namespace Kratos {
             GenerateTestModelPart(model_part, is_embedded);
 
             // Initialize the fluid element
+            const auto& r_process_info = model_part.GetProcessInfo();
             for (auto& r_elem : model_part.Elements()) {
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
             }
 
             // Call the embedded drag utility
@@ -217,8 +219,9 @@ namespace Kratos {
             GenerateTestModelPart(model_part, is_embedded);
 
             // Initialize the fluid element
+            const auto& r_process_info = model_part.GetProcessInfo();
             for (auto& r_elem : model_part.Elements()) {
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
             }
 
             // Call the embedded drag utility
