@@ -218,6 +218,16 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         const Parameters VariablesParameters,
         const IndexType PropertyId = 0
         );
+        
+    /**
+     * @brief Trims out a component name, separating by '."
+     * @details Trims out a component name, removing unnecessary module information.
+     * For backward compatibility.
+     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
+     * @param rLine Component name in materials json file
+     */
+    void TrimComponentName(std::string& rLine);
     
     ///@}
     ///@name Protected  Access
@@ -275,17 +285,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param Materials The parameters containing the properties of the materials
      */
     void GetPropertyBlock(Parameters Materials);
-
-    /**
-     * @brief Trims out a component name, separating by '."
-     * @details Trims out a component name, removing unnecessary module information.
-     * For backward compatibility.
-     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
-     * @param rLine Component name in materials json file
-     */
-    void TrimComponentName(std::string& rLine);
-
 
     /**
      * @brief Checks if the materials are assigned uniquely to the modelparts

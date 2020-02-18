@@ -530,9 +530,12 @@ private:
                 mKnotsV = KnotsV;
             } else {
                 KRATOS_ERROR
-                    << "Number of controls points and polynomial degrees and number of knots do not match! "
+                    << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl
                     << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
-                    << ", number of control points: " << num_control_points << std::endl;
+                    << ", number of knots u: " << mKnotsU.size() << ", number of knots v: " << mKnotsV.size()
+                    << ", number of control points: " << num_control_points << std::endl
+                    << "Following condition must be achieved: ControlPoints.size() = (KnotsU.size() - P + 1) * (KnotsV.size() - Q + 1)"
+                    << std::endl;
             }
         }
     }
