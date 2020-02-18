@@ -57,6 +57,7 @@ class ElementSizeModifier(DEMAnalysisStage):
         project_parameters["GravityX"].SetDouble(0.0)
         project_parameters["GravityY"].SetDouble(0.0)
         project_parameters["GravityZ"].SetDouble(0.0)
+        project_parameters["OutputFileType"].SetString("Ascii")
         project_parameters["MaxTimeStep"].SetDouble(self.size_modifier_parameters["time_step"].GetDouble())
         super(ElementSizeModifier, self).__init__(model, project_parameters)
 
