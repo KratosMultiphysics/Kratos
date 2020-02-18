@@ -50,6 +50,7 @@ import test_dofs
 import test_time_averaging
 import test_scipy_conversion_tools
 import test_linear_constraints
+import test_cad_json_input
 import test_compare_elements_conditions
 
 def AssembleTestSuites():
@@ -118,6 +119,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_scipy_conversion_tools.TestScipyConversionTools]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_constraints.TestLinearMultipointConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_constraints.TestLinearConstraints]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_json_input.TestCadJsonInput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compare_elements_conditions.TestCompareElementsAndConditionsUtility]))
 
     # Create a test suite with the selected tests plus all small tests
