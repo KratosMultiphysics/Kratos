@@ -28,7 +28,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
 #include "includes/cfd_variables.h"                             // AM: Devo modificare questo file? NON MODIFICATO
-#include "includes/fluid_dynamic_application_variables.h"       // AM: Devo modificare questo file? odificato
+#include "fluid_dynamics_application_variables.h"       // AM: Devo modificare questo file? odificato
 //  #include "shallow_water_application_variables.h"    // AM: Cosa includo io qua?
 
 
@@ -133,8 +133,28 @@ public:
      */
     virtual void Initialize() override
     {
+        // if (!(this->mReformDofSetAtEachStep))
+        //     ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
+
         InitializeDirichletBoundaryConditions();
         InitializeSlipBoundaryConditions();
+
+        // auto& r_model_part = BaseType::GetModelPart();
+
+        // #pragma omp parallel for
+        // for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        // {
+        //     auto it_node = r_model_part.NodesBegin() + i;
+
+        //     auto qn = it_node->FastGetSolutionStepValue(MOMENTUM,1);
+        //     noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn;
+  
+        //     auto hn = it_node->FastGetSolutionStepValue(DENSITY,1);
+        //     it_node->FastGetSolutionStepValue(DENSITY) = hn;
+
+        //     auto kn = it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1);
+        //     it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = kn;
+        // }
     }
 
     /**
@@ -142,7 +162,8 @@ public:
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
     void InitializeSolutionStep() override
-    {
+    {   
+
         if (!mSolutionStepIsInitialized)
         {
             // Set up the Dirichlet boundary conditions if needed
@@ -163,31 +184,32 @@ public:
     bool SolveSolutionStep() override
     {
         // Initialize the mass matrix
-        ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
-
+      //  if (this->mReformDofSetAtEachStep){
+            ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
+        //}
         // Initialize the first step
         SetVariablesToZero(DENSITY_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);    // AM: Modificato da me
-
+     
         // Perform the RK steps
         for (int step = 0; step < mNumberOfSteps; ++step)
         {
             // Compute the slope
             AddExplicitRHSContributions();
-
+      
             // Compute the RK step
             RungeKuttaStep(step);
-
+      
             // Boundary conditions
             ApplyDirichletBoundaryConditions();
             ApplySlipBoundaryConditions();
-
+      
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
         }
 
         // // Finalize the last step
         AssembleLastRungeKuttaStep();
-
+      
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
@@ -344,6 +366,7 @@ private:
                 it_cond->Calculate(NODAL_MASS, dummy, r_process_info);
             }
         }
+
     }
 
     void AddExplicitRHSContributions()
@@ -363,7 +386,8 @@ private:
         {
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < n_elements; ++i)
-            {
+            {   
+    //            printf("element %d\n",i);
                 auto it_elem = elements_begin + i;
                 it_elem->AddExplicitContribution(r_process_info);
             }
@@ -420,10 +444,18 @@ private:
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn + StepFactor * dt/mass * dq;
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM_RK4)) += GlobalFactor * dt/mass * dq;
 
-            auto hn = it_node->FastGetSolutionStepValue(HEIGHT,1);
-            auto dh = it_node->FastGetSolutionStepValue(HEIGHT_RHS);
-            it_node->FastGetSolutionStepValue(HEIGHT) = hn + StepFactor * dt/mass * dh;
-            it_node->FastGetSolutionStepValue(HEIGHT_RK4) += GlobalFactor * dt/mass * dh;
+            auto hn = it_node->FastGetSolutionStepValue(DENSITY,1);
+            auto dh = it_node->FastGetSolutionStepValue(DENSITY_RHS);
+            it_node->FastGetSolutionStepValue(DENSITY) = hn + StepFactor * dt/mass * dh;
+            it_node->FastGetSolutionStepValue(DENSITY_RK4) += GlobalFactor * dt/mass * dh;
+
+            auto kn = it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1);
+            auto dk = it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS);
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = kn + StepFactor * dt/mass * dk;
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4) += GlobalFactor * dt/mass * dk;
+
+ //           std::cout<<"mass "<<mass<<"  qn "<<qn<<"  dq "<<dq<<"  hn "<<hn<<"  kn "<<kn<<"  dk "<<dk<<"  dh "<<dh<<std::endl;
+
         }
     }
 
@@ -440,11 +472,34 @@ private:
             auto qn = it_node->FastGetSolutionStepValue(MOMENTUM,1);
             auto dq = it_node->FastGetSolutionStepValue(MOMENTUM_RK4);
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn + dq;
+//            noalias(it_node->FastGetSolutionStepValue(MOMENTUM,1)) = qn + dq;
 
-            auto hn = it_node->FastGetSolutionStepValue(HEIGHT,1);
-            auto dh = it_node->FastGetSolutionStepValue(HEIGHT_RK4);
-            it_node->FastGetSolutionStepValue(HEIGHT) = hn + dh;
+            auto hn = it_node->FastGetSolutionStepValue(DENSITY,1);
+            auto dh = it_node->FastGetSolutionStepValue(DENSITY_RK4);
+            it_node->FastGetSolutionStepValue(DENSITY) = hn + dh;
+//            it_node->FastGetSolutionStepValue(DENSITY,1) = hn + dh;
+
+            auto kn = it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1);
+            auto dk = it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4);
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = kn + dk;
+//            it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1) = kn + dk;
         }
+
+        auto it_node = r_model_part.NodesBegin() + 20000;
+
+        double mom_x = it_node->FastGetSolutionStepValue(MOMENTUM_X);
+        double mom_y = it_node->FastGetSolutionStepValue(MOMENTUM_Y);
+        double den = it_node->FastGetSolutionStepValue(DENSITY);
+        double ene = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+
+        KRATOS_WATCH(den);
+        KRATOS_WATCH(mom_x);
+        KRATOS_WATCH(mom_y);
+        KRATOS_WATCH(ene);
+
+
+
+
     }
 
     void InitializeDirichletBoundaryConditions()
@@ -460,19 +515,19 @@ private:
             const size_t pos_momentum_x = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_X);
             const size_t pos_momentum_y = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_Y);
             const size_t pos_momentum_z = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_Z);
-            const size_t energy = (r_model_part.NodesBegin())->GetDofPosition(ENERGY);
-            // This part is related to PFEM2? 
+            const size_t pos_energy = (r_model_part.NodesBegin())->GetDofPosition(TOTAL_ENERGY);
+            
             for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
             {
                 auto it_node = r_model_part.NodesBegin() + i;
 
-                if (it_node->GetDof(MOMENTUM_X, pos_mom_x).IsFixed())
+                if (it_node->GetDof(MOMENTUM_X, pos_momentum_x).IsFixed())
                 {
                     mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_X));
                     mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_X));
                 }
 
-                if (it_node->GetDof(MOMENTUM_Y, pos_mom_y).IsFixed())
+                if (it_node->GetDof(MOMENTUM_Y, pos_momentum_y).IsFixed())
                 {
                     mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Y));
                     mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Y));
@@ -480,17 +535,23 @@ private:
 
                 if (mDimension == 3)
                 {
-                    if (it_node->GetDof(MOMENTUM_Z, pos_mom_z).IsFixed())
+                    if (it_node->GetDof(MOMENTUM_Z, pos_momentum_z).IsFixed())
                     {
                         mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Z));
                         mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Z));
                     }
                 }
 
-                if (it_node->GetDof(HEIGHT, pos_height).IsFixed())
+                if (it_node->GetDof(DENSITY, pos_density).IsFixed())
                 {
-                    mFixedDofsSet.push_back(it_node->pGetDof(HEIGHT));
-                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(HEIGHT));
+                    mFixedDofsSet.push_back(it_node->pGetDof(DENSITY));
+                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(DENSITY));
+                }
+
+                if (it_node->GetDof(TOTAL_ENERGY, pos_energy).IsFixed())
+                {
+                    mFixedDofsSet.push_back(it_node->pGetDof(TOTAL_ENERGY));
+                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(TOTAL_ENERGY));
                 }
             }
         }
@@ -540,7 +601,7 @@ private:
         }
     }
 
-    void SetVariablesToZero(const Variable<double> rScalarVar, const Variable<array_1d<double,3>>& rVectorVar, const Variable<array_1d<double,3>>& rVectorVar2)
+    void SetVariablesToZero(const Variable<double> rScalarVar, const Variable<array_1d<double,3>>& rVectorVar, const Variable<double> rScalarVar1)
     {
         auto& r_model_part = BaseType::GetModelPart();
 
@@ -549,8 +610,8 @@ private:
         {
             auto it_node = r_model_part.NodesBegin() + i;
             it_node->FastGetSolutionStepValue(rScalarVar) = 0.0;
-            it_node->FastGetSolutionStepValue(rVectorVar)  = rVectorVar.Zero()
-            it_node->FastGetSolutionStepValue(rVectorVar1) = rVectorVar.Zero();
+            it_node->FastGetSolutionStepValue(rVectorVar)  = rVectorVar.Zero();
+            it_node->FastGetSolutionStepValue(rScalarVar1) = 0.0;
         }
     }
 

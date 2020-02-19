@@ -69,7 +69,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokesExplicit);
     struct ElementDataStruct
     {
-        BoundedMatrix<double, TNumNodes, BlockSize> U, Un, Unn;
+        BoundedMatrix<double, TNumNodes, BlockSize> U, Un, Up;
         BoundedMatrix<double, TNumNodes, TDim> f_ext;
         array_1d<double,TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
         array_1d<double, TDim> f_gauss;
@@ -212,12 +212,17 @@ public:
         array_1d<double,MatrixSize> rhs_local;
 
         // Gauss point position
-        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
-        GetShapeFunctionsOnGauss(Ncontainer);
+        // BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
+        // GetShapeFunctionsOnGauss(Ncontainer);
+
+        BoundedMatrix<double,1, TNumNodes> Ncontainer;
+        GetShapeFunctionsOnUniqueGauss(Ncontainer);
+
+        const unsigned int NGauss = Ncontainer.size1();
 
         // Loop on gauss point
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
+        for(unsigned int igauss = 0; igauss<NGauss; igauss++)
         {
             noalias(data.N) = row(Ncontainer, igauss);
 
@@ -230,7 +235,35 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= data.volume/NGauss;
+
+        auto& r_geom = this->GetGeometry();
+
+        for (size_t i = 0; i < TNumNodes; ++i)
+        {   
+            #pragma omp atomic
+            r_geom[i].FastGetSolutionStepValue(DENSITY_RHS) += rRightHandSideVector[BlockSize*i];
+
+            auto& momentum = r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS);
+            #pragma omp atomic
+            momentum[0] += rRightHandSideVector[BlockSize*i + 1];
+
+            #pragma omp atomic
+            momentum[1] += rRightHandSideVector[BlockSize*i + 2];
+
+            if (TDim == 3){
+                #pragma omp atomic
+                momentum[2] += rRightHandSideVector[BlockSize*i + 3];
+            }
+
+//            r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS) = momentum; 
+
+            #pragma omp atomic
+            r_geom[i].FastGetSolutionStepValue(TOTAL_ENERGY_RHS) += rRightHandSideVector[BlockSize*i + TDim + 1];
+
+            
+        }
+
 
         KRATOS_CATCH("")
 
@@ -299,6 +332,38 @@ public:
         KRATOS_CATCH("");
     }
 
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        VectorType right_hand_side_vector;
+        CalculateRightHandSide(right_hand_side_vector, const_cast<ProcessInfo&>(rCurrentProcessInfo));
+
+        // auto& r_geom = this->GetGeometry();
+
+        // for (size_t i = 0; i < r_geom.size(); ++i)
+        // {
+        //     auto& mom = r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS);
+            
+        //     #pragma omp atomic
+        //     r_geom[i].FastGetSolutionStepValue(DENSITY_RHS) += right_hand_side_vector[BlockSize*i];
+
+        //     mom[0] = right_hand_side_vector[BlockSize*i + 1];
+
+        //     mom[1] = right_hand_side_vector[BlockSize*i + 2];
+
+        //     if (TDim == 3){
+        //         mom[2] = right_hand_side_vector[BlockSize*i + 3];
+        //     }
+            
+            
+        //     r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS) += mom;
+
+        //     #pragma omp atomic
+        //     r_geom[i].FastGetSolutionStepValue(TOTAL_ENERGY_RHS) += right_hand_side_vector[BlockSize*i + TDim + 1];
+        // }
+
+    }
+
+
 
     void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
@@ -309,10 +374,34 @@ public:
         ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);
 
+        auto& r_geom = this->GetGeometry();
+
+        const array_1d<double,TNumNodes>& N = data.N;
+        const double volume = data.volume;
+
         if (rVariable == ERROR_RATIO)
         {
 //             rOutput = this->SubscaleErrorEstimate(data);
             this->SetValue(ERROR_RATIO, rOutput);
+        }
+
+        if (rVariable == NODAL_MASS)
+        {
+            double  lumped_mass;
+
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {   
+                lumped_mass = 0.0;
+
+                for (unsigned int j = 0; j < TNumNodes; j++){
+
+                    lumped_mass += N[i]*N[j];
+
+                }
+                #pragma omp atomic
+                r_geom[i].FastGetSolutionStepValue(NODAL_MASS) += lumped_mass*volume;
+            }                
+
         }
 
         KRATOS_CATCH("")
@@ -398,10 +487,10 @@ protected:
         rData.h = ComputeH(rData.DN_DX);
 
         // Database access to all of the variables needed
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        rData.bdf0 = BDFVector[0];
-        rData.bdf1 = BDFVector[1];
-        rData.bdf2 = BDFVector[2];
+        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        // rData.bdf0 = BDFVector[0];
+        // rData.bdf1 = BDFVector[1];
+        // rData.bdf2 = BDFVector[2];
         rData.dt = rCurrentProcessInfo[DELTA_TIME];
 
         Properties& r_properties = this->GetProperties();
@@ -413,25 +502,31 @@ protected:
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+            double mass = this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
+
+          //  if (mass <1e-15)    printf("mass = %.3e\n", mass);
+
             const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
             const array_1d<double,3>& moment = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM);
             const array_1d<double,3>& moment_n = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM,1);
-            const array_1d<double,3>& moment_nn = this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM,2);
-
+            const array_1d<double,3>& momentp = (this->GetGeometry()[i].FastGetSolutionStepValue(MOMENTUM_RHS))/mass;
+            
             for(unsigned int k=0; k<TDim; k++)
             {
                 rData.U(i,k+1)   = moment[k];
                 rData.Un(i,k+1)  = moment_n[k];
-                rData.Unn(i,k+1) = moment_nn[k];
+                rData.Up(i,k+1)  = momentp[k];
                 rData.f_ext(i,k)   = body_force[k];
             }
             rData.U(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
             rData.Un(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
-            rData.Unn(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY,2);
+            rData.Up(i,0)= (this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_RHS))/mass;
+            
 
             rData.U(i,TDim+1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY);
             rData.Un(i,TDim+1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY,1);
-            rData.Unn(i,TDim+1) = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY,2);
+            rData.Up(i,TDim+1) = (this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_ENERGY_RHS))/mass;
+            
 
             rData.r(i) = this->GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
          }
