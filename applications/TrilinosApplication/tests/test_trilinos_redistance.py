@@ -86,7 +86,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
             self.model_part,
             trilinos_linear_solver,
             max_iterations,
-            (KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).False()
+            (KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).SetToFalse()
             ).Execute()
 
         # Check the obtained values

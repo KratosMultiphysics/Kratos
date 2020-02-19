@@ -100,8 +100,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagAndEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | (RIGID).False()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).False()
-        flag2 = ACTIVE    | (RIGID).False()  | (STRUCTURE).False() |                              INLET       | (OUTLET).False()
+        flag1 = ACTIVE    | (RIGID).SetToFalse()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).SetToFalse()
+        flag2 = ACTIVE    | (RIGID).SetToFalse()  | (STRUCTURE).SetToFalse() |                              INLET       | (OUTLET).SetToFalse()
 
         flag1 &= flag2
         # true (defined) & true (defined) = true (defined)
@@ -131,8 +131,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagOrEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | (RIGID).False()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).False()
-        flag2 = ACTIVE    | (RIGID).False()  | (STRUCTURE).False() |                              INLET       | (OUTLET).False()
+        flag1 = ACTIVE    | (RIGID).SetToFalse()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).SetToFalse()
+        flag2 = ACTIVE    | (RIGID).SetToFalse()  | (STRUCTURE).SetToFalse() |                              INLET       | (OUTLET).SetToFalse()
 
         flag1 |= flag2
         # true (defined) | true (defined) = true (defined)

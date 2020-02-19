@@ -238,7 +238,7 @@ public:
         mFlags = BlockType();
     }
 
-    const Flags False() const
+    Flags SetToFalse() const
     {
         Flags this_flag_false(*this);
         this_flag_false.mFlags = !((*this).mFlags);

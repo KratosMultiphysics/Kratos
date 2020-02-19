@@ -48,6 +48,11 @@ Flags FlagsAnd(const Flags& Left, const Flags& Right )
     return (Left&Right);
 }
 
+Flags FlagsFalse(const Flags& ThisFlag)
+{
+    return ThisFlag.SetToFalse();
+}
+
 void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
 {
     ThisFlag.Set(OtherFlag);
@@ -239,7 +244,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Reset", &Flags::Reset)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
-    .def("False", &Flags::False)
+    .def("SetToFalse", &Flags::SetToFalse)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
     .def("__str__", PrintObject<Flags>)

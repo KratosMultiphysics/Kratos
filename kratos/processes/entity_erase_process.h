@@ -82,7 +82,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = REMOVE_FROM_ALL_LEVELS.False() | ERASE_ALL_ENTITIES.False()
+        Flags Options = REMOVE_FROM_ALL_LEVELS.SetToFalse() | ERASE_ALL_ENTITIES.SetToFalse()
         );
 
     /**

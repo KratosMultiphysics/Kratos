@@ -90,7 +90,7 @@ public:
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
         bool ThrowErrors,
-        Flags options = COMPUTE_NODAL_NORMALS.False() | COMPUTE_CONDITION_NORMALS.False() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.False() | ALLOW_REPEATED_CONDITIONS.False()
+        Flags options = COMPUTE_NODAL_NORMALS.SetToFalse() | COMPUTE_CONDITION_NORMALS.SetToFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.SetToFalse() | ALLOW_REPEATED_CONDITIONS.SetToFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(ThrowErrors), //to be changed to a flag
@@ -101,7 +101,7 @@ public:
 
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
-        Flags options = COMPUTE_NODAL_NORMALS.False() | COMPUTE_CONDITION_NORMALS.False() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.False() | ALLOW_REPEATED_CONDITIONS.False()
+        Flags options = COMPUTE_NODAL_NORMALS.SetToFalse() | COMPUTE_CONDITION_NORMALS.SetToFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.SetToFalse() | ALLOW_REPEATED_CONDITIONS.SetToFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(false),
