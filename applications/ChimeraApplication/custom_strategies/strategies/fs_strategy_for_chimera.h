@@ -337,7 +337,7 @@ protected:
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
                 } else {
-                    KRATOS_WARNING("1. Nodal area too small ! ")<<std::endl;
+                    KRATOS_WARNING_ONCE("Nodal area too small ! ")<<std::endl;
                 }
             }
         }
@@ -438,7 +438,7 @@ protected:
                         if ( ! itNode->IsFixed(VELOCITY_Z) )
                             itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
                     } else {
-                        KRATOS_WARNING("2. Nodal area too small ! ")<<std::endl;
+                        KRATOS_WARNING_ONCE("Nodal area too small ! ")<<std::endl;
                     }
                 }
             }
@@ -507,7 +507,7 @@ protected:
                         if ( ! itNode->IsFixed(VELOCITY_Y) )
                             itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
                     } else {
-                        KRATOS_WARNING("3. Nodal area too small ! ")<<std::endl;
+                        KRATOS_WARNING_ONCE("Nodal area too small ! ")<<std::endl;
                     }
                 }
             }
@@ -625,7 +625,7 @@ protected:
                 itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
                 itNode->GetValue(DIVPROJ) = 0.0;
             } else {
-                KRATOS_WARNING("4. Nodal area too small ! ")<<std::endl;
+                KRATOS_WARNING_ONCE("Nodal area too small ! ")<<std::endl;
             }
         }
      }
