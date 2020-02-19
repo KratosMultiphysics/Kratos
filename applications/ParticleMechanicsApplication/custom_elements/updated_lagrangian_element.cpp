@@ -29,9 +29,6 @@
 namespace Kratos
 {
 
-//************************************************************************************
-//************************************************************************************
-
 void UpdatedLagrangianElement::Initialize()
 {
     KRATOS_TRY
@@ -271,7 +268,6 @@ void UpdatedLagrangianElement::CalculateKinematics(
 
     KRATOS_CATCH( "" )
 }
-//************************************************************************************
 
 void UpdatedLagrangianElement::CalculateBMatrix(
     Matrix& rB, const Matrix& rDN_DX) const
@@ -460,10 +456,6 @@ void UpdatedLagrangianElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
     KRATOS_CATCH( "" )
 }
 
-
-////************************************************************************************
-////************************************************************************************
-
 void UpdatedLagrangianElement::FinalizeStepVariables(
     KinematicVariables& rVariables,
     ConstitutiveVariables& rConstitutiveVariables,
@@ -501,7 +493,8 @@ void UpdatedLagrangianElement::FinalizeStepVariables(
 }
 
 /// The position of the Gauss points/Material points is updated
-void UpdatedLagrangianElement::UpdateGaussPoint(const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianElement::UpdateGaussPoint(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -605,8 +598,6 @@ Matrix& UpdatedLagrangianElement::SetCurrentDisplacement(
 
 double UpdatedLagrangianElement::CalculateIntegrationWeight(const KinematicVariables& rKinematicVariables)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/
