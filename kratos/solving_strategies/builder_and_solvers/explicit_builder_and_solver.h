@@ -16,13 +16,14 @@
 
 /* System includes */
 #include <set>
+#include <unordered_set>
 
 /* External includes */
 
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-// #include "solving_strategies/schemes/scheme.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -121,81 +122,6 @@ public:
     /// Pointer definition of ExplicitBuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilderAndSolver);
 
-    /**
-     * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise builder and solver
-     * @details Private pointers can only be accessed by means of set and get functions this allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
-     */
-    struct GlobalSystemComponents
-    {
-    private:
-
-      // Elements
-      std::vector<TSystemMatrixType> *mpLHS_Element_Components;
-      const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Element_Variables;
-
-      std::vector<TSystemVectorType> *mpRHS_Element_Components;
-      const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-
-      // Conditions
-      std::vector<TSystemMatrixType> *mpLHS_Condition_Components;
-      const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
-
-      std::vector<TSystemVectorType> *mpRHS_Condition_Components;
-      const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-
-    public:
-
-      void Initialize()
-      {
-          mpLHS_Element_Components = NULL;
-          mpLHS_Element_Variables  = NULL;
-
-          mpRHS_Element_Components = NULL;
-          mpRHS_Element_Variables  = NULL;
-
-          mpLHS_Condition_Components = NULL;
-          mpLHS_Condition_Variables  = NULL;
-
-          mpRHS_Condition_Components = NULL;
-          mpRHS_Condition_Variables  = NULL;
-      }
-
-      // Setting pointer variables
-
-      // Elements
-      void SetLHS_Element_Components ( std::vector<TSystemMatrixType>& rLHS_Element_Components ) { mpLHS_Element_Components = &rLHS_Element_Components; };
-      void SetLHS_Element_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Element_Variables ) { mpLHS_Element_Variables = &rLHS_Element_Variables; };
-      void SetRHS_Element_Components ( std::vector<TSystemVectorType>& rRHS_Element_Components ) { mpRHS_Element_Components = &rRHS_Element_Components; };
-      void SetRHS_Element_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Element_Variables ) { mpRHS_Element_Variables = &rRHS_Element_Variables; };
-
-      bool Are_LHS_Element_Components_Set() { if( mpLHS_Element_Variables == NULL ) return false; else return true; };
-      bool Are_RHS_Element_Components_Set() { if( mpRHS_Element_Variables == NULL ) return false; else return true; };
-
-      // Conditions
-      void SetLHS_Condition_Components ( std::vector<TSystemMatrixType>& rLHS_Condition_Components ) { mpLHS_Condition_Components = &rLHS_Condition_Components; };
-      void SetLHS_Condition_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Condition_Variables ) { mpLHS_Condition_Variables = &rLHS_Condition_Variables; };
-      void SetRHS_Condition_Components ( std::vector<TSystemVectorType>& rRHS_Condition_Components ) { mpRHS_Condition_Components = &rRHS_Condition_Components; };
-      void SetRHS_Condition_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Condition_Variables ) { mpRHS_Condition_Variables = &rRHS_Condition_Variables; };
-
-      bool Are_LHS_Condition_Components_Set() { if( mpLHS_Condition_Variables == NULL ) return false; else return true; };
-      bool Are_RHS_Condition_Components_Set() { if( mpRHS_Condition_Variables == NULL ) return false; else return true; };
-
-      //getting pointer variables
-
-      // Elements
-      std::vector<TSystemMatrixType>& GetLHS_Element_Components() { return *mpLHS_Element_Components; };
-      const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Element_Variables() { return *mpLHS_Element_Variables; };
-      std::vector<TSystemVectorType>& GetRHS_Element_Components() { return *mpRHS_Element_Components; };
-      const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Element_Variables() { return *mpRHS_Element_Variables; };
-
-      // Conditions
-      std::vector<TSystemMatrixType>& GetLHS_Condition_Components() { return *mpLHS_Condition_Components; };
-      const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
-      std::vector<TSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
-      const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-
-    };
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -227,14 +153,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    /**
-     * Component wise components Get method
-     */
-    virtual GlobalSystemComponents& GetGlobalSystemComponents()
-    {
-        KRATOS_ERROR <<  "Asking for Global Components to the BUIDER and SOlVER base class which is not component wise and not contains this member variable" << std::endl;
-    }
 
     /**
      * @brief This method returns the flag mCalculateReactionsFlag
@@ -461,13 +379,12 @@ public:
      * @details The list of dofs is stores insde the ExplicitBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
      */
-    virtual void SetUpDofSet(ModelPart& rModelPart)
+    virtual void SetUpDofSet(const ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
         KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << OpenMPUtils::GetNumThreads() << "\n" << std::endl;
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Number of threads" << OpenMPUtils::GetNumThreads() << "\n" << std::endl;
 
         // Gets the array of elements, conditions and constraints from the modeler
         const auto &r_elements_array = rModelPart.Elements();
@@ -494,7 +411,7 @@ public:
             dofs_tmp_set.reserve(20000);
 
             // Get the DOFs list from each element and insert it in the temporary set
-            #pragma omp for schedule(guided, 512) nowait
+#pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
                 const auto it_elem = r_elements_array.begin() + i_elem;
                 it_elem->GetDofList(dof_list, r_process_info);
@@ -502,7 +419,7 @@ public:
             }
 
             // Get the DOFs list from each condition and insert it in the temporary set
-            #pragma omp for schedule(guided, 512) nowait
+#pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
                 const auto it_cond = r_conditions_array.begin() + i_cond;
                 it_cond->GetDofList(dof_list, r_process_info);
@@ -510,7 +427,7 @@ public:
             }
 
             // Get the DOFs list from each constraint and insert it in the temporary set
-            #pragma omp for  schedule(guided, 512) nowait
+#pragma omp for  schedule(guided, 512) nowait
             for (int i_const = 0; i_const < n_constraints; ++i_const) {
                 auto it_const = r_constraints_array.begin() + i_const;
                 it_const->GetDofList(dof_list, second_dof_list, r_process_info);
@@ -557,6 +474,78 @@ public:
         KRATOS_CATCH("");
     }
 
+    virtual void SetUpDofSetEquationIds()
+    {
+        auto& r_dof_set = GetDofSet();
+        const SizeType n_dofs = r_dof_set.size();
+
+#pragma omp parallel for firstprivate(n_dofs)
+        for (int i_dof = 0; i_dof < static_cast<int>(n_dofs); ++i_dof) {
+            auto it_dof = r_dof_set.begin() + i_dof;
+            it_dof->SetEquationId(i_dof);
+        }
+    }
+
+    virtual void SetUpLumpedMassMatrixVector(const ModelPart &rModelPart)
+    {
+        KRATOS_TRY;
+
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the lumped mass matrix vector" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Number of threads" << OpenMPUtils::GetNumThreads() << "\n" << std::endl;
+
+        // Initialize the lumped mass matrix vector
+        // Note that the lumped mass matrix vector size matches the dof set one
+        mpLumpedMassMatrixVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
+        TDenseSpace::SetToZero(*mpLumpedMassMatrixVector);
+
+        // Loop the elements to get the mass matrix
+        LocalSystemVectorType elem_mass_vector;
+        LocalSystemMatrixType elem_mass_matrix;
+        const auto &r_elements_array = rModelPart.Elements();
+        const auto &r_process_info = rModelPart.GetProcessInfo();
+        const SizeType n_elems = static_cast<int>(r_elements_array.size());
+
+#pragma omp for private(elem_mass_vector, elem_mass_matrix) schedule(guided, 512) nowait
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+            const auto it_elem = r_elements_array.begin() + i_elem;
+            auto& r_geom = it_elem->GetGeometry();
+
+            // Calculate the elemental lumped mass vector
+            it_elem->CalculateMassMatrix(elem_mass_matrix, r_process_info);
+            const SizeType n_dofs_elem = elem_mass_matrix.size2();
+            if (elem_mass_vector.size() != n_dofs_elem) {
+                TDenseSpace::Resize(elem_mass_vector, n_dofs_elem);
+            }
+            for (IndexType i = 0; i < elem_mass_matrix.size1(); ++i) {
+                elem_mass_vector(i) = 0.0;
+                for (IndexType j = 0; j < elem_mass_matrix.size2(); ++j) {
+                    elem_mass_vector(i) += elem_mass_matrix(i,j);
+                }
+            }
+
+            // Set it in the global lumped mass vector
+            const SizeType n_nodes = r_geom.PointsNumber();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                const auto& r_node_dofs = r_geom[i_node].GetDofs();
+                const SizeType n_dofs = r_node_dofs.size();
+                for (int i_dof = 0; i_dof < static_cast<int>(n_dofs); ++i_dof) {
+                    const SizeType eq_id = r_node_dofs[i_dof]->EquationId();
+                    const double aux_mass = elem_mass_vector(i_node * n_dofs + i_dof);
+// NOTE THAT THIS IS A BOTTLENECK--> WE ASSUME THAT WE WILL NOT USE THE SPACES IN HERE
+// #pragma omp critical
+//                     {
+//                     const double mass_value = TDenseSpace::GetValue(*mpLumpedMassMatrixVector, eq_id);
+//                     TDenseSpace::SetValue(*mpLumpedMassMatrixVector, eq_id, aux_mass + mass_value);
+//                     }
+#pragma omp atomic
+                    (*mpLumpedMassMatrixVector)[eq_id] += aux_mass;
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
     /**
      * @brief It allows to get the list of Dofs from the element
      */
@@ -566,27 +555,23 @@ public:
     }
 
     /**
-     * @brief It organises the dofset in order to speed up the building phase
-     * @param rModelPart The model part to compute
+     * @brief Get the lumped mass matrix vector pointer
+     * It allows to get the lumped mass matrix vector pointer
+     * @return TSystemVectorPointerType& The lumped mass matrix vector pointer
      */
-    virtual void SetUpSystem(ModelPart& rModelPart)
+    virtual TSystemVectorPointerType& pGetLumpedMassMatrixVector()
     {
+        return mpLumpedMassMatrixVector;
     }
 
     /**
-     * @brief This method initializes and resizes the system of equations
-     * @param rModelPart The model part to compute
-     * @param pA The pointer to LHS matrix of the system of equations
-     * @param pDx The pointer to  vector of unkowns
-     * @param pb The pointer to  RHS vector of the system of equations
+     * @brief Get the lumped mass matrix vector
+     * It allows to get the lumped mass matrix vector
+     * @return TSystemVectorType& The lumped mass matrix vector
      */
-    virtual void ResizeAndInitializeVectors(
-        TSystemMatrixPointerType& pA,
-        TSystemVectorPointerType& pDx,
-        TSystemVectorPointerType& pb,
-        ModelPart& rModelPart
-        )
+    virtual TSystemVectorType& GetLumpedMassMatrixVector()
     {
+        return (*mpLumpedMassMatrixVector);
     }
 
     /**
@@ -622,30 +607,15 @@ public:
      * @param rDx The vector of unkowns
      * @param rb The RHS vector of the system of equations
      */
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
+    virtual void FinalizeSolutionStep(ModelPart& rModelPart)
     {
     }
 
     /**
      * @brief It computes the reactions of the system
-    //  * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
      */
-    virtual void CalculateReactions(
-        // typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
+    virtual void CalculateReactions(ModelPart& rModelPart)
     {
         // TODO
         // THIS IS MINUS THE RHS
@@ -675,6 +645,7 @@ public:
         KRATOS_TRY
 
         return 0;
+
         KRATOS_CATCH("");
     }
 
@@ -751,6 +722,8 @@ protected:
     ///@{
 
     DofsArrayType mDofSet; /// The set containing the DoF of the system
+
+    TSystemVectorPointerType mpLumpedMassMatrixVector;
 
     bool mReshapeMatrixFlag = false;  /// If the matrix is reshaped each step
 

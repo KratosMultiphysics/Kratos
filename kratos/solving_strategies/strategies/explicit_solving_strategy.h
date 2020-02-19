@@ -174,9 +174,6 @@ public:
      */
     virtual void Initialize()
     {
-        // Calculate the NODAL_AREA (false says to save it in the non-historical database)
-        const unsigned int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        CalculateNodalAreaProcess<true>(mrModelPart, domain_size).Execute();
     }
 
     /**
