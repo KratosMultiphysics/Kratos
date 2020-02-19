@@ -679,7 +679,7 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem
     CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kg to the rLefsHandSideMatrix
-    if (!rCurrentProcessInfo.Has(IMPLICIT_IS_LINEAR))
+    if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
     {
         CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
     }

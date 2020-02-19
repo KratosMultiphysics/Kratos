@@ -556,7 +556,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& r
             }
 
             if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX && 
-                !rCurrentProcessInfo.Has(IMPLICIT_IS_LINEAR))
+                !rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
             {
                 // Operation performed: add Kg to the rLefsHandSideMatrix
                 this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
@@ -573,7 +573,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& r
         // Operation performed: add K_material to the rLefsHandSideMatrix
         this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-        if (!rCurrentProcessInfo.Has(IMPLICIT_IS_LINEAR))
+        if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
         {
             // Operation performed: add K_geometry to the rLefsHandSideMatrix
             this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);

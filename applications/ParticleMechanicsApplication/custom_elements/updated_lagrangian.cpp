@@ -553,7 +553,7 @@ void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
             }
 
             if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX &&
-                !rCurrentProcessInfo.Has(IMPLICIT_IS_LINEAR))
+                !rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
             {
                 // Operation performed: add K_geometry to the rLefsHandSideMatrix
                 this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
@@ -571,7 +571,7 @@ void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
         this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
         // Operation performed: add K_geometry to the rLefsHandSideMatrix
-        if (!rCurrentProcessInfo.Has(IMPLICIT_IS_LINEAR))
+        if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
         {
             this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
         }
