@@ -71,7 +71,8 @@ void DEMWall::CalculateRightHandSide(
     ProcessInfo& r_process_info) {
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize = number_of_nodes * dim;
 
     if (rRightHandSideVector.size() != MatSize) {
         rRightHandSideVector.resize(MatSize, false);
@@ -97,9 +98,10 @@ void DEMWall::CalculateRightHandSide(
             weights_vector[j] = r_shape_functions_values[j];
         }
         for (unsigned int k=0; k< number_of_nodes; k++) {
-            rRightHandSideVector[k * 3 + 0] += force[0] * weights_vector[k];
-            rRightHandSideVector[k * 3 + 1] += force[1] * weights_vector[k];
-            rRightHandSideVector[k * 3 + 2] += force[2] * weights_vector[k];
+            unsigned int w =  k * dim;
+            for(size_t l=0; l<dim; l++) {
+                rRightHandSideVector[w + l] += force[l] * weights_vector[k];
+            }
         }
 
         //AddForcesDueToTorque(rRightHandSideVector, r_shape_functions_values, weights_vector, force, p_particle);
@@ -113,9 +115,10 @@ void DEMWall::CalculateRightHandSide(
         ComputeForceAndWeightsOfSphereOnThisFace(rNeighbours[i], force, weights_vector);
 
         for (unsigned int k=0; k< number_of_nodes; k++) {
-            rRightHandSideVector[k * 3 + 0] += -force[0] * weights_vector[k];
-            rRightHandSideVector[k * 3 + 1] += -force[1] * weights_vector[k];
-            rRightHandSideVector[k * 3 + 2] += -force[2] * weights_vector[k];
+            unsigned int w =  k * dim;
+            for(size_t l=0; l<dim; l++) {
+                rRightHandSideVector[w + l] += -force[l] * weights_vector[k];
+            }
         }
     }
 }
