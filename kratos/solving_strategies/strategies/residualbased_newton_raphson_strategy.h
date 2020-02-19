@@ -128,6 +128,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
+          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
@@ -188,6 +189,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
+          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
@@ -234,6 +236,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
+          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -289,6 +292,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
+          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -415,6 +419,24 @@ class ResidualBasedNewtonRaphsonStrategy
     bool GetCalculateReactionsFlag()
     {
         return mCalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mFullUpdateFlag
+     * @param FullUpdateFlag The flag that tells if
+     */
+    void SetFullUpdateFlag(bool FullUpdateFlag)
+    {
+        mFullUpdateFlag = FullUpdateFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mFullUpdateFlag
+     * @return The flag that tells if
+     */
+    bool GetFullUpdateFlag()
+    {
+        return mFullUpdateFlag;
     }
 
     /**
@@ -1084,6 +1106,12 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool mCalculateReactionsFlag;
 
+    /**
+     * @brief Flag telling if a full update of the database will be performed at the first iteration
+     * @details default = false
+     */
+    bool mFullUpdateFlag;
+
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
     unsigned int mMaxIterationNumber; /// The maximum number of iterations, 30 by default
@@ -1170,6 +1198,7 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual Parameters GetDefaultSettings()
     {
         Parameters default_settings(R"({
+            "full_update_at_first_iteration": false,
             "max_iterations"           : 30,
             "reform_dofs_at_each_step" : false,
             "calculate_reactions"      : false
@@ -1186,6 +1215,7 @@ class ResidualBasedNewtonRaphsonStrategy
         mMaxIterationNumber = Settings["max_iterations"].GetInt();
         mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
         mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
+        mFullUpdateFlag = Settings["full_update_at_first_iteration"].GetBool();
     }
 
     ///@}
