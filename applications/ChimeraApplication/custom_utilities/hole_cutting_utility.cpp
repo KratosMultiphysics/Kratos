@@ -32,13 +32,12 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
 
     for (auto& i_element : rModelPart.Elements()) {
         const auto& p_elem = rModelPart.pGetElement(i_element.Id());
-        double nodal_distance = 0.0;
         bool is_elem_outside = true;
         Geometry<Node<3>>& geom = i_element.GetGeometry();
         int num_nodes_outside = 0;
 
         for (auto& node : geom) {
-            nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
+            double nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
             nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance) {
@@ -223,7 +222,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
     // Add skin faces as triangles to skin-model-part (loop over all node sets)
     std::vector<IndexType> vector_of_node_ids;
     for (typename hashmap::const_iterator it = n_faces_map.begin();
-         it != n_faces_map.end(); it++) {
+         it != n_faces_map.end(); ++it) {
         // If given node set represents face that is not overlapping with a face
         // of
         // another element, add it as skin element

@@ -443,10 +443,6 @@ void ApplyChimera<TDim>::FormulateConstraints(
                                 rVelocityMasterSlaveContainerVector, \
                                 rPressureMasterSlaveContainerVector, rBinLocator) reduction(+:found_counter)
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
-        auto& ms_velocity_container =
-            rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
-        auto& ms_pressure_container =
-            rPressureMasterSlaveContainerVector[omp_get_thread_num()];
 
         ModelPart::NodesContainerType::iterator i_boundary_node =
             rBoundaryModelPart.NodesBegin() + i_bn;
@@ -456,6 +452,10 @@ void ApplyChimera<TDim>::FormulateConstraints(
         Vector weights;
         bool is_found = SearchNode(rBinLocator, r_boundary_node, r_host_element, weights);
         if (is_found) {
+            auto& ms_velocity_container =
+                rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
+            auto& ms_pressure_container =
+                rPressureMasterSlaveContainerVector[omp_get_thread_num()];
             removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
             MakeConstraints(r_boundary_node, r_host_element, weights,
                             ms_velocity_container, ms_pressure_container,
@@ -614,7 +614,6 @@ void ApplyChimera<TDim>::MakeConstraints(
     ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, PRESSURE,
                                StartConstraintId + init_index,
                                rConstraintIdVector, rPressureMsConstraintsVector);
-    init_index += (TDim + 1);
 }
 
 

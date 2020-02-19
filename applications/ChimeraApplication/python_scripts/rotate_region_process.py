@@ -1,9 +1,9 @@
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
 import warnings
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if ( not isinstance(settings, KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyRotateRegionProcess(Model, settings["Parameters"])
 

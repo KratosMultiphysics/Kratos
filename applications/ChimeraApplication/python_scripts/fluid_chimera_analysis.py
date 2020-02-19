@@ -74,9 +74,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         solver_type = self.fluid_parameters["solver_type"].GetString()
 
 
-        '''
-            Creating the necessary variant of the apply chimera process.
-        '''
+        # Creating the necessary variant of the apply chimera process.
         if domain_size == 2:
             if(solver_type == "Monolithic" or solver_type == "monolithic" or solver_type == "chimera_embedded"):
                 self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_levels)
@@ -109,18 +107,18 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         self.chimera_process.ExecuteInitializeSolutionStep()
         self._GetSolver().InitializeSolutionStep()
 
-    def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage
-        It can be overridden by derived classes
-        """
-        while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()
-            #self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+    # def RunSolutionLoop(self):
+    #     """This function executes the solution loop of the AnalysisStage
+    #     It can be overridden by derived classes
+    #     """
+    #     while self.KeepAdvancingSolutionLoop():
+    #         self.time = self._GetSolver().AdvanceInTime(self.time)
+    #         self.InitializeSolutionStep()
+    #         self._GetSolver().Predict()
+    #         is_converged = self._GetSolver().SolveSolutionStep()
+    #         #self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+    #         self.FinalizeSolutionStep()
+    #         self.OutputSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(FluidChimeraAnalysis,self).FinalizeSolutionStep()
