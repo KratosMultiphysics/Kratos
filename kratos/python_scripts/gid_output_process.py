@@ -31,7 +31,7 @@ class GiDOutputProcess(KM.Process):
             },
             "file_label": "time",
             "output_control_type": "step",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "flush_after_output": false,
             "body_output": true,
             "node_output": false,
@@ -98,7 +98,9 @@ class GiDOutputProcess(KM.Process):
         if param is None:
             param = self.defaults
         else:
-            # Note: this only validadtes the first level of the JSON tree.
+            # Warning: we may be changing the parameters object here:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+            # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
@@ -126,6 +128,30 @@ class GiDOutputProcess(KM.Process):
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
+
+
+    @staticmethod
+    def HasDeprecatedVariable(self, param, old_variable_name, new_variable_name):
+        if param.Has(old_variable_name) and not param.Has(new_variable_name):
+            KM.Logger.PrintWarning('\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                'The input variable \'' + old_variable_name + '\' is deprecated; use \'' + new_variable_name + '\' instead.'
+                )
+            return True
+        return False
+
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, param):
+        if self.HasDeprecatedVariable(param, 'output_frequency', 'output_interval'):
+            if para.Has('output_control_type'):
+                control_type = param.GetValue('output_control_type')
+            else:
+                control_type = control_type = self.defaults.GetString('output_control_type')
+
+            if control_type == 'step':
+                param['output_interval'].SetInt(param['output_frequency'].GetInt())
+            else:
+                param['output_interval'].SetDouble(param['output_frequency'].GetDouble())
+
+            param.Remove('output_interval')
 
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
@@ -185,7 +211,8 @@ class GiDOutputProcess(KM.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
+
         self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
         # get .post.lst files
