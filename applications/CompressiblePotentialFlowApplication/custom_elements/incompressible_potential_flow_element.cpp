@@ -247,10 +247,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
         rValues.resize(1);
     if (rVariable == VELOCITY)
     {
+        const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k];
+            v[k] = vaux[k] + vinfinity[k];
         rValues[0] = v;
     }
 }
@@ -402,8 +403,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
+    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& velocity = vinfinity + PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+
+    // if(this->Id()==1){
+    //     KRATOS_WATCH(vinfinity)
+    //     KRATOS_WATCH(velocity)
+    // }
+
+    const BoundedMatrix<double, NumNodes, NumNodes> RightHandSideMatrix =
+        data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
+
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
+    noalias(rRightHandSideVector) = - data.vol * free_stream_density * prod(data.DN_DX, velocity);
+    //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
 
 template <int Dim, int NumNodes>
@@ -444,9 +457,50 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
 
+    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& upper_velocity = vinfinity + PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
+    const array_1d<double, Dim>& lower_velocity = vinfinity + PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+    const array_1d<double, Dim>& diff_velocity = upper_velocity - lower_velocity;
+
+    const BoundedVector<double, NumNodes> upper_rhs = - data.vol * free_stream_density * prod(data.DN_DX, upper_velocity);
+    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs_2 = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+
     BoundedVector<double, 2*NumNodes> split_element_values;
     split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
+    const BoundedVector<double, NumNodes> wake_rhs = - prod(rLeftHandSideMatrix, split_element_values);
+
+    for (unsigned int i = 0; i < NumNodes; ++i){
+        if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
+            rRightHandSideVector[i] = upper_rhs(i);
+            rRightHandSideVector[i + NumNodes] = - lower_rhs(i);
+            // rRightHandSideVector[i] = wake_rhs(i);
+            // rRightHandSideVector[i + NumNodes] = wake_rhs(i + NumNodes);
+        }
+        else{
+            if (data.distances[i] > 0.0){
+                rRightHandSideVector[i] = upper_rhs(i);
+                //rRightHandSideVector[i + NumNodes] = wake_rhs(i + NumNodes);
+                rRightHandSideVector[i + NumNodes] = wake_rhs_2(i);
+            }
+            else{
+                rRightHandSideVector[i] = wake_rhs_2(i);
+                rRightHandSideVector[i + NumNodes] = lower_rhs(i);
+            }
+        }
+    }
+
+    if(this->Id()==720){
+        KRATOS_WATCH(upper_velocity)
+        KRATOS_WATCH(lower_velocity)
+        KRATOS_WATCH(diff_velocity)
+        KRATOS_WATCH(upper_rhs)
+        KRATOS_WATCH(lower_rhs)
+        KRATOS_WATCH(wake_rhs_2)
+        KRATOS_WATCH(wake_rhs)
+        KRATOS_WATCH(rRightHandSideVector)
+    }
+    //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
