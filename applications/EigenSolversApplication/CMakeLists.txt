@@ -38,6 +38,17 @@ if( USE_EIGEN_MKL MATCHES ON )
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
+# if(${INCLUDE_FEAST} MATCHES ON)
+if (NOT DEFINED FEAST_ROOT)
+    set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST/4.0 )
+    # set(FEAST_ROOT /home/quirin/compiled/FEAST/4.0 )
+endif(NOT DEFINED FEAST_ROOT)
+#   link_directories( ${FEAST_ROOT}/lib/x64 )
+include(CMakeAddFortranSubdirectory)
+cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST NO_EXTERNAL_INSTALL )
+#   cmake_add_fortran_subdirectory(/home/quirin/compiled/FEAST NO_EXTERNAL_INSTALL )
+include_directories( ${FEAST_ROOT}/include )
+
 ## generate variables with the sources
 set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
@@ -57,6 +68,12 @@ add_library( KratosEigenSolversCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_COR
 target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
+# add_library(feast)
+# target_link_libraries(feast mkl_rt)
+set(FEAST_LINK_LIBS feast mkl_rt gfortran m)
+message(mkl_rt)
+target_link_libraries(KratosEigenSolversCore PRIVATE ${FEAST_LINK_LIBS})
+
 ## EigenSolversApplication python module
 pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosEigenSolversApplication PRIVATE KratosEigenSolversCore )
@@ -73,6 +90,8 @@ if( USE_EIGEN_MKL MATCHES ON )
         target_link_libraries( KratosEigenSolversCore PUBLIC mkl_rt )
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
+
+
 
 # changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )

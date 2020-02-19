@@ -33,6 +33,7 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#include "custom_solvers/feast_eigensystem_solver.h"
 #endif
 
 #include "factories/standard_linear_solver_factory.h"
@@ -78,14 +79,13 @@ void register_dense_solver(pybind11::module& m, const std::string& name)
     ;
 }
 
+template<typename EigenSystemSolverType>
 void register_eigensystem_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
     using Base = LinearSolver<UblasSpace<double, CompressedMatrix, Vector>,
         UblasSpace<double, Matrix, Vector>>;
-
-    using EigenSystemSolverType = EigensystemSolver<>;
 
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
         (m, name.c_str())
@@ -184,7 +184,8 @@ void AddCustomSolversToPython(pybind11::module& m)
 
     // --- eigensystem solver
 
-    register_eigensystem_solver(m, "EigensystemSolver");
+    register_eigensystem_solver<EigensystemSolver<>>(m, "EigensystemSolver");
+    register_eigensystem_solver<FEASTEigensystemSolver<>>(m, "FEASTEigensystemSolver");
 }
 
 } // namespace Python
