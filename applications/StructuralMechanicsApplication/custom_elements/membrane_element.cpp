@@ -355,7 +355,12 @@ void MembraneElement::StressPk2(Vector& rStress,
     element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
-    AddPreStressPk2(rStress,rTransformedBaseVectors);
+    if (Has(MEMBRANE_PRESTRESS)){
+        Matrix stress_input = GetValue(MEMBRANE_PRESTRESS);
+        rStress += column(stress_input,rIntegrationPointNumber);
+    } else {
+        AddPreStressPk2(rStress,rTransformedBaseVectors);
+    }
 }
 
 void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
@@ -453,23 +458,12 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
-    Vector dg1 = ZeroVector(dimension);
-    Vector dg2 = ZeroVector(dimension);
-    Vector dudur = ZeroVector(dimension*number_of_nodes);
-    dudur[DofR] = 1.0;
-
-    for (SizeType i=0;i<number_of_nodes;++i){
-        dg1[0] += (dudur[(i*dimension)+0]) * rShapeFunctionGradientValues(i, 0);
-        dg1[1] += (dudur[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
-        dg1[2] += (dudur[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
-
-        dg2[0] += (dudur[(i*dimension)+0]) * rShapeFunctionGradientValues(i, 1);
-        dg2[1] += (dudur[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
-        dg2[2] += (dudur[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
+    const SizeType dof_nr = DofR%dimension;
+    const SizeType node_nr = (DofR-dof_nr)/dimension;
+    for (SizeType i=0;i<2;++i){
+        rBaseVectors[i] = ZeroVector(dimension);
+        rBaseVectors[i][dof_nr] = rShapeFunctionGradientValues(node_nr, i);
     }
-    rBaseVectors[0] = dg1;
-    rBaseVectors[1] = dg2;
 }
 
 void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
@@ -949,7 +943,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
 void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-
         rOutput = ZeroMatrix(3);
         array_1d<Vector,2> base_vectors_current_cov;
         const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
@@ -974,6 +967,18 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         column(rOutput,0) = base_1;
         column(rOutput,1) = base_2;
         column(rOutput,2) = base_3;
+    }
+    else if (rVariable == MEMBRANE_PRESTRESS) {
+        std::vector< Vector > prestress_matrix;
+        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
+
+        rOutput = ZeroMatrix(3,r_integration_points.size());
+
+        // each column represents 1 GP
+        for (SizeType i=0;i<r_integration_points.size();++i){
+            column(rOutput,i) = prestress_matrix[i];
+        }
     }
 }
 
@@ -1157,20 +1162,21 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
+    if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
 
-    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+        const SizeType number_of_nodes = r_geom.size();
+        const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+        Vector lump_fact =  ZeroVector(number_of_nodes);
+        r_geom.LumpingFactors(lump_fact);
 
-    Vector lump_fact =  ZeroVector(number_of_nodes);
-    r_geom.LumpingFactors(lump_fact);
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            const double temp = lump_fact[i] * total_mass;
 
-    for (SizeType i = 0; i < number_of_nodes; ++i) {
-        const double temp = lump_fact[i] * total_mass;
-
-        for (SizeType j = 0; j < 3; ++j)
-        {
-            const SizeType index = i * 3 + j;
-            rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            for (SizeType j = 0; j < 3; ++j)
+            {
+                const SizeType index = i * 3 + j;
+                rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            }
         }
     }
     KRATOS_CATCH("")

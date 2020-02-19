@@ -93,7 +93,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/constraint_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sensitivity_builder.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/os_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
@@ -111,6 +110,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/amgcl_solver_impl.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/communication_coloring_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constraints/slip_constraint.cpp
 )
 
 ## Kratos python interface code

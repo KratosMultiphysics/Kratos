@@ -29,7 +29,8 @@ class ProjectVectorOnSurfaceProcess(KM.Process):
             "global_direction" : [1,0,0],
             "variable_name"    : "PLEASE_SPECIFY",
             "visualize_in_vtk" : false,
-            "method_specific_settings" : { }
+            "method_specific_settings" : { },
+            "check_local_space_dimension" : true
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)

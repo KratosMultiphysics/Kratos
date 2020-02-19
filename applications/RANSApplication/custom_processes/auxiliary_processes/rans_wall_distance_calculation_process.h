@@ -66,7 +66,7 @@ public:
     RansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansWallDistanceCalculationProcess() override;
+    ~RansWallDistanceCalculationProcess() override = default;
 
     ///@}
     ///@name Operators
