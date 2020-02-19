@@ -254,6 +254,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
             v[k] = vaux[k] + vinfinity[k];
         rValues[0] = v;
     }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k];
+        rValues[0] = v;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -473,7 +481,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     for (unsigned int i = 0; i < NumNodes; ++i){
         if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
             rRightHandSideVector[i] = upper_rhs(i);
-            rRightHandSideVector[i + NumNodes] = - lower_rhs(i);
+            rRightHandSideVector[i + NumNodes] = lower_rhs(i);
             // rRightHandSideVector[i] = wake_rhs(i);
             // rRightHandSideVector[i + NumNodes] = wake_rhs(i + NumNodes);
         }
