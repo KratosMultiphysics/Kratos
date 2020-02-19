@@ -110,7 +110,6 @@ void UpdatedLagrangianElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * MP_mass;
         r_geometry[i].UnSetLock();
 
@@ -148,10 +147,12 @@ void UpdatedLagrangianElement::CalculateAll(
     if (CalculateStiffnessMatrixFlag)
     {
         // Operation performed: add K_material to the rLefsHandSideMatrix
-        this->CalculateAndAddKuum(rLeftHandSideMatrix, B, constitutive_variables.ConstitutiveMatrix, integration_weight);
+        this->CalculateAndAddKuum(
+            rLeftHandSideMatrix, B, constitutive_variables.ConstitutiveMatrix, integration_weight);
 
         // Operation performed: add K_geometry to the rLefsHandSideMatrix
-        this->CalculateAndAddKuug(rLeftHandSideMatrix, kinematic_variables.DN_DX, constitutive_variables.StressVector, integration_weight);
+        this->CalculateAndAddKuug(
+            rLeftHandSideMatrix, kinematic_variables.DN_DX, constitutive_variables.StressVector, integration_weight);
     }
     if (CalculateResidualVectorFlag)
     {
@@ -213,8 +214,6 @@ void UpdatedLagrangianElement::CalculateKinematics(
 
     Matrix current_displacement;
     SetCurrentDisplacement(current_displacement);
-
-    KRATOS_WATCH(current_displacement)
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
