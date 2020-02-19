@@ -79,6 +79,7 @@ def AssembleTestSuites():
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
+    nightSuite.addTests(smallSuite)
 
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
 
@@ -102,8 +103,7 @@ def AssembleTestSuites():
 
     ### Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(nightSuite) # already contains smallSuite for visibility
     allSuite.addTests(validationSuite)
 
     return suites
