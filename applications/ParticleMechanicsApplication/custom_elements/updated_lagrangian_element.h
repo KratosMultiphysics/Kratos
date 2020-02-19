@@ -29,28 +29,14 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
 ///@name Kratos Classes
 ///@{
 
 /// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
-
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
+ * This works for geometries in 3D and 2D (base class)
  */
-
 class UpdatedLagrangianElement
     : public Element
 {
@@ -72,6 +58,8 @@ public:
     ///@}
 
 protected:
+    ///@name Structs
+    ///@{
 
     /**
      * Parameters to be used in the Element
@@ -138,6 +126,8 @@ protected:
         }
 
     };
+
+    ///@}
 
 public:
     ///@name Life Cycle
@@ -252,20 +242,13 @@ public:
     ///@name Life Time Operations
     ///@{
 
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
+    /// Called to initialize the element.
     void Initialize() override;
 
-    /**
-     * Called at the beginning of each solution step
-     */
+    /// Called at the beginning of each solution step
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called at the end of eahc solution step
-     */
+    /// Called at the end of eahc solution step
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -280,7 +263,6 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
@@ -306,22 +288,6 @@ public:
             rCurrentProcessInfo,
             true, true);
     }
-
-    /// Check if necessary at certain points!
-    ///**
-    // * this function provides a more general interface to the element.
-    // * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-    // * thus telling what is the desired output
-    // * @param rLeftHandSideMatrices: container with the output left hand side matrices
-    // * @param rLHSVariables: paramter describing the expected LHSs
-    // * @param rRightHandSideVectors: container for the desired RHS output
-    // * @param rRHSVariables: parameter describing the expected RHSs
-    // */
-    //void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-    //                          const std::vector< Variable< MatrixType > >& rLHSVariables,
-    //                          std::vector< VectorType >& rRightHandSideVectors,
-    //                          const std::vector< Variable< VectorType > >& rRHSVariables,
-    //                          ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -351,18 +317,6 @@ public:
             rCurrentProcessInfo,
             false, true);
     }
-
-    /// Check if necessary at certain points!
-    ///**
-    // * this function provides a more general interface to the element.
-    // * it is designed so that rRHSvariables are passed TO the element
-    // * thus telling what is the desired output
-    // * @param rRightHandSideVectors: container for the desired RHS output
-    // * @param rRHSVariables: parameter describing the expected RHSs
-    // */
-    //void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-    //                            const std::vector< Variable< VectorType > >& rRHSVariables,
-    //                            ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
