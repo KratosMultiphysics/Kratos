@@ -95,6 +95,8 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
 
+        self.DEM_parameters["problem_name"].SetString("benchmark_" + str(benchmark_number))
+
         super(DEMBenchmarksAnalysisStage, self).__init__(model, DEM_parameters)
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):

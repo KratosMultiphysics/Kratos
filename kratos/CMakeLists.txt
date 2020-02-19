@@ -12,7 +12,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_pointer_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_application.cpp;
@@ -93,7 +92,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/constraint_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sensitivity_builder.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/os_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
@@ -127,7 +125,6 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
