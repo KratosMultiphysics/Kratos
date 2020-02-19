@@ -135,8 +135,6 @@ public:
 
     /// Empty constructor needed for serialization
     UpdatedLagrangianElement() {
-        mDeterminantF0 = 1.0;
-        mFinalizedStep = false;
     };
 
     /// Default constructors
@@ -144,8 +142,6 @@ public:
         IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
-        mDeterminantF0 = 1.0;
-        mFinalizedStep = false;
     };
 
     /// Default constructors
@@ -153,8 +149,6 @@ public:
         IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
-        mDeterminantF0 = 1.0;
-        mFinalizedStep = false;
     }
 
     ///Copy constructor
@@ -163,7 +157,6 @@ public:
         , mDeformationGradientF0(rOther.mDeformationGradientF0)
         , mDeterminantF0(rOther.mDeterminantF0)
         , mpConstitutiveLaw(rOther.mpConstitutiveLaw)
-        , mFinalizedStep(rOther.mFinalizedStep)
     {
     }
 
@@ -179,9 +172,7 @@ public:
     {
         Element::operator=(rOther);
 
-        mDeformationGradientF0.clear();
         mDeformationGradientF0 = rOther.mDeformationGradientF0;
-
         mDeterminantF0 = rOther.mDeterminantF0;
         mpConstitutiveLaw = rOther.mpConstitutiveLaw;
 
@@ -194,9 +185,7 @@ public:
 
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
+        IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties
     ) const override
     {
         return Kratos::make_intrusive<UpdatedLagrangianElement>(
@@ -205,9 +194,7 @@ public:
 
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
+        IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties
     ) const override
     {
         return Element::Pointer(new UpdatedLagrangianElement(
@@ -421,9 +408,6 @@ protected:
 
     /// Container for constitutive law instances on each integration point
     ConstitutiveLaw::Pointer mpConstitutiveLaw;
-
-    /// Finalize and Initialize label
-    bool mFinalizedStep;
 
     ///@}
     ///@name Protected Operators

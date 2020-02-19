@@ -68,8 +68,6 @@ void UpdatedLagrangianElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
 
-    mFinalizedStep = false;
-
     const array_1d<double, 3>& MP_velocity = this->GetValue(MP_VELOCITY);
     const array_1d<double, 3>& MP_acceleration = this->GetValue(MP_ACCELERATION);
     const double & MP_mass = this->GetValue(MP_MASS);
@@ -438,8 +436,6 @@ void UpdatedLagrangianElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
         kinematic_variables,
         constitutive_variables,
         rCurrentProcessInfo);
-
-    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
