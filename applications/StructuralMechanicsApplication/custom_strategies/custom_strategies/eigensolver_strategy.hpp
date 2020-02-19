@@ -391,8 +391,11 @@ public:
 
         // Initialize dummy rhs vector
         SparseVectorType b;
+        SparseVectorType Dx;
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
+        SparseSpaceType::Resize(Dx,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
+        SparseSpaceType::Set(Dx,0.0);
 
         // Generate lhs matrix. the factor 1 is chosen to preserve
         // SPD property
@@ -402,7 +405,7 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
-        this->ApplyDirichletConditions(rMassMatrix, 1.0);
+        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rMassMatrix, Dx, b);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
@@ -416,7 +419,7 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
-        ApplyDirichletConditions(rStiffnessMatrix,-1.0);
+        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rStiffnessMatrix, Dx, b);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
@@ -678,7 +681,7 @@ private:
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
 
-            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back.
             // // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
             // // the dof ordering must not change.
             // if (NodeDofs.IsSorted() == false)
@@ -687,12 +690,15 @@ private:
             // }
 
             // fill the EIGENVECTOR_MATRIX
-            for (std::size_t i = 0; i < NumEigenvalues; i++)
+            for (std::size_t i = 0; i < NumEigenvalues; i++) {
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
                     auto itDof = std::begin(NodeDofs) + j;
-                    rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
+                    if ((*itDof)->IsFree()) {
+                        rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
+                    }
                 }
+            }
         }
     }
     ///
