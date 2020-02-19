@@ -21,6 +21,9 @@
 #include "particle_mechanics_application_variables.h"
 #include "containers/model.h"
 
+#include "geometries/quadrilateral_3d_4.h"
+#include "utilities/quadrature_points_utility.h"
+
 namespace Kratos
 {
 namespace Testing
@@ -37,31 +40,41 @@ namespace Testing
         auto p_node_3 = rModelPart.CreateNewNode( 3,  1.0 ,  1.0 , 0.0);
         auto p_node_4 = rModelPart.CreateNewNode( 4,  0.0 ,  1.0 , 0.0);
 
-        // Properties
-        Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
-
-        // Elements
-        auto pElement = rModelPart.CreateNewElement("UpdatedLagrangian3D4N", 1, {{1, 2, 3, 4}}, p_elem_prop);
-
-        // For potential energy
+        // Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.0;
         mp_coordinate[1] = 0.5;
         mp_coordinate[2] = 0.0;
+
+        // Properties
+        Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+
+        // Elements
+        auto pGeometry = Kratos::make_shared<Quadrilateral3D4<Node<3>>>(p_node_1, p_node_2, p_node_3, p_node_4);
+
+        auto p_quad = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(pGeometry, mp_coordinate, 1.5);
+
+        const Element& rReferenceElement = KratosComponents<Element>::Get("UpdatedLagrangianElement");
+
+        auto p_element = rReferenceElement.Create(1, p_quad, p_elem_prop);
+
+        rModelPart.AddElement(p_element);
+
+        // For potential energy
         array_1d<double, 3> volume_acceleration;
         volume_acceleration[0] = 0.0;
         volume_acceleration[1] = -9.8;
         volume_acceleration[2] = 0.0;
-        pElement->SetValue(MP_COORD, mp_coordinate);
-        pElement->SetValue(MP_MASS, 1.5);
-        pElement->SetValue(MP_VOLUME_ACCELERATION, volume_acceleration);
+        p_element->SetValue(MP_COORD, mp_coordinate);
+        p_element->SetValue(MP_MASS, 1.5);
+        p_element->SetValue(MP_VOLUME_ACCELERATION, volume_acceleration);
 
         // For kinetic energy
         array_1d<double, 3> velocity;
         velocity[0] = 1.0;
         velocity[1] = 2.0;
         velocity[2] = 3.0;
-        pElement->SetValue(MP_VELOCITY, velocity);
+        p_element->SetValue(MP_VELOCITY, velocity);
 
         // For strain energy
         array_1d<double, 6> mp_cauchy_stress;
@@ -78,9 +91,9 @@ namespace Testing
         mp_strain[3] = 0.4;
         mp_strain[4] = 0.5;
         mp_strain[5] = 0.6;
-        pElement->SetValue(MP_VOLUME, 2.5);
-        pElement->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress);
-        pElement->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_strain);
+        p_element->SetValue(MP_VOLUME, 2.5);
+        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress);
+        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_strain);
 
     }
 
