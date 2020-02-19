@@ -226,7 +226,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{BLOCKED.SetToFalse()});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{BLOCKED.AsFalse()});
 
     // number of removed nodes:
     mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
@@ -929,7 +929,7 @@ class RemoveNodesMesherProcess
     }
 
     //set flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.SetToFalse()});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.AsFalse()});
 
     //nodes
     int i=0,j=0;
@@ -1028,7 +1028,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.SetToFalse()});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.AsFalse()});
 
     return any_condition_removed;
 
@@ -1114,7 +1114,7 @@ class RemoveNodesMesherProcess
 
 
     //set flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.SetToFalse()});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.AsFalse()});
 
 
     //vector of the neighbour conditions
@@ -1416,7 +1416,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.SetToFalse()});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{MODIFIED.AsFalse()});
 
 
     RemovedConditions = rModelPart.Conditions().size() - RemovedConditions;

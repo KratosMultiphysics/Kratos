@@ -168,7 +168,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             clock_time = StartTimeMeasuring()
 
             #add walls in fluid domains:
-            transfer_flags = [KratosMultiphysics.RIGID, (KratosMultiphysics.FLUID).SetToFalse()]
+            transfer_flags = [KratosMultiphysics.RIGID, (KratosMultiphysics.FLUID).AsFalse()]
 
             for solid_part in solid_body_model_parts:
                 set_solid_material_process=KratosPfemFluid.SetMaterialPropertiesToSolidNodes(solid_part)

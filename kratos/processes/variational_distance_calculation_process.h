@@ -124,7 +124,7 @@ public:
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
         unsigned int max_iterations = 10,
-        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.SetToFalse(),
+        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
         std::string AuxPartName = "RedistanceCalculationPart" )
     :
         mdistance_part_is_initialized(false),
@@ -161,7 +161,7 @@ public:
         typename TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver,
         unsigned int MaxIterations = 10,
-        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.SetToFalse(),
+        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
         std::string AuxPartName = "RedistanceCalculationPart" )
     :
         mdistance_part_is_initialized(false),

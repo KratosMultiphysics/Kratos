@@ -21,7 +21,7 @@ public:
         const int node_id = 0,
         const int element_id = 0,
         const int condition_id = 0,
-        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.SetToFalse()):
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse()):
             ReorderConsecutiveModelPartIO(Filename, Options)
     {
         mNumberOfNodes = node_id;

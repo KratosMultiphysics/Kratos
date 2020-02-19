@@ -89,7 +89,7 @@ public:
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
                             const double max_distance,
-                            Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.SetToFalse())
+                            Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse())
     {
         KRATOS_TRY
 
