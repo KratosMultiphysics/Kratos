@@ -181,35 +181,45 @@ public:
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
-    bool SolveSolutionStep() override
+     bool SolveSolutionStep() override
     {
         // Initialize the mass matrix
-      //  if (this->mReformDofSetAtEachStep){
-            ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
-        //}
+        ComputeNodalMass();
+
         // Initialize the first step
-        SetVariablesToZero(DENSITY_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);    // AM: Modificato da me
-     
+        SetVariablesToZero(DENSITY_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
+        int step = 0;
+
+        // Compute the slope
+        AddExplicitRHSContributions();
+
+        // Compute the RK step
+        RungeKuttaStep(step);
+
         // Perform the RK steps
-        for (int step = 0; step < mNumberOfSteps; ++step)
+        for (step = 1; step < mNumberOfSteps; ++step)
         {
-            // Compute the slope
-            AddExplicitRHSContributions();
-      
-            // Compute the RK step
-            RungeKuttaStep(step);
-      
             // Boundary conditions
             ApplyDirichletBoundaryConditions();
             ApplySlipBoundaryConditions();
-      
+
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+            // Compute the slope
+            AddExplicitRHSContributions();
+
+            // Compute the RK step
+            RungeKuttaStep(step);
         }
 
-        // // Finalize the last step
+        // Finalize the last step
         AssembleLastRungeKuttaStep();
-      
+
+        // Boundary conditions
+        ApplyDirichletBoundaryConditions();
+        ApplySlipBoundaryConditions();
+
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
