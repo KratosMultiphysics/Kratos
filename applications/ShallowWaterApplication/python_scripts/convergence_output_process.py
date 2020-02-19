@@ -38,14 +38,29 @@ class ConvergenceOutputProcess(KM.Process):
         self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["convergence_variables_list"].GetStringArray()]
         self.weight_variable = KM.KratosGlobals.GetVariable(settings["weighting_variable"].GetString())
 
-    def IsOutputStep(self):
-        return False
+    def ExecuteInitialize(self):
+        pass
 
     def ExecuteBeforeSolutionLoop(self):
         if self.weight_variable == KM.NODAL_AREA:
             KM.CalculateNonHistoricalNodalAreaProcess(self.model_part).Execute()
         self.dset = self._GetDataset()
         self.start_time = time.time()
+
+    def ExecuteInitializeSolutionStep(self):
+        pass
+
+    def ExecuteFinalizeSolutionStep(self):
+        pass
+
+    def IsOutputStep(self):
+        return False
+
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
 
     def ExecuteFinalize(self):
         self._WriteAverageError()

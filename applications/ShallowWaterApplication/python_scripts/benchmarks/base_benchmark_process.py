@@ -30,6 +30,15 @@ class BaseBenchmarkProcess(KM.Process):
         self.degree_of_freedom = settings["degree_of_freedom"].GetString()
         self.benchmark_settings = settings["benchmark_settings"]
 
+    def ExecuteInitialize(self):
+        pass
+
+    def ExecuteBeforeSolutionLoop(self):
+        pass
+
+    def ExecuteInitializeSolutionStep(self):
+        pass
+
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
 
@@ -48,6 +57,18 @@ class BaseBenchmarkProcess(KM.Process):
 
             elif self.degree_of_freedom == "MOMENTUM_Y":
                 node.SetValue(self.variable, node.GetSolutionStepValue(SW.MOMENTUM_Y) - self.Momentum(node, time)[1])
+
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
+
+    def ExecuteFinalize(self):
+        pass
+
+    def Check(self):
+        return 1
 
     def Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
