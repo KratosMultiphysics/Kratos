@@ -172,8 +172,7 @@ public:
             for (int i = 0; i < number_of_conditions; ++i)
             {
                 auto it_cond = r_conditions_array.ptr_begin() + i;                
-                // Assemble a vector with the H-reduced conditions. 
-                //detect whether the condition has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
+                // Gather the H-reduced conditions that are to be considered for assembling. Ignoring those for displaying results only
                 if ((*it_cond)->Has(HROM_WEIGHT)){
                     mSelectedConditions_private.push_back(*it_cond);
                     h_rom_simulation = true;
@@ -184,7 +183,6 @@ public:
             }
             #pragma omp critical
             {
-                //mSelectedConditions.insert(mSelectedConditions.end(), mSelectedConditions_private.begin(), mSelectedConditions_private.end());
                 for (auto &cond : mSelectedConditions_private){
                     mSelectedConditions.push_back(&cond);
                 }
@@ -304,8 +302,6 @@ public:
             }
         }
     }
-
-    /*@{ */
 
     /**
             Function to perform the building and solving phase at the same time.
