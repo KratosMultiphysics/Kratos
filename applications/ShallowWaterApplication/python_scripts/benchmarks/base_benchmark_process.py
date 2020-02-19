@@ -14,10 +14,10 @@ class BaseBenchmarkProcess(KM.Process):
 
         default_settings = KM.Parameters("""
             {
-                "model_part_name"   : "model_part",
-                "error_variable"    : "ERROR_RATIO",
-                "degree_of_freedom" : "HEIGHT",
-                "benchmark_settings : {}
+                "model_part_name"    : "model_part",
+                "error_variable"     : "ERROR_RATIO",
+                "degree_of_freedom"  : "HEIGHT",
+                "benchmark_settings" : {}
             }
             """
             )
@@ -30,24 +30,24 @@ class BaseBenchmarkProcess(KM.Process):
         self.degree_of_freedom = settings["degree_of_freedom"].GetString()
         self.benchmark_settings = settings["benchmark_settings"]
 
-    def ExecuteFinalizeSolutionstep(self):
-        time = self.model_part.ProcessInfo[KM.DELTA_TIME]
+    def ExecuteFinalizeSolutionStep(self):
+        time = self.model_part.ProcessInfo[KM.TIME]
 
         for node in self.model_part.Nodes:
             if self.degree_of_freedom == "HEIGHT":
-                node.SetValue(self.variable) = node.FastGetSolutionStepValue(SW.HEIGHT) - self.Height(node, time)
+                node.SetValue(self.variable, node.GetSolutionStepValue(SW.HEIGHT) - self.Height(node, time))
 
-            else if self.degree_of_freedom == "VELOCITY_X":
-                node.SetValue(self.variable) = node.FastGetSolutionStepValue(SW.VELOCITY_X) - self.Velocity(node, time)[0]
+            elif self.degree_of_freedom == "VELOCITY_X":
+                node.SetValue(self.variable, node.GetSolutionStepValue(SW.VELOCITY_X) - self.Velocity(node, time)[0])
 
-            else if self.degree_of_freedom == "VELOCITY_Y":
-                node.SetValue(self.variable) = node.FastGetSolutionStepValue(SW.VELOCITY_Y) - self.Velocity(node, time)[1]
+            elif self.degree_of_freedom == "VELOCITY_Y":
+                node.SetValue(self.variable, node.GetSolutionStepValue(SW.VELOCITY_Y) - self.Velocity(node, time)[1])
 
-            else if self.degree_of_freedom == "MOMENTUM_X":
-                node.SetValue(self.variable) = node.FastGetSolutionStepValue(SW.MOMENTUM_X) - self.Momentum(node, time)[0]
+            elif self.degree_of_freedom == "MOMENTUM_X":
+                node.SetValue(self.variable, node.GetSolutionStepValue(SW.MOMENTUM_X) - self.Momentum(node, time)[0])
 
-            else if self.degree_of_freedom == "MOMENTUM_Y":
-                node.SetValue(self.variable) = node.FastGetSolutionStepValue(SW.MOMENTUM_Y) - self.Momentum(node, time)[1]
+            elif self.degree_of_freedom == "MOMENTUM_Y":
+                node.SetValue(self.variable, node.GetSolutionStepValue(SW.MOMENTUM_Y) - self.Momentum(node, time)[1])
 
     def Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")

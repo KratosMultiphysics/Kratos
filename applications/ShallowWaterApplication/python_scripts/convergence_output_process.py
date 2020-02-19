@@ -18,12 +18,12 @@ class ConvergenceOutputProcess(KM.Process):
 
         default_settings = KM.Parameters("""
             {
-                "model_part_name"        : "model_part",
-                "file_name"              : "output_file",
-                "analysis_label"         : "label",
-                "analysis_attributes     : {},
-                "error_variables_list"   : [],
-                "weighting_variable"     : "NODAL_AREA"
+                "model_part_name"            : "model_part",
+                "file_name"                  : "output_file",
+                "analysis_label"             : "label",
+                "analysis_attributes"        : {},
+                "convergence_variables_list" : [],
+                "weighting_variable"         : "NODAL_AREA"
             }
             """
             )
@@ -35,13 +35,15 @@ class ConvergenceOutputProcess(KM.Process):
 
         self.f = h5py.File(self.settings["file_name"].GetString() + ".hdf5", 'a') # 'a' means append mode
 
-        self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["variables_list"].GetStringArray()]
-        self.weight_variable = KM.KratosGlobals.GetVariable(settings["variables_list"].GetString())
+        self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["convergence_variables_list"].GetStringArray()]
+        self.weight_variable = KM.KratosGlobals.GetVariable(settings["weighting_variable"].GetString())
 
     def IsOutputStep(self):
         return False
 
     def ExecuteBeforeSolutionLoop(self):
+        if self.weight_variable == KM.NODAL_AREA:
+            KM.CalculateNonHistoricalNodalAreaProcess(self.model_part).Execute()
         self.dset = self._GetDataset()
         self.start_time = time.time()
 
@@ -50,16 +52,14 @@ class ConvergenceOutputProcess(KM.Process):
 
     def Check(self):
         for variable in self.variables:
-            if not isinstance(variable, KM.DoubleVariable) and
-               not isinstance(variable, KM.Array1DComponentVariable):
+            if not isinstance(variable, KM.DoubleVariable) and not isinstance(variable, KM.Array1DComponentVariable):
                 raise Exception("This process is expecting only double or component variables")
 
         if not isinstance(self.weight_variable, KM.DoubleVariable):
             raise Exception("The weighting variable is expected to be a double variable")
 
     def _WriteAttributes(self, dset):
-        attributes = self.settings["analysis_attributes"]
-        for key, param in attributes.items():
+        for key, param in self.settings["analysis_attributes"].items():
             if param.IsBool():
                 value = param.GetBool()
             if param.IsInt():
@@ -70,9 +70,7 @@ class ConvergenceOutputProcess(KM.Process):
 
     def _CheckAttributes(self, attributes):
         match = None
-
-        attributes = self.settings["analysis_attributes"]
-        for key, param in attributes.items():
+        for key, param in self.settings["analysis_attributes"].items():
             match = False
             if param.IsBool():
                 value = param.GetBool()
@@ -116,7 +114,7 @@ class ConvergenceOutputProcess(KM.Process):
     def _WriteAverageError(self):
         elapsed_time = time.time() - self.start_time
         case_data = [
-            self.settings["label"].GetString(),
+            self.settings["analysis_label"].GetString(),
             self.model_part.NumberOfNodes(),
             self.model_part.NumberOfElements(),
             self.model_part.ProcessInfo[KM.DELTA_TIME],

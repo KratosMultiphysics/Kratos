@@ -5,7 +5,8 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
 
 # Other imports
-from numpy import np
+import numpy as np
+import scipy.optimize as opt
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -15,41 +16,75 @@ def Factory(settings, model):
 class DamBreakBenchmark(BaseBenchmarkProcess):
 
     def __init__(self, model, settings ):
-        super(DamBreakBenchmark, self).__init__()
+        super(DamBreakBenchmark, self).__init__(model, settings)
 
-        default_settings = KM.Parameters("""
+        benchmark_default_settings = KM.Parameters("""
             {
-                "dam_break_position"  : 5.0,
-                "left_height"         : 2.0,
-                "right_height"        : 1.0
+                "dam_position"  : 5.0,
+                "left_height"   : 2.0,
+                "right_height"  : 1.0
             }
             """
             )
 
-        self.benchmark_settings.ValidateAndAssignDefaults(default_settings)
+        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
 
-        self.dam = self.benchmark_settings["dam_break_position"].GetDouble()
+        self.dam = self.benchmark_settings["dam_position"].GetDouble()
         self.hl = self.benchmark_settings["left_height"].GetDouble()
         self.hr = self.benchmark_settings["right_height"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
 
-        self.cm = __cm()
+        self.cm = self.__cm()
+
+    def Check(self):
+        label = "DamBreakBenchmark. "
+        if self.g <= 0:
+            msg = label + "Gravity must be a positive value"
+            raise Exception(msg)
+        elif self.hr <= 0:
+            msg = label + "Right height must be a positive value"
+            raise Exception(msg)
+        elif self.hl <= 0:
+            msg = label + "Left height must be a positive value"
+            raise Exception(msg)
+        elif self.dam <= 0:
+            msg = label + "The dam position must be a positive value"
+            raise Exception(msg)
 
     def Height(self, coordinates, time):
-        x = coordinates.X()
+        x = coordinates.X
 
-        xa = self.__xa(x, time)
-        xb = self.__xb(x, time)
-        xc = self.__xc(x, time)
+        xa = self.__xa(time)
+        xb = self.__xb(time)
+        xc = self.__xc(time)
 
         if x < xa:
             return self.hl
-        else if x < xb:
+        elif x < xb:
             return 4 / 9 / self.g * (np.sqrt(self.g * self.hl) - 0.5*(x - self.dam) / time)**2
-        else if x < xc:
+        elif x < xc:
             return self.cm**2 / self.g
         else:
             return self.hr
+
+    def Velocity(self, coordinates, time):
+        x = coordinates.X
+
+        xa = self.__xa(time)
+        xb = self.__xb(time)
+        xc = self.__xc(time)
+
+        if x < xa:
+            return [0.0, 0.0, 0.0]
+        elif x < xb:
+            return [2 / 3 * ((x - self.dam) / time + np.sqrt(self.g * self.hl)), 0.0, 0.0]
+        elif x < xc:
+            return [2 * (np.sqrt(self.g * self.hl) - cm), 0.0, 0.0]
+        else:
+            return [0.0, 0.0, 0.0]
+
+    def Momentum(self, coordinates, time):
+        return self.Height(coordinates, time) * self.Velocity(coordinates, time)
 
     def __xa(self, t):
         return self.dam - t * np.sqrt(self.g * self.hl)
@@ -61,14 +96,12 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         return self.dam + t * 2 * self.cm**2 * (np.sqrt(self.g*self.hl) - self.cm) / (self.cm**2 - self.g * self.hr)
 
     def __cm(self):
-        raise Exception("TODO: implement this")
-        p = np.empty(7)
-        p[0] = 1
-        p[1] = 0
-        p[2] = -9 * self.g * self.hr
-        p[3] = 16 * self.g * self.hr * np.sqrt(self.g * self.hl)
-        p[4] = -8 * self.g**2 * self.hl * self.hr - self.g**2 * self.hr**2
-        p[5] = 0
-        p[6] = self.g**3 * self.hr**3
-        roots = np.roots(p)
-        return roots[0]
+        cm0 = np.sqrt(self.g * 0.5 * (self.hl + self.hr))
+        cm = opt.newton(self.__cm_residual, cm0)
+        return cm
+
+    def __cm_residual(self,cm):
+        hl = self.hl
+        hr = self.hr
+        g  = self.g
+        return -8*g*hr*cm**2*(np.sqrt(g*hl)-cm)**2 + (cm**2-g*hr)**2 * (cm**2+g*hr)
