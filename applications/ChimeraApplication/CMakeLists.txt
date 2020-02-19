@@ -2,11 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosChimeraApplication****")
 
-
-## Check if fluid dynamics app is being compile dor not
-if(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
-    MESSAGE( FATAL_ERROR "ChimeraApplication needs FluidDynamicsApplicaiton to work. Please set FLUID_DYNAMICS_APPLICATION=ON in the configuration file." )
-endif(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)

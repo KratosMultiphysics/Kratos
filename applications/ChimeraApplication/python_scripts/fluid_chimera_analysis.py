@@ -37,9 +37,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         else:
             self.chimera_echo_lvl = self.fluid_parameters["echo_level"].GetInt()
 
-        # if self.chimera_parameters.Has("internal_parts_for_chimera"):
-        #     self.chimera_internal_parts = self.chimera_parameters["internal_parts_for_chimera"].Clone()
-
         self.chimera_internal_parts = []
         for level in self.chimera_levels:
             for level_parameters in level :
