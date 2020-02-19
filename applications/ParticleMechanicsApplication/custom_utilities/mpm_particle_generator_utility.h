@@ -109,43 +109,19 @@ namespace MPMParticleGeneratorUtility
                     Properties::Pointer p_properties = i->pGetProperties();
 
                     // Check number of particles per element to be created
-                    unsigned int particles_per_element;
-                    if (i->GetProperties().Has(PARTICLES_PER_ELEMENT)) {
-                        particles_per_element = i->GetProperties()[PARTICLES_PER_ELEMENT];
-                    }
-                    else {
-                        std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
-                        warning_msg += "1 Particle per element is assumed.";
-                        KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                        particles_per_element = 1;
-                    }
+                    const SizeType particles_per_element = (i->GetProperties().Has(PARTICLES_PER_ELEMENT))
+                        ? particles_per_element = i->GetProperties()[PARTICLES_PER_ELEMENT]
+                        : 1;
+                    KRATOS_WARNING_IF("MPMParticleGeneratorUtility", !i->GetProperties().Has(PARTICLES_PER_ELEMENT))
+                        << "PARTICLES_PER_ELEMENT is not specified in Properties, 1 Particle per element is assumed.";
 
                     // Get geometry and dimension of the background grid
                     const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-                    const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
+                    const Geometry<Node<3>>& r_geometry = i->GetGeometry(); // current element's geometry
 
-                    GeometryData::IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_1;
-                    switch (particles_per_element)
-                    {
-                    case 3:
-                        this_integration_method = GeometryData::GI_GAUSS_2;
-                        break;
-                    case 6:
-                        this_integration_method = GeometryData::GI_GAUSS_3;
-                        break;
-                    case 12:
-                        this_integration_method = GeometryData::GI_GAUSS_4;
-                        break;
-                    default:
-                        std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                        warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                        warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
-                        warning_msg += "The default number of particle: 3 is currently assumed.";
-                        KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                        break;
-                    }
+                    auto this_integration_method = GetIntegrationMethod<TDimension>(particles_per_element);
 
                     GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(this_integration_method);
 
@@ -239,6 +215,62 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
+
+    template<std::size_t TDimension>
+    GeometryData::IntegrationMethod GetIntegrationMethod(SizeType NumberOfParticles)
+    {
+        GeometryData::IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        if (TDimension == 2)
+        {
+            switch (particles_per_element)
+            {
+            case 3:
+                this_integration_method = GeometryData::GI_GAUSS_2;
+                break;
+            case 6:
+                this_integration_method = GeometryData::GI_GAUSS_3;
+                break;
+            case 12:
+                this_integration_method = GeometryData::GI_GAUSS_4;
+                break;
+            case 16:
+                this_integration_method = GeometryData::GI_GAUSS_5;
+                break;
+            default:
+                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
+                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                warning_msg += "The default number of particle: 3 is currently assumed.";
+                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                break;
+            }
+        }
+        else
+        {
+            switch (particles_per_element)
+            {
+            case 4:
+                this_integration_method = GeometryData::GI_GAUSS_2;
+                break;
+            case 9:
+                this_integration_method = GeometryData::GI_GAUSS_3;
+                break;
+            case 16:
+                this_integration_method = GeometryData::GI_GAUSS_4;
+                break;
+            case 50:
+                this_integration_method = GeometryData::GI_GAUSS_5;
+                break;
+            default:
+                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
+                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                warning_msg += "The default number of particle: 3 is currently assumed.";
+                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                break;
+            }
+        }
+    }
 
 }; // end namespace MPMParticleGeneratorUtility
 } // end namespace Kratos
