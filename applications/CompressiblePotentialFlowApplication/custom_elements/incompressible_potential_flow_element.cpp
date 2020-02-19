@@ -453,12 +453,15 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
 
     ComputeLHSGaussPointContribution(data.vol*free_stream_density, lhs_total, data);
 
+    double upper_vol = 0.0;
+    double lower_vol = 0.0;
     if (this->Is(STRUCTURE))
     {
         BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+
+        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo, upper_vol, lower_vol);
         AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
                                            lhs_negative, lhs_total, data);
     }
@@ -478,10 +481,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     const BoundedVector<double, NumNodes> wake_rhs = - prod(rLeftHandSideMatrix, split_element_values);
 
+    double upper_frac = upper_vol / data.vol;
+    double lower_frac = lower_vol / data.vol;
+    double total_frac = upper_frac + lower_frac;
+
     for (unsigned int i = 0; i < NumNodes; ++i){
         if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
-            rRightHandSideVector[i] = upper_rhs(i);
-            rRightHandSideVector[i + NumNodes] = lower_rhs(i);
+            rRightHandSideVector[i] = upper_rhs(i)*upper_vol/data.vol;
+            rRightHandSideVector[i + NumNodes] = lower_rhs(i)*lower_vol/data.vol;
             // rRightHandSideVector[i] = wake_rhs(i);
             // rRightHandSideVector[i + NumNodes] = wake_rhs(i + NumNodes);
         }
@@ -507,6 +514,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
         KRATOS_WATCH(wake_rhs_2)
         KRATOS_WATCH(wake_rhs)
         KRATOS_WATCH(rRightHandSideVector)
+        KRATOS_WATCH(data.vol)
+        KRATOS_WATCH(upper_frac)
+        KRATOS_WATCH(lower_frac)
+        KRATOS_WATCH(total_frac)
     }
     //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
@@ -515,7 +526,9 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo,
+    double& rUpper_vol,
+    double& rLower_vol)
 {
     ElementalData<NumNodes, Dim> data;
 
@@ -552,11 +565,19 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     // Compute the lhs and rhs that would correspond to it being divided
     for (unsigned int i = 0; i < nsubdivisions; ++i)
     {
-        if (PartitionsSign[i] > 0)
+        if (PartitionsSign[i] > 0){
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_positive, data);
-        else
+            rUpper_vol += Volumes[i];
+        }
+        else{
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_negative, data);
+            rLower_vol += Volumes[i];
+        }
     }
+    double total_vol = rUpper_vol + rLower_vol;
+    KRATOS_WATCH(rUpper_vol)
+    KRATOS_WATCH(rLower_vol)
+    KRATOS_WATCH(total_vol)
 }
 
 template <int Dim, int NumNodes>
