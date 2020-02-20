@@ -898,14 +898,15 @@ public:
         AuxiliaryInitializeValue(sum_value);
 
         const auto &r_communicator = rModelPart.GetCommunicator();
+        const int n_nodes = r_communicator.LocalMesh().NumberOfNodes();
 
-#pragma omp parallel
+#pragma omp parallel firstprivate(n_nodes)
         {
             TDataType private_sum_value;
             AuxiliaryInitializeValue(private_sum_value);
 
 #pragma omp for
-            for (int i_node = 0; i_node < static_cast<int>(r_communicator.LocalMesh().NumberOfNodes()); ++i_node) {
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
                 const auto it_node = r_communicator.LocalMesh().NodesBegin() + i_node;
                 private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
             }
