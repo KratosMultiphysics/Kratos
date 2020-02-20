@@ -699,6 +699,73 @@ namespace MPMParticleGeneratorUtility
         return MP_shape_functions;
     }
 
+    void GetIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const GeometryType& rGeometry,
+        SizeType WorkingSpaceDimension,
+        SizeType NumNodesPerGeometry,
+        SizeType ParticlesPerElement)
+    {
+        GeometryData::IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_1;
+
+        if ((WorkingSpaceDimension == 2 && NumNodesPerGeometry == 3) ||
+            (WorkingSpaceDimension == 3 && NumNodesPerGeometry == 4))
+        {
+            switch (ParticlesPerElement)
+            {
+            case 1:
+                this_integration_method = GeometryData::GI_GAUSS_1;
+                break;
+            case 3:
+                this_integration_method = GeometryData::GI_GAUSS_2;
+                break;
+            case 6:
+                this_integration_method = GeometryData::GI_GAUSS_4;
+                break;
+            case 12:
+                this_integration_method = GeometryData::GI_GAUSS_5;
+                break;
+            default:
+                //std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(NumParticlesPerElement);
+                //warning_msg += " is not available for Triangular" + std::to_string(WorkingSpaceDimension) + "D.\n";
+                //warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                //warning_msg += "The default number of particle: 3 is currently assumed.";
+                //KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                break;
+            }
+        }
+        else if ((WorkingSpaceDimension == 2 && NumNodesPerGeometry == 4) ||
+            (WorkingSpaceDimension == 3 && NumNodesPerGeometry == 8))
+        {
+            switch (ParticlesPerElement)
+            {
+            case 1:
+                this_integration_method = GeometryData::GI_GAUSS_1;
+                break;
+            case 4:
+                this_integration_method = GeometryData::GI_GAUSS_2;
+                break;
+            case 9:
+                this_integration_method = GeometryData::GI_GAUSS_3;
+                break;
+            case 16:
+                this_integration_method = GeometryData::GI_GAUSS_4;
+                break;
+            case 50:
+                this_integration_method = GeometryData::GI_GAUSS_5;
+                break;
+            default:
+                //std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(NumParticlesPerElement);
+                //warning_msg += " is not available for Triangular" + std::to_string(WorkingSpaceDimension) + "D.\n";
+                //warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                //warning_msg += "The default number of particle: 3 is currently assumed.";
+                //KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                break;
+            }
+        }
+
+        rIntegrationPoints = rGeometry.IntegrationPoints(this_integration_method);
+    }
 } // end namespace MPMParticleGeneratorUtility
 } // end namespace Kratos
 
