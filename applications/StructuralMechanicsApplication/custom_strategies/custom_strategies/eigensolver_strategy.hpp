@@ -402,7 +402,6 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
-
         ApplyDirichletConditions(rMassMatrix, 1.0);
 
         if (BaseType::GetEchoLevel() == 4) {
@@ -417,7 +416,6 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
-
         ApplyDirichletConditions(rStiffnessMatrix, 0.0);
 
         if (BaseType::GetEchoLevel() == 4) {
