@@ -92,16 +92,17 @@ namespace MPMSearchElementUtility
                         pelem->pGetGeometry(), xg,
                         element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
+                    // Update geometry of particle element
                     element_itr->pGetGeometry() = p_new_geometry;
 
                     auto& r_geometry = element_itr->GetGeometry();
-
-                    for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                    for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                         r_geometry[j].Set(ACTIVE);
+                    }
                 }
                 else {
-                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
-                        << " is failed. Geometry is cleared." << std::endl;
+                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
+                        << element_itr->Id() << " is failed. Geometry is cleared." << std::endl;
 
                     element_itr->GetGeometry().clear();
                     element_itr->Reset(ACTIVE);
