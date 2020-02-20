@@ -80,7 +80,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part);
 
         MPMSearchElementUtility::SearchElement<2>(
-            r_background_model_part, r_mpm_model_part, 1, 1e-6);
+            r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check nodes
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[0].Id(), 1);
@@ -90,20 +90,23 @@ namespace Testing
 
         // New Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
-        mp_coordinate[0] = 1.0;
+        mp_coordinate[0] = 1.2;
         mp_coordinate[1] = 0.0;
         mp_coordinate[2] = 0.0;
 
         r_mpm_model_part.GetElement(1).SetValue(MP_COORD, mp_coordinate);
 
         MPMSearchElementUtility::SearchElement<2>(
-            r_background_model_part, r_mpm_model_part, 1, 1e-6);
+            r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
+        KRATOS_CHECK_VECTOR_NEAR(
+            r_mpm_model_part.GetElement(1).GetValue(MP_COORD), mp_coordinate, 1e-6)
         // Check nodes
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[0].Id(), 2);
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[1].Id(), 9);
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[2].Id(), 10);
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[3].Id(), 3);
+
     }
 
 } // namespace Testing
