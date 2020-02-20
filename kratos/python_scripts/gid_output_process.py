@@ -133,7 +133,6 @@ class GiDOutputProcess(KM.Process):
 
     @staticmethod
     def HasDeprecatedVariable(param, old_variable_name, new_variable_name):
-        KM.Logger.Severity.DETAIL
 
         if param.Has(old_variable_name):
             if not param.Has(new_variable_name):

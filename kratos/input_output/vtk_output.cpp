@@ -1061,7 +1061,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "file_format"                                 : "ascii",
         "output_precision"                            : 7,
         "output_control_type"                         : "step",
-        "output_frequency"                            : 1.0,
+        "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
         "folder_name"                                 : "VTK_Output",
         "custom_name_prefix"                          : "",

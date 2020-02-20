@@ -13,8 +13,7 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGidIO(KratosUnittest.TestCase):
-
-
+    KratosMultiphysics.Logger.Severity.DETAIL
     def __WriteOutput(self, model_part, output_file):
 
         gid_output = GiDOutputProcess(model_part,
@@ -30,7 +29,7 @@ class TestGidIO(KratosUnittest.TestCase):
                                                 },
                                                 "file_label": "time",
                                                 "output_control_type": "step",
-                                                "output_frequency": 1.0,
+                                                "output_interval": 1.0,
                                                 "body_output": true,
                                                 "node_output": false,
                                                 "skin_output": false,
