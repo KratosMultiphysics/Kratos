@@ -111,7 +111,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):
         for node in cond.GetNodes():
             # Computing the value of the potential at the inlet
-            inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
+            inlet_potential = 0.0 # DotProduct( node - reference_inlet_node, self.free_stream_velocity)
 
             # Fixing the potential at the inlet nodes
             node.Fix(CPFApp.VELOCITY_POTENTIAL)
