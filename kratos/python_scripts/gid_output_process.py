@@ -99,7 +99,8 @@ class GiDOutputProcess(KM.Process):
             param = self.defaults
         else:
             # Warning: we may be changing the parameters object here:
-            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+            if param.Has('result_file_configuration'):
+                self.TranslateLegacyVariablesAccordingToCurrentStandard(param['result_file_configuration'])
             # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
@@ -131,27 +132,40 @@ class GiDOutputProcess(KM.Process):
 
 
     @staticmethod
-    def HasDeprecatedVariable(self, param, old_variable_name, new_variable_name):
-        if param.Has(old_variable_name) and not param.Has(new_variable_name):
-            KM.Logger.PrintWarning('\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
-                'The input variable \'' + old_variable_name + '\' is deprecated; use \'' + new_variable_name + '\' instead.'
-                )
-            return True
+    def HasDeprecatedVariable(param, old_variable_name, new_variable_name):
+        KM.Logger.Severity.DETAIL
+
+        if param.Has(old_variable_name):
+            if not param.Has(new_variable_name):
+                KM.Logger.PrintWarning('\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                    'The input variable \'' + old_variable_name + '\' is deprecated; use \'' + new_variable_name + '\' instead.'
+                    )
+                return True
+            else:
+                raise NameError('Conflicting input variable names: Both the deprecated variable \''
+                                + old_variable_name + '\' and its current standard replacement \''
+                                + new_variable_name + '\' were found. Please, remove \'' + old_variable_name + '\'.')
         return False
 
+    # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, param):
-        if self.HasDeprecatedVariable(param, 'output_frequency', 'output_interval'):
-            if para.Has('output_control_type'):
-                control_type = param.GetValue('output_control_type')
+
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if GiDOutputProcess.HasDeprecatedVariable(param, old_name, new_name):
+            param.AddEmptyValue(new_name)
+            if param.Has('output_control_type'):
+                control_type = param['output_control_type'].GetString()
             else:
-                control_type = control_type = self.defaults.GetString('output_control_type')
+                control_type = self.defaults['output_control_type'].GetString()
 
             if control_type == 'step':
-                param['output_interval'].SetInt(param['output_frequency'].GetInt())
+                param[new_name].SetInt(param[old_name].GetInt())
             else:
-                param['output_interval'].SetDouble(param['output_frequency'].GetDouble())
+                param[new_name].SetDouble(param[old_name].GetDouble())
 
-            param.Remove('output_interval')
+            param.RemoveValue(old_name)
 
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
@@ -211,7 +225,7 @@ class GiDOutputProcess(KM.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
+        self.output_interval = result_file_configuration["output_interval"].GetDouble()
 
         self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
@@ -308,13 +322,13 @@ class GiDOutputProcess(KM.Process):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
             else:
                 while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
