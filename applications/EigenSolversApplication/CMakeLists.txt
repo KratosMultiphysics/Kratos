@@ -11,6 +11,10 @@
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
+if(POLICY CMP0079)
+  cmake_policy(SET CMP0079 NEW)
+endif(POLICY CMP0079)
+
 message( "**** configuring KratosEigenSolversApplication ****" )
 
 ################### PYBIND11
@@ -38,15 +42,20 @@ if( USE_EIGEN_MKL MATCHES ON )
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
+#external:
+# if (NOT DEFINED FEAST_ROOT)
+#     set(FEAST_ROOT /home/quirin/compiled/FEAST/4.0 )
+# endif(NOT DEFINED FEAST_ROOT)
+# link_directories( ${FEAST_ROOT}/lib/x64 )
+# include_directories( ${FEAST_ROOT}/include )
+
+
 # if(${INCLUDE_FEAST} MATCHES ON)
 if (NOT DEFINED FEAST_ROOT)
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST/4.0 )
-    # set(FEAST_ROOT /home/quirin/compiled/FEAST/4.0 )
 endif(NOT DEFINED FEAST_ROOT)
-#   link_directories( ${FEAST_ROOT}/lib/x64 )
 include(CMakeAddFortranSubdirectory)
 cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST NO_EXTERNAL_INSTALL )
-#   cmake_add_fortran_subdirectory(/home/quirin/compiled/FEAST NO_EXTERNAL_INSTALL )
 include_directories( ${FEAST_ROOT}/include )
 
 ## generate variables with the sources
@@ -69,10 +78,8 @@ target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
 # add_library(feast)
-# target_link_libraries(feast mkl_rt)
-set(FEAST_LINK_LIBS feast mkl_rt gfortran m)
-message(mkl_rt)
-target_link_libraries(KratosEigenSolversCore PRIVATE ${FEAST_LINK_LIBS})
+# target_link_libraries(feast4 mkl_rt)
+# set(FEAST_LINK_LIBS feast4 )#mkl_rt gfortran m)
 
 ## EigenSolversApplication python module
 pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
@@ -90,6 +97,7 @@ if( USE_EIGEN_MKL MATCHES ON )
         target_link_libraries( KratosEigenSolversCore PUBLIC mkl_rt )
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
+target_link_libraries(KratosEigenSolversCore PUBLIC feast4 mkl_rt)
 
 
 
