@@ -183,12 +183,12 @@ template <int Dim, int NumNodes>
 double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
     // Reading free stream conditions
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
 
     // Computing local velocity
-    array_1d<double, Dim> v = ComputeVelocity<Dim, NumNodes>(rElement);
+    array_1d<double, Dim> v = vinfinity + ComputeVelocity<Dim, NumNodes>(rElement);
 
     // Computing squares
     const double v_inf_2 = inner_prod(vinfinity, vinfinity);
@@ -211,13 +211,13 @@ double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCur
     // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
     // Aerodynamics, The MIT Press, London
     // Reading free stream conditions
-    const array_1d<double, 3>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // Computing local velocity
-    array_1d<double, Dim> v = ComputeVelocity<Dim, NumNodes>(rElement);
+    array_1d<double, Dim> v = v_inf + ComputeVelocity<Dim, NumNodes>(rElement);
 
     // Computing squares
     const double v_inf_2 = inner_prod(v_inf, v_inf);
@@ -237,7 +237,8 @@ double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurre
     // Implemented according to Equation 8.8 of Drela, M. (2014) Flight Vehicle
     // Aerodynamics, The MIT Press, London
 
-    array_1d<double, Dim> velocity = ComputeVelocity<Dim, NumNodes>(rElement);
+    const array_1d<double, Dim> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = free_stream_velocity + ComputeVelocity<Dim, NumNodes>(rElement);
     const double velocity_module = sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputeLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 

@@ -239,7 +239,9 @@ private:
                                                Matrix& lhs_negative,
                                                Matrix& laplacian_positive,
                                                Matrix& laplacian_negative,
-                                               const ProcessInfo& rCurrentProcessInfo);
+                                               const ProcessInfo& rCurrentProcessInfo,
+                                               double& rUpper_vol,
+                                               double& rLower_vol);
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           Matrix& lhs,
