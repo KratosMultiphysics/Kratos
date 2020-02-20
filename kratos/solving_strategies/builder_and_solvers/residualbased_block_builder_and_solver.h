@@ -144,19 +144,36 @@ public:
 
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+        
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","Please write a number"};
+
+        if(available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            double aux_value = 0.0;
+            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
+            number_stream >> aux_value; 
+            if (aux_value < std::numeric_limits<double>::epsilon()) {
+                std::stringstream msg;
+                msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+                msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
+                KRATOS_ERROR << msg.str() << std::endl;
+            }
+        }
+        
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
         if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
             mOptions.Set(NO_SCALING, true);
             mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
             mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
-        } else {
+        } else { // Otherwise
             mOptions.Set(NO_SCALING, false);
+            // This case will consider the maximum value in the diagonal as a scaling value
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
                 mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
-            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
+            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, true);
                 mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, false);
-            } else {
+            } else { // Otherwise we will assume we impose a numerical value
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
                 mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, true);
                 // We assume it is a number
