@@ -325,7 +325,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX) ) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_volume );
+        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_volume, rCurrentProcessInfo);
     }
 
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
@@ -537,7 +537,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddInternalForces(VectorType& r
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight)
+void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight, const ProcessInfo& rCurrentProcessInfo)
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -555,7 +555,8 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& r
                 calculated = true;
             }
 
-            if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX )
+            if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX && 
+                !rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
             {
                 // Operation performed: add Kg to the rLefsHandSideMatrix
                 this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
@@ -563,7 +564,6 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& r
             }
 
             KRATOS_ERROR_IF(calculated == false) << "ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-
         }
     }
     else
@@ -573,8 +573,11 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& r
         // Operation performed: add K_material to the rLefsHandSideMatrix
         this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-        // Operation performed: add K_geometry to the rLefsHandSideMatrix
-        this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+        if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+        {
+            // Operation performed: add K_geometry to the rLefsHandSideMatrix
+            this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+        }
     }
 }
 //************************************************************************************

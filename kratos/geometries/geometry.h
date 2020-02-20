@@ -3045,16 +3045,34 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
     * @param IntegrationPointIndex the corresponding contorl point of this geometry
-    * @return the shape function or derivative value related to the input parameters
-    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
     const Matrix& ShapeFunctionDerivatives(
         IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        return mpGeometryData->ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+    }
+
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex) const
+    {
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, GetDefaultIntegrationMethod());
     }
 
     /** This method gives second order derivatives of all shape
