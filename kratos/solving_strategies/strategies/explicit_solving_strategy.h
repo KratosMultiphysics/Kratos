@@ -21,7 +21,6 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "processes/calculate_nodal_area_process.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder_and_solver.h"
 
 namespace Kratos
@@ -58,25 +57,23 @@ public:
 
     //     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
 
-    typedef typename TSparseSpace::DataType TDataType;
+    // typedef typename TSparseSpace::DataType TDataType;
 
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    // typedef typename TSparseSpace::VectorType TSystemVectorType;
 
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    // typedef typename TSparseSpace::VectorPointerType TSystemVectorPointerType;
 
-    typedef typename TSparseSpace::MatrixPointerType TSystemMatrixPointerType;
+    // typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    typedef typename TSparseSpace::VectorPointerType TSystemVectorPointerType;
+    // The explicit builder and solver definition
+    typedef ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>   ExplicitBuilderAndSolverType;
 
-    typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+    // The explicit builder and solver pointer definition
+    typedef typename ExplicitBuilderAndSolverType::Pointer ExplicitBuilderAndSolverPointerType;
 
-    typedef typename TDenseSpace::VectorType LocalSystemVectorType;
+    // typedef typename ModelPart::DofType TDofType;
 
-    typedef ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace> ExplicitBuilderAndSolverType;
-
-    typedef typename ModelPart::DofType TDofType;
-
-    typedef typename ModelPart::DofsArrayType DofsArrayType;
+    // typedef typename ModelPart::DofsArrayType DofsArrayType;
 
     //     typedef Dof<TDataType>                                                          TDofType;
 
@@ -84,15 +81,15 @@ public:
 
     //     typedef PointerVectorSet<TDofType, IndexedObject>                          DofsArrayType;
 
-    typedef typename DofsArrayType::iterator DofIteratorType;
+    // typedef typename DofsArrayType::iterator DofIteratorType;
 
-    typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
+    // typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
 
-    typedef ModelPart::NodesContainerType NodesArrayType;
+    // typedef ModelPart::NodesContainerType NodesArrayType;
 
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    // typedef ModelPart::ElementsContainerType ElementsArrayType;
 
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    // typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategy);
@@ -123,6 +120,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param pExplicitBuilderAndSolver The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
+     * @param RebuildLevel The flag to set if the DOF set is rebuild or not
      */
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
@@ -140,6 +138,7 @@ public:
      * @brief Default constructor.
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
+     * @param RebuildLevel The flag to set if the DOF set is rebuild or not
      */
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
@@ -181,6 +180,11 @@ public:
      */
     virtual void Initialize()
     {
+        // Initialize elements, conditions and constraints
+        InitializeContainer(GetModelPart().Elements());
+        InitializeContainer(GetModelPart().Conditions());
+        InitializeContainer(GetModelPart().MasterSlaveConstraints());
+
         // Set the explicit DOFs rebuild level
         if (mRebuildLevel != 0) {
             mpExplicitBuilderAndSolver->SetResetDofSetFlag(true);
@@ -246,9 +250,13 @@ public:
      */
     virtual void InitializeSolutionStep()
     {
+        // InitializeSolutionStep elements, conditions and constraints
+        InitializeSolutionStepContainer(GetModelPart().Elements());
+        InitializeSolutionStepContainer(GetModelPart().Conditions());
+        InitializeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
+
         // Call the builder and solver initialize solution step
         mpExplicitBuilderAndSolver->InitializeSolutionStep(mrModelPart);
-
     }
 
     /**
@@ -257,6 +265,13 @@ public:
      */
     virtual void FinalizeSolutionStep()
     {
+        // FinalizeSolutionStep elements, conditions and constraints
+        FinalizeSolutionStepContainer(GetModelPart().Elements());
+        FinalizeSolutionStepContainer(GetModelPart().Conditions());
+        FinalizeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
+
+        // Call the builder and solver finalize solution step (the reactions are computed in here)
+        mpExplicitBuilderAndSolver->FinalizeSolutionStep(mrModelPart);
     }
 
     /**
@@ -264,10 +279,11 @@ public:
      */
     virtual bool SolveSolutionStep()
     {
+        // Initialize the solution values
+        // todo CHECK IF IT IS REQUIRED
         InitializeDofSetValues();
 
-        UpdateDofSetValues();
-
+        // Solve the problem assuming that a lumped mass matrix is used
         SolveWithLumpedMassMatrix();
 
         return true;
@@ -381,9 +397,18 @@ public:
      * @brief Operations to get the pointer to the model
      * @return mrModelPart: The model part member variable
      */
-    inline ModelPart &GetModelPart()
+    inline ModelPart& GetModelPart()
     {
         return mrModelPart;
+    };
+
+    /**
+     * @brief Operations to get the pointer to the explicit builder and solver
+     * @return mpExplicitBuilderAndSolver: The explicit builder and solver
+     */
+    inline ExplicitBuilderAndSolverPointerType& pGetExplicitBuilderAndSolver()
+    {
+        return mpExplicitBuilderAndSolver;
     };
 
     /**
@@ -480,21 +505,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void UpdateDofSetValues()
+    virtual void SolveWithLumpedMassMatrix()
     {
-        KRATOS_WATCH("To be particularized in each derived strategy")
+        KRATOS_ERROR << "Calling the base ExplicitSolvingStrategy SolveWithLumpedMassMatrix(). Implement the specific explicit scheme solution update in a derived class" << std::endl;
+    }
 
-        // Get the current delta time
-        const auto &r_process_info = mrModelPart.GetProcessInfo();
-        const double dt = r_process_info.GetValue(DELTA_TIME);
-
-        // Perform the solution update
-        // TODO: This has to be moved to a derived RK4 class
-
-
-        // Divide by the lumped mass matrix values --> THIS CAN'T BE DONE THROUGH THE DOFs... HOW DO WE DO THIS?
-        // SHOULD THE RHS (REACTION) BE ALREADY SUBDIVIDED BY THE MASS?
-        // WE CAN DO IT BY SAVING THE NODAL_AREA IN DE HISTORICAL DATA BASE AND it_dof->GetSolutionStepValue(NODAL_AREA)
+    virtual inline const double GetDeltaTime()
+    {
+        return GetModelPart().GetProcessInfo()[DELTA_TIME];
     }
 
     ///@}
@@ -520,7 +538,7 @@ private:
 
     ModelPart &mrModelPart;
 
-    typename ExplicitBuilderAndSolverType::Pointer mpExplicitBuilderAndSolver = nullptr;
+    ExplicitBuilderAndSolverPointerType mpExplicitBuilderAndSolver = nullptr;
 
     bool mMoveMeshFlag;
 
@@ -532,6 +550,10 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Initialize the DOF set values
+     * This method initializes the current value of the unknown variables in the DOF set
+     */
     void InitializeDofSetValues()
     {
         // Initialize the DOF values
@@ -545,9 +567,61 @@ private:
         }
     }
 
-    void SolveWithLumpedMassMatrix()
+    /**
+     * @brief Auxiliary call to the Initialize()
+     * For a given container, this calls the Initialize() method
+     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
+     * @param rContainer Reference to the container
+     */
+    template <class TContainerType>
+    void InitializeContainer(TContainerType &rContainer)
     {
+        const auto it_begin = rContainer.begin();
+        const unsigned int size = rContainer.size();
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
+        for(int i = 0; i < static_cast<int>(size); ++i) {
+            auto it = it_begin + i;
+            it->Initialize(r_process_info);
+        }
+    }
 
+    /**
+     * @brief Auxiliary call to the InitializeSolutionStep()
+     * For a given container, this calls the InitializeSolutionStep() method
+     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
+     * @param rContainer Reference to the container
+     */
+    template <class TContainerType>
+    void InitializeSolutionStepContainer(TContainerType &rContainer)
+    {
+        const auto it_begin = rContainer.begin();
+        const unsigned int size = rContainer.size();
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
+        for(int i = 0; i < static_cast<int>(size); ++i) {
+            auto it = it_begin + i;
+            it->InitializeSolutionStep(r_process_info);
+        }
+    }
+
+    /**
+     * @brief Auxiliary call to the FinalizeSolutionStep()
+     * For a given container, this calls the FinalizeSolutionStep() method
+     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
+     * @param rContainer Reference to the container
+     */
+    template <class TContainerType>
+    void FinalizeSolutionStepContainer(TContainerType &rContainer)
+    {
+        const auto it_begin = rContainer.begin();
+        const unsigned int size = rContainer.size();
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
+        for(int i = 0; i < static_cast<int>(size); ++i) {
+            auto it = it_begin + i;
+            it->FinalizeSolutionStep(r_process_info);
+        }
     }
 
     ///@}

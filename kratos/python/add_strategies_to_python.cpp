@@ -29,6 +29,7 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
@@ -539,10 +540,9 @@ namespace Kratos
                 ;
 
             typedef ExplicitSolvingStrategy< SparseSpaceType, LocalSpaceType > BaseExplicitSolvingStrategyType;
-
             py::class_<BaseExplicitSolvingStrategyType, typename BaseExplicitSolvingStrategyType::Pointer>(m, "ExplicitSolvingStrategy")
-                .def(py::init<ModelPart &, bool>())
-                .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool>())
+                .def(py::init<ModelPart &, bool, int>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
                 .def("Predict", &BaseExplicitSolvingStrategyType::Predict)
                 .def("Initialize", &BaseExplicitSolvingStrategyType::Initialize)
                 .def("Solve", &BaseExplicitSolvingStrategyType::Solve)
@@ -561,6 +561,12 @@ namespace Kratos
                 .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
                 //.def("GetModelPart", &BaseExplicitSolvingStrategyType::GetModelPart )
+                ;
+
+            typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
+            py::class_<ExplicitSolvingStrategyRungeKutta4Type, typename ExplicitSolvingStrategyRungeKutta4Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta4Type")
+                .def(py::init<ModelPart &, bool, int>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
                 ;
 
             typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
