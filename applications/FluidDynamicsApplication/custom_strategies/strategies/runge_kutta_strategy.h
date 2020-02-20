@@ -220,6 +220,24 @@ public:
         mSolutionStepIsInitialized = false;
 
         if (mReformDofSetAtEachStep == true) this->Clear();
+
+        auto& r_model_part = BaseType::GetModelPart();
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node = r_model_part.NodesBegin() + i;
+
+            double den = it_node->FastGetSolutionStepValue(DENSITY);
+            array_1d<double,3> mom = it_node->FastGetSolutionStepValue(MOMENTUM);
+            double ene = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+
+            noalias(it_node->FastGetSolutionStepValue(VELOCITY)) = mom/den;
+
+            //it_node->FastGetSolutionStepValue(MACH)
+
+        }
+
     }
 
     ///@}
