@@ -29,8 +29,8 @@ class EigenSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"                 : "dynamic",
-            "compute_modal_decomposition" : false,
+            "scheme_type"         : "dynamic",
+            "compute_modal_decomposition": false,
             "eigensolver_settings" : {
                 "solver_type"           : "eigen_eigensystem",
                 "max_iteration"         : 1000,
@@ -73,7 +73,22 @@ class EigenSolver(MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
 
+        solver_type = self.settings["eigensolver_settings"]["solver_type"].GetString()
+        if solver_type == "eigen_eigensystem":
+            mass_matrix_diagonal_value = 0.0
+            stiffness_matrix_diagonal_value = 1.0
+        elif solver_type == "feast":
+            mass_matrix_diagonal_value = 1.0
+            stiffness_matrix_diagonal_value = -1.0
+        else:
+            raise Exception
+
+        overwrite_diagonal_values = self.settings["block_builder"].GetBool()
+
         return StructuralMechanicsApplication.EigensolverStrategy(computing_model_part,
                                                                   eigen_scheme,
                                                                   builder_and_solver,
+                                                                  overwrite_diagonal_values,
+                                                                  mass_matrix_diagonal_value,
+                                                                  stiffness_matrix_diagonal_value,
                                                                   self.settings["compute_modal_decomposition"].GetBool())
