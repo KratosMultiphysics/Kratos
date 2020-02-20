@@ -37,6 +37,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         self.cm = self.__cm()
 
     def Check(self):
+        super(DamBreakBenchmark, self).Check()
         label = "DamBreakBenchmark. "
         if self.g <= 0:
             msg = label + "Gravity must be a positive value"
@@ -50,8 +51,6 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         elif self.dam <= 0:
             msg = label + "The dam position must be a positive value"
             raise Exception(msg)
-
-        return 1
 
     def Height(self, coordinates, time):
         x = coordinates.X
@@ -81,7 +80,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         elif x < xb:
             return [2 / 3 * ((x - self.dam) / time + np.sqrt(self.g * self.hl)), 0.0, 0.0]
         elif x < xc:
-            return [2 * (np.sqrt(self.g * self.hl) - cm), 0.0, 0.0]
+            return [2 * (np.sqrt(self.g * self.hl) - self.cm), 0.0, 0.0]
         else:
             return [0.0, 0.0, 0.0]
 

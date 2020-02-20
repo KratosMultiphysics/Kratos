@@ -13,6 +13,7 @@ def Factory(settings, model):
 class BaseBenchmarkProcess(KM.Process):
 
     def __init__(self, model, settings ):
+        super(BaseBenchmarkProcess, self).__init__()
 
         default_settings = KM.Parameters("""
             {
@@ -34,15 +35,6 @@ class BaseBenchmarkProcess(KM.Process):
         self.error_variables = GenerateVariableListFromInput(settings["error_variables_list"])
         self.benchmark_settings = settings["benchmark_settings"]
 
-    def ExecuteInitialize(self):
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
 
@@ -59,15 +51,6 @@ class BaseBenchmarkProcess(KM.Process):
 
                 node.SetValue(exact_variable, exact_value)
                 node.SetValue(error_variable, fem_value - exact_value)
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteFinalize(self):
-        pass
 
     def Check(self):
         if len(self.variables) != len(self.exact_variables):
