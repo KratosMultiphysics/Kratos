@@ -496,20 +496,30 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     S(3*nScalarVariables + 1) = f_gauss(0);
     S(3*nScalarVariables + 2) = f_gauss(1);
 
+    for (i = 0; i < nodesElement*nScalarVariables*nScalarVariables; i++)     Lstar[i] = 0.0;
 
+    for (i = 0; i < nodesElement; i++){
+		for ( j = 0; j < nScalarVariables; j++){
+			
+            pp = (j + i*nScalarVariables)*nScalarVariables;
+
+            Lstar[pp + 0] = N[i]*S[j*nScalarVariables + 0];
+            Lstar[pp + 0] = N[i]*S[j*nScalarVariables + 0];
+            
+            for (k = 0; k < nScalarVariables - 1; k++){
+                Lstar[pp + k] = N[i]*S[j*nScalarVariables + k];
+            }
+        }
+    }
 
     for (k = 0; k < nScalarVariables; k++){
 		for ( s = 0; s < nNodalVariables; s++){
 			
 			p = s*nScalarVariables + k;
 			
-			Lstar[p] = 0.0;
-
 			for (i = 0; i < nScalarVariables; i++){
 				
 				pp = i*nNodalVariables + s;
-
-				Lstar[p] += (-NN[pp]*S[i*nScalarVariables + k]);
 
 				for (j = 0; j < SpaceDimension; j++){
 
@@ -545,13 +555,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     }
 
     for (i = 0; i < nScalarVariables; i++ ){
-
-		R[i] = 0.0;
-
 		for (k = 0; k < nScalarVariables; k++){
-
-//			L[i] -= S[i*nScalarVariables + k]*U_gauss[k];
-
 			for (j = 0; j < SpaceDimension; j++){
 
 				s = cont(i,j,k,0,nScalarVariables,SpaceDimension,nScalarVariables,1);
@@ -562,29 +566,12 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
 		R[i] = -L[i];
 
-		// for (k = 0; k < nNodalVariables; k++){
-
-		// 	R[i] -= NN[i*nNodalVariables + k]*up[k];
-
-		// }
-        
-        for (k = 0; k < nodesElement; k++){
+		for (k = 0; k < nodesElement; k++){
             R[i] -= N[k]*UUp(k,i);
         }
-
-
 	}
 
-	// for (s = 0; s < nNodalVariables; s++){
-
-	// 	FConv[s] = 0.0;
-
-	// 	for (k = 0; k < nodesElement; k++){
-	// 		FConv[s] += NN[i*nNodalVariables + s]*L[i];
-	// 	}
-	// }
-
-    for (i = 0; i < nScalarVariables; i++){
+	for (i = 0; i < nScalarVariables; i++){
         for (k = 0; k < nodesElement; k++){
 			FConv[i + k*nScalarVariables] = N[k]*L[i];
 		}
@@ -672,8 +659,6 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 		rhs[i] = - sw_conv*FConv[i] - sw_diff*FDiff[i] - sw_stab*FStab[i];
 
 	}
-
-
 }
 
 
