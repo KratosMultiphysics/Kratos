@@ -21,7 +21,6 @@
 
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 
@@ -93,17 +92,22 @@ public:
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
-        bool ComputeModalDecomposition = false
+        bool OverwriteDiagonalValues,
+        double MassMatrixDiagonalValue,
+        double StiffnessMatrixDiagonalValue, 
+        bool ComputeModalDecompostion = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart), 
+            mOverwriteDiagonalValues(OverwriteDiagonalValues),
+            mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
+            mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
+            mComputeModalDecompostion(ComputeModalDecompostion)
     {
         KRATOS_TRY
 
         mpScheme = pScheme;
 
         mpBuilderAndSolver = pBuilderAndSolver;
-
-        mComputeModalDecompostion = ComputeModalDecomposition;
 
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -398,8 +402,6 @@ public:
         SparseSpaceType::Set(b,0.0);
         SparseSpaceType::Set(Dx,0.0);
 
-        // Generate lhs matrix. the factor 1 is chosen to preserve
-        // SPD property
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
@@ -407,25 +409,24 @@ public:
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
 
-        const bool is_block_builder = (nullptr != dynamic_cast<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>*>(this->pGetBuilderAndSolver().get()));
-
-        if (is_block_builder) {
-            ApplyDirichletConditions(rMassMatrix, 0.0);
+        if (mOverwriteDiagonalValues) {
+            ApplyDirichletConditions(rMassMatrix, mMassMatrixDiagonalValue);
         }
         
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
         }
 
-        // Generate rhs matrix. the factor -1 is chosen to make
-        // Eigenvalues corresponding to fixed dofs negative
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
-        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rStiffnessMatrix, Dx, b);
+
+        if (mOverwriteDiagonalValues) {
+            ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
+        }
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
@@ -572,7 +573,12 @@ private:
 
     bool mInitializeWasPerformed = false;
 
+    bool mOverwriteDiagonalValues = true;
+    double mMassMatrixDiagonalValue = 0.0;
+    double mStiffnessMatrixDiagonalValue = 1.0;
+    
     bool mComputeModalDecompostion = false;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -686,14 +692,6 @@ private:
             {
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
-
-            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back.
-            // // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
-            // // the dof ordering must not change.
-            // if (NodeDofs.IsSorted() == false)
-            // {
-            //     NodeDofs.Sort();
-            // }
 
             // fill the EIGENVECTOR_MATRIX
             for (std::size_t i = 0; i < NumEigenvalues; i++) {
