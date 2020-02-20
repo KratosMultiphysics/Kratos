@@ -52,9 +52,11 @@ static inline void GenerateTestModelPart(
 
     // Create the test elements
     auto p_prop = rModelPart.CreateNewProperties(1, 0);
+    p_prop->SetValue(DENSITY, 1.0);
+    p_prop->SetValue(NODAL_AREA, 1.0);
     auto p_node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto p_node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto p_node_3 = rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+    auto p_node_3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     auto p_geom_1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_node_1, p_node_2})});
     auto p_geom_2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_node_2, p_node_3})});
     rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>(1, p_geom_1, p_prop));
@@ -64,7 +66,6 @@ static inline void GenerateTestModelPart(
     for (auto& r_node : rModelPart.Nodes()) {
         r_node.AddDof(DISPLACEMENT_X, REACTION_X);
         r_node.AddDof(DISPLACEMENT_Y, REACTION_Y);
-        r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
     }
 
     /// Initialize elements
@@ -85,45 +86,43 @@ static inline void GenerateTestModelPart(
     if (FixDofs) {
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.Fix(DISPLACEMENT_Y);
-            r_node.Fix(DISPLACEMENT_Z);
         }
     }
 }
 
 /**
- * Checks if the explicit builder and solver performs correctly the assemble of the DOF set and the lumped mass vector
+ * Checks if the explicit builder and solver performs correctly the assemble of the DOF set
  */
-KRATOS_TEST_CASE_IN_SUITE(ExplicitBlockBuilderAndSolverDofSet, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExplicitBlockBuilderAndSolverInitialization, KratosCoreFastSuite)
 {
     // Generate the test model part
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart", 3);
     GenerateTestModelPart(r_model_part);
 
-    // Test the explicit builder and solver
+    // Test the explicit builder and solver dof set set up
     auto p_builder_and_solver = Kratos::make_unique<ExplicitBuilderAndSolverType>();
-    p_builder_and_solver->SetUpDofSet(r_model_part);
-    p_builder_and_solver->SetUpDofSetEquationIds();
+    p_builder_and_solver->Initialize(r_model_part);
     const auto& r_dof_set = p_builder_and_solver->GetDofSet();
-    // KRATOS_WATCH(r_dof_set)
-
-    p_builder_and_solver->SetUpLumpedMassMatrixVector(r_model_part);
     const auto& r_lumped_mass_vector = p_builder_and_solver->GetLumpedMassMatrixVector();
-    KRATOS_WATCH(r_lumped_mass_vector)
 
-    // // The solution check
-    // constexpr double tolerance = 1e-8;
-    // KRATOS_CHECK(rA.size1() == 6);
-    // KRATOS_CHECK(rA.size2() == 6);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.000000000)/rA(0,0)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.000000000)/rA(1,1)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 4138000000.000000000)/rA(2,2)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -2069000000.000000000)/rA(2,4)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.000000000)/rA(3,3)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -2069000000.000000000)/rA(4,2)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
-    // KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.000000000)/rA(5,5)), tolerance);
+    // Check the DOF set
+    KRATOS_CHECK_EQUAL(r_dof_set.size(), 6);
+    for (unsigned int i_dof = 0; i_dof < r_dof_set.size(); ++i_dof) {
+        const auto it_dof = r_dof_set.begin() + i_dof;
+        if (i_dof % 2 == 0) {
+            KRATOS_CHECK(it_dof->GetVariable() == DISPLACEMENT_X);
+            KRATOS_CHECK(it_dof->GetReaction() == REACTION_X);
+        } else {
+            KRATOS_CHECK(it_dof->GetVariable() == DISPLACEMENT_Y);
+            KRATOS_CHECK(it_dof->GetReaction() == REACTION_Y);
+        }
+    }
 
+    // Check the lumped mass vector values
+    const double tolerance = 1.0e-8;
+    std::vector<double> expected_solution = {0.5, 0.0, 0.5, 0.5, 0.0, 0.5};
+    KRATOS_CHECK_VECTOR_NEAR(r_lumped_mass_vector, expected_solution, tolerance);
 }
 
 } // namespace Testing

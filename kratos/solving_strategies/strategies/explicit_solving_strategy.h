@@ -111,8 +111,11 @@ public:
         Parameters ThisParameters)
         : mrModelPart(rModelPart)
     {
+        const bool rebuild_level = ThisParameters.Has("rebuild_level") ? ThisParameters["rebuild_level"].GetInt() : 0;
         const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
         SetMoveMeshFlag(move_mesh_flag);
+        SetRebuildLevel(rebuild_level);
+        mpExplicitBuilderAndSolver = Kratos::make_unique<ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>>();
     }
 
     /**
@@ -124,11 +127,13 @@ public:
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
         typename ExplicitBuilderAndSolverType::Pointer pExplicitBuilderAndSolver,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false,
+        int RebuildLevel = 0)
         : mrModelPart(rModelPart),
           mpExplicitBuilderAndSolver(pExplicitBuilderAndSolver)
     {
         SetMoveMeshFlag(MoveMeshFlag);
+        SetRebuildLevel(RebuildLevel);
     }
 
     /**
@@ -138,10 +143,12 @@ public:
      */
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false,
+        int RebuildLevel = 0)
         : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
+        SetRebuildLevel(RebuildLevel);
         mpExplicitBuilderAndSolver = Kratos::make_unique<ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>>();
     }
 
@@ -174,6 +181,18 @@ public:
      */
     virtual void Initialize()
     {
+        // Set the explicit DOFs rebuild level
+        if (mRebuildLevel != 0) {
+            mpExplicitBuilderAndSolver->SetResetDofSetFlag(true);
+        }
+
+        // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
+        if (mMoveMeshFlag) {
+            mpExplicitBuilderAndSolver->SetResetLumpedMassVectorFlag(true);
+        }
+
+        // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
+        mpExplicitBuilderAndSolver->Initialize(mrModelPart);
     }
 
     /**
@@ -200,6 +219,7 @@ public:
      */
     virtual void Clear()
     {
+        mpExplicitBuilderAndSolver->Clear();
     }
 
     /**
@@ -226,13 +246,6 @@ public:
      */
     virtual void InitializeSolutionStep()
     {
-        // If the mesh has been updated, recompute the NODAL_AREA
-        if (mMoveMeshFlag) {
-            const unsigned int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-            // Calculate the NODAL_AREA (false says to save it in the non-historical database)
-            CalculateNodalAreaProcess<true>(mrModelPart, domain_size).Execute();
-        }
-
         // Call the builder and solver initialize solution step
         mpExplicitBuilderAndSolver->InitializeSolutionStep(mrModelPart);
 
@@ -297,15 +310,13 @@ public:
      * @param Level The build level
      * @details
      * {
-     * 0 -> Build StiffnessMatrix just once
-     * 1 -> Build StiffnessMatrix at the beginning of each solution step
-     * 2 -> build StiffnessMatrix at each iteration
+     * 0 -> Set up the DOF set just once
+     * 1 -> Set up the DOF set at the beginning of each solution step
      * }
      */
     virtual void SetRebuildLevel(int Level)
     {
         mRebuildLevel = Level;
-        mStiffnessMatrixIsBuilt = false;
     }
 
     /**
@@ -454,9 +465,8 @@ protected:
     // Level of echo for the solving strategy
     int mEchoLevel;
 
-    // Settings for the rebuilding of the stiffness matrix
+    // Settings for the rebuilding of the DOF set
     int mRebuildLevel;
-    bool mStiffnessMatrixIsBuilt;
 
     ///@}
     ///@name Protected member Variables

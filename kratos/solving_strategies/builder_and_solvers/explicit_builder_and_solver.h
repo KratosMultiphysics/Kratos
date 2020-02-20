@@ -154,6 +154,11 @@ public:
     ///@name Operators
     ///@{
 
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
      * @brief This method returns the flag mCalculateReactionsFlag
      * @return The flag that tells if the reactions are computed
@@ -167,9 +172,9 @@ public:
      * @brief This method sets the flag mCalculateReactionsFlag
      * @param CalculateReactionsFlag The flag that tells if the reactions are computed
      */
-    void SetCalculateReactionsFlag(bool flag)
+    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
     {
-        mCalculateReactionsFlag = flag;
+        mCalculateReactionsFlag = CalculateReactionsFlag;
     }
 
     /**
@@ -192,20 +197,38 @@ public:
 
     /**
      * @brief This method returns the flag mReshapeMatrixFlag
-     * @return The flag that tells if we need to reshape the LHS matrix
+     * @return The flag that tells if we need to reset the DOF set
      */
-    bool GetReshapeMatrixFlag()
+    bool GetResetDofSetFlag()
     {
-        return mReshapeMatrixFlag;
+        return mResetDofSetFlag;
     }
 
     /**
-     * @brief This method sets the flag mReshapeMatrixFlag
-     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
+     * @brief This method sets the flag mResetDofSetFlag
+     * @param mResetDofSetFlag The flag that tells if we need to reset the DOF set
      */
-    void SetReshapeMatrixFlag(bool ReshapeMatrixFlag)
+    void SetResetDofSetFlag(bool ResetDofSetFlag)
     {
-        mReshapeMatrixFlag = ReshapeMatrixFlag;
+        mResetDofSetFlag = ResetDofSetFlag;
+    }
+
+    /**
+     * @brief This method returns the flag GetResetLumpedMassVectorFlag
+     * @return The flag that tells if we need to reset the lumped mass vector
+     */
+    bool GetResetLumpedMassVectorFlag()
+    {
+        return mResetLumpedMassVectorFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mResetLumpedMassVectorFlag
+     * @param ResetLumpedMassVectorFlag The flag that tells if we need to reset the lumped mass vector
+     */
+    void SetResetLumpedMassVectorFlag(bool ResetLumpedMassVectorFlag)
+    {
+        mResetLumpedMassVectorFlag = ResetLumpedMassVectorFlag;
     }
 
     /**
@@ -217,28 +240,40 @@ public:
         return mEquationSystemSize;
     }
 
-    // /**
-    //  * @brief Function to perform the building of the LHS, depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
-    //  * @param pScheme The pointer to the integration scheme
-    //  * @param rModelPart The model part to compute
-    //  * @param rA The LHS matrix of the system of equations
-    //  */
-    // virtual void BuildLHS(
-    //     typename TSchemeType::Pointer pScheme,
-    //     ModelPart& rModelPart,
-    //     TSystemMatrixType& rA
-    //     )
-    // {
-    // }
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    virtual DofsArrayType& GetDofSet()
+    {
+        return mDofSet;
+    }
 
+    /**
+     * @brief Get the lumped mass matrix vector pointer
+     * It allows to get the lumped mass matrix vector pointer
+     * @return TSystemVectorPointerType& The lumped mass matrix vector pointer
+     */
+    virtual TSystemVectorPointerType& pGetLumpedMassMatrixVector()
+    {
+        return mpLumpedMassVector;
+    }
+
+    /**
+     * @brief Get the lumped mass matrix vector
+     * It allows to get the lumped mass matrix vector
+     * @return TSystemVectorType& The lumped mass matrix vector
+     */
+    virtual TSystemVectorType& GetLumpedMassMatrixVector()
+    {
+        return (*mpLumpedMassVector);
+    }
+
+    //TODO: RENAME THIS
     /**
      * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param rModelPart The model part to compute
-     * @param rb The RHS vector of the system of equations
      */
-    virtual void BuildRHS(
-        ModelPart& rModelPart,
-        TSystemVectorType& rb)
+    virtual void BuildRHS(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -250,10 +285,10 @@ public:
         KRATOS_CATCH("")
     }
 
+    //TODO: RENAME THIS
     /**
      * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param rModelPart The model part to compute
-     * @param rb The RHS vector of the system of equations
      */
     virtual void BuildRHSNoDirichlet(ModelPart& rModelPart)
     {
@@ -375,6 +410,186 @@ public:
     }
 
     /**
+     * @brief It applied those operations that are expected to be executed once
+     * @param rModelPart
+     */
+    virtual void Initialize(ModelPart& rModelPart)
+    {
+        if (!mDofSetIsInitialized) {
+        // Initialize the DOF set and the equation ids
+        this->SetUpDofSet(rModelPart);
+        this->SetUpDofSetEquationIds();
+        // Set up the lumped mass vector
+        this->SetUpLumpedMassVector(rModelPart);
+        } else if (!mLumpedMassVectorIsInitialized) {
+            KRATOS_WARNING("ExplicitBuilderAndSolver") << "Calling Initialize() with already initialized DOF set. Initializing lumped mass vector." << std::endl;;
+            // Only set up the lumped mass vector
+            this->SetUpLumpedMassVector(rModelPart);
+        } else {
+            KRATOS_WARNING("ExplicitBuilderAndSolver") << "Calling Initialize() with already initialized DOF set and lumped mass vector." << std::endl;;
+        }
+    }
+
+    /**
+     * @brief It applies certain operations at the system of equations at the begining of the solution step
+     * @param rModelPart The model part to compute
+     */
+    virtual void InitializeSolutionStep(ModelPart& rModelPart)
+    {
+        // Check the operations that are required to be done
+        if (mResetDofSetFlag) {
+            // If required (e.g. topology changes) reset the DOF set
+            // Note that we also set lumped mass vector in this case
+            this->SetUpDofSet(rModelPart);
+            this->SetUpDofSetEquationIds();
+            this->SetUpLumpedMassVector(rModelPart);
+        } else if (mResetLumpedMassVectorFlag) {
+            // Only reset the lumped mass vector
+            this->SetUpLumpedMassVector(rModelPart);
+        }
+
+        // Initialize the reactions (residual)
+        this->InitializeDofSetReactions();
+    }
+
+    /**
+     * @brief It applies certain operations at the system of equations at the end of the solution step
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
+    virtual void FinalizeSolutionStep(ModelPart& rModelPart)
+    {
+        // If required, calculate the reactions
+        if (mCalculateReactionsFlag) {
+            this->CalculateReactions();
+        }
+    }
+
+    /**
+     * @brief This function is intended to be called at the end of the solution step to clean up memory
+    storage not needed
+     */
+    virtual void Clear()
+    {
+        this->mDofSet = DofsArrayType();
+        this->mpLumpedMassVector.reset();
+
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
+    }
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart The model part to compute
+     * @return 0 all ok
+     */
+    virtual int Check(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief It sets the level of echo for the solving strategy
+     * @param Level The level to set
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic informations
+     * - 2: Printing linear solver data
+     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 4: Print of stiffness matrix, b to Matrix Market
+     */
+    void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
+
+    /**
+     * @brief It returns the echo level
+     * @return The echo level of the builder and solver
+     */
+    int GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "ExplicitBuilderAndSolver";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    DofsArrayType mDofSet; /// The set containing the DoF of the system
+
+    TSystemVectorPointerType mpLumpedMassVector; // The lumped mass vector associated to the DOF set
+
+    bool mResetDofSetFlag = false;  /// If the DOF set requires to be set at each time step
+
+    bool mResetLumpedMassVectorFlag = false;  /// If the lumped mass vector requires to be set at each time step
+
+    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
+
+    bool mLumpedMassVectorIsInitialized = false; /// Flag taking care if the lumped mass vector was initialized or not
+
+    bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
+
+    unsigned int mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
+
+    int mEchoLevel = 0;
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+/**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
      * @details The list of dofs is stores insde the ExplicitBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
@@ -453,6 +668,7 @@ public:
         }
         temp_dof_set.Sort();
         mDofSet = temp_dof_set;
+        mEquationSystemSize = mDofSet.size();
 
         // DoFs set checks
         // Throws an exception if there are no Degrees Of Freedom involved in the analysis
@@ -460,7 +676,7 @@ public:
 
         // Check if each DOF has a reaction. Note that the explicit residual is stored in these
         for (auto it_dof = mDofSet.begin(); it_dof != mDofSet.end(); ++it_dof) {
-            KRATOS_ERROR_IF_NOT(it_dof->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+            KRATOS_ERROR_IF_NOT(it_dof->HasReaction()) << "Reaction variable not set for the following : " << std::endl
                 << "Node : " << it_dof->Id() << std::endl
                 << "Dof : " << (*it_dof) << std::endl << "Not possible to calculate reactions." << std::endl;
         }
@@ -476,17 +692,19 @@ public:
 
     virtual void SetUpDofSetEquationIds()
     {
-        auto& r_dof_set = GetDofSet();
-        const SizeType n_dofs = r_dof_set.size();
+        // Firstly check that the DOF set is initialized
+        KRATOS_ERROR_IF_NOT(mDofSetIsInitialized) << "Trying to set the equation ids. before initializing the DOF set. Please call the SetUpDofSet() before." << std::endl;
+        KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
-#pragma omp parallel for firstprivate(n_dofs)
-        for (int i_dof = 0; i_dof < static_cast<int>(n_dofs); ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
+        // Loop the DOF set to assign the equation ids
+#pragma omp parallel for
+        for (int i_dof = 0; i_dof < static_cast<int>(mEquationSystemSize); ++i_dof) {
+            auto it_dof = mDofSet.begin() + i_dof;
             it_dof->SetEquationId(i_dof);
         }
     }
 
-    virtual void SetUpLumpedMassMatrixVector(const ModelPart &rModelPart)
+    virtual void SetUpLumpedMassVector(const ModelPart &rModelPart)
     {
         KRATOS_TRY;
 
@@ -495,8 +713,8 @@ public:
 
         // Initialize the lumped mass matrix vector
         // Note that the lumped mass matrix vector size matches the dof set one
-        mpLumpedMassMatrixVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
-        TDenseSpace::SetToZero(*mpLumpedMassMatrixVector);
+        mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
+        TDenseSpace::SetToZero(*mpLumpedMassVector);
 
         // Loop the elements to get the mass matrix
         LocalSystemVectorType elem_mass_vector;
@@ -534,44 +752,19 @@ public:
 // NOTE THAT THIS IS A BOTTLENECK--> WE ASSUME THAT WE WILL NOT USE THE SPACES IN HERE
 // #pragma omp critical
 //                     {
-//                     const double mass_value = TDenseSpace::GetValue(*mpLumpedMassMatrixVector, eq_id);
-//                     TDenseSpace::SetValue(*mpLumpedMassMatrixVector, eq_id, aux_mass + mass_value);
+//                     const double mass_value = TDenseSpace::GetValue(*mpLumpedMassVector, eq_id);
+//                     TDenseSpace::SetValue(*mpLumpedMassVector, eq_id, aux_mass + mass_value);
 //                     }
 #pragma omp atomic
-                    (*mpLumpedMassMatrixVector)[eq_id] += aux_mass;
+                    (*mpLumpedMassVector)[eq_id] += aux_mass;
                 }
             }
         }
 
+        // Set the lumped mass vector flag as true
+        mLumpedMassVectorIsInitialized = true;
+
         KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief It allows to get the list of Dofs from the element
-     */
-    virtual DofsArrayType& GetDofSet()
-    {
-        return mDofSet;
-    }
-
-    /**
-     * @brief Get the lumped mass matrix vector pointer
-     * It allows to get the lumped mass matrix vector pointer
-     * @return TSystemVectorPointerType& The lumped mass matrix vector pointer
-     */
-    virtual TSystemVectorPointerType& pGetLumpedMassMatrixVector()
-    {
-        return mpLumpedMassMatrixVector;
-    }
-
-    /**
-     * @brief Get the lumped mass matrix vector
-     * It allows to get the lumped mass matrix vector
-     * @return TSystemVectorType& The lumped mass matrix vector
-     */
-    virtual TSystemVectorType& GetLumpedMassMatrixVector()
-    {
-        return (*mpLumpedMassMatrixVector);
     }
 
     /**
@@ -582,10 +775,13 @@ public:
      */
     virtual void InitializeDofSetReactions()
     {
+        // Firstly check that the DOF set is initialized
         KRATOS_ERROR_IF_NOT(mDofSetIsInitialized) << "Trying to initialize the explicit residual but the DOFs set is not initialized yet." << std::endl;
+        KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
+        // Loop the reactions to initialize them to zero
 #pragma parallel for
-        for (int i_dof = 0; i_dof < mDofSet.size(); ++i_dof) {
+        for (int i_dof = 0; i_dof < static_cast<int>(mEquationSystemSize); ++i_dof) {
             auto it_dof = mDofSet.begin() + i_dof;
             auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
             r_reaction_value = 0.0;
@@ -593,157 +789,28 @@ public:
     }
 
     /**
-     * @brief It applies certain operations at the system of equations at the begining of the solution step
-     * @param rModelPart The model part to compute
-     */
-    virtual void InitializeSolutionStep(ModelPart& rModelPart)
-    {
-    }
-
-    /**
-     * @brief It applies certain operations at the system of equations at the end of the solution step
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void FinalizeSolutionStep(ModelPart& rModelPart)
-    {
-    }
-
-    /**
      * @brief It computes the reactions of the system
      * @param rModelPart The model part to compute
      */
-    virtual void CalculateReactions(ModelPart& rModelPart)
+    virtual void CalculateReactions()
     {
-        // TODO
-        // THIS IS MINUS THE RHS
+        if (mCalculateReactionsFlag) {
+            // Firstly check that the DOF set is initialized
+            KRATOS_ERROR_IF_NOT(mDofSetIsInitialized) << "Trying to initialize the explicit residual but the DOFs set is not initialized yet." << std::endl;
+            KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
+
+            // Calculate the reactions as minus the current value
+            // Note that we take advantage of the fact that Kratos always works with a residual based formulation
+            // This means that the reactions are minus the residual. As we use the reaction as residual container
+            // during the explicit resolution of the problem, the calculate reactions is as easy as switching the sign
+#pragma parallel for
+            for (int i_dof = 0; i_dof < static_cast<int>(mEquationSystemSize); ++i_dof) {
+                auto it_dof = mDofSet.begin() + i_dof;
+                auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
+                r_reaction_value *= -1.0;
+            }
+        }
     }
-
-    /**
-     * @brief This function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
-     */
-    virtual void Clear()
-    {
-        this->mDofSet = DofsArrayType();
-        this->mpReactionsVector.reset();
-
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
-    }
-
-    /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart The model part to compute
-     * @return 0 all ok
-     */
-    virtual int Check(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief It sets the level of echo for the solving strategy
-     * @param Level The level to set
-     * @details The different levels of echo are:
-     * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
-     * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
-     * - 4: Print of stiffness matrix, b to Matrix Market
-     */
-    void SetEchoLevel(int Level)
-    {
-        mEchoLevel = Level;
-    }
-
-    /**
-     * @brief It returns the echo level
-     * @return The echo level of the builder and solver
-     */
-    int GetEchoLevel()
-    {
-        return mEchoLevel;
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "ExplicitBuilderAndSolver";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    DofsArrayType mDofSet; /// The set containing the DoF of the system
-
-    TSystemVectorPointerType mpLumpedMassMatrixVector;
-
-    bool mReshapeMatrixFlag = false;  /// If the matrix is reshaped each step
-
-    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
-
-    bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
-
-    unsigned int mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
-
-    int mEchoLevel = 0;
-
-    TSystemVectorPointerType mpReactionsVector;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     ///@}
     ///@name Protected  Access
