@@ -90,8 +90,8 @@ namespace Testing
 
         // New Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
-        mp_coordinate[0] = 0.0;
-        mp_coordinate[1] = 1.0;
+        mp_coordinate[0] = 1.0;
+        mp_coordinate[1] = 0.0;
         mp_coordinate[2] = 0.0;
 
         r_mpm_model_part.GetElement(1).SetValue(MP_COORD, mp_coordinate);
