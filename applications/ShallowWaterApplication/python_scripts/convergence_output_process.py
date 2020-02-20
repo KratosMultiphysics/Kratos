@@ -66,10 +66,16 @@ class ConvergenceOutputProcess(KM.Process):
         for key, param in self.settings["analysis_attributes"].items():
             if param.IsBool():
                 value = param.GetBool()
-            if param.IsInt():
+            elif param.IsInt():
                 value = param.GetInt()
-            if param.IsDouble():
+            elif param.IsDouble():
                 value = param.GetDouble()
+            elif param.IsString():
+                value = param.GetString()
+            else:
+                msg = "Unknown type for " + str(param)
+                msg = msg.rstrip() + " with key : \"" + str(key) + "\""
+                raise Exception(msg)
             dset.attrs[key] = value
 
     def _CheckAttributes(self, attributes):
@@ -78,10 +84,16 @@ class ConvergenceOutputProcess(KM.Process):
             match = False
             if param.IsBool():
                 value = param.GetBool()
-            if param.IsInt():
+            elif param.IsInt():
                 value = param.GetInt()
-            if param.IsDouble():
+            elif param.IsDouble():
                 value = param.GetDouble()
+            elif param.IsString():
+                value = param.GetString()
+            else:
+                msg = "Unknown type for " + str(param)
+                msg = msg.rstrip() + " with key : \"" + str(key) + "\""
+                raise Exception(msg)
 
             if attributes.get(key) is not None:
                 if attributes[key] == value:
