@@ -47,6 +47,8 @@ namespace MPMSearchElementUtility
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
+        KRATOS_WATCH("ERROR hier")
+
         // Reset elements to inactive
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
@@ -136,8 +138,8 @@ namespace MPMSearchElementUtility
                                 r_geometry[j].Set(ACTIVE);
                     }
                     else{
-                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
-                                << " is failed. Geometry is cleared." << std::endl;
+                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search background element for Material Point Condition: "
+                                << condition_itr->Id() << " failed. Geometry of condition is cleared." << std::endl;
 
                             condition_itr->GetGeometry().clear();
                             condition_itr->Reset(ACTIVE);
