@@ -16,10 +16,12 @@
 // System includes
 
 // External includes
+#include <pybind11/complex.h>
 
 // Project includes
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
 
@@ -42,10 +44,10 @@ namespace Python
         binder.def("__len__", [](const TVectorType& self){return self.size();} );
 
         //operating on the object itself, +=, -=, *=, etc
-        binder.def("__iadd__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar; return self;}, py::is_operator());
-        binder.def("__isub__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar; return self;}, py::is_operator());
-        binder.def("__imul__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar; return self;}, py::is_operator());
-        binder.def("__itruediv__", [](TVectorType& self, const double scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar; return self;}, py::is_operator());
+        binder.def("__iadd__", [](TVectorType& self, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]+=scalar; return self;}, py::is_operator());
+        binder.def("__isub__", [](TVectorType& self, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]-=scalar; return self;}, py::is_operator());
+        binder.def("__imul__", [](TVectorType& self, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]*=scalar; return self;}, py::is_operator());
+        binder.def("__itruediv__", [](TVectorType& self, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<self.size(); ++i) self[i]/=scalar; return self;}, py::is_operator());
 
         binder.def("__iadd__", [](TVectorType& self, const TVectorType& other_vec){noalias(self) += other_vec; return self;}, py::is_operator());
         binder.def("__isub__", [](TVectorType& self, const TVectorType& other_vec){noalias(self) -= other_vec; return self; }, py::is_operator());
@@ -53,15 +55,15 @@ namespace Python
         //returning a different object
 //         binder.def("__add__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]+=scalar; return vec1;}, py::is_operator());
 //         binder.def("__sub__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]-=scalar; return vec1;}, py::is_operator());
-         binder.def("__mul__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, py::is_operator());
-         binder.def("__div__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, py::is_operator());
-         binder.def("__truediv__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, py::is_operator());
+        binder.def("__mul__", [](TVectorType vec1, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, py::is_operator());
+        binder.def("__div__", [](TVectorType vec1, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, py::is_operator());
+        binder.def("__truediv__", [](TVectorType vec1, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar; return vec1;}, py::is_operator());
 //         binder.def("__radd__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]+=scalar; return vec1;}, py::is_operator());
 //         binder.def("__rsub__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]-=scalar; return vec1;}, py::is_operator());
-         binder.def("__rmul__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, py::is_operator());
-         binder.def("__rdiv__", [](TVectorType vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, py::is_operator());
-        binder.def("__add__", [](const TVectorType& vec1, const TVectorType& vec2){Vector aux(vec1); aux += vec2; return aux;}, py::is_operator());
-        binder.def("__sub__", [](const TVectorType& vec1, const TVectorType& vec2){Vector aux(vec1); aux -= vec2; return aux;}, py::is_operator());
+        binder.def("__rmul__", [](TVectorType vec1, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]*=scalar; return vec1;}, py::is_operator());
+        binder.def("__rdiv__", [](TVectorType vec1, const typename TVectorType::value_type scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, py::is_operator());
+        binder.def("__add__", [](const TVectorType& vec1, const TVectorType& vec2){TVectorType aux(vec1); aux += vec2; return aux;}, py::is_operator());
+        binder.def("__sub__", [](const TVectorType& vec1, const TVectorType& vec2){TVectorType aux(vec1); aux -= vec2; return aux;}, py::is_operator());
 
         //access operators
         binder.def("__setitem__", [](TVectorType& self, const unsigned int i, const typename TVectorType::value_type value){self[i] = value;} );
@@ -227,6 +229,21 @@ namespace Python
                                 return tmp;
                                 }));
         py::implicitly_convertible<py::list, DenseVector<int>>();
+
+        auto cplx_vector_binder = CreateVectorInterface<ComplexVector>(m, "ComplexVector");
+        cplx_vector_binder.def(py::init<typename ComplexVector::size_type>());
+        cplx_vector_binder.def(py::init<typename ComplexVector::size_type, double>());
+        cplx_vector_binder.def(py::init<typename ComplexVector::size_type, std::complex<double>>());
+        cplx_vector_binder.def(py::init<Vector>());
+        cplx_vector_binder.def(py::init<ComplexVector>());
+        // vector_binder.def(py::init<array_1d<double,3>>());
+        cplx_vector_binder.def(py::init( [](const py::list& input){
+                                ComplexVector tmp(input.size());
+                                for(unsigned int i=0; i<tmp.size(); ++i)
+                                    tmp[i] = py::cast<std::complex<double>>(input[i]);
+                                return tmp;
+                                }));
+        py::implicitly_convertible<py::list, ComplexVector>();
 
         CreateArray1DInterface< 3 >(m,"Array3");
         CreateArray1DInterface< 4 >(m,"Array4");
