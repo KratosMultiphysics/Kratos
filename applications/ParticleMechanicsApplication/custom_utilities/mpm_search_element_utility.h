@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "particle_mechanics_application_variables.h"
+#include "utilities/quadrature_points_utility.h"
 
 namespace Kratos
 {
@@ -85,20 +86,28 @@ namespace MPMSearchElementUtility
                 bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true) {
-                        pelem->Set(ACTIVE);
-                        element_itr->GetGeometry() = pelem->GetGeometry();
-                        auto& r_geometry = element_itr->GetGeometry();
+                    pelem->Set(ACTIVE);
 
-                        for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
-                            r_geometry[j].Set(ACTIVE);
+                    auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                        pelem->pGetGeometry(), xg,
+                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+
+                    element_itr->pGetGeometry() = p_new_geometry;
+
+                    KRATOS_ERROR_IF(element_itr->GetGeometry()[0] != 2) << "bug in search." << std::endl;
+
+                    auto& r_geometry = element_itr->GetGeometry();
+
+                    for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                        r_geometry[j].Set(ACTIVE);
                 }
-                else{
-                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
-                            << " is failed. Geometry is cleared." << std::endl;
+                else {
+                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
+                        << " is failed. Geometry is cleared." << std::endl;
 
-                        element_itr->GetGeometry().clear();
-                        element_itr->Reset(ACTIVE);
-                        element_itr->Set(TO_ERASE);
+                    element_itr->GetGeometry().clear();
+                    element_itr->Reset(ACTIVE);
+                    element_itr->Set(TO_ERASE);
                 }
             }
 
