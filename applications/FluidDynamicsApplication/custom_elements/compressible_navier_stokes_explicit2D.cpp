@@ -573,20 +573,27 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
 	}
 
-	for (s = 0; s < nNodalVariables; s++){
+	// for (s = 0; s < nNodalVariables; s++){
 
-		FConv[s] = 0.0;
+	// 	FConv[s] = 0.0;
 
-		for (i = 0; i < nScalarVariables; i++){
-			FConv[s] += NN[i*nNodalVariables + s]*L[i];
+	// 	for (k = 0; k < nodesElement; k++){
+	// 		FConv[s] += NN[i*nNodalVariables + s]*L[i];
+	// 	}
+	// }
+
+    for (i = 0; i < nScalarVariables; i++){
+        for (k = 0; k < nodesElement; k++){
+			FConv[i + k*nScalarVariables] = N[k]*L[i];
 		}
-	}
+    }
 
-    double  divrom, divm;
 
     // Build diffusive term: stress tensor and thermal diffusion
 
-	divm   = gradU[1*SpaceDimension + 0] + gradU[2*SpaceDimension + 1];
+    double  divrom, divm;
+
+    divm   = gradU[1*SpaceDimension + 0] + gradU[2*SpaceDimension + 1];
 	divrom = U_gauss[1]*gradU[0*SpaceDimension + 0] + U_gauss[2]*gradU[0*SpaceDimension + 1];
 
 	for (i = 0; i < SpaceDimension; i++){
