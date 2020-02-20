@@ -109,11 +109,11 @@ namespace MPMParticleGeneratorUtility
                     Properties::Pointer p_properties = i->pGetProperties();
 
                     // Check number of particles per element to be created
-                    const SizeType particles_per_element = (i->GetProperties().Has(PARTICLES_PER_ELEMENT))
+                    const SizeType particles_per_element = (p_properties->Has(PARTICLES_PER_ELEMENT))
                         ? i->GetProperties()[PARTICLES_PER_ELEMENT]
                         : 1;
-                    KRATOS_WARNING_IF("MPMParticleGeneratorUtility", !i->GetProperties().Has(PARTICLES_PER_ELEMENT))
-                        << "PARTICLES_PER_ELEMENT is not specified in Properties, 1 Particle per element is assumed." << std::endl;
+                    KRATOS_WARNING_IF("MPMParticleGeneratorUtility", !p_properties->Has(PARTICLES_PER_ELEMENT))
+                        << "PARTICLES_PER_ELEMENT is not specified in Properties. 1 particle per element is assumed." << std::endl;
 
                     // Get geometry and dimension of the background grid
                     const SizeType working_space_dimension = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
