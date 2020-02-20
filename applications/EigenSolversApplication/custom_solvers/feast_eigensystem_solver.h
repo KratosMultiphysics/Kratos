@@ -28,8 +28,10 @@
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/ublas_wrapper.h"
 
-#include <feast.h>
-#include <feast_sparse.h>
+// extern "C" {
+//     #include <feast.h>
+//     #include <feast_sparse.h>
+// }
 
 namespace Kratos
 {
@@ -114,10 +116,11 @@ class FEASTEigensystemSolver
             rEigenvectors.resize(rK.size1(), mParam["M0"].GetInt(), false);
 
         VectorType Residual(mParam["M0"].GetInt());
+        KRATOS_WATCH(Residual)
 
         int fpm[64] = {};
         feastinit(fpm);
-
+        KRATOS_WATCH(&fpm)
         echo_level > 0 ? fpm[0] = 1 : fpm[0] = 0;
         // fpm[2] = 8;
 
@@ -129,18 +132,33 @@ class FEASTEigensystemSolver
         double* B = rM.value_data().begin();
         int* IB = (int*) rM.index1_data().begin();
         int* JB = (int*) rM.index2_data().begin();
-        double* epsout;
-        int* loop;
+        double epsout;
+        int loop;
         double Emin = mParam["emin"].GetDouble();
         double Emax = mParam["emax"].GetDouble();
-        int* M0 = (int*) mParam["M0"].GetInt();
+        // int* M0 = (int*) mParam["M0"].GetInt();
+        int M0 = mParam["M0"].GetInt();
         double* E = rEigenvalues.data().begin();
         double* X = rEigenvectors.data().begin();
-        int* M;
+        int M;
         double* res = Residual.data().begin();
-        int* info;
+        int info;
 
-        // dfeast_scsrgv(UPLO, &N, A, IA, JA, B, IB, JB, fpm, epsout, loop, &Emin, &Emax, M0, E, X, M, res, info);
+        // KRATOS_WATCH(rM.index1_data())
+        std::for_each(rM.index1_data().begin(), rM.index1_data().end(), [](size_t i) { std::cout << i << ","; });
+        std::cout << "\n";
+        std::for_each(rM.index2_data().begin(), rM.index2_data().end(), [](size_t i) { std::cout << i << ","; });
+        std::cout << "\n";
+        std::for_each(rM.value_data().begin(), rM.value_data().end(), [](double i) { std::cout << i << ","; });
+        std::cout << "\n";
+        std::for_each(rK.index1_data().begin(), rK.index1_data().end(), [](size_t i) { std::cout << i << ","; });
+        std::cout << "\n";
+        std::for_each(rK.index2_data().begin(), rK.index2_data().end(), [](size_t i) { std::cout << i << ","; });
+        std::cout << "\n";
+        std::for_each(rK.value_data().begin(), rK.value_data().end(), [](double i) { std::cout << i << ","; });
+        std::cout << "\n";
+
+        dfeast_scsrgv(UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, &Emin, &Emax, &M0, E, X, &M, res, &info);
         
 
 
