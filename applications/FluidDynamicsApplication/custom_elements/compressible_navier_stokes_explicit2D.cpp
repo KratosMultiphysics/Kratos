@@ -270,16 +270,6 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     //    const array_1d<double,nScalarVariables> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N); 	// OK
 
 
-    // Compute the MassMatrix in a separated routine
-    //LocalMassMatrix(LumpedMassMatrix,N,nodesElement);
-    // for (i = 0; i < nodesElement; i++){
-    //     double mass = this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
-    //     printf("%.3e ", mass);
-    // }
-
-    //printf("\n");
-
-    //printf("up\n");
     // Define U and Udot
     for (i = 0; i < nodesElement; i++){
         for (j = 0; j < nScalarVariables; j++){
@@ -292,14 +282,8 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
             up(p) = (U(p) - Un(p))/dt;
             //up(p) = Up(i,j);
             
-//            printf("%.3e ", up(p));
-
         }
     }
-//    printf("\n");
-
-
-//    printf("\n");
 
     for (i = 0; i < nScalarVariables; i++){
         U_gauss(i) = 0;
@@ -365,8 +349,6 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
 	const double p_el = (gamma - 1.0)*(etot_el - 0.5 * norm2m/ro_el);
     
-    
-    //printf("SpeedSound %.3e %.3e %.3e %.3e\n\n", etot_el, ro_el, norm2u, etot_el / ro_el  - 0.5 * norm2u);
 
     const double SpeedSound = sqrt( gamma * (gamma - 1.0) * (etot_el / ro_el  - 0.5 * norm2u) );
 
@@ -551,21 +533,22 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 	invtauStab[2] =	invtauStab[1];
 	invtauStab[3] = stab_c1*lambda/(ro_el*cp*h*h) + invtauStab[0];  
 
-    // printf("invtau\n");
-    // printf("%.3e %.3e %.3e %.3e\n", invtauStab[0],  invtauStab[1],  invtauStab[2],  invtauStab[3]);
-    // printf("%.3e %.3e %.3e %.3e\n ",ro_el, h, norm_u, SpeedSound);
+    L[0] = 0.0;
+    L[1] = -S[1*nScalarVariables + 0]*U_gauss[0];
+    L[2] = -S[2*nScalarVariables + 0];
+    L[3] = 0.0;
     
-    // printf("\n");
-
+    for (k = 0; k < SpaceDimension - 1 ; k++){
+        L[3] -= S[3*nScalarVariables + k]*U_gauss[k];
+    }
 
     for (i = 0; i < nScalarVariables; i++ ){
 
-		L[i] = 0.0;
 		R[i] = 0.0;
 
 		for (k = 0; k < nScalarVariables; k++){
 
-			L[i] -= S[i*nScalarVariables + k]*U[k];
+//			L[i] -= S[i*nScalarVariables + k]*U_gauss[k];
 
 			for (j = 0; j < SpaceDimension; j++){
 
@@ -577,11 +560,17 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
 		R[i] = -L[i];
 
-		for (k = 0; k < nNodalVariables; k++){
+		// for (k = 0; k < nNodalVariables; k++){
 
-			R[i] -= NN[i*nNodalVariables + k]*up[k];
+		// 	R[i] -= NN[i*nNodalVariables + k]*up[k];
 
-		}
+		// }
+        
+        for (k = 0; k < nodesElement; k++){
+            R[i] -= N[k]*up[i + nScalarVariables*k];
+        }
+
+
 	}
 
 	for (s = 0; s < nNodalVariables; s++){
@@ -619,18 +608,9 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 	}
 
 
-    // // Here introduce the shock capturing
-    // printf("preSHOCK");
-    // for (i = 0; i < 4; i++){
-    //     printf("%.3e ", tau[i]);
-    // }
-    // printf("\n");
+
     ShockCapturing(mu, lambda, cv, h, tau, q, ro_el, gradU, R);
-    // printf("postSHOCK");
-    // for (i = 0; i < 4; i++){
-    //     printf("%.3e ", tau[i]);
-    // }
-    // printf("\n");
+
 
 
     // Build diffusive term: Diffusion tensor
@@ -676,21 +656,14 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 		}
 	}
 
-    // for (k = 0; k < nScalarVariables; k++){
-    //     printf("%.3e %.3e\n", R[k], 1.0/invtauStab[k]);
-    // }
-    // printf("\n");
-
-
     // Force contribuution at the Gauss Point   
 
     for (i = 0; i < nNodalVariables; i++){
 
 		rhs[i] = - sw_conv*FConv[i] - sw_diff*FDiff[i] - sw_stab*FStab[i];
-//         printf("%.3e %.3e %.3e \n", FConv[i], FDiff[i], FStab[i]);
-    //    printf("%.3e ",rhs[i]);
+
 	}
-//    printf("\n");
+
 
 }
 
