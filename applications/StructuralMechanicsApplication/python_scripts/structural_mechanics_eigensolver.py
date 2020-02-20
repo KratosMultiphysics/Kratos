@@ -30,7 +30,6 @@ class EigenSolver(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"                 : "dynamic",
-            "block_builder"               : false,
             "compute_modal_decomposition" : false,
             "eigensolver_settings" : {
                 "solver_type"           : "eigen_eigensystem",
