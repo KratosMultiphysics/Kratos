@@ -163,14 +163,14 @@ array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement)
 template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double free_stream_velocity_norm = inner_prod(free_stream_velocity, free_stream_velocity);
 
     KRATOS_ERROR_IF(free_stream_velocity_norm < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
         << "free_stream_velocity_norm must be larger than zero." << std::endl;
 
-    array_1d<double, Dim> v = ComputeVelocity<Dim,NumNodes>(rElement);
+    array_1d<double, Dim> v = free_stream_velocity + ComputeVelocity<Dim,NumNodes>(rElement);
 
     double pressure_coefficient = (free_stream_velocity_norm - inner_prod(v, v)) /
                free_stream_velocity_norm; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));

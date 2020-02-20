@@ -402,8 +402,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
+    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& velocity = vinfinity + PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    noalias(rRightHandSideVector) = - data.vol * free_stream_density * prod(data.DN_DX, velocity);
 }
 
 template <int Dim, int NumNodes>
@@ -432,28 +433,55 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
 
     ComputeLHSGaussPointContribution(data.vol*free_stream_density, lhs_total, data);
 
+
+    double upper_vol = 0.0;
+    double lower_vol = 0.0;
     if (this->Is(STRUCTURE))
     {
         BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo, upper_vol, lower_vol);
         AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
                                            lhs_negative, lhs_total, data);
     }
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
 
-    BoundedVector<double, 2*NumNodes> split_element_values;
-    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
+    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& upper_velocity = vinfinity + PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
+    const array_1d<double, Dim>& lower_velocity = vinfinity + PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+    const array_1d<double, Dim>& diff_velocity = upper_velocity - lower_velocity;
+
+    const BoundedVector<double, NumNodes> upper_rhs = - data.vol * free_stream_density * prod(data.DN_DX, upper_velocity);
+    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+
+    for (unsigned int i = 0; i < NumNodes; ++i){
+        if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
+            rRightHandSideVector[i] = upper_rhs(i)*upper_vol/data.vol;
+            rRightHandSideVector[i + NumNodes] = lower_rhs(i)*lower_vol/data.vol;
+        }
+        else{
+            if (data.distances[i] > 0.0){
+                rRightHandSideVector[i] = upper_rhs(i);
+                rRightHandSideVector[i + NumNodes] = wake_rhs(i);
+            }
+            else{
+                rRightHandSideVector[i] = wake_rhs(i);
+                rRightHandSideVector[i + NumNodes] = lower_rhs(i);
+            }
+        }
+    }
 }
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo,
+    double& rUpper_vol,
+    double& rLower_vol)
 {
     ElementalData<NumNodes, Dim> data;
 
@@ -490,10 +518,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     // Compute the lhs and rhs that would correspond to it being divided
     for (unsigned int i = 0; i < nsubdivisions; ++i)
     {
-        if (PartitionsSign[i] > 0)
+        if (PartitionsSign[i] > 0){
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_positive, data);
-        else
+            rUpper_vol += Volumes[i];
+        }
+        else{
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_negative, data);
+            rLower_vol += Volumes[i];
+        }
     }
 }
 
