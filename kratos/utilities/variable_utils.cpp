@@ -478,10 +478,12 @@ void VariableUtils::AuxiliaryReduction(
     const array_1d<double, 3> &rPrivateValue,
     array_1d<double, 3> &rSumValue)
 {
-    for (int j = 0; j < static_cast<int>(rSumValue.size()); ++j) {
 #pragma omp atomic
-        rSumValue[j] += rPrivateValue[j];
-    }
+        rSumValue[0] += rPrivateValue[0];
+#pragma omp atomic
+        rSumValue[1] += rPrivateValue[1];
+#pragma omp atomic
+        rSumValue[2] += rPrivateValue[2];
 }
 
 } /* namespace Kratos.*/
