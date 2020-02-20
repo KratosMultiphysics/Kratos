@@ -139,19 +139,38 @@ public:
 
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+        
+        // Auxiliar set for dirichlet dofs
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","Please write a number"};
+
+        // Check the values
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            double aux_value = 0.0;
+            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs);
+            number_stream >> aux_value;
+            if (aux_value < std::numeric_limits<double>::epsilon()) {
+                std::stringstream msg;
+                msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+                msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
+                KRATOS_ERROR << msg.str() << std::endl;
+            }
+        }
+        
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
         if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
             BaseType::mOptions.Set(BaseType::NO_SCALING, true);
             BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
             BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
         } else { 
             BaseType::mOptions.Set(BaseType::NO_SCALING, false);
+            // This case will consider the maximum value in the diagonal as a scaling value
             if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
                 BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
                 BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
-            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") {
+            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
                 BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
                 BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
-            } else {
+            } else { // Otherwise we will assume we impose a numerical value
                 BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
                 BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, true);
                 // We assume it is a number
@@ -159,28 +178,65 @@ public:
                 number_stream >> BaseType::mScaleFactor; 
             }
         }
+        
+        // Auxiliar set for constraints
+        std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","Please write a number"};
+        
+        // Definition of the constraint scale factor
         const std::string& r_constraint_scale_factor = ThisParameters["constraint_scale_factor"].GetString();
+
+        // Check the values
+        if (available_options_for_constraints_scale.find(r_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
+            double aux_value = 0.0;
+            std::stringstream number_stream(r_constraint_scale_factor);
+            number_stream >> aux_value;
+            if (aux_value < std::numeric_limits<double>::epsilon()) {
+                std::stringstream msg;
+                msg << "Currently prescribed constraint scale factor : " << r_constraint_scale_factor << "\n";
+                msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
+                KRATOS_ERROR << msg.str() << std::endl;
+            }
+        }
+        
+        // This case will consider the mean value in the diagonal as a scaling value
         if (r_constraint_scale_factor == "use_mean_diagonal") {
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
-        } else if (r_constraint_scale_factor == "use_diagonal_norm") {
+        } else if (r_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
             BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
-        } else {
+        } else { // Otherwise we will assume we impose a numerical value
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, true);
             // We assume it is a number
             std::stringstream number_stream(r_constraint_scale_factor); 
             number_stream >> mConstraintFactor; 
         }
+        
+        // Definition of the auxiliar constraint scale factor
         const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["auxiliar_constraint_scale_factor"].GetString();
+        
+        // Check the values
+        if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
+            double aux_value = 0.0;
+            std::stringstream number_stream(r_auxiliar_constraint_scale_factor);
+            number_stream >> aux_value;
+            if (aux_value < std::numeric_limits<double>::epsilon()) {
+                std::stringstream msg;
+                msg << "Currently prescribed constraint scale factor : " << r_auxiliar_constraint_scale_factor << "\n";
+                msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
+                KRATOS_ERROR << msg.str() << std::endl;
+            }
+        }
+        
+        // This case will consider the mean value in the diagonal as a scaling value
         if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
-        } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") {
+        } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
             BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, true);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
-        } else {
+        } else { // Otherwise we will assume we impose a numerical value
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, true);
             // We assume it is a number
