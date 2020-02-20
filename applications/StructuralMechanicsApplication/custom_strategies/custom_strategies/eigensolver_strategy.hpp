@@ -21,6 +21,7 @@
 
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 
@@ -391,8 +392,11 @@ public:
 
         // Initialize dummy rhs vector
         SparseVectorType b;
+        SparseVectorType Dx;
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
+        SparseSpaceType::Resize(Dx,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
+        SparseSpaceType::Set(Dx,0.0);
 
         // Generate lhs matrix. the factor 1 is chosen to preserve
         // SPD property
@@ -402,8 +406,13 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
-        ApplyDirichletConditions(rMassMatrix, 1.0);
 
+        const bool is_block_builder = (nullptr != dynamic_cast<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>*>(this->pGetBuilderAndSolver().get()));
+
+        if (is_block_builder) {
+            ApplyDirichletConditions(rMassMatrix, 0.0);
+        }
+        
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
         }
@@ -416,7 +425,7 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
-        ApplyDirichletConditions(rStiffnessMatrix, 0.0);
+        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rStiffnessMatrix, Dx, b);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
@@ -693,6 +702,9 @@ private:
                     auto itDof = std::begin(NodeDofs) + j;
                     if ((*itDof)->IsFree()) {
                         rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
+                    }
+                    else {
+                        rNodeEigenvectors(i,j) = 0.0;
                     }
                 }
             }
