@@ -240,8 +240,6 @@ private:
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
-    void ComputeElementInternalEnergy();
-
     ///@}
     ///@name Serialization
     ///@{

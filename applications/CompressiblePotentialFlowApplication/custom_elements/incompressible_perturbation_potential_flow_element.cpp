@@ -155,7 +155,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolu
     {
         ComputePotentialJump(rCurrentProcessInfo);
     }
-    ComputeElementInternalEnergy();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -722,24 +721,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePoten
             r_geometry[i].UnSetLock();
         }
     }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEnergy()
-{
-    double internal_energy = 0.0;
-    array_1d<double, Dim> velocity;
-
-    const IncompressiblePerturbationPotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
-    else // Wake element
-        velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-
-    internal_energy = 0.5 * inner_prod(velocity, velocity);
-    this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
 // serializer
