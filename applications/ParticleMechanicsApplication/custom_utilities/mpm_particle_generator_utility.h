@@ -81,9 +81,9 @@ namespace MPMParticleGeneratorUtility
         double mp_volume;
 
         // Determine element index: This convention is done in order for the purpose of visualization in GiD
-        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements();
-        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
-        unsigned int last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
+        const SizeType number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements();
+        const SizeType number_nodes = rBackgroundGridModelPart.NumberOfNodes();
+        IndexType last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
 
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -113,7 +113,7 @@ namespace MPMParticleGeneratorUtility
                         ? i->GetProperties()[PARTICLES_PER_ELEMENT]
                         : 1;
                     KRATOS_WARNING_IF("MPMParticleGeneratorUtility", !i->GetProperties().Has(PARTICLES_PER_ELEMENT))
-                        << "PARTICLES_PER_ELEMENT is not specified in Properties, 1 Particle per element is assumed.";
+                        << "PARTICLES_PER_ELEMENT is not specified in Properties, 1 Particle per element is assumed." << std::endl;
 
                     // Get geometry and dimension of the background grid
                     const SizeType working_space_dimension = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
