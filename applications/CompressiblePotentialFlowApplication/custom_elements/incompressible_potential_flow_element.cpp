@@ -414,14 +414,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const array_1d<double, Dim>& velocity = vinfinity + PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
 
-    // if(this->Id()==1){
-    //     KRATOS_WATCH(vinfinity)
-    //     KRATOS_WATCH(velocity)
-    // }
-
-    const BoundedMatrix<double, NumNodes, NumNodes> RightHandSideMatrix =
-        data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
-
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
     noalias(rRightHandSideVector) = - data.vol * free_stream_density * prod(data.DN_DX, velocity);
     //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
