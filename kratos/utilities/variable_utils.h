@@ -897,7 +897,7 @@ public:
         TDataType sum_value;
         AuxiliaryInitializeValue(sum_value);
 
-        auto &r_communicator = rModelPart.GetCommunicator();
+        const auto &r_communicator = rModelPart.GetCommunicator();
 
 #pragma omp parallel
         {
