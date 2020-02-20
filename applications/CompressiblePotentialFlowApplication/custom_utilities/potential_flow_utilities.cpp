@@ -177,6 +177,23 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
     return pressure_coefficient;
 }
 
+template <int Dim, int NumNodes>
+double ComputeIncompressiblePerturbationPressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, Dim> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const double free_stream_velocity_norm = inner_prod(free_stream_velocity, free_stream_velocity);
+
+    KRATOS_ERROR_IF(free_stream_velocity_norm < std::numeric_limits<double>::epsilon())
+        << "Error on element -> " << rElement.Id() << "\n"
+        << "free_stream_velocity_norm must be larger than zero." << std::endl;
+
+    array_1d<double, Dim> v = free_stream_velocity + ComputeVelocity<Dim,NumNodes>(rElement);
+
+    double pressure_coefficient = (free_stream_velocity_norm - inner_prod(v, v)) /
+               free_stream_velocity_norm; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));
+    return pressure_coefficient;
+}
+
 
 template <int Dim, int NumNodes>
 double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
@@ -338,6 +355,7 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeIncompressiblePerturbationPressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
@@ -359,6 +377,7 @@ template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeIncompressiblePerturbationPressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);

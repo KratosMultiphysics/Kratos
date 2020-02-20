@@ -202,7 +202,9 @@ private:
 
     void CalculateLocalSystemSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                                BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
-                                               const ProcessInfo& rCurrentProcessInfo);
+                                               const ProcessInfo& rCurrentProcessInfo,
+                                               double& rUpper_vol,
+                                               double& rLower_vol);
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           BoundedMatrix<double, NumNodes, NumNodes>& lhs,
