@@ -391,11 +391,8 @@ public:
 
         // Initialize dummy rhs vector
         SparseVectorType b;
-        SparseVectorType Dx;
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
-        SparseSpaceType::Resize(Dx,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
-        SparseSpaceType::Set(Dx,0.0);
 
         // Generate lhs matrix. the factor 1 is chosen to preserve
         // SPD property
@@ -405,7 +402,8 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
-        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rMassMatrix, Dx, b);
+
+        ApplyDirichletConditions(rMassMatrix, 1.0);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
@@ -419,7 +417,8 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
-        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rStiffnessMatrix, Dx, b);
+
+        ApplyDirichletConditions(rStiffnessMatrix, 0.0);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
