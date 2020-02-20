@@ -141,18 +141,18 @@ class TemporalRootMeanSquareMethodTests(KratosUnittest.TestCase):
 
                 if (norm_type == "none"):
                     method_scalar = output_method(item,
-                                                  KratosStats.PRESSURE_MEAN)
+                                                  KratosStats.SCALAR_MEAN)
                     method_vec_3d = output_method(item,
-                                                  KratosStats.VELOCITY_MEAN)
+                                                  KratosStats.VECTOR_3D_MEAN)
                     method_vec = output_method(item,
                                                Kratos.MATERIAL_PARAMETERS)
                     method_mat = output_method(item,
                                                Kratos.CAUCHY_STRESS_TENSOR)
                 else:
                     method_scalar = output_method(item,
-                                                  KratosStats.PRESSURE_NORM)
+                                                  KratosStats.SCALAR_NORM)
                     method_vec_3d = output_method(item,
-                                                  KratosStats.VELOCITY_NORM)
+                                                  KratosStats.VECTOR_3D_NORM)
                     method_vec = output_method(item, Kratos.DENSITY)
                     method_mat = output_method(item, Kratos.VISCOSITY)
 
@@ -207,12 +207,12 @@ class TemporalRootMeanSquareMethodTests(KratosUnittest.TestCase):
         if (norm_type == "none"):
             settings_str = settings_str.replace(
                 "<OUTPUT_VARIABLES>",
-                r'"VELOCITY_MEAN", "PRESSURE_MEAN", "MATERIAL_PARAMETERS", "CAUCHY_STRESS_TENSOR"'
+                r'"VECTOR_3D_MEAN", "SCALAR_MEAN", "MATERIAL_PARAMETERS", "CAUCHY_STRESS_TENSOR"'
             )
         else:
             settings_str = settings_str.replace(
                 "<OUTPUT_VARIABLES>",
-                r'"VELOCITY_NORM", "PRESSURE_NORM", "DENSITY", "VISCOSITY"')
+                r'"VECTOR_3D_NORM", "SCALAR_NORM", "DENSITY", "VISCOSITY"')
 
         return Kratos.Parameters(settings_str)
 
@@ -225,15 +225,15 @@ class TemporalRootMeanSquareMethodTests(KratosUnittest.TestCase):
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
         # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_MEAN)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_MEAN)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_MEAN)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_MEAN)
         self.model_part.AddNodalSolutionStepVariable(
             Kratos.MATERIAL_PARAMETERS)
         self.model_part.AddNodalSolutionStepVariable(
             Kratos.CAUCHY_STRESS_TENSOR)
 
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
 

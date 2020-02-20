@@ -101,9 +101,9 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
                     mat_list[index], step_list)
 
                 mean_method_scalar = output_method(item,
-                                                   KratosStats.PRESSURE_NORM)
+                                                   KratosStats.SCALAR_NORM)
                 mean_method_vec_3d = output_method(item,
-                                                   KratosStats.VELOCITY_NORM)
+                                                   KratosStats.VECTOR_3D_NORM)
                 mean_method_vec = output_method(item, Kratos.DENSITY)
                 mean_method_mat = output_method(item, Kratos.VISCOSITY)
                 variance_method_scalar = output_method(item,
@@ -160,7 +160,7 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
                              "echo_level"      : 0,
                              "method_settings" : {
                                 "input_variables"  : ["VELOCITY", "PRESSURE", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                                "output_variables"     : ["VELOCITY_NORM", "PRESSURE_NORM", "DENSITY", "VISCOSITY"],
+                                "output_variables"     : ["VECTOR_3D_NORM", "SCALAR_NORM", "DENSITY", "VISCOSITY"],
                                 "output_time_step_variables" : ["CUTTED_AREA", "YIELD_STRESS", "NET_INPUT_MATERIAL", "WET_VOLUME"]
                              }
                         }
@@ -183,8 +183,8 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
         # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
         self.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
         self.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)

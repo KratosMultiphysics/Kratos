@@ -79,14 +79,14 @@ In the case of temporal domain, **Mean** methods is the time integrated quantity
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\color{Black}{\underline{\bar{x}}&space;=&space;\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k\Delta&space;t_k}&space;\quad&space;where&space;\quad&space;T_{total}&space;=&space;T_{end}&space;-&space;T_{initial}&space;\quad&space;and&space;\quad&space;\Delta&space;t_k&space;=&space;T_{k}&space;-&space;T_{k-1}&space;\quad&space;\forall&space;T_k&space;\in&space;\left\lbrace&space;T_{initial},&space;...,&space;T_{end}&space;\right\rbrace}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\color{Black}{\underline{\bar{x}}&space;=&space;\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k\Delta&space;t_k}&space;\quad&space;where&space;\quad&space;T_{total}&space;=&space;T_{end}&space;-&space;T_{initial}&space;\quad&space;and&space;\quad&space;\Delta&space;t_k&space;=&space;T_{k}&space;-&space;T_{k-1}&space;\quad&space;\forall&space;T_k&space;\in&space;\left\lbrace&space;T_{initial},&space;...,&space;T_{end}&space;\right\rbrace}" title="\color{Black}{\underline{\bar{x}} = \frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k\Delta t_k} \quad where \quad T_{total} = T_{end} - T_{initial} \quad and \quad \Delta t_k = T_{k} - T_{k-1} \quad \forall T_k \in \left\lbrace T_{initial}, ..., T_{end} \right\rbrace}" /></a>
 
-Following is an example of mean calculation of non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable is same containers `VELOCITY_MEAN` where mean will be stored for each node. The `0` represents echo level for this method object. Blank "" indicates that value method is used.
+Following is an example of mean calculation of non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable is same containers `VECTOR_3D_MEAN` where mean will be stored for each node. The `0` represents echo level for this method object. Blank "" indicates that value method is used.
 
 ```python
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
-mean_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Mean.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VELOCITY_MEAN)
+mean_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Mean.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_MEAN)
 mean_method.InitializeStatisticsMethod()
 previous_time = 2
 for t in range(3, 6):
@@ -115,14 +115,14 @@ In the case of temporal domain, **Root Mean Square** methods is the time integra
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\color{Black}{\underline{r}&space;=&space;\sqrt{\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k^2\Delta&space;t_k}}&space;\quad&space;where&space;\quad&space;T_{total}&space;=&space;T_{end}&space;-&space;T_{initial}&space;\quad&space;and&space;\quad&space;\Delta&space;t_k&space;=&space;T_{k}&space;-&space;T_{k-1}&space;\quad&space;\forall&space;T_k&space;\in&space;\left\lbrace&space;T_{initial},&space;...,&space;T_{end}&space;\right\rbrace}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\color{Black}{\underline{r}&space;=&space;\sqrt{\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k^2\Delta&space;t_k}}&space;\quad&space;where&space;\quad&space;T_{total}&space;=&space;T_{end}&space;-&space;T_{initial}&space;\quad&space;and&space;\quad&space;\Delta&space;t_k&space;=&space;T_{k}&space;-&space;T_{k-1}&space;\quad&space;\forall&space;T_k&space;\in&space;\left\lbrace&space;T_{initial},&space;...,&space;T_{end}&space;\right\rbrace}" title="\color{Black}{\underline{r} = \sqrt{\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k^2\Delta t_k}} \quad where \quad T_{total} = T_{end} - T_{initial} \quad and \quad \Delta t_k = T_{k} - T_{k-1} \quad \forall T_k \in \left\lbrace T_{initial}, ..., T_{end} \right\rbrace}" /></a>
 
-Following is an example of root mean square calculation of non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable is same containers `VELOCITY_MEAN` where root mean square value will be stored for each node. The `0` represents echo level for this method object. Blank "" indicates that value method is used.
+Following is an example of root mean square calculation of non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable is same containers `VECTOR_3D_MEAN` where root mean square value will be stored for each node. The `0` represents echo level for this method object. Blank "" indicates that value method is used.
 
 ```python
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
-rms_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.RootMeanSquare.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VELOCITY_MEAN)
+rms_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.RootMeanSquare.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_MEAN)
 rms_method.InitializeStatisticsMethod()
 previous_time = 2
 for t in range(3, 6):
@@ -151,14 +151,14 @@ In the case of temporal domain, **Variance** method is the time integrated quant
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\color{Black}{\underline{\bar{x}}&space;=&space;\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k\Delta&space;t_k}}&space;\\&space;\color{Black}{Var\left(\underline{x}&space;\right&space;)&space;=&space;\frac{1}{T_{total}}\sum_{k=1}^{P}{\left(\underline{x}_k&space;-&space;\underline{\bar{x}}&space;\right&space;)^2\Delta&space;t_k}}&space;\\&space;\\&space;\color{Black}{&space;\quad&space;where}&space;\\&space;\\&space;\color{Black}{&space;T_{total}&space;=&space;T_{end}&space;-&space;T_{initial}&space;\quad&space;and&space;\quad&space;\Delta&space;t_k&space;=&space;T_{k}&space;-&space;T_{k-1}&space;\quad&space;\forall&space;T_k&space;\in&space;\left\lbrace&space;T_{initial},&space;...,&space;T_{end}&space;\right\rbrace}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\color{Black}{\underline{\bar{x}}&space;=&space;\frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k\Delta&space;t_k}}&space;\\&space;\color{Black}{Var\left(\underline{x}&space;\right&space;)&space;=&space;\frac{1}{T_{total}}\sum_{k=1}^{P}{\left(\underline{x}_k&space;-&space;\underline{\bar{x}}&space;\right&space;)^2\Delta&space;t_k}}&space;\\&space;\\&space;\color{Black}{&space;\quad&space;where}&space;\\&space;\\&space;\color{Black}{&space;T_{total}&space;=&space;T_{end}&space;-&space;T_{initial}&space;\quad&space;and&space;\quad&space;\Delta&space;t_k&space;=&space;T_{k}&space;-&space;T_{k-1}&space;\quad&space;\forall&space;T_k&space;\in&space;\left\lbrace&space;T_{initial},&space;...,&space;T_{end}&space;\right\rbrace}" title="\color{Black}{\underline{\bar{x}} = \frac{1}{T_{total}}\sum_{k=1}^{P}{\underline{x}_k\Delta t_k}} \\ \color{Black}{Var\left(\underline{x} \right ) = \frac{1}{T_{total}}\sum_{k=1}^{P}{\left(\underline{x}_k - \underline{\bar{x}} \right )^2\Delta t_k}} \\ \\ \color{Black}{ \quad where} \\ \\ \color{Black}{ T_{total} = T_{end} - T_{initial} \quad and \quad \Delta t_k = T_{k} - T_{k-1} \quad \forall T_k \in \left\lbrace T_{initial}, ..., T_{end} \right\rbrace}" /></a>
 
-Following is an example of root mean square calculation of non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable `VELOCITY_MEAN` will store mean and `VELOCITY_VARIANCE` will store variance in same container for each node. The `0` represents echo level for this method object. Blank "" indicates that value method is used.
+Following is an example of root mean square calculation of non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable `VECTOR_3D_MEAN` will store mean and `VECTOR_3D_VARIANCE` will store variance in same container for each node. The `0` represents echo level for this method object. Blank "" indicates that value method is used.
 
 ```python
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
-variance_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Variance.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VELOCITY_MEAN, KratosStats.VELOCITY_VARIANCE)
+variance_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Variance.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_MEAN, KratosStats.VECTOR_3D_VARIANCE)
 variance_method.InitializeStatisticsMethod()
 previous_time = 2
 for t in range(3, 6):
@@ -187,14 +187,14 @@ In the case of temporal domain, **Min** method returns minimum value in the temp
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\color{Black}{v&space;=&space;\min_{\underline{x}_k&space;\in&space;\mathbf{T}}&space;|\underline{x}_k|}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\color{Black}{v&space;=&space;\min_{\underline{x}_k&space;\in&space;\mathbf{T}}&space;|\underline{x}_k|}" title="\color{Black}{v = \min_{\underline{x}_k \in \mathbf{T}} |\underline{x}_k|}" /></a>
 
-Following is an example of min method in non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable `VELOCITY_NORM` will store minimum and `TIME` will store the time minimum occured for each node. The `0` represents echo level for this method object. "magnitude" indicates that magnitude norm is used.
+Following is an example of min method in non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable `VECTOR_3D_NORM` will store minimum and `TIME` will store the time minimum occured for each node. The `0` represents echo level for this method object. "magnitude" indicates that magnitude norm is used.
 
 ```python
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
-min_method = KratosStats.TemporalMethods.NonHistorical.Nodes.NormMethods.Min.Array(model_part, "magnitude", Kratos.VELOCITY, 0, KratosStats.VELOCITY_NORM, Kratos.TIME)
+min_method = KratosStats.TemporalMethods.NonHistorical.Nodes.NormMethods.Min.Array(model_part, "magnitude", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_NORM, Kratos.TIME)
 min_method.InitializeStatisticsMethod()
 previous_time = 2
 for t in range(3, 6):
@@ -223,14 +223,14 @@ In the case of temporal domain, **Max** method returns maximum value in the temp
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\color{Black}{v&space;=&space;\max_{\underline{x}_k&space;\in&space;\mathbf{T}}&space;|\underline{x}_k|}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\color{Black}{v&space;=&space;\max_{\underline{x}_k&space;\in&space;\mathbf{T}}&space;|\underline{x}_k|}" title="\color{Black}{v = \max_{\underline{x}_k \in \mathbf{T}} |\underline{x}_k|}" /></a>
 
-Following is an example of max method in non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable `VELOCITY_NORM` will store maximum and `TIME` will store the time maximum occured for each node. The `0` represents echo level for this method object. "magnitude" indicates that magnitude norm is used.
+Following is an example of max method in non historical velocity. Input variable is node's non-historical container's `VELOCITY` and output variable `VECTOR_3D_NORM` will store maximum and `TIME` will store the time maximum occured for each node. The `0` represents echo level for this method object. "magnitude" indicates that magnitude norm is used.
 
 ```python
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
-max_method = KratosStats.TemporalMethods.NonHistorical.Nodes.NormMethods.Max.Array(model_part, "magnitude", Kratos.VELOCITY, 0, KratosStats.VELOCITY_NORM, Kratos.TIME)
+max_method = KratosStats.TemporalMethods.NonHistorical.Nodes.NormMethods.Max.Array(model_part, "magnitude", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_NORM, Kratos.TIME)
 max_method.InitializeStatisticsMethod()
 previous_time = 2
 for t in range(3, 6):

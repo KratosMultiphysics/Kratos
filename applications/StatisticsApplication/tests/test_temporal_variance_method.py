@@ -141,26 +141,26 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
 
                 if (norm_type == "none"):
                     mean_method_scalar = output_method(
-                        item, KratosStats.PRESSURE_MEAN)
+                        item, KratosStats.SCALAR_MEAN)
                     mean_method_vec_3d = output_method(
-                        item, KratosStats.VELOCITY_MEAN)
+                        item, KratosStats.VECTOR_3D_MEAN)
                     mean_method_vec = output_method(item,
                                                     Kratos.MATERIAL_PARAMETERS)
                     mean_method_mat = output_method(
                         item, Kratos.CAUCHY_STRESS_TENSOR)
                     variance_method_scalar = output_method(
-                        item, KratosStats.PRESSURE_VARIANCE)
+                        item, KratosStats.SCALAR_VARIANCE)
                     variance_method_vec_3d = output_method(
-                        item, KratosStats.VELOCITY_VARIANCE)
+                        item, KratosStats.VECTOR_3D_VARIANCE)
                     variance_method_vec = output_method(
                         item, Kratos.ELEMENTAL_DISTANCES)
                     variance_method_mat = output_method(
                         item, Kratos.LOCAL_INERTIA_TENSOR)
                 else:
                     mean_method_scalar = output_method(
-                        item, KratosStats.PRESSURE_NORM)
+                        item, KratosStats.SCALAR_NORM)
                     mean_method_vec_3d = output_method(
-                        item, KratosStats.VELOCITY_NORM)
+                        item, KratosStats.VECTOR_3D_NORM)
                     mean_method_vec = output_method(item, Kratos.DENSITY)
                     mean_method_mat = output_method(item, Kratos.VISCOSITY)
                     variance_method_scalar = output_method(
@@ -244,16 +244,16 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
         if (norm_type == "none"):
             settings_str = settings_str.replace(
                 "<OUTPUT_VARIABLES_1>",
-                r'"VELOCITY_MEAN", "PRESSURE_MEAN", "MATERIAL_PARAMETERS", "CAUCHY_STRESS_TENSOR"'
+                r'"VECTOR_3D_MEAN", "SCALAR_MEAN", "MATERIAL_PARAMETERS", "CAUCHY_STRESS_TENSOR"'
             )
             settings_str = settings_str.replace(
                 "<OUTPUT_VARIABLES_2>",
-                r'"VELOCITY_VARIANCE", "PRESSURE_VARIANCE", "ELEMENTAL_DISTANCES", "LOCAL_INERTIA_TENSOR"'
+                r'"VECTOR_3D_VARIANCE", "SCALAR_VARIANCE", "ELEMENTAL_DISTANCES", "LOCAL_INERTIA_TENSOR"'
             )
         else:
             settings_str = settings_str.replace(
                 "<OUTPUT_VARIABLES_1>",
-                r'"VELOCITY_NORM", "PRESSURE_NORM", "DENSITY", "VISCOSITY"')
+                r'"VECTOR_3D_NORM", "SCALAR_NORM", "DENSITY", "VISCOSITY"')
             settings_str = settings_str.replace(
                 "<OUTPUT_VARIABLES_2>",
                 r'"CUTTED_AREA", "YIELD_STRESS", "NET_INPUT_MATERIAL", "WET_VOLUME"'
@@ -270,12 +270,12 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
         # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_MEAN)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_MEAN)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_MEAN)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_MEAN)
         self.model_part.AddNodalSolutionStepVariable(
-            KratosStats.PRESSURE_VARIANCE)
+            KratosStats.SCALAR_VARIANCE)
         self.model_part.AddNodalSolutionStepVariable(
-            KratosStats.VELOCITY_VARIANCE)
+            KratosStats.VECTOR_3D_VARIANCE)
         self.model_part.AddNodalSolutionStepVariable(
             Kratos.MATERIAL_PARAMETERS)
         self.model_part.AddNodalSolutionStepVariable(
@@ -285,8 +285,8 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(
             Kratos.LOCAL_INERTIA_TENSOR)
 
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
         self.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
         self.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)

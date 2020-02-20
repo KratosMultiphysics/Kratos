@@ -7,26 +7,21 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-
-#if !defined(KRATOS_STATISTICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_STATISTICS_APPLICATION_H_INCLUDED
-
+#if !defined(KRATOS_STATISTICS_APPLICATION_H_INCLUDED)
+#define KRATOS_STATISTICS_APPLICATION_H_INCLUDED
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/kratos_application.h"
 
-
-namespace Kratos {
-
+namespace Kratos
+{
 ///@name Kratos Globals
 ///@{
 
@@ -48,8 +43,9 @@ namespace Kratos {
 
 /// Short class definition.
 /** Detail class definition.
-*/
-class KratosStatisticsApplication : public KratosApplication {
+ */
+class KratosStatisticsApplication : public KratosApplication
+{
 public:
     ///@name Type Definitions
     ///@{
@@ -65,12 +61,13 @@ public:
     KratosStatisticsApplication();
 
     /// Destructor.
-    ~KratosStatisticsApplication() override {}
+    ~KratosStatisticsApplication() override
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -82,11 +79,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -108,8 +103,8 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-          KRATOS_WATCH("in my application");
-          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -125,43 +120,35 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 
@@ -182,21 +169,17 @@ private:
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -208,17 +191,14 @@ private:
     /// Copy constructor.
     KratosStatisticsApplication(KratosStatisticsApplication const& rOther);
 
-
     ///@}
 
 }; // Class KratosStatisticsApplication
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -226,7 +206,6 @@ private:
 
 ///@}
 
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_STATISTICS_APPLICATION_H_INCLUDED  defined

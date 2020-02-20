@@ -207,8 +207,8 @@ class SpatialStatisticsProcessTest(KratosUnittest.TestCase):
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
         # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.PRESSURE_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VELOCITY_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
         self.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
         self.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
