@@ -47,8 +47,6 @@ namespace MPMSearchElementUtility
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
-        KRATOS_WATCH("ERROR hier")
-
         // Reset elements to inactive
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
@@ -86,8 +84,6 @@ namespace MPMSearchElementUtility
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                 bool is_found = SearchStructure.FindPointOnMesh(
                     xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
-
-                //KRATOS_WATCH(is_found)
 
                 if (is_found) {
                     pelem->Set(ACTIVE);
