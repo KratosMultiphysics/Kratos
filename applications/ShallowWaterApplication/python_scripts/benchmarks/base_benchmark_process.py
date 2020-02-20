@@ -2,6 +2,8 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
+from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
+
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -14,10 +16,11 @@ class BaseBenchmarkProcess(KM.Process):
 
         default_settings = KM.Parameters("""
             {
-                "model_part_name"    : "model_part",
-                "error_variable"     : "ERROR_RATIO",
-                "degree_of_freedom"  : "HEIGHT",
-                "benchmark_settings" : {}
+                "model_part_name"      : "model_part",
+                "variables_list"       : [],
+                "exact_variables_list" : [],
+                "error_variables_list" : [],
+                "benchmark_settings"   : {}
             }
             """
             )
@@ -26,8 +29,9 @@ class BaseBenchmarkProcess(KM.Process):
 
         self.model_part = model[settings["model_part_name"].GetString()]
 
-        self.variable = KM.KratosGlobals.GetVariable(settings["error_variable"].GetString())
-        self.degree_of_freedom = settings["degree_of_freedom"].GetString()
+        self.variables = GenerateVariableListFromInput(settings["variables_list"])
+        self.exact_variables = GenerateVariableListFromInput(settings["exact_variables_list"])
+        self.error_variables = GenerateVariableListFromInput(settings["error_variables_list"])
         self.benchmark_settings = settings["benchmark_settings"]
 
     def ExecuteInitialize(self):
@@ -43,20 +47,18 @@ class BaseBenchmarkProcess(KM.Process):
         time = self.model_part.ProcessInfo[KM.TIME]
 
         for node in self.model_part.Nodes:
-            if self.degree_of_freedom == "HEIGHT":
-                node.SetValue(self.variable, node.GetSolutionStepValue(SW.HEIGHT) - self.Height(node, time))
+            for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
+                if variable == SW.HEIGHT:
+                    exact_value = self.Height(node, time)
+                elif variable == KM.VELOCITY:
+                    exact_value = self.Velocity(node, time)
+                elif variable == KM.MOMENTUM:
+                    exact_value = self.Momentum(node, time)
+                
+                fem_value = node.GetSolutionStepValue(variable)
 
-            elif self.degree_of_freedom == "VELOCITY_X":
-                node.SetValue(self.variable, node.GetSolutionStepValue(SW.VELOCITY_X) - self.Velocity(node, time)[0])
-
-            elif self.degree_of_freedom == "VELOCITY_Y":
-                node.SetValue(self.variable, node.GetSolutionStepValue(SW.VELOCITY_Y) - self.Velocity(node, time)[1])
-
-            elif self.degree_of_freedom == "MOMENTUM_X":
-                node.SetValue(self.variable, node.GetSolutionStepValue(SW.MOMENTUM_X) - self.Momentum(node, time)[0])
-
-            elif self.degree_of_freedom == "MOMENTUM_Y":
-                node.SetValue(self.variable, node.GetSolutionStepValue(SW.MOMENTUM_Y) - self.Momentum(node, time)[1])
+                node.SetValue(exact_variable, exact_value)
+                node.SetValue(error_variable, fem_value - exact_value)
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -68,7 +70,20 @@ class BaseBenchmarkProcess(KM.Process):
         pass
 
     def Check(self):
-        return 1
+        if len(self.variables) != len(self.exact_variables):
+            raise Exception("The input variables list does not match the input exact variables list")
+
+        if len(self.variables) != len(self.error_variables):
+            raise Exception("The input variables list does not match the input error variables list")
+
+        for (var, exact, error) in zip(self.variables, self.exact_variables, self.error_variables):
+            if KM.KratosGlobals.GetVariableType(var.Name()) != KM.KratosGlobals.GetVariableType(exact.Name()):
+                msg = var.Name() + " variable type does not match the " + exact.Name() + " variable type"
+                raise Exception(msg)
+
+            if KM.KratosGlobals.GetVariableType(var.Name()) != KM.KratosGlobals.GetVariableType(error.Name()):
+                msg = var.Name() + " variable type does not match the " + error.Name() + " variable type"
+                raise Exception(msg)
 
     def Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
