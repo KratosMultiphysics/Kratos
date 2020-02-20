@@ -122,7 +122,6 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(element.GetValue(KratosMultiphysics.VOLUME_ACCELERATION)[0], element.Id*100)
 
 
-    def test_set_variable(self):
         current_model = KratosMultiphysics.Model()
 
         ##set the model part
@@ -130,6 +129,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
