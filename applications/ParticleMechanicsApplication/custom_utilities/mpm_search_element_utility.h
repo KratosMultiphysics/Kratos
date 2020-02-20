@@ -49,7 +49,7 @@ namespace MPMSearchElementUtility
     {
         // Reset elements to inactive
         #pragma omp parallel for
-        for(IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
+        for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
                 auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
                 auto& r_geometry = element_itr->GetGeometry();
                 element_itr->Reset(ACTIVE);
@@ -71,8 +71,8 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            #pragma omp for
-            for(IndexType i = 0; i < rMPMModelPart.Elements().size(); ++i){
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
 
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
@@ -111,8 +111,8 @@ namespace MPMSearchElementUtility
             }
 
             // Condition search and assign background grid
-            #pragma omp for
-            for(IndexType i = 0; i < rMPMModelPart.Conditions().size(); ++i){
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i){
 
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 
