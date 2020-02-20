@@ -90,5 +90,21 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicati
     KRATOS_CHECK_NEAR(local_mach_number, 0.748948914, 1e-6);
 }
 
+// Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeIncompressiblePerturbationPressureCoefficient, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+
+    AssignPotentialsToElement(*pElement);
+    const double pressure_coefficient =
+        PotentialFlowUtilities::ComputeIncompressiblePerturbationPressureCoefficient<2, 3>(
+            *pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(pressure_coefficient, -2.97241446, 1e-6);
+}
+
 } // namespace Testing
 } // namespace Kratos.
