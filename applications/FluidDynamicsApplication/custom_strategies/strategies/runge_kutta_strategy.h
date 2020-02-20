@@ -133,28 +133,12 @@ public:
      */
     virtual void Initialize() override
     {
-        // if (!(this->mReformDofSetAtEachStep))
-        //     ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
+        if (!(this->mReformDofSetAtEachStep))
+             ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
 
         InitializeDirichletBoundaryConditions();
         InitializeSlipBoundaryConditions();
 
-        // auto& r_model_part = BaseType::GetModelPart();
-
-        // #pragma omp parallel for
-        // for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
-        // {
-        //     auto it_node = r_model_part.NodesBegin() + i;
-
-        //     auto qn = it_node->FastGetSolutionStepValue(MOMENTUM,1);
-        //     noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn;
-  
-        //     auto hn = it_node->FastGetSolutionStepValue(DENSITY,1);
-        //     it_node->FastGetSolutionStepValue(DENSITY) = hn;
-
-        //     auto kn = it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1);
-        //     it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = kn;
-        // }
     }
 
     /**
@@ -184,7 +168,7 @@ public:
      bool SolveSolutionStep() override
     {
         // Initialize the mass matrix
-        ComputeNodalMass();
+        if (this->mReformDofSetAtEachStep)      ComputeNodalMass();
 
         // Initialize the first step
         SetVariablesToZero(DENSITY_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
@@ -578,25 +562,30 @@ private:
     }
 
     void InitializeSlipBoundaryConditions()
-    {
-        mSlipBoundaryList.clear();
+    {   
+        printf("Initializing SLIP BC\n");
 
+        mSlipBoundaryList.clear();
+        int numSLIP = 0;
         auto& r_model_part = BaseType::GetModelPart();
 
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
         {
             auto it_node = r_model_part.NodesBegin() + i;
 
-            if (it_node->Is(SLIP))
+            if (it_node->Is(SLIP)) {
                 mSlipBoundaryList.push_back(*(it_node.base()));
+                numSLIP++;
+            }
         }
+        printf("numSLIP = %d\n\n", numSLIP);
     }
 
     void ApplySlipBoundaryConditions()
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mSlipBoundaryList.size()); ++i)
-        {
+        {   
             auto it_node = mSlipBoundaryList.begin() + i;
 
             array_1d<double, 3> normal = it_node->FastGetSolutionStepValue(NORMAL);
@@ -604,10 +593,15 @@ private:
             KRATOS_ERROR_IF(length == 0.0) << "One shall compute the normals before applying slip boundary conditions" << std::endl;
             normal /= length;
 
+        //    printf("%.3e %.3e\n", normal[0], normal[1]);
+
             const array_1d<double, 3> value = it_node->FastGetSolutionStepValue(MOMENTUM);
             const double normal_projection = inner_prod(normal, value);
             const array_1d<double, 3> normal_component = normal_projection * normal;
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) -= normal_component;
+
+        //    printf("i = %d\n", i);
+        //    KRATOS_WATCH(it_node->FastGetSolutionStepValue(MOMENTUM));
         }
     }
 

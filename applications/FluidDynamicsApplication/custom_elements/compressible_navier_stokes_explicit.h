@@ -256,7 +256,7 @@ public:
                 momentum[2] += rRightHandSideVector[BlockSize*i + 3];
             }
 
-//            r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS) = momentum; 
+            r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS) = momentum; // Dubbio !
 
             #pragma omp atomic
             r_geom[i].FastGetSolutionStepValue(TOTAL_ENERGY_RHS) += rRightHandSideVector[BlockSize*i + TDim + 1];
