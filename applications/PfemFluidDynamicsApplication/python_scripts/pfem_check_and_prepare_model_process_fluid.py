@@ -113,8 +113,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     if not is_solid_or_fluid:
                         max_property_id += 1
                         new_dummy_property = KratosMultiphysics.Properties(max_property_id)
-                        for elem in self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()).Elements:
-                            elem.Properties = new_dummy_property
+                        self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()).AddProperties(new_dummy_property)
+                        KratosPfemFluid.SetDummyPropertyForRigidElementsProcess( \
+                            self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()), \
+                            max_property_id).Execute()
 
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
