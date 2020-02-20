@@ -94,8 +94,6 @@ namespace MPMSearchElementUtility
 
                     element_itr->pGetGeometry() = p_new_geometry;
 
-                    KRATOS_ERROR_IF(element_itr->GetGeometry()[0] != 2) << "bug in search." << std::endl;
-
                     auto& r_geometry = element_itr->GetGeometry();
 
                     for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
