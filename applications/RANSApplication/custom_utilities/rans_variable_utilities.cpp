@@ -187,6 +187,20 @@ void GetNodalVariablesVector(Vector& rValues,
         rValues[i_node] = (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable);
 }
 
+void GetNodalArray(Vector& rNodalValues, const Element& rElement, const Variable<double>& rVariable)
+{
+    const Geometry<ModelPart::NodeType>& r_geometry = rElement.GetGeometry();
+    std::size_t number_of_nodes = r_geometry.PointsNumber();
+
+    if (rNodalValues.size() != number_of_nodes)
+        rNodalValues.resize(number_of_nodes);
+
+    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        rNodalValues[i_node] = r_geometry[i_node].FastGetSolutionStepValue(rVariable);
+    }
+}
+
 void SetNodalVariables(ModelPart::NodesContainerType& rNodes,
                        const Vector& rValues,
                        const Variable<double>& rVariable)

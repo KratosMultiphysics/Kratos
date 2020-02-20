@@ -83,9 +83,7 @@ public:
     }
 
     /// Destructor.
-    ~KEpsilonCoSolvingProcess() override
-    {
-    }
+    ~KEpsilonCoSolvingProcess() override = default;
 
     void ExecuteInitializeSolutionStep() override
     {

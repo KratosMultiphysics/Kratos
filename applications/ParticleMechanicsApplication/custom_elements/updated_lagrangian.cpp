@@ -324,7 +324,7 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_volume );
+        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_volume, rCurrentProcessInfo);
     }
 
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
@@ -533,7 +533,8 @@ void UpdatedLagrangian::CalculateAndAddInternalForces(VectorType& rRightHandSide
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight)
+void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, 
+    const double& rIntegrationWeight, const ProcessInfo& rCurrentProcessInfo)
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangian::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -551,7 +552,8 @@ void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
                 calculated = true;
             }
 
-            if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX )
+            if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX &&
+                !rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
             {
                 // Operation performed: add K_geometry to the rLefsHandSideMatrix
                 this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
@@ -569,7 +571,10 @@ void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
         this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
         // Operation performed: add K_geometry to the rLefsHandSideMatrix
-        this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+        if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+        {
+            this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+        }
     }
 }
 //************************************************************************************

@@ -143,17 +143,17 @@ public:
 
       void Initialize()
       {
-	mpLHS_Element_Components = NULL;
-	mpLHS_Element_Variables  = NULL;
+          mpLHS_Element_Components = NULL;
+          mpLHS_Element_Variables  = NULL;
 
-	mpRHS_Element_Components = NULL;
-	mpRHS_Element_Variables  = NULL;
+          mpRHS_Element_Components = NULL;
+          mpRHS_Element_Variables  = NULL;
 
-	mpLHS_Condition_Components = NULL;
-	mpLHS_Condition_Variables  = NULL;
+          mpLHS_Condition_Components = NULL;
+          mpLHS_Condition_Variables  = NULL;
 
-	mpRHS_Condition_Components = NULL;
-	mpRHS_Condition_Variables  = NULL;
+          mpRHS_Condition_Components = NULL;
+          mpRHS_Condition_Variables  = NULL;
       }
 
       // Setting pointer variables
@@ -218,8 +218,7 @@ public:
      * @brief Default constructor.
      * @param pNewLinearSystemSolver The linear solver for the system of equations
      */
-    explicit BuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
+    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;
     }
@@ -240,7 +239,7 @@ public:
      */
     virtual GlobalSystemComponents& GetGlobalSystemComponents()
     {
-      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the BUIDER and SOlVER base class which is not component wise and not contains this member variable","")
+        KRATOS_ERROR <<  "Asking for Global Components to the BUIDER and SOlVER base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
@@ -270,19 +269,31 @@ public:
         return mDofSetIsInitialized;
     }
 
-    void SetDofSetIsInitializedFlag(bool flag)
+    /**
+     * @brief This method sets the flag mDofSetIsInitialized
+     * @param DofSetIsInitialized The flag that tells if the dof set is initialized
+     */
+    void SetDofSetIsInitializedFlag(bool DofSetIsInitialized)
     {
-        mDofSetIsInitialized = flag;
+        mDofSetIsInitialized = DofSetIsInitialized;
     }
 
-    void SetReshapeMatrixFlag(bool flag)
-    {
-        mReshapeMatrixFlag = flag;
-    }
-
+    /**
+     * @brief This method returns the flag mReshapeMatrixFlag
+     * @return The flag that tells if we need to reshape the LHS matrix
+     */
     bool GetReshapeMatrixFlag()
     {
         return mReshapeMatrixFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mReshapeMatrixFlag
+     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
+     */
+    void SetReshapeMatrixFlag(bool ReshapeMatrixFlag)
+    {
+        mReshapeMatrixFlag = ReshapeMatrixFlag;
     }
 
     /**
@@ -300,7 +311,7 @@ public:
      */
     typename TLinearSolver::Pointer GetLinearSystemSolver()
     {
-      return mpLinearSystemSolver;
+        return mpLinearSystemSolver;
     }
 
     /**
@@ -320,8 +331,9 @@ public:
      */
     virtual void BuildLHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
     }
 
@@ -333,8 +345,9 @@ public:
      */
     virtual void BuildRHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -347,9 +360,10 @@ public:
      */
     virtual void Build(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -362,8 +376,9 @@ public:
      */
     virtual void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
     }
 
@@ -376,8 +391,9 @@ public:
      */
     virtual void BuildLHS_Complete(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
     }
 
@@ -388,9 +404,9 @@ public:
      * @param rb The RHS vector of the system of equations
      */
     virtual void SystemSolve(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
     )
     {
     }
@@ -406,10 +422,10 @@ public:
      */
     virtual void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb)
     {
     }
 
@@ -423,10 +439,11 @@ public:
      */
     virtual void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -441,10 +458,11 @@ public:
      */
     virtual void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -457,9 +475,10 @@ public:
      */
     virtual void ApplyDirichletConditions_LHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx
+        )
     {
     }
 
@@ -472,9 +491,10 @@ public:
      */
     virtual void ApplyDirichletConditions_RHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -488,7 +508,8 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
-        TSystemVectorType& rb)
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -500,8 +521,8 @@ public:
      */
     virtual void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part
-    )
+        ModelPart& rModelPart
+        )
     {
     }
 
@@ -517,9 +538,7 @@ public:
      * @brief It organises the dofset in order to speed up the building phase
      * @param rModelPart The model part to compute
      */
-    virtual void SetUpSystem(
-        ModelPart& r_model_part
-    )
+    virtual void SetUpSystem(ModelPart& rModelPart)
     {
     }
 
@@ -537,7 +556,7 @@ public:
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ModelPart& rModelPart
-    )
+        )
     {
     }
 
@@ -549,10 +568,11 @@ public:
      * @param rb The RHS vector of the system of equations
      */
     virtual void InitializeSolutionStep(
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -564,10 +584,11 @@ public:
      * @param rb The RHS vector of the system of equations
      */
     virtual void FinalizeSolutionStep(
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -581,10 +602,11 @@ public:
      */
     virtual void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -598,8 +620,7 @@ public:
         this->mpReactionsVector.reset();
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
-        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
-            << "Clear Function called" << std::endl;
+        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
     }
 
     /**
@@ -609,7 +630,7 @@ public:
      * @param rModelPart The model part to compute
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -689,25 +710,17 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /** Pointer to the Model.
-     */
-    typename TLinearSolver::Pointer mpLinearSystemSolver;
+    typename TLinearSolver::Pointer mpLinearSystemSolver; /// Pointer to the linear solver
 
-    DofsArrayType mDofSet;
+    DofsArrayType mDofSet; /// The set containing the DoF of the system
 
-    bool mReshapeMatrixFlag = false;
+    bool mReshapeMatrixFlag = false;  /// If the matrix is reshaped each step
 
-    /// flag taking care if the dof set was initialized ot not
-    bool mDofSetIsInitialized = false;
+    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
 
-    /// flag taking in account if it is needed or not to calculate the reactions
-    bool mCalculateReactionsFlag = false;
+    bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
 
-    /// number of degrees of freedom of the problem to be solve
-    unsigned int mEquationSystemSize;
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    unsigned int mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
 
     int mEchoLevel = 0;
 
