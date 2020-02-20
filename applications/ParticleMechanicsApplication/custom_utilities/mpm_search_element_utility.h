@@ -42,7 +42,6 @@ namespace MPMSearchElementUtility
      * STEPS:
      * 1) All the elements are set to be INACTIVE
      * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
-     *
      */
     template<std::size_t TDimension>
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
@@ -50,19 +49,19 @@ namespace MPMSearchElementUtility
     {
         // Reset elements to inactive
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
+        for(IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
                 auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
                 auto& r_geometry = element_itr->GetGeometry();
                 element_itr->Reset(ACTIVE);
 
-                for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                     r_geometry[j].Reset(ACTIVE);
-
+                }
         }
 
         // Search background grid and make element active
         Vector N;
-        const int max_result = 1000;
+        const SizeType max_result = 1000;
 
         #pragma omp parallel
         {
@@ -73,7 +72,7 @@ namespace MPMSearchElementUtility
 
             // Element search and assign background grid
             #pragma omp for
-            for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
+            for(IndexType i = 0; i < rMPMModelPart.Elements().size(); ++i){
 
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
@@ -83,9 +82,10 @@ namespace MPMSearchElementUtility
                 Element::Pointer pelem;
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                bool is_found = SearchStructure.FindPointOnMesh(
+                    xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
-                if (is_found == true) {
+                if (is_found) {
                     pelem->Set(ACTIVE);
 
                     auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
@@ -113,7 +113,7 @@ namespace MPMSearchElementUtility
 
             // Condition search and assign background grid
             #pragma omp for
-            for(int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i){
+            for(IndexType i = 0; i < rMPMModelPart.Conditions().size(); ++i){
 
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 
