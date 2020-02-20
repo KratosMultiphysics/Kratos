@@ -192,10 +192,10 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointLHSContribution(Bound
 template<>
 void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array_1d<double,12>& rhs, const ElementDataStruct& data)
 {
-    const int nodesElement = 3;
-    const int SpaceDimension = 2;
-    const int nScalarVariables = SpaceDimension + 2;
-    const int nNodalVariables = nScalarVariables*nodesElement;
+    const unsigned  int nodesElement = 3;
+    const unsigned  int SpaceDimension = 2;
+    const unsigned  int nScalarVariables = SpaceDimension + 2;
+    const unsigned  int nNodalVariables = nScalarVariables*nodesElement;
     const double h = data.h;
 
     unsigned int i, j, k, m, s, t, tt, p, pp;
@@ -241,6 +241,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			// Lo mismo de antes // Da tenere come sono e riordinare
     const BoundedMatrix<double,nodesElement,nScalarVariables>& UUn = data.Un;
     const BoundedMatrix<double,nodesElement,nScalarVariables>& Up = data.Up;
+    BoundedMatrix<double,nodesElement,nScalarVariables> UUp;
 
     const BoundedMatrix<double,nodesElement,SpaceDimension>& f_ext = data.f_ext;			
     const array_1d<double,nodesElement>& r = data.r;
@@ -274,12 +275,13 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     for (i = 0; i < nodesElement; i++){
         for (j = 0; j < nScalarVariables; j++){
             
-            p = i*nScalarVariables + j; 
+//            p = i*nScalarVariables + j; 
 
-            U(p) = UU(i,j);
-            Un(p) = UUn(i,j);
+//            U(p) = UU(i,j);
+//            Un(p) = UUn(i,j);
 
-            up(p) = (U(p) - Un(p))/dt;
+//            up(p) = (U(Up) - Un(p))/dt;
+            UUp(i,j) = (UU(i,j) - UUn(i,j))/dt;
             //up(p) = Up(i,j);
             
         }
@@ -288,7 +290,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     for (i = 0; i < nScalarVariables; i++){
         U_gauss(i) = 0;
         for (j = 0; j < nodesElement; j++){
-            U_gauss(i) += N(j)*U(i + j*nScalarVariables);
+            U_gauss(i) += N(j)*UU(j,i);
         }
     }
 
@@ -297,8 +299,8 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     for (i = 0; i < nScalarVariables; i++){         // Controllare
         for (k = 0; k < nodesElement; k++){
 
-            gradU(i*SpaceDimension + 0) += DN(k,0)*U(i + k*nScalarVariables);
-            gradU(i*SpaceDimension + 1) += DN(k,1)*U(i + k*nScalarVariables);
+            gradU(i*SpaceDimension + 0) += DN(k,0)*UU(k,i);
+            gradU(i*SpaceDimension + 1) += DN(k,1)*UU(k,i);
 
         }
     }
@@ -535,10 +537,10 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     L[0] = 0.0;
     L[1] = -S[1*nScalarVariables + 0]*U_gauss[0];
-    L[2] = -S[2*nScalarVariables + 0];
+    L[2] = -S[2*nScalarVariables + 0]*U_gauss[0];
     L[3] = 0.0;
     
-    for (k = 0; k < SpaceDimension - 1 ; k++){
+    for (k = 0; k < nScalarVariables - 1 ; k++){
         L[3] -= S[3*nScalarVariables + k]*U_gauss[k];
     }
 
@@ -567,7 +569,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 		// }
         
         for (k = 0; k < nodesElement; k++){
-            R[i] -= N[k]*up[i + nScalarVariables*k];
+            R[i] -= N[k]*UUp(k,i);
         }
 
 
