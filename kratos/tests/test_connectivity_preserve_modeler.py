@@ -37,13 +37,13 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
-        ##assign a value to an element in model_part1, the corresponding element in the other model part 
+        ##assign a value to an element in model_part1, the corresponding element in the other model part
         # will change as they are pointing to the same geometry
         model_part1.Elements[1].SetValue(KratosMultiphysics.DISTANCE, 1.0)
         self.assertEqual(model_part1.Elements[1].GetValue(KratosMultiphysics.DISTANCE) , 1.0)
         self.assertEqual(new_model_part.Elements[1].GetValue(KratosMultiphysics.DISTANCE) , 1.0)
 
-        ##assign a value to an condition in model_part1, the corresponding condition in the other model part 
+        ##assign a value to an condition in model_part1, the corresponding condition in the other model part
         # will change as they are pointing to the same geometry
         model_part1.Conditions[2].SetValue(KratosMultiphysics.DISTANCE, 1.0)
         self.assertEqual(model_part1.Conditions[2].GetValue(KratosMultiphysics.DISTANCE) , 1.0)
