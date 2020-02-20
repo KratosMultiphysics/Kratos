@@ -416,7 +416,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
 
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
     noalias(rRightHandSideVector) = - data.vol * free_stream_density * prod(data.DN_DX, velocity);
-    //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
 
 template <int Dim, int NumNodes>
@@ -469,25 +468,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
     const BoundedVector<double, NumNodes> wake_rhs_2 = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
 
-    BoundedVector<double, 2*NumNodes> split_element_values;
-    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
-    const BoundedVector<double, NumNodes> wake_rhs = - prod(rLeftHandSideMatrix, split_element_values);
-
-    double upper_frac = upper_vol / data.vol;
-    double lower_frac = lower_vol / data.vol;
-    double total_frac = upper_frac + lower_frac;
-
     for (unsigned int i = 0; i < NumNodes; ++i){
         if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
             rRightHandSideVector[i] = upper_rhs(i)*upper_vol/data.vol;
             rRightHandSideVector[i + NumNodes] = lower_rhs(i)*lower_vol/data.vol;
-            // rRightHandSideVector[i] = wake_rhs(i);
-            // rRightHandSideVector[i + NumNodes] = wake_rhs(i + NumNodes);
         }
         else{
             if (data.distances[i] > 0.0){
                 rRightHandSideVector[i] = upper_rhs(i);
-                //rRightHandSideVector[i + NumNodes] = wake_rhs(i + NumNodes);
                 rRightHandSideVector[i + NumNodes] = wake_rhs_2(i);
             }
             else{
@@ -496,22 +484,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
             }
         }
     }
-
-    if(this->Id()==720){
-        KRATOS_WATCH(upper_velocity)
-        KRATOS_WATCH(lower_velocity)
-        KRATOS_WATCH(diff_velocity)
-        KRATOS_WATCH(upper_rhs)
-        KRATOS_WATCH(lower_rhs)
-        KRATOS_WATCH(wake_rhs_2)
-        KRATOS_WATCH(wake_rhs)
-        KRATOS_WATCH(rRightHandSideVector)
-        KRATOS_WATCH(data.vol)
-        KRATOS_WATCH(upper_frac)
-        KRATOS_WATCH(lower_frac)
-        KRATOS_WATCH(total_frac)
-    }
-    //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
@@ -566,10 +538,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
             rLower_vol += Volumes[i];
         }
     }
-    double total_vol = rUpper_vol + rLower_vol;
-    KRATOS_WATCH(rUpper_vol)
-    KRATOS_WATCH(rLower_vol)
-    KRATOS_WATCH(total_vol)
 }
 
 template <int Dim, int NumNodes>
