@@ -253,6 +253,8 @@ namespace Kratos
         Serializer::Register("ExponentialStrainSofteningLaw", mExponentialStrainSofteningLaw);
         Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
+        // Solver related variables
+        KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
     }
 
 }  // namespace Kratos.

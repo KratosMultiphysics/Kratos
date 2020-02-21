@@ -5,9 +5,6 @@ on:
     branches:
       - master
 
-  schedule:
-    - cron:  '0 1 * * *'
-
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
@@ -48,7 +45,7 @@ jobs:
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
@@ -62,20 +59,12 @@ jobs:
         ccache -s
 
     - name: Running small tests
-      if: github.event_name == 'pull_request'
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
-    - name: Running nightly tests
-      if: github.event_name == 'schedule' # this is the nightly build
-      run: |
-        . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
   windows:
     runs-on: windows-latest
