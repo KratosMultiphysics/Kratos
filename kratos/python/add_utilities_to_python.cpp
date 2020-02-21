@@ -284,6 +284,16 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
+/**
+ * @brief Auxiliary set variable export function
+ * This function is required to export the SetVariable overloaded method with a unique name
+ * @tparam TDataType The variable data type
+ * @tparam Variable<TDataType> The variable type
+ * @param rVariableUtils Reference to the self variable utils class
+ * @param rVariable Reference to the variable to be set
+ * @param rValue Reference to the value to set
+ * @param rNodes Reference to the nodes container
+ */
 template<class TDataType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetVariable(
     VariableUtils &rVariableUtils,
@@ -294,6 +304,19 @@ void VariableUtilsSetVariable(
     rVariableUtils.SetVariable(rVariable, rValue, rNodes);
 }
 
+
+/**
+ * @brief Auxiliary set variable export function
+ * This function is required to export the SetVariable with flag overloaded method with a unique name
+ * @tparam TDataType The variable data type
+ * @tparam Variable<TDataType> The variable type
+ * @param rVariableUtils Reference to the self variable utils class
+ * @param rVariable Reference to the variable to be set
+ * @param rValue Reference to the value to set
+ * @param rNodes Reference to the nodes container
+ * @param Flag Flag to filter the nodes that are set
+ * @param CheckValue Flag value to be checked
+ */
 template <class TDataType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetVariableForFlag(
     VariableUtils &rVariableUtils,
@@ -1207,7 +1230,7 @@ void AddUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
-    
+
     // GeometricalTransformationUtilities
     auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );

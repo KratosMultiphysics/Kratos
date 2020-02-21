@@ -605,6 +605,15 @@ public:
         NodesContainerType& rNodes
         );
 
+    /**
+     * @brief Takes the value of a non-historical variable and saves it in another variable
+     * For a nodal container, this takes the value of a non-historical variable and saves it in another one
+     * @tparam TDataType The variable data type
+     * @tparam Variable<TDataType> The variable type
+     * @param rOriginVariable Reference to the origin variable
+     * @param rSavedVariable Reference to the destination variable
+     * @param rNodesContainer Reference to the nodal container
+     */
     template< class TDataType, class TVariableType = Variable<TDataType> >
     void SaveVariable(
         const TVariableType &rOriginVariable,
@@ -648,6 +657,16 @@ public:
         NodesContainerType& rNodes
         );
 
+    /**
+     * @brief Takes the value of a non-historical variable and saves it in another historical variable
+     * For a non-nodal container, this method takes the value of an origin variable and saves it in a destination one
+     * @tparam TDataType The variable data type
+     * @tparam TContainerType The container type
+     * @tparam Variable<TDataType> The variable type
+     * @param rOriginVariable Reference to the origin variable
+     * @param rSavedVariable Reference to the destination variable
+     * @param rContainer Reference to the container of interest
+     */
     template< class TDataType, class TContainerType, class TVariableType = Variable<TDataType> >
     void SaveNonHistoricalVariable(
         const TVariableType &rOriginVariable,
@@ -704,12 +723,21 @@ public:
         const DoubleVarType &DestinationVariable,
         NodesContainerType &rNodes);
 
+    /**
+     * @brief Takes the value of an historical variable and sets it in another variable
+     * This function takes the value of an historical variable and sets in another
+     * variable in all the nodes of the provided container.
+     * @tparam TDataType The variable data type
+     * @tparam Variable<TDataType> The variable type
+     * @param rOriginVariable Reference to the origin variable
+     * @param rDestinationVariable Reference to the destination variable
+     * @param rNodesContainer Reference to the nodes container
+     */
     template< class TDataType, class TVariableType = Variable<TDataType> >
     void CopyVariable(
         const TVariableType &rOriginVariable,
         const TVariableType &rDestinationVariable,
-        NodesContainerType &rNodesContainer
-        )
+        NodesContainerType &rNodesContainer)
     {
         KRATOS_TRY
 
