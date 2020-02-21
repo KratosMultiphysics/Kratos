@@ -33,12 +33,22 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
 
-        # set type of boundary
+        """
+        Set boundary_condition_type:
+        1. penalty
+        2. lagrange (WIP)
+        3. fixdof
+        """
+
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
+            self.boundary_condition_type = 1
+        elif (self.imposition_type == "fixdof" or self.imposition_type == "FixDof"):
+            self.fix_dof = False
+            self.boundary_condition_type = 3
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"."
+            err_msg += "Available option is: \"penalty\"or \"fixdof\"."
             raise Exception(err_msg)
 
         # check constraint
@@ -46,6 +56,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.is_slip_boundary = False
         self.is_contact_boundary = False
         if (self.constrained == "fixed"):
+            self.fix_dof = True
             pass
         elif (self.constrained == "contact"):
             self.is_contact_boundary = True
@@ -90,8 +101,16 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
-                condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
+
+                ### Set necessary essential BC variables
+                if self.boundary_condition_type==1:
+                    condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                elif self.boundary_condition_type==3:
+                    condition.SetValue(KratosParticle.FIX_DOF, self.fix_dof)
+
                 condition.SetValue(self.variable, self.vector)
+
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'

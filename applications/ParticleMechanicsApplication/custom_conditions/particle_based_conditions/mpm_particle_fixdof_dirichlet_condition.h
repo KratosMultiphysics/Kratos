@@ -12,8 +12,8 @@
 
 
 // System includes
-#if !defined(KRATOS_MPM_PARTICLE_POINT_LOAD_CONDITION_H_INCLUDED )
-#define      KRATOS_MPM_PARTICLE_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MPM_PARTICLE_FIXDOF_DIRICHLET_CONDITION_H_INCLUDED )
+#define      KRATOS_MPM_PARTICLE_FIXDOF_DIRICHLET_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -21,8 +21,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
-#include "includes/variables.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -47,42 +47,61 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
+// This condition fixes the dof's of the background element when a boundary particle is inside.
+
 /** Detail class definition.
+ * The MPMParticleFixDofDirichletCondition can be used for the imposition of non-conforming boundary conditions.
+ * there are several possibilities:
+ * - "fixed": all dof's of the background element are fixed, if a boundary particle is inside
+ * - "contact": only if penetration at the boundary occurs, the dof's are fixed
+ * - "slip": only the local dof in x-direction is fixed
+ * - "contact-slip": combination
 */
 
-class MPMParticlePointLoadCondition
-    : public MPMParticleBaseLoadCondition
+class MPMParticleFixDofDirichletCondition
+    : public MPMParticleBaseDirichletCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMParticlePointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMParticlePointLoadCondition );
+    /// Counted pointer of MPMParticleFixDofDirichletCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleFixDofDirichletCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MPMParticlePointLoadCondition(
+    MPMParticleFixDofDirichletCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
-    MPMParticlePointLoadCondition(
+    MPMParticleFixDofDirichletCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
-    ~MPMParticlePointLoadCondition() override;
+    ~MPMParticleFixDofDirichletCondition() override;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations
@@ -99,6 +118,16 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
+
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -149,8 +178,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-     /**
+    /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
@@ -166,23 +194,6 @@ protected:
         bool CalculateResidualVectorFlag
         ) override;
 
-    /**
-     * It calcules the integration load for the point load
-     */
-    double GetPointLoadIntegrationWeight() override;
-
-
-    /**
-     * Called at the end of eahc solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    /**
-     * Calculation of the Nodal Force
-     */
-    Matrix& CalculateNodalForce(Matrix & rNodalForce, const ProcessInfo& rCurrentProcessInfo);
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -197,7 +208,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    MPMParticlePointLoadCondition() {};
+    MPMParticleFixDofDirichletCondition() {};
 
     ///@}
 
@@ -235,16 +246,16 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
     }
 
 
-}; // Class MPMParticlePointLoadCondition
+}; // Class MPMParticleFixDofDirichletCondition
 
 ///@}
 ///@name Type Definitions
@@ -257,4 +268,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPM_PARTICLE_POINT_LOAD_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_MPM_PARTICLE_PENALTY_DIRICHLET_CONDITION_H_INCLUDED  defined
+
+
