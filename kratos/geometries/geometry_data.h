@@ -281,7 +281,7 @@ public:
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
-        GeometryShapeFunctionContainer<IntegrationMethod> ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
                 ThisGeometryShapeFunctionContainer)
@@ -548,9 +548,13 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex,  IntegrationMethod ThisMethod ) const
+    double ShapeFunctionValue(
+        IndexType IntegrationPointIndex,
+        IndexType ShapeFunctionIndex,
+        IntegrationMethod ThisMethod ) const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionValue( IntegrationPointIndex, ShapeFunctionIndex, ThisMethod );
+        return mGeometryShapeFunctionContainer.ShapeFunctionValue(
+            IntegrationPointIndex, ShapeFunctionIndex, ThisMethod );
     }
 
     /** This method gives all shape functions gradients evaluated in all
@@ -670,9 +674,13 @@ public:
     * @return the shape function or derivative value related to the input parameters
     *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
-    const Matrix& ShapeFunctionDerivatives(IndexType DerivativeOrderIndex, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
     }
 
     ///@}
