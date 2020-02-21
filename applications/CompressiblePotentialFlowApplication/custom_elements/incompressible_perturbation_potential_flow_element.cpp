@@ -411,6 +411,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 {
     if (rRightHandSideVector.size() != NumNodes)
         rRightHandSideVector.resize(NumNodes, false);
+    rRightHandSideVector.clear();
 
     ElementalData<NumNodes, Dim> data;
 
