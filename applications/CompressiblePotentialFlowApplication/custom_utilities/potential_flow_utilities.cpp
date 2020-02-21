@@ -279,7 +279,7 @@ double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const Proce
     // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
     // Aerodynamics, The MIT Press, London
     // Reading free stream conditions
-    const array_1d<double, 3>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, Dim>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
@@ -321,7 +321,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
     const array_1d<double, Dim> v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> velocity = v_inf + ComputeVelocity<Dim, NumNodes>(rElement);
     const double velocity_module = sqrt(inner_prod(velocity, velocity));
-    const double local_speed_of_sound = ComputeLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double local_speed_of_sound = ComputePerturbationLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
     return velocity_module / local_speed_of_sound;
 }
