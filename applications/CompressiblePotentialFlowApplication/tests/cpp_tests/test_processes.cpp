@@ -198,9 +198,10 @@ namespace Kratos {
       // Set initial potential
       const double initial_potential = 1.0;
       const bool initialize_flow_field = true;
+      const bool perturbation_field = false;
 
       // Construct the ApplyFarFieldProcess
-      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field);
+      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field, perturbation_field);
 
       // Execute the ApplyFarFieldProcess
       ApplyFarFieldProcess.Execute();
