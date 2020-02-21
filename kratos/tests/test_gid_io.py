@@ -13,7 +13,7 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGidIO(KratosUnittest.TestCase):
-    KratosMultiphysics.Logger.Severity.DETAIL
+
     def __WriteOutput(self, model_part, output_file):
 
         gid_output = GiDOutputProcess(model_part,
