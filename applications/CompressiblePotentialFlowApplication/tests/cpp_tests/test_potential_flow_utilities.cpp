@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicati
 }
 
 // Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities
-KRATOS_TEST_CASE_IN_SUITE(ComputeIncompressiblePerturbationPressureCoefficient, CompressiblePotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationIncompressiblePressureCoefficient, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeIncompressiblePerturbationPressureCoefficient, 
 
     AssignPotentialsToElement(*pElement);
     const double pressure_coefficient =
-        PotentialFlowUtilities::ComputeIncompressiblePerturbationPressureCoefficient<2, 3>(
+        PotentialFlowUtilities::ComputePerturbationIncompressiblePressureCoefficient<2, 3>(
             *pElement, model_part.GetProcessInfo());
 
     KRATOS_CHECK_NEAR(pressure_coefficient, -2.97241446, 1e-6);

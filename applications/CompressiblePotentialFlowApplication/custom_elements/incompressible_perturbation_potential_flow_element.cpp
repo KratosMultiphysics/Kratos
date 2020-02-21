@@ -196,7 +196,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = PotentialFlowUtilities::ComputeIncompressiblePerturbationPressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputePerturbationIncompressiblePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
     }
     else if (rVariable == DENSITY)
     {
