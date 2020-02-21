@@ -280,7 +280,7 @@ public:
         TSparseSpace::SetToZero(rX);
         auto nodes_begin = rNodes.begin();
         auto nodes_number = rNodes.size();    
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(nodes_number)
         for (int kkk = 0; kkk < nodes_number; kkk++ ){
             auto it = nodes_begin + kkk;
             unsigned int node_aux_id = it->GetValue(AUX_ID);
@@ -323,7 +323,7 @@ public:
 
         double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
         Vector xrom = ZeroVector(mRomDofs);
-        this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
+        //this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
         const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
 
@@ -350,11 +350,11 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-        //#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
+        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
-            //#pragma omp for nowait
+            #pragma omp for nowait
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
@@ -392,7 +392,7 @@ public:
                 }
             }
 
-            //#pragma omp for
+            #pragma omp for
             for (int k = 0; k < nconditions; k++){
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
@@ -430,10 +430,10 @@ public:
                     pScheme->CleanMemory(*(it.base()));
                 }
             }
-            //#pragma omp critical 
+            #pragma omp critical 
             {
                 noalias(Arom) +=tempA;
-                noalias(brom) +=tempb;
+                noalias(brom) +=tempb;            
             }            
         }
 
@@ -447,7 +447,7 @@ public:
         double start_solve = OpenMPUtils::GetCurrentTime();
         MathUtils<double>::Solve(Arom, dxrom, brom);
         const double stop_solve = OpenMPUtils::GetCurrentTime();
-
+        
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve << std::endl;
 
         //update database

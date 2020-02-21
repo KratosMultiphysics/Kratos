@@ -45,7 +45,7 @@
             "nodal_unknowns": [
                 "TEMPERATURE"
             ],
-            "number_of_rom_dofs": 15
+            "number_of_rom_dofs": 14
         },
         "element_replace_settings": {
             "element_name": "LaplacianElement",
