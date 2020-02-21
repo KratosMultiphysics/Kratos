@@ -46,10 +46,12 @@ class ConvergenceOutputProcess(KM.Process):
         self.dset = self._GetDataset()
         self.start_time = time.time()
 
-    def IsOutputStep(self):
+    @staticmethod
+    def IsOutputStep():
         return False
 
-    def PrintOutput(self):
+    @staticmethod
+    def PrintOutput():
         pass
 
     def ExecuteFinalize(self):
@@ -122,7 +124,7 @@ class ConvergenceOutputProcess(KM.Process):
             ("num_elems", np.uint32),
             ("time_step", np.float),
             ("computational_time", np.float)]
-        
+
         for variable in self.variables:
             header.append((variable.Name(), np.float))
 

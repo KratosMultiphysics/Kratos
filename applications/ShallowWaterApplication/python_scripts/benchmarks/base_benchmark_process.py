@@ -9,7 +9,6 @@ def Factory(settings, model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return BaseBenchmarkProcess(model, settings["Parameters"])
 
-''' The base process for shallow water benchmarks '''
 class BaseBenchmarkProcess(KM.Process):
 
     def __init__(self, model, settings ):
@@ -46,7 +45,7 @@ class BaseBenchmarkProcess(KM.Process):
                     exact_value = self.Velocity(node, time)
                 elif variable == KM.MOMENTUM:
                     exact_value = self.Momentum(node, time)
-                
+
                 fem_value = node.GetSolutionStepValue(variable)
 
                 node.SetValue(exact_variable, exact_value)
@@ -70,12 +69,9 @@ class BaseBenchmarkProcess(KM.Process):
 
     def Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
-        return 0.0
 
     def Velocity(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
-        return [0.0, 0.0, 0.0]
 
     def Momentum(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
-        return [0.0, 0.0, 0.0]

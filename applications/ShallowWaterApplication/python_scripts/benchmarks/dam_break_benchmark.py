@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShallowWaterApplication as SW
 
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
 
