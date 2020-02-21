@@ -74,9 +74,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHS, Compr
 
     pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference({146.264326, -122.142628, -24.1216977});
+    std::vector<double> reference({146.2643261263345,-122.1426284341492,-24.12169769218525});
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
+    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 /** Checks the CompressiblePerturbationPotentialFlowElement.
@@ -96,13 +96,62 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHS, Compr
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    std::array<double, 9> reference({0.0611427846, -0.130621505, 0.0694787204,
-                                     -0.130621505,0.671075851,-0.540454346,
-                                     0.0694787204,-0.540454346,0.470975625});
+    std::array<double, 9> reference({ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
+                                     -0.1306215050744058, 0.6710758508914103,-0.5404543458170046,
+                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142});
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 3 + j], 1e-6);
+            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
+        }
+    }
+}
+
+/** Checks the CompressiblePerturbationPotentialFlowElement.
+ * Tests the LHS computation.
+ */
+KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressiblePerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+
+    AssignPotentialsToNormalCompressiblePerturbationElement(pElement);
+
+    Vector RHS_original = ZeroVector(number_of_nodes);
+    Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    // Compute original RHS and LHS
+    pElement->CalculateLocalSystem(LHS_original, RHS_original, model_part.GetProcessInfo());
+
+    double delta = 1e-3;
+    for(unsigned int i = 0; i < number_of_nodes; i++){
+        // Pinging
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+
+        Vector RHS_pinged = ZeroVector(number_of_nodes);
+        Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
+        // Compute pinged LHS and RHS
+        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, model_part.GetProcessInfo());
+
+        for(unsigned int k = 0; k < number_of_nodes; k++){
+            // Compute the finite difference estimate of the sensitivity
+            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
+            // Compute the average of the original and pinged analytic sensitivities
+            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
+        }
+
+        // Unpinging
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+    }
+
+    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
+        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
+            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
         }
     }
 }
@@ -153,9 +202,9 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, C
 
     pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference({146.264326, 0, 0, 0, -122.142628, -24.1216977});
+    std::vector<double> reference({146.2643261263345,-0,-0,-0,-122.1426284341492,-24.12169769218525});
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
+    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -176,20 +225,18 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, C
     Matrix LHS = ZeroMatrix(6, 6);
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
-    std::cout.precision(9);
-    KRATOS_WATCH(LHS)
 
     // Check the LHS values
-    std::array<double,36> reference({0.0611427846,-0.130621505,0.0694787204,0,0,0,
-                                  -0.130621505,0.671075851,-0.540454346,0.130621505,-0.671075851,0.540454346,
-                                  0.0694787204,-0.540454346,0.470975625,-0.0694787204,0.540454346,-0.470975625,
-                                  -0.0611427846,0.130621505,-0.0694787204,0.0611427846,-0.130621505,0.0694787204,
-                                  0,0,0,-0.130621505,0.671075851,-0.540454346,
-                                  0,0,0,0.0694787204,-0.540454346,0.470975625});
+    std::array<double,36> reference({0.06114278464441542,-0.1306215050744058,0.06947872042999037,0,0,0,
+    -0.1306215050744058,0.6710758508914103,-0.5404543458170046,0.1306215050744058,-0.6710758508914103,0.5404543458170046,
+    0.06947872042999037,-0.5404543458170046,0.4709756253870142,-0.06947872042999037,0.5404543458170046,-0.4709756253870142,
+    -0.06114278464441542,0.1306215050744058,-0.06947872042999037,0.06114278464441542,-0.1306215050744058,0.06947872042999037,
+    0,0,0,-0.1306215050744058,0.6710758508914103,-0.5404543458170046,
+    0,0,0,0.06947872042999037,-0.5404543458170046,0.4709756253870142});
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-6);
+            KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
 }
