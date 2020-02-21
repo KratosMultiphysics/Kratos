@@ -248,13 +248,19 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-    if (rVariable == VELOCITY)
-    {
+    if (rVariable == VELOCITY){
         const array_1d<double, Dim>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k] + v_inf[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == PERTURBATION_VELOCITY){
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k];
         rValues[0] = v;
     }
 }

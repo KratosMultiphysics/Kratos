@@ -245,13 +245,20 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-    if (rVariable == VELOCITY)
-    {
+    if (rVariable == VELOCITY){
         const array_1d<double, Dim>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k] + free_stream_velocity[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k];
         rValues[0] = v;
     }
 }
