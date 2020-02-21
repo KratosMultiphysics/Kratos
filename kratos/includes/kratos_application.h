@@ -34,6 +34,7 @@
 #include "includes/geometrical_object.h"
 
 /* Geometries definition */
+#include "geometries/register_kratos_components_for_geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
