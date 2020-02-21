@@ -8,6 +8,7 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
@@ -1310,6 +1311,42 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
     //set transfer variables (commented December 2019:: adding MODEL_PART_NAME to elements, assigned when cloned)
     //new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
     new_element->AssignFlags(*(*pe.base()));
+
+    // In case of interaction of two or more fluids with different properties, the property
+    // of the new element is retrivied from the nodes using the PROPERTY_ID variable.
+    if (rModelPart.NumberOfProperties() > 1) {
+
+        typedef Node<3> NodeType;
+        typedef Geometry<NodeType> GeometryType;
+        GeometryType &rGeom = new_element->GetGeometry();
+        std::vector<int> array_of_properties;
+        unsigned int max_count = 1, curr_count = 1;
+
+        for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id()-1].size(); i++) {
+            if (rGeom[i].IsNot(RIGID)){
+                array_of_properties.push_back(rGeom[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
+            }
+        }
+        std::sort(array_of_properties.begin(), array_of_properties.end());
+        unsigned int property_id = array_of_properties[0];
+
+        for (unsigned int i = 0; i < array_of_properties.size(); i++) {
+            if (array_of_properties[i+1] == array_of_properties[i]) {
+                curr_count++;
+            } else {
+                if (curr_count > max_count) {
+                    max_count = curr_count;
+                    property_id = array_of_properties[i];
+                }
+                curr_count = 1;
+            }
+        }
+        if (curr_count > max_count) {
+            property_id = array_of_properties.back();
+        }
+        Properties::Pointer pElemNewProp = rModelPart.pGetProperties(property_id);
+        new_element->SetProperties(pElemNewProp);
+    }
 
     //check
     //new_element->PrintInfo(std::cout);
