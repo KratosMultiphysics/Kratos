@@ -65,14 +65,14 @@ public:
 	 typedef SpatialSearch                                                       SearchType;
 
     typedef SearchType::PointType                                               PointType;
-    
+
     //typedef PointerVectorSet<GeometricalObject, IndexedObject>                  ElementsContainerType;
-    typedef PointerVectorSet<GeometricalObject, 
+    typedef PointerVectorSet<GeometricalObject,
                             IndexedObject,
                             std::less<typename IndexedObject::result_type>,
                             std::equal_to<typename IndexedObject::result_type>,
                             typename GeometricalObject::Pointer,
-                            std::vector< typename GeometricalObject::Pointer >                         
+                            std::vector< typename GeometricalObject::Pointer >
                             > ElementsContainerType;
 
     //typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
@@ -531,7 +531,7 @@ public:
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
       double local_coord_system[3][3]  = { {0.0},{0.0},{0.0} };
-      std::vector<double> Weight(2,0.0);
+      std::vector<double> Weight(4,0.0);
       std::vector< array_1d<double,3> > Coord(2);
 
       for (unsigned int i = 0; i<2; i++) {

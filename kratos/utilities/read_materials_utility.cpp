@@ -169,15 +169,15 @@ void ReadMaterialsUtility::AssignMaterialToProperty(
     )
 {
     KRATOS_TRY;
-    
-    // Assign CL
-    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
     // Assign variables
     AssignVariablesToProperty(MaterialData, rProperty);
     
     // Assign tables
     AssignTablesToProperty(MaterialData, rProperty);
+    
+    // Assign CL
+    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
     KRATOS_CATCH("");
 }
@@ -222,8 +222,10 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
-        for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
-            const Parameters value = variables.GetValue(iter.name());
+        const Parameters variables_considered = FilterVariables(variables, rProperty.Id());
+        
+        for (auto iter = variables_considered.begin(); iter != variables_considered.end(); ++iter) {
+            const Parameters value = variables_considered.GetValue(iter.name());
 
             std::string variable_name = iter.name();
             TrimComponentName(variable_name);
@@ -321,6 +323,17 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     }
     
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters ReadMaterialsUtility::FilterVariables(
+    const Parameters VariablesParameters,
+    const IndexType PropertyId
+    )
+{
+    return VariablesParameters;
 }
 
 /***********************************************************************************/
