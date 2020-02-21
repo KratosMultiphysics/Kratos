@@ -319,8 +319,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
-
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
@@ -509,7 +507,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //moveparticlesdiff reads from the pointers of one part (ie odd) and saves into the other part (ie even part)
@@ -643,8 +641,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
-        //const double delta_t =CurrentProcessInfo[DELTA_TIME];
         const double threshold = 1e-10 / (static_cast<double>(TDim)+1.0);
 
         std::cout << "projecting info to mesh" << std::endl;
@@ -807,8 +803,6 @@ public:
     void CorrectParticlesWithoutMovingUsingDeltaVariables()
     {
         KRATOS_TRY
-        //std::cout << "updating particles" << std::endl;
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //(flag managed only by MoveParticles)
@@ -873,7 +867,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         const int offset =mOffset;
         const int max_results = 1000;
 
@@ -987,7 +980,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         const int offset = mOffset;
 
         //TOOLS FOR THE PARALELIZATION
@@ -1190,7 +1182,7 @@ private:
                       ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
     {
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
         unsigned int nsubsteps;
         double substep_dt;
@@ -1336,7 +1328,7 @@ private:
                                   ResultIteratorType ResultBegin,
                                   const unsigned int MaxNumberOfResults)
     {
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
         unsigned int nsubsteps;
         double substep_dt;
