@@ -51,34 +51,28 @@ namespace Kratos {
     void AssignPotentialsToNormalPerturbationElement(Element::Pointer pElement)
     {
       // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      std::array<double, 3> potential{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
     }
 
     void AssignPotentialsToWakePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
     {
       // Define the nodal values
-      Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+      std::array<double, 3> potential{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
         else
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
       }
       for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i]+5;
         else
-          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i]+5;
       }
     }
 
@@ -110,7 +104,7 @@ namespace Kratos {
       pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
       // Check the RHS values
-      std::vector<double> reference({5.5, -5, -0.5});
+      std::vector<double> reference{5.5, -5, -0.5};
 
       KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
     }
@@ -134,7 +128,7 @@ namespace Kratos {
       pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
       // Check the LHS values
-      std::array<double, 9> reference({0.5, -0.5, 0, -0.5, 1, -0.5, 0.0, -0.5, 0.5});
+      std::array<double, 9> reference{0.5, -0.5, 0, -0.5, 1, -0.5, 0.0, -0.5, 0.5};
 
       for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
@@ -164,7 +158,7 @@ namespace Kratos {
       pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
       // Check the RHS values
-      std::vector<double> reference({5.5, 0.0, 0.0, 0.0, -5, -0.5});
+      std::vector<double> reference{5.5, 0.0, 0.0, 0.0, -5, -0.5};
 
       KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
     }
@@ -190,10 +184,10 @@ namespace Kratos {
       pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
       // Check the LHS values
-      std::array<double, 36> reference(
+      std::array<double, 36> reference
           {0.5, -0.5, 0,   0,    0,   0,    -0.5, 1,   -0.5, 0.5, -1,   0.5,
            0,   -0.5, 0.5, -0,   0.5, -0.5, -0.5, 0.5, -0,   0.5, -0.5, 0,
-           0,   0,    0,   -0.5, 1,   -0.5, 0,    0,   0,    0,   -0.5, 0.5});
+           0,   0,    0,   -0.5, 1,   -0.5, 0,    0,   0,    0,   -0.5, 0.5};
 
       for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {

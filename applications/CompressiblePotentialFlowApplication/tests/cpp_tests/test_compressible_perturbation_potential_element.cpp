@@ -51,7 +51,7 @@ void GenerateCompressiblePerturbationElement(ModelPart& rModelPart) {
 
 void AssignPotentialsToNormalCompressiblePerturbationElement(Element::Pointer pElement)
 {
-    std::array<double, 3> potential({1.0, 100.0, 150.0});
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
 
     for (unsigned int i = 0; i < 3; i++)
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHS, Compr
 
     pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference({146.2643261263345,-122.1426284341492,-24.12169769218525});
+    std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -96,9 +96,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHS, Compr
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    std::array<double, 9> reference({ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
+    std::array<double, 9> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
                                      -0.1306215050744058, 0.6710758508914103,-0.5404543458170046,
-                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142});
+                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
@@ -167,7 +167,7 @@ BoundedVector<double,3> AssignDistancesToPerturbationCompressibleElement()
 
 void AssignPotentialsToWakeCompressiblePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
 {
-    const std::array<double, 3> potential({1.0, 100.0, 150.0});
+    const std::array<double, 3> potential{1.0, 100.0, 150.0};
 
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, C
 
     pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference({146.2643261263345,-0,-0,-0,-122.1426284341492,-24.12169769218525});
+    std::vector<double> reference{146.2643261263345,-0,-0,-0,-122.1426284341492,-24.12169769218525};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -227,12 +227,12 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, C
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
     // Check the LHS values
-    std::array<double,36> reference({0.06114278464441542,-0.1306215050744058,0.06947872042999037,0,0,0,
+    std::array<double,36> reference{0.06114278464441542,-0.1306215050744058,0.06947872042999037,0,0,0,
     -0.1306215050744058,0.6710758508914103,-0.5404543458170046,0.1306215050744058,-0.6710758508914103,0.5404543458170046,
     0.06947872042999037,-0.5404543458170046,0.4709756253870142,-0.06947872042999037,0.5404543458170046,-0.4709756253870142,
     -0.06114278464441542,0.1306215050744058,-0.06947872042999037,0.06114278464441542,-0.1306215050744058,0.06947872042999037,
     0,0,0,-0.1306215050744058,0.6710758508914103,-0.5404543458170046,
-    0,0,0,0.06947872042999037,-0.5404543458170046,0.4709756253870142});
+    0,0,0,0.06947872042999037,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
