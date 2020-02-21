@@ -49,7 +49,7 @@ namespace Kratos
 
 
         //  ########################## WORKING FOR CONDIDIONAL RESIDUAL ###########################
-        Matrix ElementalResidual()
+        Matrix ConditionalResidual()
         {
             // Getting the array of the conditions
             const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
@@ -74,12 +74,12 @@ namespace Kratos
             KRATOS_WATCH(LargestNodes)
 
             Element::EquationIdVectorType EquationId;
-            Matrix MatrixResiduals = ZeroMatrix( nconditions , (LargestNodes * mNodalDofs));   // Matrix of reduced residuals.
+            Matrix MatrixResiduals = ZeroMatrix( nconditions , (LargestNodes * 1));   // Matrix of reduced residuals.
 
             for (int k = 0; k < nconditions; k++)
             {
                 auto it = cond_begin + k;
-                int NumDofs = it->GetGeometry().size() * mNodalDofs;
+                int NumDofs = it->GetGeometry().size() * 1;
                 mpScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 for (unsigned int i = 0; i < NumDofs; i++)
                     MatrixResiduals(k,i) = RHS_Contribution(i);
@@ -91,16 +91,12 @@ namespace Kratos
         }
 
         //  ########################## WORKING FOR ELEMENTAL RESIDUAL ###########################
-        Matrix ConditionalResidual()
+        Matrix ElementalResidual()
         {
             // Getting the elements from the model
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
-
-            // Getting the array of the conditions
-            const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
             auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
             auto el_begin = mpModelPart.ElementsBegin();
-            auto cond_begin = mpModelPart.ConditionsBegin();
 
             //contributions to the system
             Matrix LHS_Contribution = ZeroMatrix(0, 0);
@@ -120,12 +116,12 @@ namespace Kratos
             KRATOS_WATCH(LargestNodes)
 
             Element::EquationIdVectorType EquationId;
-            Matrix MatrixResiduals = ZeroMatrix( nelements , (LargestNodes * mNodalDofs));   // Matrix of reduced residuals.
+            Matrix MatrixResiduals = ZeroMatrix( nelements , (LargestNodes * 1 ));   // Matrix of reduced residuals.
 
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
-                int NumDofs = it_el->GetGeometry().size() * mNodalDofs;
+                int NumDofs = it_el->GetGeometry().size() * 1 ;
                 mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 for (unsigned int i = 0; i < NumDofs; i++)
                     MatrixResiduals(k,i) = RHS_Contribution(i);
