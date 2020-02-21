@@ -568,7 +568,7 @@ public:
         else
             mBlockSize = ndof;
 
-        mBlockSize = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(mBlockSize);
+        mBlockSize = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 
