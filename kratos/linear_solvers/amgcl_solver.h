@@ -543,7 +543,7 @@ public:
         ) override
     {
         int old_ndof = -1;
-        unsigned int old_node_id = rDofSet.begin()->Id();
+        unsigned int old_node_id = -1;
         int ndof=0;
         for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
             if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
