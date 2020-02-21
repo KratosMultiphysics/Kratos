@@ -51,39 +51,45 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         self.next_output = 0.0
         self.step_count = 0
 
-    @staticmethod
-    def HasDeprecatedVariable(param, old_variable_name, new_variable_name):
-        if param.Has(old_variable_name):
-            if not param.Has(new_variable_name):
-                KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
-                    'The input variable \'' + old_variable_name + '\' is deprecated; use \'' + new_variable_name + '\' instead.'
-                    )
+    @classmethod
+    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
+
+        if settings.Has(old_variable_name):
+            if not settings.Has(new_variable_name):
+                KratosMultiphysics.Logger.PrintWarning(cls.__name__,
+                                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                                                       'Input variable name \''
+                                                       + old_variable_name + '\' is deprecated; use \''
+                                                       + new_variable_name + '\' instead.')
                 return True
             else:
                 raise NameError('Conflicting input variable names: Both the deprecated variable \''
                                 + old_variable_name + '\' and its current standard replacement \''
-                                + new_variable_name + '\' were found. Please, remove \'' + old_variable_name + '\'.')
+                                + new_variable_name + '\' were found. Please, remove \''
+                                + old_variable_name + '\'.')
         return False
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, param):
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
 
         old_name = 'output_frequency'
         new_name = 'output_interval'
 
-        if UnvOutputProcess.HasDeprecatedVariable(param, old_name, new_name):
-            param.AddEmptyValue(new_name)
-            if param.Has('output_control_type'):
-                control_type = param['output_control_type'].GetString()
+        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
+            settings.AddEmptyValue(new_name)
+            if settings[old_name].IsInt():
+                settings[new_name].SetInt(settings[old_name].GetInt())
             else:
-                control_type = self.defaults['output_control_type'].GetString()
+                settings[new_name].SetDouble(settings[old_name].GetDouble())
 
-            if control_type == 'step':
-                param[new_name].SetInt(param[old_name].GetInt())
-            else:
-                param[new_name].SetDouble(param[old_name].GetDouble())
+            settings.RemoveValue(old_name)
 
-            param.RemoveValue(old_name)
+        old_name = 'write_properties_id'
+        new_name = 'write_ids'
+
+        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
+            settings.AddEmptyValue(new_name).SetBool(settings[old_name].GetBool())
+            settings.RemoveValue(old_name)
 
     def ExecuteInitialize(self):
         if self.output_control == "time":
