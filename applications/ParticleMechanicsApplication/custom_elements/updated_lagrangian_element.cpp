@@ -190,10 +190,6 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
 
     rValues.SetShapeFunctionsValues(row(GetGeometry().ShapeFunctionsValues(), 0));
 
-    rThisConstitutiveVariables.ConstitutiveMatrix(0, 0) = 1000;
-    rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = 1000;
-    rThisConstitutiveVariables.ConstitutiveMatrix(2, 2) = 500;
-
     mpConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
 }
 
