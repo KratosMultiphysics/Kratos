@@ -35,6 +35,7 @@ class ConvergenceOutputProcess(KM.Process):
         self.model_part = model[self.settings["model_part_name"].GetString()]
 
         self.f = h5py.File(self.settings["file_name"].GetString() + ".hdf5", 'a') # 'a' means append mode
+        self.f.flush() # Since this process will reuse the existing files, we need to ensure the file construction is finished. Otherwise problems may arise if the first analysis didn't finish.
 
         self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["convergence_variables_list"].GetStringArray()]
         self.weight_variable = KM.KratosGlobals.GetVariable(settings["weighting_variable"].GetString())
