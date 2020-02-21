@@ -669,30 +669,29 @@ template <int Dim, int NumNodes>
 double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
-
-    // Computing local velocity
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
-
-    // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
-    const double M_inf_2 = M_inf * M_inf;
-    double v_2 = inner_prod(v, v);
+    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
 
     // Computing local mach number
-    const double M = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
+    double local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
-    if (M > 0.94)
-    { // Clamping the mach number to 0.94
-        KRATOS_WARNING("ComputeDensity") << "Clamping the mach number to 0.94" << std::endl;
-        v_2 = 0.94 * 0.94 * a_inf * a_inf;
+    if (local_mach_number > mach_number_limit)
+    { // Clamping the mach number to mach_number_limit
+        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
+        local_mach_number = mach_number_limit;
     }
 
-    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    // Computing squares
+    const double M_inf_2 = M_inf * M_inf;
+    const double M_2 = local_mach_number * local_mach_number;
+
+    // Computing density according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+    const double numerator = 1 + (heat_capacity_ratio - 1) * M_inf_2 / 2;
+    const double denominator = 1 + (heat_capacity_ratio - 1) * M_2 / 2;
+    const double base = numerator / denominator;
 
     if (base > 0.0)
     {
