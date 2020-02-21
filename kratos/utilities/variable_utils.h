@@ -911,7 +911,7 @@ public:
                 private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
             }
 
-            AuxiliaryReduction(private_sum_value, sum_value);
+            AuxiliaryAtomicAdd(private_sum_value, sum_value);
         }
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
@@ -1170,7 +1170,7 @@ private:
      * @param rPrivateValue Private variable to reduce
      * @param rSumValue Variable to save the reduction
      */
-    void AuxiliaryReduction(
+    void AuxiliaryAtomicAdd(
         const double &rPrivateValue,
         double &rSumValue
         );
@@ -1181,7 +1181,7 @@ private:
      * @param rPrivateValue Private variable to reduce
      * @param rSumValue Variable to save the reduction
      */
-    void AuxiliaryReduction(
+    void AuxiliaryAtomicAdd(
         const array_1d<double,3> &rPrivateValue,
         array_1d<double,3> &rSumValue
         );

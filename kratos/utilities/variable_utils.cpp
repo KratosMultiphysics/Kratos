@@ -466,7 +466,7 @@ void VariableUtils::AuxiliaryInitializeValue(array_1d<double, 3> &rValue)
     rValue = ZeroVector(3);
 }
 
-void VariableUtils::AuxiliaryReduction(
+void VariableUtils::AuxiliaryAtomicAdd(
     const double &rPrivateValue,
     double &rSumValue)
 {
@@ -474,7 +474,7 @@ void VariableUtils::AuxiliaryReduction(
         rSumValue += rPrivateValue;
 }
 
-void VariableUtils::AuxiliaryReduction(
+void VariableUtils::AuxiliaryAtomicAdd(
     const array_1d<double, 3> &rPrivateValue,
     array_1d<double, 3> &rSumValue)
 {
