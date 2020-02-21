@@ -69,24 +69,25 @@ class SPAlgorithm(Algorithm):
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
 
-        old_name = 'output_frequency'
-        new_name = 'output_interval'
+        if settings.Has('post_process_tool'):
+            sub_settings_where_var_is = settings['post_process_tool']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
 
-        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
-            settings.AddEmptyValue(new_name)
-            if settings[old_name].IsInt():
-                settings[new_name].SetInt(settings[old_name].GetInt())
-            else:
-                settings[new_name].SetDouble(settings[old_name].GetDouble())
+            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
+                sub_settings_where_var_is.AddEmptyValue(new_name)
+                if sub_settings_where_var_is[old_name].IsInt():
+                    sub_settings_where_var_is[new_name].SetInt(sub_settings_where_var_is[old_name].GetInt())
+                else:
+                    sub_settings_where_var_is[new_name].SetDouble(sub_settings_where_var_is[old_name].GetDouble())
 
-            settings.RemoveValue(old_name)
+                sub_settings_where_var_is.RemoveValue(old_name)
 
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
         default_settings = self.GetDefaultSettings()
-        if self.sp_parameters.Has('post_process_tool'):
-            self.TranslateLegacyVariablesAccordingToCurrentStandard(self.sp_parameters['post_process_tool'])
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(self.sp_parameters)
         self.sp_parameters.ValidateAndAssignDefaults(default_settings)
 
     def Initialize(self):

@@ -99,8 +99,7 @@ class GiDOutputProcess(KM.Process):
             param = self.defaults
         else:
             # Warning: we may be changing the parameters object here:
-            if param.Has('result_file_configuration'):
-                self.TranslateLegacyVariablesAccordingToCurrentStandard(param['result_file_configuration'])
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
@@ -151,25 +150,28 @@ class GiDOutputProcess(KM.Process):
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
 
-        old_name = 'output_frequency'
-        new_name = 'output_interval'
+            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
+                sub_settings_where_var_is.AddEmptyValue(new_name)
+                if sub_settings_where_var_is[old_name].IsInt():
+                    sub_settings_where_var_is[new_name].SetInt(sub_settings_where_var_is[old_name].GetInt())
+                else:
+                    sub_settings_where_var_is[new_name].SetDouble(sub_settings_where_var_is[old_name].GetDouble())
 
-        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
-            settings.AddEmptyValue(new_name)
-            if settings[old_name].IsInt():
-                settings[new_name].SetInt(settings[old_name].GetInt())
-            else:
-                settings[new_name].SetDouble(settings[old_name].GetDouble())
+                sub_settings_where_var_is.RemoveValue(old_name)
 
-            settings.RemoveValue(old_name)
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
 
-        old_name = 'write_properties_id'
-        new_name = 'write_ids'
-
-        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
-            settings.AddEmptyValue(new_name).SetBool(settings[old_name].GetBool())
-            settings.RemoveValue(old_name)
+            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
+                sub_settings_where_var_is.AddEmptyValue(new_name).SetBool(sub_settings_where_var_is[old_name].GetBool())
+                sub_settings_where_var_is.RemoveValue(old_name)
 
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]

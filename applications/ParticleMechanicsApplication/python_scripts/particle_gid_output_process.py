@@ -50,8 +50,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         if param is None:
             param = self.defaults
         else:
-            if param.Has('result_file_configuration'):
-                self.TranslateLegacyVariablesAccordingToCurrentStandard(param['result_file_configuration'])
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             param.ValidateAndAssignDefaults(self.defaults)
 
         # Default
@@ -84,17 +83,19 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
 
-        old_name = 'output_frequency'
-        new_name = 'output_interval'
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
 
-        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
-            settings.AddEmptyValue(new_name)
-            if settings[old_name].IsInt():
-                settings[new_name].SetInt(settings[old_name].GetInt())
-            else:
-                settings[new_name].SetDouble(settings[old_name].GetDouble())
+            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
+                sub_settings_where_var_is.AddEmptyValue(new_name)
+                if sub_settings_where_var_is[old_name].IsInt():
+                    sub_settings_where_var_is[new_name].SetInt(sub_settings_where_var_is[old_name].GetInt())
+                else:
+                    sub_settings_where_var_is[new_name].SetDouble(sub_settings_where_var_is[old_name].GetDouble())
 
-            settings.RemoveValue(old_name)
+                sub_settings_where_var_is.RemoveValue(old_name)
 
 
     # Public Functions
