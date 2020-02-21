@@ -17,13 +17,9 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 
-/* Include pybind to convert residual matrix to numpy  */
+/* Include pybind to convert Kratos matrix to Numpy  */
 #include <pybind11/pybind11.h>
 
 /* Application includes */
@@ -36,18 +32,17 @@ namespace Kratos
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     // This utility returns the converged residuals projected onto the ROM basis Phi.
-    class GetRomResiduals
+    class RomResidualsUtility
     {
         public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(GetRomResiduals);
+        KRATOS_CLASS_POINTER_DEFINITION(RomResidualsUtility);
 
-        GetRomResiduals(
+        RomResidualsUtility(
         ModelPart& rModelPart,
         Parameters ThisParameters,
-        BaseSchemeType::Pointer pScheme             // Need to define a scheme in a simple way
-        ): mpModelPart(rModelPart), mpScheme(pScheme)
-    {
+        BaseSchemeType::Pointer pScheme
+        ): mpModelPart(rModelPart), mpScheme(pScheme){
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
@@ -63,16 +58,15 @@ namespace Kratos
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
 
-        ~GetRomResiduals()= default;
+        ~RomResidualsUtility()= default;
 
 
         Matrix Calculate()
         {
-            // Getting the elements from the model
+            // Getting the number of elements and conditions from the model
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
-
-            // Getting the array of the conditions
             const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
+
             auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
             auto el_begin = mpModelPart.ElementsBegin();
             auto cond_begin = mpModelPart.ConditionsBegin();
@@ -81,22 +75,18 @@ namespace Kratos
             Matrix LHS_Contribution = ZeroMatrix(0, 0);
             Vector RHS_Contribution = ZeroVector(0);
 
-            //vector containing the localization in the system of the different
-            //terms
+            //vector containing the localization in the system of the different terms
             Element::EquationIdVectorType EquationId;
-            Matrix MatrixResiduals( (nelements + nconditions), mRomDofs);   // Matrix of reduced residuals.
+            Matrix MatrixResiduals( (nelements + nconditions), mRomDofs); // Matrix of reduced residuals.
 
-            for (int k = 0; k < nelements; k++)
-            {
+            for (int k = 0; k < nelements; k++){
                 auto it_el = el_begin + k;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
+                //detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool element_is_active = true;
                 if ((it_el)->IsDefined(ACTIVE))
                     element_is_active = (it_el)->Is(ACTIVE);
-
-                if (element_is_active)
-                {   //calculate elemental contribution
+                if (element_is_active){
+                    //calculate elemental contribution
                     mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     Element::DofsVectorType dofs;
                     it_el->GetDofList(dofs, CurrentProcessInfo);
@@ -106,11 +96,9 @@ namespace Kratos
                     Matrix PhiElemental(geom.size()*mNodalDofs, mRomDofs);
                     Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes, one row per element
 
-                    for(unsigned int i=0; i<geom.size(); ++i)
-                    {
-                        const Matrix& rom_nodal_basis = geom[i].GetValue(NODAL_ROM_BASIS);
-                        for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
-                        {
+                    for(unsigned int i=0; i<geom.size(); ++i){
+                        const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
+                        for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k){
                             if (dofs[i*mNodalDofs + k]->IsFixed())
                                 row(PhiElemental, i*mNodalDofs + k) = ZeroVector(PhiElemental.size2());
                             else
@@ -119,40 +107,33 @@ namespace Kratos
                     }
                     ResidualReduced = prod(trans(PhiElemental), RHS_Contribution);
                     row(MatrixResiduals, k) = ResidualReduced;
+                    
                     // clean local elemental me overridemory
                     mpScheme->CleanMemory(*(it_el.base()));
                 }
 
             }
 
-            // #pragma omp for  schedule(guided , 512)
-            for (int k = 0; k < nconditions;  k++)
-            {
+            for (int k = 0; k < nconditions;  k++){
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
                 //detect if the condition is active or not. If the user did not make any choice the condition
                 //is active by default
                 bool condition_is_active = true;
                 if ((it)->IsDefined(ACTIVE))
                     condition_is_active = (it)->Is(ACTIVE);
-
-                if (condition_is_active)
-                {
+                if (condition_is_active){
                     Condition::DofsVectorType dofs;
                     it->GetDofList(dofs, CurrentProcessInfo);
                     //calculate elemental contribution
                     mpScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix PhiElemental
                     const auto& r_geom = it->GetGeometry();
                     Matrix PhiElemental(r_geom.size()*mNodalDofs, mRomDofs);
                     Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes, one row per condition
-
-                    for(unsigned int i=0; i<r_geom.size(); ++i)
-                    {
-                        const Matrix& rom_nodal_basis = r_geom[i].GetValue(NODAL_ROM_BASIS);
-                        for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
-                        {
+                    for(unsigned int i=0; i<r_geom.size(); ++i){
+                        const Matrix& rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
+                        for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k){
                             if (dofs[i*mNodalDofs + k]->IsFixed())
                                 row(PhiElemental, i*mNodalDofs + k) = ZeroVector(PhiElemental.size2());
                             else
@@ -165,92 +146,29 @@ namespace Kratos
                     // clean local elemental memory
                     mpScheme->CleanMemory(*(it.base()));
                 }
-
             }
         return MatrixResiduals;
         }
 
-
-        void convert_to_numpy(const Matrix & input, pybind11::object obj)
+        void convert_to_numpy(const Matrix & KratosMatrix, pybind11::object NumpyMatrix)
         {
-            PyObject* pobj = obj.ptr();
+            PyObject* pobj = NumpyMatrix.ptr();
             Py_buffer pybuf;
             PyObject_GetBuffer(pobj, &pybuf, PyBUF_SIMPLE);
             void *buf = pybuf.buf;
             double *p = (double*)buf;
             Py_XDECREF(pobj);
 
-			unsigned int n_rows = input.size1();
-			unsigned int n_cols = input.size2();
+			unsigned int n_rows = KratosMatrix.size1();
+			unsigned int n_cols = KratosMatrix.size2();
             for (unsigned int i = 0; i < n_rows; i++)
             {
                 for (unsigned int j = 0; j < n_cols; j++)
                 {
-                    p[i*n_cols+j] = input(i,j);
+                    p[i*n_cols+j] = KratosMatrix(i,j);
                 }
             }
         }
-
-
-
-
-
-        Vector Volumes()
-        {
-            // Getting the elements from the model
-            const int nelements = static_cast<int>(mpModelPart.Elements().size());
-            float VolumeofCurrentElement{};
-            // Getting the array of the conditions
-            const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
-            auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
-            auto el_begin = mpModelPart.ElementsBegin();
-            auto cond_begin = mpModelPart.ConditionsBegin();
-
-
-            Vector VectorVolumes(nelements + nconditions);   // Vector of volumes.
-
-            for (int k = 0; k < nelements; k++)
-            {
-                auto it_el = el_begin + k;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it_el)->IsDefined(ACTIVE))
-                    element_is_active = (it_el)->Is(ACTIVE);
-
-                if (element_is_active)
-                {
-                    const auto& geom = it_el->GetGeometry();
-                    VolumeofCurrentElement = geom.Area();
-                    VectorVolumes(k) = VolumeofCurrentElement;
-                    mpScheme->CleanMemory(*(it_el.base()));
-
-                }
-
-            }
-            for (int k = 0; k < nconditions;  k++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-                //detect if the condition is active or not. If the user did not make any choice the condition
-                //is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
-
-                if (condition_is_active)
-                {
-                    const auto& geom = it->GetGeometry();
-                    VolumeofCurrentElement = geom.Area();
-                    VectorVolumes(k+nelements) = VolumeofCurrentElement;
-                    mpScheme->CleanMemory(*(it.base()));
-
-                }
-
-            }
-        return VectorVolumes;
-        }
-
-
 
         protected:
 
