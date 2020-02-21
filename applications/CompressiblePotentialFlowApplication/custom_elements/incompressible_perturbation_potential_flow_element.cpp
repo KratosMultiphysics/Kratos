@@ -204,8 +204,11 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
     }
     else if (rVariable == MACH)
     {
-        const array_1d<double, Dim>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-        array_1d<double, Dim> velocity = v_inf + PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int i = 0; i < Dim; i++){
+            velocity[i] += free_stream_velocity[i];
+        }
         const double velocity_module = sqrt(inner_prod(velocity, velocity));
         rValues[0] = velocity_module / rCurrentProcessInfo[SOUND_VELOCITY];
     }
@@ -249,7 +252,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
     if (rValues.size() != 1)
         rValues.resize(1);
     if (rVariable == VELOCITY){
-        const array_1d<double, Dim>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        const array_1d<double, 3> v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
@@ -308,13 +311,14 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationI
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const
 {
+    const auto& r_geometry = this->GetGeometry();
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+        if (!r_geometry[i].GetValue(TRAILING_EDGE))
+            rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
-            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+            rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
@@ -356,13 +360,14 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListNo
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList) const
 {
+    const auto& r_geometry = this->GetGeometry();
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
+            rElementalDofList[i] = r_geometry[i].pGetDof(VELOCITY_POTENTIAL);
         else
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
+            rElementalDofList[i] = r_geometry[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 }
 
@@ -426,8 +431,11 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const array_1d<double, Dim>& velocity = vinfinity + PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
     noalias(rRightHandSideVector) = - data.vol * free_stream_density * prod(data.DN_DX, velocity);
 }
 
@@ -479,16 +487,21 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+    const auto& r_geometry = this->GetGeometry();
+    GeometryUtils::CalculateGeometryData(r_geometry, data.DN_DX, data.N, data.vol);
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     GetWakeDistances(data.distances);
 
-    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const array_1d<double, Dim>& upper_velocity = vinfinity + PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    const array_1d<double, Dim>& lower_velocity = vinfinity + PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-    const array_1d<double, Dim>& diff_velocity = upper_velocity - lower_velocity;
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
+    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        upper_velocity[i] += free_stream_velocity[i];
+        lower_velocity[i] += free_stream_velocity[i];
+    }
+    const array_1d<double, Dim> diff_velocity = upper_velocity - lower_velocity;
 
     const BoundedVector<double, NumNodes> upper_rhs = - data.vol * free_stream_density * prod(data.DN_DX, upper_velocity);
     const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
@@ -501,7 +514,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
         CalculateVolumesSubdividedElement(upper_vol, lower_vol, rCurrentProcessInfo);
         for (unsigned int i = 0; i < NumNodes; ++i){
-            if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
+            if (r_geometry[i].GetValue(TRAILING_EDGE)){
                 rRightHandSideVector[i] = upper_rhs(i)*upper_vol/data.vol;
                 rRightHandSideVector[i + NumNodes] = lower_rhs(i)*lower_vol/data.vol;
             }
@@ -632,11 +645,12 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHa
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
     const ElementalData<NumNodes, Dim>& data) const
 {
+    const auto& r_geometry = this->GetGeometry();
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
-        if (GetGeometry()[i].GetValue(TRAILING_EDGE))
+        if (r_geometry[i].GetValue(TRAILING_EDGE))
         {
             for (unsigned int j = 0; j < NumNodes; ++j)
             {

@@ -180,16 +180,19 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
 template <int Dim, int NumNodes>
 double ComputePerturbationIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
-    const array_1d<double, Dim> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double free_stream_velocity_norm = inner_prod(free_stream_velocity, free_stream_velocity);
 
     KRATOS_ERROR_IF(free_stream_velocity_norm < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
         << "free_stream_velocity_norm must be larger than zero." << std::endl;
 
-    array_1d<double, Dim> v = free_stream_velocity + ComputeVelocity<Dim,NumNodes>(rElement);
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
 
-    double pressure_coefficient = (free_stream_velocity_norm - inner_prod(v, v)) /
+    double pressure_coefficient = (free_stream_velocity_norm - inner_prod(velocity, velocity)) /
                free_stream_velocity_norm; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));
     return pressure_coefficient;
 }
@@ -225,17 +228,20 @@ template <int Dim, int NumNodes>
 double ComputePerturbationCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
     // Reading free stream conditions
-    const array_1d<double, Dim>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
 
     // Computing local velocity
-    array_1d<double, Dim> v = vinfinity + ComputeVelocity<Dim, NumNodes>(rElement);
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
 
     // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
+    const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = M_inf * M_inf;
-    double v_2 = inner_prod(v, v);
+    double v_2 = inner_prod(velocity, velocity);
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
@@ -279,18 +285,21 @@ double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const Proce
     // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
     // Aerodynamics, The MIT Press, London
     // Reading free stream conditions
-    const array_1d<double, Dim>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // Computing local velocity
-    array_1d<double, Dim> v = v_inf + ComputeVelocity<Dim, NumNodes>(rElement);
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
 
     // Computing squares
-    const double v_inf_2 = inner_prod(v_inf, v_inf);
+    const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = M_inf * M_inf;
-    const double v_2 = inner_prod(v, v);
+    const double v_2 = inner_prod(velocity, velocity);
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
@@ -318,8 +327,11 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
     // Implemented according to Equation 8.8 of Drela, M. (2014) Flight Vehicle
     // Aerodynamics, The MIT Press, London
 
-    const array_1d<double, Dim> v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = v_inf + ComputeVelocity<Dim, NumNodes>(rElement);
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
     const double velocity_module = sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputePerturbationLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
