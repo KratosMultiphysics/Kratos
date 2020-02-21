@@ -25,7 +25,7 @@
             "Tables"           : {}
         }
     },{
-        "model_part_name" : "Parts_exterior",
+        "model_part_name" : "Structure.Parts_exterior",
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {

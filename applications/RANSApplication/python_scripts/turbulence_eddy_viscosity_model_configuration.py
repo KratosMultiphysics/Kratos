@@ -190,7 +190,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
             self.fluid_model_part.ProcessInfo[
                 Kratos.
                 BOSSAK_ALPHA] = scheme_settings["alpha_bossak"].GetDouble()
-            self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
             self.fluid_model_part.ProcessInfo[
                 KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
             if (self.fluid_model_part.ProcessInfo[Kratos.DYNAMIC_TAU] != 0.0):
