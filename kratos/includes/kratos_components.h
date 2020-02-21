@@ -30,6 +30,9 @@
 #include "utilities/quaternion.h"
 #include "includes/data_communicator.h"
 
+#include "geometries/geometry.h"
+#include "includes/node.h"
+
 namespace Kratos
 {
 
@@ -496,6 +499,7 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variab
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Geometry<Node<3>> >;
 
 ///@name Input and output
 ///@{
@@ -531,6 +535,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variabl
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Flags const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Geometry<Node<3>> const& ThisComponent);
 
 template<class TComponentType> void AddKratosComponent(std::string const& Name, TComponentType const& ThisComponent)
 {
