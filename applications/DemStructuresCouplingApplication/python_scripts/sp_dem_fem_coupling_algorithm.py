@@ -30,7 +30,7 @@ class SPAlgorithm(Algorithm):
         # Test number 3: Blind test specimen
 
         self.post_process_step_count = 0
-        self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_frequency"].GetInt()
+        self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_interval"].GetInt()
         self.post_process_write_count = self.post_process_frequency
 
     @classmethod
@@ -44,14 +44,49 @@ class SPAlgorithm(Algorithm):
                 "axis"    : [0.0,0.0,1.0]
             },
             "post_process_tool":{
-                "output_frequency": 0
+                "output_interval": 0
             }
         }""")
+
+    @classmethod
+    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
+
+        if settings.Has(old_variable_name):
+            if not settings.Has(new_variable_name):
+                KM.Logger.PrintWarning(cls.__name__,
+                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                                       'Input variable name \''
+                                       + old_variable_name + '\' is deprecated; use \''
+                                       + new_variable_name + '\' instead.')
+                return True
+            else:
+                raise NameError('Conflicting input variable names: Both the deprecated variable \''
+                                + old_variable_name + '\' and its current standard replacement \''
+                                + new_variable_name + '\' were found. Please, remove \''
+                                + old_variable_name + '\'.')
+        return False
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
+            settings.AddEmptyValue(new_name)
+            if settings[old_name].IsInt():
+                settings[new_name].SetInt(settings[old_name].GetInt())
+            else:
+                settings[new_name].SetDouble(settings[old_name].GetDouble())
+
+            settings.RemoveValue(old_name)
 
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
         default_settings = self.GetDefaultSettings()
+        if self.sp_parameters.Has('post_process_tool'):
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(self.sp_parameters['post_process_tool'])
         self.sp_parameters.ValidateAndAssignDefaults(default_settings)
 
     def Initialize(self):

@@ -39,7 +39,7 @@ class RestartProcess(KratosMultiphysics.Process):
         self.model = Model
 
         # set up output frequency and format
-        self.output_frequency  = self.settings["output_frequency"].GetDouble()
+        self.output_frequency  = self.settings["output_interval"].GetDouble()
 
         self.output_label_is_time = False
         output_file_label = self.settings["restart_file_label"].GetString()

@@ -28,7 +28,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
             },
             "file_label": "time",
             "output_control_type": "step",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "body_output": true,
             "node_output": false,
             "skin_output": false,
@@ -50,6 +50,8 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         if param is None:
             param = self.defaults
         else:
+            if param.Has('result_file_configuration'):
+                self.TranslateLegacyVariablesAccordingToCurrentStandard(param['result_file_configuration'])
             param.ValidateAndAssignDefaults(self.defaults)
 
         # Default
@@ -60,6 +62,39 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
+
+    @classmethod
+    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
+
+        if settings.Has(old_variable_name):
+            if not settings.Has(new_variable_name):
+                KM.Logger.PrintWarning(cls.__name__,
+                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                                       'Input variable name \''
+                                       + old_variable_name + '\' is deprecated; use \''
+                                       + new_variable_name + '\' instead.')
+                return True
+            else:
+                raise NameError('Conflicting input variable names: Both the deprecated variable \''
+                                + old_variable_name + '\' and its current standard replacement \''
+                                + new_variable_name + '\' were found. Please, remove \''
+                                + old_variable_name + '\'.')
+        return False
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
+            settings.AddEmptyValue(new_name)
+            if settings[old_name].IsInt():
+                settings[new_name].SetInt(settings[old_name].GetInt())
+            else:
+                settings[new_name].SetDouble(settings[old_name].GetDouble())
+
+            settings.RemoveValue(old_name)
 
 
     # Public Functions
@@ -87,7 +122,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
 
         # Set Variable list to print
         self.variable_name_list = result_file_configuration["gauss_point_results"]

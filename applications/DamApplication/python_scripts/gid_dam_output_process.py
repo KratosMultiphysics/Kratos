@@ -13,7 +13,7 @@ class GiDDamOutputProcess(Process):
                 "MultiFileFlag": "SingleFile"
             },
             "output_control_type": "time_s",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "start_output_results": 0,
             "body_output": true,
             "node_output": false,
@@ -78,7 +78,10 @@ class GiDDamOutputProcess(Process):
         if param is None:
             param = self.defaults
         else:
-            # Note: this only validadtes the first level of the JSON tree.
+            # Warning: we may be changing the parameters object here:
+            if param.Has('result_file_configuration'):
+                self.TranslateLegacyVariablesAccordingToCurrentStandard(param['result_file_configuration'])
+            # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
@@ -112,6 +115,46 @@ class GiDDamOutputProcess(Process):
     def Flush(cls,a):
         a.flush()
 
+    @classmethod
+    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
+
+        if settings.Has(old_variable_name):
+            if not settings.Has(new_variable_name):
+                KM.Logger.PrintWarning(cls.__name__,
+                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                                       'Input variable name \''
+                                       + old_variable_name + '\' is deprecated; use \''
+                                       + new_variable_name + '\' instead.')
+                return True
+            else:
+                raise NameError('Conflicting input variable names: Both the deprecated variable \''
+                                + old_variable_name + '\' and its current standard replacement \''
+                                + new_variable_name + '\' were found. Please, remove \''
+                                + old_variable_name + '\'.')
+        return False
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
+            settings.AddEmptyValue(new_name)
+            if settings[old_name].IsInt():
+                settings[new_name].SetInt(settings[old_name].GetInt())
+            else:
+                settings[new_name].SetDouble(settings[old_name].GetDouble())
+
+            settings.RemoveValue(old_name)
+
+        old_name = 'write_properties_id'
+        new_name = 'write_ids'
+
+        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
+            settings.AddEmptyValue(new_name).SetBool(settings[old_name].GetBool())
+            settings.RemoveValue(old_name)
+
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
@@ -144,7 +187,7 @@ class GiDDamOutputProcess(Process):
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
         self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
 
         if self.start_time >= self.start_output_results:
@@ -274,7 +317,7 @@ class GiDDamOutputProcess(Process):
     def PrintOutput(self):
 
         result_file_configuration = self.param["result_file_configuration"]
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
