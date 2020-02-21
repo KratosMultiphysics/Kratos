@@ -172,6 +172,20 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
+        self.distance_modification_process = self._set_distance_modification_process()
+        (self.distance_modification_process).Execute()
+
+        self.mass_conservation_check_process = self._set_mass_conservation_check_process()
+        #(self.mass_conservation_check_process).ExecuteBeforeSolutionLoop()
+        #(self.mass_conservation_check_process).ExecuteInitializeSolutionStep()
+        #first_lines_string = mass_conservation_check_process.Initialize()
+        #with open("mass_conservation.log", "w") as logFile:
+        #    logFile.write( first_lines_string )
+        #log_line_string = (self.mass_conservation_check_process).ExecuteInTimeStep()
+        #with open("mass_conservation.log", "a+") as logFile:
+        #    logFile.write( log_line_string )
+        
+
         #self.mass_conservation_correction = self._set_mass_conservation_correction()
         #(self.mass_conservation_correction).Initialize();
 
@@ -182,7 +196,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosCFD.AREA_VARIABLE_AUX, 
                     2000, 
                     0.3,
-                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                    (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -269,41 +283,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
+            #(self.mass_conservation_check_process).ExecuteBeforeSolutionLoop()
+            #(self.mass_conservation_check_process).ExecuteInitializeSolutionStep()
+            log_line_string = (self.mass_conservation_check_process).ExecuteInTimeStep()
+            with open("mass_conservation.log", "a+") as logFile:
+                logFile.write( log_line_string )
+
             # Correct the distance function according to volume conservation
             # Check the JASON properties file for duplicate processes!
             #if (TimeStep % 1 == 0):
             #    KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "About to impose mass conservation!")
             #    (self.mass_conservation_correction).ExecuteInTimeStep();
-
-            # Recompute the distance field according to the new level-set position
-            #if (TimeStep % 1 == 0):
-            #    (self.variational_distance_process).Execute()
-
-            # Recompute the distance field according to the new level-set position
-            if (TimeStep % 20 == 0):
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    1000, 
-                    0.3)#,
-                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-            # Reinitialize distance according to time dependent Eikonal equation
-            #if (TimeStep % 1 == 0):
-            #    (self.lumped_eikonal_distance_calculation).Execute()
-
-            # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
-            #if (TimeStep % 20 == 0):
-            #    (self.distance_gradient_process).Execute()
-            #    (self.curvature_calculation_process).Execute()
-            #    (self.interface_curvature_calculation).Execute()
-            #    (self.variational_non_eikonal_distance).Execute()
-            #    for node in self.main_model_part.Nodes:
-            #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
-            #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)    
-            #    it_number=self.linear_solver.GetIterationsNumber()
-            #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
@@ -344,6 +334,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_3, 0.0)
             #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 0.0)
 
+            # Recompute the distance field according to the new level-set position
+            #if (TimeStep % 1 == 0):
+            #    (self.variational_distance_process).Execute()
+
+            # Recompute the distance field according to the new level-set position
+            if (TimeStep % 20 == 0):
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    1000, 
+                    0.3)#,
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+            # Reinitialize distance according to time dependent Eikonal equation
+            #if (TimeStep % 1 == 0):
+            #    (self.lumped_eikonal_distance_calculation).Execute()
+
+            # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
+            #if (TimeStep % 20 == 0):
+            #    (self.distance_gradient_process).Execute()
+            #    (self.curvature_calculation_process).Execute()
+            #    (self.interface_curvature_calculation).Execute()
+            #    (self.variational_non_eikonal_distance).Execute()
+            #    for node in self.main_model_part.Nodes:
+            #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+            #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)    
+            #    it_number=self.linear_solver.GetIterationsNumber()
+            #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
+
             # Smoothing the surface to filter oscillatory surface
             (self.surface_smoothing_process).Execute()
             for node in self.main_model_part.Nodes:
@@ -352,6 +372,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             it_number=self.linear_solver.GetIterationsNumber()
             KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 
+            #Slightly modify distance to prevent small-cut difficulties
+            (self.distance_modification_process).Execute()
+            
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
 
@@ -624,5 +647,47 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part)
 
         return interface_pressure_gradient_calculation
+
+    def _set_distance_modification_process(self):
+        parameters = KratosMultiphysics.Parameters( """
+        {
+            "distance_threshold"                     : 1.0e-6,
+            "continuous_distance"                    : true,
+            "check_at_each_time_step"                : true,
+            "avoid_almost_empty_elements"            : false,
+            "deactivate_full_negative_elements"      : false,
+            "recover_original_distance_at_each_step" : false
+        }  """ )
+
+        distance_modification_process = KratosCFD.DistanceModificationProcess(self.main_model_part, parameters)
+
+        KratosMultiphysics.Logger.PrintInfo("DistanceModificationProcess","Construction finished.")
+        distance_modification_process.ExecuteInitialize()
+        distance_modification_process.ExecuteBeforeSolutionLoop()
+        distance_modification_process.ExecuteInitializeSolutionStep()
+        distance_modification_process.ExecuteFinalizeSolutionStep()
+
+        return distance_modification_process
+
+    def _set_mass_conservation_check_process(self):
+        parameters = KratosMultiphysics.Parameters( """
+        {
+            "model_part_name"                        : "Parts_Fluid",
+            "perform_corrections"                    : true,
+            "correction_frequency_in_time_steps"     : 1,
+            "write_to_log_file"                      : true,
+            "log_file_name"                          : "mass_conservation.log"
+		}  """ )
+
+        mass_conservation_check_process = KratosCFD.MassConservationCheckProcess(self.main_model_part, parameters)
+
+        KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction finished.")
+
+        first_lines_string = mass_conservation_check_process.Initialize()
+        # writing first line in file
+        with open("mass_conservation.log", "w") as logFile:
+            logFile.write( first_lines_string )
+
+        return mass_conservation_check_process
 
     

@@ -305,9 +305,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                 /* PressureGradientStabilization(
                     data,
-                    int_gauss_pts_weights,
-                    int_shape_derivatives_neg,
-                    Kee_tot); */
+                    rLeftHandSideMatrix,
+                    Vtot,
+                    rRightHandSideVector); */
 
                 PressureGradientStabilization(
                     data,
@@ -2735,7 +2735,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const unsigned int NumIntGP = rIntWeights.size();
     MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
 
-    const double coefficient = 1.0e-2;
+    const double coefficient = 1.0e0;
 
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
@@ -2869,7 +2869,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const double viscosity = 1.0/(1.0/positive_viscosity + 1.0/negative_viscosity);
 
     // Stabilization parameters
-    const double coefficient = 1.0;
+    const double coefficient = 1.0e0;
     const double stab_c1 = 4.0;
     const double stab_c2 = 2.0;
     const double dyn_tau = rData.DynamicTau;

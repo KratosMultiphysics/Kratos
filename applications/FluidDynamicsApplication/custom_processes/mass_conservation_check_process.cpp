@@ -55,7 +55,7 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     {
         "model_part_name"                        : "default_model_part_name",
         "perform_corrections"                    : true,
-        "correction_frequency_in_time_steps"     : 20,
+        "correction_frequency_in_time_steps"     : 1,
         "write_to_log_file"                      : true,
         "log_file_name"                          : "mass_conservation.log"
     }  )" );
@@ -142,7 +142,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
     double shift_for_correction = 0.0;
     // check if it is time for a correction (if wished for)
-    if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 10e-7){
+    if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 10e-15){
         // if water is missing, a shift into negative direction increases the water volume
         shift_for_correction = - water_volume_error / inter_area;
         ShiftDistanceField( shift_for_correction );
