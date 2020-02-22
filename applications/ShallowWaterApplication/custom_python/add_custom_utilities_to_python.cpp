@@ -36,6 +36,8 @@ namespace Python
   {
     namespace py = pybind11;
 
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> ComponentVariableType;
+
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
         .def(py::init<ModelPart& , Parameters >())
         .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
@@ -73,6 +75,12 @@ namespace Python
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::NodesContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ElementsContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ConditionsContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::NodesContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::ElementsContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::ConditionsContainerType>)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
