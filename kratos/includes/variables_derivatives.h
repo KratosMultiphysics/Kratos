@@ -97,7 +97,7 @@ public:
      * @param rVariable The variable
      * @return The first derivative
      */
-    static TComponentType const& GetFirstDerivative(TComponentType const& rVariable)
+    static TComponentType const& GetFirstTimeDerivative(TComponentType const& rVariable)
     {
         const auto it_der = msVariablesDerivatives.find(rVariable.Key());
         KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
@@ -109,11 +109,11 @@ public:
      * @param rVariable The variable
      * @return The second derivative
      */
-    static TComponentType const& GetSecondDerivative(TComponentType const& rVariable)
+    static TComponentType const& GetSecondTimeDerivative(TComponentType const& rVariable)
     {
         const auto it_der = msVariablesDerivatives.find(rVariable.Key());
         KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
-        return GetFirstDerivative(*(it_der->second));
+        return GetFirstTimeDerivative(*(it_der->second));
     }
 
     /**
@@ -348,7 +348,7 @@ public:
      * @param rVariable The variable
      * @return The first derivative
      */
-    static const VariableData & GetFirstDerivative(VariableData const& rVariable)
+    static const VariableData & GetFirstTimeDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesDerivatives.find(rVariable.Key());
         KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
@@ -360,7 +360,7 @@ public:
      * @param rVariable The variable
      * @return The first derivative
      */
-    static const VariableData* pGetFirstDerivative(VariableData const& rVariable)
+    static const VariableData* pGetFirstTimeDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesDerivatives.find(rVariable.Key());
         KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
@@ -372,11 +372,11 @@ public:
      * @param rVariable The variable
      * @return The second derivative
      */
-    static const VariableData& GetSecondDerivative(VariableData const& rVariable)
+    static const VariableData& GetSecondTimeDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesDerivatives.find(rVariable.Key());
         KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
-        return GetFirstDerivative(*(it_der->second));
+        return GetFirstTimeDerivative(*(it_der->second));
     }
 
     /**
@@ -384,11 +384,11 @@ public:
      * @param rVariable The variable
      * @return The second derivative
      */
-    static const VariableData* pGetSecondDerivative(VariableData const& rVariable)
+    static const VariableData* pGetSecondTimeDerivative(VariableData const& rVariable)
     {
         const auto it_der = msVariablesDerivatives.find(rVariable.Key());
         KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
-        return pGetFirstDerivative(*(it_der->second));
+        return pGetFirstTimeDerivative(*(it_der->second));
     }
 
     /**
