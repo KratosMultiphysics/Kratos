@@ -454,7 +454,6 @@ void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDEMVariables();      //TODO: move to application
     KratosApplication::RegisterFSIVariables();      //TODO: move to application
     KratosApplication::RegisterMATVariables();      //TODO: move to application
-    KratosApplication::RegisterLegacyStructuralAppVariables();  //TODO: move to application
     KratosApplication::RegisterGlobalPointerVariables();
 
     // Variables that should be moved to applications (but have too many dependencies)
