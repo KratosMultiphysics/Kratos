@@ -10,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_variables_derivatives_H_INCLUDED )
-#define  KRATOS_variables_derivatives_H_INCLUDED
+#if !defined(KRATOS_VARIABLE_DERIVATIVES_H_INCLUDED )
+#define  KRATOS_VARIABLE_DERIVATIVES_H_INCLUDED
 
 // System includes
 #include <map>
@@ -607,4 +607,4 @@ template<class TComponentType> void AddVariableTimeDerivative(TComponentType con
 
 }  // namespace Kratos.
 
-#endif // KRATOS_variables_derivatives_H_INCLUDED  defined
+#endif // KRATOS_VARIABLE_DERIVATIVES_H_INCLUDED  defined
