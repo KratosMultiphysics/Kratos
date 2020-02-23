@@ -24,19 +24,19 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(VariableDerivativeHasMethods, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(VariableTimeDerivativeHasMethods, KratosCoreFastSuite)
 {
-    const bool checktrue = VariablesDerivatives<Variable<array_1d<double, 3>>>::Has(DISPLACEMENT);
+    const bool checktrue = VariablesDerivatives<Variable<array_1d<double, 3>>>::HasTimeDerivative(DISPLACEMENT);
     KRATOS_CHECK(checktrue);
-    const bool checkfalse = VariablesDerivatives<Variable<array_1d<double, 3>>>::Has(VECTOR_LAGRANGE_MULTIPLIER);
+    const bool checkfalse = VariablesDerivatives<Variable<array_1d<double, 3>>>::HasTimeDerivative(VECTOR_LAGRANGE_MULTIPLIER);
     KRATOS_CHECK_IS_FALSE(checkfalse);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(VariableDerivativeGetMethods, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(VariableTimeDerivativeGetMethods, KratosCoreFastSuite)
 {
-    const auto& r_velocity = VariablesDerivatives<Variable<array_1d<double, 3>>>::GetFirstDerivative(DISPLACEMENT);
+    const auto& r_velocity = VariablesDerivatives<Variable<array_1d<double, 3>>>::GetFirstTimeDerivative(DISPLACEMENT);
     KRATOS_CHECK(r_velocity.Name() == "VELOCITY");
-    const auto& r_acceleration = VariablesDerivatives<Variable<array_1d<double, 3>>>::GetSecondDerivative(DISPLACEMENT);
+    const auto& r_acceleration = VariablesDerivatives<Variable<array_1d<double, 3>>>::GetSecondTimeDerivative(DISPLACEMENT);
     KRATOS_CHECK(r_acceleration.Name() == "ACCELERATION");
 }
 
