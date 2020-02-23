@@ -22,7 +22,7 @@
 #include "solving_strategies/schemes/residual_based_bdf_scheme.h"
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
-#include "includes/variables_time_derivatives.h"
+#include "includes/variables_derivatives.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -624,8 +624,8 @@ private:
         // Size check
         KRATOS_ERROR_IF(n_variables != n_first_derivative && n_first_derivative > 0) << "Your list of variables is not the same size as the list of first derivatives variables" << std::endl;
         KRATOS_ERROR_IF(n_variables != n_second_derivative && n_second_derivative > 0) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", n_first_derivative == 0) << "Your first derivatives variables is empty, it will be determined automatically using VariablesTimeDerivatives" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", n_second_derivative == 0) << "Your ssecond derivatives variables is empty, it will be determined automatically using VariablesTimeDerivatives" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", n_first_derivative == 0) << "Your first derivatives variables is empty, it will be determined automatically using VariablesDerivatives" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", n_second_derivative == 0) << "Your ssecond derivatives variables is empty, it will be determined automatically using VariablesDerivatives" << std::endl;
 
         // The current dimension
         mDomainSize = ThisParameters["domain_size"].GetInt();
@@ -645,12 +645,12 @@ private:
                 if (n_first_derivative == 0) {
                     mFirstDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(first_derivative_name));
                 } else {
-                    mFirstDoubleDerivatives.push_back(&VariablesTimeDerivatives<Variable<double>>::GetFirstDerivative(r_var));
+                    mFirstDoubleDerivatives.push_back(&VariablesDerivatives<Variable<double>>::GetFirstDerivative(r_var));
                 }
                 if (n_second_derivative == 0) {
                     mSecondDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(second_derivative_name));
                 } else {
-                    mSecondDoubleDerivatives.push_back(&VariablesTimeDerivatives<Variable<double>>::GetSecondDerivative(r_var));
+                    mSecondDoubleDerivatives.push_back(&VariablesDerivatives<Variable<double>>::GetSecondDerivative(r_var));
                 }
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 // Components
@@ -663,15 +663,15 @@ private:
                     mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_X"));
                     mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Y"));
                 } else {
-                    mFirstArrayDerivatives.push_back(&VariablesTimeDerivatives<VariableComponent<ComponentType>>::GetFirstDerivative(r_var_x));
-                    mFirstArrayDerivatives.push_back(&VariablesTimeDerivatives<VariableComponent<ComponentType>>::GetFirstDerivative(r_var_y));
+                    mFirstArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetFirstDerivative(r_var_x));
+                    mFirstArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetFirstDerivative(r_var_y));
                 }
                 if (n_second_derivative == 0) {
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
                 } else {
-                    mSecondArrayDerivatives.push_back(&VariablesTimeDerivatives<VariableComponent<ComponentType>>::GetSecondDerivative(r_var_x));
-                    mSecondArrayDerivatives.push_back(&VariablesTimeDerivatives<VariableComponent<ComponentType>>::GetSecondDerivative(r_var_y));
+                    mSecondArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetSecondDerivative(r_var_x));
+                    mSecondArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetSecondDerivative(r_var_y));
                 }
 
                 if (mDomainSize == 3) {
@@ -680,12 +680,12 @@ private:
                     if (n_first_derivative == 0) {
                         mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Z"));
                     } else {
-                        mFirstArrayDerivatives.push_back(&VariablesTimeDerivatives<VariableComponent<ComponentType>>::GetFirstDerivative(r_var_z));
+                        mFirstArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetFirstDerivative(r_var_z));
                     }
                     if (n_second_derivative == 0) {
                         mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
                     } else {
-                        mSecondArrayDerivatives.push_back(&VariablesTimeDerivatives<VariableComponent<ComponentType>>::GetSecondDerivative(r_var_z));
+                        mSecondArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetSecondDerivative(r_var_z));
                     }
                 }
             } else {

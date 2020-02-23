@@ -10,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_VARIABLES_TIME_DERIVATIVES_H_INCLUDED )
-#define  KRATOS_VARIABLES_TIME_DERIVATIVES_H_INCLUDED
+#if !defined(KRATOS_variables_derivatives_H_INCLUDED )
+#define  KRATOS_variables_derivatives_H_INCLUDED
 
 // System includes
 #include <map>
@@ -27,7 +27,7 @@ namespace Kratos
 {
 
 /**
- * @class VariablesTimeDerivatives
+ * @class VariablesDerivatives
  * @ingroup KratosCore
  * @brief This container defines the time derivatives of the variables registered
  * @details It stores in a similar way to the KratosComponents but applied to derivatives. The map uses the key of the variable
@@ -35,15 +35,15 @@ namespace Kratos
  * @tparam TComponentType The component type (type of variable)
  */
 template<class TComponentType>
-class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives
+class KRATOS_API(KRATOS_CORE) VariablesDerivatives
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of VariablesTimeDerivatives
-    KRATOS_CLASS_POINTER_DEFINITION(VariablesTimeDerivatives);
+    /// Pointer definition of VariablesDerivatives
+    KRATOS_CLASS_POINTER_DEFINITION(VariablesDerivatives);
 
     /// Definition of the database for the derivatives
     typedef std::map<std::size_t, const TComponentType* > DerivativesDatabaseType;
@@ -54,10 +54,10 @@ public:
     ///@{
 
     /// Default constructor.
-    VariablesTimeDerivatives() {}
+    VariablesDerivatives() {}
 
     /// Destructor.
-    virtual ~VariablesTimeDerivatives() {}
+    virtual ~VariablesDerivatives() {}
 
     ///@}
     ///@name Operators
@@ -77,9 +77,9 @@ public:
     {
         // check if a different object was already registered with this name, since this is undefined behavior
         const std::size_t key = rVariable.Key();
-        const auto it_der = msVariablesTimeDerivatives.find(key);
-        KRATOS_ERROR_IF(it_der != msVariablesTimeDerivatives.end() && typeid(*(it_der->second)) != typeid(rDerivativeVariable)) << "An object of different type was already registered with name \"" << rVariable.Key() << "\"!" << std::endl;
-        msVariablesTimeDerivatives.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
+        const auto it_der = msVariablesDerivatives.find(key);
+        KRATOS_ERROR_IF(it_der != msVariablesDerivatives.end() && typeid(*(it_der->second)) != typeid(rDerivativeVariable)) << "An object of different type was already registered with name \"" << rVariable.Key() << "\"!" << std::endl;
+        msVariablesDerivatives.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
     }
 
     /**
@@ -88,7 +88,7 @@ public:
      */
     static void Remove(TComponentType const& rVariable)
     {
-        const std::size_t num_erased = msVariablesTimeDerivatives.erase(rVariable.Key());
+        const std::size_t num_erased = msVariablesDerivatives.erase(rVariable.Key());
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << rVariable.Key() << "\"." << std::endl;
     }
 
@@ -99,8 +99,8 @@ public:
      */
     static TComponentType const& GetFirstDerivative(TComponentType const& rVariable)
     {
-        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
-        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
+        const auto it_der = msVariablesDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
         return *(it_der->second);
     }
 
@@ -111,8 +111,8 @@ public:
      */
     static TComponentType const& GetSecondDerivative(TComponentType const& rVariable)
     {
-        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
-        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
+        const auto it_der = msVariablesDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
         return GetFirstDerivative(*(it_der->second));
     }
 
@@ -122,7 +122,7 @@ public:
      */
     static DerivativesDatabaseType & GetVariableTimeDerivatives()
     {
-        return msVariablesTimeDerivatives;
+        return msVariablesDerivatives;
     }
 
     /**
@@ -131,7 +131,7 @@ public:
      */
     static DerivativesDatabaseType * pGetVariableTimeDerivatives()
     {
-        return &msVariablesTimeDerivatives;
+        return &msVariablesDerivatives;
     }
 
     /**
@@ -157,7 +157,7 @@ public:
      */
     static bool Has(TComponentType const& rVariable)
     {
-        return (msVariablesTimeDerivatives.find(rVariable.Key()) != msVariablesTimeDerivatives.end());
+        return (msVariablesDerivatives.find(rVariable.Key()) != msVariablesDerivatives.end());
     }
 
     ///@}
@@ -179,7 +179,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for (const auto& r_comp : msVariablesTimeDerivatives) {
+        for (const auto& r_comp : msVariablesDerivatives) {
             rOStream << "    " << r_comp.first << std::endl;
         }
     }
@@ -233,7 +233,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static DerivativesDatabaseType msVariablesTimeDerivatives;  /// The database of derivatives
+    static DerivativesDatabaseType msVariablesDerivatives;  /// The database of derivatives
 
     ///@}
     ///@name Member Variables
@@ -253,7 +253,7 @@ private:
     {
         std::stringstream msg;
         msg << "The derivative for \"" << rVariable.Key() << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:" << std::endl;
-        VariablesTimeDerivatives instance; // creating an instance for using "PrintData"
+        VariablesDerivatives instance; // creating an instance for using "PrintData"
         instance.PrintData(msg);
         return msg.str();
     }
@@ -273,27 +273,27 @@ private:
     ///@{
 
     /// Assignment operator.
-    VariablesTimeDerivatives& operator=(VariablesTimeDerivatives const& rOther);
+    VariablesDerivatives& operator=(VariablesDerivatives const& rOther);
 
     /// Copy constructor.
-    VariablesTimeDerivatives(VariablesTimeDerivatives const& rOther);
+    VariablesDerivatives(VariablesDerivatives const& rOther);
 
     ///@}
 
-}; // Class VariablesTimeDerivatives
+}; // Class VariablesDerivatives
 
 
 ///@}
 template<>
-class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<VariableData>
+class KRATOS_API(KRATOS_CORE) VariablesDerivatives<VariableData>
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of VariablesTimeDerivatives
-    KRATOS_CLASS_POINTER_DEFINITION(VariablesTimeDerivatives);
+    /// Pointer definition of VariablesDerivatives
+    KRATOS_CLASS_POINTER_DEFINITION(VariablesDerivatives);
 
     /// Definition of the database for the derivatives
     typedef std::map<std::size_t, const VariableData* > DerivativesDatabaseType;
@@ -304,10 +304,10 @@ public:
     ///@{
 
     /// Default constructor.
-    VariablesTimeDerivatives() {}
+    VariablesDerivatives() {}
 
     /// Destructor.
-    virtual ~VariablesTimeDerivatives() {}
+    virtual ~VariablesDerivatives() {}
 
     ///@}
     ///@name Operators
@@ -325,7 +325,7 @@ public:
      */
     static void Add(VariableData const& rVariable, VariableData& rDerivativeVariable)
     {
-        msVariablesTimeDerivatives.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
+        msVariablesDerivatives.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
     }
 
     /**
@@ -334,13 +334,13 @@ public:
      */
     static void Remove(VariableData const& rVariable)
     {
-        std::size_t num_erased = msVariablesTimeDerivatives.erase(rVariable.Key());
+        std::size_t num_erased = msVariablesDerivatives.erase(rVariable.Key());
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent derivative \"" << rVariable.Key() << "\"." << std::endl;
     }
 
     static std::size_t Size()
     {
-        return msVariablesTimeDerivatives.size();
+        return msVariablesDerivatives.size();
     }
 
     /**
@@ -350,8 +350,8 @@ public:
      */
     static const VariableData & GetFirstDerivative(VariableData const& rVariable)
     {
-        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
-        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
+        const auto it_der = msVariablesDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
         return *(it_der->second);
     }
 
@@ -362,8 +362,8 @@ public:
      */
     static const VariableData* pGetFirstDerivative(VariableData const& rVariable)
     {
-        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
-        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
+        const auto it_der = msVariablesDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
         return it_der->second;
     }
 
@@ -374,8 +374,8 @@ public:
      */
     static const VariableData& GetSecondDerivative(VariableData const& rVariable)
     {
-        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
-        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
+        const auto it_der = msVariablesDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
         return GetFirstDerivative(*(it_der->second));
     }
 
@@ -386,8 +386,8 @@ public:
      */
     static const VariableData* pGetSecondDerivative(VariableData const& rVariable)
     {
-        const auto it_der = msVariablesTimeDerivatives.find(rVariable.Key());
-        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesTimeDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
+        const auto it_der = msVariablesDerivatives.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_der == msVariablesDerivatives.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
         return pGetFirstDerivative(*(it_der->second));
     }
 
@@ -397,7 +397,7 @@ public:
      */
     static DerivativesDatabaseType & GetVariableTimeDerivatives()
     {
-        return msVariablesTimeDerivatives;
+        return msVariablesDerivatives;
     }
 
     /**
@@ -406,7 +406,7 @@ public:
      */
     static DerivativesDatabaseType * pGetVariableTimeDerivatives()
     {
-        return &msVariablesTimeDerivatives;
+        return &msVariablesDerivatives;
     }
 
     /**
@@ -432,7 +432,7 @@ public:
      */
     static bool Has(VariableData const& rVariable)
     {
-        return (msVariablesTimeDerivatives.find(rVariable.Key()) != msVariablesTimeDerivatives.end());
+        return (msVariablesDerivatives.find(rVariable.Key()) != msVariablesDerivatives.end());
     }
 
     ///@}
@@ -454,7 +454,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for (const auto& r_comp : msVariablesTimeDerivatives) {
+        for (const auto& r_comp : msVariablesDerivatives) {
             rOStream << "    " << r_comp.first << std::endl;
         }
     }
@@ -509,7 +509,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static DerivativesDatabaseType msVariablesTimeDerivatives; /// The database of derivatives
+    static DerivativesDatabaseType msVariablesDerivatives; /// The database of derivatives
 
     ///@}
     ///@name Member Variables
@@ -529,7 +529,7 @@ private:
     {
         std::stringstream msg;
         msg << "The variable \"" << rVariable.Key() << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following variables are registered:" << std::endl;
-        VariablesTimeDerivatives instance; // creating an instance for using "PrintData"
+        VariablesDerivatives instance; // creating an instance for using "PrintData"
         instance.PrintData(msg);
         return msg.str();
     }
@@ -549,29 +549,29 @@ private:
     ///@{
 
     /// Assignment operator.
-    VariablesTimeDerivatives& operator=(VariablesTimeDerivatives const& rOther);
+    VariablesDerivatives& operator=(VariablesDerivatives const& rOther);
 
     /// Copy constructor.
-    VariablesTimeDerivatives(VariablesTimeDerivatives const& rOther);
+    VariablesDerivatives(VariablesDerivatives const& rOther);
 
     ///@}
 
-}; // Class VariablesTimeDerivatives
+}; // Class VariablesDerivatives
 
 template<class TComponentType>
-typename VariablesTimeDerivatives<TComponentType>::DerivativesDatabaseType VariablesTimeDerivatives<TComponentType>::msVariablesTimeDerivatives;
+typename VariablesDerivatives<TComponentType>::DerivativesDatabaseType VariablesDerivatives<TComponentType>::msVariablesDerivatives;
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<double>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<array_1d<double, 3>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<array_1d<double, 4>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<array_1d<double, 6>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<array_1d<double, 9>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<Vector>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<Variable<Matrix>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<double>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<array_1d<double, 3>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<array_1d<double, 4>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<array_1d<double, 6>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<array_1d<double, 9>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<Vector>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<Matrix>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>;
 
 ///@name Input and output
 ///@{
@@ -579,7 +579,7 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesTimeDerivative
 /// output stream function
 template<class TComponentType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const VariablesTimeDerivatives<TComponentType>& rThis)
+                                  const VariablesDerivatives<TComponentType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -607,4 +607,4 @@ template<class TComponentType> void AddVariableTimeDerivative(TComponentType con
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLES_TIME_DERIVATIVES_H_INCLUDED  defined
+#endif // KRATOS_variables_derivatives_H_INCLUDED  defined
