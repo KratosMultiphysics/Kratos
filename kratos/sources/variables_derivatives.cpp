@@ -21,57 +21,57 @@ namespace Kratos {
 
 void AddVariableTimeDerivative(Variable<double> const& rVariable, Variable<double> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<double>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<double>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(Variable<array_1d<double, 3>> const& rVariable, Variable<array_1d<double, 3>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<array_1d<double, 3>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<array_1d<double, 3>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(Variable<array_1d<double, 4>> const& rVariable, Variable<array_1d<double, 4>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<array_1d<double, 4>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<array_1d<double, 4>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(Variable<array_1d<double, 6>> const& rVariable, Variable<array_1d<double, 6>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<array_1d<double, 6>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<array_1d<double, 6>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(Variable<array_1d<double, 9>> const& rVariable, Variable<array_1d<double, 9>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<array_1d<double, 9>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<array_1d<double, 9>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(Variable<Vector> const& rVariable, Variable<Vector> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<Vector>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<Vector>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(Variable<Matrix> const& rVariable, Variable<Matrix> const& rDerivativeVariable)
 {
-    VariablesDerivatives<Variable<Matrix>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<Variable<Matrix>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 void AddVariableTimeDerivative(VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rDerivativeVariable)
 {
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::Add(rVariable, rDerivativeVariable);
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
 template class VariablesDerivatives<Variable<double>>;
@@ -87,7 +87,7 @@ template class VariablesDerivatives<VariableComponent<VectorComponentAdaptor<arr
 template class VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>;
 
 // Specialize array of compenents for VariableData
-VariablesDerivatives<VariableData>::DerivativesDatabaseType VariablesDerivatives<VariableData>::msVariablesDerivatives;
+VariablesDerivatives<VariableData>::DerivativesDatabaseType VariablesDerivatives<VariableData>::msVariablesTimeDerivatives;
 
 }  // namespace Kratos.
 
