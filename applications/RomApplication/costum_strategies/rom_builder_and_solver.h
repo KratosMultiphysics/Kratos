@@ -278,9 +278,9 @@ public:
         TSystemVectorType &rX)
     {
         TSparseSpace::SetToZero(rX);
-        auto nodes_begin = rNodes.begin();
-        auto nodes_number = rNodes.size();    
-        #pragma omp parallel for firstprivate(nodes_number)
+        const auto nodes_begin = rNodes.begin();
+        const auto nodes_number = rNodes.size();    
+        #pragma omp parallel for firstprivate(nodes_number, nodes_begin)
         for (int kkk = 0; kkk < nodes_number; kkk++ ){
             auto it = nodes_begin + kkk;
             unsigned int node_aux_id = it->GetValue(AUX_ID);
@@ -380,9 +380,9 @@ public:
                         const Matrix &rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
                         for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
                             if (dofs[i * mNodalDofs + k]->IsFixed())
-                                row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+                                noalias(row(PhiElemental, i * mNodalDofs + k)) = ZeroVector(PhiElemental.size2());
                             else
-                                row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                                noalias(row(PhiElemental, i * mNodalDofs + k)) = row(rom_nodal_basis, k);
                         }
                     }
                     Matrix aux = prod(LHS_Contribution, PhiElemental);
@@ -419,9 +419,9 @@ public:
                         const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
                         for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
                             if (dofs[i * mNodalDofs + k]->IsFixed())
-                                row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+                                noalias(row(PhiElemental, i * mNodalDofs + k)) = ZeroVector(PhiElemental.size2());
                             else
-                                row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                                noalias(row(PhiElemental, i * mNodalDofs + k)) = row(rom_nodal_basis, k);
                         }
                     }
                     Matrix aux = prod(LHS_Contribution, PhiElemental);
