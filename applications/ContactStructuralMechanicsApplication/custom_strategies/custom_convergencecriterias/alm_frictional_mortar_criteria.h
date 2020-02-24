@@ -307,8 +307,8 @@ protected:
 
         // We reset the weighted values
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
-        VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+        VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
+        VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
     }
 
     ///@}
