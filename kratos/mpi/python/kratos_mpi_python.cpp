@@ -16,7 +16,6 @@
 #include "mpi.h"
 
 // Module includes
-#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "add_mpi_communicator_to_python.h"
 #include "add_mpi_data_communicator_to_python.h"
@@ -29,12 +28,8 @@ namespace Python {
 
 void InitializeMPIParallelRun()
 {
-    // Initialize MPI
-    MPIEnvironment& mpi_environment = MPIEnvironment::Instance();
-    mpi_environment.Initialize();
-
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
-    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
+    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
 }
 
 PYBIND11_MODULE(KratosMPI, m)
