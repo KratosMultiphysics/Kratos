@@ -29,7 +29,7 @@ class ROMSolver(StaticMechanicalSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "rom_settings": {
-            "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y"],
+            "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
             "number_of_rom_dofs": 3
             }
         }
