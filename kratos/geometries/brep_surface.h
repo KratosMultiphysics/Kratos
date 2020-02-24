@@ -297,28 +297,6 @@ public:
     }
 
     ///@}
-    ///@name Point Access
-    ///@{
-
-    void GetPointsAtEdge(
-        PointsArrayType& rResultPoints,
-        IndexType EdgeIndex,
-        IndexType SpecificationType = 0) const override
-    {
-        mpNurbsSurface->GetPointsAtEdge(
-            rResultPoints, EdgeIndex, SpecificationType);
-    }
-
-    void GetPointsAtVertex(
-        PointsArrayType& rResultPoints,
-        IndexType VertexIndex,
-        IndexType SpecificationType = 0) const override
-    {
-        mpNurbsSurface->GetPointsAtVertex(
-            rResultPoints, VertexIndex, SpecificationType);
-    }
-
-    ///@}
     ///@name Geometrical Operations
     ///@{
 

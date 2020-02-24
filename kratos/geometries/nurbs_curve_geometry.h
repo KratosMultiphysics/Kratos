@@ -259,28 +259,6 @@ public:
     ///@}
     ///@name Point Access
     ///@{
-    /*
-     *      -> t
-     * 0 * ------ * 1
-     */
-    void GetPointsAtVertex(
-        PointsArrayType& rResultPoints,
-        IndexType VertexIndex,
-        IndexType SpecificationType = 0) const override
-    {
-        if (VertexIndex == 0) { // getting first point
-            array_1d<double, 3> local_coords = ZeroVector(3);
-            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
-        }
-        else if (VertexIndex == 1) { // getting last point
-            array_1d<double, 3> local_coords = ZeroVector(3);
-            local_coords[0] = 1;
-            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
-        }
-        else {
-            KRATOS_ERROR << "NurbsCurveGeometry::GetPointsAtVertex: No points available at VertexIndex: " << VertexIndex << std::endl;
-        }
-    }
 
     /**
      * @brief provides acces to a set of node lying at a boundary (face, edge, vertex).
