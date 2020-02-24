@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "FinalBeamStep2",
+        "problem_name": "Structure_Static_2D",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": 0.0,
@@ -14,7 +14,7 @@
         "analysis_type": "linear",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "GiD_Model"
+            "input_filename": "Structure_Static_2D"
         },
         "material_import_settings": {
             "materials_filename": "StructuralMaterials.json"
@@ -54,7 +54,40 @@
                 }
             }
         ],
-        "loads_process_list": [],
+        "loads_process_list": [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad2D_Load_on_points_Auto1",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_InterfaceStructure",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
         "list_other_processes": []
     },
     "output_processes": {

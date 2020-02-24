@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "Dynamic2DBeam",
+        "problem_name"  : "Structure_Dynamic_2D",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -16,7 +16,7 @@
         "scheme_type"                        : "newmark",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "GiD_Model"
+            "input_filename" : "Structure_Dynamic_2D"
         },
         "material_import_settings"           : {
             "materials_filename" : "StructuralMaterials.json"

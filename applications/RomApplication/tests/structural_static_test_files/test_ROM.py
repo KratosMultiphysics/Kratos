@@ -2,8 +2,9 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import numpy as np
 
+from .MainKratosROM import TestStructuralMechanicsStaticROM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from .MainKratosROM import StructStaticROM
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 
 class ROMStaticStruct(KratosUnittest.TestCase):
@@ -15,7 +16,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             with open("ProjectParametersROM.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             model = KratosMultiphysics.Model()      
-            Simulation = StructStaticROM(model,parameters)
+            Simulation = TestStructuralMechanicsStaticROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
             ExpectedOutput = np.load('ExpectedOutput.npy')
@@ -28,7 +29,9 @@ class ROMStaticStruct(KratosUnittest.TestCase):
                 DOWN +=  NodalArea[i]
             L2 = np.sqrt(UP/DOWN)
             self.assertLess(L2, 1.0e-4)
-
+            # Cleaning
+            kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+            
 
 ##########################################################################################
 
