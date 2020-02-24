@@ -892,7 +892,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMort
 {
     KRATOS_TRY
 
-    VariableUtils().SetVariableForFlag(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -906,7 +906,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponents
     KRATOS_TRY
 
     const array_1d<double, 3> zero_array = ZeroVector(3);
-    VariableUtils().SetVariableForFlag(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -919,7 +919,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictio
 {
     KRATOS_TRY
 
-    VariableUtils().SetVariableForFlag(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -1576,32 +1576,32 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeW
     switch(mTypeSolution) {
         case TypeSolution::VectorLagrangeMultiplier :
             if (mrMainModelPart.Is(SLIP)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
-                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             } else if (mrMainModelPart.Is(CONTACT)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             } else
-                VariableUtils().SetVectorVar(WEIGHTED_VECTOR_RESIDUAL, zero_array, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_VECTOR_RESIDUAL, zero_array, r_nodes_array);
             break;
         case TypeSolution::ScalarLagrangeMultiplier :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SCALAR_RESIDUAL, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_SCALAR_RESIDUAL, 0.0, r_nodes_array);
             break;
         case TypeSolution::NormalContactStress :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
         case TypeSolution::FrictionlessPenaltyMethod :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
         case TypeSolution::FrictionalPenaltyMethod :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             break;
         case TypeSolution::OtherFrictionless :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
         case TypeSolution::OtherFrictional :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             break;
     }
 
