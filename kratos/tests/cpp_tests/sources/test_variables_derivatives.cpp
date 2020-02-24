@@ -40,5 +40,21 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTimeDerivativeGetMethods, KratosCoreFastSuite)
     KRATOS_CHECK(r_acceleration.Name() == "ACCELERATION");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(VariableResidualHasMethods, KratosCoreFastSuite)
+{
+    const bool checktrue = VariablesDerivatives<Variable<array_1d<double, 3>>>::HasResidualVariable(DISPLACEMENT);
+    KRATOS_CHECK(checktrue);
+    const bool checkfalse = VariablesDerivatives<Variable<array_1d<double, 3>>>::HasResidualVariable(VECTOR_LAGRANGE_MULTIPLIER);
+    KRATOS_CHECK_IS_FALSE(checkfalse);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(VariableResidualGetMethods, KratosCoreFastSuite)
+{
+    const auto& r_force_residual = VariablesDerivatives<Variable<array_1d<double, 3>>>::GetResidualVariable(DISPLACEMENT);
+    KRATOS_CHECK(r_force_residual.Name() == "FORCE_RESIDUAL");
+    const auto& r_moment_residual = VariablesDerivatives<Variable<array_1d<double, 3>>>::GetResidualVariable(ROTATION);
+    KRATOS_CHECK(r_moment_residual.Name() == "MOMENT_RESIDUAL");
+}
+
 }
 }  // namespace Kratos.
