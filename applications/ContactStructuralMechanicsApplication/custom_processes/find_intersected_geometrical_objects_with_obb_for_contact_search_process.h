@@ -107,7 +107,7 @@ public:
             BaseProcessType::INTERSECTING_ELEMENTS|
             BaseProcessType::INTERSECTED_CONDITIONS|
             BaseProcessType::INTERSECTED_ELEMENTS|
-            ~BaseType::DEBUG_OBB|
+            BaseType::DEBUG_OBB.AsFalse()|
             BaseType::SEPARATING_AXIS_THEOREM|
             BaseType::BUILD_OBB_FROM_BB
         );
