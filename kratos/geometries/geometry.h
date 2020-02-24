@@ -126,24 +126,11 @@ public:
      */
     typedef PointerVector<GeometryType> GeometriesArrayType;
 
-    /** Redefinition of geometry template parameter TPointType as this geometry point type.
-     */
     typedef TPointType PointType;
     typedef typename TPointType::Pointer PointPointerType;
 
-    /** Type used for indexing in geometry class.std::size_t used for indexing
-    point or integration point access methods and also all other
-    methods which need point or integration point index.
-    */
     typedef std::size_t IndexType;
-
-
-    /** This typed used to return size or dimension in
-    geometry. Dimension, WorkingDimension, PointsNumber and
-    ... return this type as their results.
-    */
     typedef std::size_t SizeType;
-
 
     typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
 
