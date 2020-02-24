@@ -254,6 +254,18 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
+    /// returns number of control points in direction u.
+    SizeType GetNumberOfPointsU() const override
+    {
+        return NumberOfControlPointsU();
+    }
+
+    /// returns number of control points in direction v.
+    SizeType GetNumberOfPointsV() const override
+    {
+        return NumberOfControlPointsV();
+    }
+
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
