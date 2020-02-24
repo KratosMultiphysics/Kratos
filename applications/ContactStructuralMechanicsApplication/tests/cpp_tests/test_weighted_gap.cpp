@@ -798,7 +798,7 @@ namespace Kratos
             CreateNewProblem3D(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
             // We compute the explicit contribution
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
@@ -855,8 +855,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
@@ -908,8 +908,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
@@ -964,8 +964,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
@@ -1020,8 +1020,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
@@ -1077,8 +1077,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
@@ -1141,8 +1141,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.AddExplicitContribution(r_process_info);
@@ -1204,8 +1204,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
@@ -1272,8 +1272,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
@@ -1333,8 +1333,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 r_cond.AddExplicitContribution(r_process_info);
                 r_cond.FinalizeSolutionStep(r_process_info);
@@ -1388,8 +1388,8 @@ namespace Kratos
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector = ZeroVector(3);
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 r_cond.Set(MODIFIED, true);
                 r_cond.AddExplicitContribution(r_process_info);

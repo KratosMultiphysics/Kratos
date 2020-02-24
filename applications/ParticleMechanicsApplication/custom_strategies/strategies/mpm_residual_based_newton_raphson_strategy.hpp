@@ -347,7 +347,6 @@ public:
     void Predict() override
     {
         KRATOS_TRY;
-
         // OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         // If the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
