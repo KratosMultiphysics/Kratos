@@ -13,25 +13,25 @@
 #define KRATOS_FEAST_EIGENSYSTEM_SOLVER_H_INCLUDED
 
 // External includes
-#include <Eigen/Core>
-#include <Eigen/Eigenvalues>
+// #include <Eigen/Core>
+// #include <Eigen/Eigenvalues>
 
 // Project includes
 #include "includes/define.h"
-#if defined EIGEN_USE_MKL_ALL
-#include "eigen_pardiso_ldlt_solver.h"
-#else // defined EIGEN_USE_MKL_ALL
-#include "eigen_sparse_lu_solver.h"
-#endif // defined EIGEN_USE_MKL_ALL
+// #if defined EIGEN_USE_MKL_ALL
+// #include "eigen_pardiso_ldlt_solver.h"
+// #else // defined EIGEN_USE_MKL_ALL
+// #include "eigen_sparse_lu_solver.h"
+// #endif // defined EIGEN_USE_MKL_ALL
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/ublas_wrapper.h"
 
-// extern "C" {
-//     #include <feast.h>
-//     #include <feast_sparse.h>
-// }
+extern "C" {
+    #include <feast.h>
+    #include <feast_sparse.h>
+}
 
 namespace Kratos
 {
@@ -97,9 +97,9 @@ class FEASTEigensystemSolver
         VectorType& rEigenvalues,
         DenseMatrixType& rEigenvectors) override
     {
-        using scalar_t = double;
-        using vector_t = Eigen::VectorXd;
-        using matrix_t = Eigen::MatrixXd;
+        // using scalar_t = double;
+        // using vector_t = Eigen::VectorXd;
+        // using matrix_t = Eigen::MatrixXd;
 
         std::cout << "FANCY FEAST EIGENSOLVER!!\n";
         // --- get settings
@@ -120,18 +120,44 @@ class FEASTEigensystemSolver
 
         int fpm[64] = {};
         feastinit(fpm);
-        KRATOS_WATCH(&fpm)
+        KRATOS_WATCH(fpm)
         echo_level > 0 ? fpm[0] = 1 : fpm[0] = 0;
         // fpm[2] = 8;
+        fpm[39] = -1; //M0/2 lowest eigenvalues in interval
 
-        const char* UPLO = "F";
+        char UPLO = 'F';
         int N = static_cast<int>(rK.size1());
         double* A = rK.value_data().begin();
-        int* IA = (int*) rK.index1_data().begin();
-        int* JA = (int*) rK.index2_data().begin();
+        int IA[N+1] = {};
+        KRATOS_WATCH(N+1)
+        KRATOS_WATCH(rK.index1_data().size())
+        for( int i=0; i<N+1; ++i )
+        {
+            IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
+        }
+        int JA[IA[N]-1] = {};
+        KRATOS_WATCH(IA[N])
+        KRATOS_WATCH(rK.index2_data().size())
+        for( int i=0; i<IA[N]-1; ++i )
+        {
+            JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
+        }
+
         double* B = rM.value_data().begin();
-        int* IB = (int*) rM.index1_data().begin();
-        int* JB = (int*) rM.index2_data().begin();
+        int IB[N+1] = {};
+        KRATOS_WATCH(N+1)
+        KRATOS_WATCH(rM.index1_data().size())
+        for( int i=0; i<N+1; ++i )
+        {
+            IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
+        }
+        int JB[IB[N]-1] = {};
+        KRATOS_WATCH(IB[N])
+        KRATOS_WATCH(rM.index2_data().size())
+        for( int i=0; i<IB[N]-1; ++i )
+        {
+            JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
+        }
         double epsout;
         int loop;
         double Emin = mParam["emin"].GetDouble();
@@ -143,24 +169,40 @@ class FEASTEigensystemSolver
         int M;
         double* res = Residual.data().begin();
         int info;
-
+        std::cout << "geschafft\n";
+        /**
         // KRATOS_WATCH(rM.index1_data())
         std::for_each(rM.index1_data().begin(), rM.index1_data().end(), [](size_t i) { std::cout << i << ","; });
         std::cout << "\n";
+        KRATOS_WATCH(IB[0])
+        KRATOS_WATCH(IB[1])
+        KRATOS_WATCH(IB[2])
+        KRATOS_WATCH(IB[3])
         std::for_each(rM.index2_data().begin(), rM.index2_data().end(), [](size_t i) { std::cout << i << ","; });
         std::cout << "\n";
+        KRATOS_WATCH(JB[0])
+        KRATOS_WATCH(JB[1])
+        KRATOS_WATCH(JB[2])
         std::for_each(rM.value_data().begin(), rM.value_data().end(), [](double i) { std::cout << i << ","; });
         std::cout << "\n";
         std::for_each(rK.index1_data().begin(), rK.index1_data().end(), [](size_t i) { std::cout << i << ","; });
         std::cout << "\n";
+        KRATOS_WATCH(IA[0])
+        KRATOS_WATCH(IA[1])
+        KRATOS_WATCH(IA[2])
+        KRATOS_WATCH(IA[3])
         std::for_each(rK.index2_data().begin(), rK.index2_data().end(), [](size_t i) { std::cout << i << ","; });
         std::cout << "\n";
+        KRATOS_WATCH(JA[0])
+        KRATOS_WATCH(JA[1])
+        KRATOS_WATCH(JA[2])
+        KRATOS_WATCH(JA[3])
         std::for_each(rK.value_data().begin(), rK.value_data().end(), [](double i) { std::cout << i << ","; });
         std::cout << "\n";
-
-        dfeast_scsrgv(UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, &Emin, &Emax, &M0, E, X, &M, res, &info);
+        **/
+        dfeast_scsrgv(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, &Emin, &Emax, &M0, E, X, &M, res, &info);
         
-
+        std::cout << "yeah\n";
 
         // // --- wrap ublas matrices
 

@@ -16,6 +16,7 @@
 #include <pybind11/pybind11.h>
 
 // External includes
+#define _MKL_SOLVERS_EE_H //exclude MKL's FEAST implementation
 
 // Project includes
 
