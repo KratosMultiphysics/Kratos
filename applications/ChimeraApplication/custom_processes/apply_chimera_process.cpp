@@ -17,10 +17,10 @@
 //
 
 // Application includes
+#include "custom_processes/apply_chimera_process.h"
 #include "containers/model.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
-#include "custom_processes/apply_chimera_process.h"
 
 namespace Kratos {
 
@@ -168,19 +168,22 @@ void ApplyChimera<TDim>::DoChimeraLoop()
             ModelPart& r_background_model_part = current_model.GetModelPart(
                 background_patch_param["model_part_name"].GetString());
             // compute the outerboundary of the background to save
-            if (i_current_level == 0)
-                if (!r_background_model_part.HasSubModelPart(mBoundaryName)) {
-                    auto& r_boundary_model_part =
-                        r_background_model_part.CreateSubModelPart(mBoundaryName);
-                    BuiltinTimer extraction_time;
+            if (!r_background_model_part.HasSubModelPart(mBoundaryName)) {
+                auto& r_boundary_model_part =
+                    r_background_model_part.CreateSubModelPart(mBoundaryName);
+                BuiltinTimer extraction_time;
+                if (i_current_level == 0)
                     ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(
                         r_background_model_part, r_boundary_model_part);
-                    KRATOS_INFO_IF(
-                        "ApplyChimera : Extraction of boundary mesh took   "
-                        "       : ",
-                        mEchoLevel > 1)
-                        << extraction_time.ElapsedSeconds() << " seconds" << std::endl;
-                }
+                else
+                    ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, ChimeraHoleCuttingUtility::SideToExtract::INSIDE);
+                KRATOS_INFO_IF(
+                    "ApplyChimera : Extraction of background boundary took "
+                    "   : ",
+                    mEchoLevel > 1)
+                    << extraction_time.ElapsedSeconds() << " seconds" << std::endl;
+            }
+
 
             for (int i_slave_level = i_current_level + 1;
                  i_slave_level < mNumberOfLevels; ++i_slave_level) {
@@ -213,7 +216,8 @@ void ApplyChimera<TDim>::DoChimeraLoop()
     KRATOS_INFO_IF(
         "ApplyChimera : Chimera Initialization took               : ", mEchoLevel > 0)
         << do_chimera_loop_time.ElapsedSeconds() << " seconds" << std::endl;
-    KRATOS_INFO_IF("ApplyChimera : Number of constraints for Chimera         : ", mEchoLevel > 0)
+    KRATOS_INFO_IF(
+        "ApplyChimera : Number of constraints for Chimera         : ", mEchoLevel > 0)
         << mrMainModelPart.NumberOfMasterSlaveConstraints() << std::endl;
     KRATOS_INFO("End of Formulate Chimera") << std::endl;
 }
@@ -441,9 +445,9 @@ void ApplyChimera<TDim>::FormulateConstraints(
     BuiltinTimer loop_over_b_nodes;
 #pragma omp parallel for shared(constraints_id_vector,               \
                                 rVelocityMasterSlaveContainerVector, \
-                                rPressureMasterSlaveContainerVector, rBinLocator) reduction(+:found_counter)
+                                rPressureMasterSlaveContainerVector, \
+                                rBinLocator) reduction(+ : found_counter)
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
-
         ModelPart::NodesContainerType::iterator i_boundary_node =
             rBoundaryModelPart.NodesBegin() + i_bn;
         NodeType& r_boundary_node = *(*(i_boundary_node.base()));
@@ -615,7 +619,6 @@ void ApplyChimera<TDim>::MakeConstraints(
                                StartConstraintId + init_index,
                                rConstraintIdVector, rPressureMsConstraintsVector);
 }
-
 
 // Template declarations
 template class ApplyChimera<2>;
