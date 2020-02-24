@@ -8,7 +8,13 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 def ComputeMeanRadiusOfThisParticle(x, y, z, fine_radius):
 
     distance_to_origin = math.sqrt(x*x + y*y)
-    max_distance_for_fine_radius = 0.00762
+    
+    specimen_type = 1 # 1: CTW16, # 2: CTW10
+    if specimen_type == 1:
+        max_distance_for_fine_radius = 0.00762
+    else:
+        max_distance_for_fine_radius = 0.01651
+    
     slope = 0.01
     if distance_to_origin < max_distance_for_fine_radius:
         radius = fine_radius
@@ -57,6 +63,7 @@ class ElementSizeModifier(DEMAnalysisStage):
         project_parameters["GravityX"].SetDouble(0.0)
         project_parameters["GravityY"].SetDouble(0.0)
         project_parameters["GravityZ"].SetDouble(0.0)
+        project_parameters["OutputFileType"].SetString("Ascii")
         project_parameters["MaxTimeStep"].SetDouble(self.size_modifier_parameters["time_step"].GetDouble())
         super(ElementSizeModifier, self).__init__(model, project_parameters)
 
