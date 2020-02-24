@@ -556,6 +556,15 @@ public:
         return mPoints.capacity();
     }
 
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    virtual bool empty() const
+    {
+        return mPoints.empty();
+    }
+
     /////@}
     /////@name Access
     /////@{
@@ -572,13 +581,123 @@ public:
         return mPoints.GetContainer();
     }
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    virtual bool empty() const
+    /// Get points of this geometry
+    const PointsArrayType& Points() const
     {
-        return mPoints.empty();
+        return mPoints;
+    }
+
+    /// Get points of this geometry
+    PointsArrayType& Points()
+    {
+        return mPoints;
+    }
+
+    /// Get pointer of point at i'th position
+    const typename TPointType::Pointer pGetPoint(const int Index) const
+    {
+        return mPoints(Index);
+    }
+
+    /// Get pointer of point at i'th position
+    typename TPointType::Pointer pGetPoint(const int Index)
+    {
+        return mPoints(Index);
+    }
+
+    /// Get point at i'th position
+    TPointType const& GetPoint(const int Index) const
+    {
+        return mPoints[Index];
+    }
+
+    /// Get point at i'th position
+    TPointType& GetPoint(const int Index)
+    {
+        return mPoints[Index];
+    }
+
+    /// Get pointer of point at u'th, v'th position
+    const typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV) const
+    {
+        return mPoints(GetVectorIndexFromMatrixIndices(GetNumberOfPointsU(), IndexU, IndexV));
+    }
+
+    /// Get pointer of point at u'th, v'th position
+    typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV)
+    {
+        return mPoints(GetVectorIndexFromMatrixIndices(GetNumberOfPointsU(), IndexU, IndexV));
+    }
+
+    /// Get pointer of point at u'th, v'th position
+    TPointType const& GetPoint(const IndexType IndexU, const IndexType IndexV) const
+    {
+        return mPoints[GetVectorIndexFromMatrixIndices(GetNumberOfPointsU(), IndexU, IndexV)];
+    }
+
+    /// Get pointer of point at u'th, v'th position
+    TPointType& GetPoint(const IndexType IndexU, const IndexType IndexV) {
+        return mPoints[GetVectorIndexFromMatrixIndices(GetNumberOfPointsU(), IndexU, IndexV)];
+    }
+
+    /// Get pointer of point at u'th, v'th, w'th position
+    const typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW) const
+    {
+        return mPoints(GetVectorIndexFromTensorIndices(GetNumberOfPointsU(), GetNumberOfPointsV(), IndexU, IndexV, IndexW));
+    }
+
+    /// Get pointer of point at u'th, v'th, w'th position
+    typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW)
+    {
+        return mPoints(GetVectorIndexFromTensorIndices(GetNumberOfPointsU(), GetNumberOfPointsV(), IndexU, IndexV, IndexW));
+    }
+
+    /// Get pointer of point at u'th, v'th, w'th position
+    TPointType const& GetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW) const
+    {
+        return mPoints[GetVectorIndexFromTensorIndices(GetNumberOfPointsU(), GetNumberOfPointsV(), IndexU, IndexV, IndexW)];
+    }
+
+    /// Get pointer of point at u'th, v'th, w'th position
+    TPointType& GetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW) {
+        return mPoints[GetVectorIndexFromTensorIndices(GetNumberOfPointsU(), GetNumberOfPointsV(), IndexU, IndexV, IndexW)];
+    }
+
+    /// Number of Points in direction u
+    SizeType GetNumberOfPointsU() const {
+        return mPoints.size();
+    }
+
+    /// Number of Points in direction v
+    SizeType GetNumberOfPointsV() const {
+        return 1;
+    }
+
+    /// Number of Points in direction w
+    SizeType GetNumberOfPointsW() const {
+        return 1;
+    }
+
+    /*
+    * @brief Computes a vector index from two matrix indicies.
+    * @return index within vector
+    */
+    static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
+        const SizeType NumberU, const SizeType NumberV,
+        const IndexType IndexU, const IndexType IndexV) noexcept
+    {
+        return IndexV * NumberU + IndexU;
+    }
+
+    /*
+    * @brief Computes a vector index from three tensor indicies.
+    * @return index within vector
+    */
+    static constexpr inline IndexType GetVectorIndexFromTensorIndices(
+        const SizeType NumberU, const SizeType NumberV,
+        const IndexType IndexU, const IndexType IndexV, const IndexType IndexW) noexcept
+    {
+        return (IndexV * NumberU + IndexU) * NumberV + IndexW;
     }
 
     ///@}
@@ -1368,83 +1487,8 @@ public:
     }
 
     ///@}
-    ///@name Access
+    ///@name Coordinates
     ///@{
-
-    /** A constant access method to the Vector of the points stored in
-    this geometry.
-
-    @return A constant reference to PointsArrayType contains
-    pointers to the points.
-    */
-    const PointsArrayType& Points() const
-    {
-        return mPoints;
-    }
-
-    /** An access method to the Vector of the points stored in
-    this geometry.
-
-    @return A reference to PointsArrayType contains pointers to
-    the points.
-    */
-    PointsArrayType& Points()
-    {
-        return mPoints;
-    }
-
-    /** A constant access method to the i'th points stored in
-    this geometry.
-
-    @return A constant counted pointer to i'th point of
-    geometry.
-    */
-    const typename TPointType::Pointer pGetPoint( const int Index ) const
-    {
-        KRATOS_TRY
-        return mPoints( Index );
-        KRATOS_CATCH(mPoints)
-    }
-
-    /** An access method to the i'th points stored in
-    this geometry.
-
-    @return A counted pointer to i'th point of
-    geometry.
-    */
-    typename TPointType::Pointer pGetPoint( const int Index )
-    {
-        KRATOS_TRY
-        return mPoints( Index );
-        KRATOS_CATCH(mPoints);
-    }
-
-    /** A constant access method to the i'th points stored in
-    this geometry.
-
-    @return A constant counted pointer to i'th point of
-    geometry.
-    */
-    TPointType const& GetPoint( const int Index ) const
-    {
-        KRATOS_TRY
-        return mPoints[Index];
-        KRATOS_CATCH( mPoints);
-    }
-
-
-    /** An access method to the i'th points stored in
-    this geometry.
-
-    @return A counted pointer to i'th point of
-    geometry.
-    */
-    TPointType& GetPoint( const int Index )
-    {
-        KRATOS_TRY
-        return mPoints[Index];
-        KRATOS_CATCH(mPoints);
-    }
 
     /**
      * Returns a matrix of the local coordinates of all points
