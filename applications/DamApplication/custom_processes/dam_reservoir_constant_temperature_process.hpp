@@ -54,11 +54,7 @@ class DamReservoirConstantTemperatureProcess : public Process
                 "Water_temp"                                       : 0.0,
                 "Water_temp_Table"                                 : 0,
                 "Water_level"                                      : 0.0,
-                "Water_level_Table"                                : 0,
-                "interval":[
-                0.0,
-                0.0
-                ]
+                "Water_level_Table"                                : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

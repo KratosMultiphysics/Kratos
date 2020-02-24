@@ -52,11 +52,7 @@ class DamAddedMassConditionProcess : public Process
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
                 "Spe_weight"                                            : 0.0,
-                "Water_level"                                           : 0.0,
-                "interval":[
-                0.0,
-                0.0
-                ]
+                "Water_level"                                           : 0.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

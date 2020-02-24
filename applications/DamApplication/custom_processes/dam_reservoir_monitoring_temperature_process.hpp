@@ -64,11 +64,7 @@ class DamReservoirMonitoringTemperatureProcess : public Process
                 "Water_temp_Table_2"                               : 0,
                 "Z_Coord_3"                                        : 0.0,
                 "Water_temp_3"                                     : 0.0,
-                "Water_temp_Table_3"                               : 0,
-                "interval":[
-                0.0,
-                0.0
-                ]
+                "Water_temp_Table_3"                               : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

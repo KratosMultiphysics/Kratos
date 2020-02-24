@@ -49,11 +49,7 @@ class DamNoorzaiHeatFluxProcess : public Process
                 "density"                             : 0.0,
                 "specific_heat"                        : 0.0,
                 "t_max"                               : 0.0,
-                "alpha"                               : 0.0,
-                "interval":[
-                0.0,
-                0.0
-                ]
+                "alpha"                               : 0.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

@@ -54,11 +54,7 @@ class DamTSolAirHeatFluxProcess : public Process
                 "emisivity"                       : 0.0,
                 "delta_R"                         : 0.0,
                 "absorption_index"                : 0.0,
-                "total_insolation"                : 0.0,
-                "interval":[
-                0.0,
-                0.0
-                ]
+                "total_insolation"                : 0.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

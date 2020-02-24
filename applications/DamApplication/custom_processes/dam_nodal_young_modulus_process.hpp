@@ -50,11 +50,7 @@ class DamNodalYoungModulusProcess : public Process
                 "Young_Modulus_1"                                  : 10.0,
                 "Young_Modulus_2"                                  : 60.0,
                 "Young_Modulus_3"                                  : 50.0,
-                "Young_Modulus_4"                                  : 70.0,
-                "interval":[
-                0.0,
-                0.0
-                ]
+                "Young_Modulus_4"                                  : 70.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
