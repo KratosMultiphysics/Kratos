@@ -90,16 +90,16 @@ public:
     ///@{
 
     /**
-     * @brief Constructor 
+     * @brief Constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pEigenSolver The generalized eigenvalue problem solver employed
      * @param pBuilderAndSolver The builder and solver employed
      * @param pConvergenceCriteria The convergence criteria employed
      * @param MaxIteration The maximum number of non-linear iterations
-     * @param InitialStep Load increment of the first load step
-     * @param SmallStep Load increment of the small load step
-     * @param BigStep Load increment of the big load step
+     * @param InitialLoadIncrement Load increment of the first load step
+     * @param SmallLoadIncrement Load increment of the small load step
+     * @param PathFollowingStep Load increment of the big load step
      * @param ConvergenceRatio Convergence ratio for the computed eigenvalues
      */
     PrebucklingStrategy(
@@ -109,9 +109,9 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria,
         int MaxIteration,
-        double InitialStep,
-        double SmallStep,
-        double BigStep,
+        double InitialLoadIncrement,
+        double SmallLoadIncrement,
+        double PathFollowingStep,
         double ConvergenceRatio )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
@@ -127,13 +127,13 @@ public:
 
         mMaxIteration = MaxIteration;
 
-        mInitialStep = InitialStep;
+        mInitialLoadIncrement = InitialLoadIncrement;
 
-        mSmallStep = SmallStep;
+        mSmallLoadIncrement = SmallLoadIncrement;
 
-        mBigStep = BigStep;
+        mPathFollowingStep = PathFollowingStep;
 
-        mConvergenceRatio = ConvergenceRatio; 
+        mConvergenceRatio = ConvergenceRatio;
 
         // Set Eigensolver flags
         mpEigenSolver->SetDofSetIsInitializedFlag(false);
@@ -155,6 +155,8 @@ public:
         mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
         mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+
+        rModelPart.GetProcessInfo()[TIME] = 1.0;
 
         KRATOS_CATCH("")
     }
@@ -226,7 +228,7 @@ public:
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy
-     * @details 
+     * @details
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
@@ -268,7 +270,7 @@ public:
         }
         // Initialization of the convergence criteria
         mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
-        
+
         mInitializeWasPerformed = true;
 
         KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
@@ -352,7 +354,7 @@ public:
             {
                 // Set up list of dofs
                 BuiltinTimer setup_dofs_time;
-                
+
                 pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
 
                 KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 )
@@ -372,7 +374,7 @@ public:
                 // Elastic Stiffness matrix; Solution Vector; RHS Vector
                 pBuilderAndSolver->ResizeAndInitializeVectors(
                     pScheme, mpStiffnessMatrix, mpDx, mpRHS, rModelPart);
-                // Previous Stiffness Matrix 
+                // Previous Stiffness Matrix
                 pBuilderAndSolver->ResizeAndInitializeVectors(
                     pScheme, mpStiffnessMatrixPrevious, _pDx, _pb, rModelPart);
 
@@ -383,7 +385,7 @@ public:
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 )
                 << system_construction_time.ElapsedSeconds() << std::endl;
-            
+
             // Initial operations ... things that are constant over the solution
             // step
             pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),
@@ -396,6 +398,7 @@ public:
             pConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
 
             mSolutionStepIsInitialized = true;
+
             KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
                 << "Exiting InitializeSolutionStep" << std::endl;
         }
@@ -426,29 +429,16 @@ public:
         unsigned int iteration_number = 1;
         rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
-        
-        // Store inital load condition values
-        if( mLoadStepIteration == 0)
-        {
-            StoreInitialLoadConditions();
-        }
-        // Update load conditions
-        // Implemented so far are point and surface loads
-        // Don't change forces in the first load step
-        if( mLoadStepIteration > 0)
-        {
-            UpdateLoadConditions();
-        }
 
         // Update loadfactor increment
         double delta_load_multiplier = 0.0;
-        if( mLoadStepIteration == 1) // inital step
+        if( mLoadStepIteration == 1) // inital load increment
         {
-            delta_load_multiplier = mInitialStep*(mLambda + mLambdaPrev);
+            delta_load_multiplier = mInitialLoadIncrement*(mLambda + mLambdaPrev);
         }
-        else if( mLoadStepIteration % 2 == 1 ) //small step
+        else if( mLoadStepIteration % 2 == 1 ) //small load increment
         {
-            delta_load_multiplier = mSmallStep*(mLambdaPrev );
+            delta_load_multiplier = mSmallLoadIncrement*(mLambdaPrev );
         }
 
         BuiltinTimer system_solve_time;
@@ -468,12 +458,11 @@ public:
         // Finalize nonlinear solution step
         pScheme->FinalizeNonLinIteration( rModelPart,rStiffnessMatrix, rDx, rRHS );
         pConvergenceCriteria->FinalizeNonLinearIteration(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
-                   
-        if (is_converged)
-        {
+
+        if (is_converged){
             is_converged = mpConvergenceCriteria->PostCriteria(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
         }
-        
+
         // Start iteration cycle
         while ( !is_converged &&
             iteration_number++ < mMaxIteration)
@@ -491,27 +480,26 @@ public:
             TSparseSpace::SetToZero(rRHS);
             // Build and solve system
             pBuilderAndSolver->BuildAndSolve(pScheme, rModelPart, rStiffnessMatrix,rDx, rRHS);
-            
+
             // Update internal variables
             this->pGetScheme()->Update(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
             BaseType::MoveMesh();
-            
+
             // Finalize nonlinear iteration step
             this->pGetScheme()->FinalizeNonLinIteration( rModelPart,rStiffnessMatrix, rDx, rRHS );
             pConvergenceCriteria->FinalizeNonLinearIteration(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
 
-            if (is_converged)
-            {
+            if (is_converged){
                 is_converged = mpConvergenceCriteria->PostCriteria(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
             }
         }
         KRATOS_INFO_IF("Nonlinear Loadstep Time: ", BaseType::GetEchoLevel() > 0)
                 << system_solve_time.ElapsedSeconds() << std::endl;
-        
+
         if ( !is_converged ) {
-                    KRATOS_INFO_IF("Nonlinear Loadstep: ", this->GetEchoLevel() > 0)
-            << "Convergence not achieved after ( " << mMaxIteration
-            << " ) Iterations !" << std::endl;
+            KRATOS_INFO_IF("Nonlinear Loadstep: ", this->GetEchoLevel() > 0)
+                << "Convergence not achieved after ( " << mMaxIteration
+                << " ) Iterations !" << std::endl;
         } else {
             KRATOS_INFO_IF("Nonlinear Loadstep: ", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
@@ -521,21 +509,21 @@ public:
         // Vector and matrix are initialized by eigensolver
         DenseVectorType Eigenvalues;
         DenseMatrixType Eigenvectors;
-        
-        if( mLoadStepIteration % 2 == 0 ) // Copy matrices after big step and initial step
-        {
+
+        if( mLoadStepIteration % 2 == 0 ){
+            //Copy matrices after path following step and initial step
             rStiffnessMatrixPrevious = rStiffnessMatrix;
-            
-            if( mLoadStepIteration > 0) // Update mLambdaPrev
-            {
-                mLambdaPrev = mLambdaPrev + mBigStep*mLambda;
+
+            if( mLoadStepIteration > 0){
+                // Update mLambdaPrev
+                mLambdaPrev = mLambdaPrev + mPathFollowingStep*mLambda;
             }
         }
-        else if( mLoadStepIteration % 2 == 1 ) // Evaluate eigenvalue problem after small step
-        {
+        else if( mLoadStepIteration % 2 == 1 ){
+            // Evaluate eigenvalue problem after small load increment
             //#####################################################################################
             //Method 1
-            //Poy, Denise Lori-eng; On the Buckling Finite Element Analysis of Beam Structures 
+            //Poy, Denise Lori-eng; On the Buckling Finite Element Analysis of Beam Structures
             //#####################################################################################
             // Solve Eigenvalue Problem
             // BuiltinTimer eigen_solve_time;
@@ -554,13 +542,13 @@ public:
             //End Method 1#########################################################################
 
             //#####################################################################################
-            //Method 2: 
-            // Jia, X.Mang, H. A.; Assessment of solutions from the consistently linearized eigenproblem 
+            //Method 2:
+            // Jia, X.Mang, H. A.; Assessment of solutions from the consistently linearized eigenproblem
             // by means of finite difference approximations
             //#####################################################################################
             // Solve Eigenvalue Problem
 
-            // This implementation of the eigenvalue problem relies on the difference of the stiffness matrix 
+            // This implementation of the eigenvalue problem relies on the difference of the stiffness matrix
             // between the current and previous step
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
 
@@ -576,9 +564,9 @@ public:
             {
                 Eigenvalues[i] = mLambdaPrev + Eigenvalues[i]*delta_load_multiplier;
             }
-            
+
             this->AssignVariables(Eigenvalues, Eigenvectors);
-            
+
             // Reset elastic stiffness matrix for next loadstep
             mpStiffnessMatrix = nullptr;
             pBuilderAndSolver->ResizeAndInitializeVectors(
@@ -586,16 +574,17 @@ public:
             // End Method 2#########################################################################
 
             // Convergence criteria for buckling analysis
-            if( std::abs(mLambda/mLambdaPrev) < mConvergenceRatio )
-            {
+            if( std::abs(mLambda/mLambdaPrev) < mConvergenceRatio ){
                 mSolutionFound = true;
                 KRATOS_INFO_IF("Prebuckling Analysis: ", BaseType::GetEchoLevel() > 0)
                 << "Convergence achieved in " << mLoadStepIteration + 1 << " Load Iterations!" << std::endl;
-            }   
+            }
         }
-        
+
         mLoadStepIteration++;
-        
+        // Prepare load conditions for next solution step
+        UpdateLoadConditions();
+
         return true;
         KRATOS_CATCH("")
     }
@@ -623,7 +612,7 @@ public:
                                            rStiffnessMatrix, rDx, rRHS);
 
         pConvergenceCriteria->FinalizeSolutionStep(BaseType::GetModelPart(), pGetBuilderAndSolver()->GetDofSet(), rStiffnessMatrix, rDx, rRHS );
-        
+
         // Cleaning memory after the solution
         pGetScheme()->Clean();
         // Reset flags for next step
@@ -748,9 +737,9 @@ private:
 
     std::vector<array_1d<double,3>> mpInitialLoads;
 
-    double mInitialStep;
-    double mSmallStep;
-    double mBigStep;
+    double mInitialLoadIncrement;
+    double mSmallLoadIncrement;
+    double mPathFollowingStep;
     double mConvergenceRatio;
 
     double mLambda = 0.0;
@@ -765,79 +754,27 @@ private:
     ///@{
 
     /**
-     * @brief Stores initial loads to ensure that load multiplier always refers to user input
-     * @param mpInitialLoads Vector that stores initial laods
-     */
-    void StoreInitialLoadConditions()
-    {
-        ModelPart &rModelPart = BaseType::GetModelPart();
-        const auto it_conditions_begin = rModelPart.ConditionsBegin();
-        for (int j = 0; j < static_cast<int>(rModelPart.Conditions().size()); j++) 
-        {
-            auto it_condition = it_conditions_begin + j;
-            // Check if condition is point load
-            if (it_condition->Has(POINT_LOAD))
-            {
-                mpInitialLoads.push_back( it_condition->GetValue(POINT_LOAD) );
-            }
-            // Check if condition is surface load
-            if (it_condition->Has(SURFACE_LOAD))
-            {
-                mpInitialLoads.push_back( it_condition->GetValue(SURFACE_LOAD) );
-            }
-        } 
-    }
-    /**
      * @brief Updates load conditions
-     * @param mpInitialLoads Vector that stores initial laods
+     * @param TIME is used as load multiplier of external loads
      */
     void UpdateLoadConditions()
     {
         ModelPart &rModelPart = BaseType::GetModelPart();
-        const auto it_conditions_begin = rModelPart.ConditionsBegin();
-        for (int j = 0; j < static_cast<int>(rModelPart.Conditions().size()); j++) 
-        {
-            auto it_condition = it_conditions_begin + j;
-            // Check if condition is point load
-            if (it_condition->Has(POINT_LOAD))
-            {
-                array_1d<double, 3> r_point_load;
-                if( mLoadStepIteration == 1) // Initial step
-                {
-                    r_point_load = mpInitialLoads[j] + mInitialStep * mpInitialLoads[j]; 
-                }
-                else if( mLoadStepIteration % 2 == 0) // Do big step
-                {
-                    r_point_load = ( mLambdaPrev + mBigStep * mLambda ) * mpInitialLoads[j]; 
-                }
-                else // Do small step
-                {
-                    r_point_load = (1 + mSmallStep) * (mLambdaPrev) * mpInitialLoads[j];
-                }
-                // Update Condition
-                it_condition->SetValue(POINT_LOAD,r_point_load);
-            }
-            // Check if condition is surface load
-            if (it_condition->Has(SURFACE_LOAD))
-            {
-                array_1d<double, 3>& r_surface_load = it_condition->GetValue(SURFACE_LOAD);
-                if( mLoadStepIteration == 1) // Initial step
-                {
-                    r_surface_load = mpInitialLoads[j] + mInitialStep * mpInitialLoads[j]; 
-                }
-                else if( mLoadStepIteration % 2 == 0) // Do big step
-                {
-                    r_surface_load = ( mLambdaPrev + mBigStep * mLambda ) * mpInitialLoads[j]; 
-                }
-                else if( mLoadStepIteration % 2 == 1) // Do small step
-                {
-                    r_surface_load = (1 + mSmallStep) * (mLambdaPrev) * mpInitialLoads[j];
-                }
-                // Update Condition
-                it_condition->SetValue(SURFACE_LOAD,r_surface_load);
-            }
+
+        if( mLoadStepIteration == 1){
+            // Initial load increment
+            rModelPart.GetProcessInfo()[TIME] = ( 1.0 + mInitialLoadIncrement );
+        }
+        else if( mLoadStepIteration % 2 == 0){
+            // Do path following step
+            rModelPart.GetProcessInfo()[TIME] = ( mLambdaPrev + mPathFollowingStep * mLambda );
+        }
+        else{
+            // Do small load increment
+            rModelPart.GetProcessInfo()[TIME] = (1 + mSmallLoadIncrement) * mLambdaPrev;
         }
     }
+
     /**
      * @brief Assign eigenvalues and eigenvectors to kratos variables
      * @detail Copied from eigensolver_strategy
@@ -854,10 +791,9 @@ private:
         {
             ModelPart::NodeType::DofsContainerType &NodeDofs = itNode->GetDofs();
             const std::size_t NumNodeDofs = NodeDofs.size();
-            
+
             Matrix &rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs)
-            {
+            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs){
                 rNodeEigenvectors.resize(NumEigenvalues, NumNodeDofs, false);
             }
 
@@ -870,19 +806,17 @@ private:
             // }
 
             // Fill the EIGENVECTOR_MATRIX
-            for (std::size_t i = 0; i < NumEigenvalues; i++)
-                for (std::size_t j = 0; j < NumNodeDofs; j++)
-                {
+            for (std::size_t i = 0; i < NumEigenvalues; i++){
+                for (std::size_t j = 0; j < NumNodeDofs; j++){
                     auto itDof = std::begin(NodeDofs) + j;
-                    if( !((*itDof)->IsFixed()) )
-                    { 
+                    if( !(*itDof)->IsFixed() ){
                         rNodeEigenvectors(i, j) = rEigenvectors(i, (*itDof)->EquationId());
                     }
-                    else
-                    {
+                    else{
                         rNodeEigenvectors(i, j) = 0.0;
                     }
                 }
+            }
         }
     }
 
