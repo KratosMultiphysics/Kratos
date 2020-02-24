@@ -16,6 +16,7 @@ import test_DEM_2D_contact
 import test_DEM_3D_restitution
 import test_DEM_2D_restitution
 import test_DEM_3D_continuum
+import test_DEM_2D_inlet
 
 
 def AssembleTestSuites():
@@ -46,6 +47,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
+
+    smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))

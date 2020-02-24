@@ -11,8 +11,8 @@
 //                  Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
-#if !defined(KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED)
-#define KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED
+#if !defined(KRATOS_HDF5_CONDITION_DATA_VALUE_IO_H_INCLUDED)
+#define KRATOS_HDF5_CONDITION_DATA_VALUE_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -42,8 +42,8 @@ namespace HDF5
 ///@{
 
 /// A class for IO of element data in HDF5.
-class ElementDataValueIO : public ContainerComponentIO<ElementsContainerType,
-                                                       ElementType,
+class ConditionDataValueIO : public ContainerComponentIO<ConditionsContainerType,
+                                                       ConditionType,
                                                        Variable<array_1d<double, 3>>,
                                                        Variable<double>,
                                                        Variable<int>,
@@ -54,8 +54,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = ContainerComponentIO<ElementsContainerType,
-                                          ElementType,
+    using BaseType = ContainerComponentIO<ConditionsContainerType,
+                                          ConditionType,
                                           Variable<array_1d<double, 3>>,
                                           Variable<double>,
                                           Variable<int>,
@@ -63,15 +63,15 @@ public:
                                           Variable<Matrix<double>>>;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(ElementDataValueIO);
+    KRATOS_CLASS_POINTER_DEFINITION(ConditionDataValueIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ElementDataValueIO(Parameters Settings, File::Pointer pFile)
-        : BaseType(Settings, pFile, "/ElementDataValues")
+    ConditionDataValueIO(Parameters Settings, File::Pointer pFile)
+        : BaseType(Settings, pFile, "/ConditionDataValues")
     {
     }
 
@@ -79,14 +79,14 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteElementResults(ElementsContainerType const& rElements)
+    void WriteConditionResults(ConditionsContainerType const& rConditions)
     {
-        this->WriteContainerComponents(rElements);
+        this->WriteContainerComponents(rConditions);
     }
 
-    void ReadElementResults(ElementsContainerType& rElements, Communicator& rComm)
+    void ReadConditionResults(ConditionsContainerType& rConditions, Communicator& rComm)
     {
-        this->ReadContainerComponents(rElements, rComm);
+        this->ReadContainerComponents(rConditions, rComm);
     }
 
     ///@}
@@ -104,11 +104,11 @@ private:
     ///@{
     ///@}
 
-}; // class ElementDataValueIO.
+}; // class ConditionDataValueIO.
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED defined
+#endif // KRATOS_HDF5_CONDITION_DATA_VALUE_IO_H_INCLUDED defined

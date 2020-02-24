@@ -21,7 +21,7 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_io/hdf5_element_data_value_io.h"
+#include "custom_io/hdf5_element_flag_value_io.h"
 #include "custom_io/hdf5_file_serial.h"
 #include "tests/test_utils.h"
 
@@ -29,7 +29,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementFlags, KratosHDF5TestSuite)
 {
     Parameters file_params(R"(
         {
@@ -49,8 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     r_read_model_part.SetBufferSize(2);
     r_write_model_part.SetBufferSize(2);
 
-    std::vector<std::string> variables_list = {
-        {"DISPLACEMENT"}, {"PRESSURE"}, {"REFINEMENT_LEVEL"}, {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+    std::vector<std::string> variables_list = {{"SLIP"}, {"ACTIVE"}, {"STRUCTURE"}};
 
     for (auto& r_element : r_write_model_part.Elements())
     {
@@ -61,13 +60,13 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     Parameters io_params(R"(
         {
             "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR"]
+            "list_of_variables": ["SLIP", "ACTIVE", "STRUCTURE"]
         })");
 
-    HDF5::ElementDataValueIO data_io(io_params, p_test_file);
-    data_io.WriteElementResults(r_write_model_part.Elements());
-    data_io.ReadElementResults(r_read_model_part.Elements(),
-                               r_read_model_part.GetCommunicator());
+    HDF5::ElementFlagValueIO data_io(io_params, p_test_file);
+    data_io.WriteElementFlags(r_write_model_part.Elements());
+    data_io.ReadElementFlags(r_read_model_part.Elements(),
+                             r_read_model_part.GetCommunicator());
 
     for (auto& r_write_element : r_write_model_part.Elements())
     {
