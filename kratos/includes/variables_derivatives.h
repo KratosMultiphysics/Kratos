@@ -117,8 +117,44 @@ public:
     }
 
     /**
-     * @brief This method returns the database
-     * @return The derivative database
+     * @brief This method adds a new variable to the derivative database
+     * @param rVariable The variable to be added
+     * @param rDerivativeVariable The derivative variable
+     */
+    static void AddResidualVariable(TComponentType const& rVariable, TComponentType const& rResidualVariable)
+    {
+        // check if a different object was already registered with this name, since this is undefined behavior
+        const std::size_t key = rVariable.Key();
+        const auto it_res = msVariablesResiduals.find(key);
+        KRATOS_ERROR_IF(it_res != msVariablesResiduals.end() && typeid(*(it_res->second)) != typeid(rResidualVariable)) << "An object of different type was already registered with name \"" << rVariable.Key() << "\"!" << std::endl;
+        msVariablesResiduals.insert(ValueType(rVariable.Key(), &rResidualVariable));
+    }
+
+    /**
+     * @brief This method removes a variable from the residual database
+     * @param rVariable The variable to be removed
+     */
+    static void RemoveResidualVariable(TComponentType const& rVariable)
+    {
+        const std::size_t num_erased = msVariablesResiduals.erase(rVariable.Key());
+        KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << rVariable.Key() << "\"." << std::endl;
+    }
+
+    /**
+     * @brief This method returns the residual variable
+     * @param rVariable The variable
+     * @return The residual variable
+     */
+    static TComponentType const& GetResidualVariable(TComponentType const& rVariable)
+    {
+        const auto it_res = msVariablesResiduals.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_res == msVariablesResiduals.end()) << GetMessageUnregisteredDerivative(rVariable) << std::endl;
+        return *(it_res->second);
+    }
+
+    /**
+     * @brief This method returns the time derivative database
+     * @return The residual database
      */
     static DerivativesDatabaseType & GetVariableTimeDerivatives()
     {
@@ -126,12 +162,30 @@ public:
     }
 
     /**
-     * @brief This method returns the database (pointer version)
+     * @brief This method returns the time derivative database (pointer version)
      * @return The derivative database
      */
     static DerivativesDatabaseType * pGetVariableTimeDerivatives()
     {
         return &msVariablesTimeDerivatives;
+    }
+
+    /**
+     * @brief This method returns the residual database
+     * @return The derivative database
+     */
+    static DerivativesDatabaseType & GetVariableResiduals()
+    {
+        return msVariablesResiduals;
+    }
+
+    /**
+     * @brief This method returns the residual database (pointer version)
+     * @return The derivative database
+     */
+    static DerivativesDatabaseType * pGetVariableResiduals()
+    {
+        return &msVariablesResiduals;
     }
 
     /**
@@ -152,12 +206,21 @@ public:
     ///@{
 
     /**
-     * @brief This method returns if the variable is registered
+     * @brief This method returns if the time derivative variable is registered
      * @return Trus if registered, false otherwise
      */
     static bool HasTimeDerivative(TComponentType const& rVariable)
     {
         return (msVariablesTimeDerivatives.find(rVariable.Key()) != msVariablesTimeDerivatives.end());
+    }
+
+    /**
+     * @brief This method returns if the residual variable is registered
+     * @return Trus if registered, false otherwise
+     */
+    static bool HasResidualVariable(TComponentType const& rVariable)
+    {
+        return (msVariablesResiduals.find(rVariable.Key()) != msVariablesResiduals.end());
     }
 
     ///@}
@@ -167,19 +230,24 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Variables time derivatives";
+        return "Variables derivatives";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Variables time derivatives";
+        rOStream << "Variables derivatives";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        rOStream << "Time derivatives" << std::endl;
         for (const auto& r_comp : msVariablesTimeDerivatives) {
+            rOStream << "    " << r_comp.first << std::endl;
+        }
+        rOStream << "Residuals" << std::endl;
+        for (const auto& r_comp : msVariablesResiduals) {
             rOStream << "    " << r_comp.first << std::endl;
         }
     }
@@ -233,7 +301,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static DerivativesDatabaseType msVariablesTimeDerivatives;  /// The database of derivatives
+    static DerivativesDatabaseType msVariablesTimeDerivatives;  /// The database of time derivatives
+    static DerivativesDatabaseType msVariablesResiduals;        /// The database of residuals variables
 
     ///@}
     ///@name Member Variables
@@ -338,7 +407,7 @@ public:
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent derivative \"" << rVariable.Key() << "\"." << std::endl;
     }
 
-    static std::size_t Size()
+    static std::size_t NumberOfTimeDerivatives()
     {
         return msVariablesTimeDerivatives.size();
     }
@@ -392,7 +461,56 @@ public:
     }
 
     /**
-     * @brief This method returns the database
+     * @brief This method adds a new variable to the residual database
+     * @param rVariable The variable to be added
+     * @param rDerivativeVariable The residual variable
+     */
+    static void AddResidualVariable(VariableData const& rVariable, VariableData& rDerivativeVariable)
+    {
+        msVariablesResiduals.insert(ValueType(rVariable.Key(), &rDerivativeVariable));
+    }
+
+    /**
+     * @brief This method removes a variable from the residual database
+     * @param rVariable The variable to be removed
+     */
+    static void RemoveResidualVariable(VariableData const& rVariable)
+    {
+        std::size_t num_erased = msVariablesResiduals.erase(rVariable.Key());
+        KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent residual \"" << rVariable.Key() << "\"." << std::endl;
+    }
+
+    static std::size_t NumberOfResidualVariables()
+    {
+        return msVariablesResiduals.size();
+    }
+
+    /**
+     * @brief This method returns the residual variable
+     * @param rVariable The variable
+     * @return The residual variable
+     */
+    static const VariableData & GetResidualVariable(VariableData const& rVariable)
+    {
+        const auto it_res = msVariablesResiduals.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_res == msVariablesResiduals.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
+        return *(it_res->second);
+    }
+
+    /**
+     * @brief This method returns the residual variable (pointer version)
+     * @param rVariable The variable
+     * @return The residual variable
+     */
+    static const VariableData* pGetResidualVariable(VariableData const& rVariable)
+    {
+        const auto it_res = msVariablesResiduals.find(rVariable.Key());
+        KRATOS_DEBUG_ERROR_IF(it_res == msVariablesResiduals.end()) << GetMessageUnregisteredVariable(rVariable) << std::endl;
+        return it_res->second;
+    }
+
+    /**
+     * @brief This method returns the time derivative database
      * @return The derivative database
      */
     static DerivativesDatabaseType & GetVariableTimeDerivatives()
@@ -401,12 +519,30 @@ public:
     }
 
     /**
-     * @brief This method returns the database (pointer version)
+     * @brief This method returns the time derivative database (pointer version)
      * @return The derivative database
      */
     static DerivativesDatabaseType * pGetVariableTimeDerivatives()
     {
         return &msVariablesTimeDerivatives;
+    }
+
+    /**
+     * @brief This method returns the residual database
+     * @return The derivative database
+     */
+    static DerivativesDatabaseType & GetVariableResiduals()
+    {
+        return msVariablesResiduals;
+    }
+
+    /**
+     * @brief This method returns the residual database (pointer version)
+     * @return The derivative database
+     */
+    static DerivativesDatabaseType * pGetVariableResiduals()
+    {
+        return &msVariablesResiduals;
     }
 
     /**
@@ -427,12 +563,21 @@ public:
     ///@{
 
     /**
-     * @brief This method returns if the variable is registered
+     * @brief This method returns if the time derivative variable is registered
      * @return Trus if registered, false otherwise
      */
-    static bool Has(VariableData const& rVariable)
+    static bool HasTimeDerivative(VariableData const& rVariable)
     {
         return (msVariablesTimeDerivatives.find(rVariable.Key()) != msVariablesTimeDerivatives.end());
+    }
+
+    /**
+     * @brief This method returns if the residual variable is registered
+     * @return Trus if registered, false otherwise
+     */
+    static bool HasResidualVariable(VariableData const& rVariable)
+    {
+        return (msVariablesResiduals.find(rVariable.Key()) != msVariablesResiduals.end());
     }
 
     ///@}
@@ -442,19 +587,24 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Variables time derivatives <VariableData>";
+        return "Variables derivatives <VariableData>";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Variables time derivatives <VariableData>";
+        rOStream << "Variables derivatives <VariableData>";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        rOStream << "Time derivatives" << std::endl;
         for (const auto& r_comp : msVariablesTimeDerivatives) {
+            rOStream << "    " << r_comp.first << std::endl;
+        }
+        rOStream << "Residuals" << std::endl;
+        for (const auto& r_comp : msVariablesResiduals) {
             rOStream << "    " << r_comp.first << std::endl;
         }
     }
@@ -509,7 +659,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static DerivativesDatabaseType msVariablesTimeDerivatives; /// The database of derivatives
+    static DerivativesDatabaseType msVariablesTimeDerivatives;  /// The database of time derivatives
+    static DerivativesDatabaseType msVariablesResiduals;        /// The database of residuals variables
 
     ///@}
     ///@name Member Variables
@@ -560,6 +711,8 @@ private:
 
 template<class TComponentType>
 typename VariablesDerivatives<TComponentType>::DerivativesDatabaseType VariablesDerivatives<TComponentType>::msVariablesTimeDerivatives;
+template<class TComponentType>
+typename VariablesDerivatives<TComponentType>::DerivativesDatabaseType VariablesDerivatives<TComponentType>::msVariablesResiduals;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<double>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) VariablesDerivatives<Variable<array_1d<double, 3>>>;
@@ -602,6 +755,22 @@ void KRATOS_API(KRATOS_CORE) AddVariableTimeDerivative(VariableComponent<VectorC
 void KRATOS_API(KRATOS_CORE) AddVariableTimeDerivative(VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rDerivativeVariable);
 
 template<class TComponentType> void AddVariableTimeDerivative(TComponentType const& rVariable, TComponentType const& rDerivativeVariable)
+{
+}
+
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<double> const& rVariable, Variable<double> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<array_1d<double, 3>> const& rVariable, Variable<array_1d<double, 3>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<array_1d<double, 4>> const& rVariable, Variable<array_1d<double, 4>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<array_1d<double, 6>> const& rVariable, Variable<array_1d<double, 6>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<array_1d<double, 9>> const& rVariable, Variable<array_1d<double, 9>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<Vector> const& rVariable, Variable<Vector> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(Variable<Matrix> const& rVariable, Variable<Matrix> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rResidualVariable);
+void KRATOS_API(KRATOS_CORE) AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rResidualVariable);
+
+template<class TComponentType> void AddVariableResidual(TComponentType const& rVariable, TComponentType const& rResidualVariable)
 {
 }
 

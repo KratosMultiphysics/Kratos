@@ -74,6 +74,61 @@ void AddVariableTimeDerivative(VariableComponent<VectorComponentAdaptor<array_1d
     VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::AddTimeDerivative(rVariable, rDerivativeVariable);
 }
 
+void AddVariableResidual(Variable<double> const& rVariable, Variable<double> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<double>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(Variable<array_1d<double, 3>> const& rVariable, Variable<array_1d<double, 3>> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<array_1d<double, 3>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(Variable<array_1d<double, 4>> const& rVariable, Variable<array_1d<double, 4>> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<array_1d<double, 4>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(Variable<array_1d<double, 6>> const& rVariable, Variable<array_1d<double, 6>> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<array_1d<double, 6>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(Variable<array_1d<double, 9>> const& rVariable, Variable<array_1d<double, 9>> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<array_1d<double, 9>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(Variable<Vector> const& rVariable, Variable<Vector> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<Vector>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(Variable<Matrix> const& rVariable, Variable<Matrix> const& rResidualVariable)
+{
+    VariablesDerivatives<Variable<Matrix>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rResidualVariable)
+{
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rResidualVariable)
+{
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rResidualVariable)
+{
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
+void AddVariableResidual(VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rVariable, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rResidualVariable)
+{
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::AddResidualVariable(rVariable, rResidualVariable);
+}
+
 template class VariablesDerivatives<Variable<double>>;
 template class VariablesDerivatives<Variable<array_1d<double, 3>>>;
 template class VariablesDerivatives<Variable<array_1d<double, 4>>>;
@@ -88,6 +143,7 @@ template class VariablesDerivatives<VariableComponent<VectorComponentAdaptor<arr
 
 // Specialize array of compenents for VariableData
 VariablesDerivatives<VariableData>::DerivativesDatabaseType VariablesDerivatives<VariableData>::msVariablesTimeDerivatives;
+VariablesDerivatives<VariableData>::DerivativesDatabaseType VariablesDerivatives<VariableData>::msVariablesResiduals;
 
 }  // namespace Kratos.
 
