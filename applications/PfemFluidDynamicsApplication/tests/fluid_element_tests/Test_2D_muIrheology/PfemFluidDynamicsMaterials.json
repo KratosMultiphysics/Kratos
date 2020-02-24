@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "PfemFluidModelPart.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"                    : 1550.0,
+                "BULK_MODULUS"               : 2100000000.0,
+                "STATIC_FRICTION"            : 0.38,
+                "DYNAMIC_FRICTION"           : 0.64,
+                "INERTIAL_NUMBER_ZERO"       : 0.279,
+                "GRAIN_DIAMETER"             : 0.0007,
+                "GRAIN_DENSITY"              : 2500,
+                "REGULARIZATION_COEFFICIENT" : 0.01
+            },
+            "Tables"    : {}
+        }
+    }]
+}
