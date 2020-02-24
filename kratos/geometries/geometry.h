@@ -129,6 +129,7 @@ public:
     /** Redefinition of geometry template parameter TPointType as this geometry point type.
      */
     typedef TPointType PointType;
+    typedef typename TPointType::Pointer PointPointerType;
 
     /** Type used for indexing in geometry class.std::size_t used for indexing
     point or integration point access methods and also all other
@@ -594,13 +595,13 @@ public:
     }
 
     /// Get pointer of point at i'th position
-    const typename TPointType::Pointer pGetPoint(const int Index) const
+    const PointPointerType pGetPoint(const int Index) const
     {
         return mPoints(Index);
     }
 
     /// Get pointer of point at i'th position
-    typename TPointType::Pointer pGetPoint(const int Index)
+    PointPointerType pGetPoint(const int Index)
     {
         return mPoints(Index);
     }
@@ -618,13 +619,13 @@ public:
     }
 
     /// Get pointer of point at u'th, v'th position
-    const typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV) const
+    const PointPointerType pGetPoint(const IndexType IndexU, const IndexType IndexV) const
     {
         return mPoints(GetVectorIndexFromMatrixIndices(GetNumberOfPointsU(), IndexU, IndexV));
     }
 
     /// Get pointer of point at u'th, v'th position
-    typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV)
+    PointPointerType pGetPoint(const IndexType IndexU, const IndexType IndexV)
     {
         return mPoints(GetVectorIndexFromMatrixIndices(GetNumberOfPointsU(), IndexU, IndexV));
     }
@@ -641,13 +642,13 @@ public:
     }
 
     /// Get pointer of point at u'th, v'th, w'th position
-    const typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW) const
+    const PointPointerType pGetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW) const
     {
         return mPoints(GetVectorIndexFromTensorIndices(GetNumberOfPointsU(), GetNumberOfPointsV(), IndexU, IndexV, IndexW));
     }
 
     /// Get pointer of point at u'th, v'th, w'th position
-    typename TPointType::Pointer pGetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW)
+    PointPointerType pGetPoint(const IndexType IndexU, const IndexType IndexV, const IndexType IndexW)
     {
         return mPoints(GetVectorIndexFromTensorIndices(GetNumberOfPointsU(), GetNumberOfPointsV(), IndexU, IndexV, IndexW));
     }
@@ -664,17 +665,17 @@ public:
     }
 
     /// Number of Points in direction u
-    SizeType GetNumberOfPointsU() const {
+    virtual SizeType GetNumberOfPointsU() const {
         return mPoints.size();
     }
 
     /// Number of Points in direction v
-    SizeType GetNumberOfPointsV() const {
+    virtual SizeType GetNumberOfPointsV() const {
         return 1;
     }
 
     /// Number of Points in direction w
-    SizeType GetNumberOfPointsW() const {
+    virtual SizeType GetNumberOfPointsW() const {
         return 1;
     }
 
