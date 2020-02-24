@@ -120,7 +120,7 @@ void NormalCheckProcess::Execute()
         auto it_elem = it_elem_begin + i;
         const auto& r_geometry = it_elem->GetGeometry();
         if (r_geometry.WorkingSpaceDimension() > r_geometry.LocalSpaceDimension()) {
-            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  it_elem->Id() << " is a slender element (beam, shell, membrane...). It will assumed that the normal is properly oriented" << std::endl;
+            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  it_elem->Id() << " is a slender element (beam, shell, membrane...). It will be assumed that the normal is properly oriented" << std::endl;
             continue;
         }
         const GeometryType::GeometriesArrayType& r_boundary = r_geometry.GenerateBoundariesEntities();
