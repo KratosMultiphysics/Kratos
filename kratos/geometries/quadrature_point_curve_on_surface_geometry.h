@@ -159,12 +159,6 @@ public:
     {
     }
 
-    explicit QuadraturePointCurveOnSurfaceGeometry(const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints)
-        , mLocalTangents2d(ZeroVector(2))
-    {
-    }
-
     /// Destructor.
     ~QuadraturePointCurveOnSurfaceGeometry() override = default;
 
@@ -187,15 +181,6 @@ public:
         mLocalTangents2d = rOther.mLocalTangents2d;
 
         return *this;
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    typename GeometryType::Pointer Create( PointsArrayType const& ThisPoints ) const override
-    {
-        return typename GeometryType::Pointer( new QuadraturePointCurveOnSurfaceGeometry<TPointType>( ThisPoints ) );
     }
 
     ///@}
