@@ -172,17 +172,6 @@ public:
     {
     }
 
-    /// Constructor.
-    explicit QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
-
     /// Destructor.
     ~QuadraturePointGeometry() override = default;
 
