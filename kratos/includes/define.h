@@ -554,6 +554,74 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
 //-----------------------------------------------------------------
 //
+//  Variables time derivatives
+//
+//-----------------------------------------------------------------
+
+#ifdef KRATOS_REGISTER_VARIABLE_RESIDUAL
+#undef KRATOS_REGISTER_VARIABLE_RESIDUAL
+#endif
+#define KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
+    AddVariableResidual(variable, variable_residual); \
+    VariablesDerivatives<VariableData>::AddResidualVariable(variable, variable_residual);
+
+#ifdef KRATOS_REGISTER_3D_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#undef KRATOS_REGISTER_3D_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_3D_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_X, variable_residual##_X) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_Y, variable_residual##_Y) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_Z, variable_residual##_Z)
+
+#ifdef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#undef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY)
+
+#ifdef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#undef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZZ, variable_residual##_ZZ) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YZ, variable_residual##_YZ) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XZ, variable_residual##_XZ)
+
+#ifdef KRATOS_REGISTER_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#undef KRATOS_REGISTER_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YX, variable_residual##_YX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY)
+
+#ifdef KRATOS_REGISTER_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#undef KRATOS_REGISTER_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XZ, variable_residual##_XZ) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YX, variable_residual##_YX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YZ, variable_residual##_YZ) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZX, variable_residual##_ZX) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZY, variable_residual##_ZY) \
+    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZZ, variable_residual##_ZZ)
+
+//-----------------------------------------------------------------
+//
 // Flags
 //
 //-----------------------------------------------------------------
