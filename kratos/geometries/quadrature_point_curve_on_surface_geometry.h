@@ -83,10 +83,12 @@ public:
         const IntegrationPointsContainerType& rIntegrationPoints,
         ShapeFunctionsValuesContainerType& rShapeFunctionValues,
         ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
-        array_1d<double, 2> LocalTangents2d)
+        double LocalTangentsU,
+        double LocalTangentsV)
         : BaseType(ThisPoints, rIntegrationPoints,
             rShapeFunctionValues, rShapeFunctionsDerivativesVector)
-        , mLocalTangents2d(LocalTangents2d)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
     {
     }
 
@@ -96,11 +98,13 @@ public:
         const IntegrationPointsContainerType& rIntegrationPoints,
         const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
         const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
-        array_1d<double, 2> LocalTangents2d,
+        double LocalTangentsU,
+        double LocalTangentsV,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, rIntegrationPoints,
             rShapeFunctionValues, rShapeFunctionsDerivativesVector, pGeometryParent)
-        , mLocalTangents2d(LocalTangents2d)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
     {
     }
 
@@ -108,9 +112,11 @@ public:
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        array_1d<double, 2> LocalTangents2d)
+        double LocalTangentsU,
+        double LocalTangentsV)
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
-        , mLocalTangents2d(LocalTangents2d)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
     {
     }
 
@@ -118,10 +124,12 @@ public:
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        array_1d<double, 2> LocalTangents2d,
+        double LocalTangentsU,
+        double LocalTangentsV,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
-        , mLocalTangents2d(LocalTangents2d)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
     {
     }
 
@@ -131,10 +139,12 @@ public:
         const IntegrationPointType& ThisIntegrationPoint,
         const Matrix& ThisShapeFunctionsValues,
         const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
-        array_1d<double, 2> LocalTangents2d)
+        double LocalTangentsU,
+        double LocalTangentsV)
         : BaseType(ThisPoints, ThisIntegrationPoint,
             ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives)
-        , mLocalTangents2d(LocalTangents2d)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
     {
     }
 
@@ -144,11 +154,13 @@ public:
         const IntegrationPointType& ThisIntegrationPoint,
         const Matrix& ThisShapeFunctionsValues,
         const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
-        array_1d<double, 2> LocalTangents2d,
+        double LocalTangentsU,
+        double LocalTangentsV,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, ThisIntegrationPoint,
             ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives, pGeometryParent)
-        , mLocalTangents2d(LocalTangents2d)
+        , mLocalTangentsU(rOther.mLocalTangentsU)
+        , mLocalTangentsV(rOther.mLocalTangentsV)
     {
     }
 
@@ -158,7 +170,8 @@ public:
     /// Copy constructor.
     QuadraturePointCurveOnSurfaceGeometry(QuadraturePointCurveOnSurfaceGeometry const& rOther )
         : BaseType( rOther )
-        , mLocalTangents2d(rOther.mLocalTangents2d)
+        , mLocalTangentsU(rOther.mLocalTangentsU)
+        , mLocalTangentsV(rOther.mLocalTangentsV)
     {
     }
 
@@ -171,7 +184,8 @@ public:
     {
         BaseType::operator=( rOther );
 
-        mLocalTangents2d = rOther.mLocalTangents2d;
+        mLocalTangentsU = rOther.mLocalTangentsU;
+        mLocalTangentsV = rOther.mLocalTangentsV;
 
         return *this;
     }
@@ -196,7 +210,7 @@ public:
         array_1d<double, 3> a_1 = column(J, 0);
         array_1d<double, 3> a_2 = column(J, 1);
 
-        CoordinatesArrayType normal = a_2 * mLocalTangents2d[0] - a_1 * mLocalTangents2d[1];
+        CoordinatesArrayType normal = a_2 * mLocalTangentsU - a_1 * mLocalTangentsV;
 
         return normal;
     }
@@ -220,7 +234,7 @@ public:
         array_1d<double, 3> a_1 = column(J, 0);
         array_1d<double, 3> a_2 = column(J, 1);
 
-        return norm_2(a_1 * mLocalTangents2d[0] + a_2 * mLocalTangents2d[1]);
+        return norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
     }
 
     ///@}
@@ -258,7 +272,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    array_1d<double, 2> mLocalTangents2d;
+    double mLocalTangentsU;
+    double mLocalTangentsV;
 
     ///@}
     ///@name Serialization
@@ -267,8 +282,6 @@ private:
     /// Default constructor for serializer
     QuadraturePointCurveOnSurfaceGeometry()
         : BaseType()
-        , mLocalTangents2d(
-            ZeroVector(2))
     {
     }
 
@@ -277,13 +290,15 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
-        rSerializer.save("LocalTangents2d", mLocalTangents2d);
+        rSerializer.save("LocalTangentsU", mLocalTangentsU);
+        rSerializer.save("LocalTangentsV", mLocalTangentsV);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("LocalTangents2d", mLocalTangents2d);
+        rSerializer.load("LocalTangentsU", mLocalTangentsU);
+        rSerializer.load("LocalTangentsV", mLocalTangentsV);
     }
 
     ///@}
