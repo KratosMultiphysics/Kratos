@@ -26,6 +26,7 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_incompressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_perturbation_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/transonic_perturbation_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_far_field_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_embedded_lift_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_nodal_value_process.cpp
