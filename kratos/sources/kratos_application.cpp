@@ -229,11 +229,11 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D8", mHexahedra3D8Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D20", mHexahedra3D20Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D27", mHexahedra3D27Prototype);
-    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryVolume3D",  mpQuadraturePointGeometryVolume3dPrototype);
-    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface3D", mpQuadraturePointGeometrySurface3dPrototype);
-    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface2D", mpQuadraturePointGeometrySurface2dPrototype);
-    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryCurve3D",   mpQuadraturePointGeometryCurve3dPrototype);
-    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryCurve2D",   mpQuadraturePointGeometryCurve2dPrototype);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryVolume3D",  mQuadraturePointGeometryVolume3dPrototype);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface3D", mQuadraturePointGeometrySurface3dPrototype);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface2D", mQuadraturePointGeometrySurface2dPrototype);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryCurve3D",   mQuadraturePointGeometryCurve3dPrototype);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryCurve2D",   mQuadraturePointGeometryCurve2dPrototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);

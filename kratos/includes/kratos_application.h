@@ -400,11 +400,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometry
     const std::size_t num_nodes = 0;
-    const QuadraturePointGeometry<NodeType, 3, 3> mpQuadraturePointGeometryVolume3dPrototype  = QuadraturePointGeometry<NodeType, 3, 3>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 3, 2> mpQuadraturePointGeometrySurface3dPrototype = QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 2, 2> mpQuadraturePointGeometrySurface2dPrototype = QuadraturePointGeometry<NodeType, 2, 2>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 3, 1> mpQuadraturePointGeometryCurve3dPrototype   = QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 2, 1> mpQuadraturePointGeometryCurve2dPrototype   = QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 3, 3> mQuadraturePointGeometryVolume3dPrototype  = QuadraturePointGeometry<NodeType, 3, 3>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 3, 2> mQuadraturePointGeometrySurface3dPrototype = QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 2, 2> mQuadraturePointGeometrySurface2dPrototype = QuadraturePointGeometry<NodeType, 2, 2>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 3, 1> mQuadraturePointGeometryCurve3dPrototype   = QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 2, 1> mQuadraturePointGeometryCurve2dPrototype   = QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(num_nodes));
 
     // General conditions must be defined
 
