@@ -20,7 +20,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
     """The structural mechanics custom scipy base solver.
 
     This class creates the mechanical solvers to provide mass and stiffness matrices as scipy matrices.
-    
+
     Derived class must override the function SolveSolutionStep. In there the Mass and Stiffness matrices
     can be obtained as scipy matrices.
     The computation of the eigenvalue problem in this implementation is only an example how this solver is to be used.
@@ -30,7 +30,6 @@ class CustomScipyBaseSolver(MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
         super(CustomScipyBaseSolver, self).__init__(main_model_part, custom_settings)
-        self.space = KratosMultiphysics.UblasSparseSpace()
         KratosMultiphysics.Logger.PrintInfo("::[CustomScipyBaseSolver]:: ", "Construction finished")
 
     @classmethod
@@ -45,7 +44,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
     def _create_solution_scheme(self):
         """Create the scheme for the scipy solver.
 
-        The scheme determines the mass and stiffness matrices 
+        The scheme determines the mass and stiffness matrices
         """
         scheme_type = self.settings["scheme_type"].GetString()
         if scheme_type == "dynamic":
@@ -58,12 +57,12 @@ class CustomScipyBaseSolver(MechanicalSolver):
         return solution_scheme
 
     def _create_linear_solver(self):
-        ''' Linear solver will not be used. But eventually the solution strategy calls the solver's clear function. 
+        ''' Linear solver will not be used. But eventually the solution strategy calls the solver's clear function.
         To avoid crashing linear solver is provided here'''
         return KratosMultiphysics.LinearSolver()
 
     def _create_mechanical_solution_strategy(self):
-        if self.settings["block_builder"].GetBool() == True:
+        if self.settings["block_builder"].GetBool():
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
             KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)
 
@@ -81,21 +80,22 @@ class CustomScipyBaseSolver(MechanicalSolver):
                                                               False,
                                                               False )
 
-    def _MassMatrixComputation(self): 
+    def _MassMatrixComputation(self):
+        space = KratosMultiphysics.UblasSparseSpace()
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,1) #Mass Matrix
-        scheme = self.get_mechanical_solution_strategy().GetScheme() 
+        scheme = self.get_mechanical_solution_strategy().GetScheme()
 
-        aux = self.get_mechanical_solution_strategy().GetSystemMatrix() 
-        self.space.SetToZeroMatrix(aux)
-       
+        aux = self.get_mechanical_solution_strategy().GetSystemMatrix()
+        space.SetToZeroMatrix(aux)
+
         # Create dummy vectors
-        b = self.space.CreateEmptyVectorPointer()
-        self.space.ResizeVector( b, self.space.Size1(aux) )
-        self.space.SetToZeroVector(b)
+        b = space.CreateEmptyVectorPointer()
+        space.ResizeVector( b, space.Size1(aux) )
+        space.SetToZeroVector(b)
 
-        xD = self.space.CreateEmptyVectorPointer()
-        self.space.ResizeVector( xD, self.space.Size1(aux) )
-        self.space.SetToZeroVector(xD)
+        xD = space.CreateEmptyVectorPointer()
+        space.ResizeVector( xD, space.Size1(aux) )
+        space.SetToZeroVector(xD)
 
         # Build matrix
         builder_and_solver = self.get_builder_and_solver()
@@ -106,24 +106,25 @@ class CustomScipyBaseSolver(MechanicalSolver):
         builder_and_solver.ApplyDirichletConditions(scheme, self.GetComputingModelPart(), aux, xD, b)
         # Convert Mass matrix to scipy
         M = KratosMultiphysics.scipy_conversion_tools.to_csr(aux)
-        
+
         return M
 
-    def _StiffnessMatrixComputation(self): 
+    def _StiffnessMatrixComputation(self):
+        space = KratosMultiphysics.UblasSparseSpace()
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,2) #Stiffness Matrix
-        scheme = self.get_mechanical_solution_strategy().GetScheme() 
+        scheme = self.get_mechanical_solution_strategy().GetScheme()
 
-        aux = self.get_mechanical_solution_strategy().GetSystemMatrix() 
-        self.space.SetToZeroMatrix(aux)
+        aux = self.get_mechanical_solution_strategy().GetSystemMatrix()
+        space.SetToZeroMatrix(aux)
 
         # Create dummy vectors
-        b = self.space.CreateEmptyVectorPointer()
-        self.space.ResizeVector( b, self.space.Size1(aux) )
-        self.space.SetToZeroVector(b)
+        b = space.CreateEmptyVectorPointer()
+        space.ResizeVector( b, space.Size1(aux) )
+        space.SetToZeroVector(b)
 
-        xD = self.space.CreateEmptyVectorPointer()
-        self.space.ResizeVector( xD, self.space.Size1(aux) )
-        self.space.SetToZeroVector(xD)
+        xD = space.CreateEmptyVectorPointer()
+        space.ResizeVector( xD, space.Size1(aux) )
+        space.SetToZeroVector(xD)
 
         # Build matrix
         builder_and_solver = self.get_builder_and_solver()
@@ -136,7 +137,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         K = KratosMultiphysics.scipy_conversion_tools.to_csr(aux)
 
         return K
-    
+
     def _AssignVariables(self, eigenvalues, eigenvectors):
         num_eigenvalues = eigenvalues.size
         # Store eigenvalues in process info
@@ -172,7 +173,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
                     if dof.IsFixed():
                         node_eigenvectors[i,j] = 0.0
                     else:
-                        node_eigenvectors[i,j] = eigenvectors[dof.EquationId,i]   
+                        node_eigenvectors[i,j] = eigenvectors[dof.EquationId,i]
             node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX, node_eigenvectors)
 
     def SolveSolutionStep(self):
@@ -184,14 +185,11 @@ class CustomScipyBaseSolver(MechanicalSolver):
         M = self._MassMatrixComputation()
         K = self._StiffnessMatrixComputation()
 
-        ## Obtain Dofs
-        dofs = self.get_builder_and_solver().GetDofSet()
-
         ## Compute eigenvalues and eigenvectors
         tolerance = 1e-6
         iteration = M.size*100
         vals, vecs = eigsh(K, 5, M, which='SM', tol=tolerance, maxiter = iteration)
-        
+
         ## Assign results to Kratos variables
         self._AssignVariables(vals,vecs)
 

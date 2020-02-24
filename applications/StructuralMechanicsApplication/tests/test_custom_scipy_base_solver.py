@@ -27,7 +27,7 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
                 "end_time"      : 1.0
             },
             "solver_settings" : {
-                "solver_type"              : "structural_mechanics_custom_scipy_base_solver",
+                "solver_type"              : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_custom_scipy_base_solver",
                 "model_part_name"          : "Structure",
                 "domain_size"              : 3,
                 "model_import_settings"    : {
@@ -77,13 +77,13 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
         model_part_scipy = model_scipy["Structure"]
         SetupSystem(model_part_scipy)
         analysis_scipy.Run()
-        
+
         model_eigen = KratosMultiphysics.Model()
         analysis_eigen = StructuralMechanicsAnalysis(model_eigen, analysis_parameters_eigen.Clone())
         model_part_eigen = model_eigen["Structure"]
         SetupSystem(model_part_eigen)
         analysis_eigen.Run()
-        
+
         self.__CompareEigenSolution(model_part_scipy, model_part_eigen)
 
     def __CompareEigenSolution(self, model_part, model_part_with_constraints):
@@ -100,7 +100,7 @@ class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
             eig_vec_mat = node[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
             eig_vec_mat_contr = node_const[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
 
-            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 8) 
+            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 8)
 
     def __CompareMatrix(self, mat_1, mat_2, tol=7):
         self.assertEqual(mat_1.Size1(), mat_2.Size1())
