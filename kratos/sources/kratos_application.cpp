@@ -53,7 +53,6 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/quadrature_point_geometry.h"
 
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
@@ -311,22 +310,6 @@ void KratosApplication::RegisterKratosCore() {
 
     Hexahedra3D27<NodeType > Hexahedra3D27Prototype( GeometryType::PointsArrayType(27));
     Serializer::Register("Hexahedra3D27", Hexahedra3D27Prototype);
-
-    //QuadraturePointGeometry:
-    QuadraturePointGeometry<NodeType, 3> QuadraturePointGeometryVolume3dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometryVolume3D", QuadraturePointGeometryVolume3dPrototype);
-
-    QuadraturePointGeometry< NodeType, 3, 2 > QuadraturePointGeometrySurface3dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometrySurface3D", QuadraturePointGeometrySurface3dPrototype);
-
-    QuadraturePointGeometry< NodeType, 2 > QuadraturePointGeometrySurface2dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometrySurface2D", QuadraturePointGeometrySurface2dPrototype);
-
-    QuadraturePointGeometry< NodeType, 3, 1 > QuadraturePointGeometryCurve3dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometryCurve3D", QuadraturePointGeometryCurve3dPrototype);
-
-    QuadraturePointGeometry< NodeType, 2, 1 > QuadraturePointGeometryCurve2dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometryCurve2D", QuadraturePointGeometryCurve2dPrototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
