@@ -32,9 +32,31 @@ namespace Kratos
 namespace Python
 {
 
+  void SetOriginMeshZCoordinate1(ReplicateModelPartUtility& rReplicateModelPartUtility)
+  {
+      rReplicateModelPartUtility.SetOriginMeshZCoordinate();
+  }
+
+  void SetOriginMeshZCoordinate2(ReplicateModelPartUtility& rReplicateModelPartUtility, Variable<double>& rVariable)
+  {
+      rReplicateModelPartUtility.SetOriginMeshZCoordinate(rVariable);
+  }
+
+  void SetDestinationMeshZCoordinate1(ReplicateModelPartUtility& rReplicateModelPartUtility)
+  {
+      rReplicateModelPartUtility.SetDestinationMeshZCoordinate();
+  }
+
+  void SetDestinationMeshZCoordinate2(ReplicateModelPartUtility& rReplicateModelPartUtility, Variable<double>& rVariable)
+  {
+      rReplicateModelPartUtility.SetDestinationMeshZCoordinate(rVariable);
+  }
+
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
     namespace py = pybind11;
+
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> ComponentVariableType;
 
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
         .def(py::init<ModelPart& , Parameters >())
@@ -58,8 +80,6 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
-        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
-        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&,double>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
         .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
@@ -73,6 +93,12 @@ namespace Python
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::NodesContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ElementsContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ConditionsContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::NodesContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::ElementsContainerType>)
+        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::ConditionsContainerType>)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
@@ -90,10 +116,10 @@ namespace Python
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetOriginMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
-        .def("SetOriginMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
-        .def("SetDestinationMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
-        .def("SetDestinationMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
+        .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate1)
+        .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate2)
+        .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate1)
+        .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate2)
         ;
 
     py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
