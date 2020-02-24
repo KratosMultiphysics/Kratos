@@ -152,13 +152,6 @@ public:
     {
     }
 
-    QuadraturePointCurveOnSurfaceGeometry()
-        : BaseType()
-        , mLocalTangents2d(
-            ZeroVector(2))
-    {
-    }
-
     /// Destructor.
     ~QuadraturePointCurveOnSurfaceGeometry() override = default;
 
@@ -270,6 +263,14 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+
+    /// Default constructor for serializer
+    QuadraturePointCurveOnSurfaceGeometry()
+        : BaseType()
+        , mLocalTangents2d(
+            ZeroVector(2))
+    {
+    }
 
     friend class Serializer;
 
