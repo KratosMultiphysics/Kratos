@@ -197,7 +197,7 @@ public:
     typedef const TPointType& ConstPointReferenceType;
     typedef std::vector<PointPointerType> PointPointerContainerType;
 
-    /// PointsArrayType typedefs
+    /// Point iterators
     typedef typename PointsArrayType::iterator iterator;
     typedef typename PointsArrayType::const_iterator const_iterator;
 
