@@ -54,7 +54,6 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
-#include "geometries/quadrature_point_curve_on_surface_geometry.h"
 
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
@@ -328,9 +327,6 @@ void KratosApplication::RegisterKratosCore() {
 
     QuadraturePointGeometry< NodeType, 2, 1 > QuadraturePointGeometryCurve2dPrototype(GeometryType::PointsArrayType(1));
     Serializer::Register("QuadraturePointGeometryCurve2D", QuadraturePointGeometryCurve2dPrototype);
-
-    QuadraturePointCurveOnSurfaceGeometry<NodeType> QuadraturePointCurveOnSurfaceGeometryPrototype(GeometryType::PointsArrayType(0));
-    Serializer::Register("QuadraturePointCurveOnSurfaceGeometry", QuadraturePointCurveOnSurfaceGeometryPrototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
