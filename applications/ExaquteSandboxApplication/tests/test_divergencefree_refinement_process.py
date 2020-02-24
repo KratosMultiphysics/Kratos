@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExaquteSandboxApplication as ExaquteSandboxApplication
 from KratosMultiphysics.ExaquteSandboxApplication.divergencefree_refinement_process import DivergenceFreeRefinementProcess
 import KratosMultiphysics.kratos_utilities
 meshing_is_available = KratosMultiphysics.kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
