@@ -102,7 +102,7 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
         }
     }
 
-    const array_1d<double,3> & prescribed_displacement = ZeroVector(3);
+    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_IMPOSED_DISPLACEMENT);
     if (this->GetValue(FIX_DOF))
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
@@ -114,7 +114,7 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
                 if(dimension == 3)
                     r_geometry[i].pGetDof(DISPLACEMENT_Z)->FixDof();
             }
-            r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1) = prescribed_displacement;
+            r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1) = imposed_displacement;
 
             r_geometry[i].UnSetLock();
         }
