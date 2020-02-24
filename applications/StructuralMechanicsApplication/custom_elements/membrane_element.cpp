@@ -458,23 +458,12 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
-    Vector dg1 = ZeroVector(dimension);
-    Vector dg2 = ZeroVector(dimension);
-    Vector dudur = ZeroVector(dimension*number_of_nodes);
-    dudur[DofR] = 1.0;
-
-    for (SizeType i=0;i<number_of_nodes;++i){
-        dg1[0] += (dudur[(i*dimension)+0]) * rShapeFunctionGradientValues(i, 0);
-        dg1[1] += (dudur[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
-        dg1[2] += (dudur[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
-
-        dg2[0] += (dudur[(i*dimension)+0]) * rShapeFunctionGradientValues(i, 1);
-        dg2[1] += (dudur[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
-        dg2[2] += (dudur[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
+    const SizeType dof_nr = DofR%dimension;
+    const SizeType node_nr = (DofR-dof_nr)/dimension;
+    for (SizeType i=0;i<2;++i){
+        rBaseVectors[i] = ZeroVector(dimension);
+        rBaseVectors[i][dof_nr] = rShapeFunctionGradientValues(node_nr, i);
     }
-    rBaseVectors[0] = dg1;
-    rBaseVectors[1] = dg2;
 }
 
 void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
@@ -954,7 +943,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
 void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-
         rOutput = ZeroMatrix(3);
         array_1d<Vector,2> base_vectors_current_cov;
         const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
@@ -984,6 +972,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         std::vector< Vector > prestress_matrix;
         CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
+
         rOutput = ZeroMatrix(3,r_integration_points.size());
 
         // each column represents 1 GP

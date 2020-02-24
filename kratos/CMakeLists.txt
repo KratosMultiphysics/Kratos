@@ -12,7 +12,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_pointer_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_application.cpp;
@@ -42,6 +41,7 @@ set( KRATOS_CORE_SOURCES
     #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/data_value_container.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp;
@@ -126,7 +126,6 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp

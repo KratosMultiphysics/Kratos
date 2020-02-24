@@ -211,8 +211,13 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
             for (size_t i = 0; i < current_particle->mContinuumInitialNeighborsSize; i++) {
                 SphericParticle* p_neighbour_sphere = current_particle->mNeighbourElements[i];
 		        if (p_neighbour_sphere == NULL) continue;
+
                 if (p_neighbour_sphere->Is(VISITED)) continue; //not necessary, but saves increasing and decreasing stack_of_particles_to_check's size
                 if (current_particle->mIniNeighbourFailureId[i]) continue;
+
+                auto existing_element_it = dem_model_part.GetMesh(0).Elements().find(p_neighbour_sphere->Id());
+                if (existing_element_it == dem_model_part.GetMesh(0).ElementsEnd()) continue;
+
                 SphericContinuumParticle* p_neigh_cont_sphere = dynamic_cast<SphericContinuumParticle*>(p_neighbour_sphere);
                 stack_of_particles_to_check.push_back(p_neigh_cont_sphere);
             }
