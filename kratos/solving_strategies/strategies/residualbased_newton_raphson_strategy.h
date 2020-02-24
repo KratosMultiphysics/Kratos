@@ -128,7 +128,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
-          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
@@ -189,7 +188,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
-          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
@@ -236,7 +234,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
-          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -292,7 +289,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
-          mFullUpdateFlag(false),
           mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -423,20 +419,20 @@ class ResidualBasedNewtonRaphsonStrategy
 
     /**
      * @brief This method sets the flag mFullUpdateFlag
-     * @param FullUpdateFlag The flag that tells if
+     * @param UseOldStiffnessInFirstIterationFlag The flag that tells if
      */
-    void SetFullUpdateFlag(bool FullUpdateFlag)
+    void SetUseOldStiffnessInFirstIterationFlag(bool UseOldStiffnessInFirstIterationFlag)
     {
-        mFullUpdateFlag = FullUpdateFlag;
+        mUseOldStiffnessInFirstIteration = UseOldStiffnessInFirstIterationFlag;
     }
 
     /**
      * @brief This method returns the flag mFullUpdateFlag
      * @return The flag that tells if
      */
-    bool GetFullUpdateFlag()
+    bool GetUseOldStiffnessInFirstIterationFlag()
     {
-        return mFullUpdateFlag;
+        return mUseOldStiffnessInFirstIteration;
     }
 
     /**
@@ -795,9 +791,65 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            if (mUseOldStiffnessInFirstIteration)
+            {
+                KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
+                << "Using previous stiffness in first iteration" << std::endl;
+
+                TSystemVectorType dx_prediction(r_dof_set.size());
+                dx_prediction.clear();
+                TSystemVectorType rhs_addition(r_dof_set.size());
+                rhs_addition.clear();
+
+                // Here we bring back the database to before the prediction,
+                // but we store the prediction increment in dx_prediction.
+                // The goal is that the stiffness is computed with the
+                // converged configuration at the end of the previous step.
+
+                //TODO: do in parallel
+                for (auto &dof : r_dof_set) {
+                    dx_prediction[dof.EquationId()] = dof.GetSolutionStepValue() - dof.GetSolutionStepValue(1);
+                    // Bring back the database
+                    dof.GetSolutionStepValue() = dof.GetSolutionStepValue(1); //
+                }
+
+                // TODO: Use UpdateDatabase. Beware it requires -Dx_pred
+                //UpdateDatabase(rA, -dx_prediction, rb, BaseType::MoveMeshFlag());
+                // TODO: this needs to be protected by an if. Remove when implemented updatedatabase
+                if (BaseType::MoveMeshFlag()) {
+                    BaseType::MoveMesh();
+                }
+
+                p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
+
+                TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
+                noalias(rb) -= rhs_addition;
+
+                //if(r_model_part.MasterSlaveConstraints().size() != 0) {
+                if (!r_model_part.MasterSlaveConstraints().empty()) {
+                    p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
+                }
+                p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+                // TODO: here we should use SystemSolveWithPhysics
+                p_builder_and_solver->SystemSolve(rA, rDx, rb);
+
+                // TODO: Prepare it for Trilinos
+                //TSparseSpace::UnaliasedAdd(rDx,dx_prediction); //dx += dx_prediction;
+
+                // Here we apply back the prediction
+                for (auto &dof : r_dof_set) {
+                    // Bring back the database
+                    dof.GetSolutionStepValue() += dx_prediction[dof.EquationId()];
+                }
+                // TODO: this needs to be protected by an if, or even better needs to use updatedatabase
+                if (BaseType::MoveMeshFlag()){
+                    BaseType::MoveMesh();
+                }
+            } else {
+                p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            }
         } else {
-            TSparseSpace::SetToZero(rDx); //Dx=0.00;
+            TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
 
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
@@ -1110,7 +1162,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @brief Flag telling if a full update of the database will be performed at the first iteration
      * @details default = false
      */
-    bool mFullUpdateFlag;
+    bool mUseOldStiffnessInFirstIteration = false;
 
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
@@ -1198,7 +1250,7 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual Parameters GetDefaultSettings()
     {
         Parameters default_settings(R"({
-            "full_update_at_first_iteration": false,
+            "use_old_stiffness_in_first_iteration": false,
             "max_iterations"           : 30,
             "reform_dofs_at_each_step" : false,
             "calculate_reactions"      : false
@@ -1215,7 +1267,7 @@ class ResidualBasedNewtonRaphsonStrategy
         mMaxIterationNumber = Settings["max_iterations"].GetInt();
         mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
         mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
-        mFullUpdateFlag = Settings["full_update_at_first_iteration"].GetBool();
+        mUseOldStiffnessInFirstIteration = Settings["use_old_stiffness_in_first_iteration"].GetBool();
     }
 
     ///@}

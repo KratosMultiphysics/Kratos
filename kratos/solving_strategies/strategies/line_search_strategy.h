@@ -146,7 +146,7 @@ public:
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
-    
+
     /**
      * Constructor with pointer to BuilderAndSolver
      * @param rModelPart The model part of the problem
@@ -350,99 +350,108 @@ protected:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
-        const bool MoveMesh
+        const bool MoveMesh//,
+        //bool complete_update
     ) override
     {
-        typename TSchemeType::Pointer pScheme = this->GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+        // Skip LINE SEARCH if initialized with previous stiffness
+        if (this->mUseOldStiffnessInFirstIteration &&
+            this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] == 1)
+        {
+            BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
+        } else {
 
-        TSystemVectorType aux(Dx);
-        
-        double x1 = mFirstAlphaValue;
-        double x2 = mSecondAlphaValue;
+            typename TSchemeType::Pointer pScheme = this->GetScheme();
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
-        bool converged = false;
-        int it = 0;
-        double xprevious = 0.0;
+            TSystemVectorType aux(Dx);
 
-        //Compute residual with 1 coefficient update (x1)
-        //since no update was performed yet, this includes an increment wrt the previous
-        //solution of x1*Dx
-        TSparseSpace::Assign(aux,x1-xprevious, Dx);
-        xprevious = x1;
-        BaseType::UpdateDatabase(A,aux,b,MoveMesh); 
-        TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        double r1 = TSparseSpace::Dot(aux,b);
-        
-        double rmax = std::abs(r1);
-        while(!converged && it < mMaxLineSearchIterations) {
+            double x1 = mFirstAlphaValue;
+            double x2 = mSecondAlphaValue;
 
-            //Compute residual with 2 coefficient update (x2)
-            //since the database was initialized with x1*Dx
-            //we need to apply ONLY THE INCREMENT, that is (x2-xprevious)*Dx
-            TSparseSpace::Assign(aux,x2-xprevious, Dx);
-            xprevious = x2;
+            bool converged = false;
+            int it = 0;
+            double xprevious = 0.0;
+
+            //Compute residual with 1 coefficient update (x1)
+            //since no update was performed yet, this includes an increment wrt the previous
+            //solution of x1*Dx
+            TSparseSpace::Assign(aux,x1-xprevious, Dx);
+            xprevious = x1;
             BaseType::UpdateDatabase(A,aux,b,MoveMesh);
             TSparseSpace::SetToZero(b);
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-            double r2 = TSparseSpace::Dot(aux,b);
+            double r1 = TSparseSpace::Dot(aux,b);
 
-            if(it == 0) {
-                rmax = std::max(rmax,std::abs(r2));
-            }
-            double rmin = std::min(std::abs(r1),std::abs(r2));
+            double rmax = std::abs(r1);
+            while(!converged && it < mMaxLineSearchIterations) {
 
-            //Find optimum
-            double x = 1.0;
-            if(std::abs(r1 - r2) > 1e-10)
-                x =  (r1*x2 - r2*x1)/(r1 - r2);
-            
-            if(x < mMinAlpha) {
-                x = mMinAlpha;
-            } else if(x > mMaxAlpha) {
-                x = mMaxAlpha;
-            }                
+                //Compute residual with 2 coefficient update (x2)
+                //since the database was initialized with x1*Dx
+                //we need to apply ONLY THE INCREMENT, that is (x2-xprevious)*Dx
+                TSparseSpace::Assign(aux,x2-xprevious, Dx);
+                xprevious = x2;
+                BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+                TSparseSpace::SetToZero(b);
+                pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+                double r2 = TSparseSpace::Dot(aux,b);
 
-            //Perform final update
-            TSparseSpace::Assign(aux,x-xprevious, Dx);
-            xprevious = x;
-            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
-            if(rmin < mLineSearchTolerance*rmax) {
-                KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
-                converged = true;
-                TSparseSpace::Assign(aux,x, Dx);
-                break;
-            }
-
-            //note that we compute the next residual only if it is strictly needed (we break on the line before if it is not needed)
-            TSparseSpace::SetToZero(b);
-            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-            double rf = TSparseSpace::Dot(aux,b);
-
-            KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
-
-
-            if(std::abs(rf) < rmax*mLineSearchTolerance) {
-                converged = true;
-                TSparseSpace::Assign(aux,x, Dx);
-            } else {
-                if(std::abs(r1)>std::abs(r2)) {
-                    r1 = rf;
-                    x1 = x;
-                } else {
-                    r2 = r1;
-                    x2 = x1;
-                    r1 = rf;
-                    x1 = x;
+                if(it == 0) {
+                    rmax = std::max(rmax,std::abs(r2));
                 }
-                converged = false;
-            }
+                double rmin = std::min(std::abs(r1),std::abs(r2));
+
+                //Find optimum
+                double x = 1.0;
+                if(std::abs(r1 - r2) > 1e-10)
+                    x =  (r1*x2 - r2*x1)/(r1 - r2);
+
+                if(x < mMinAlpha) {
+                    x = mMinAlpha;
+                } else if(x > mMaxAlpha) {
+                    x = mMaxAlpha;
+                }
+
+                //Perform final update
+                TSparseSpace::Assign(aux,x-xprevious, Dx);
+                xprevious = x;
+                BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+                if(rmin < mLineSearchTolerance*rmax) {
+                    KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x <<      " r1 = " << r1 << " r2 = " << r2 << std::endl;
+                    converged = true;
+                    TSparseSpace::Assign(aux,x, Dx);
+                    break;
+                }
+
+                //note that we compute the next residual only if it is strictly needed (we break on the lin    e before if it is not needed)
+                TSparseSpace::SetToZero(b);
+                pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+                double rf = TSparseSpace::Dot(aux,b);
+
+                KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x << " r    f = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
 
 
-            it++;
+                if(std::abs(rf) < rmax*mLineSearchTolerance) {
+                    converged = true;
+                    TSparseSpace::Assign(aux,x, Dx);
+                } else {
+                    if(std::abs(r1)>std::abs(r2)) {
+                        r1 = rf;
+                        x1 = x;
+                    } else {
+                        r2 = r1;
+                        x2 = x1;
+                        r1 = rf;
+                        x1 = x;
+                    }
+                    converged = false;
+                }
+
+
+                it++;
         }
         TSparseSpace::SetToZero(b);
+    }
     }
 
     /**
@@ -460,7 +469,7 @@ protected:
             "line_search_tolerance"      : 0.5
         })");
         default_settings.AddMissingParameters(base_default_settings);
-        return default_settings;    
+        return default_settings;
     }
 
     /**
