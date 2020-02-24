@@ -209,7 +209,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                 for (unsigned int k = 0; k < dimension; k++)
                 {
-                    lagrange_matrix(i* dimension+k, i* dimension+k) = 0.001/this->GetIntegrationWeight();
+                    lagrange_matrix(i* dimension+k, i* dimension+k) = 0.001;///this->GetIntegrationWeight();
                     lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
                     lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
                 }
@@ -226,22 +226,29 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         if ( CalculateResidualVectorFlag == true )
         {
             Vector gap_function = ZeroVector(matrix_size);
+            Vector right_hand_side = ZeroVector(matrix_size);
+            Vector imposed_displacement = ZeroVector(matrix_size);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
                 const array_1d<double, 3>& r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                 const int index = dimension * i;
 
                 for (unsigned int j = 0; j < dimension; j++)
-                    gap_function[index+j]          = r_displacement[j] - r_imposed_displacement[j];
+                    gap_function[index+j]          = r_displacement[j] ;
 
             }
             auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
             const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-            for (unsigned int j = 0; j < dimension; j++)
-                    gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
+            for (unsigned int j = 0; j < dimension; j++){
+                gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
+                imposed_displacement[dimension * number_of_nodes+j] = r_imposed_displacement[j];
+            }
+                    
 
 
-            noalias(rRightHandSideVector) -= prod(lagrange_matrix, gap_function);
+            right_hand_side = prod(lagrange_matrix, gap_function) - imposed_displacement;
+            noalias(rRightHandSideVector) -= right_hand_side;
+
         }
 
     }

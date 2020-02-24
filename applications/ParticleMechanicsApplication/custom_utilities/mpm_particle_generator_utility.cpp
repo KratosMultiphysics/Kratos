@@ -400,7 +400,7 @@ namespace MPMParticleGeneratorUtility
                                 case 2: // Only nodal
                                     break;
                                 case 3:
-                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                                     break;
                                 case 4:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
@@ -684,7 +684,7 @@ namespace MPMParticleGeneratorUtility
                         last_condition_id += integration_point_per_conditions;
 
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
-                        if (boundary_condition_type==1 or boundary_condition_type==3){
+                        if (boundary_condition_type==1 || boundary_condition_type==3  ){
                             for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                             {
                                 // Nodal normal vector is used
