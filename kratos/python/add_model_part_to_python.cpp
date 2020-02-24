@@ -88,7 +88,7 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
 
 Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
     ModelPart& rModelPart,
-    const std::string GeometryTypeName,
+    const std::string& GeometryTypeName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
     Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
@@ -101,7 +101,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
 
 Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
     ModelPart& rModelPart,
-    const std::string GeometryTypeName,
+    const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
@@ -115,7 +115,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
 
 Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
     ModelPart& rModelPart,
-    const std::string GeometryTypeName,
+    const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
