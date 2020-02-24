@@ -141,7 +141,6 @@ namespace Kratos
     // Compute local auxiliar divergence
     double CalculateDivergenceProcess::ComputeAuxiliaryElementDivergence(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
-        const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         double aux_current_divergence;
         aux_current_divergence = grad_x[0] + grad_y[1] + grad_z[2];
         return aux_current_divergence;
@@ -150,7 +149,6 @@ namespace Kratos
     // Compute local auxiliar velocity seminorm
     double CalculateDivergenceProcess::ComputeAuxiliaryElementVelocitySeminorm(Vector& grad_x, Vector& grad_y, Vector& grad_z)
     {
-        const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         double aux_current_velocity_seminorm;
         aux_current_velocity_seminorm = inner_prod(grad_x, grad_x) + inner_prod(grad_y, grad_y) + inner_prod(grad_z,grad_z);
         return aux_current_velocity_seminorm;
