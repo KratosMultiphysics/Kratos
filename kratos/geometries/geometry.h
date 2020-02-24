@@ -127,7 +127,6 @@ public:
     typedef PointerVector<GeometryType> GeometriesArrayType;
 
     typedef TPointType PointType;
-    typedef typename TPointType::Pointer PointPointerType;
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
