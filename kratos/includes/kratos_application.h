@@ -295,6 +295,61 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpArray1D9VariableComponentsTimeDerivatives;
     }
 
+    VariablesDerivatives<Variable<double>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        Variable<double> const& rComponentType) {
+        return *mpDoubleVariableResiduals;
+    }
+
+    VariablesDerivatives<Variable<array_1d<double, 3>>>::DerivativesDatabaseType&
+    GetVariableResidualVariables(Variable<array_1d<double, 3>> const& rComponentType) {
+        return *mpArray1DVariableResiduals;
+    }
+
+    VariablesDerivatives<Variable<array_1d<double, 4>>>::DerivativesDatabaseType&
+    GetVariableResidualVariables(Variable<array_1d<double, 4>> const& rComponentType) {
+        return *mpArray1D4VariableResiduals;
+    }
+
+    VariablesDerivatives<Variable<array_1d<double, 6>>>::DerivativesDatabaseType&
+    GetVariableResidualVariables(Variable<array_1d<double, 6>> const& rComponentType) {
+        return *mpArray1D6VariableResiduals;
+    }
+
+    VariablesDerivatives<Variable<array_1d<double, 9>>>::DerivativesDatabaseType&
+    GetVariableResidualVariables(Variable<array_1d<double, 9>> const& rComponentType) {
+        return *mpArray1D9VariableResiduals;
+    }
+
+    VariablesDerivatives<Variable<Vector>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        Variable<Vector> const& rComponentType) {
+        return *mpVectorVariableResiduals;
+    }
+
+    VariablesDerivatives<Variable<Matrix>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        Variable<Matrix> const& rComponentType) {
+        return *mpMatrixVariableResiduals;
+    }
+
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 3>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rComponentType) {
+        return *mpArray1DVariableComponentsVariableResiduals;
+    }
+
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 4>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rComponentType) {
+        return *mpArray1D4VariableComponentsVariableResiduals;
+    }
+
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 6>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rComponentType) {
+        return *mpArray1D6VariableComponentsVariableResiduals;
+    }
+
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 9>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
+        VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rComponentType) {
+        return *mpArray1D9VariableComponentsVariableResiduals;
+    }
+
     Serializer::RegisteredObjectsContainerType& GetRegisteredObjects() {
         return *mpRegisteredObjects;
     }
@@ -496,6 +551,19 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::DerivativesDatabaseType* mpArray1D4VariableComponentsTimeDerivatives;
     VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::DerivativesDatabaseType* mpArray1D6VariableComponentsTimeDerivatives;
     VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::DerivativesDatabaseType* mpArray1D9VariableComponentsTimeDerivatives;
+
+    // Residual variables
+    VariablesDerivatives<Variable<double> >::DerivativesDatabaseType* mpDoubleVariableResiduals;
+    VariablesDerivatives<Variable<array_1d<double, 3> > >::DerivativesDatabaseType* mpArray1DVariableResiduals;
+    VariablesDerivatives<Variable<array_1d<double, 4> > >::DerivativesDatabaseType* mpArray1D4VariableResiduals;
+    VariablesDerivatives<Variable<array_1d<double, 6> > >::DerivativesDatabaseType* mpArray1D6VariableResiduals;
+    VariablesDerivatives<Variable<array_1d<double, 9> > >::DerivativesDatabaseType* mpArray1D9VariableResiduals;
+    VariablesDerivatives<Variable<Vector> >::DerivativesDatabaseType* mpVectorVariableResiduals;
+    VariablesDerivatives<Variable<Matrix> >::DerivativesDatabaseType* mpMatrixVariableResiduals;
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::DerivativesDatabaseType* mpArray1DVariableComponentsVariableResiduals;
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::DerivativesDatabaseType* mpArray1D4VariableComponentsVariableResiduals;
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::DerivativesDatabaseType* mpArray1D6VariableComponentsVariableResiduals;
+    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::DerivativesDatabaseType* mpArray1D9VariableComponentsVariableResiduals;
 
     // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
