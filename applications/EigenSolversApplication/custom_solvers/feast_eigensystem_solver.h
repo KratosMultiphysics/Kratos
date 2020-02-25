@@ -114,6 +114,11 @@ class FEASTEigensystemSolver
 
         if( rEigenvectors.size1() != rK.size1() || rEigenvectors.size2() != mParam["M0"].GetInt() )
             rEigenvectors.resize(rK.size1(), mParam["M0"].GetInt(), false);
+        // noalias(rEigenvectors) = ZeroMatrix(rEigenvectors.size1(), rEigenvectors.size2());
+
+        //create column based matrix for the fortran routine
+        //TODO: change data type
+        matrix<double,column_major> tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
 
         VectorType Residual(mParam["M0"].GetInt());
         KRATOS_WATCH(Residual)
@@ -123,10 +128,13 @@ class FEASTEigensystemSolver
         KRATOS_WATCH(fpm)
         echo_level > 0 ? fpm[0] = 1 : fpm[0] = 0;
         // fpm[2] = 8;
+
+        //TODO if this is used, the other half of eigenvalues/vectors should be excluded from the solution
         fpm[39] = -1; //M0/2 lowest eigenvalues in interval
 
         char UPLO = 'F';
         int N = static_cast<int>(rK.size1());
+
         double* A = rK.value_data().begin();
         int IA[N+1] = {};
         KRATOS_WATCH(N+1)
@@ -165,11 +173,13 @@ class FEASTEigensystemSolver
         // int* M0 = (int*) mParam["M0"].GetInt();
         int M0 = mParam["M0"].GetInt();
         double* E = rEigenvalues.data().begin();
-        double* X = rEigenvectors.data().begin();
+        double* X = tmp_eigenvectors.data().begin();
+        // double* X = rEigenvectors.data().begin();
         int M;
         double* res = Residual.data().begin();
         int info;
-        std::cout << "geschafft\n";
+
+        // std::cout << "geschafft\n";
         /**
         // KRATOS_WATCH(rM.index1_data())
         std::for_each(rM.index1_data().begin(), rM.index1_data().end(), [](size_t i) { std::cout << i << ","; });
@@ -202,185 +212,9 @@ class FEASTEigensystemSolver
         **/
         dfeast_scsrgv(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, &Emin, &Emax, &M0, E, X, &M, res, &info);
         
-        std::cout << "yeah\n";
-
-        // // --- wrap ublas matrices
-
-        // UblasWrapper<scalar_t> a_wrapper(rK);
-        // UblasWrapper<scalar_t> b_wrapper(rM);
-
-        // const auto& a = a_wrapper.matrix();
-        // const auto& b = b_wrapper.matrix();
-
-
-        // // --- timer
-
-        // double start_time = OpenMPUtils::GetCurrentTime();
-
-        // KRATOS_INFO_IF("FEASTEigensystemSolver:", echo_level > 0) << "Start"  << std::endl;
-
-        // // --- calculation
-
-        // int nn = a.rows();
-        // int nc = std::min(2 * nroot, nroot + 8);
-
-        // // projections
-        // matrix_t ar(nc, nc);
-        // matrix_t br(nc, nc);
-
-        // // storage for eigenvalues
-        // vector_t prev_eigv = vector_t::Zero(nc);
-
-        // // storage for eigenvectors
-        // matrix_t r = matrix_t::Zero(nn, nc);
-        // for (int i = 0; i != nn; ++i) {
-        //     r(i, 0) = b.coeff(i, i);
-        // }
-
-        // vector_t tmp(nn);
-
-        // // working vector
-        // vector_t w(nn);
-        // for (int i = 0; i != nn; ++i) {
-        //     w(i) = r(i, 0) / a.coeff(i, i);
-        // }
-
-        // int nd = nn / nc;
-        // int l = nn - nd;
-
-        // vector_t tt(nn);
-        // int ij = 0;
-
-        // tt(0) = 0.0;
-
-        // for (int j = 1; j != nc; ++j) {
-        //     double rt = 0.0;
-
-        //     for (int i = 0; i != l; ++i) {
-        //         if (w(i) >= rt) {
-        //             rt = w(i);
-        //             ij = i;
-        //         }
-        //     }
-
-        //     for (int i = l - 1; i != nn; ++i) {
-        //         if (w(i) > rt) {
-        //             rt = w(i);
-        //             ij = i;
-        //         }
-        //     }
-
-        //     tt(j) = ij;
-        //     w(ij) = 0.0;
-
-        //     l -= nd;
-
-        //     r(ij, j) = 1.0;
-        // }
-
-        // #if defined USE_EIGEN_MKL
-        // EigenPardisoLDLTSolver<double> solver;
-        // #else  // defined USE_EIGEN_MKL
-        // EigenSparseLUSolver<double> solver;
-        // #endif // defined USE_EIGEN_MKL
-
-        // solver.Compute(a);
-
-        // int iteration = 0;
-
-        // Eigen::GeneralizedSelfAdjointEigenSolver<matrix_t> eig;
-
-        // do {
-        //     iteration++;
-
-        //     KRATOS_INFO_IF("FEASTEigensystemSolver:", echo_level > 1) << "Iteration " << iteration <<std::endl;
-
-        //     for (int j = 0; j != nc; ++j) {
-        //         tmp = r.col(j);
-        //         solver.Solve(tmp, tt);
-
-        //         for (int i = j; i != nc; ++i) {
-        //             ar(i, j) = r.col(i).dot(tt);
-        //         }
-
-        //         r.col(j) = tt;
-        //     }
-
-        //     for (int j = 0; j != nc; ++j) {
-        //         tt = b * r.col(j);
-
-        //         for (int i = j; i != nc; ++i) {
-        //             br(i, j) = r.col(i).dot(tt);
-        //         }
-
-        //         r.col(j) = tt;
-        //     }
-
-        //     eig.compute(ar, br);
-
-        //     if(eig.info() != Eigen::Success) {
-        //         KRATOS_WARNING("FEASTEigensystemSolver:") << "Eigen solution was not successful!" << std::endl;
-        //         break;
-        //     }
-
-        //     r *= eig.eigenvectors();
-
-        //     bool is_converged = true;
-        //     for (int i = 0; i != nc; i++) {
-        //         double eigv = eig.eigenvalues()(i);
-        //         double dif = eigv - prev_eigv(i);
-        //         double rtolv = std::abs(dif / eigv);
-
-        //         if (rtolv > tolerance) {
-        //             is_converged = false;
-        //             KRATOS_WARNING_IF("FEASTEigensystemSolver:", echo_level > 1) << "Convergence not reached for eigenvalue #"<<i+1<<": " << rtolv <<"." << std::endl;
-        //             break;
-        //         }
-        //     }
-
-        //     if (is_converged) {
-        //         KRATOS_INFO_IF("FEASTEigensystemSolver:", echo_level > 0) << "Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
-        //         break;
-        //     } else if (iteration >= max_iteration) {
-        //         KRATOS_INFO_IF("FEASTEigensystemSolver:", echo_level > 0) << "Convergence not reached in " << max_iteration << " iterations." << std::endl;
-        //         break;
-        //     }
-
-        //     prev_eigv = eig.eigenvalues();
-        // } while (true);
-
-
-        // if (static_cast<int>(rEigenvalues.size()) != nroot) {
-        //     rEigenvalues.resize(nroot);
-        // }
-        // if (static_cast<int>(rEigenvectors.size1()) != nroot || static_cast<int>(rEigenvectors.size2()) != nn) {
-        //     rEigenvectors.resize(nroot, nn);
-        // }
-
-        // Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
-        // Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
-
-        // eigvals = eig.eigenvalues().head(nroot);
-
-        // for (int i = 0; i != nroot; ++i) {
-        //     tmp = r.col(i);
-        //     solver.Solve(tmp, eigvecs.row(i));
-        //     eigvecs.row(i).normalize();
-        // }
-
-        // // --- normalization
-        // // Given generalized eigenvalue problem (A - eigenvalue * B) * eigenvector = 0,
-        // // eigenvector is normalized such that eigenvector^T * B * eigenvector = 1
-        // if(mParam["normalize_eigenvectors"].GetBool())
-        // {
-        //     for (int i = 0; i != nroot; ++i)
-        //     {
-        //         const double tmp = eigvecs.row(i) * b * eigvecs.row(i).transpose();
-        //         const double factor = 1.0 / std::sqrt(tmp);
-        //         eigvecs.row(i) *=  factor;
-        //         KRATOS_INFO_IF("FEASTEigensystemSolver:", echo_level > 0) << "Eigenvector " << i+1 << " is normalized - used factor: " << factor << std::endl;
-        //     }
-        // }
+        // copy eigenvectors back to the provided row based matrix
+        noalias(rEigenvectors) = tmp_eigenvectors;
+        // std::cout << "yeah\n";
 
         // // --- output
         // if (echo_level > 0) {
