@@ -159,8 +159,8 @@ public:
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, ThisIntegrationPoint,
             ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives, pGeometryParent)
-        , mLocalTangentsU(rOther.mLocalTangentsU)
-        , mLocalTangentsV(rOther.mLocalTangentsV)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
     {
     }
 
