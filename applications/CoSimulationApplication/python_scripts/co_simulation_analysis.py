@@ -91,7 +91,7 @@ class CoSimulationAnalysis(AnalysisStage):
             CoSimulationAnalysis.Flush()
 
     def GetSubSolver(self, sub_solver_name):
-        self._GetSolver(solver_name).GetSubSolver(sub_solver_name)
+        return self._GetSolver().GetSubSolver(sub_solver_name)
 
     @staticmethod
     def Flush():
