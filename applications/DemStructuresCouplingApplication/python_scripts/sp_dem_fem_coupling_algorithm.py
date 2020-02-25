@@ -113,7 +113,7 @@ class SPAlgorithm(Algorithm):
 
         while self.structural_solution.time < self.structural_solution.end_time:
 
-            portion_of_the_force_which_is_new = 0.4
+            portion_of_the_force_which_is_new = 0.1
             DemFem.DemStructuresCouplingUtilities().SmoothLoadTrasferredToFem(self.dem_solution.rigid_face_model_part, portion_of_the_force_which_is_new)
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
