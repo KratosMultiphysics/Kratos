@@ -512,7 +512,7 @@ protected:
 
     virtual inline const double GetDeltaTime()
     {
-        return GetModelPart().GetProcessInfo()[DELTA_TIME];
+        return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
     }
 
     ///@}

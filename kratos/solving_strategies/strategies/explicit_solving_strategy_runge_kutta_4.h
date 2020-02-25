@@ -224,6 +224,7 @@ protected:
 
         // Perform the RK 4 update
         const double dt = BaseType::GetDeltaTime();
+        KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
         auto& r_model_part = BaseType::GetModelPart();
 
         // Set the previous step solution in the current buffer position
