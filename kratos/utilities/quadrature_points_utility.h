@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "geometries/geometry.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/quadrature_point_curve_on_surface_geometry.h"
 
 namespace Kratos
 {
@@ -45,6 +46,36 @@ namespace Kratos
         ///@}
         ///@name Operations
         ///@{
+
+        static typename GeometryType::Pointer CreateQuadraturePointCurveOnSurface(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            double LocalTangentU,
+            double LocalTangentV,
+            GeometryType* pGeometryParent)
+        {
+            return Kratos::make_shared<
+                QuadraturePointCurveOnSurfaceGeometry<TPointType, 1>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentU,
+                    LocalTangentV,
+                    pGeometryParent);
+        }
+
+        static typename GeometryType::Pointer CreateQuadraturePointCurveOnSurface(
+            SizeType WorkingSpaceDimension,
+            SizeType LocalSpaceDimension,
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints)
+        {
+            return Kratos::make_shared<
+                QuadraturePointCurveOnSurfaceGeometry<TPointType, 1>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentU,
+                    LocalTangentV);
+        }
 
         static typename GeometryType::Pointer CreateQuadraturePoint(
             SizeType WorkingSpaceDimension,
