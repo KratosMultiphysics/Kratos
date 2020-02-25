@@ -130,6 +130,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ORIENTATION)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -145,12 +146,19 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[1] = 2.0
         displacement[2] = 3.0
 
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
+        orientation = KratosMultiphysics.Quaternion()
+        orientation.X = 1.0
+        orientation.Y = 2.0
+        orientation.Z = 3.0
+        orientation.W = 4.0
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_X, velocity[0], model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_Y, velocity[1], model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_Z, velocity[2], model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DISPLACEMENT, displacement, model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PARTITION_INDEX, partition_index, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.ORIENTATION, orientation, model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:
@@ -158,6 +166,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY), viscosity)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.ORIENTATION).X, 1.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.ORIENTATION).W, 4.0)
 
     def test_set_nonhistorical_variable(self):
         current_model = KratosMultiphysics.Model()
@@ -166,6 +176,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ORIENTATION)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -176,9 +187,17 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[1] = 2.0
         displacement[2] = 3.0
 
+        orientation = KratosMultiphysics.Quaternion()
+        orientation.X = 1.0
+        orientation.Y = 2.0
+        orientation.Z = 3.0
+        orientation.W = 4.0
+
         # First for nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.DISPLACEMENT, displacement, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.ORIENTATION, orientation, model_part.Nodes)
+
 
         ##verify the result
         for node in model_part.Nodes:
@@ -186,6 +205,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(KratosMultiphysics.DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetValue(KratosMultiphysics.DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetValue(KratosMultiphysics.VISCOSITY), viscosity)
+            self.assertEqual(node.GetValue(KratosMultiphysics.ORIENTATION).X, 1.0)
+            self.assertEqual(node.GetValue(KratosMultiphysics.ORIENTATION).W, 4.0)
 
         # Now for conditions (it will work for elements too)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.VISCOSITY, viscosity, model_part.Conditions)

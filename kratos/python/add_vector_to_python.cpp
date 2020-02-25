@@ -24,6 +24,7 @@
 #include "includes/ublas_complex_interface.h"
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -148,6 +149,15 @@ namespace Python
         py::implicitly_convertible<Vector, array_1d<double,TSize>>();
     }
 
+    double QuaternionGetX(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.x(); }
+    double QuaternionGetY(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.y(); }
+    double QuaternionGetZ(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.z(); }
+    double QuaternionGetW(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.w(); }
+    void QuaternionSetX(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Setx(Value); }
+    void QuaternionSetY(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Sety(Value); }
+    void QuaternionSetZ(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Setz(Value); }
+    void QuaternionSetW(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Setw(Value); }
+
     void  AddVectorToPython(pybind11::module& m)
     {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
@@ -249,6 +259,14 @@ namespace Python
         CreateArray1DInterface< 4 >(m,"Array4");
         CreateArray1DInterface< 6 >(m,"Array6");
         CreateArray1DInterface< 9 >(m,"Array9");
+
+        py::class_<Quaternion<double>, Quaternion<double>::Pointer>(m, "Quaternion")
+        .def(py::init<>())
+        .def_property("X", QuaternionGetX, QuaternionSetX)
+        .def_property("Y", QuaternionGetY, QuaternionSetY)
+        .def_property("Z", QuaternionGetZ, QuaternionSetZ)
+        .def_property("W", QuaternionGetW, QuaternionSetW)
+        ;
 
     }
 }  // namespace Python.
