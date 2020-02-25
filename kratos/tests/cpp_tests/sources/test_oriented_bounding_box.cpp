@@ -102,8 +102,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 5, second_quad[i].X(), second_quad[i].Y(), second_quad[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element2D4N", 1, {1, 2, 3, 4}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element2D4N", 2, {5, 6, 7, 8}, p_properties_1);
@@ -138,8 +138,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 5, second_quad[i].X(), second_quad[i].Y(), second_quad[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element2D4N", 1, {1, 2, 3, 4}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element2D4N", 2, {5, 6, 7, 8}, p_properties_1);
@@ -266,8 +266,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 5, second_quad[i].X(), second_quad[i].Y(), second_quad[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element2D4N", 1, {1, 2, 3, 4}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element2D4N", 2, {5, 6, 7, 8}, p_properties_1);
@@ -369,8 +369,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 9, second_hexa[i].X(), second_hexa[i].Y(), second_hexa[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element3D8N", 2, {9, 10, 11, 12, 13, 14, 15, 16}, p_properties_1);
@@ -405,8 +405,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 9, second_hexa[i].X(), second_hexa[i].Y(), second_hexa[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element3D8N", 2, {9, 10, 11, 12, 13, 14, 15, 16}, p_properties_1);
@@ -518,8 +518,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 9, second_hexa[i].X(), second_hexa[i].Y(), second_hexa[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element3D8N", 2, {9, 10, 11, 12, 13, 14, 15, 16}, p_properties_1);
@@ -554,8 +554,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 9, second_hexa[i].X(), second_hexa[i].Y(), second_hexa[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element3D8N", 2, {9, 10, 11, 12, 13, 14, 15, 16}, p_properties_1);
@@ -672,8 +672,8 @@ namespace Kratos {
 //             r_model_part2.CreateNewNode(i + 9, second_hexa[i].X(), second_hexa[i].Y(), second_hexa[i].Z());
 //         }
 //
-//         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-//         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+//         Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+//         Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 //
 //         r_model_part1.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);
 //         r_model_part2.CreateNewElement("Element3D8N", 2, {9, 10, 11, 12, 13, 14, 15, 16}, p_properties_1);

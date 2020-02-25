@@ -1,6 +1,7 @@
 //
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
+#include "includes/define_python.h"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"

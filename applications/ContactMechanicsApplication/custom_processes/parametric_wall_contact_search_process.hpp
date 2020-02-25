@@ -514,7 +514,7 @@ namespace Kratos
       //create properties prototype for the contact conditions
       unsigned int NumberOfProperties = mrMainModelPart.NumberOfProperties();
 
-      mpProperties = Kratos::make_shared<PropertiesType>(NumberOfProperties);
+      mpProperties = Kratos::make_intrusive<PropertiesType>(NumberOfProperties);
 
       // Friction Law is not a Kratos Component
       // std::string FrictionLawName = CustomParameters["friction_law_type"].GetString();

@@ -606,7 +606,7 @@ protected:
 
       //PROPERTIES:
       int number_of_properties = rModelPart.NumberOfProperties();
-      Properties::Pointer pProperties = Kratos::make_shared<Properties>(number_of_properties);
+      Properties::Pointer pProperties = Kratos::make_intrusive<Properties>(number_of_properties);
 
       unsigned int local_counter = 1;
       unsigned int counter       = 0;

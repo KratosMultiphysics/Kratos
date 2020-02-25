@@ -50,7 +50,7 @@ namespace Testing {
 
     void SetTestInterfaceConditions2D(ModelPart &rTestModelPart)
     {
-        Properties::Pointer p_cond_prop = Kratos::make_shared<Properties>();
+        Properties::Pointer p_cond_prop = Kratos::make_intrusive<Properties>();
         rTestModelPart.AddProperties(p_cond_prop, 0);
         rTestModelPart.CreateNewCondition("Condition2D2N", 1, {{1,2}}, p_cond_prop);
         rTestModelPart.CreateNewCondition("Condition2D2N", 2, {{2,3}}, p_cond_prop);

@@ -277,7 +277,7 @@ namespace Kratos
             }
         }
 
-        Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(max_prop_id + 1);
+        Properties::Pointer p_new_prop = Kratos::make_intrusive<Properties>(max_prop_id + 1);
         mrModelPart.AddProperties(p_new_prop);
 
         return p_new_prop;

@@ -45,7 +45,7 @@ void PostProcessUtilities::DefineAuxiliaryProperties()
     {
         // Get pointers to the properties and create the dry property
         auto wet_prop = mrModelPart.pGetProperties(id);
-        auto dry_prop = Kratos::make_shared<Properties>(*wet_prop);
+        auto dry_prop = Kratos::make_intrusive<Properties>(*wet_prop);
         dry_prop->SetId(++max_id);
 
         // Add the new properties to the model part and add them to the maps

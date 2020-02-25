@@ -92,7 +92,7 @@ namespace Testing {
         ModelPart& str_model_part =current_model.CreateModelPart("StructureModelPart");
         str_model_part.SetBufferSize(3);
         str_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
+        Properties::Pointer p_prop(0);
         str_model_part.CreateNewNode(1000, 0.6, 0.2, 0.0);
         str_model_part.CreateNewNode(2000, 0.6, 0.4, 0.0);
         str_model_part.CreateNewNode(3000, 0.8, 0.4, 0.0);
