@@ -22,7 +22,7 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_processes/weighted_divergence_calculation_process.h"
+#include "custom_processes/calculate_divergence_process.h"
 #include "exaqute_sandbox_application_variables.h"
 
 namespace Kratos {
@@ -31,22 +31,14 @@ namespace Kratos {
         /**
 	     * Auxiliar function to generate a triangular element to be tested.
 	     */
-        void GenerateModelPartToTestDivergence(
+        void GenerateModelPartToTestDivergenceProcess(
             ModelPart& rModelPart) {
 
             // Variables addition
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
 
             // Process info creation
-            const int buffer_size = 2;
-            const double delta_time = 0.1;
-            rModelPart.SetBufferSize(buffer_size);
             rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
-            rModelPart.GetProcessInfo().SetValue(TIME, 0.6);
-            rModelPart.GetProcessInfo().SetValue(END_TIME, 1.0);
-            rModelPart.CloneTimeStep(rModelPart.GetProcessInfo().GetValue(TIME) + delta_time);
-            rModelPart.GetProcessInfo().GetPreviousTimeStepInfo(1).SetValue(TIME, 0.6);
-            rModelPart.GetProcessInfo().SetValue(END_TIME, 1.0);
 
             // Element creation
             rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0);
@@ -67,41 +59,31 @@ namespace Kratos {
                 it_node->FastGetSolutionStepValue(VELOCITY_Y) = 2.0 * i_node;
                 it_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0 * i_node;
             }
-
-            // Add element data
-            auto elements_begin = rModelPart.ElementsBegin();
-            for (unsigned int i_elem = 0; i_elem < rModelPart.NumberOfElements(); ++i_elem){
-                auto it_elem = elements_begin + i_elem;
-                it_elem->SetValue(AVERAGED_DIVERGENCE,0.5);
-                it_elem->SetValue(VELOCITY_H1_SEMINORM,0.5);
-            }
         }
 
 	    /**
 	     * Checks the time average divergence utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedDivergence, ExaquteSandboxApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(CalculationDivergence, ExaquteSandboxApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
-            GenerateModelPartToTestDivergence(model_part);
+            GenerateModelPartToTestDivergenceProcess(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
-            // Initialize the element
-            p_element->Initialize();
-
             // Call the divergence time average process
-            WeightedDivergenceCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
+            CalculateDivergenceProcess(model_part).ExecuteInitialize();
+            CalculateDivergenceProcess(model_part).ExecuteBeforeOutputStep();
 
             // Check computed values over the elements
             auto elements_begin = model_part.ElementsBegin();
             for (unsigned int i_elem = 0; i_elem < model_part.NumberOfElements(); ++i_elem){
                 auto it_elem = elements_begin + i_elem;
-                double divergence_value = it_elem->GetValue(AVERAGED_DIVERGENCE);
+                double divergence_value = it_elem->GetValue(DIVERGENCE);
                 double velocity_seminorm_value = it_elem->GetValue(VELOCITY_H1_SEMINORM);
-                KRATOS_CHECK_NEAR(divergence_value, 1.3416407865, 1e-10);
-                KRATOS_CHECK_NEAR(velocity_seminorm_value, 1.3509256086, 1e-10);
+                KRATOS_CHECK_NEAR(divergence_value, 8.0, 1e-10);
+                KRATOS_CHECK_NEAR(velocity_seminorm_value, 8.125, 1e-10);
             }
         }
 

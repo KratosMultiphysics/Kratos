@@ -109,7 +109,7 @@ namespace Kratos {
       Vector resultant_force(3);
       ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
 
-      std::array<double,3> reference({0.0, 0.5, 0.0});
+      std::array<double,3> reference{0.0, 0.5, 0.0};
       KRATOS_WATCH(resultant_force)
 
       for (unsigned int i = 0; i < 3; i++) {
