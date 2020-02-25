@@ -351,13 +351,13 @@ public:
     {
         const SizeType points_per_span = PolynomialDegree() + 1;
 
-        CreateIntegrationPoints(
+        this->CreateIntegrationPoints(
             rIntegrationPoints, KnotSpanIntervals(), points_per_span);
     }
 
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        std::vector<NurbsInterval>& rSpanIntervals,
+        const std::vector<NurbsInterval>& rSpanIntervals,
         SizeType IntegrationPointsPerSpan) const
     {
         const SizeType number_of_integration_points =
