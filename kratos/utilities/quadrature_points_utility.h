@@ -65,9 +65,9 @@ namespace Kratos
 
         static typename GeometryType::Pointer CreateQuadraturePointCurveOnSurface(
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
             double LocalTangentU,
-            double LocalTangentV,
-            PointsArrayType rPoints)
+            double LocalTangentV)
         {
             return Kratos::make_shared<
                 QuadraturePointCurveOnSurfaceGeometry<TPointType, 1>>(
