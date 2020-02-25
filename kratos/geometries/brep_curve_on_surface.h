@@ -259,8 +259,8 @@ public:
         IndexType NumberOfShapeFunctionDerivatives,
         const IntegrationPointsArrayType& rIntegrationPoints) override
     {
-        mpCurveOnSurface->CreateIntegrationPoints(
-            rIntegrationPoints);
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
     }
 
     ///@}
