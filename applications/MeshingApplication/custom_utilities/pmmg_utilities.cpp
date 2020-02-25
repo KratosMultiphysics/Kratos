@@ -91,8 +91,6 @@ template struct PMMGMeshInfo<PMMGLibrary::PMMG3D>;
 
 // The member variables related with the PMMG library
 PMMG_pParMesh mParMmgMesh;      /// The mesh data from PMMG
-// MMG5_pSol     mParMmgSol;    /// The metric variable for PMMG
-// MMG5_pSol     mParMmgDisp;   /// The displacement variable for PMMG
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -762,12 +760,12 @@ template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckMeshData()
 {
     KRATOS_ERROR << "CheckMeshData Not Yet Implemented" << std::endl;
-    // if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-    //     KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgSol) != 1 ) << "Wrong solution data" << std::endl;
-    //     KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
-    // } else {
-    //     KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
-    // }
+//     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+//         KRATOS_ERROR_IF( PMMG_Check(mParMmgMesh, mParMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+//         KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
+//     } else {
+//         KRATOS_ERROR_IF( PMMG_Chk_meshData(mParMmgMesh, mParMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+//     }
 }
 
 /***********************************************************************************/
@@ -776,15 +774,14 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckMeshData()
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputMesh(const std::string& rOutputName)
 {
-    KRATOS_ERROR << "InputMesh Not Yet Implemented" << std::endl;
-    // const std::string mesh_name = rOutputName + ".mesh";
-    // const char* mesh_file = mesh_name.c_str();
+     const std::string mesh_name = rOutputName + ".mesh";
+     const char* mesh_file = mesh_name.c_str();
 
     // // a)  Give the ouptut mesh name using PMMG_Set_inputMeshName
-    // PMMG_Set_inputMeshName(mParMmgMesh, mesh_file);
+     PMMG_Set_inputMeshName(mParMmgMesh, mesh_file);
 
     // // b) function calling
-    // KRATOS_INFO_IF("ParMmgUtilities", PMMG_loadMesh(mParMmgMesh, mesh_file) != 1) << "UNABLE TO LOAD MESH" << std::endl;
+     KRATOS_INFO_IF("ParMmgUtilities", PMMG_loadMesh_distributed(mParMmgMesh, mesh_file) != 1) << "UNABLE TO LOAD MESH" << std::endl;
 }
 
 /***********************************************************************************/
@@ -793,15 +790,14 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputMesh(const std::string& rOutputN
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputSol(const std::string& rInputName)
 {
-    KRATOS_ERROR << "InputSol Not Yet Implemented" << std::endl;
-    // const std::string sol_name = rInputName + ".sol";
-    // const char* sol_file = sol_name.c_str();
+     const std::string sol_name = rInputName + ".sol";
+     const char* sol_file = sol_name.c_str();
 
     // // a)  Give the ouptut mesh name using PMMG_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
-    // PMMG_Set_inputSolName(mParMmgMesh,  sol_file);
+     PMMG_Set_inputSolsName(mParMmgMesh,  sol_file);
 
     // // b) function calling
-    // KRATOS_INFO_IF("ParMmgUtilities", PMM_loadSol(mParMmgMesh,  sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
+     KRATOS_INFO_IF("ParMmgUtilities", PMMG_loadSol_centralized(mParMmgMesh,  sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
 }
 
 /***********************************************************************************/
@@ -810,15 +806,14 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputSol(const std::string& rInputNam
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputMesh(const std::string& rOutputName)
 {
-    KRATOS_ERROR << "OutputMesh Not Yet Implemented" << std::endl;
-    // const std::string mesh_name = rOutputName + ".mesh";
-    // const char* mesh_file = mesh_name.c_str();
+     const std::string mesh_name = rOutputName + ".mesh";
+     const char* mesh_file = mesh_name.c_str();
 
     // // a)  Give the ouptut mesh name using PMMG_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
-    // PMMG_Set_outputMeshName(mParMmgMesh,mesh_file);
+     PMMG_Set_outputMeshName(mParMmgMesh,mesh_file);
 
     // // b) function calling
-    // KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveMesh(mParMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+     KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveMesh_centralized(mParMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
 }
 
 /***********************************************************************************/
@@ -827,15 +822,14 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputMesh(const std::string& rOutput
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputSol(const std::string& rOutputName)
 {
-    KRATOS_ERROR << "OutputSol Not Yet Implemented" << std::endl;
-    // const std::string sol_name = rOutputName + ".sol";
-    // const char* sol_file = sol_name.c_str();
+     const std::string sol_name = rOutputName + ".sol";
+     const char* sol_file = sol_name.c_str();
 
     // // a)  Give the ouptut sol name using PMMG_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    // PMMG_Set_outputSolName(mParMmgMesh,  sol_file);
+     PMMG_Set_outputSolsName(mParMmgMesh,  sol_file);
 
     // // b) Function calling
-    // KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveSol(mParMmgMesh, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+     KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveMet_centralized(mParMmgMesh, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
 }
 
 /***********************************************************************************/
@@ -845,14 +839,14 @@ template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputDisplacement(const std::string& rOutputName)
 {
     KRATOS_ERROR << "OutputDisplacement Not Yet Implemented" << std::endl;
-    // const std::string sol_name = rOutputName + ".disp.sol";
-    // const char* sol_file = sol_name.c_str();
+//     const std::string sol_name = rOutputName + ".disp.sol";
+//     const char* sol_file = sol_name.c_str();
 
     // // a)  Give the ouptut sol name using PMMG_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    // PMMG_Set_outputSolName(mParMmgMesh, mParMmgDisp, sol_file);
+//     PMMG_Set_outputSolName(mParMmgMesh, mParMmgDisp, sol_file);
 
     // // b) Function calling
-    // KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveSol(mParMmgMesh,mParMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+//     KRATOS_INFO_IF("ParMmgUtilities", PMMG_saveSol(mParMmgMesh,mParMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
 }
 
 /***********************************************************************************/

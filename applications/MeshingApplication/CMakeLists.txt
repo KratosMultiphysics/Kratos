@@ -44,6 +44,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_PMMG ${KRATOS_MESHING_APPLICATION_CORE_PMMG}
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/pmmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/pmmg_io.cpp
 )
 endif(${INCLUDE_PMMG} MATCHES ON)
 
@@ -100,7 +101,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${PMMG_INCLUDE_DIR})
     INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
 
-    target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt ${METIS_LIBRARY} ${PMMG_LIBRARY} ${MMG3D_LIBRARY})
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore KratosMPICore triangle tetMeshOpt ${METIS_LIBRARY} ${PMMG_LIBRARY} ${MMG3D_LIBRARY})
 endif(${INCLUDE_PMMG} MATCHES ON)
 
 if(${INCLUDE_MMG} MATCHES ON)
