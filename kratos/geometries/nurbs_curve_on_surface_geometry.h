@@ -193,7 +193,7 @@ public:
                 rIntegrationPoints[i],
                 1);
 
-            if (IsRational()) {
+            if (mpNurbsSurface->IsRational()) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(),
                     global_space_derivatives[0][0], global_space_derivatives[0][1]);
