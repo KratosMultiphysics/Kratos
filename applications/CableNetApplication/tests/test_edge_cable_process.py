@@ -8,9 +8,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CableNetApplication import edge_cable_element_process
 
-
-import matplotlib.pyplot as plt
-
 class EdgeCableProcessTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
