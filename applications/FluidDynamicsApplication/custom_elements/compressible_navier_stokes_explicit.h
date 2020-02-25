@@ -6,7 +6,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla (based on Elisa Magliozzi previous work)
 //
@@ -51,16 +51,26 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// TODO: UPDATE THIS INFORMATION
-/**this element is a 3D stokes element, stabilized by employing an ASGS stabilization
-* formulation is described in the file:
-*    https://drive.google.com/file/d/0B_gRLnSH5vCwZ2Zxd09YUmlPZ28/view?usp=sharing
-* symbolic implementation is defined in the file:
-*    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
-*/
-template< unsigned int TDim, unsigned int TBlockSize = TDim + 2, unsigned int TNumNodes = TDim + 1 >
+/**
+ * @brief Compressible Navier-Stokes explicit element
+ * This element implements a compressible Navier-Stokes explicit formulation.
+ * The formulation is written in conservative form so the element unknowns are
+ * the DENSITY, MOMENTUM and TOTAL_ENERGY variables.
+ * This element is intended to work with the Kratos explicit DOF based strategy.
+ * Hence, the explicit residual is written in the corresponding REACTION variables.
+ * @tparam TDim The space dimension (2 or 3)
+ * @tparam TNumNodes The number of nodes
+ */
+template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
 class CompressibleNavierStokesExplicit : public Element
 {
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    static constexpr unsigned int mBlockSize = TDim + 2;
+
+    ///@}
 public:
     ///@name Type Definitions
     ///@{
@@ -70,7 +80,7 @@ public:
 
     struct ElementDataStruct
     {
-        BoundedMatrix<double, TNumNodes, TBlockSize> U;
+        BoundedMatrix<double, TNumNodes, mBlockSize> U;
         BoundedMatrix<double, TNumNodes, TDim> f_ext;
         array_1d<double, TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
         array_1d<double, TDim> f_gauss;
@@ -95,17 +105,21 @@ public:
     ///@{
 
     /// Default constructor.
-
-    CompressibleNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    CompressibleNavierStokesExplicit(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
     {}
 
-    CompressibleNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    CompressibleNavierStokesExplicit(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    ~CompressibleNavierStokesExplicit() override {};
+    ~CompressibleNavierStokesExplicit() override = default;
 
     ///@}
     ///@name Operators
@@ -122,7 +136,7 @@ public:
         PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim, TBlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -132,10 +146,20 @@ public:
         PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim, TBlockSize, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
+    /**
+     * This is called during the assembling process in order to
+     * calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * Note that this is explicitly forbidden as this element is
+     * conceived to only work with explicit time integration schemes
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -148,13 +172,39 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * This is called to calculate the elemental explicit residual contribution
+     * The computed residual will be later on assembled in the reaction DOFs
+     * inside the add explicit contribution method.
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    /**
+     * This is called during the assembling process in order
+     * to calculate the elemental contribution in explicit calculation.
+     * NodalData is modified Inside the function, so the
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+      * @param rCurrentProcessInfo the current process info instance
+     */
     void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override;
 
-    /// Checks the input and that all required Kratos variables have been registered.
+    /**
+     * This is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -164,24 +214,6 @@ public:
      * @return 0 if no errors were found.
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        ElementDataStruct data;
-        this->FillElementData(data, rCurrentProcessInfo);
-
-        if (rVariable == ERROR_RATIO) {
-            // rOutput = this->SubscaleErrorEstimate(data);
-            this->SetValue(ERROR_RATIO, rOutput);
-        }
-
-        KRATOS_CATCH("")
-    }
 
     ///@}
     ///@name Access
@@ -210,7 +242,10 @@ public:
     }
 
     /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -227,21 +262,31 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * This determines the elemental equation ID vector for all elemental DOFs
+     * @param rResult the elemental equation ID vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void EquationIdVector(
+        EquationIdVectorType &rResult,
+        ProcessInfo &rCurrentProcessInfo) override;
+
+    /**
+     * Determines the elemental list of DOFs
+     * @param ElementalDofList the list of DOFs
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void GetDofList(
         DofsVectorType &ElementalDofList,
         const ProcessInfo &rCurrentProcessInfo) const override;
 
-    // double ShockCapturingViscosity(const ElementDataStruct& rData) const;
-
-    // double ShockCapturingConductivity(const ElementDataStruct& rData) const;
-
+    /**
+     * @brief Calculates the shock capturing values
+     * This function is intended to calculate the shock capturing values
+     * These are the shock capturing viscosity and thermal diffusivity
+     * @param rData Reference to the element data container
+     */
     void CalculateShockCapturingValues(ElementDataStruct &rData) const;
-
-    void ComputeGaussPointRHSContribution(
-        array_1d<double, TNumNodes * TBlockSize>& rhs,
-        const ElementDataStruct& rData);
-
-    double SubscaleErrorEstimate(const ElementDataStruct& rData);
 
     ///@}
     ///@name Protected Operators
@@ -253,12 +298,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // Auxiliar function to fill the element data structure
+    /**
+     * @brief Fill element data
+     * Auxiliary function to fill the element data structure
+     * @param rData Reference to the element data structure to be filled
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
     void FillElementData(
         ElementDataStruct& rData,
         const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX);
+    /**
+     * @brief Calculate the element size
+     * This function calculates and returns the element size from the shape function gradients
+     * @param rDN_DX Reference to the shape functions container
+     * @return double The computed element size
+     */
+    double CalculateElementSize(const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX);
 
     ///@}
     ///@name Protected  Access
@@ -280,13 +336,16 @@ private:
     ///@name Static Member Variables
     ///@{
 
+
     ///@}
     ///@name Member Variables
     ///@{
 
+
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -300,7 +359,6 @@ private:
     }
 
     ///@}
-
     ///@name Private Operations
     ///@{
 
@@ -320,11 +378,8 @@ private:
     ///@{
 
     ///@}
-
 };
-
 ///@}
-
 ///@name Type Definitions
 ///@{
 
@@ -334,21 +389,7 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                                    Fluid2DASGS& rThis);
- */
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                                    const Fluid2DASGS& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-      return rOStream;
-    }*/
 ///@}
-
 } // namespace Kratos.
 
 #endif // KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED  defined

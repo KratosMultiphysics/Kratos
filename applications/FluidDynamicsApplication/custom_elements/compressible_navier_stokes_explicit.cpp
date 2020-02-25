@@ -23,6 +23,67 @@
 namespace Kratos {
 
 template <>
+void CompressibleNavierStokesExplicit<2>::EquationIdVector(
+    EquationIdVectorType &rResult,
+    ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    constexpr unsigned int n_nodes = 3;
+    constexpr unsigned int block_size = 4;
+    constexpr unsigned int dof_size = n_nodes * block_size;
+
+    if (rResult.size() != dof_size) {
+        rResult.resize(dof_size);
+    }
+
+    unsigned int local_index = 0;
+    const auto& r_geometry = GetGeometry();
+    const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY, den_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_X, mom_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_Y, mom_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(TOTAL_ENERGY, enr_pos).EquationId();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <>
+void CompressibleNavierStokesExplicit<3>::EquationIdVector(
+    EquationIdVectorType &rResult,
+    ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    constexpr unsigned int n_nodes = 4;
+    constexpr unsigned int block_size = 5;
+    constexpr unsigned int dof_size = n_nodes * block_size;
+
+    if (rResult.size() != dof_size) {
+        rResult.resize(dof_size);
+    }
+
+    unsigned int local_index = 0;
+    const auto& r_geometry = GetGeometry();
+    const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY, den_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_X, mom_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_Y, mom_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_Z, mom_pos + 2).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(TOTAL_ENERGY, enr_pos).EquationId();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <>
 void CompressibleNavierStokesExplicit<2>::GetDofList(
     DofsVectorType &ElementalDofList,
     const ProcessInfo &rCurrentProcessInfo) const
@@ -83,8 +144,8 @@ void CompressibleNavierStokesExplicit<3>::GetDofList(
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TBlockSize, unsigned int TNumNodes>
-int CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
+template <unsigned int TDim, unsigned int TNumNodes>
+int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -127,8 +188,8 @@ int CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::Check(const P
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TBlockSize, unsigned int TNumNodes>
-void CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::FillElementData(
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -137,7 +198,7 @@ void CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::FillElementD
     GeometryUtils::CalculateGeometryData(r_geometry, rData.DN_DX, rData.N, rData.volume);
 
     // Compute element size
-    rData.h = ComputeH(rData.DN_DX);
+    rData.h = CalculateElementSize(rData.DN_DX);
 
     // Database access to all of the variables needed
     Properties &r_properties = this->GetProperties();
@@ -164,8 +225,8 @@ void CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::FillElementD
     CalculateShockCapturingValues(rData);
 }
 
-template <unsigned int TDim, unsigned int TBlockSize, unsigned int TNumNodes>
-double CompressibleNavierStokesExplicit<TDim, TBlockSize, TNumNodes>::ComputeH(BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
+template <unsigned int TDim, unsigned int TNumNodes>
+double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
 {
     double h = 0.0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -3278,6 +3339,105 @@ void CompressibleNavierStokesExplicit<3>::AddExplicitContribution(const ProcessI
     }
 }
 
+template <>
+void CompressibleNavierStokesExplicit<2>::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    constexpr IndexType n_nodes = 3;
+    constexpr IndexType block_size = 4;
+
+    // Hardcoded shape functions for linear triangular element
+    // This is explicitly done to minimize the allocation and matrix acceses
+    // The notation N_i_j means shape function for node j in Gauss pt. i
+    const double one_sixt = 1.0 / 6.0;
+    const double two_third = 2.0 / 3.0;
+    const double N_0_0 = one_sixt;
+    const double N_0_1 = one_sixt;
+    const double N_0_2 = two_third;
+    const double N_1_0 = one_sixt;
+    const double N_1_1 = two_third;
+    const double N_1_2 = one_sixt;
+    const double N_2_0 = two_third;
+    const double N_2_1 = one_sixt;
+    const double N_2_2 = one_sixt;
+
+    // Initialize and fill the mass matrix values
+    const unsigned int size = n_nodes * block_size;
+    rMassMatrix = ZeroMatrix(size, size);
+    rMassMatrix(0, 0) = N_0_0; rMassMatrix(0, 4) = N_0_1; rMassMatrix(0, 8) = N_0_2;
+    rMassMatrix(1, 1) = N_0_0; rMassMatrix(1, 5) = N_0_1; rMassMatrix(1, 9) = N_0_2;
+    rMassMatrix(2, 2) = N_0_0; rMassMatrix(2, 6) = N_0_1; rMassMatrix(2, 10) = N_0_2;
+    rMassMatrix(3, 3) = N_0_0; rMassMatrix(3, 7) = N_0_1; rMassMatrix(3, 11) = N_0_2;
+    rMassMatrix(4, 0) = N_1_0; rMassMatrix(4, 4) = N_1_1; rMassMatrix(4, 8) = N_1_2;
+    rMassMatrix(5, 1) = N_1_0; rMassMatrix(5, 5) = N_1_1; rMassMatrix(5, 9) = N_1_2;
+    rMassMatrix(6, 2) = N_1_0; rMassMatrix(6, 6) = N_1_1; rMassMatrix(6, 10) = N_1_2;
+    rMassMatrix(7, 3) = N_1_0; rMassMatrix(7, 7) = N_1_1; rMassMatrix(7, 11) = N_1_2;
+    rMassMatrix(8, 0) = N_2_0; rMassMatrix(8, 4) = N_2_1; rMassMatrix(8, 8) = N_2_2;
+    rMassMatrix(9, 1) = N_2_0; rMassMatrix(9, 5) = N_2_1; rMassMatrix(9, 9) = N_2_2;
+    rMassMatrix(10, 2) = N_2_0; rMassMatrix(10, 6) = N_2_1; rMassMatrix(10, 10) = N_2_2;
+    rMassMatrix(11, 3) = N_2_0; rMassMatrix(11, 7) = N_2_1; rMassMatrix(11, 11) = N_2_2;
+
+    // Here we assume that all the Gauss pt. have the same weight so we multiply by the area
+    rMassMatrix *= GetGeometry().Area();
+}
+
+template <>
+void CompressibleNavierStokesExplicit<3>::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    constexpr IndexType n_nodes = 4;
+    constexpr IndexType block_size = 5;
+
+    // Hardcoded shape functions for linear tetrahedra element
+    // This is explicitly done to minimize the alocation and matrix acceses
+    // The notation N_i_j means shape function for node j in Gauss pt. i
+    const double N_0_0 = 0.58541020;
+    const double N_0_1 = 0.13819660;
+    const double N_0_2 = 0.13819660;
+    const double N_0_3 = 0.13819660;
+    const double N_1_0 = 0.13819660;
+    const double N_1_1 = 0.58541020;
+    const double N_1_2 = 0.13819660;
+    const double N_1_3 = 0.13819660;
+    const double N_2_0 = 0.13819660;
+    const double N_2_1 = 0.13819660;
+    const double N_2_2 = 0.58541020;
+    const double N_2_3 = 0.13819660;
+    const double N_3_0 = 0.13819660;
+    const double N_3_1 = 0.13819660;
+    const double N_3_2 = 0.13819660;
+    const double N_3_3 = 0.58541020;
+
+    // Initialize and fill the mass matrix values
+    const unsigned int size = n_nodes * block_size;
+    rMassMatrix = ZeroMatrix(size, size);
+    rMassMatrix(0, 0) = N_0_0; rMassMatrix(0, 5) = N_0_1; rMassMatrix(0, 10) = N_0_2; rMassMatrix(0,15) = N_0_3;
+    rMassMatrix(1, 1) = N_0_0; rMassMatrix(1, 6) = N_0_1; rMassMatrix(1, 11) = N_0_2; rMassMatrix(1,16) = N_0_3;
+    rMassMatrix(2, 2) = N_0_0; rMassMatrix(2, 7) = N_0_1; rMassMatrix(2, 12) = N_0_2; rMassMatrix(2,17) = N_0_3;
+    rMassMatrix(3, 3) = N_0_0; rMassMatrix(3, 8) = N_0_1; rMassMatrix(3, 13) = N_0_2; rMassMatrix(3,18) = N_0_3;
+    rMassMatrix(4, 4) = N_0_0; rMassMatrix(4, 9) = N_0_1; rMassMatrix(4, 14) = N_0_2; rMassMatrix(4,19) = N_0_3;
+    rMassMatrix(5, 0) = N_1_0; rMassMatrix(5, 5) = N_1_1; rMassMatrix(5, 10) = N_1_2; rMassMatrix(5,15) = N_1_3;
+    rMassMatrix(6, 1) = N_1_0; rMassMatrix(6, 6) = N_1_1; rMassMatrix(6, 11) = N_1_2; rMassMatrix(6,16) = N_1_3;
+    rMassMatrix(7, 2) = N_1_0; rMassMatrix(7, 7) = N_1_1; rMassMatrix(7, 12) = N_1_2; rMassMatrix(7,17) = N_1_3;
+    rMassMatrix(8, 3) = N_1_0; rMassMatrix(8, 8) = N_1_1; rMassMatrix(8, 13) = N_1_2; rMassMatrix(8,18) = N_1_3;
+    rMassMatrix(9, 4) = N_1_0; rMassMatrix(9, 9) = N_1_1; rMassMatrix(9, 14) = N_1_2; rMassMatrix(9,19) = N_1_3;
+    rMassMatrix(10, 0) = N_2_0; rMassMatrix(10, 5) = N_2_1; rMassMatrix(10, 10) = N_2_2; rMassMatrix(10,15) = N_2_3;
+    rMassMatrix(11, 1) = N_2_0; rMassMatrix(11, 6) = N_2_1; rMassMatrix(11, 11) = N_2_2; rMassMatrix(11,16) = N_2_3;
+    rMassMatrix(12, 2) = N_2_0; rMassMatrix(12, 7) = N_2_1; rMassMatrix(12, 12) = N_2_2; rMassMatrix(12,17) = N_2_3;
+    rMassMatrix(13, 3) = N_2_0; rMassMatrix(13, 8) = N_2_1; rMassMatrix(13, 13) = N_2_2; rMassMatrix(13,18) = N_2_3;
+    rMassMatrix(14, 4) = N_2_0; rMassMatrix(14, 9) = N_2_1; rMassMatrix(14, 14) = N_2_2; rMassMatrix(14,19) = N_2_3;
+    rMassMatrix(15, 0) = N_3_0; rMassMatrix(15, 5) = N_3_1; rMassMatrix(15, 10) = N_3_2; rMassMatrix(15,15) = N_3_3;
+    rMassMatrix(16, 1) = N_3_0; rMassMatrix(16, 6) = N_3_1; rMassMatrix(16, 11) = N_3_2; rMassMatrix(16,16) = N_3_3;
+    rMassMatrix(17, 2) = N_3_0; rMassMatrix(17, 7) = N_3_1; rMassMatrix(17, 12) = N_3_2; rMassMatrix(17,17) = N_3_3;
+    rMassMatrix(18, 3) = N_3_0; rMassMatrix(18, 8) = N_3_1; rMassMatrix(18, 13) = N_3_2; rMassMatrix(18,18) = N_3_3;
+    rMassMatrix(19, 4) = N_3_0; rMassMatrix(19, 9) = N_3_1; rMassMatrix(19, 14) = N_3_2; rMassMatrix(19,19) = N_3_3;
+
+    // Here we assume that all the Gauss pt. have the same weight so we multiply by the volume
+    rMassMatrix *= GetGeometry().Volume();
+}
+
 // TODO: We still require to decide the shock capturing technique
 template <>
 void CompressibleNavierStokesExplicit<2>::CalculateShockCapturingValues(ElementDataStruct &rData) const
@@ -3293,394 +3453,6 @@ void CompressibleNavierStokesExplicit<3>::CalculateShockCapturingValues(ElementD
     rData.nu_sc = 0.0;
     rData.lambda_sc = 0.0;
 }
-
-// template<>
-// double CompressibleNavierStokesExplicit<2>::ShockCapturingViscosity(const ElementDataStruct& rData) const
-// {
-//     const int dim = 2;
-//     const int n_nodes = 3;
-//     const int block_size = dim + 2;
-
-//     const double h = rData.h;                                // Characteristic element size
-//     const double alpha = 0.8;                               // Algorithm constant
-//     const double tol = 0.001;
-
-//     const BoundedMatrix<double, n_nodes, block_size>& U = rData.U;
-//     const BoundedMatrix<double, n_nodes, dim>& f_ext = rData.f_ext;
-//     const double gamma = rData.gamma;
-//     double v_sc = 0.0;                                      //Shock capturing viscosity
-//     BoundedMatrix<double, dim, 1> res_m;
-//     res_m(0,0) =0; res_m(1,0) =0;
-
-//     // Solution vector values from nodal data
-//     // This is intentionally done in this way to limit the matrix acceses
-//     // The notation U_i_j DOF j value in node i
-//     const double &U_0_0 = rData.U(0, 0);
-//     const double &U_0_1 = rData.U(0, 1);
-//     const double &U_0_2 = rData.U(0, 2);
-//     const double &U_0_3 = rData.U(0, 3);
-//     const double &U_1_0 = rData.U(1, 0);
-//     const double &U_1_1 = rData.U(1, 1);
-//     const double &U_1_2 = rData.U(1, 2);
-//     const double &U_1_3 = rData.U(1, 3);
-//     const double &U_2_0 = rData.U(2, 0);
-//     const double &U_2_1 = rData.U(2, 1);
-//     const double &U_2_2 = rData.U(2, 2);
-//     const double &U_2_3 = rData.U(2, 3);
-
-//     // Hardcoded shape functions for linear triangular element
-//     // This is explicitly done to minimize the allocation and matrix acceses
-//     // The notation N_i_j means shape function for node j in Gauss pt. i
-//     const double one_sixt = 1.0 / 6.0;
-//     const double two_third = 2.0 / 3.0;
-//     const double N_0_0 = one_sixt;
-//     const double N_0_1 = one_sixt;
-//     const double N_0_2 = two_third;
-//     const double N_1_0 = one_sixt;
-//     const double N_1_1 = two_third;
-//     const double N_1_2 = one_sixt;
-//     const double N_2_0 = two_third;
-//     const double N_2_1 = one_sixt;
-//     const double N_2_2 = one_sixt;
-
-//     // Hardcoded shape functions gradients for linear triangular element
-//     // This is explicitly done to minimize the matrix acceses
-//     // The notation DN_i_j means shape function for node i in dimension j
-//     const double &DN_DX_0_0 = rData.DN_DX(0, 0);
-//     const double &DN_DX_0_1 = rData.DN_DX(0, 1);
-//     const double &DN_DX_1_0 = rData.DN_DX(1, 0);
-//     const double &DN_DX_1_1 = rData.DN_DX(1, 1);
-//     const double &DN_DX_2_0 = rData.DN_DX(2, 0);
-//     const double &DN_DX_2_1 = rData.DN_DX(2, 1);
-
-//     // Get shape function values
-//     const array_1d<double, n_nodes>& N = rData.N;
-//     const BoundedMatrix<double, n_nodes, dim>& DN = rData.DN_DX;
-
-//     // Auxiliary variables used in the calculation of the RHS
-//     const array_1d<double, dim> f_gauss = prod(trans(f_ext), N);
-//     const array_1d<double, block_size> U_gauss = prod(trans(U), N);
-//     const BoundedMatrix<double,block_size,dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
-
-//     //substitute_res_m_2D
-
-//     double norm_res_m;
-//     norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0));
-
-//     double norm_gradm = 0.0;                                    // Frobenius norm of momentum gradient
-//     for (unsigned int i = 1; i < dim + 1; ++i){
-//         for (unsigned int j = 0; j < dim; ++j) {
-//             norm_gradm += grad_U(i,j)*grad_U(i,j);
-//         }
-//     }
-//     norm_gradm = sqrt(norm_gradm);
-
-//     if (norm_gradm>tol) {
-//         v_sc = 0.5*h*alpha*(norm_res_m/norm_gradm);
-//     }
-
-//     return v_sc;
-// }
-
-// template<>
-// double CompressibleNavierStokesExplicit<3>::ShockCapturingViscosity(const ElementDataStruct& rData) const
-// {
-//     const int dim = 3;
-//     const int n_nodes = 4;
-//     const int block_size = dim + 2;
-
-//     const double h = rData.h;                                // Characteristic element size
-//     const double alpha = 0.8;                               // Algorithm constant
-//     const double tol = 0.001;
-
-//     const BoundedMatrix<double, n_nodes, block_size>& U = rData.U;
-//     const BoundedMatrix<double, n_nodes, dim>& f_ext = rData.f_ext;
-//     const double gamma = rData.gamma;
-//     double v_sc = 0.0;                                      //Shock capturing viscosity
-//     BoundedMatrix<double, dim, 1> res_m;
-//     res_m(0,0)= 0; res_m(1,0)= 0; res_m(2,0)= 0;
-
-//     // Solution vector values from nodal data
-//     // This is intentionally done in this way to limit the matrix acceses
-//     // The notation U_i_j DOF j value in node i
-//     const double &U_0_0 = rData.U(0, 0);
-//     const double &U_0_1 = rData.U(0, 1);
-//     const double &U_0_2 = rData.U(0, 2);
-//     const double &U_0_3 = rData.U(0, 3);
-//     const double &U_0_4 = rData.U(0, 4);
-//     const double &U_1_0 = rData.U(1, 0);
-//     const double &U_1_1 = rData.U(1, 1);
-//     const double &U_1_2 = rData.U(1, 2);
-//     const double &U_1_3 = rData.U(1, 3);
-//     const double &U_1_4 = rData.U(1, 4);
-//     const double &U_2_0 = rData.U(2, 0);
-//     const double &U_2_1 = rData.U(2, 1);
-//     const double &U_2_2 = rData.U(2, 2);
-//     const double &U_2_3 = rData.U(2, 3);
-//     const double &U_2_4 = rData.U(2, 4);
-//     const double &U_3_0 = rData.U(3, 0);
-//     const double &U_3_1 = rData.U(3, 1);
-//     const double &U_3_2 = rData.U(3, 2);
-//     const double &U_3_3 = rData.U(3, 3);
-//     const double &U_3_4 = rData.U(3, 4);
-
-//     // Hardcoded shape functions for linear tetrahedra element
-//     // This is explicitly done to minimize the alocation and matrix acceses
-//     // The notation N_i_j means shape function for node j in Gauss pt. i
-//     const double N_0_0 = 0.58541020;
-//     const double N_0_1 = 0.13819660;
-//     const double N_0_2 = 0.13819660;
-//     const double N_0_3 = 0.13819660;
-//     const double N_1_0 = 0.13819660;
-//     const double N_1_1 = 0.58541020;
-//     const double N_1_2 = 0.13819660;
-//     const double N_1_3 = 0.13819660;
-//     const double N_2_0 = 0.13819660;
-//     const double N_2_1 = 0.13819660;
-//     const double N_2_2 = 0.58541020;
-//     const double N_2_3 = 0.13819660;
-//     const double N_3_0 = 0.13819660;
-//     const double N_3_1 = 0.13819660;
-//     const double N_3_2 = 0.13819660;
-//     const double N_3_3 = 0.58541020;
-
-//     // Hardcoded shape functions gradients for linear tetrahedra element
-//     // This is explicitly done to minimize the matrix acceses
-//     // The notation DN_i_j means shape function for node i in dimension j
-//     const double &DN_DX_0_0 = rData.DN_DX(0, 0);
-//     const double &DN_DX_0_1 = rData.DN_DX(0, 1);
-//     const double &DN_DX_0_2 = rData.DN_DX(0, 2);
-//     const double &DN_DX_1_0 = rData.DN_DX(1, 0);
-//     const double &DN_DX_1_1 = rData.DN_DX(1, 1);
-//     const double &DN_DX_1_2 = rData.DN_DX(1, 2);
-//     const double &DN_DX_2_0 = rData.DN_DX(2, 0);
-//     const double &DN_DX_2_1 = rData.DN_DX(2, 1);
-//     const double &DN_DX_2_2 = rData.DN_DX(2, 2);
-//     const double &DN_DX_3_0 = rData.DN_DX(3, 0);
-//     const double &DN_DX_3_1 = rData.DN_DX(3, 1);
-//     const double &DN_DX_3_2 = rData.DN_DX(3, 2);
-
-//     // Get shape function values
-//     const array_1d<double, n_nodes>& N = rData.N;
-//     const BoundedMatrix<double, n_nodes, dim>& DN = rData.DN_DX;
-
-//     // Auxiliary variables used in the calculation of the RHS
-//     const array_1d<double, dim> f_gauss = prod(trans(f_ext), N);
-//     const array_1d<double, block_size> U_gauss = prod(trans(U), N);
-//     const BoundedMatrix<double, block_size, dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
-
-//     //substitute_res_m_3D
-
-//     double norm_res_m;
-//     norm_res_m = sqrt(res_m(0,0)*res_m(0,0)+res_m(1,0)*res_m(1,0)+res_m(2,0)*res_m(2,0));
-
-//     double norm_gradm = 0.0;                                    // Frobenius norm of momentum gradient
-//     for (unsigned int i=1; i<dim+1; i++){
-//         for (unsigned int j=0; j<dim; j++) {
-//             norm_gradm += grad_U(i,j)*grad_U(i,j);
-//         }
-//     }
-//     norm_gradm = sqrt(norm_gradm);
-
-//     if (norm_gradm>tol) {
-//         v_sc = 0.5*h*alpha*(norm_res_m/norm_gradm);
-//     }
-
-//     return v_sc;
-// }
-
-// template<>
-// double CompressibleNavierStokesExplicit<2>::ShockCapturingConductivity(const ElementDataStruct& rData) const
-// {
-//     const int dim = 2;
-//     const int n_nodes = 3;
-//     const int block_size = dim + 2;
-
-//     const double h = rData.h;                                // Characteristic element size
-//     const double alpha = 0.8;                               // Algorithm constant
-//     const double tol = 0.001;
-
-//     const BoundedMatrix<double, n_nodes, block_size>& U = rData.U;
-//     const BoundedMatrix<double, n_nodes, dim>& f_ext = rData.f_ext;
-//     const array_1d<double, n_nodes>& r = rData.r;
-//     const double gamma = rData.gamma;
-//     double k_sc = 0.0;          // Shock Capturing Conductivity
-//     BoundedMatrix<double, dim, 1> res_e;
-//     res_e(0,0) = 0;
-
-//     // Solution vector values from nodal data
-//     // This is intentionally done in this way to limit the matrix acceses
-//     // The notation U_i_j DOF j value in node i
-//     const double &U_0_0 = rData.U(0, 0);
-//     const double &U_0_1 = rData.U(0, 1);
-//     const double &U_0_2 = rData.U(0, 2);
-//     const double &U_0_3 = rData.U(0, 3);
-//     const double &U_1_0 = rData.U(1, 0);
-//     const double &U_1_1 = rData.U(1, 1);
-//     const double &U_1_2 = rData.U(1, 2);
-//     const double &U_1_3 = rData.U(1, 3);
-//     const double &U_2_0 = rData.U(2, 0);
-//     const double &U_2_1 = rData.U(2, 1);
-//     const double &U_2_2 = rData.U(2, 2);
-//     const double &U_2_3 = rData.U(2, 3);
-
-//     // Hardcoded shape functions for linear triangular element
-//     // This is explicitly done to minimize the allocation and matrix acceses
-//     // The notation N_i_j means shape function for node j in Gauss pt. i
-//     const double one_sixt = 1.0 / 6.0;
-//     const double two_third = 2.0 / 3.0;
-//     const double N_0_0 = one_sixt;
-//     const double N_0_1 = one_sixt;
-//     const double N_0_2 = two_third;
-//     const double N_1_0 = one_sixt;
-//     const double N_1_1 = two_third;
-//     const double N_1_2 = one_sixt;
-//     const double N_2_0 = two_third;
-//     const double N_2_1 = one_sixt;
-//     const double N_2_2 = one_sixt;
-
-//     // Hardcoded shape functions gradients for linear triangular element
-//     // This is explicitly done to minimize the matrix acceses
-//     // The notation DN_i_j means shape function for node i in dimension j
-//     const double &DN_DX_0_0 = rData.DN_DX(0, 0);
-//     const double &DN_DX_0_1 = rData.DN_DX(0, 1);
-//     const double &DN_DX_1_0 = rData.DN_DX(1, 0);
-//     const double &DN_DX_1_1 = rData.DN_DX(1, 1);
-//     const double &DN_DX_2_0 = rData.DN_DX(2, 0);
-//     const double &DN_DX_2_1 = rData.DN_DX(2, 1);
-
-//     // Get shape function values
-//     const array_1d<double, n_nodes>& N = rData.N;
-//     const BoundedMatrix<double, n_nodes, dim>& DN = rData.DN_DX;
-
-//     // Auxiliary variables used in the calculation of the RHS
-//     const array_1d<double, dim> f_gauss = prod(trans(f_ext), N);
-//     const array_1d<double, block_size> U_gauss = prod(trans(U), N);
-//     const BoundedMatrix<double, block_size, dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
-
-//     //substitute_res_e_2D
-
-//     double norm_res_e;
-//     norm_res_e = sqrt(res_e(0,0)*res_e(0,0));
-
-//     double norm_grade = 0.0;              // Frobenius norm of total energy gradient
-//     for (unsigned int i=0; i<dim; i++) {
-//         norm_grade += grad_U(dim+1,i)*grad_U(dim+1,i);
-//     }
-//     norm_grade = sqrt(norm_grade);
-
-//     if (norm_grade > tol) {
-//         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
-//     }
-
-//     return k_sc;
-// }
-
-// template<>
-// double CompressibleNavierStokesExplicit<3>::ShockCapturingConductivity(const ElementDataStruct& rData) const
-// {
-//     const int dim = 3;
-//     const int n_nodes = 4;
-//     const int block_size = dim + 2;
-
-//     const double h = rData.h;                                // Characteristic element size
-//     const double alpha = 0.8;                               // Algorithm constant
-//     const double tol = 0.001;
-
-//     const BoundedMatrix<double, n_nodes, block_size>& U = rData.U;
-//     const BoundedMatrix<double, n_nodes, dim>& f_ext = rData.f_ext;
-//     const array_1d<double, n_nodes>& r = rData.r;
-//     const double gamma = rData.gamma;
-//     double k_sc = 0.0;          // Shock Capturing Conductivity
-//     BoundedMatrix<double, dim, 1> res_e;
-//     res_e(0,0) = 0;
-
-//     // Solution vector values from nodal data
-//     // This is intentionally done in this way to limit the matrix acceses
-//     // The notation U_i_j DOF j value in node i
-//     const double &U_0_0 = rData.U(0, 0);
-//     const double &U_0_1 = rData.U(0, 1);
-//     const double &U_0_2 = rData.U(0, 2);
-//     const double &U_0_3 = rData.U(0, 3);
-//     const double &U_0_4 = rData.U(0, 4);
-//     const double &U_1_0 = rData.U(1, 0);
-//     const double &U_1_1 = rData.U(1, 1);
-//     const double &U_1_2 = rData.U(1, 2);
-//     const double &U_1_3 = rData.U(1, 3);
-//     const double &U_1_4 = rData.U(1, 4);
-//     const double &U_2_0 = rData.U(2, 0);
-//     const double &U_2_1 = rData.U(2, 1);
-//     const double &U_2_2 = rData.U(2, 2);
-//     const double &U_2_3 = rData.U(2, 3);
-//     const double &U_2_4 = rData.U(2, 4);
-//     const double &U_3_0 = rData.U(3, 0);
-//     const double &U_3_1 = rData.U(3, 1);
-//     const double &U_3_2 = rData.U(3, 2);
-//     const double &U_3_3 = rData.U(3, 3);
-//     const double &U_3_4 = rData.U(3, 4);
-
-//     // Hardcoded shape functions for linear tetrahedra element
-//     // This is explicitly done to minimize the alocation and matrix acceses
-//     // The notation N_i_j means shape function for node j in Gauss pt. i
-//     const double N_0_0 = 0.58541020;
-//     const double N_0_1 = 0.13819660;
-//     const double N_0_2 = 0.13819660;
-//     const double N_0_3 = 0.13819660;
-//     const double N_1_0 = 0.13819660;
-//     const double N_1_1 = 0.58541020;
-//     const double N_1_2 = 0.13819660;
-//     const double N_1_3 = 0.13819660;
-//     const double N_2_0 = 0.13819660;
-//     const double N_2_1 = 0.13819660;
-//     const double N_2_2 = 0.58541020;
-//     const double N_2_3 = 0.13819660;
-//     const double N_3_0 = 0.13819660;
-//     const double N_3_1 = 0.13819660;
-//     const double N_3_2 = 0.13819660;
-//     const double N_3_3 = 0.58541020;
-
-//     // Hardcoded shape functions gradients for linear tetrahedra element
-//     // This is explicitly done to minimize the matrix acceses
-//     // The notation DN_i_j means shape function for node i in dimension j
-//     const double &DN_DX_0_0 = rData.DN_DX(0, 0);
-//     const double &DN_DX_0_1 = rData.DN_DX(0, 1);
-//     const double &DN_DX_0_2 = rData.DN_DX(0, 2);
-//     const double &DN_DX_1_0 = rData.DN_DX(1, 0);
-//     const double &DN_DX_1_1 = rData.DN_DX(1, 1);
-//     const double &DN_DX_1_2 = rData.DN_DX(1, 2);
-//     const double &DN_DX_2_0 = rData.DN_DX(2, 0);
-//     const double &DN_DX_2_1 = rData.DN_DX(2, 1);
-//     const double &DN_DX_2_2 = rData.DN_DX(2, 2);
-//     const double &DN_DX_3_0 = rData.DN_DX(3, 0);
-//     const double &DN_DX_3_1 = rData.DN_DX(3, 1);
-//     const double &DN_DX_3_2 = rData.DN_DX(3, 2);
-
-//     // Get shape function values
-//     const array_1d<double, n_nodes>& N = rData.N;
-//     const BoundedMatrix<double, n_nodes, dim>& DN = rData.DN_DX;
-
-//     // Auxiliary variables used in the calculation of the RHS
-//     const array_1d<double, dim> f_gauss = prod(trans(f_ext), N);
-//     const array_1d<double, block_size> U_gauss = prod(trans(U), N);
-//     const BoundedMatrix<double, block_size, dim> grad_U = prod(trans(U), DN);     // Dfi/Dxj
-
-//     //substitute_res_e_3D
-
-//     double norm_res_e;
-//     norm_res_e = sqrt(res_e(0,0)*res_e(0,0));
-
-//     double norm_grade = 0.0;              // Frobenius norm of total energy gradient
-//     for (unsigned int i=0; i<dim; i++) {
-//         norm_grade += grad_U(dim+1,i)*grad_U(dim+1,i);
-//     }
-//     norm_grade = sqrt(norm_grade);
-
-//     if (norm_grade > tol) {
-//         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
-//     }
-
-//     return k_sc;
-// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
