@@ -96,6 +96,75 @@ namespace Kratos
     }
 
     template <class TPrimalCondition>
+    void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        // As some of the loading parameters are saved in the non-historical database of the condition these parameters
+        // have to be explicitly transfered from the adjoint to the primal condition. The transfered parameters
+        // are needed by the primal condition in order to compute later on its contribution to the stiffness matrix for the
+        // adjoint problem and the sensitivity matrix as the condition contribution to the pseudo-load.
+        const auto& r_const_this = *this;
+        if(this->Has(SURFACE_LOAD)) {
+            this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, r_const_this.GetValue(SURFACE_LOAD));
+        }
+        if(this->Has(PRESSURE)) {
+            this->pGetPrimalCondition()->SetValue(PRESSURE, r_const_this.GetValue(PRESSURE));
+        }
+        if(this->Has(NEGATIVE_FACE_PRESSURE)) {
+            this->pGetPrimalCondition()->SetValue(NEGATIVE_FACE_PRESSURE, r_const_this.GetValue(NEGATIVE_FACE_PRESSURE));
+        }
+        if(this->Has(POSITIVE_FACE_PRESSURE)) {
+            this->pGetPrimalCondition()->SetValue(POSITIVE_FACE_PRESSURE, r_const_this.GetValue(POSITIVE_FACE_PRESSURE));
+        }
+
+        BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
+        const SizeType local_size = number_of_nodes * dimension;
+
+        // this is to derive w.r.t. to variables like PRESSURE
+        if(this->Has(rDesignVariable)) {
+            if ((rOutput.size1() != 1) || (rOutput.size2() != local_size)) {
+                rOutput.resize(1, local_size, false);
+            }
+            noalias(rOutput) = ZeroMatrix(1,local_size);
+
+            double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+            Vector RHS;
+            Vector perturbed_RHS;
+            this->CalculateRightHandSide(RHS, process_info);
+
+            const auto& r_const_this = *this;
+            this->pGetPrimalCondition()->SetValue(rDesignVariable, (r_const_this.GetValue(rDesignVariable) + delta));
+            this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, process_info);
+
+            row(rOutput, 0) = (perturbed_RHS - RHS) / delta;
+
+            this->pGetPrimalCondition()->SetValue(rDesignVariable, r_const_this.GetValue(rDesignVariable));
+        }
+        else {
+            if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
+                rOutput.resize(0, local_size, false);
+            }
+            noalias(rOutput) = ZeroMatrix(0, local_size);
+        }
+
+        KRATOS_CATCH( "" )
+    }
+
+    template <class TPrimalCondition>
     void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
@@ -105,52 +174,114 @@ namespace Kratos
         ProcessInfo process_info = rCurrentProcessInfo;
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-        const SizeType vec_size = number_of_nodes * dimension;
+        const SizeType local_size = number_of_nodes * dimension;
         double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
-        rOutput = ZeroMatrix(vec_size, vec_size);
         Vector RHS;
+        Vector perturbed_RHS = Vector(0);
 
         this->CalculateRightHandSide(RHS, process_info);
 
-        int i_2 = 0;
-        for (auto& node_i : this->GetGeometry())
-        {
-            Vector perturbed_RHS = Vector(0);
+        if (rDesignVariable == SHAPE_SENSITIVITY) {
+            if ((rOutput.size1() != local_size) || (rOutput.size2() != local_size)) {
+                rOutput.resize(local_size, local_size, false);
+            }
+            noalias(rOutput) = ZeroMatrix(local_size,local_size);
+            int i_2 = 0;
+            for (auto& node_i : this->GetGeometry())
+            {
+                // Pertubation, gradient analysis and recovery of x
+                node_i.X0() += delta;
+                node_i.X()  += delta;
+                this->CalculateRightHandSide(perturbed_RHS, process_info);
+                row(rOutput, i_2) = (perturbed_RHS - RHS) / delta;
+                node_i.X0() -= delta;
+                node_i.X()  -= delta;
 
-            // Pertubation, gradient analysis and recovery of x
-            node_i.X0() += delta;
-            node_i.X()  += delta;
-            this->CalculateRightHandSide(perturbed_RHS, process_info);
-            row(rOutput, i_2) = (perturbed_RHS - RHS) / delta;
-            node_i.X0() -= delta;
-            node_i.X()  -= delta;
+                // Reset the pertubed vector
+                perturbed_RHS = Vector(0);
 
-            // Reset the pertubed vector
-            perturbed_RHS = Vector(0);
+                // Pertubation, gradient analysis and recovery of y
+                node_i.Y0() += delta;
+                node_i.Y()  += delta;
+                this->CalculateRightHandSide(perturbed_RHS, process_info);
+                row(rOutput, i_2 + 1) = (perturbed_RHS - RHS) / delta;
+                node_i.Y0()-= delta;
+                node_i.Y() -= delta;
 
-            // Pertubation, gradient analysis and recovery of y
-            node_i.Y0() += delta;
-            node_i.Y()  += delta;
-            this->CalculateRightHandSide(perturbed_RHS, process_info);
-            row(rOutput, i_2 + 1) = (perturbed_RHS - RHS) / delta;
-            node_i.Y0()-= delta;
-            node_i.Y() -= delta;
+                // Reset the pertubed vector
+                perturbed_RHS = Vector(0);
 
-            // Reset the pertubed vector
-            perturbed_RHS = Vector(0);
+                // Pertubation, gradient analysis and recovery of z
+                node_i.Z0() += delta;
+                node_i.Z()  += delta;
+                this->CalculateRightHandSide(perturbed_RHS, process_info);
+                row(rOutput, i_2 + 2) = (perturbed_RHS - RHS) / delta;
+                node_i.Z0() -= delta;
+                node_i.Z()  -= delta;
 
-            // Pertubation, gradient analysis and recovery of z
-            node_i.Z0() += delta;
-            node_i.Z()  += delta;
-            this->CalculateRightHandSide(perturbed_RHS, process_info);
-            row(rOutput, i_2 + 2) = (perturbed_RHS - RHS) / delta;
-            node_i.Z0() -= delta;
-            node_i.Z()  -= delta;
+                i_2 += 3;
+            }
+        }
+        else if (rDesignVariable == SURFACE_LOAD) {
+            if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
+                rOutput.resize(dimension, local_size, false);
+            }
+            noalias(rOutput) = ZeroMatrix(dimension,local_size);
 
-            i_2 += 3;
+            const auto& r_const_this = *this;
+            auto surface_load = r_const_this.GetValue(SURFACE_LOAD);
+
+            for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
+                surface_load[dir_i] += delta;
+                this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, surface_load);
+
+                this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, process_info);
+                row(rOutput, dir_i) = (perturbed_RHS - RHS) / delta;
+
+                surface_load[dir_i] -= delta;
+                perturbed_RHS = Vector(0);
+            }
+            // unperturb design variable in data base of the primal condition
+            this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, r_const_this.GetValue(SURFACE_LOAD));
+        }
+        else {
+            if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
+                rOutput.resize(0, local_size, false);
+            }
+            noalias(rOutput) = ZeroMatrix(0, local_size);
         }
 
         KRATOS_CATCH( "" )
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        if (this->Has(rVariable)) {
+            // Get result value for output
+            const auto& output_value = this->GetValue(rVariable);
+
+            // Resize Output
+            const SizeType gauss_points_number = this->GetGeometry()
+                .IntegrationPointsNumber(this->GetIntegrationMethod());
+            if (rOutput.size() != gauss_points_number) {
+                rOutput.resize(gauss_points_number);
+            }
+
+            // Write scalar result value on all Gauss-Points
+            for(IndexType i = 0; i < gauss_points_number; ++i) {
+                rOutput[i] = output_value;
+            }
+
+        } else {
+            KRATOS_WATCH(rVariable)
+            KRATOS_ERROR << "Unsupported output variable." << std::endl;
+        }
+
+        KRATOS_CATCH("")
     }
 
     template <class TPrimalCondition>
