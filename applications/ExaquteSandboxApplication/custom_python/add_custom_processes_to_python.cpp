@@ -23,7 +23,7 @@
 
 #include "custom_processes/weighted_divergence_calculation_process.h"
 #include "custom_processes/metrics_divergencefree_process.h"
-#include "custom_processes/divergence_process.h"
+#include "custom_processes/calculate_divergence_process.h"
 
 
 namespace Kratos {

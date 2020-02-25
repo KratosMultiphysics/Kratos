@@ -22,7 +22,7 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_processes/divergence_process.h"
+#include "custom_processes/calculate_divergence_process.h"
 #include "exaqute_sandbox_application_variables.h"
 
 namespace Kratos {
