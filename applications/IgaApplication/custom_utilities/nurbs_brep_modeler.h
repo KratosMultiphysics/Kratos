@@ -19,6 +19,8 @@
 
 #include "includes/model_part.h"
 
+#include "custom_utilities/geometry_utilities/iga_surface_utilities.h"
+
 namespace Kratos
 {
     struct ElementConditionParameter {
