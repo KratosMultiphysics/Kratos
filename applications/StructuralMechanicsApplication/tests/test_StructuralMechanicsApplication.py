@@ -33,15 +33,15 @@ from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchT
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
+from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
+from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
 from test_patch_test_cr_beam import DynamicPatchTestBeam3D2N as TDynamicPatchTestBeam3D2N
 from test_patch_test_cr_beam import StaticPatchTestBeam3D2N as TStaticPatchTestBeam3D2N
 from test_patch_test_cr_beam import DynamicPatchTestBeam2D2N as TDynamicPatchTestBeam2D2N
 from test_patch_test_cr_beam import StaticPatchTestBeam2D2N as TStaticPatchTestBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
-from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
-from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
-from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
+from test_patch_test_formfinding_trusses import TestPatchTestFormfinding as TTestPatchTestFormfinding
 
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
@@ -65,6 +65,8 @@ from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Custom Scipy Solver test
+from test_custom_scipy_base_solver import TestCustomScipyBaseSolver
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements
@@ -122,10 +124,7 @@ from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEige
 from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
 from structural_mechanics_test_factory import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
 # Membrane tests
-from structural_mechanics_test_factory import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
 from structural_mechanics_test_factory import Fofi4PointTentCableTests as TFofi4PointTentCableTests
-from structural_mechanics_test_factory import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
-from structural_mechanics_test_factory import MembraneQ4TrussPointLoadTests as TMembraneQ4TrussPointLoadTests
 from structural_mechanics_test_factory import MembraneHemisphereTests as TMembraneHemisphereTests
 from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests as TMembraneOrthotropicDiagonalTests
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
@@ -285,9 +284,10 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
     # Membranes
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
+    # Formfinding
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
@@ -308,6 +308,8 @@ def AssembleTestSuites():
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
+    # Custom Scipy Solver test
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements
@@ -317,6 +319,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
     # RVE tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
+    # Element damping test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -361,10 +365,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
-    nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
-    nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
-    nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneHemisphereTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
@@ -411,9 +412,6 @@ def AssembleTestSuites():
             nightSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
             # Harmonic analysis test
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTests]))
-            nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
-            # Element damping test
-            nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests])) # TODO should be in smallSuite but is too slow
             # Rayleigh process test
             nightSuite.addTest(TRayleighProcessTest('test_execution'))
         else:
@@ -424,6 +422,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisSpringDamperStructure]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))

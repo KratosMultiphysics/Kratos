@@ -20,6 +20,9 @@
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_Newtonian_Sloshing/Test_2D_Newtonian_Sloshing"
         },
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_2D_Newtonian_Sloshing/PfemFluidDynamicsMaterials.json"
+        },
         "maximum_pressure_iterations"        : 6,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
