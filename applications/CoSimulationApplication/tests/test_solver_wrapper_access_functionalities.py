@@ -1,0 +1,3 @@
+- test the GetSubSolver
+- test access to the model
+- test when an existing Model is passed to the CoSimAnalysis => # MultiStage
