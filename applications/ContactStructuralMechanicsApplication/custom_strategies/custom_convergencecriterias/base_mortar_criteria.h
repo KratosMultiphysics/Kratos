@@ -408,7 +408,7 @@ protected:
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {
         NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+        VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
 
     ///@}
