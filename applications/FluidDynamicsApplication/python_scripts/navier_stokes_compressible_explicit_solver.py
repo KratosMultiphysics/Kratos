@@ -155,9 +155,15 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 ##        (self.conv_criteria).SetEchoLevel(3)
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP) ## AM: See implementation for the explicit case
+##        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP) ## AM: See implementation for the explicit case
 ##        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
 
+        print("domain_size = {}".format(domain_size))
+
+        print(self.computing_model_part)
+
+
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
 
 ##        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
@@ -183,9 +189,12 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         #(self.solver).SetEchoLevel(1)
 
+        # for node in self.computing_model_part.Nodes:
+        #     print(node)
+
 
         (self.solver).Initialize()
-
+        
 
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
 
@@ -201,9 +210,38 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
+            # time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            # for node in self.model.GetModelPart("MainModelPart.AutomaticInlet2D_Automatic_inlet_velocity_Auto1").Nodes:
+            #     den = 1 + 1*time
+            #     vel = time
+            #     temp = 300
+            #     node.Fix(KratosMultiphysics.DENSITY)
+            #     node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,den)            
+
+            #     node.Fix(KratosMultiphysics.MOMENTUM_X)
+            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_X,0,den*vel)
+
+            #     node.Fix(KratosMultiphysics.MOMENTUM_Y)
+            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Y,0,0)
+
+            #     node.Fix(KratosMultiphysics.TOTAL_ENERGY)
+            #     node.SetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY,0,den*(707*temp + 0.5*vel*vel))   
+
+            # for node in self.model.GetModelPart("MainModelPart.NoSlip2D_No_Slip_Auto1").Nodes:
+            #     node.Fix(KratosMultiphysics.MOMENTUM_X)
+            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_X,0,0)
+
+            #     node.Fix(KratosMultiphysics.MOMENTUM_Y)
+            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Y,0,0)
+
+            # for node in self.model.GetModelPart("MainModelPart.Outlet2D_Outlet_pressure_Auto1").Nodes:
+            #     node.Fix(KratosMultiphysics.DENSITY)
+            #     node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,1)                                                                              
+            #     # print("Sto facendo")
             return is_converged
         else:
             return True
+        
 
     def Solve(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)

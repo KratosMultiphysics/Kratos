@@ -337,30 +337,6 @@ public:
         VectorType right_hand_side_vector;
         CalculateRightHandSide(right_hand_side_vector, const_cast<ProcessInfo&>(rCurrentProcessInfo));
 
-        // auto& r_geom = this->GetGeometry();
-
-        // for (size_t i = 0; i < r_geom.size(); ++i)
-        // {
-        //     auto& mom = r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS);
-            
-        //     #pragma omp atomic
-        //     r_geom[i].FastGetSolutionStepValue(DENSITY_RHS) += right_hand_side_vector[BlockSize*i];
-
-        //     mom[0] = right_hand_side_vector[BlockSize*i + 1];
-
-        //     mom[1] = right_hand_side_vector[BlockSize*i + 2];
-
-        //     if (TDim == 3){
-        //         mom[2] = right_hand_side_vector[BlockSize*i + 3];
-        //     }
-            
-            
-        //     r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS) += mom;
-
-        //     #pragma omp atomic
-        //     r_geom[i].FastGetSolutionStepValue(TOTAL_ENERGY_RHS) += right_hand_side_vector[BlockSize*i + TDim + 1];
-        // }
-
     }
 
 

@@ -501,13 +501,13 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     for (i = 0; i < nodesElement; i++){
 		for ( j = 0; j < nScalarVariables; j++){
 			
-            pp = (j + i*nScalarVariables)*nScalarVariables;
-
-            Lstar[pp + 0] = N[i]*S[j*nScalarVariables + 0];
-            Lstar[pp + 0] = N[i]*S[j*nScalarVariables + 0];
+            pp = i*nScalarVariables*nScalarVariables;
+            
+            Lstar[pp + 1*nScalarVariables + 0] = N[i]*S[1*nScalarVariables + 0];
+            Lstar[pp + 2*nScalarVariables + 0] = N[i]*S[2*nScalarVariables + 0];
             
             for (k = 0; k < nScalarVariables - 1; k++){
-                Lstar[pp + k] = N[i]*S[j*nScalarVariables + k];
+                Lstar[pp + 3*nScalarVariables + k] = N[i]*S[3*nScalarVariables + k];
             }
         }
     }
@@ -576,7 +576,6 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 			FConv[i + k*nScalarVariables] = N[k]*L[i];
 		}
     }
-
 
     // Build diffusive term: stress tensor and thermal diffusion
 

@@ -136,8 +136,8 @@ public:
         if (!(this->mReformDofSetAtEachStep))
              ComputeNodalMass();                 // AM: Da implementare all'inizio di tutto, non a ogni passo
 
-        InitializeDirichletBoundaryConditions();
-        InitializeSlipBoundaryConditions();
+        // InitializeDirichletBoundaryConditions();
+        // InitializeSlipBoundaryConditions();
 
     }
 
@@ -149,11 +149,13 @@ public:
     {   
 
         if (!mSolutionStepIsInitialized)
-        {
+        {   
+             InitializeDirichletBoundaryConditions();
+             InitializeSlipBoundaryConditions();
             // Set up the Dirichlet boundary conditions if needed
             if (this->mReformDofSetAtEachStep)
             {       
-                InitializeDirichletBoundaryConditions();    // AM: probabilmente qui dovrò aggiungere altri tipi di BC
+                InitializeDirichletBoundaryConditions();    
                 InitializeSlipBoundaryConditions();
             }
         }
@@ -169,41 +171,43 @@ public:
     {
         // Initialize the mass matrix
         if (this->mReformDofSetAtEachStep)      ComputeNodalMass();
-
+        
         // Initialize the first step
         SetVariablesToZero(DENSITY_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
         int step = 0;
-
+        
         // Compute the slope
         AddExplicitRHSContributions();
-
+        
         // Compute the RK step
         RungeKuttaStep(step);
-
+        
         // Perform the RK steps
         for (step = 1; step < mNumberOfSteps; ++step)
         {
             // Boundary conditions
             ApplyDirichletBoundaryConditions();
             ApplySlipBoundaryConditions();
-
+        
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
             // Compute the slope
             AddExplicitRHSContributions();
+        
 
             // Compute the RK step
             RungeKuttaStep(step);
+        
         }
 
         // Finalize the last step
         AssembleLastRungeKuttaStep();
-
+        
         // Boundary conditions
         ApplyDirichletBoundaryConditions();
         ApplySlipBoundaryConditions();
-
+        
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
@@ -497,7 +501,7 @@ private:
 //            it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1) = kn + dk;
         }
 
-        auto it_node = r_model_part.NodesBegin() + 20000;
+        auto it_node = r_model_part.NodesBegin() + 501;
 
         double mom_x = it_node->FastGetSolutionStepValue(MOMENTUM_X);
         double mom_y = it_node->FastGetSolutionStepValue(MOMENTUM_Y);
@@ -509,9 +513,6 @@ private:
         KRATOS_WATCH(mom_y);
         KRATOS_WATCH(ene);
 
-
-
-
     }
 
     void InitializeDirichletBoundaryConditions()
@@ -521,6 +522,8 @@ private:
 
         auto& r_model_part = BaseType::GetModelPart();
 
+//        KRATOS_WATCH(r_model_part);
+
         if (r_model_part.NodesBegin() != r_model_part.NodesEnd())       // Che cosa sta facendo qui?
         {
             const size_t pos_density = (r_model_part.NodesBegin())->GetDofPosition(DENSITY);
@@ -529,20 +532,31 @@ private:
             const size_t pos_momentum_z = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_Z);
             const size_t pos_energy = (r_model_part.NodesBegin())->GetDofPosition(TOTAL_ENERGY);
             
+//            printf("Entro?\n");
+
+            int NMom_x = 0;
+            int NMom_y = 0;
+            int NDen = 0;
+            int NEne = 0;
+
             for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
-            {
+            {   
                 auto it_node = r_model_part.NodesBegin() + i;
 
                 if (it_node->GetDof(MOMENTUM_X, pos_momentum_x).IsFixed())
+//                if (it_node->IsFixed(MOMENTUM_X))
                 {
                     mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_X));
                     mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_X));
+                    NMom_x++;
                 }
 
                 if (it_node->GetDof(MOMENTUM_Y, pos_momentum_y).IsFixed())
+//                if (it_node->IsFixed(MOMENTUM_Y))
                 {
                     mFixedDofsSet.push_back(it_node->pGetDof(MOMENTUM_Y));
                     mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(MOMENTUM_Y));
+                    NMom_y++;
                 }
 
                 if (mDimension == 3)
@@ -558,24 +572,29 @@ private:
                 {
                     mFixedDofsSet.push_back(it_node->pGetDof(DENSITY));
                     mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(DENSITY));
+                    NDen++;
                 }
 
                 if (it_node->GetDof(TOTAL_ENERGY, pos_energy).IsFixed())
                 {
                     mFixedDofsSet.push_back(it_node->pGetDof(TOTAL_ENERGY));
                     mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(TOTAL_ENERGY));
+                    NEne++;
                 }
             }
+ //           printf("NDen = %d - NMX = %d - NMY = %d - NE = %d\n", NDen, NMom_x, NMom_y, NEne);
         }
     }
 
     void ApplyDirichletBoundaryConditions()
-    {
+    {   
+
         #pragma omp parallel for
-        for (int i= 1; i < static_cast<int>(mFixedDofsSet.size()); ++i)
+        for (int i= 0; i < static_cast<int>(mFixedDofsSet.size()); ++i)
         {
             auto it_dof = mFixedDofsSet.begin() + i;
             it_dof->GetSolutionStepValue() = mFixedDofsValues[i];
+ //           printf("sol = %d %.3e\n", i, mFixedDofsValues[i]);
         }
     }
 
@@ -596,7 +615,7 @@ private:
                 numSLIP++;
             }
         }
-        printf("numSLIP = %d\n\n", numSLIP);
+    //    printf("numSLIP = %d\n\n", numSLIP);
     }
 
     void ApplySlipBoundaryConditions()
@@ -611,15 +630,15 @@ private:
             KRATOS_ERROR_IF(length == 0.0) << "One shall compute the normals before applying slip boundary conditions" << std::endl;
             normal /= length;
 
-        //    printf("%.3e %.3e\n", normal[0], normal[1]);
+//            printf("%.3e %.3e\n", normal[0], normal[1]);
 
             const array_1d<double, 3> value = it_node->FastGetSolutionStepValue(MOMENTUM);
             const double normal_projection = inner_prod(normal, value);
             const array_1d<double, 3> normal_component = normal_projection * normal;
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) -= normal_component;
 
-        //    printf("i = %d\n", i);
-        //    KRATOS_WATCH(it_node->FastGetSolutionStepValue(MOMENTUM));
+ //          printf("i = %d\n", i);
+ //          KRATOS_WATCH(it_node->FastGetSolutionStepValue(MOMENTUM));
         }
     }
 
