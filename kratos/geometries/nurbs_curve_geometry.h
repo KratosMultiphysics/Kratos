@@ -334,6 +334,53 @@ public:
     }
 
     ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+     * Creates integration points according to its the polynomial degrees.
+     * @return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_per_span = PolynomialDegree() + 1;
+
+        CreateIntegrationPoints(
+            rIntegrationPoints, KnotSpanIntervals(), points_per_span);
+    }
+
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        std::vector<NurbsInterval>& rSpanIntervals,
+        SizeType IntegrationPointsPerSpan) const
+    {
+        const SizeType number_of_integration_points =
+            rSpanIntervals.size() * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            IntegrationPointsPerSpan);
+
+        IndexType counter = 0;
+        for (IndexType i = 0; i < rSpanIntervals.size(); ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_points_knot_span,
+                IntegrationPointsPerSpan,
+                rSpanIntervals[i].GetT0(), rSpanIntervals[i].GetT1());
+
+            for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
+            {
+                rIntegrationPoints[counter] = integration_points_knot_span[k];
+                counter++;
+            }
+        }
+    }
+
+    ///@}
     ///@name Operation within Global Space
     ///@{
 
