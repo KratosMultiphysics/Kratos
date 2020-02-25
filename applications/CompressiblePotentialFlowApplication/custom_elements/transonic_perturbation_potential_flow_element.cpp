@@ -142,6 +142,13 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVe
 }
 
 template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    FindUpstreamElementSharingFace(rCurrentProcessInfo);
+    //FindUpstreamElementSharingNode(rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
@@ -239,6 +246,16 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegra
 
 template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+    const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+    if (rVariable == INLET_ELEMENT)
+        rValues[0] = this->Is(INLET);
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -246,11 +263,10 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegra
     if (rValues.size() != 1)
         rValues.resize(1);
     if (rVariable == VELOCITY){
-        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
         for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k] + free_stream_velocity[k];
+            v[k] = velocity[k];
         rValues[0] = v;
     }
     else if (rVariable == PERTURBATION_VELOCITY)
@@ -260,6 +276,10 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegra
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
+    }
+    else if (rVariable == UPSTREAM_ELEMENT_POSITION_VECTOR)
+    {
+        rValues[0] = pGetUpstreamElement()->GetGeometry().Center()-this->GetGeometry().Center();
     }
 }
 
@@ -413,14 +433,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
 
     const double density = ComputeDensity(rCurrentProcessInfo);
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
-
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
-
+    array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     noalias(rLeftHandSideMatrix) +=
@@ -445,13 +458,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHan
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
     const double density = ComputeDensity(rCurrentProcessInfo);
-
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
 
     noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
 }
@@ -474,14 +481,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
 
     const double density = ComputeDensity(rCurrentProcessInfo);
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
-
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
-
+    array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
@@ -593,13 +593,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
 
     const double density = ComputeDensity(rCurrentProcessInfo);
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
-
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
@@ -833,6 +827,138 @@ double TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensityD
 
     return -pow(rho_inf, heat_capacity_ratio - 1) *
            pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
+}
+
+template <int Dim, int NumNodes>
+array_1d<double, Dim> TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::ComputeVelocity(
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    return velocity;
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamElementSharingNode(const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    GlobalPointersVector<Element> ElementsSharingNode;
+    GetElementsSharingNode(ElementsSharingNode, rGeom);
+    FindUpstreamElement(rCurrentProcessInfo, ElementsSharingNode, rGeom);
+
+    if(mpUpstreamElement.get() == nullptr){
+        mpUpstreamElement = this;
+        this->Set(INLET);
+    }
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamElementSharingFace(const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    GlobalPointersVector<Element> ElementsSharingFace;
+    GetElementsSharingFace(ElementsSharingFace, rGeom);
+    FindUpstreamElement(rCurrentProcessInfo, ElementsSharingFace, rGeom);
+
+    // If no upstream element is found, the element should be INLET and the
+    // upstream element pointer should point to itself.
+    if (mpUpstreamElement.get() == nullptr) {
+        mpUpstreamElement = this;
+        this->Set(INLET);
+    }
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamElement(
+    const ProcessInfo& rCurrentProcessInfo,
+    GlobalPointersVector<Element>& rElementCandidates,
+    const GeometryType& rGeom)
+{
+    // Find the upstream element whose center has the minimum cross flow distance
+    const array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+    const double velocity_norm = sqrt(inner_prod(velocity, velocity));
+    array_1d<double, 3> unit_velocity_vector = ZeroVector(3);
+    for (unsigned int i = 0; i < Dim; i++){
+        unit_velocity_vector[i] = velocity[i] / velocity_norm;
+    }
+    double minimum_cross_flow_distance = std::numeric_limits<double>::max();
+
+    for (SizeType i = 0; i < rElementCandidates.size(); i++){
+        const auto distance_vector = rElementCandidates(i)->GetGeometry().Center() - rGeom.Center();
+        const double projection_length = inner_prod(distance_vector, unit_velocity_vector);
+        // If the projection is negative the element is upstream
+        if(projection_length < 0.0){
+            const auto projected_vector = unit_velocity_vector * projection_length;
+            const auto cross_flow_vector = distance_vector - projected_vector;
+            const double cross_flow_distance = sqrt(inner_prod(cross_flow_vector,cross_flow_vector));
+            if(cross_flow_distance < minimum_cross_flow_distance){
+                minimum_cross_flow_distance = cross_flow_distance;
+                mpUpstreamElement = rElementCandidates(i);
+            }
+        }
+    }
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetElementsSharingFace(
+    GlobalPointersVector<Element>& rElementsSharingFace, const GeometryType& rGeom) const
+{
+    GlobalPointersVector<Element> ElementsSharingNode;
+    GetElementsSharingNode(ElementsSharingNode, rGeom);
+
+    std::vector<IndexType> ElementNodesIds, CandidateElementNodesIds;
+    GetSortedIds(ElementNodesIds, rGeom);
+
+    for (SizeType i = 0; i < ElementsSharingNode.size(); i++){
+        GeometryType& rElemGeom = ElementsSharingNode[i].GetGeometry();
+        GetSortedIds(CandidateElementNodesIds, rElemGeom);
+        std::vector<IndexType> IntersectionIds;
+        std::set_intersection(ElementNodesIds.begin(), ElementNodesIds.end(),
+                              CandidateElementNodesIds.begin(),
+                              CandidateElementNodesIds.end(),
+                              std::back_inserter(IntersectionIds));
+        if (IntersectionIds.size() > 1) {
+            rElementsSharingFace.push_back(ElementsSharingNode(i));
+        }
+    }
+    rElementsSharingFace.Unique();
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetElementsSharingNode(
+    GlobalPointersVector<Element>& rElementsSharingNode, const GeometryType& rGeom) const
+{
+    for (SizeType i = 0; i < NumNodes; i++){
+        const GlobalPointersVector<Element>& rNodeElementCandidates =
+            rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+
+        for (SizeType j = 0; j < rNodeElementCandidates.size(); j++){
+            rElementsSharingNode.push_back(rNodeElementCandidates(j));
+        }
+    }
+    rElementsSharingNode.Unique();
+}
+
+template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetSortedIds(std::vector<IndexType>& Ids,
+                                                                        const GeometryType& rGeom) const
+{
+    Ids.resize(rGeom.PointsNumber());
+    for (SizeType i = 0; i < Ids.size(); i++)
+        Ids[i] = rGeom[i].Id();
+    std::sort(Ids.begin(), Ids.end());
+}
+
+template <int Dim, int NumNodes>
+inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::pGetUpstreamElement() const
+{
+    KRATOS_ERROR_IF(mpUpstreamElement.get() == nullptr)
+        << "No element found for element #" << this->Id() << std::endl;
+    return mpUpstreamElement;
 }
 
 // serializer

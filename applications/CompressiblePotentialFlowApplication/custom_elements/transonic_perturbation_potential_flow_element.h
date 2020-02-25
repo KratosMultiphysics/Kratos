@@ -164,11 +164,17 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
     ///@{
+
+    void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                                     std::vector<bool>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                      std::vector<double>& rValues,
@@ -210,6 +216,12 @@ protected:
                                     const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
+    ///@name Member Variables
+    ///@{
+
+    GlobalPointer<Element> mpUpstreamElement;
+
+    ///@}
     ///@name Private Operators
     ///@{
 
@@ -273,6 +285,26 @@ private:
                                    unsigned int& rRow) const;
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
+
+    array_1d<double, Dim> ComputeVelocity(const ProcessInfo& rCurrentProcessInfo) const;
+
+    void FindUpstreamElementSharingNode(const ProcessInfo& rCurrentProcessInfo);
+
+    void FindUpstreamElementSharingFace(const ProcessInfo& rCurrentProcessInfo);
+
+    void FindUpstreamElement(const ProcessInfo& rCurrentProcessInfo,
+                             GlobalPointersVector<Element>& rElementCandidates,
+                             const GeometryType& rGeom);
+
+    void GetElementsSharingFace(GlobalPointersVector<Element>& rElementsSharingFace,
+                                const GeometryType& rGeom) const;
+
+    void GetElementsSharingNode(GlobalPointersVector<Element>& rElementsSharingNode,
+                                const GeometryType& rGeom) const;
+
+    void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;
+
+    inline GlobalPointer<Element> pGetUpstreamElement() const;
 
     ///@}
     ///@name Private Operations
