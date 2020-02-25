@@ -16,34 +16,12 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
-    //, mIgaTrussElement(0, Element::GeometryType::Pointer(
-    //    new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mIgaShell3pElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mIgaCheckCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
-    , mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
-    , mSupportPenaltyCurveDiscreteCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
-    , mLoadSurfaceDiscreteCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
-    , mLoadCurveDiscreteCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
 void KratosIgaApplication::Register() {
     KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
-
-    // ELEMENTS
-    //KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
-    KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
-    KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
-    KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 
     // Variables
     KRATOS_REGISTER_VARIABLE(BREP_ID)
