@@ -138,33 +138,6 @@ public:
     ///@name Operations
     ///@{
 
-    // /**
-    //  * @brief Initialization of member variables and prior operations
-    //  */
-    // virtual void Initialize()
-    // {
-    //     // Base class initialize
-    //     BaseType::Initialize();
-
-    //     // Initialize the RK4 auxiliary vectors
-    //     InitializeRungeKuttaAuxiliaryVectors();
-    // }
-
-    // /**
-    //  * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-    //  * @details A member variable should be used as a flag to make sure this function is called only once per step.
-    //  */
-    // virtual void InitializeSolutionStep()
-    // {
-    //     // Base class initialize solution step
-    //     BaseType::Initialize();
-
-    //     // If the DOFs have been rebuilt, reinitialize the RK auxiliary vectors
-    //     if (BaseType::GetRebuildLevel != 0) {
-    //         mpExplicitBuilderAndSolver->SetResetDofSetFlag(true);
-    //     }
-    // }
-
 
     ///@}
     ///@name Input and output

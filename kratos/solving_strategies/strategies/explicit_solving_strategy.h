@@ -55,41 +55,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    //     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
-
-    // typedef typename TSparseSpace::DataType TDataType;
-
-    // typedef typename TSparseSpace::VectorType TSystemVectorType;
-
-    // typedef typename TSparseSpace::VectorPointerType TSystemVectorPointerType;
-
-    // typedef typename TDenseSpace::VectorType LocalSystemVectorType;
-
     // The explicit builder and solver definition
     typedef ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>   ExplicitBuilderAndSolverType;
 
     // The explicit builder and solver pointer definition
     typedef typename ExplicitBuilderAndSolverType::Pointer ExplicitBuilderAndSolverPointerType;
-
-    // typedef typename ModelPart::DofType TDofType;
-
-    // typedef typename ModelPart::DofsArrayType DofsArrayType;
-
-    //     typedef Dof<TDataType>                                                          TDofType;
-
-    //     typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> >            DofsArrayType;
-
-    //     typedef PointerVectorSet<TDofType, IndexedObject>                          DofsArrayType;
-
-    // typedef typename DofsArrayType::iterator DofIteratorType;
-
-    // typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
-
-    // typedef ModelPart::NodesContainerType NodesArrayType;
-
-    // typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-    // typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategy);
@@ -173,6 +143,13 @@ public:
      */
     virtual void Predict()
     {
+        if (!GetInitializeWasPerformedFlag()) {
+            Initialize();
+        }
+
+        if (!GetInitializeSolutionStepWasPerformedFlag()) {
+            InitializeSolutionStep();
+        }
     }
 
     /**
@@ -180,23 +157,28 @@ public:
      */
     virtual void Initialize()
     {
-        // Initialize elements, conditions and constraints
-        InitializeContainer(GetModelPart().Elements());
-        InitializeContainer(GetModelPart().Conditions());
-        InitializeContainer(GetModelPart().MasterSlaveConstraints());
+        if (!GetInitializeWasPerformedFlag()) {
+            // Initialize elements, conditions and constraints
+            InitializeContainer(GetModelPart().Elements());
+            InitializeContainer(GetModelPart().Conditions());
+            InitializeContainer(GetModelPart().MasterSlaveConstraints());
 
-        // Set the explicit DOFs rebuild level
-        if (mRebuildLevel != 0) {
-            mpExplicitBuilderAndSolver->SetResetDofSetFlag(true);
+            // Set the explicit DOFs rebuild level
+            if (mRebuildLevel != 0) {
+                mpExplicitBuilderAndSolver->SetResetDofSetFlag(true);
+            }
+
+            // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
+            if (mMoveMeshFlag) {
+                mpExplicitBuilderAndSolver->SetResetLumpedMassVectorFlag(true);
+            }
+
+            // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
+            mpExplicitBuilderAndSolver->Initialize(mrModelPart);
+
+            // Set the mInitializeWasPerformed flag
+            mInitializeWasPerformed = true;
         }
-
-        // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
-        if (mMoveMeshFlag) {
-            mpExplicitBuilderAndSolver->SetResetLumpedMassVectorFlag(true);
-        }
-
-        // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
-        mpExplicitBuilderAndSolver->Initialize(mrModelPart);
     }
 
     /**
@@ -223,7 +205,12 @@ public:
      */
     virtual void Clear()
     {
+        // This clears the DOF set and lumped mass vector
         mpExplicitBuilderAndSolver->Clear();
+
+        // Initialize the explicit strategy flags
+        mInitializeWasPerformed = false;
+        mInitializeSolutionStepWasPerformed = false;
     }
 
     /**
@@ -250,6 +237,11 @@ public:
      */
     virtual void InitializeSolutionStep()
     {
+        // Check if the Initialize() has been already performed
+        if (!mInitializeWasPerformed) {
+            Initialize();
+        }
+
         // InitializeSolutionStep elements, conditions and constraints
         InitializeSolutionStepContainer(GetModelPart().Elements());
         InitializeSolutionStepContainer(GetModelPart().Conditions());
@@ -257,6 +249,12 @@ public:
 
         // Call the builder and solver initialize solution step
         mpExplicitBuilderAndSolver->InitializeSolutionStep(mrModelPart);
+
+        // Initialize the solution values
+        InitializeDofSetValues();
+
+        // Set the mInitializeSolutionStepWasPerformed flag
+        mInitializeSolutionStepWasPerformed = true;
     }
 
     /**
@@ -272,6 +270,9 @@ public:
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
         mpExplicitBuilderAndSolver->FinalizeSolutionStep(mrModelPart);
+
+        // Reset the mInitializeSolutionStepWasPerformed flag
+        mInitializeSolutionStepWasPerformed = false;
     }
 
     /**
@@ -279,12 +280,13 @@ public:
      */
     virtual bool SolveSolutionStep()
     {
-        // Initialize the solution values
-        // todo CHECK IF IT IS REQUIRED
-        InitializeDofSetValues();
-
         // Solve the problem assuming that a lumped mass matrix is used
         SolveWithLumpedMassMatrix();
+
+        // If required, update the mesh with the obtained solution
+        if (mMoveMeshFlag) {
+            MoveMesh();
+        }
 
         return true;
     }
@@ -296,7 +298,7 @@ public:
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
-     * 2 -> Printing linear solver data
+     * 2 -> Printing advanced information
      * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
      * }
      */
@@ -311,7 +313,7 @@ public:
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
-     * 2 -> Printing linear solver data
+     * 2 -> Printing advanced information
      * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
      * }
      * @return Level of echo for the solving strategy
@@ -339,9 +341,8 @@ public:
      * @brief This returns the build level
      * @details
      * {
-     * 0 -> Build StiffnessMatrix just once
-     * 1 -> Build StiffnessMatrix at the beginning of each solution step
-     * 2 -> build StiffnessMatrix at each iteration
+     * 0 -> Set up the DOF set just once
+     * 1 -> Set up the DOF set at the beginning of each solution step
      * }
      * @return The build level
      */
@@ -366,6 +367,42 @@ public:
     bool MoveMeshFlag()
     {
         return mMoveMeshFlag;
+    }
+
+    /**
+     * @brief This function sets the flag that says that the Initialize() has been performed
+     * @param Flag True if the Initialize() has been performed, false otherwise
+     */
+    void SetInitializeWasPerformedFlag(bool Flag)
+    {
+        mInitializeWasPerformed = Flag;
+    }
+
+    /**
+     * @brief This function returns the flag that says that the Initialize() has been performed
+     * @return True if the Initialize() has been performed, false otherwise
+     */
+    bool GetInitializeWasPerformedFlag()
+    {
+        return mInitializeWasPerformed;
+    }
+
+    /**
+     * @brief This function sets the flag that says that the InitializeSolutionStep() has been performed
+     * @param Flag True if the InitializeSolutionStep() has been performed, false otherwise
+     */
+    void SetInitializeSolutionStepWasPerformedFlag(bool Flag)
+    {
+        mInitializeSolutionStepWasPerformed = Flag;
+    }
+
+    /**
+     * @brief This function returns the flag that says that the InitializeSolutionStep() has been performed
+     * @return True if the InitializeSolutionStep() has been performed, false otherwise
+     */
+    bool GetInitializeSolutionStepWasPerformedFlag()
+    {
+        return mInitializeSolutionStepWasPerformed;
     }
 
     /**
@@ -417,7 +454,24 @@ public:
      */
     virtual double GetResidualNorm()
     {
-        return 0.0;
+        // Get the required data from the explicit builder and solver
+        const auto p_explicit_bs = pGetExplicitBuilderAndSolver();
+        const auto& r_dof_set = p_explicit_bs->GetDofSet();
+        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
+
+        // Calculate the explicit residual
+        p_explicit_bs->BuildRHS(GetModelPart());
+
+        // Calculate the residual norm
+        double res_norm = 0.0;
+#pragma omp parallel for firstprivate(dof_size) reduction(+:res_norm)
+        for (int i_dof = 0; i_dof < static_cast<int>(dof_size); ++i_dof) {
+            auto it_dof = r_dof_set.begin() + i_dof;
+            // Save current value in the corresponding vector
+            res_norm += it_dof->GetSolutionStepReactionValue();
+        }
+
+        return res_norm;
     }
 
     /**
@@ -538,9 +592,13 @@ private:
 
     ModelPart &mrModelPart;
 
-    ExplicitBuilderAndSolverPointerType mpExplicitBuilderAndSolver = nullptr;
-
     bool mMoveMeshFlag;
+
+    bool mInitializeWasPerformed = false;
+
+    bool mInitializeSolutionStepWasPerformed = false;
+
+    ExplicitBuilderAndSolverPointerType mpExplicitBuilderAndSolver = nullptr;
 
     ///@}
     ///@name Private Operators
