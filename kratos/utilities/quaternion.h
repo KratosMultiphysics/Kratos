@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Massimo Petracca
-//                    
+//
 //
 
 #if !defined(QUATERNION_H_INCLUDED)
@@ -28,10 +28,16 @@ namespace Kratos
 	{
 
 	public:
-		
+
+		KRATOS_CLASS_POINTER_DEFINITION(Quaternion);
+
+		typedef	T value_type;
+		typedef value_type& reference;
+		typedef value_type const& const_reference;
+
 		///@name Life Cycle
 		///@{
-		
+
 		/**
 		Creates a Zero Quaternion.
 		*/
@@ -57,7 +63,7 @@ namespace Kratos
 			, mW(w)
 		{
 		}
-		
+
 		/**
 		Creates a Quaternion from another Quaternion.
 		@param other the other Quaternion
@@ -71,15 +77,15 @@ namespace Kratos
 		}
 
 		///@}
-                
+
                 /// Destructor.
                 virtual ~Quaternion(){};
-		
+
 	public:
-		
+
 		///@name Operators
 		///@{
-		
+
 		/**
 		Copies a Quaternion.
 		@param other the other Quaternion
@@ -94,9 +100,27 @@ namespace Kratos
 			}
 			return *this;
 		}
-                
-                
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+
+		const_reference	operator []	(size_t i) const
+		{
+			if (i == 0) return mX;
+			if (i == 1) return mY;
+			if (i == 2) return mZ;
+			if (i == 3) return mW;
+			KRATOS_ERROR << "Unknown component for a Quaternion. Component number "<<i<<"?";
+		}
+
+		reference operator [] (size_t i)
+		{
+			if (i == 0) return mX;
+			if (i == 1) return mY;
+			if (i == 2) return mZ;
+			if (i == 3) return mW;
+			KRATOS_ERROR << "Unknown component for a Quaternion. Component number "<<i<<"?";
+		}
+
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 
     template <typename TExpressionType, std::size_t TCategory>
     Quaternion& operator = (AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
@@ -105,7 +129,7 @@ namespace Kratos
                     mY = Other.expression()[1];
                     mZ = Other.expression()[2];
                     mW = Other.expression()[3];
-                    
+
                     return *this;
                 }
 #else
@@ -117,49 +141,53 @@ namespace Kratos
                     mY = ae()(1);
                     mZ = ae()(2);
                     mW = ae()(3);
-                    
+
                     return *this;
                 }
 #endif // ifdef KRATOS_USE_AMATRIX
-		
+
 		///@}
-		
+
 	public:
 
 		///@name Access
 		///@{
-		
+
 		/**
 		Returns the X coefficient of this quaternion.
 		@return the X coefficient of this quaternion.
 		*/
 		inline const T x()const { return mX; }
-		
+		inline void Setx(T& value) { mX = value; }
+
 		/**
 		Returns the Y coefficient of this quaternion.
 		@return the Y coefficient of this quaternion.
 		*/
 		inline const T y()const { return mY; }
-		
+		inline void Sety(T& value) { mY = value; }
+
 		/**
 		Returns the Z coefficient of this quaternion.
 		@return the Z coefficient of this quaternion.
 		*/
 		inline const T z()const { return mZ; }
-		
+		inline void Setz(T& value) { mZ = value; }
+
 		/**
 		Returns the W coefficient of this quaternion.
 		@return the W coefficient of this quaternion.
 		*/
 		inline const T w()const { return mW; }
-		
+		inline void Setw(T& value) { mW = value; }
+
 		///@}
-		
+
 	public:
 
 		///@name Operations
 		///@{
-		
+
 		/**
 		Returns the squared norm of this quaternion.
 		x*x + y*y + z*z + w*w
@@ -169,7 +197,7 @@ namespace Kratos
 		{
 			return mX*mX + mY*mY + mZ*mZ + mW*mW;
 		}
-		
+
 		/**
 		Returns the norm of this quaternion.
 		sqrt(x*x + y*y + z*z + w*w)
@@ -179,7 +207,7 @@ namespace Kratos
 		{
 			return std::sqrt( this->squaredNorm() );
 		}
-		
+
 		/**
 		Makes this Quaternion a Unit Quaternion.
 		If this Quaternion is already normalized this is a no-op
@@ -195,7 +223,7 @@ namespace Kratos
 				mW /= n;
 			}
 		}
-		
+
 		/**
 	    Returns the Conjugate of this Quaternion, which represents the opposite rotation
 		@return the Conjugate of this Quaternion
@@ -204,7 +232,7 @@ namespace Kratos
 		{
 			return Quaternion(mW, -mX, -mY, -mZ);
 		}
-		
+
 		/**
 		Constructs a Rotation Matrix from this Quaternion.
 		The rotation matrix type is the template argument, no check is made on the type of
@@ -222,7 +250,7 @@ namespace Kratos
 		{
 		        if( R.size1()!=3 || R.size2()!=3 )
 		          R.resize(3,3,false);
-		  
+
 			R(0, 0) = 2.0 * ( mW*mW + mX*mX - 0.5 );
 			R(0, 1) = 2.0 * ( mX*mY - mW*mZ );
 			R(0, 2) = 2.0 * ( mX*mZ + mW*mY );
@@ -235,7 +263,7 @@ namespace Kratos
 			R(2, 1) = 2.0 * ( mZ*mY + mW*mX );
 			R(2, 2) = 2.0 * ( mW*mW + mZ*mZ - 0.5 );
 		}
-		
+
 		/**
 		Constructs the Euler Angles from this Quaternion.
 		Euler Angles expresed in Z(-X)Z sequence as in GiD
@@ -243,8 +271,8 @@ namespace Kratos
 		*/
 		inline void ToEulerAngles(array_1d<double, 3>& EA)const
 		{
-			double test = mW * mW - mX * mX - mY * mY + mZ * mZ;                    
-			if (test > (1.0 - 1.0e-6)) { // singularity at north pole                     
+			double test = mW * mW - mX * mX - mY * mY + mZ * mZ;
+			if (test > (1.0 - 1.0e-6)) { // singularity at north pole
 				EA[0] = -atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
 				EA[1] = 0.0;
 				EA[2] = 0.0;
@@ -254,7 +282,7 @@ namespace Kratos
 				EA[1] = Globals::Pi;
 				EA[2] = 0.0;
 			}
-			else {                    
+			else {
 				EA[0] = atan2((mX * mZ + mY * mW), -(mY * mZ - mX * mW));
 				EA[1] = -acos (test);
 				EA[2] = atan2((mX * mZ - mY * mW), (mY * mZ + mX * mW));
@@ -270,7 +298,7 @@ namespace Kratos
 		inline void ToRotationVector(T& rx, T& ry, T& rz)const
 		{
 			T xx, yy, zz, ww;
-			
+
 			if(mW < 0.0) {
 				xx = -mX;
 				yy = -mY;
@@ -301,7 +329,7 @@ namespace Kratos
 			ry = yy * mult;
 			rz = zz * mult;
 		}
-		
+
 		/**
 		Extracts the Rotation Vector from this Quaternion
 		The vector type is the template parameter. No check is made on this type.
@@ -379,12 +407,12 @@ namespace Kratos
 		}
 
 		///@}
-		
+
 	public:
-		
+
 		///@name Static Operations
 		///@{
-		
+
 		/**
 		Returns the Identity Quaternion (i.e. a Quaternion that represents a Zero rotation)
 		@return the Identity Quaternion
@@ -393,7 +421,7 @@ namespace Kratos
 		{
 			return Quaternion(1.0, 0.0, 0.0, 0.0);
 		}
-		
+
 		/**
 		Returns a Quaternion that represents a rotation of an angle 'radians' around the axis (x, y, z)
 		@param x the x component of the rotation axis
@@ -414,7 +442,7 @@ namespace Kratos
 				y /= norm;
 				z /= norm;
 			}
-			
+
 			T halfAngle = radians * 0.5;
 
 			T s = std::sin(halfAngle);
@@ -453,7 +481,7 @@ namespace Kratos
 
 			return Quaternion(q0, rx*s, ry*s, rz*s);
 		}
-		
+
 		/**
 		Returns a Quaternion from a rotation vector.
 		The vector type is the template parameter. No check is made on this type.
@@ -533,7 +561,7 @@ namespace Kratos
 			Q.normalize();
 			return Q;
 		}
-		
+
 		/**
 		Returns a Quaternion from Euler Angles.
 		Euler Angles expresed in Z(-X)Z sequence as in GiD
@@ -545,16 +573,16 @@ namespace Kratos
 			Quaternion Q;
 			double c2 = cos(-EA[1]/2); double c1p3 = cos((EA[0]+EA[2])/2); double c1m3 = cos((EA[0]-EA[2])/2);
 			double s2 = sin(-EA[1]/2); double s1p3 = sin((EA[0]+EA[2])/2); double s1m3 = sin((EA[0]-EA[2])/2);
-			
-			Q = Quaternion(	
+
+			Q = Quaternion(
 					c2 * c1p3,
 					s2 * c1m3,
 					s2 * s1m3,
-					c2 * s1p3);        
+					c2 * s1p3);
 			Q.normalize();
 			return Q;
 		}
-                
+
 		///@}
                 virtual void PrintInfo(std::ostream& rOStream) const {
                     rOStream << Info();
@@ -562,19 +590,19 @@ namespace Kratos
 
                 /// Print object's data.
                 virtual void PrintData(std::ostream& rOStream) const {
-                    rOStream << std::endl << this->mX <<"  " << this->mY << "  " << this->mZ << "  " <<this->mW<< std::endl;                                
+                    rOStream << std::endl << this->mX <<"  " << this->mY << "  " << this->mZ << "  " <<this->mW<< std::endl;
                 }
-		
+
 	private:
 
 		///@name Member Variables
 		///@{
-		
+
 		T mX;
 		T mY;
 		T mZ;
 		T mW;
-		
+
 		///@}
 
 		///@name Serialization
@@ -596,14 +624,14 @@ namespace Kratos
 			rSerializer.load("Y", mY);
 			rSerializer.load("Z", mZ);
 			rSerializer.load("W", mW);
-		}		
-                
+		}
+
                 virtual std::string Info() const {
                     std::stringstream buffer;
                     buffer << "Quaternion " ;
                     return buffer.str();
-                }                                
-		
+                }
+
 	};
 
 	/**
@@ -622,9 +650,9 @@ namespace Kratos
 			a.w() * b.y() + a.y() * b.w() + a.z() * b.x() - a.x() * b.z(),
 			a.w() * b.z() + a.z() * b.w() + a.x() * b.y() - a.y() * b.x()
 		);
-	}    
-        
-        
+	}
+
+
         template<class T>
         inline std::istream& operator >> (std::istream& rIStream, Quaternion<T>& rThis);
 
@@ -637,7 +665,7 @@ namespace Kratos
 
             return rOStream;
         }
-        
+
 } // namespace Kratos
 
 #endif // QUATERNION_H_INCLUDED
