@@ -82,8 +82,8 @@ class TimeAveragingProcessTests(UnitTest.TestCase):
 
         self.process.ExecuteFinalize()
 
-        self.assertEqual(self.model.GetModelPart("test").NumberOfElements(),23884)
-        self.assertEqual(self.model.GetModelPart("test").NumberOfNodes(),12163)
+        self.assertEqual(self.model.GetModelPart("test").NumberOfElements(),66317)
+        self.assertEqual(self.model.GetModelPart("test").NumberOfNodes(),33514)
 
     def __CreateModel(self):
         self.model = KratosMultiphysics.Model()
