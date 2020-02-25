@@ -238,15 +238,6 @@ public:
     }
 
     ///@}
-    ///@name Access to Member Variables
-    ///@{
-
-    array_1d<double, 2>& GetLocalTangents2d()
-    {
-        return mLocalTangents2d;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
