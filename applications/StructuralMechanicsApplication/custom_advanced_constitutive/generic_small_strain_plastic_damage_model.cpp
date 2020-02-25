@@ -466,13 +466,13 @@ bool GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 bool GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::Has(const Variable<Vector>& rThisVariable)
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        return true;
+    }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         return true;
-    } else {
-        return BaseType::Has(rThisVariable);
     }
-
-    return false;
+    return BaseType::Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -514,11 +514,19 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        mPlasticDissipation = rValue[0];
+        mDamage = rValue[1];
+        mUniaxialStress = rValue[2];
+        for (std::size_t i=0; i < VoigtSize; ++i)
+            mPlasticStrain[i] = rValue[i + 3];
+        return;
+    }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         mPlasticStrain = rValue;
-    } else {
-        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        return;
     }
+    BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -552,13 +560,19 @@ Vector& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageI
     Vector& rValue
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        rValue.resize(3 + VoigtSize);
+        rValue[0] = mPlasticDissipation;
+        rValue[1] = mDamage;
+        rValue[2] = mUniaxialStress;
+        for (std::size_t i=0; i < VoigtSize; ++i)
+            rValue[i + 3] = mPlasticStrain[i];
+        return rValue;
+    }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         rValue = mPlasticStrain;
-    } else {
-        return BaseType::GetValue(rThisVariable, rValue);
     }
-
-    return rValue;
+    return BaseType::GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/

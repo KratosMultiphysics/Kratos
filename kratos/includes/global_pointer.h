@@ -28,7 +28,9 @@ private:
 
   /// Pointer to the data
   TDataType * mDataPointer;
+#ifdef KRATOS_USING_MPI
   int mRank;
+#endif
 
 public:
 
@@ -40,7 +42,9 @@ public:
 	*/
 	GlobalPointer() {
     mDataPointer = nullptr;
+#ifdef KRATOS_USING_MPI
     this->mRank = 0;
+#endif
   };
 
   /** Constructor by Data
@@ -55,8 +59,14 @@ public:
    */
   GlobalPointer(TDataType * DataPointer, int Rank = 0)
     : mDataPointer(DataPointer)
-    , mRank(Rank) {
-  }
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank)
+#endif
+     {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
+     }
 
   /** Constructor by Kratos::shared_ptr
    * Constructor by Kratos::shared_ptr
@@ -64,7 +74,13 @@ public:
    */
   GlobalPointer(Kratos::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
-    , mRank(Rank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank) 
+#endif
+  {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by Kratos::shared_ptr
@@ -73,7 +89,13 @@ public:
    */
   GlobalPointer(Kratos::intrusive_ptr<TDataType>& DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
-    , mRank(Rank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank) 
+#endif
+  {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by Kratos::weak_ptr
@@ -82,7 +104,13 @@ public:
    */
   GlobalPointer(Kratos::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
-    , mRank(Rank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(Rank) 
+#endif
+  {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by std::unique_ptr
@@ -97,7 +125,10 @@ public:
    */
   GlobalPointer(const GlobalPointer & rOther)
     : mDataPointer(rOther.mDataPointer)
-    , mRank(rOther.mRank) {
+#ifdef KRATOS_USING_MPI
+    , mRank(rOther.mRank)
+#endif
+  {
   }
 
   /** Move constructor
@@ -106,7 +137,10 @@ public:
    */
   GlobalPointer(const GlobalPointer && rOther)
     : mDataPointer(std::move(rOther.mDataPointer))
-    , mRank(std::move(rOther.mRank)) {
+#ifdef KRATOS_USING_MPI
+    , mRank(std::move(rOther.mRank))
+#endif
+  {
   }
 
   /** Assignment Operator
@@ -114,7 +148,9 @@ public:
    */
   GlobalPointer & operator=(const GlobalPointer & rOther) {
     mDataPointer = rOther.mDataPointer;
+#ifdef KRATOS_USING_MPI
     mRank = rOther.mRank;
+#endif
 
     return *this;
   }
@@ -179,7 +215,11 @@ public:
    * @return rank of the global pointer data or 0
    */
   int GetRank() const {
+#ifdef KRATOS_USING_MPI
     return this->mRank;
+#else
+    return 0;
+#endif
   }
 
   private:
@@ -198,9 +238,9 @@ public:
       {
         rSerializer.save("D", mDataPointer);
       }
-
+#ifdef KRATOS_USING_MPI
       rSerializer.save("R", mRank);
-
+#endif
   }
 
   void load(Serializer& rSerializer)
@@ -215,9 +255,9 @@ public:
       {
         rSerializer.load("D", mDataPointer);
       }
-
+#ifdef KRATOS_USING_MPI
       rSerializer.load("R", mRank);
-
+#endif
   }
 
 };
@@ -233,7 +273,9 @@ struct GlobalPointerHasher
     {
         std::size_t seed = 0;
         HashCombine(seed, &(*pGp) );
+#ifdef KRATOS_USING_MPI
         HashCombine(seed, pGp.GetRank());
+#endif
         return seed;
     }
 };
@@ -252,7 +294,11 @@ struct GlobalPointerComparor
      */
     bool operator()(const GlobalPointer<TDataType>& pGp1, const GlobalPointer<TDataType>& pGp2) const
     {
+#ifdef KRATOS_USING_MPI
         return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
+#else
+        return ( &(*pGp1) == &(*pGp2) );
+#endif
     }
 };
 

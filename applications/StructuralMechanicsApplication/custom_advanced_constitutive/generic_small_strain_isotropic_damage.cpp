@@ -159,6 +159,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateTangen
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
+        rValues.GetConstitutiveMatrix() *= (1.0 - mDamage);
     }
 }
 
@@ -312,6 +314,9 @@ bool GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(const Varia
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
 {
+    if(rThisVariable == INTERNAL_VARIABLES){
+        return true;
+    }
     return BaseType::Has(rThisVariable);
 }
 
@@ -349,6 +354,23 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(
+    const Variable<Vector>& rThisVariable,
+    const Vector& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        mDamage = rValue[0];
+        mThreshold = rValue[1];
+        mUniaxialStress = rValue[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
 double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -376,7 +398,13 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
     Vector& rValue
     )
 {
-    return BaseType::GetValue(rThisVariable, rValue);
+    if(rThisVariable == INTERNAL_VARIABLES){
+        rValue.resize(3);
+        rValue[0] = mDamage;
+        rValue[1] = mThreshold;
+        rValue[2] = mUniaxialStress;
+    }
+    return rValue;
 }
 
 /***********************************************************************************/

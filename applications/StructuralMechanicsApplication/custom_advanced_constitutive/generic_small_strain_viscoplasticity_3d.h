@@ -202,6 +202,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainViscoplasti
 
     bool Has(const Variable<double> &rThisVariable) override;
 
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
+
     double &CalculateValue(
         Parameters &rParameterValues,
         const Variable<double> &rThisVariable,

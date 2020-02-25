@@ -50,13 +50,13 @@ int ModelPartWrapper::getNodesCount() {
 int *ModelPartWrapper::getTriangles() {
     auto &r_conditions_array = mModelPart.GetSubModelPart(SKIN_SUBMODEL_PART_NAME).Conditions();
     const auto it_condition_begin = r_conditions_array.begin();
-    int *triangles = new int[mTrianglesCount];
+    int *triangles = new int[mTrianglesCount * 3];
     for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
         auto it_condition = it_condition_begin + i;
         auto geometry = it_condition->GetGeometry();
 
         for (int j = 0; j < 3; j++) {
-            triangles[3 * i + j] = geometry.GetPoint(j).Id();
+            triangles[3 * i + j] = idTranslator.getSurfaceId(geometry.GetPoint(j).Id());
         }
     }
     return triangles;

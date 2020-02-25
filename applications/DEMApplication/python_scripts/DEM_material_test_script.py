@@ -95,7 +95,6 @@ class MaterialTest(object):
       self.PreUtilities = PreUtilities()
 
   def Initialize(self):
-
       self.PrepareTests()
       self.PrepareTestTriaxialHydro()
       self.PrepareTestOedometric()
@@ -444,9 +443,9 @@ class MaterialTest(object):
 
       else:
 
-        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%self.total_stress_mean*1e-6).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n') # + str(coordinateY).rjust(12)+'\n')
-        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_top*1e-6).rjust(13)+'\n')
-        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_bot*1e-6).rjust(13)+'\n')
+        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n')
+        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_top*1e-6)).rjust(13)+'\n')
+        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_bot*1e-6)).rjust(13)+'\n')
         self.Flush(self.graph_export)
         self.Flush(self.graph_export_1)
         self.Flush(self.graph_export_2)

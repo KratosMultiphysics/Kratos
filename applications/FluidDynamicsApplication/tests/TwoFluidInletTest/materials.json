@@ -20,7 +20,7 @@
                 "name" : "Newtonian2DLaw"
             },
             "Variables"        : {
-                "DENSITY": 1.0E+03,
+                "DENSITY": 1.0E+00,
                 "DYNAMIC_VISCOSITY": 1.0E-03
             },
             "Tables"           : {}

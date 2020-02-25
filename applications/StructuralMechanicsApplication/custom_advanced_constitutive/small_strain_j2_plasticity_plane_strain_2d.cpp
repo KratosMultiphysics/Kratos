@@ -111,7 +111,6 @@ void SmallStrainJ2PlasticityPlaneStrain2D::CalculateStressResponse(
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
-            mInelasticFlag = false;
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
                 r_stress_vector = yield_tension;
             }
@@ -120,7 +119,6 @@ void SmallStrainJ2PlasticityPlaneStrain2D::CalculateStressResponse(
             }
         } else {
             // INELASTIC
-            mInelasticFlag = true;
             double dgamma = 0;
             Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {

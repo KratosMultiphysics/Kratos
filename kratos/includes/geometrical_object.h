@@ -129,6 +129,15 @@ public:
     ///@{
 
     /**
+     * @brief Sets the pointer to the geometry
+     * @param pGeometry The pointer of the geometry
+     */
+    virtual void SetGeometry(GeometryType::Pointer pGeometry)
+    {
+        mpGeometry = pGeometry;
+    }
+
+    /**
      * @brief Returns the pointer to the geometry
      * @return The pointer of the geometry
      */
@@ -333,7 +342,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     //*********************************************
     //this block is needed for refcounting
     mutable std::atomic<int> mReferenceCounter;

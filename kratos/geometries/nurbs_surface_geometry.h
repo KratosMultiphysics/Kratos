@@ -68,10 +68,7 @@ public:
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
     {
-        KRATOS_ERROR_IF(rThisPoints.size() !=
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        CheckAndFitKnotVectors();
     }
 
     /// Conctructor for NURBS surfaces
@@ -89,10 +86,7 @@ public:
         , mKnotsV(rKnotsV)
         , mWeights(rWeights)
     {
-        KRATOS_ERROR_IF(rThisPoints.size() != 
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        CheckAndFitKnotVectors();
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
@@ -507,6 +501,44 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /*
+    * @brief Checks if the knot vector is coinciding with the number of
+    *        control points and the polynomial degree. If the knot vectors
+    *        have a multiplicity of p+1 in the beginning, it is reduced to p.
+    */
+    void CheckAndFitKnotVectors()
+    {
+        SizeType num_control_points = this->size();
+
+        if (num_control_points !=
+            (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size()))) {
+            if (num_control_points ==
+                (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
+                    * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2))) {
+                Vector KnotsU = ZeroVector(mKnotsU.size() - 2);
+                for (SizeType i = 0; i < mKnotsU.size() - 2; ++i) {
+                    KnotsU[i] = mKnotsU[i + 1];
+                }
+                mKnotsU = KnotsU;
+
+                Vector KnotsV = ZeroVector(mKnotsV.size() - 2);
+                for (SizeType i = 0; i < mKnotsV.size() - 2; ++i) {
+                    KnotsV[i] = mKnotsV[i + 1];
+                }
+                mKnotsV = KnotsV;
+            } else {
+                KRATOS_ERROR
+                    << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl
+                    << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
+                    << ", number of knots u: " << mKnotsU.size() << ", number of knots v: " << mKnotsV.size()
+                    << ", number of control points: " << num_control_points << std::endl
+                    << "Following condition must be achieved: ControlPoints.size() = (KnotsU.size() - P + 1) * (KnotsV.size() - Q + 1)"
+                    << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Private Serialization

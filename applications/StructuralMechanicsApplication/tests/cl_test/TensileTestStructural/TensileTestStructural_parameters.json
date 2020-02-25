@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Central","Parts_exterior"],
-        "processes_sub_model_part_list"      : ["Parts_Central","Parts_exterior","DISPLACEMENT_fijado","DISPLACEMENT_displ"],
         "rotation_dofs"                      : false,
         "linear_solver_settings":{
             "solver_type": "amgcl"
@@ -41,7 +39,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_fijado",
+                "model_part_name" : "Structure.DISPLACEMENT_fijado",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -51,7 +49,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_displ",
+                "model_part_name" : "Structure.DISPLACEMENT_displ",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : ["0.003*t",0.0,0.0],
@@ -67,7 +65,7 @@
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
                 "input_file_name"              : "cl_test/TensileTestStructural/TensileTestStructural_results.json",
-                "model_part_name"              : "Parts_Central",
+                "model_part_name"              : "Structure.Parts_Central",
                 "tolerance"                    : 1e-2,
                 "relative_tolerance"           : 1e-4,
                 "time_frequency"               : 0.1
@@ -84,7 +82,7 @@
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
             "output_file_name"              : "cl_test/TensileTestStructural/TensileTestStructural_results.json",
-            "model_part_name"               : "Parts_Central",
+            "model_part_name"               : "Structure.Parts_Central",
             "time_frequency"                : 0.1
         }
     }],

@@ -302,12 +302,19 @@ bool DamageDPlusDMinusMasonry2DLaw::Has(const Variable<double>& rThisVariable)
 /***********************************************************************************/
 bool DamageDPlusDMinusMasonry2DLaw::Has(const Variable<Vector>& rThisVariable)
 {
+    if(rThisVariable == INTERNAL_VARIABLES){
+        return true;
+    }
     return BaseType::Has(rThisVariable);
 }
 /***********************************************************************************/
 /***********************************************************************************/
 bool DamageDPlusDMinusMasonry2DLaw::Has(const Variable<Matrix>& rThisVariable)
 {
+    if(rThisVariable == INTEGRATED_STRESS_TENSOR){
+        // explicitly returning "false", so we know we must call CalculateValue(...)
+        return false;
+    }
     return BaseType::Has(rThisVariable);
 }
 /***********************************************************************************/
@@ -365,7 +372,34 @@ Vector& DamageDPlusDMinusMasonry2DLaw::GetValue(
     Vector& rValue
     )
 {
-    return BaseType::GetValue(rThisVariable, rValue);
+    if(rThisVariable == INTERNAL_VARIABLES){
+        rValue.resize(6);
+        rValue[0] = mTensionDamage;
+        rValue[1] = mTensionThreshold;
+        rValue[2] = mCompressionDamage;
+        rValue[3] = mCompressionThreshold;
+        rValue[4] = mCompressionUniaxialStress;
+        rValue[5] = mTensionUniaxialStress;
+    }
+    return rValue;
+    //return BaseType::GetValue(rThisVariable, rValue);
+}
+/***********************************************************************************/
+/***********************************************************************************/
+void DamageDPlusDMinusMasonry2DLaw::SetValue(
+            const Variable<Vector>& rThisVariable,
+            const Vector& rValue,
+            const ProcessInfo& rCurrentProcessInfo
+    )
+{
+        if (rThisVariable == INTERNAL_VARIABLES) {
+            mTensionDamage = rValue[0];
+            mTensionThreshold = rValue[1];
+            mCompressionDamage = rValue[2];
+            mCompressionThreshold = rValue[3];
+            mCompressionUniaxialStress = rValue[4];
+            mTensionUniaxialStress = rValue[5];
+        }
 }
 /***********************************************************************************/
 /***********************************************************************************/

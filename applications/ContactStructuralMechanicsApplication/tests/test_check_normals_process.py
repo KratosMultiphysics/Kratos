@@ -82,17 +82,17 @@ class TestCheckNormals(KratosUnittest.TestCase):
         #out.ExecuteFinalizeSolutionStep()
 
     def test_check_normals(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/inverted_normals"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/inverted_normals"
 
         self._normal_check_process_tests(input_filename)
 
     def test_check_normals_quads(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/inverted_normals_quads"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/inverted_normals_quads"
 
         self._normal_check_process_tests(input_filename)
 
     def test_check_normals_s_shape(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/inverted_normals_s_shape"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/inverted_normals_s_shape"
 
         self._normal_check_process_tests(input_filename, "GENERIC_Contact_Auto1")
 

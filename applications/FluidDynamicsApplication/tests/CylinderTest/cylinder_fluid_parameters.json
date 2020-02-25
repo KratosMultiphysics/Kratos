@@ -142,6 +142,21 @@
                 "interval"               : [0.0,"End"]
             }
         },{
+            "python_module" : "cfl_output_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "CFLOutputProcess",
+            "Parameters"    : {
+                "model_part_name"        : "MainModelPart",
+                "write_output_file" : true,
+                "print_to_screen"   : true,
+                "cfl_output_limit"  : 2.5,
+                "interval"               : [0.0,"End"],
+                "output_step"          : 1,
+                "output_file_settings" : {
+                    "file_name": "cylinder_cfl_results"
+                }}
+            },
+        {
             "python_module"   : "compare_two_files_check_process",
             "kratos_module"   : "KratosMultiphysics",
             "help"            : "",
@@ -173,6 +188,18 @@
             "Parameters" :{
                 "output_file_name"    : "MainModelPart.NoSlip2D_cylinder_drag.dat",
                 "reference_file_name" : "MainModelPart.NoSlip2D_cylinder_drag_ref.dat",
+                "comparison_type"     : "dat_file",
+                "remove_output_file"  : true,
+                "tolerance"           : 1e-5
+            }
+        },{
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "CompareTwoFilesCheckProcess",
+            "Parameters" :{
+                "output_file_name"    : "cylinder_cfl_results.dat",
+                "reference_file_name" : "cylinder_cfl_results_ref.dat",
                 "comparison_type"     : "dat_file",
                 "remove_output_file"  : true,
                 "tolerance"           : 1e-5

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.MeshMovingApplication as KMM
 
 # Other imports
 from KratosMultiphysics.python_solver import PythonSolver
@@ -25,27 +24,13 @@ class AleFluidSolver(PythonSolver):
         if not self.model.HasModelPart(fluid_model_part_name):
             model.CreateModelPart(fluid_model_part_name)
 
-        ## Checking if reactions are being computed in the fluid
-        if fluid_solver_settings.Has("compute_reactions"):
-            if fluid_solver_settings["compute_reactions"].GetBool() == False:
-                fluid_solver_settings["compute_reactions"].SetBool(True)
-                warn_msg  = '"compute_reactions" is switched off for the fluid-solver, '
-                warn_msg += 'switching it on!'
-                KM.Logger.PrintWarning("::[AleFluidSolver]::", warn_msg)
-        else:
-            fluid_solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
-            info_msg = 'Setting "compute_reactions" to true for the fluid-solver'
-            KM.Logger.PrintInfo("::[AleFluidSolver]::", info_msg)
+        # Derived class decides if the reactions should be computed or not
+        self._ManipulateFluidSolverSettingsForReactionsComputation(fluid_solver_settings)
 
-        ## Creating the fluid solver
+        # Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
 
-        # Doing this after the Fluid-solver-settings have been validated to access the settings
-        self._SelectMeshVelocityCalculationSettings()
-
-        self.__InitializeMeshVelocityComputation()
-
-        ## Creating the mesh-motion solver
+        # Creating the mesh-motion solver
         if not mesh_motion_solver_settings.Has("echo_level"):
             mesh_motion_solver_settings.AddValue("echo_level", self.settings["echo_level"])
 
@@ -66,6 +51,9 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
 
+        # Derived class decides if the mesh velocities should be computed or not
+        self._ManipulateMeshMotionSolverSettingsForMeshVelocityComputation(fluid_solver_settings, mesh_motion_solver_settings)
+
         # Constructing the mesh-solver with the entire mesh
         # if no submodelparts are specified then this is used for the computation of the mesh-motion
         # otherwise it only adds the dofs and the variables (to the entire ModelPart!)
@@ -75,9 +63,8 @@ class AleFluidSolver(PythonSolver):
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
         self.fluid_solver.min_buffer_size = max(
-            [ self.fluid_solver.GetMinimumBufferSize(),
-              self.mesh_motion_solver_full_mesh.GetMinimumBufferSize(),
-              KM.TimeDiscretization.GetMinimumBufferSize(self.time_int_helper) ] )
+            self.fluid_solver.GetMinimumBufferSize(),
+            self.mesh_motion_solver_full_mesh.GetMinimumBufferSize())
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
@@ -89,8 +76,7 @@ class AleFluidSolver(PythonSolver):
             "ale_boundary_parts"          : [ ],
             "mesh_motion_parts"           : [ ],
             "fluid_solver_settings"       : { },
-            "mesh_motion_solver_settings" : { },
-            "mesh_velocity_calculation"   : { }
+            "mesh_motion_solver_settings" : { }
         }""")
         this_defaults.AddMissingParameters(super(AleFluidSolver, cls).GetDefaultSettings())
         return this_defaults
@@ -98,13 +84,6 @@ class AleFluidSolver(PythonSolver):
     def AddVariables(self):
         self.mesh_motion_solver_full_mesh.AddVariables()
         self.fluid_solver.AddVariables()
-
-        # Adding Variables used for computation of Mesh-Velocity
-        time_scheme = self.settings["mesh_velocity_calculation"]["time_scheme"].GetString()
-        main_model_part = self.model[self.settings["fluid_solver_settings"]["model_part_name"].GetString()]
-        main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
-        if not time_scheme.startswith("bdf"): # bdfx does not need MESH_ACCELERATION
-            main_model_part.AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Variables Added")
 
@@ -190,11 +169,6 @@ class AleFluidSolver(PythonSolver):
         for mesh_solver in self.mesh_motion_solvers:
             is_converged &= mesh_solver.SolveSolutionStep()
 
-        for mesh_solver in self.mesh_motion_solvers:
-            KMM.CalculateMeshVelocities(
-                mesh_solver.GetComputingModelPart(),
-                self.time_int_helper)
-
         if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
             self.__ApplyALEBoundaryCondition()
             is_converged &= self.fluid_solver.SolveSolutionStep()
@@ -219,8 +193,7 @@ class AleFluidSolver(PythonSolver):
 
     def GetMeshMotionSolver(self):
         if len(self.mesh_motion_solvers) > 1:
-            raise Exception('More than one mesh-motion-solver \
-                exists, please use "GetMeshMotionSolvers"')
+            raise Exception('More than one mesh-motion-solver exists, please use "GetMeshMotionSolvers"')
         return self.mesh_motion_solvers[0]
 
     def GetMeshMotionSolvers(self):
@@ -230,25 +203,11 @@ class AleFluidSolver(PythonSolver):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.MoveMesh()
 
-
     def _CreateFluidSolver(self, solver_settings, parallelism):
         '''This function creates the fluid solver.
         It has to be overridden in derived classes
         '''
-        raise Exception("Fluid solver creation must be implemented in the derived class.")
-
-    def _SelectMeshVelocityCalculationSettings(self):
-        '''Specifying the time-scheme used to calculate the mesh-velocity
-        It can to be overridden in derived classes
-        '''
-
-        # bdf2 was the default in the MeshSolver-Strategies
-        default_settings = KM.Parameters("""{
-            "time_scheme" : "bdf2"
-        }""")
-
-        self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
-
+        raise NotImplementedError("Fluid solver creation must be implemented in the derived class.")
 
     def __ApplyALEBoundaryCondition(self):
         '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
@@ -260,30 +219,10 @@ class AleFluidSolver(PythonSolver):
                 mp.GetCommunicator().LocalMesh().Nodes)
             mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
 
-    def __InitializeMeshVelocityComputation(self):
-        '''Initializing the helper-class for the time-integration
-        '''
-        time_int_settings = self.settings["mesh_velocity_calculation"]
-        time_scheme = time_int_settings["time_scheme"].GetString()
+    @classmethod
+    def _ManipulateFluidSolverSettingsForReactionsComputation(cls, fluid_solver_settings):
+        raise NotImplementedError('"_ManipulateFluidSolverSettingsForReactionsComputation" has to be implemented in the derived class!')
 
-        if time_scheme == "bdf1":
-            self.time_int_helper = KM.TimeDiscretization.BDF1()
-        elif time_scheme == "bdf2":
-            self.time_int_helper = KM.TimeDiscretization.BDF2()
-        elif time_scheme == "newmark":
-            self.time_int_helper = KM.TimeDiscretization.Newmark()
-        elif time_scheme == "bossak":
-            if time_int_settings.Has("alpha_m"):
-                alpha_m = time_int_settings["alpha_m"].GetDouble()
-                self.time_int_helper = KM.TimeDiscretization.Bossak(alpha_m)
-            else:
-                self.time_int_helper = KM.TimeDiscretization.Bossak()
-        elif time_scheme == "generalized_alpha":
-            alpha_m = time_int_settings["alpha_m"].GetDouble()
-            alpha_f = time_int_settings["alpha_f"].GetDouble()
-            self.time_int_helper = KM.TimeDiscretization.GeneralizedAlpha(alpha_m, alpha_f)
-        else:
-            err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
-            err_msg += 'Available options are: "bdf1", "bdf2", '
-            err_msg += '"newmark", "bossak", "generalized_alpha"'
-            raise Exception(err_msg)
+    @classmethod
+    def _ManipulateMeshMotionSolverSettingsForMeshVelocityComputation(cls, fluid_solver_settings, mesh_motion_solver_settings):
+        raise NotImplementedError('"_ManipulateMeshMotionSolverSettingsForMeshVelocityComputation" has to be implemented in the derived class!')
