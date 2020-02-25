@@ -35,6 +35,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef typename TSurfaceContainerPointType::value_type NodeType;
+
     /// Geometry as base class.
     typedef Geometry<typename TSurfaceContainerPointType::value_type> BaseType;
 
