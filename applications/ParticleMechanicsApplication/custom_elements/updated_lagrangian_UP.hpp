@@ -246,7 +246,8 @@ protected:
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
-                            const double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight,
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
