@@ -256,6 +256,14 @@ typedef Node<3> NodeType;
             KRATOS_CHECK_VECTOR_NEAR(derivatives[1], gradient1, TOLERANCE);
         }
     }
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnNurbsSurfaceSpans, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Create a Nurbs curve on a Nurbs surface
+        auto curve_on_surface = GenerateReferenceNurbsCurveOnNurbsSurface3d();
 
+        auto spans = curve_on_surface.Spans();
+
+        KRATOS_CHECK_EQUAL(spans.size(), 2);
+    }
 } // namespace Testing.
 } // namespace Kratos.
