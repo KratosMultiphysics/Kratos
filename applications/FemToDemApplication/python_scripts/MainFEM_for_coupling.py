@@ -3,19 +3,20 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication.MainFemDem as MainFemDem
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.DEMApplication as DEM
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
 class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
     def Info(self):
-        print("FEM part of the FEMDEM application") 
+        print("FEM part of the FEMDEM application")
 
 
     def Initialize(self):
 
         #### INITIALIZE ####
-        
+
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
 
@@ -28,6 +29,13 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DEM_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.DELTA_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.ELASTIC_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.TANGENTIAL_ELASTIC_FORCES)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.SHEAR_STRESS)
 
 
         # Read model_part (note: the buffer_size is set here) (restart is read here)
@@ -42,7 +50,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         # Add materials (assign material to model_parts if Materials.json exists)
         self.AddMaterials()
-        
+
         # Add processes
         self.model_processes = self.AddProcesses()
         self.model_processes.ExecuteInitialize()
@@ -64,7 +72,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
-        
+
         self.GraphicalOutputExecuteInitialize()
 
         print(" ")
@@ -74,7 +82,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         self.model_processes.ExecuteBeforeSolutionLoop()
 
-        self.GraphicalOutputExecuteBeforeSolutionLoop()        
+        self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
         self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -96,7 +104,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
                 interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
-                interval = KratosMultiphysics.IntervalUtility(interval_settings)            
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)
                 # Getting the time step of the interval
                 if interval.IsInInterval(current_time):
                     return interval_settings["time_step"].GetDouble()

@@ -20,12 +20,7 @@
             "materials_filename" : "ALM_frictional_contact_test_3D/friction_block_test_materials.json"
         },
         "time_stepping"                   : {
-            "time_step_intervals" : {
-                "0" : {
-                    "interval"  : [0.0, "End"],
-                    "time_step" : 5.0e-3
-                }
-            }
+            "time_step" : 5.0e-3
         },
         "convergence_criterion"           : "contact_residual_criterion",
         "displacement_relative_tolerance" : 0.0001,
@@ -143,7 +138,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "friction_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -175,7 +170,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "step",
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",

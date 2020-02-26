@@ -55,12 +55,11 @@ namespace Kratos
 /**
  * @class ResidualBasedEliminationBuilderAndSolver
  * @ingroup KratosCore
- * @brief Current class provides an implementation for standard builder and solving operations.
+ * @brief Current class provides an implementation for standard  elimination builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
- * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
- * this information.
+ * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
  * @author Riccardo Rossi
  */
@@ -74,33 +73,37 @@ class ResidualBasedEliminationBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Pointer definition of ResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedEliminationBuilderAndSolver);
 
+    /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the classes from the base class
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::TSchemeType TSchemeType;
-
     typedef typename BaseType::TDataType TDataType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Definition of the equation id vector
+    typedef Element::EquationIdVectorType EquationIdVectorType;
+    typedef Element::DofsVectorType DofsVectorType;
+
+    /// Node definition
     typedef Node<3> NodeType;
 
+    /// Containers definition
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     ///@}
@@ -131,7 +134,6 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-//         KRATOS_INFO("ResidualBasedEliminationBuilderAndSolver") << "Using the standard builder and solver " << std::endl;
     }
 
     /** Destructor.
@@ -250,13 +252,11 @@ public:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
         KRATOS_CATCH("")
-
     }
 
     /**
      * @brief Function to perform the building of the LHS
-     * @details Depending on the implementation choosen the size of the matrix could
-     * be equal to the total number of Dofs or to the number of unrestrained dofs
+     * @details Depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number of unrestrained dofs
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -636,12 +636,6 @@ public:
 
         unsigned int nthreads = OpenMPUtils::GetNumThreads();
 
-//         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
-//         typedef std::unordered_set < NodeType::DofType::Pointer,
-//             DofPointerHasher,
-//             DofPointerComparor,
-//             allocator_type    >  set_type;
-
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 
 
@@ -684,17 +678,6 @@ public:
         unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
         while (new_max >= 1 && new_max != old_max)
         {
-//          //just for debugging
-//          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-//          for (int i = 0; i < new_max; i++)
-//          {
-//             if (i + new_max < old_max)
-//             {
-//                std::cout << i << " - " << i + new_max << std::endl;
-//             }
-//          }
-//          std::cout << "********************" << std::endl;
-
 #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(new_max); i++)
             {
@@ -786,16 +769,20 @@ public:
 
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
+    /**
+     * @brief This method resize and initializes the system of euqations
+     * @param pA The pointer to the LHS matrix
+     * @param pDx The pointer to the vector of Unknowns
+     * @param pb The pointer to the RHS vector
+     * @param rModelPart The model part to be computed
+     */
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ModelPart& rModelPart
-    ) override
+        ) override
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -1029,8 +1016,12 @@ protected:
         }
     }
 
-
-    //**************************************************************************
+    /**
+     * @brief This method construcs the relationship between the DoF
+     * @param pScheme The integration scheme
+     * @param rA The LHS of the system
+     * @param rModelPart The model part which defines the problem
+     */
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
@@ -1154,106 +1145,12 @@ protected:
         Timer::Stop("MatrixStructure");
     }
 
-//    virtual void ConstructMatrixStructure(
-//        TSystemMatrixType& A,
-//        ElementsContainerType& rElements,
-//        ConditionsArrayType& rConditions,
-//        ProcessInfo& CurrentProcessInfo)
-//    {
-//
-//        std::size_t equation_size = A.size1();
-//        std::vector<std::vector<std::size_t> > indices(equation_size);
-//        //            std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
-//
-//        Element::EquationIdVectorType ids(3, 0);
-//        for (typename ElementsContainerType::iterator i_element = rElements.begin(); i_element != rElements.end(); i_element++)
-//        {
-//            (i_element)->EquationIdVector(ids, CurrentProcessInfo);
-//
-//            for (std::size_t i = 0; i < ids.size(); i++)
-//                if (ids[i] < equation_size)
-//                {
-//                    std::vector<std::size_t>& row_indices = indices[ids[i]];
-//                    for (std::size_t j = 0; j < ids.size(); j++)
-//                        if (ids[j] < equation_size)
-//                        {
-//                            AddUnique(row_indices, ids[j]);
-//                            //indices[ids[i]].push_back(ids[j]);
-//                        }
-//                }
-//
-//        }
-//
-//        for (typename ConditionsArrayType::iterator i_condition = rConditions.begin(); i_condition != rConditions.end(); i_condition++)
-//        {
-//            (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
-//            for (std::size_t i = 0; i < ids.size(); i++)
-//                if (ids[i] < equation_size)
-//                {
-//                    std::vector<std::size_t>& row_indices = indices[ids[i]];
-//                    for (std::size_t j = 0; j < ids.size(); j++)
-//                        if (ids[j] < equation_size)
-//                        {
-//                            AddUnique(row_indices, ids[j]);
-//                            //   indices[ids[i]].push_back(ids[j]);
-//                        }
-//                }
-//        }
-//
-//        //allocating the memory needed
-//        int data_size = 0;
-//        for (std::size_t i = 0; i < indices.size(); i++)
-//        {
-//            data_size += indices[i].size();
-//        }
-//        A.reserve(data_size, false);
-//
-//        //filling with zero the matrix (creating the structure)
-//        Timer::Start("MatrixStructure");
-//#ifndef _OPENMP
-//        for (std::size_t i = 0; i < indices.size(); i++)
-//        {
-//            std::vector<std::size_t>& row_indices = indices[i];
-//            std::sort(row_indices.begin(), row_indices.end());
-//
-//            for (std::vector<std::size_t>::iterator it = row_indices.begin(); it != row_indices.end(); it++)
-//            {
-//                A.push_back(i, *it, 0.00);
-//            }
-//            row_indices.clear();
-//        }
-//#else
-//        int number_of_threads = omp_get_max_threads();
-//        vector<unsigned int> matrix_partition;
-//        CreatePartition(number_of_threads, indices.size(), matrix_partition);
-//        if (this->GetEchoLevel() > 2)
-//        {
-//            KRATOS_WATCH(matrix_partition);
-//        }
-//        for (int k = 0; k < number_of_threads; k++)
-//        {
-//            #pragma omp parallel
-//            if (omp_get_thread_num() == k)
-//            {
-//                for (std::size_t i = matrix_partition[k]; i < matrix_partition[k + 1]; i++)
-//                {
-//                    std::vector<std::size_t>& row_indices = indices[i];
-//                    std::sort(row_indices.begin(), row_indices.end());
-//
-//                    for (std::vector<std::size_t>::iterator it = row_indices.begin(); it != row_indices.end(); it++)
-//                    {
-//                        A.push_back(i, *it, 0.00);
-//                    }
-//                    row_indices.clear();
-//                }
-//            }
-//        }
-//#endif
-//        Timer::Stop("MatrixStructure");
-//    }
-
-    //**************************************************************************
-
+    /**
+     * @brief This method assembles the LHS of the system
+     * @param rA The LHS to assemble
+     * @param rLHSContribution The local LHS contribution
+     * @param rEquationId The equation id
+     */
     void AssembleLHS(
         TSystemMatrixType& A,
         LocalSystemMatrixType& LHS_Contribution,
@@ -1390,6 +1287,9 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method ensures that the contribution is unique
+     */
     inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
     {
         std::vector<std::size_t>::iterator i = v.begin();
@@ -1405,6 +1305,12 @@ private:
 
     }
 
+    /**
+     * @brief This method assembles the RHS of the system
+     * @param rb The RHS to assemble
+     * @param rRHSContribution The local RHS contribution
+     * @param rEquationId The equation id
+     */
     void AssembleRHS(
         TSystemVectorType& b,
         const LocalSystemVectorType& RHS_Contribution,
@@ -1457,8 +1363,6 @@ private:
             }
         }
     }
-
-    //**************************************************************************
 
     void AssembleLHS_CompleteOnFreeRows(
         TSystemMatrixType& A,

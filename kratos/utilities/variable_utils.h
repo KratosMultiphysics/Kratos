@@ -226,12 +226,12 @@ public:
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
-    template< class TVarType >
+    template <class TVarType>
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
     void SetScalarVar(
-        const TVarType& rVariable,
+        const TVarType &rVariable,
         const double Value,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType &rNodes)
     {
         KRATOS_TRY
 
@@ -253,6 +253,7 @@ public:
      * @param Check What is checked from the flag
      */
     template< class TVarType >
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
     void SetScalarVarForFlag(
         const TVarType& rVariable,
         const double Value,
@@ -278,6 +279,7 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
     void SetVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
@@ -292,6 +294,7 @@ public:
      * @param Flag The flag to be considered in the assignation
      * @param Check What is checked from the flag
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
     void SetVectorVarForFlag(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
@@ -302,23 +305,58 @@ public:
 
     /**
      * @brief Sets the nodal value of a scalar variable
+     * @tparam TDataType Variable data type
+     * @tparam Variable<TDataType> Variable type
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
-    template< class TType >
+    template<class TDataType, class TVarType = Variable<TDataType> >
     void SetVariable(
-        const Variable< TType >& rVariable,
-        const TType& Value,
+        const TVarType& rVariable,
+        const TDataType& rValue,
         NodesContainerType& rNodes
         )
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
             NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = Value;
+            it_node->FastGetSolutionStepValue(rVariable) = rValue;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Sets the nodal value of a scalar variable (considering flag)
+     * @tparam TDataType Variable data type
+     * @tparam Variable<TDataType> Variable type
+     * @param rVariable reference to the scalar variable to be set
+     * @param rValue Value to be set
+     * @param rNodes reference to the objective node set
+     * @param Flag The flag to be considered in the assignation
+     * @param Check What is checked from the flag
+     */
+    template <class TDataType, class TVarType = Variable<TDataType>>
+    void SetVariable(
+        const TVarType &rVariable,
+        const TDataType &rValue,
+        NodesContainerType &rNodes,
+        const Flags Flag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
+        {
+            auto it_node = rNodes.begin() + k;
+            if (it_node->Is(Flag) == CheckValue)
+            {
+                it_node->FastGetSolutionStepValue(rVariable) = rValue;
+            }
         }
 
         KRATOS_CATCH("")
@@ -355,41 +393,14 @@ public:
     }
 
     /**
-     * @brief Sets the nodal value of a scalar variable (considering flag)
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     * @param Flag The flag to be considered in the assignation
-     * @param Check What is checked from the flag
-     */
-    template< class TType >
-    void SetVariableForFlag(
-        const Variable< TType >& rVariable,
-        const TType& Value,
-        NodesContainerType& rNodes,
-        const Flags Flag,
-        const bool Check = true
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            if (it_node->Is(Flag) == Check) it_node->FastGetSolutionStepValue(rVariable) = Value;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief Sets the nodal value of a scalar variable non historical
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
     template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable") void SetNonHistoricalScalarVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
+    void SetNonHistoricalScalarVar(
         const TVarType& rVariable,
         const double Value,
         NodesContainerType& rNodes
@@ -412,7 +423,8 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable") void SetNonHistoricalVectorVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
+    void SetNonHistoricalVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
@@ -424,7 +436,7 @@ public:
      * @param Value Value to be set
      * @param rContainer Reference to the objective container
      */
-    template< class TType, class TContainerType, class TVarType =  Variable< TType >>
+    template< class TType, class TContainerType, class TVarType = Variable< TType >>
     void SetNonHistoricalVariable(
         const TVarType& rVariable,
         const TType& Value,
@@ -450,10 +462,10 @@ public:
      * @param Flag The flag to be considered in the assignation
      * @param Check What is checked from the flag
      */
-    template< class TType, class TContainerType >
-    void SetNonHistoricalVariableForFlag(
-        const Variable< TType >& rVariable,
-        const TType& Value,
+    template< class TType, class TContainerType, class TVarType = Variable< TType >>
+    void SetNonHistoricalVariable(
+        const TVarType& rVariable,
+        const TType& rValue,
         TContainerType& rContainer,
         const Flags Flag,
         const bool Check = true
@@ -464,12 +476,13 @@ public:
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
             auto it_cont = rContainer.begin() + k;
-            if (it_cont->Is(Flag) == Check) it_cont->SetValue(rVariable, Value);
+            if (it_cont->Is(Flag) == Check) {
+                it_cont->SetValue(rVariable, rValue);
+            }
         }
 
         KRATOS_CATCH("")
     }
-
 
     /**
      * @brief Clears the container data value container
@@ -572,6 +585,7 @@ public:
      * @param SavedVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
     void SaveVectorVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& SavedVariable,
@@ -584,6 +598,7 @@ public:
      * @param SavedVariable reference to the destination scalar variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
     void SaveScalarVar(
         const DoubleVarType& OriginVariable,
         const DoubleVarType& SavedVariable,
@@ -591,11 +606,38 @@ public:
         );
 
     /**
+     * @brief Takes the value of a non-historical variable and saves it in another variable
+     * For a nodal container, this takes the value of a non-historical variable and saves it in another one
+     * @tparam TDataType The variable data type
+     * @tparam Variable<TDataType> The variable type
+     * @param rOriginVariable Reference to the origin variable
+     * @param rSavedVariable Reference to the destination variable
+     * @param rNodesContainer Reference to the nodal container
+     */
+    template< class TDataType, class TVariableType = Variable<TDataType> >
+    void SaveVariable(
+        const TVariableType &rOriginVariable,
+        const TVariableType &rSavedVariable,
+        NodesContainerType &rNodesContainer)
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
+            auto it_node = rNodesContainer.begin() + i_node;
+            it_node->SetValue(rSavedVariable, it_node->FastGetSolutionStepValue(rOriginVariable));
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Takes the value of a non-historical vector variable and sets it in other non-historical variable
      * @param OriginVariable reference to the origin vector variable
      * @param SavedVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
     void SaveVectorNonHistoricalVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& SavedVariable,
@@ -608,6 +650,7 @@ public:
      * @param SavedVariable reference to the destination scalar variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
     void SaveScalarNonHistoricalVar(
         const DoubleVarType& OriginVariable,
         const DoubleVarType& SavedVariable,
@@ -615,11 +658,40 @@ public:
         );
 
     /**
+     * @brief Takes the value of a non-historical variable and saves it in another historical variable
+     * For a non-nodal container, this method takes the value of an origin variable and saves it in a destination one
+     * @tparam TDataType The variable data type
+     * @tparam TContainerType The container type
+     * @tparam Variable<TDataType> The variable type
+     * @param rOriginVariable Reference to the origin variable
+     * @param rSavedVariable Reference to the destination variable
+     * @param rContainer Reference to the container of interest
+     */
+    template< class TDataType, class TContainerType, class TVariableType = Variable<TDataType> >
+    void SaveNonHistoricalVariable(
+        const TVariableType &rOriginVariable,
+        const TVariableType &rSavedVariable,
+        TContainerType &rContainer
+        )
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
+            auto it_cont = rContainer.begin() + i;
+            it_cont->SetValue(rSavedVariable, it_cont->GetValue(rOriginVariable));
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Takes the value of an historical vector variable and sets it in other variable
      * @param OriginVariable reference to the origin vector variable
      * @param DestinationVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
     void CopyVectorVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& DestinationVariable,
@@ -632,6 +704,7 @@ public:
      * @param DestinationVariable reference to the destination component variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
     void CopyComponentVar(
         const ComponentVarType& OriginVariable,
         const ComponentVarType& DestinationVariable,
@@ -644,11 +717,38 @@ public:
      * @param DestinationVariable reference to the destination double variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
     void CopyScalarVar(
-        const DoubleVarType& OriginVariable,
-        const DoubleVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
+        const DoubleVarType &OriginVariable,
+        const DoubleVarType &DestinationVariable,
+        NodesContainerType &rNodes);
+
+    /**
+     * @brief Takes the value of an historical variable and sets it in another variable
+     * This function takes the value of an historical variable and sets in another
+     * variable in all the nodes of the provided container.
+     * @tparam TDataType The variable data type
+     * @tparam Variable<TDataType> The variable type
+     * @param rOriginVariable Reference to the origin variable
+     * @param rDestinationVariable Reference to the destination variable
+     * @param rNodesContainer Reference to the nodes container
+     */
+    template< class TDataType, class TVariableType = Variable<TDataType> >
+    void CopyVariable(
+        const TVariableType &rOriginVariable,
+        const TVariableType &rDestinationVariable,
+        NodesContainerType &rNodesContainer)
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
+            auto it_node = rNodesContainer.begin() + i_node;
+            it_node->FastGetSolutionStepValue(rDestinationVariable) = it_node->FastGetSolutionStepValue(rOriginVariable);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Returns a list of nodes filtered using the given double variable and value
@@ -803,44 +903,43 @@ public:
     }
 
     /**
-     * @brief Returns the nodal value summation of an historical vector variable.
-     * @param rVar reference to the vector variable to summed
-     * @param rModelPart reference to the model part that contains the objective node set
-     * @return sum_value summation vector result
+     * @brief This method accumulates and return a variable value
+     * For a nodal historical variable, this method accumulates and
+     * returns the summation in a model part.
+     * @tparam TDataType Variable datatype
+     * @tparam Variable<TDataType> Variable type
+     * @param rVariable Nodal historical variable to be accumulated
+     * @param rModelPart Model part in where the summation is done
+     * @param BuffStep Buffer position
+     * @return TDataType Value of the summation
      */
-    array_1d<double, 3> SumHistoricalNodeVectorVariable(
-        const ArrayVarType& rVar,
-        const ModelPart& rModelPart,
-        const unsigned int rBuffStep = 0
-        );
-
-    /**
-     * @brief Returns the nodal value summation of an historical scalar variable.
-     * @param rVar reference to the scalar variable to be summed
-     * @param rModelPart reference to the model part that contains the objective node set
-     * @return sum_value: summation result
-     */
-    template< class TVarType >
-    double SumHistoricalNodeScalarVariable(
-        const TVarType& rVar,
-        const ModelPart& rModelPart,
-        const unsigned int rBuffStep = 0
+    template< class TDataType, class TVarType = Variable<TDataType> >
+    TDataType SumHistoricalVariable(
+        const TVarType &rVariable,
+        const ModelPart &rModelPart,
+        const unsigned int BuffStep = 0
         )
     {
         KRATOS_TRY
 
-        double sum_value = 0.0;
+        TDataType sum_value;
+        AuxiliaryInitializeValue(sum_value);
 
-        // Getting info
-        const auto& r_communicator = rModelPart.GetCommunicator();
-        const auto& r_local_mesh = r_communicator.LocalMesh();
-        const auto& r_nodes_array = r_local_mesh.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
+        const auto &r_communicator = rModelPart.GetCommunicator();
+        const int n_nodes = r_communicator.LocalMesh().NumberOfNodes();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
-            const auto it_node = it_node_begin + k;
-            sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
+#pragma omp parallel firstprivate(n_nodes)
+        {
+            TDataType private_sum_value;
+            AuxiliaryInitializeValue(private_sum_value);
+
+#pragma omp for
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                const auto it_node = r_communicator.LocalMesh().NodesBegin() + i_node;
+                private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
+            }
+
+            AuxiliaryAtomicAdd(private_sum_value, sum_value);
         }
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
@@ -1069,6 +1168,52 @@ private:
     ///@name Member Variables
     ///@{
 
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Auxiliary double initialize method
+     * Auxiliary method to initialize a double value
+     * @param rValue Variable to initialize
+     */
+    void AuxiliaryInitializeValue(double &rValue);
+
+    /**
+     * @brief Auxiliary array initialize method
+     * Auxiliary method to initialize an array value
+     * @param rValue Variable to initialize
+     */
+    void AuxiliaryInitializeValue(array_1d<double,3> &rValue);
+
+    /**
+     * @brief Auxiliary scalar reduce method
+     * Auxiliary method to perform the reduction of a scalar value
+     * @param rPrivateValue Private variable to reduce
+     * @param rSumValue Variable to save the reduction
+     */
+    void AuxiliaryAtomicAdd(
+        const double &rPrivateValue,
+        double &rSumValue
+        );
+
+    /**
+     * @brief Auxiliary array reduce method
+     * Auxiliary method to perform the reduction of an array value
+     * @param rPrivateValue Private variable to reduce
+     * @param rSumValue Variable to save the reduction
+     */
+    void AuxiliaryAtomicAdd(
+        const array_1d<double,3> &rPrivateValue,
+        array_1d<double,3> &rSumValue
+        );
+
     /**
      * @brief This is auxiliar method to check the keys
      * @return True if all the keys are OK
@@ -1093,16 +1238,6 @@ private:
         return true;
         KRATOS_CATCH("")
     }
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
 
     ///@}
     ///@name Private  Acces

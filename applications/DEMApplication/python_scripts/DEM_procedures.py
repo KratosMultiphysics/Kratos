@@ -520,9 +520,10 @@ class Procedures(object):
         #model_part.AddNodalSolutionStepVariable(SPRAYED_MATERIAL)
 
         # CONTROL MODULE
-        model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
-        model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
-        model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
+        if self.DEM_parameters["PostControlModule"].GetBool():
+            model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
+            model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     @classmethod
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
@@ -560,9 +561,10 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
 
         # CONTROL MODULE
-        model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
-        model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
-        model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
+        if DEM_parameters["PostControlModule"].GetBool():
+            model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
+            model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,self.DEM_parameters)
@@ -608,9 +610,10 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
         # CONTROL MODULE
-        model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
-        model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
-        model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
+        if DEM_parameters["PostControlModule"].GetBool():
+            model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
+            model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddMpiVariables(self, model_part):
         pass

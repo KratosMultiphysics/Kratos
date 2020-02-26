@@ -1,5 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
+set (CMAKE_CXX_STANDARD 11)
 
 # Setting some policies
 # No recursive dereferencing
@@ -12,9 +13,14 @@ if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
 
+# Find package based on <packagename>_ROOT variable
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif(POLICY CMP0074)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -35,7 +41,7 @@ endif(NOT DEFINED INSTALL_RUNKRATOS)
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
-  message("--No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
+  message("-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
   SET(INSTALL_PYTHON_USING_LINKS OFF)
 else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -43,9 +49,15 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
-	message("--No KRATOS_BUILD_TESTING is defined. Setting to ON")
-	SET (KRATOS_BUILD_TESTING ON)
+message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
+SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If not defined mute the very verbose installation messages
+if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
+	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
+	SET (CMAKE_INSTALL_MESSAGE NEVER)
+endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
@@ -129,28 +141,40 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
+message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
-    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for clang compiler")
-    message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-    message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
-      # pybind requires min. version 17, but we need at least 18:
-      message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
-      message( FATAL_ERROR "Please use Version 18 or greater")
-    endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
-    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for intel compiler")
-    message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-    message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas  ")
+		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+		message("additional default options were set for clang compiler")
+		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+  else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
+		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+		message("additional default options were set for clang compiler")
+		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+		  # pybind requires min. version 17, but we need at least 18:
+		  message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
+		  message( FATAL_ERROR "Please use Version 18 or greater")
+		endif()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
+		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+		message("additional default options were set for intel compiler")
+		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
@@ -210,6 +234,11 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 #include the file with custom installation properties
 include(install_function)
 include(KratosDependencies)
+
+# Logger configuration
+if(KRATOS_COLORED_OUTPUT MATCHES ON)
+  add_definitions(-DKRATOS_COLORED_OUTPUT)
+endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 ################### PYBIND11
 
@@ -362,7 +391,15 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
 # Configure kratos applications
-message("-- Configuring external applications (ENV):")
+message("-- Configuring applications (ENV):")
+set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
+if(DEFINED ENV{KRATOS_APPLICATIONS})
+    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        list(APPEND LIST_OF_APPLICATIONS_TO_BE_COMPILED ${APPLICATION_NAME})
+    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
@@ -374,6 +411,31 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
+message("")
+message("***********************************************************************")
+message("")
+message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:")
+message("")
+foreach(individual_app_name ${LIST_OF_APPLICATIONS_TO_BE_COMPILED})
+  message("        ${individual_app_name}")
+endforeach()
+message("")
+message("        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:")
+message("")
+get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
+foreach(individual_app_name ${local_list})
+    if(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
+        message("        ${individual_app_name}")
+    endif(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
+endforeach()
+message("")
+message("***********************************************************************")
+message("")
+
+message("List of upcoming api-breaking changes:")
+message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
+message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kratos/pull/6233")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

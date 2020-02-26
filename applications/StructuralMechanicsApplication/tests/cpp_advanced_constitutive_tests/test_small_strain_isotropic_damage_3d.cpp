@@ -144,9 +144,13 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosS
         for (std::size_t comp = 0; comp < 6; ++comp) {
             strain_vector[comp] = epr(t, comp);
         }
-        cl.InitializeMaterialResponseCauchy(cl_parameters);
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
+        }
         cl.CalculateMaterialResponseCauchy(cl_parameters);
-        cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        if (cl.RequiresFinalizeMaterialResponse()){
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        }
         double value;
 
         // Check damage variable
