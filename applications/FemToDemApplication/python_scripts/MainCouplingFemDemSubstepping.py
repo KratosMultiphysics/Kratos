@@ -37,6 +37,9 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 self.DEM_Solution.FinalizeSolutionStep()
                 self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
+                # We reset the position of the slave DEM
+                self.UpdateDEMVariables()
+
                 # DEM GiD print output
                 self.PrintDEMResults()
 
@@ -44,10 +47,8 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
-                self.FEM_Solution.KratosPrintInfo(pseudo_substepping_time)
 
-        # We reset the position of the slave DEM
-        self.UpdateDEMVariables()
+
 
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
