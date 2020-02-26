@@ -25,6 +25,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "utilities/curve_axis_intersection.h"
 
 namespace Kratos {
 
@@ -34,6 +35,8 @@ class NurbsCurveOnSurfaceGeometry : public Geometry<typename TSurfaceContainerPo
 public:
     ///@name Type Definitions
     ///@{
+
+    typedef typename TSurfaceContainerPointType::value_type NodeType;
 
     /// Geometry as base class.
     typedef Geometry<typename TSurfaceContainerPointType::value_type> BaseType;
@@ -142,6 +145,34 @@ public:
     {
         return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
     }*/
+
+    ///@}
+    ///@name Curve Properties
+    ///@{
+
+    /*
+     * @brief  Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the natural boundaries.
+     * @return vector of interval limitations.
+     */
+    std::vector<double> Spans() const
+    {
+        auto interval = mpNurbsCurve->DomainInterval();
+        this->Spans(interval.GetT0(), interval.GetT1());
+    }
+
+    /*
+     * @brief  Provides intersections of the nurbs curve with the knots of the surface.
+     * @return vector of interval limitations.
+     */
+    std::vector<double> Spans(
+        double Start, double End) const
+    {
+        return CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+            *this, Start, End,
+            mpNurbsSurface->SpansU(), mpNurbsSurface->SpansV(),
+            1e-6);
+    }
 
     ///@}
     ///@name Operation within Global Space
