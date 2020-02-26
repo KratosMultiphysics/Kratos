@@ -80,17 +80,18 @@ namespace Kratos
                 distance = point_new[AxisDirectionIndex] - intersection_axis;
                 if (std::abs(distance) < Tolerance)
                 {
-                    parameter = new_parameter;
-                    return true;
+                    return new_parameter[0];
                 }
-                if (new_distance < 0)
+                if (distance < 0)
                     parameter_smaller = new_parameter[0];
                 else
                     parameter_bigger = new_parameter[0];
             }
+
+            return 0.0;
         }
 
-        static double GetSpanIndex(
+        static void GetSpanIndex(
             const std::vector<double>& rAxis,
             IndexType& rSpanIndex,
             double& rMin,
