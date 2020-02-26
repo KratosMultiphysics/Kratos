@@ -568,7 +568,7 @@ public:
         else
             mBlockSize = ndof;
 
-        int maxBlockSize = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
 
         if(mBlockSize == 0) {
             mBlockSize = maxBlockSize;
