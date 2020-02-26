@@ -672,7 +672,7 @@ public:
     * @return index within vector
     */
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
-        const SizeType NumberU, const SizeType NumberV,
+        const SizeType NumberU,
         const IndexType IndexU, const IndexType IndexV) noexcept
     {
         return IndexV * NumberU + IndexU;
