@@ -283,7 +283,7 @@ public:
      */
     std::vector<double> SpansU() const
     {
-        std::vector<double> result(NumberOfSpansU());
+        std::vector<double> result(NumberOfKnotSpansU());
 
         result[0] = mKnotsU[0];
 
@@ -302,7 +302,7 @@ public:
      */
     std::vector<double> SpansV() const
     {
-        std::vector<double> result(NumberOfSpansV());
+        std::vector<double> result(NumberOfKnotSpansV());
 
         result[0] = mKnotsV[0];
 
