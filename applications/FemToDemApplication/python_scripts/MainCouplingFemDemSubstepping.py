@@ -23,22 +23,31 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         self.ExecuteBeforeGeneratingDEM()
         self.GenerateDEM() # we create the new DEM of this time step
         self.ExecuteAfterGeneratingDEM()
-        self.BeforeSolveDEMOperations()
 
-        #### SOLVE DEM #########################################
-        self.DEM_Solution.solver.Solve()
-        ########################################################
+        # Perform substepping
+        pseudo_substepping_time = 0
+        if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
+            while pseudo_substepping_time <= self.FEM_Solution.delta_time:
+                self.BeforeSolveDEMOperations()
 
-        self.DEM_Solution.FinalizeSolutionStep()
-        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+                #### SOLVE DEM #########################################
+                self.DEM_Solution.solver.Solve()
+                ########################################################
 
-        # to print DEM with the FEM coordinates
+                self.DEM_Solution.FinalizeSolutionStep()
+                self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+
+                # DEM GiD print output
+                self.PrintDEMResults()
+
+                self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
+
+                # Advancing in DEM explicit scheme
+                pseudo_substepping_time += self.DEM_Solution.solver.dt
+                self.FEM_Solution.KratosPrintInfo(pseudo_substepping_time)
+
+        # We reset the position of the slave DEM
         self.UpdateDEMVariables()
-
-        # DEM GiD print output
-        self.PrintDEMResults()
-
-        self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
 
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
@@ -51,3 +60,13 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         # Print required info
         self.PrintPlotsFiles()
+
+#BeforeSolveDEMOperations============================================================================================================================
+    def BeforeSolveDEMOperations(self):
+        self.DEM_Solution.time += self.DEM_Solution.solver.dt
+        self.DEM_Solution.step += 1
+        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
+                                                                   self.DEM_Solution.time,
+                                                                   self.DEM_Solution.solver.dt,
+                                                                   self.DEM_Solution.step,
+                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
