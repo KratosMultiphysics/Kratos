@@ -255,7 +255,7 @@ public:
     }
 
     /// Returns the number of spans in U (which are larger than 0).
-    SizeType NumberOfKnotSpansU()
+    SizeType NumberOfKnotSpansU() const
     {
         SizeType knot_span_counter = 0;
         for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
@@ -267,7 +267,7 @@ public:
     }
 
     /// Returns the number of spans in V (which are larger than 0).
-    SizeType NumberOfKnotSpansV()
+    SizeType NumberOfKnotSpansV() const
     {
         SizeType knot_span_counter = 0;
         for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
@@ -283,11 +283,12 @@ public:
      */
     std::vector<double> SpansU() const
     {
-        std::vector<double> result(NumberOfKnotSpansU());
+        std::vector<double> result;
+        result.resize(this->NumberOfKnotSpansU());
 
         result[0] = mKnotsU[0];
 
-        IndexType conter = 1;
+        IndexType counter = 1;
         for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
             if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
                 result[counter] = mKnotsU[i + 1];
@@ -302,11 +303,12 @@ public:
      */
     std::vector<double> SpansV() const
     {
-        std::vector<double> result(NumberOfKnotSpansV());
+        std::vector<double> result;
+        result.resize(this->NumberOfKnotSpansV());
 
         result[0] = mKnotsV[0];
 
-        IndexType conter = 1;
+        IndexType counter = 1;
         for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
             if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
                 result[counter] = mKnotsV[i + 1];
