@@ -78,6 +78,24 @@ class PotentialFlowTests(UnitTest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+
+
+    def test_Naca0012SmallTransonic(self):
+        file_name = "naca0012_small_transonic"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_compressible_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def test_EmbeddedCircleNoWake(self):
         if not meshing_is_available:
             self.skipTest("Missing required application: MeshingApplication")
@@ -252,8 +270,8 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     "plane_output"        : [],
                                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
                                     "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
-                                    "elemental_conditional_flags_results": ["STRUCTURE"],
-                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
+                                    "elemental_conditional_flags_results": ["STRUCTURE","INLET"],
+                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA","MACH","UPSTREAM_ELEMENT_POSITION_VECTOR","INLET_ELEMENT"]
                                 },
                                 "point_data_configuration"  : []
                             }
