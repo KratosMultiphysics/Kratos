@@ -219,7 +219,6 @@ public:
         TessellationType points(NumberOfPoints);
 
         CoordinatesArrayType parameter = ZeroVector(3);
-        CoordinatesArrayType result;
 
         double length = Start - End;
         double delta_length = length / (NumberOfPoints - 1);
@@ -227,6 +226,7 @@ public:
         // compute sample points
         for (IndexType i = 0; i < NumberOfPoints; ++i) {
             parameter[0] = Start + delat_length * i;
+            CoordinatesArrayType result;
             pGeometry->GlobalCoordinates(result, parameter);
             points[i] = { parameter[0], result };
         }
