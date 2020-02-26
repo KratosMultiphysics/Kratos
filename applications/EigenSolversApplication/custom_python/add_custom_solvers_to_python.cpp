@@ -33,6 +33,9 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#endif
+
+#if defined USE_FEAST4
 #include "custom_solvers/feast_eigensystem_solver.h"
 #endif
 
@@ -84,8 +87,10 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
-    using Base = LinearSolver<UblasSpace<double, CompressedMatrix, Vector>,
-        UblasSpace<double, Matrix, Vector>>;
+    using DataType = typename EigenSystemSolverType::ValueType;
+    using SparseSpaceType = TUblasSparseSpace<DataType>;
+    using DenseSpaceType = TUblasDenseSpace<DataType>;
+    using Base = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
         (m, name.c_str())
@@ -185,7 +190,10 @@ void AddCustomSolversToPython(pybind11::module& m)
     // --- eigensystem solver
 
     register_eigensystem_solver<EigensystemSolver<>>(m, "EigensystemSolver");
+#if defined USE_FEAST4
     register_eigensystem_solver<FEASTEigensystemSolver<>>(m, "FEASTEigensystemSolver");
+    register_eigensystem_solver<FEASTEigensystemSolver<complex>>(m, "ComplexFEASTEigensystemSolver");
+#endif
 }
 
 } // namespace Python
