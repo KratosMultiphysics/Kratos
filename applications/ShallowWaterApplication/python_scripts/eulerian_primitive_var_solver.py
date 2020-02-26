@@ -18,6 +18,12 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         self.condition_name = "Condition"
         self.min_buffer_size = 2
 
+    def AddVariables(self):
+        super(EulerianPrimitiveVarSolver, self).AddVariables()
+        # Auxiliary variables
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
+
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.main_model_part)
