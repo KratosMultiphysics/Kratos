@@ -501,7 +501,7 @@ private:
 //            it_node->FastGetSolutionStepValue(TOTAL_ENERGY,1) = kn + dk;
         }
 
-        auto it_node = r_model_part.NodesBegin() + 501;
+        auto it_node = r_model_part.NodesBegin() + 1;
 
         double mom_x = it_node->FastGetSolutionStepValue(MOMENTUM_X);
         double mom_y = it_node->FastGetSolutionStepValue(MOMENTUM_Y);
@@ -582,7 +582,7 @@ private:
                     NEne++;
                 }
             }
- //           printf("NDen = %d - NMX = %d - NMY = %d - NE = %d\n", NDen, NMom_x, NMom_y, NEne);
+           printf("NDen = %d - NMX = %d - NMY = %d - NE = %d\n", NDen, NMom_x, NMom_y, NEne);
         }
     }
 
