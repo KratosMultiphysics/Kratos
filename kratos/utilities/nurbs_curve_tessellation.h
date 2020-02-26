@@ -36,8 +36,6 @@ public:
     ///@{
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
-    typedef typename GeometryType::Pointer GeometryPointerType;
-
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
     typedef std::vector<std::pair<double, Vector>> TessellationType;
     typedef typename GeometryType::IndexType IndexType;
@@ -213,7 +211,7 @@ public:
      * @param End parameter of polygon.
      */
     static TessellationType ComputePolygon(
-        const GeometryPointerType& pGeometry,
+        const GeometryType& rGeometry,
         const SizeType NumberOfPoints,
         const double Start,
         const double End)
@@ -229,7 +227,7 @@ public:
         for (IndexType i = 0; i < NumberOfPoints; ++i) {
             parameter[0] = Start + delat_length * i;
             CoordinatesArrayType result;
-            pGeometry->GlobalCoordinates(result, parameter);
+            rGeometry.GlobalCoordinates(result, parameter);
             points[i] = { parameter[0], result };
         }
 
