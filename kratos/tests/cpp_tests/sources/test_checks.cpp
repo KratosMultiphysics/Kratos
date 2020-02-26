@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <vector>
 
 // External includes
 
@@ -49,7 +49,7 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(VariableChecks, KratosCoreFastSuite)
         {
             Model current_model;
-            
+
             ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -97,6 +97,61 @@ namespace Kratos {
             KRATOS_CHECK_EXCEPTION_IS_THROWN(
                 KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, r_node),
                 "Missing Degree of Freedom for VELOCITY_X in node 1.");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(VectorChecks, KratosCoreFastSuite)
+        {
+            std::vector<double> v1{1.0, 2.0};
+            std::vector<double> v2{1.0, 1.99};
+            std::vector<double> v3{1.0, 2.0, 3.0};
+
+            KRATOS_CHECK_VECTOR_EQUAL(v1, v1);
+            KRATOS_CHECK_VECTOR_NEAR(v1, v2, 0.1);
+
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_EQUAL(v1, v3),
+                "Check failed because vector arguments do not have the same size"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_NEAR(v1, v3, 0.1),
+                "Check failed because vector arguments do not have the same size"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_EQUAL(v1,v2),
+                "Mismatch found in component 1:"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_NEAR(v1,v2, 0.001),
+                "Mismatch found in component 1:"
+            );
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(MatrixChecks, KratosCoreFastSuite)
+        {
+            Matrix m1 = IdentityMatrix(2);
+            Matrix m2 = IdentityMatrix(2);
+            m2(0,1) = 0.01;
+            Matrix m3 = IdentityMatrix(3);
+
+            KRATOS_CHECK_MATRIX_EQUAL(m1, m1);
+            KRATOS_CHECK_MATRIX_NEAR(m1, m2, 0.1);
+
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_EQUAL(m1, m3),
+                "Check failed because matrix arguments do not have the same dimensions"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_NEAR(m1, m3, 0.1),
+                "Check failed because matrix arguments do not have the same dimensions"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_EQUAL(m1,m2),
+                "Mismatch found in component (0,1):"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_NEAR(m1,m2, 0.001),
+                "Mismatch found in component (0,1):"
+            );
         }
     }
 }  // namespace Kratos.

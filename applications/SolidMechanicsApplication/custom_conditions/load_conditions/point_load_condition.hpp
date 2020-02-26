@@ -45,7 +45,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of PointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PointLoadCondition );
     ///@}
 
     ///@name Life Cycle

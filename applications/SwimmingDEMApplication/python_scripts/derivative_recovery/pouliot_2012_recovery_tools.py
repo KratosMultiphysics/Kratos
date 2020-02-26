@@ -1,15 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import math
-import os
-from KratosMultiphysics import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics as Kratos
 
 class PouliotRecoveryTools:
     def __init__(self):
         pass
 
     def MakeRecoveryModelPart(self, model_part):
-        edges_model_part = ModelPart("Edges")
+        edges_model_part = Kratos.ModelPart("Edges")
         set_of_all_edges = set()
         for elem in model_part.Elements:
             for i, first_node in enumerate(elem.Nodes[:-1]):

@@ -1,7 +1,0 @@
-{
-	"properties": [{
-		"model_part_name": "Main.sub1"
-	},{
-		"model_part_name": "Main.sub1.subsub"
-	}]
-}

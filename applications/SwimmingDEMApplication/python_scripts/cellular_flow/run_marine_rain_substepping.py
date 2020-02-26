@@ -28,7 +28,6 @@ def RunCase(varying_parameters):
 varying_parameters['time_window'] = t_w
 varying_parameters['basset_force_type'] = basset_type
 varying_parameters['number_of_exponentials'] = m
-varying_parameters['basset_force_integration_type'] = basset_force_integration_type
 
 for Nq in Nq_values:
     varying_parameters['time_steps_per_quadrature_step'] = Nq

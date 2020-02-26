@@ -44,7 +44,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of LineMomentCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineMomentCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineMomentCondition );
     ///@}
 
     ///@name Life Cycle

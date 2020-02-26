@@ -675,15 +675,15 @@ protected:
 
         /// We transfer the temporal sets to our DoF set
         dof_temp_all.reserve(dof_global_set.size());
-        for (auto& dof : dof_global_set) {
-            dof_temp_all.push_back( dof.get() );
+        for (auto p_dof : dof_global_set) {
+            dof_temp_all.push_back( p_dof );
         }
         dof_temp_all.Sort();
         BaseType::mDofSet = dof_temp_all;
 
         dof_temp_slave.reserve(dof_global_slave_set.size());
-        for (auto& dof : dof_global_slave_set) {
-            dof_temp_slave.push_back( dof.get() );
+        for (auto p_dof : dof_global_slave_set) {
+            dof_temp_slave.push_back( p_dof );
         }
         dof_temp_slave.Sort();
         mDoFSlaveSet = dof_temp_slave;
@@ -731,7 +731,7 @@ protected:
     }
 
     /**
-      *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
      * @param rA The LHS matrix
      * @param rDx The Unknowns vector
      * @param rb The RHS vector
@@ -746,22 +746,19 @@ protected:
     {
         KRATOS_TRY
 
-        double norm_b;
-        if (TSparseSpace::Size(rb) != 0)
+        double norm_b = 0.0;
+        if (TSparseSpace::Size(rb) > 0)
             norm_b = TSparseSpace::TwoNorm(rb);
-        else
-            norm_b = 0.0;
 
-        if (norm_b != 0.0) {
-
+        if (norm_b > 0.0) {
              // Create the auxiliar dof set
              DofsArrayType aux_dof_set;
              aux_dof_set.reserve(mDoFToSolveSystemSize);
-             for (auto& dof : BaseType::mDofSet) {
-                 if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                    auto it = mDoFSlaveSet.find(dof);
+             for (auto& r_dof : BaseType::mDofSet) {
+                 if (r_dof.EquationId() < BaseType::mEquationSystemSize) {
+                    auto it = mDoFSlaveSet.find(r_dof);
                     if (it == mDoFSlaveSet.end())
-                        aux_dof_set.push_back( &dof );
+                        aux_dof_set.push_back( &r_dof );
                  }
              }
              aux_dof_set.Sort();
@@ -885,25 +882,35 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = const_begin + i_const;
-                it_const->EquationIdVector(ids, second_ids, r_current_process_info);
-                // Slave DoFs
-                for (auto& id_i : ids) {
-                    if (id_i < BaseType::mEquationSystemSize) {
-                        auto& row_indices = temp_indexes[id_i];
-                        for (auto& id_j : ids) {
-                            if (id_j < BaseType::mEquationSystemSize) {
-                                row_indices.insert(id_j);
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if( it_const->IsDefined(ACTIVE) ) {
+                    constraint_is_active = it_const->Is(ACTIVE);
+                }
+
+                if(constraint_is_active) {
+                    it_const->EquationIdVector(ids, second_ids, r_current_process_info);
+                    // Slave DoFs
+                    for (auto& id_i : ids) {
+                        if (id_i < BaseType::mEquationSystemSize) {
+                            auto& row_indices = temp_indexes[id_i];
+                            for (auto& id_j : ids) {
+                                if (id_j < BaseType::mEquationSystemSize) {
+                                    row_indices.insert(id_j);
+                                }
                             }
                         }
                     }
-                }
-                // Master DoFs
-                for (auto& id_i : second_ids) {
-                    if (id_i < BaseType::mEquationSystemSize) {
-                        auto& row_indices = temp_indexes[id_i];
-                        for (auto& id_j : second_ids) {
-                            if (id_j < BaseType::mEquationSystemSize) {
-                                row_indices.insert(id_j);
+                    // Master DoFs
+                    for (auto& id_i : second_ids) {
+                        if (id_i < BaseType::mEquationSystemSize) {
+                            auto& row_indices = temp_indexes[id_i];
+                            for (auto& id_j : second_ids) {
+                                if (id_j < BaseType::mEquationSystemSize) {
+                                    row_indices.insert(id_j);
+                                }
                             }
                         }
                     }
@@ -1000,18 +1007,29 @@ protected:
         EquationIdVectorType second_ids(3, 0); // NOTE: Used only on the constraints to take into account the master dofs
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
         // TODO: OMP
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-            it_const->EquationIdVector(ids, second_ids, r_current_process_info);
-            for (auto& slave_id : ids) {
-                if (slave_id < BaseType::mEquationSystemSize) {
-                    auto it_slave = solvable_dof_reorder.find(slave_id);
-                    if (it_slave == solvable_dof_reorder.end()) {
-                        for (auto& master_id : second_ids) {
-                            if (master_id < BaseType::mEquationSystemSize) {
-                                auto& master_row_indices = master_indices[slave_id];
-                                master_row_indices.insert(solvable_dof_reorder[master_id]);
+            auto it_const = it_const_begin + i_const;
+
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint
+            // It is active by default
+            bool constraint_is_active = true;
+            if( it_const->IsDefined(ACTIVE) ) {
+                constraint_is_active = it_const->Is(ACTIVE);
+            }
+
+            if(constraint_is_active) {
+                it_const->EquationIdVector(ids, second_ids, r_current_process_info);
+                for (auto& slave_id : ids) {
+                    if (slave_id < BaseType::mEquationSystemSize) {
+                        auto it_slave = solvable_dof_reorder.find(slave_id);
+                        if (it_slave == solvable_dof_reorder.end()) {
+                            for (auto& master_id : second_ids) {
+                                if (master_id < BaseType::mEquationSystemSize) {
+                                    auto& master_row_indices = master_indices[slave_id];
+                                    master_row_indices.insert(solvable_dof_reorder[master_id]);
+                                }
                             }
                         }
                     }
@@ -1239,8 +1257,9 @@ protected:
         // If needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag) {
             const SizeType reactions_vector_size = BaseType::mDofSet.size() - mDoFToSolveSystemSize + mDoFMasterFixedSet.size();
-            if (BaseType::mpReactionsVector->size() != reactions_vector_size)
-                BaseType::mpReactionsVector->resize(reactions_vector_size, false);
+            TSystemVectorType& rReactionsVector = *(BaseType::mpReactionsVector);
+            if (rReactionsVector.size() != reactions_vector_size)
+                rReactionsVector.resize(reactions_vector_size, false);
         }
 
         // Now we resize the relation matrix used on the MPC solution
@@ -1262,7 +1281,10 @@ protected:
                 mpDeltaConstantVector.swap(pNewConstantVector);
             }
 
+            // System matrices/vectors
             TSystemMatrixType& rTMatrix = *mpTMatrix;
+            TSystemVectorType& rConstantVector = *mpConstantVector;
+            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
 
             // Resizing the system matrix
             if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() || mCleared) { // If the matrix is not initialized
@@ -1271,31 +1293,31 @@ protected:
             } else {
                 if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mDoFToSolveSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                    rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, true);
+                    rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
                     ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
                 }
             }
 
             // Resizing the system vector
             // The rigid movement
-            if (mpConstantVector->size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
-                mpConstantVector->resize(BaseType::mEquationSystemSize, false);
+            if (rConstantVector.size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
+                rConstantVector.resize(BaseType::mEquationSystemSize, false);
                 mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
             } else {
-                if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
+                if (rConstantVector.size() != BaseType::mEquationSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                    mpConstantVector->resize(BaseType::mEquationSystemSize, false);
+                    rConstantVector.resize(BaseType::mEquationSystemSize, false);
                     mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
                 }
             }
             // The effective rigid movement
             if (mComputeConstantContribution) {
-                if (mpDeltaConstantVector->size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
-                    mpDeltaConstantVector->resize(BaseType::mEquationSystemSize, false);
+                if (rDeltaConstantVector.size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
+                    rDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
                 } else {
-                    if (mpDeltaConstantVector->size() != BaseType::mEquationSystemSize) {
+                    if (rDeltaConstantVector.size() != BaseType::mEquationSystemSize) {
                         KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                        mpDeltaConstantVector->resize(BaseType::mEquationSystemSize, false);
+                        rDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
                     }
                 }
             }
@@ -1554,8 +1576,8 @@ private:
         }
 
         dof_temp_fixed_master.reserve(dof_global_fixed_master_set.size());
-        for (auto& dof : dof_global_fixed_master_set) {
-            dof_temp_fixed_master.push_back( dof.get() );
+        for (auto p_dof : dof_global_fixed_master_set) {
+            dof_temp_fixed_master.push_back( p_dof );
         }
         dof_temp_fixed_master.Sort();
         mDoFMasterFixedSet = dof_temp_fixed_master;

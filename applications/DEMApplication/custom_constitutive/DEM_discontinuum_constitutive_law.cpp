@@ -22,7 +22,7 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::Initialize(const ProcessInfo& r_process_info) {
     }
 
-    void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         //if (verbose) KRATOS_INFO("DEM") << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
@@ -46,12 +46,6 @@ namespace Kratos {
             KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(POISSON_RATIO) = 0.0;
-        }
-        if(!pProp->Has(DAMPING_GAMMA)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(DAMPING_GAMMA) = 0.0;
         }
         if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
             KRATOS_WARNING("DEM")<<std::endl;

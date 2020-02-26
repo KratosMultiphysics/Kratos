@@ -55,7 +55,7 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      double Solve() override
+      double SolveSolutionStep() override
       {
           KRATOS_TRY
           ModelPart& r_model_part = this->GetModelPart();
@@ -63,8 +63,6 @@ namespace Kratos
           bool has_mpi = false;
           VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
           if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
-
-          this->InitializeSolutionStep();
 
           this->PerformTimeIntegrationOfMotion(1);
 
@@ -74,13 +72,11 @@ namespace Kratos
 
           this->PerformTimeIntegrationOfMotion(2);
 
-          this->FinalizeSolutionStep();
-
           KRATOS_CATCH("")
 
           return 0.0;
 
-      }//Solve()
+      }//SolveSolutionStep()
 
   }; // Class VelocityVerletSolverStrategy<TBaseStrategy>
 

@@ -74,7 +74,7 @@ namespace Kratos
             {
                 Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + i);
                 
-                PointerVector< Node<3> > tmp;
+                Geometry<Node<3>>::PointsArrayType tmp;
                 const auto& geom = pelem->GetGeometry();
                 tmp.reserve(geom.size());
                 for(unsigned int k=0; k<geom.size(); ++k)
@@ -92,7 +92,7 @@ namespace Kratos
             {
                 Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + i);
                 
-                PointerVector< Node<3> > tmp;
+                Geometry<Node<3>>::PointsArrayType tmp;
                 const auto& geom = pcond->GetGeometry();
                 tmp.reserve(geom.size());
                 for(unsigned int k=0; k<geom.size(); ++k)

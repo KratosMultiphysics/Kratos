@@ -91,7 +91,7 @@ public:
 
     typedef Quaternion<double> QuaternionType;
 
-    typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
 
     /*@} */
     /**@name Life Cycle

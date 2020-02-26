@@ -59,6 +59,7 @@ template <
     typename ptr_t = col_t
     >
 struct crs {
+    typedef val_t value_type;
     typedef val_t val_type;
     typedef col_t col_type;
     typedef ptr_t ptr_type;
@@ -664,7 +665,11 @@ std::shared_ptr< numa_vector<V> > diagonal(const crs<V, C, P> &A, bool invert = 
     for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
         for(auto a = A.row_begin(i); a; ++a) {
             if (a.col() == i) {
-                (*dia)[i] = invert ? math::inverse(a.value()) : a.value();
+                V d = a.value();
+                if (invert) {
+                    d = math::is_zero(d) ? math::identity<V>() : math::inverse(d);
+                }
+                (*dia)[i] = d;
                 break;
             }
         }
@@ -914,11 +919,6 @@ template <typename T1, typename T2>
 struct backends_compatible< builtin<T1>, builtin<T2> > : std::true_type {};
 
 template < typename V, typename C, typename P >
-struct value_type< crs<V, C, P> > {
-    typedef V type;
-};
-
-template < typename V, typename C, typename P >
 struct rows_impl< crs<V, C, P> > {
     static size_t get(const crs<V, C, P> &A) {
         return A.nrows;
@@ -972,22 +972,6 @@ template < typename V, typename C, typename P >
 struct nonzeros_impl< crs<V, C, P> > {
     static size_t get(const crs<V, C, P> &A) {
         return A.nrows == 0 ? 0 : A.ptr[A.nrows];
-    }
-};
-
-template < typename V, typename C, typename P >
-struct row_iterator< crs<V, C, P> > {
-    typedef
-        typename crs<V, C, P>::row_iterator
-        type;
-};
-
-template < typename V, typename C, typename P >
-struct row_begin_impl< crs<V, C, P> > {
-    typedef crs<V, C, P> Matrix;
-    static typename row_iterator<Matrix>::type
-    get(const Matrix &matrix, size_t row) {
-        return matrix.row_begin(row);
     }
 };
 
@@ -1216,6 +1200,9 @@ namespace boost { template <class Iterator> class iterator_range; }
 
 namespace amgcl {
 namespace backend {
+
+template <class Iterator>
+struct is_builtin_vector< amgcl::iterator_range<Iterator> > : std::true_type {};
 
 template <class Iterator>
 struct is_builtin_vector< boost::iterator_range<Iterator> > : std::true_type {};

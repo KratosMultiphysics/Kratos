@@ -19,7 +19,6 @@
 
 namespace Kratos
 {
-
 /** \brief EICR ShellT3_CorotationalCoordinateTransformation
 *
 * This class represents a corotational (nonlinear) coordinate transformation
@@ -49,7 +48,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( ShellT3_CorotationalCoordinateTransformation );
+    KRATOS_CLASS_POINTER_DEFINITION(ShellT3_CorotationalCoordinateTransformation);
 
     typedef double RealType;
 
@@ -65,7 +64,7 @@ public:
 
 public:
 
-    ShellT3_CorotationalCoordinateTransformation(const GeometryType::Pointer & pGeometry)
+    ShellT3_CorotationalCoordinateTransformation(const GeometryType::Pointer& pGeometry)
         : ShellT3_CoordinateTransformation(pGeometry)
         , mInitialized(false)
     {
@@ -79,26 +78,24 @@ public:
 
     ShellT3_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const override
     {
-        return ShellT3_CorotationalCoordinateTransformation::Pointer( new ShellT3_CorotationalCoordinateTransformation( pGeometry ) );
+        return ShellT3_CorotationalCoordinateTransformation::Pointer(new ShellT3_CorotationalCoordinateTransformation(pGeometry));
     }
 
     void Initialize() override
     {
         KRATOS_TRY
 
-        if(!mInitialized)
-        {
-            const GeometryType & geom = GetGeometry();
+        if (!mInitialized) {
+            const GeometryType& geom = GetGeometry();
 
-            ShellT3_LocalCoordinateSystem LCS( CreateReferenceCoordinateSystem() );
+            ShellT3_LocalCoordinateSystem LCS(CreateReferenceCoordinateSystem());
 
-            mQ0 = QuaternionType::FromRotationMatrix( LCS.Orientation() );
+            mQ0 = QuaternionType::FromRotationMatrix(LCS.Orientation());
             mC0 = LCS.Center();
 
-            for(int i = 0; i < 3; i++)
-            {
-                mRV[i] = geom[i].FastGetSolutionStepValue( ROTATION );
-                mQN[i] = QuaternionType::FromRotationVector( mRV[i] );
+            for (int i = 0; i < 3; i++) {
+                mRV[i] = geom[i].FastGetSolutionStepValue(ROTATION);
+                mQN[i] = QuaternionType::FromRotationVector(mRV[i]);
 
                 mRV_converged[i] = mRV[i];
                 mQN_converged[i] = mQN[i];
@@ -112,8 +109,7 @@ public:
 
     void InitializeSolutionStep() override
     {
-        for(int i = 0; i < 3; i++)
-        {
+        for (int i = 0; i < 3; i++) {
             mRV[i] = mRV_converged[i];
             mQN[i] = mQN_converged[i];
         }
@@ -121,8 +117,7 @@ public:
 
     void FinalizeSolutionStep() override
     {
-        for(int i = 0; i < 3; i++)
-        {
+        for (int i = 0; i < 3; i++) {
             mRV_converged[i] = mRV[i];
             mQN_converged[i] = mQN[i];
         }
@@ -130,16 +125,15 @@ public:
 
     void FinalizeNonLinearIteration() override
     {
-        const GeometryType & geom = GetGeometry();
+        const GeometryType& geom = GetGeometry();
         Vector3Type incrementalRotation;
 
-        for(int i = 0; i < 3; i++)
-        {
-            const Vector3Type & currentRotVec = geom[i].FastGetSolutionStepValue( ROTATION );
-            noalias( incrementalRotation ) = currentRotVec - mRV[i];
-            noalias( mRV[i] ) = currentRotVec;
+        for (int i = 0; i < 3; i++) {
+            const Vector3Type& currentRotVec = geom[i].FastGetSolutionStepValue(ROTATION);
+            noalias(incrementalRotation) = currentRotVec - mRV[i];
+            noalias(mRV[i]) = currentRotVec;
 
-            QuaternionType incrementalQuaternion = QuaternionType::FromRotationVector( incrementalRotation );
+            QuaternionType incrementalQuaternion = QuaternionType::FromRotationVector(incrementalRotation);
 
             mQN[i] = incrementalQuaternion * mQN[i];
         }
@@ -147,15 +141,15 @@ public:
 
     ShellT3_LocalCoordinateSystem CreateLocalCoordinateSystem()const override
     {
-        const GeometryType & geom = GetGeometry();
+        const GeometryType& geom = GetGeometry();
 
 #ifdef COROT_POLAR_DECOMPOSITION
 
         // reference coordinate system
-        ShellT3_LocalCoordinateSystem a( CreateReferenceCoordinateSystem() );
+        ShellT3_LocalCoordinateSystem a(CreateReferenceCoordinateSystem());
 
         // current coordinate system using the 1-2 side alignement
-        ShellT3_LocalCoordinateSystem b( geom[0], geom[1], geom[2] );
+        ShellT3_LocalCoordinateSystem b(geom[0], geom[1], geom[2]);
 
         double aX1 = a.X1();
         double aY1 = a.Y1();
@@ -182,11 +176,11 @@ public:
 
         // now we can extrapolate the rotation angle that makes this deformation gradient symmetric.
         // F = R*U -> find R such that R'*F = U
-        double alpha = std::atan2( f21 - f12, f11 + f22 );
+        double alpha = std::atan2(f21 - f12, f11 + f22);
 
         // this final coordinate system is the one in which
         // the deformation gradient is equal to the stretch tensor
-        return ShellT3_LocalCoordinateSystem( geom[0], geom[1], geom[2], alpha );
+        return ShellT3_LocalCoordinateSystem(geom[0], geom[1], geom[2], alpha);
 
 #else
 
@@ -196,31 +190,30 @@ public:
 
     }
 
-    VectorType CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS,
-            const VectorType & globalDisplacements) override
+    VectorType CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem& LCS,
+                                           const VectorType& globalDisplacements) override
     {
-        const GeometryType & geom = GetGeometry();
+        const GeometryType& geom = GetGeometry();
 
         Vector3Type deformationalDisplacements;
 
-        QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
+        QuaternionType Q = QuaternionType::FromRotationMatrix(LCS.Orientation());
 
-        const Vector3Type & C = LCS.Center();
+        const Vector3Type& C = LCS.Center();
 
         VectorType localDisplacements(18);
 
         TransformationMatrixType T, T0;
-        Q.ToRotationMatrix( T );
-        mQ0.ToRotationMatrix( T0 );
+        Q.ToRotationMatrix(T);
+        mQ0.ToRotationMatrix(T0);
 
-        for(unsigned int i = 0; i < 3; i++)
-        {
+        for (unsigned int i = 0; i < 3; i++) {
             unsigned int index = i * 6;
 
             // get deformational displacements
 
-            noalias( deformationalDisplacements )  = prod( T , geom[i] - C );
-            noalias( deformationalDisplacements ) -= prod( T0, geom[i].GetInitialPosition() - mC0 );
+            noalias(deformationalDisplacements)  = prod(T , geom[i] - C);
+            noalias(deformationalDisplacements) -= prod(T0, geom[i].GetInitialPosition() - mC0);
 
             localDisplacements[index]     = deformationalDisplacements[0];
             localDisplacements[index + 1] = deformationalDisplacements[1];
@@ -230,21 +223,21 @@ public:
 
             QuaternionType Qd = Q * mQN[i] * mQ0.conjugate();
 
-            Qd.ToRotationVector( localDisplacements[index + 3],
-                                 localDisplacements[index + 4],
-                                 localDisplacements[index + 5] );
+            Qd.ToRotationVector(localDisplacements[index + 3],
+                                localDisplacements[index + 4],
+                                localDisplacements[index + 5]);
         }
 
         return localDisplacements;
     }
 
-    void FinalizeCalculations(const ShellT3_LocalCoordinateSystem & LCS,
-                                      const VectorType & globalDisplacements,
-                                      const VectorType & localDisplacements,
-                                      MatrixType & rLeftHandSideMatrix,
-                                      VectorType & rRightHandSideVector,
-                                      const bool RHSrequired,
-                                      const bool LHSrequired) override
+    void FinalizeCalculations(const ShellT3_LocalCoordinateSystem& LCS,
+                              const VectorType& globalDisplacements,
+                              const VectorType& localDisplacements,
+                              MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const bool RHSrequired,
+                              const bool LHSrequired) override
     {
         // Get the total rotation matrix (local - to - global)
         // Note: do NOT include the warpage correction matrix!
@@ -254,32 +247,34 @@ public:
         // Here instead we already calculate a nonlinear Projector (P = Pu - S * G)!
 
         MatrixType T(18, 18);
-        LCS.ComputeTotalRotationMatrix( T );
+        LCS.ComputeTotalRotationMatrix(T);
 
         // Form all matrices:
         // S: Spin-Fitter matrix
         // G: Spin-Lever matrix
         // P: Projector (Translational & Rotational)
 
-        MatrixType P( EICR::Compute_Pt(3) );
-        MatrixType S( EICR::Compute_S(LCS.Nodes()) );
-        MatrixType G( RotationGradient(LCS) );
-        noalias( P ) -= prod( S, G );
+        MatrixType P(EICR::Compute_Pt(3));
+        MatrixType S(EICR::Compute_S(LCS.Nodes()));
+        MatrixType G(RotationGradient(LCS));
+        noalias(P) -= prod(S, G);
 
         // Compute the projected local forces ( pe = P' * RHS ).
         // Note: here the RHS is already given as a residual vector -> - internalForces -> (pe = - Ke * U)
         // so projectedLocalForces = - P' * Ke * U
 
-        VectorType projectedLocalForces( prod( trans( P ), rRightHandSideVector ) );
+        VectorType projectedLocalForces(prod(trans(P), rRightHandSideVector));
 
         // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
         // At this point the computation of the Right-Hand-Side is complete.
 
-        noalias( rRightHandSideVector ) = prod( trans( T ), projectedLocalForces );
+        noalias(rRightHandSideVector) = prod(trans(T), projectedLocalForces);
 
         // Begin the computation of the Left-Hand-Side Matrix :
 
-        if(!LHSrequired) return; // avoid useless calculations!
+        if (!LHSrequired) {
+            return;    // avoid useless calculations!
+        }
 
         // This is a temporary matrix to store intermediate values
         // to avoid extra dynamic memory allocations!
@@ -287,17 +282,17 @@ public:
         MatrixType temp(18, 18);
 
         // H: Axial Vector Jacobian
-        MatrixType H( EICR::Compute_H(localDisplacements) );
+        MatrixType H(EICR::Compute_H(localDisplacements));
 
         // Step 1: ( K.M : Material Stiffness Matrix )
         // Apply the projector to the Material Stiffness Matrix (Ke = P' * Km * H * P)
         // At this point 'LHS' contains the 'projected' Material Stiffness matrix
         // in local corotational coordinate system
 
-        noalias( temp ) = prod( rLeftHandSideMatrix, H );
-        noalias( rLeftHandSideMatrix ) = prod( temp, P );
-        noalias( temp ) = prod( trans( P ), rLeftHandSideMatrix );
-        rLeftHandSideMatrix.swap( temp );
+        noalias(temp) = prod(rLeftHandSideMatrix, H);
+        noalias(rLeftHandSideMatrix) = prod(temp, P);
+        noalias(temp) = prod(trans(P), rLeftHandSideMatrix);
+        rLeftHandSideMatrix.swap(temp);
 
         // Step 2: ( K.GP: Equilibrium Projection Geometric Stiffness Matrix )
         // First assemble the 'Fnm' matrix with the Spins of the nodal forces.
@@ -308,38 +303,40 @@ public:
 
         MatrixType Fnm(18, 3, 0.0);
 
-        EICR::Spin_AtRow( projectedLocalForces, Fnm, 0  );
-        EICR::Spin_AtRow( projectedLocalForces, Fnm, 6  );
-        EICR::Spin_AtRow( projectedLocalForces, Fnm, 12 );
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 0);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 6);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 12);
 
-        noalias( temp ) = prod( trans( G ), trans( Fnm ) );
-        noalias( rLeftHandSideMatrix ) += prod( temp, P ); // note: '+' not '-' because the RHS already has the negative sign
+        noalias(temp) = prod(trans(G), trans(Fnm));
+        noalias(rLeftHandSideMatrix) += prod(temp, P);     // note: '+' not '-' because the RHS already has the negative sign
 
         // Step 3: ( K.GR: Rotational Geometric Stiffness Matrix )
         // Add the Spins of the nodal moments to 'Fnm'.
         // At this point 'LHS' contains also this term of the Geometric stiffness
         // (Ke = (P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G))
 
-        EICR::Spin_AtRow( projectedLocalForces, Fnm, 3  );
-        EICR::Spin_AtRow( projectedLocalForces, Fnm, 9  );
-        EICR::Spin_AtRow( projectedLocalForces, Fnm, 15 );
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 3);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 9);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 15);
 
-        noalias( rLeftHandSideMatrix ) += prod( Fnm, G ); // note: '+' not '-' because the RHS already has the negative sign
+        noalias(rLeftHandSideMatrix) += prod(Fnm, G);     // note: '+' not '-' because the RHS already has the negative sign
 
         // Step 4: (Global Stiffness Matrix)
         // Transform the LHS to the Global coordinate system.
         // T' * [(P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G)] * T
-        noalias( temp ) = prod( rLeftHandSideMatrix, T );
-        noalias( rLeftHandSideMatrix ) = prod( trans( T ), temp );
+        noalias(temp) = prod(rLeftHandSideMatrix, T);
+        noalias(rLeftHandSideMatrix) = prod(trans(T), temp);
     }
 
-    MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+    MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem& LCS,
             const Vector& globalDisplacements,
             size_t nodeid) override
     {
-        if(nodeid>2) return IdentityMatrix(3);
+        if (nodeid>2) {
+            return IdentityMatrix(3);
+        }
 
-        QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
+        QuaternionType Q = QuaternionType::FromRotationMatrix(LCS.Orientation());
 
         QuaternionType Qd = Q * mQN[nodeid] * mQ0.conjugate();
 
@@ -348,19 +345,18 @@ public:
         return R;
     }
 
-    MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+    MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem& LCS,
             const Vector& globalDisplacements,
             const Vector& N) override
     {
-        QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
+        QuaternionType Q = QuaternionType::FromRotationMatrix(LCS.Orientation());
 
         RealType qx(0.0);
         RealType qy(0.0);
         RealType qz(0.0);
         RealType qw(0.0);
 
-        for(int i = 0; i < 3; i++)
-        {
+        for (int i = 0; i < 3; i++) {
             QuaternionType iQd = Q * mQN[i] * mQ0.conjugate();
             iQd.normalize();
             RealType iN = N[i];
@@ -396,7 +392,7 @@ private:
         Matrix G(3, 18, 0.0);
         //const GeometryType & geom = GetGeometry();
 
-        ShellT3_LocalCoordinateSystem a( CreateReferenceCoordinateSystem() ); // REF coordinate system
+        ShellT3_LocalCoordinateSystem a(CreateReferenceCoordinateSystem());   // REF coordinate system
 
         ShellT3_LocalCoordinateSystem::Vector3ContainerType nodes = a.Nodes();
 
@@ -412,19 +408,17 @@ private:
         Vector3Type e3;
         Vector3Type e1;
 
-        for(int i = 0; i < 3; i++) // for each node
-        {
+        for (int i = 0; i < 3; i++) { // for each node
             Vector3Type& iNode = nodes[i];
 
             int index = i * 6;
 
-            for(int j = 0; j < 3; j++) // for each component in [x, y, z]
-            {
+            for (int j = 0; j < 3; j++) { // for each component in [x, y, z]
                 double saved_coord = iNode[j]; // save the current coordinate
 
                 iNode[j] += pert; // apply perturbation
 
-                ShellT3_LocalCoordinateSystem b( nodes[0], nodes[1], nodes[2] ); // perturbed coordinate system (1-2 side alignement)
+                ShellT3_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2]);   // perturbed coordinate system (1-2 side alignement)
 
                 double bX1 = b.X1();
                 double bY1 = b.Y1();
@@ -443,14 +437,14 @@ private:
                 double f21 = C1*(aY1 - aY3)*(bY1 - bY2) - C1*(aY1 - aY2)*(bY1 - bY3);
                 double f22 = C1*(aX1 - aX2)*(bY1 - bY3) - C1*(aX1 - aX3)*(bY1 - bY2);
 
-                double alpha = std::atan2( f21 - f12, f11 + f22 );
+                double alpha = std::atan2(f21 - f12, f11 + f22);
 
-                ShellT3_LocalCoordinateSystem c( nodes[0], nodes[1], nodes[2], alpha );// perturbed coordinate system (polar decomposition)
+                ShellT3_LocalCoordinateSystem c(nodes[0], nodes[1], nodes[2], alpha);  // perturbed coordinate system (polar decomposition)
 
                 // save the (numerical) rotation gradient
 
-                noalias( e3 ) = c.Vz();
-                noalias( e1 ) = c.Vx();
+                noalias(e3) = c.Vz();
+                noalias(e1) = c.Vx();
 
                 G(0, index + j) = -e3(1) / pert; // - d(e3.y)/dxj , where xj is x,y,z for j=0,1,2
                 G(1, index + j) =  e3(0) / pert; // + d(e3.x)/dxj , where xj is x,y,z for j=0,1,2
@@ -501,9 +495,9 @@ private:
         //return G;
 
         Matrix G(3, 18, 0.0);
-        const GeometryType & geom = GetGeometry();
+        const GeometryType& geom = GetGeometry();
 
-        ShellT3_LocalCoordinateSystem a( CreateLocalCoordinateSystem() ); // REF coordinate system
+        ShellT3_LocalCoordinateSystem a(CreateLocalCoordinateSystem());   // REF coordinate system
 
         ShellT3_LocalCoordinateSystem::Vector3ContainerType nodes = a.Nodes();
 
@@ -519,24 +513,22 @@ private:
         Vector3Type e3;
         Vector3Type e1;
 
-        for(int i = 0; i < 3; i++) // for each node
-        {
+        for (int i = 0; i < 3; i++) { // for each node
             Vector3Type& iNode = nodes[i];
 
             int index = i * 6;
 
-            for(int j = 0; j < 3; j++) // for each component in [x, y, z]
-            {
+            for (int j = 0; j < 3; j++) { // for each component in [x, y, z]
                 double saved_coord = iNode[j]; // save the current coordinate
 
                 iNode[j] += pert; // apply perturbation
 
-                ShellT3_LocalCoordinateSystem b( nodes[0], nodes[1], nodes[2] ); // perturbed coordinate system (1-2 side alignement)
+                ShellT3_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2]);   // perturbed coordinate system (1-2 side alignement)
 
                 // save the (numerical) rotation gradient
 
-                noalias( e3 ) = b.Vz();
-                noalias( e1 ) = b.Vx();
+                noalias(e3) = b.Vz();
+                noalias(e1) = b.Vx();
 
                 G(0, index + j) = -e3(1) / pert; // - d(e3.y)/dxj , where xj is x,y,z for j=0,1,2
                 G(1, index + j) =  e3(0) / pert; // + d(e3.x)/dxj , where xj is x,y,z for j=0,1,2
@@ -574,7 +566,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation);
         rSerializer.save("init", mInitialized);
         rSerializer.save("Q0", mQ0);
         rSerializer.save("C0", mC0);
@@ -586,7 +578,7 @@ private:
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation);
         rSerializer.load("init", mInitialized);
         rSerializer.load("Q0", mQ0);
         rSerializer.load("C0", mC0);

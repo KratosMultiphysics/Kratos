@@ -75,11 +75,11 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
 
         # Set the output variables and build the GiD output process
         if (settings["parallel_type"].GetString() == "OpenMP"):
-            from gid_output_process import GiDOutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess
             self.gid_output = GiDOutputProcess(self.visualization_model_part, settings["visualization_model_part_name"].GetString(), settings["output_configuration"])
         elif (settings["parallel_type"].GetString() == "MPI"):
-            from gid_output_process_mpi import GiDOutputProcessMPI
-            self.gid_output = GiDOutputProcessMPI(self.visualization_model_part, settings["visualization_model_part_name"].GetString(), settings["output_configuration"])
+            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess
+            self.gid_output = DistributedGiDOutputProcess(self.visualization_model_part, settings["visualization_model_part_name"].GetString(), settings["output_configuration"])
 
     def ExecuteInitialize(self):
         self.gid_output.ExecuteInitialize()
@@ -90,20 +90,21 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
         self.gid_output.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        # Set time in case the GiD process control output is time
-        self.visualization_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.origin_model_part.ProcessInfo[KratosMultiphysics.TIME]
-
         self.EmbeddedSkinVisualizationProcess.ExecuteInitializeSolutionStep()
         self.gid_output.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteBeforeOutputStep()
         if (self.gid_output.IsOutputStep()):
             self.gid_output.PrintOutput()
+
+    def ExecuteAfterOutputStep(self):
+        self.EmbeddedSkinVisualizationProcess.ExecuteAfterOutputStep()
+        self.gid_output.ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteFinalize()

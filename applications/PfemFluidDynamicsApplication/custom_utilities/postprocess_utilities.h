@@ -9,75 +9,64 @@
 #include <omp.h>
 #endif
 
-namespace Kratos {
+namespace Kratos
+{
 
-    class PostProcessUtilities {
+class PostProcessUtilities
+{
 
-    public:
+public:
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    typedef ModelPart::NodesContainerType NodesContainerType;
 
-        typedef ModelPart::ElementsContainerType ElementsArrayType;
-        typedef ModelPart::NodesContainerType NodesContainerType;
+    KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
 
-        KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
+    /// Default constructor.
 
-        /// Default constructor.
+    PostProcessUtilities(){};
 
-        PostProcessUtilities() {};
+    /// Destructor.
 
-        /// Destructor.
+    virtual ~PostProcessUtilities(){};
 
-        virtual ~PostProcessUtilities() {};
+    void RebuildPostProcessModelPart(ModelPart &r_post_model_part, ModelPart &r_main_model_part) {
 
-        void RebuildPostProcessModelPart(ModelPart& r_post_model_part, ModelPart& r_main_model_part) {
-            r_post_model_part.Elements().clear();
-            r_post_model_part.Nodes().clear();
-            for (size_t i=0; i<r_main_model_part.NumberOfNodes(); i++) {
-                auto node = r_main_model_part.NodesBegin()+i;
-                r_post_model_part.AddNode(*(node.base()));
-            }
+        // Cleaning the Output Model Part
+        r_post_model_part.Elements().clear();
+        r_post_model_part.Nodes().clear();
 
-            std::vector<Element::Pointer> elements_to_be_added;
+        // Adding nodes
+        for (size_t i = 0; i < r_main_model_part.NumberOfNodes(); i++) {
+            auto node = r_main_model_part.NodesBegin() + i;
+            r_post_model_part.AddNode(*(node.base()));
+        }
 
-            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_main_model_part.SubModelPartsBegin();
-                                                                 sub_model_part != r_main_model_part.SubModelPartsEnd(); ++sub_model_part) {
+        // Adding elements
+        PointerVector<Element> elements_to_be_added;
+        for (ModelPart::SubModelPartsContainerType::iterator i_smp = r_main_model_part.SubModelPartsBegin();
+            i_smp != r_main_model_part.SubModelPartsEnd(); ++i_smp) {
 
-                ModelPart& smp_k = *sub_model_part;
-                for (size_t i=0; i<smp_k.NumberOfElements(); i++) {
-                    auto elem = smp_k.ElementsBegin() + i;
-                    if (r_main_model_part.GetMesh(0).HasElement(elem->Id())) {
-                        if ( r_main_model_part.GetElement(elem->Id()).GetGeometry().GetGeometryType() == elem->GetGeometry().GetGeometryType() ) {
-                            r_post_model_part.AddElement(*(elem.base()));
-                        }
-                        else {
-                            elements_to_be_added.push_back(*(elem.base()));
-                        }
-                    }
-                    else {
+            // Skipping the Computing Model Part
+            if (!((i_smp->Is(ACTIVE) && i_smp->Is(SOLID)) || (i_smp->Is(ACTIVE) && i_smp->Is(FLUID)))) {
+                if (i_smp->NumberOfElements()) {
+                    ModelPart &sub_model_part = *i_smp;
+                    for (size_t i = 0; i < sub_model_part.NumberOfElements(); i++) {
+
+                        auto elem = sub_model_part.ElementsBegin() + i;
                         elements_to_be_added.push_back(*(elem.base()));
                     }
                 }
             }
-
-            int max_id = 1;
-            for (size_t i=0; i<r_post_model_part.NumberOfElements(); i++) {
-                auto elem = r_post_model_part.ElementsBegin() + i;
-                if((int)elem->Id() > max_id) max_id = elem->Id();
-            }
-
-            for (size_t i=0; i<elements_to_be_added.size(); i++) {
-                Element::Pointer& elem = elements_to_be_added[i];
-                max_id += 1;
-                elem->SetId(max_id);
-                elem->Set(ACTIVE, true);
-                r_post_model_part.AddElement(elem);
-            }
         }
 
+        for (auto &elem : elements_to_be_added) {
+            elem.Set(ACTIVE, true);
+        }
+        r_post_model_part.AddElements(elements_to_be_added.begin(), elements_to_be_added.end());
+    }
 
-    protected:
-
-
-    }; // Class PostProcessUtilities
+protected:
+}; // Class PostProcessUtilities
 
 } // namespace Kratos.
 

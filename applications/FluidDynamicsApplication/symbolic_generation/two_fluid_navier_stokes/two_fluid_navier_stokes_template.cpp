@@ -197,6 +197,8 @@ int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
+    KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
+
     return 0;
 
     KRATOS_CATCH("");
@@ -701,7 +703,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
     MatrixType &rKeeTot,
     const VectorType &rRHSeeTot)
 {
-    const double min_area_ratio = -1e-6;
+    const double min_area_ratio = 1e-7;
 
     // Compute positive side, negative side and total volumes
     double positive_volume = 0.0;
@@ -714,65 +716,50 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         negative_volume += rData.w_gauss_neg_side[igauss_neg];
     }
     const double Vol = positive_volume + negative_volume;
+    
+    //We only enrich elements which are not almost empty/full
+    if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio) {
 
-    // Compute the maximum diagonal value in the enrichment stiffness matrix
-    double max_diag = 0.0;
-    for (unsigned int k = 0; k < NumNodes; ++k){
-        if (std::abs(rKeeTot(k, k)) > max_diag){
-            max_diag = std::abs(rKeeTot(k, k));
-        }
-    }
-    if (max_diag == 0){
-        max_diag = 1.0;
-    }
-
-    // Check that positive and negative volumes ratios are larger than the minimum
-    // If not, substitute the enrichment term by
-    if (positive_volume / Vol < min_area_ratio){
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            if (rData.Distance[i] >= 0.0){
-                rKeeTot(i, i) += 1000.0 * max_diag;
+        // Compute the maximum diagonal value in the enrichment stiffness matrix
+        double max_diag = 0.0;
+        for (unsigned int k = 0; k < NumNodes; ++k){
+            if (std::abs(rKeeTot(k, k)) > max_diag){
+                max_diag = std::abs(rKeeTot(k, k));
             }
         }
-    }
-
-    if (negative_volume / Vol < min_area_ratio){
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            if (rData.Distance[i] < 0.0){
-                rKeeTot(i, i) += 1000.0 * max_diag;
+        if (max_diag == 0.0){
+            max_diag = 1.0;
+        }
+        // "weakly" impose continuity
+        for (unsigned int i = 0; i < Dim; ++i){
+            const double di = std::abs(rData.Distance[i]);
+            for (unsigned int j = i + 1; j < NumNodes; j++){
+                const double dj = std::abs(rData.Distance[j]);
+                // Check if the edge is cut, if it is, set the penalty constraint
+                if (rData.Distance[i] * rData.Distance[j] < 0.0){
+                    double sum_d = di + dj;
+                    double Ni = dj / sum_d;
+                    double Nj = di / sum_d;
+                    double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+                    rKeeTot(i, i) += penalty_coeff * Ni * Ni;
+                    rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
+                    rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
+                    rKeeTot(j, j) += penalty_coeff * Nj * Nj;
+                }
             }
         }
+
+        // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        double det;
+        MatrixType inverse_diag(NumNodes, NumNodes);
+        MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+
+        const Matrix tmp = prod(inverse_diag, rHtot);
+        noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
+
+        const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
+        noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
     }
-
-    // "weakly" impose continuity
-    for (unsigned int i = 0; i < Dim; ++i){
-        const double di = std::abs(rData.Distance[i]);
-        for (unsigned int j = i + 1; j < NumNodes; j++){
-            const double dj = std::abs(rData.Distance[j]);
-            // Check if the edge is cut, if it is, set the penalty constraint
-            if (rData.Distance[i] * rData.Distance[j] < 0.0){
-                double sum_d = di + dj;
-                double Ni = dj / sum_d;
-                double Nj = di / sum_d;
-                double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
-                rKeeTot(i, i) += penalty_coeff * Ni * Ni;
-                rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
-                rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
-                rKeeTot(j, j) += penalty_coeff * Nj * Nj;
-            }
-        }
-    }
-
-    // Enrichment condensation (add to LHS and RHS the enrichment contributions)
-    double det;
-    MatrixType inverse_diag(NumNodes, NumNodes);
-    MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
-
-    const Matrix tmp = prod(inverse_diag, rHtot);
-    noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
-
-    const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
-    noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
 }
 
 template <class TElementData>
@@ -787,6 +774,43 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+}
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                                                        std::vector<double> &rValues,
+                                                                        const ProcessInfo &rCurrentProcessInfo )
+{
+    if (rVariable == DIVERGENCE){
+
+        const auto& rGeom = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int num_gauss = IntegrationPoints.size();
+
+        if (rValues.size() != num_gauss){
+            rValues.resize(num_gauss);
+        }
+
+        Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
+        GeometryData::ShapeFunctionsGradientsType DN_DX;
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
+
+        for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
+
+            const Matrix gp_DN_DX = DN_DX[i_gauss];
+            double DVi_DXi = 0.0;
+
+            for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
+
+                const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
+                for(unsigned int ndim = 0; ndim < Dim; ndim++){
+                    DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                }
+            }
+            rValues[i_gauss] = DVi_DXi;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

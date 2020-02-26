@@ -20,6 +20,29 @@
 namespace Kratos {
 	namespace Testing {
 
+		KRATOS_TEST_CASE_IN_SUITE(PropertiesAssignment, KratosCoreFastSuite)
+		{
+			Properties property_1(1);
+			Properties property_2(2);
+
+			Table<double> table;
+			property_1.SetTable(TEMPERATURE, VISCOSITY, table);
+
+			property_1.SetValue(TEMPERATURE, 1.0);
+			property_1.SetValue(DENSITY, 2.0);
+
+			KRATOS_CHECK(property_2.IsEmpty());
+
+			property_2 = property_1;
+
+			KRATOS_CHECK_EQUAL(property_2.GetValue(TEMPERATURE), 1.0);
+			KRATOS_CHECK_EQUAL(property_2.GetValue(DENSITY), 2.0);
+			KRATOS_CHECK(property_2.HasTables());
+			KRATOS_CHECK(property_2.HasTable(TEMPERATURE, VISCOSITY));
+			KRATOS_CHECK_IS_FALSE(property_2.HasTable(TEMPERATURE, DISPLACEMENT_X));
+			KRATOS_CHECK_IS_FALSE(property_2.HasTable(VISCOSITY, TEMPERATURE));
+		}
+
 		KRATOS_TEST_CASE_IN_SUITE(PropertiesHasTable, KratosCoreFastSuite)
 		{
 			Properties properties(0);

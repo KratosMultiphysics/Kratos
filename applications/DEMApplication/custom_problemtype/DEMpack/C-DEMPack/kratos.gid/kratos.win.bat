@@ -19,4 +19,4 @@ REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
 
 REM Run Python using the script KratosOpenMP.py
-"%3\\kratos\\runkratos" KratosDEM.py > "%2\\%1.info" 2> "%2\\%1.err"
+"%3\\kratos\\runkratos" KratosDEMAnalysis.py > "%2\\%1.info" 2> "%2\\%1.err"

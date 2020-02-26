@@ -21,8 +21,8 @@
 #include "utilities/split_tetrahedra.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "custom_utilities/parallel_fill_communicator.h"
-
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "includes/global_pointer_variables.h"
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
 #include "Epetra_SerialDenseMatrix.h"
@@ -641,9 +641,9 @@ public:
 
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType& rDof = **iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
+                if (it_node1->IsFixed(rDof.GetVariable()) == true && it_node2->IsFixed(rDof.GetVariable()) == true)
                     (p_new_dof)->FixDof();
                 else
                 {
@@ -1235,7 +1235,7 @@ protected:
 
         for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
         {
-            Node < 3 > ::DofType& rDof = *iii;
+            Node < 3 > ::DofType& rDof = **iii;
             Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             //the variables are left as free for the internal node

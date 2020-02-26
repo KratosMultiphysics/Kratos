@@ -16,7 +16,6 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -28,71 +27,27 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    mName = "Default";
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
-
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
-
-    mName = NewName;
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(std::string const& NewName,VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart(NewName, 1, pVariablesList, rOwnerModel) { }
 
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
-    , mIndices(NewBufferSize, 0)
+    , mGeometries()
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
     , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF(NewName.empty()) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF_NOT(NewName.find(".") == std::string::npos) << "Please don't use names containing (\".\") when creating a ModelPart (used in \"" << NewName << "\")" << std::endl;
 
     mName = NewName;
     MeshType mesh;
@@ -103,15 +58,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
-    if (!IsSubModelPart()){
-
-      for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
-	{
-	  if (i_node->pGetVariablesList() == mpVariablesList)
-	    i_node->ClearSolutionStepsData();
-	}
-    }
-
     mpCommunicator->Clear();
 
     for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
@@ -277,7 +223,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
 /** Inserts a node in the mesh with ThisIndex.
 */
-ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, ModelPart::IndexType ThisIndex)
+ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
     if (IsSubModelPart())
@@ -304,7 +250,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = Kratos::make_shared< NodeType >( Id, x, y, z );
+    NodeType::Pointer p_new_node = Kratos::make_intrusive< NodeType >( Id, x, y, z );
 
     // Giving model part's variables list to the node
     p_new_node->SetSolutionStepVariablesList(pNewVariablesList);
@@ -350,7 +296,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = Kratos::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
+    NodeType::Pointer p_new_node = Kratos::make_intrusive< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
     //add the new node to the list of nodes
     GetMesh(ThisIndex).AddNode(p_new_node);
 
@@ -545,6 +491,14 @@ void ModelPart::RemoveTableFromAllLevels(ModelPart::IndexType TableId)
     RemoveTable(TableId);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::SizeType ModelPart::NumberOfProperties(IndexType ThisIndex) const
+{
+    return GetMesh(ThisIndex).NumberOfProperties();
+}
+
 /** Inserts a properties in the mesh with ThisIndex.
 */
 void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties, ModelPart::IndexType ThisIndex)
@@ -564,6 +518,253 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
     {
         GetMesh(ThisIndex).AddProperties(pNewProperties);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::HasProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    ) const
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        return true;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::RecursivelyHasProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    ) const
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        return true;
+    } else {
+        if(IsSubModelPart()) {
+            return mpParentModelPart->RecursivelyHasProperties(PropertiesId, MeshIndex);
+        } else {
+            return false;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::PropertiesType::Pointer ModelPart::CreateNewProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    )
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        KRATOS_ERROR << "Property #" << PropertiesId << " already existing. Please use pGetProperties() instead" << std::endl;
+    } else {
+        if(IsSubModelPart()) {
+            PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, MeshIndex);
+            GetMesh(MeshIndex).AddProperties(pprop);
+            return pprop;
+        } else {
+            PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+            GetMesh(MeshIndex).AddProperties(pnew_property);
+            return pnew_property;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    )
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        return *(pprop_it.base());
+    } else {
+        if(IsSubModelPart()) {
+            PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
+            GetMesh(MeshIndex).AddProperties(pprop);
+            return pprop;
+        } else {
+            KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
+            PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+            GetMesh(MeshIndex).AddProperties(pnew_property);
+            return pnew_property;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    ) const
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        return *(pprop_it.base());
+    } else {
+        if(IsSubModelPart()) {
+            PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
+            return pprop;
+        } else {
+            KRATOS_ERROR << "Property " << PropertiesId << " does not exist!. This is constant model part and cannot be created a new one" << std::endl;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::PropertiesType& ModelPart::GetProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    )
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        return *pprop_it;
+    } else {
+        if(IsSubModelPart()) {
+            PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
+            GetMesh(MeshIndex).AddProperties(pprop);
+            return *pprop;
+        } else {
+            KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
+            PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+            GetMesh(MeshIndex).AddProperties(pnew_property);
+            return *pnew_property;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::PropertiesType& ModelPart::GetProperties(
+    IndexType PropertiesId,
+    IndexType MeshIndex
+    ) const
+{
+    auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+    if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+        return *pprop_it;
+    } else {
+        if(IsSubModelPart()) {
+            PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
+            return *pprop;
+        } else {
+            KRATOS_ERROR << "Property " << PropertiesId << " does not exist!. This is constant model part and cannot be created a new one" << std::endl;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::HasProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        bool has_properties = true;
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                return false;
+            }
+        }
+        return has_properties;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    return *pGetProperties(rAddress, MeshIndex);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    return *pGetProperties(rAddress, MeshIndex);
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
@@ -1389,6 +1590,74 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
     root_model_part.RemoveConditions(IdentifierFlag);
 }
 
+///@}
+///@name Geometry Container
+///@{
+
+/// Adds a geometry to the geometry container.
+void ModelPart::AddGeometry(
+    typename GeometryType::Pointer pNewGeometry)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->AddGeometry(pNewGeometry);
+    }
+    /// Check if geometry id already used, is done within the geometry container.
+    mGeometries.AddGeometry(pNewGeometry);
+}
+
+
+/// Removes a geometry by id.
+void ModelPart::RemoveGeometry(
+    IndexType GeometryId)
+{
+    mGeometries.RemoveGeometry(GeometryId);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        ++i_sub_model_part)
+        i_sub_model_part->RemoveGeometry(GeometryId);
+}
+
+/// Removes a geometry by name.
+void ModelPart::RemoveGeometry(
+    std::string GeometryName)
+{
+    mGeometries.RemoveGeometry(GeometryName);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        ++i_sub_model_part)
+        i_sub_model_part->RemoveGeometry(GeometryName);
+}
+
+/// Removes a geometry by id from all root and sub model parts.
+void ModelPart::RemoveGeometryFromAllLevels(IndexType GeometryId)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveGeometry(GeometryId);
+        return;
+    }
+
+    RemoveGeometry(GeometryId);
+}
+
+/// Removes a geometry by name from all root and sub model parts.
+void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveGeometry(GeometryName);
+        return;
+    }
+
+    RemoveGeometry(GeometryName);
+}
+
+///@}
+///@name Sub Model Parts
+///@{
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
@@ -1437,9 +1706,8 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 {
     std::vector<std::string> SubModelPartsNames;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    for(auto& r_sub_model_part : mSubModelParts) {
+        SubModelPartsNames.push_back(r_sub_model_part.Name());
     }
 
     return SubModelPartsNames;
@@ -1451,9 +1719,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        i_sub_model_part->mBufferSize = NewBufferSize;
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
@@ -1467,6 +1734,15 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         node_iterator->SetBufferSize(mBufferSize);
     }
 
+}
+
+void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
+{
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
+    }
+
+    mBufferSize = NewBufferSize;
 }
 
 /// run input validation
@@ -1502,6 +1778,8 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
+    DataValueContainer::PrintData(rOStream);
+
     if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
     }
@@ -1511,6 +1789,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
+    rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
@@ -1554,7 +1833,8 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
-
+    rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
+    
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
@@ -1586,6 +1866,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    rSerializer.save("Geometries", mGeometries);
 
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
 
@@ -1611,6 +1892,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    rSerializer.load("Geometries", mGeometries);
 
     SizeType number_of_submodelparts;
     rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);

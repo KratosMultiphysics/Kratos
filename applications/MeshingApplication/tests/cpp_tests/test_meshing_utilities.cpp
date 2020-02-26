@@ -26,6 +26,25 @@ namespace Kratos {
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
 
+        void CreateDummy2DNoModelPartPropertiesModelPart(ModelPart& rModelPart)
+        {
+            Properties::Pointer p_elem_prop = Kratos::make_shared<Properties>(0);
+
+            // First we create the nodes
+            rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+            rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+            rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+            rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+            rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+            rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+            // Now we create the elements
+            rModelPart.CreateNewElement("Element2D3N", 1, {{1,2,3}}, p_elem_prop);
+            rModelPart.CreateNewElement("Element2D3N", 2, {{1,3,4}}, p_elem_prop);
+            rModelPart.CreateNewElement("Element2D3N", 3, {{2,5,3}}, p_elem_prop);
+            rModelPart.CreateNewElement("Element2D3N", 4, {{5,6,3}}, p_elem_prop);
+        }
+
         void CreateDummy2DModelPart(ModelPart& rModelPart)
         {
             Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -77,6 +96,26 @@ namespace Kratos {
             rModelPart.CreateNewElement("Element3D4N", 10, {{4,1,6,3}}, p_elem_prop);
             rModelPart.CreateNewElement("Element3D4N", 11, {{9,12,11,8}}, p_elem_prop);
             rModelPart.CreateNewElement("Element3D4N", 12, {{3,2,1,6}}, p_elem_prop);
+        }
+
+        /**
+        * Checks the correct work of the EnsureModelPartOwnsProperties
+        * Test triangle
+        */
+        KRATOS_TEST_CASE_IN_SUITE(EnsureModelPartOwnsProperties, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+            r_current_process_info[DOMAIN_SIZE] = 2;
+
+            CreateDummy2DNoModelPartPropertiesModelPart(r_model_part);
+
+            KRATOS_CHECK(r_model_part.NumberOfProperties() == 0);
+
+            MeshingUtilities::EnsureModelPartOwnsProperties(r_model_part);
+
+            KRATOS_CHECK(r_model_part.NumberOfProperties() == 1);
         }
 
         /**

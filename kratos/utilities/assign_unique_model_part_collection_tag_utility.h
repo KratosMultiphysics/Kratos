@@ -128,7 +128,27 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
         IndexIndexMapType& rCondTags,
         IndexIndexMapType& rElemTags,
         IndexStringMapType& rCollections
-    );
+        );
+
+    /**
+     * @brief This functions gets the "colors" from an existing json file
+     * @param rFilename Map where the nodes id and tags are stored
+     * @param rCollections Map where the tags and associated submodelparts collections are stored
+     */
+    static Parameters ReadTagsFromJson(
+        const std::string& rFilename,
+        IndexStringMapType& rCollections
+        );
+
+    /**
+     * @brief This functions writes the "colors" to a new json file
+     * @param rFilename Map where the nodes id and tags are stored
+     * @param rCollections Map where the tags and associated submodelparts collections are stored
+     */
+    static Parameters WriteTagsToJson(
+        const std::string& rFilename,
+        const IndexStringMapType& rCollections
+        );
 
     /**
      * @brief This method returns the list submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)

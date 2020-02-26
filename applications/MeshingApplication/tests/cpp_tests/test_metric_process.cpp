@@ -21,7 +21,7 @@
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
 #include "containers/model.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 /* Processes */
 #include "processes/compute_nodal_gradient_process.h"
@@ -258,7 +258,8 @@ namespace Kratos
             }
 
             // Compute metric
-            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE);
+            Parameters parameters = Parameters(R"({"enforce_anisotropy_relative_variable" : true})");
+            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
             hessian_process.Execute();
 
 //             // DEBUG
@@ -304,7 +305,8 @@ namespace Kratos
             }
 
             // Compute metric
-            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE);
+            Parameters parameters = Parameters(R"({"enforce_anisotropy_relative_variable" : true})");
+            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
             hessian_process.Execute();
 
 //             // DEBUG
@@ -384,13 +386,8 @@ namespace Kratos
 //             GiDIODebugMetricSPR(r_model_part);
 
             const double tolerance = 1.0e-4;
-            array_1d<double, 3> ref_metric(3);
-            ref_metric[0] = 246.507;
-            ref_metric[1] = 246.507;
-            ref_metric[2] = 0;
-
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric)/norm_2(ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_2D) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(2)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/246.507)/r_model_part.pGetNode(2)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/246.507)/r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR), tolerance);
         }
 
         /**
@@ -452,15 +449,10 @@ namespace Kratos
 //             GiDIODebugMetricSPR(r_model_part);
 
             const double tolerance = 1.0e-4;
-            array_1d<double, 6> ref_metric = ZeroVector(6);
-            ref_metric[0] = 4190.45;
-            ref_metric[1] = 4190.45;
-            ref_metric[2] = 4190.45;
-
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - 0.4807502774165066 * ref_metric)/norm_2(0.4807502774165066 * ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(7)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(8)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/(0.4807502774165066 * 4190.45))/r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(6)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(6)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(7)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(7)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(8)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(8)->GetValue(METRIC_SCALAR), tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

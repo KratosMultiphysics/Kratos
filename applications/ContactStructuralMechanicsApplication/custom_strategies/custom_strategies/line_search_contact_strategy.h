@@ -315,8 +315,8 @@ protected:
     
             for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
             {
-                const int j = (itDoF)->EquationId();
-                std::size_t CurrVar = (itDoF)->GetVariable().Key();
+                const int j = (**itDoF).EquationId();
+                const std::size_t CurrVar = (**itDoF).GetVariable().Key();
                 
                 if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
                 {          
@@ -356,8 +356,8 @@ protected:
     
             for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
             {
-                const int j = (itDoF)->EquationId();
-                std::size_t CurrVar = (itDoF)->GetVariable().Key();
+                const int j = (**itDoF).EquationId();
+                const std::size_t CurrVar = (**itDoF).GetVariable().Key();
                 
                 if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
                 {          

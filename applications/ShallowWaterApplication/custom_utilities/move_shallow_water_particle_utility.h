@@ -11,8 +11,8 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
-#define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#ifndef KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#define KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
 ///@defgroup MoveShallowWaterParticleUtility
 ///@brief Utility to move particles on the eulerian mesh with an
@@ -38,6 +38,7 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
+#include "includes/global_pointer_variables.h"
 #include "processes/node_erase_process.h"
 
 #include "utilities/geometry_utilities.h"
@@ -46,7 +47,6 @@
 #include "includes/kratos_parameters.h"
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "utilities/spatial_containers_configure.h"
@@ -56,7 +56,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"
@@ -87,8 +87,8 @@ public:
     //template<unsigned int TDim>
     MoveShallowWaterParticleUtility(ModelPart& rModelPart, Parameters rParameters) :
         mrModelPart(rModelPart),
-        mScalarVar1(KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
-        mVectorVar1(KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
+        mScalarVar1(&KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
+        mVectorVar1(&KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
     {
         KRATOS_TRY
 
@@ -139,10 +139,10 @@ public:
                 array_1d<double,3> position_node;
                 double distance=0.0;
                 position_node = pnode->Coordinates();
-                WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
                 const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
@@ -262,8 +262,8 @@ public:
 
                 for (unsigned int k = 0; k < (TDim+1); k++)
                 {
-                    scalar1          += N(j, k) * geom[k].FastGetSolutionStepValue(mScalarVar1);
-                    noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(mVectorVar1);
+                    scalar1          += N(j, k) * geom[k].FastGetSolutionStepValue(*mScalarVar1);
+                    noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(*mVectorVar1);
                 }
 
                 particle_pointers(j) = &pparticle;
@@ -318,8 +318,6 @@ public:
     void CalculateVelOverElemSize()
     {
         KRATOS_TRY
-
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
@@ -384,9 +382,9 @@ public:
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-                if (inode->IsFixed(mScalarVar1))
+                if (inode->IsFixed(*mScalarVar1))
                 {
-                    inode->FastGetSolutionStepValue(mScalarVar1)=inode->GetSolutionStepValue(mScalarVar1,1);
+                    inode->FastGetSolutionStepValue(*mScalarVar1)=inode->GetSolutionStepValue(*mScalarVar1,1);
                 }
                 if (inode->IsFixed(vector_var_x))
                 {
@@ -431,8 +429,8 @@ public:
             for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);  //PROJECTED_SCALAR1
-                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);  //PROJECTED_VECTOR1
+                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(*mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
+                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(*mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);  //PROJECTED_VECTOR1
             }
         }
         KRATOS_CATCH("")
@@ -509,7 +507,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //moveparticlesdiff reads from the pointers of one part (ie odd) and saves into the other part (ie even part)
@@ -567,7 +565,7 @@ public:
         {
             ResultContainerType results(max_results);
 
-            WeakPointerVector< Element > elements_in_trajectory;
+            GlobalPointersVector< Element > elements_in_trajectory;
             elements_in_trajectory.resize(20);
 
             for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -643,8 +641,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
-        //const double delta_t =CurrentProcessInfo[DELTA_TIME];
         const double threshold = 1e-10 / (static_cast<double>(TDim)+1.0);
 
         std::cout << "projecting info to mesh" << std::endl;
@@ -788,8 +784,8 @@ public:
                 }
                 else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
                 {
-                    inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(mScalarVar1,1); // Resetting the convected scalar
-                    inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=inode->FastGetSolutionStepValue(mVectorVar1,1); // Resetting the convected vector
+                    inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(*mScalarVar1,1); // Resetting the convected scalar
+                    inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=inode->FastGetSolutionStepValue(*mVectorVar1,1); // Resetting the convected vector
                 }
             }
         }
@@ -807,8 +803,6 @@ public:
     void CorrectParticlesWithoutMovingUsingDeltaVariables()
     {
         KRATOS_TRY
-        //std::cout << "updating particles" << std::endl;
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //(flag managed only by MoveParticles)
@@ -856,25 +850,6 @@ public:
     }
 
 
-    /// AddUniqueWeakPointer
-    template< class TDataType >
-    void AddUniqueWeakPointer
-        (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
-    {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-            i++;
-        }
-        if( i == endit )
-        {
-            v.push_back(candidate);
-        }
-
-    }
-
-
     /// Fill an element with particles
     /** This function is to be executed after moving particles and
      * before tranferring data from lagrangian particles to eulerian mesh
@@ -892,7 +867,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         const int offset =mOffset;
         const int max_results = 1000;
 
@@ -1006,7 +980,6 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         const int offset = mOffset;
 
         //TOOLS FOR THE PARALELIZATION
@@ -1099,8 +1072,8 @@ public:
 
                         for (unsigned int l = 0; l < (TDim+1); l++)
                         {
-                            mesh_scalar1 +=  N(j,l) * geom[l].FastGetSolutionStepValue(mScalarVar1);
-                            noalias(mesh_vector1) += N(j, l) * geom[l].FastGetSolutionStepValue(mVectorVar1);
+                            mesh_scalar1 +=  N(j,l) * geom[l].FastGetSolutionStepValue(*mScalarVar1);
+                            noalias(mesh_vector1) += N(j, l) * geom[l].FastGetSolutionStepValue(*mVectorVar1);
                         }
                         pparticle.GetScalar1()=mesh_scalar1;
                         pparticle.GetVector1()=mesh_vector1;
@@ -1138,7 +1111,7 @@ public:
             KRATOS_ERROR_IF( rLagrangianModelPart.NodesBegin() - rLagrangianModelPart.NodesEnd() > 0 ) <<
                 "In move shallow water particle utility: an empty model part is required for the particles printing tool" << std::endl;
 
-            rLagrangianModelPart.AddNodalSolutionStepVariable(mScalarVar1);
+            rLagrangianModelPart.AddNodalSolutionStepVariable(*mScalarVar1);
             rLagrangianModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
             for (unsigned int i = 0; i != ((mMaxNumberOfParticles*mNElems)/FilterFactor) + FilterFactor; i++)
@@ -1160,7 +1133,7 @@ public:
         for(unsigned int ii = 0; ii < rLagrangianModelPart.Nodes().size(); ii++)
         {
             ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-            inode->FastGetSolutionStepValue(mScalarVar1)  = 0.0;
+            inode->FastGetSolutionStepValue(*mScalarVar1)  = 0.0;
             inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
         }
 
@@ -1172,7 +1145,7 @@ public:
             if(pparticle.GetEraseFlag() == false && i%FilterFactor == 0)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + counter; //copying info from the particle to the (printing) node.
-                inode->FastGetSolutionStepValue(mScalarVar1)  = pparticle.GetScalar1();
+                inode->FastGetSolutionStepValue(*mScalarVar1)  = pparticle.GetScalar1();
                 inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
                 counter++;
             }
@@ -1204,12 +1177,12 @@ private:
      */
     void MoveParticle(ShallowParticle & pParticle,
                       Element::Pointer & pElement,
-                      WeakPointerVector< Element >& rElementsInTrajectory,
+                      GlobalPointersVector< Element >& rElementsInTrajectory,
                       unsigned int & rNumberOfElementsInTrajectory,
                       ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
     {
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
         unsigned int nsubsteps;
         double substep_dt;
@@ -1355,7 +1328,7 @@ private:
                                   ResultIteratorType ResultBegin,
                                   const unsigned int MaxNumberOfResults)
     {
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
         unsigned int nsubsteps;
         double substep_dt;
@@ -1387,8 +1360,8 @@ private:
 
             for(unsigned int j=0; j<(TDim+1); j++)
             {
-                scalar1          += geom[j].FastGetSolutionStepValue(mScalarVar1)*N[j];
-                noalias(vector1) += geom[j].FastGetSolutionStepValue(mVectorVar1)*N[j];
+                scalar1          += geom[j].FastGetSolutionStepValue(*mScalarVar1)*N[j];
+                noalias(vector1) += geom[j].FastGetSolutionStepValue(*mVectorVar1)*N[j];
                 noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
             }
             //calculating substep to get +- courant(substep) = 1/4
@@ -1415,8 +1388,8 @@ private:
 
                         for(unsigned int j=0; j<(TDim+1); j++)
                         {
-                            scalar1          += geom[j].FastGetSolutionStepValue(mScalarVar1)*N(j);
-                            noalias(vector1) += geom[j].FastGetSolutionStepValue(mVectorVar1)*N[j];
+                            scalar1          += geom[j].FastGetSolutionStepValue(*mScalarVar1)*N(j);
+                            noalias(vector1) += geom[j].FastGetSolutionStepValue(*mVectorVar1)*N[j];
                             noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
                         }
 
@@ -1467,14 +1440,14 @@ private:
         }
 
         // To begin with we check the neighbour elements; it is a bit more expensive
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 return true;
             }
         }
@@ -1488,14 +1461,14 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found_3)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     return true;
                 }
             }
@@ -1530,7 +1503,7 @@ private:
     bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
                          array_1d<double,TDim+1>& N,
                          Element::Pointer & pElement,
-                         WeakPointerVector< Element >& rElementsInTrajectory,
+                         GlobalPointersVector< Element >& rElementsInTrajectory,
                          unsigned int & rNumberOfElementsInTrajectory,
                          unsigned int & rCheckFromElementNumber,
                          ResultIteratorType ResultBegin,
@@ -1555,7 +1528,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
-                pElement = Element::Pointer(((rElementsInTrajectory(i))));
+                pElement = rElementsInTrajectory[i].shared_from_this();
                 N = aux_N;
                 rCheckFromElementNumber = i+1 ; //now i element matches pElement, so to avoid cheching twice the same element we send the counter to the following element.
                 return true;
@@ -1563,14 +1536,14 @@ private:
         }
 
         // Now we check the neighbour elements:
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 if (rNumberOfElementsInTrajectory<20)
                 {
                     rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -1590,14 +1563,14 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     if (rNumberOfElementsInTrajectory<20)
                     {
                         rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -2209,8 +2182,8 @@ private:
 
         Node<3>& rnode = *mrModelPart.NodesBegin();
 
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVectorVar1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mScalarVar1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mVectorVar1), rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mScalarVar1), rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_VECTOR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
@@ -2245,8 +2218,8 @@ private:
 
     typename BinsObjectDynamic<Configure>::Pointer mpBinsObjectDynamic;
 
-    Variable<double> mScalarVar1;
-    Variable<array_1d<double,3>> mVectorVar1;
+    const Variable<double>* mScalarVar1;
+    const Variable<array_1d<double,3>>* mVectorVar1;
     std::string m_scalar_var1_name;
     std::string m_vector_var1_name;
 

@@ -1,4 +1,5 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Node, Parameters
 
 class ParallelepipedRegularMesher: # TO-DO_ Generalize to different number of divisions per dimension
     def __init__(self,
@@ -19,18 +20,18 @@ class ParallelepipedRegularMesher: # TO-DO_ Generalize to different number of di
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
         parameters.AddEmptyValue("number_of_divisions").SetInt(self.n_divisions)
 
-        domain_geometry = Hexahedra3D8(Node(1, self.hc[0], self.hc[1], self.lc[2]),
-                                       Node(2, self.lc[0], self.hc[1], self.lc[2]),
-                                       Node(3, self.lc[0], self.lc[1], self.lc[2]),
-                                       Node(4, self.hc[0], self.lc[1], self.lc[2]),
-                                       Node(5, self.hc[0], self.hc[1], self.hc[2]),
-                                       Node(6, self.lc[0], self.hc[1], self.hc[2]),
-                                       Node(7, self.lc[0], self.lc[1], self.hc[2]),
-                                       Node(8, self.hc[0], self.lc[1], self.hc[2]))
+        domain_geometry = Kratos.Hexahedra3D8(Node(1, self.hc[0], self.hc[1], self.lc[2]),
+                                          Node(2, self.lc[0], self.hc[1], self.lc[2]),
+                                          Node(3, self.lc[0], self.lc[1], self.lc[2]),
+                                          Node(4, self.hc[0], self.lc[1], self.lc[2]),
+                                          Node(5, self.hc[0], self.hc[1], self.hc[2]),
+                                          Node(6, self.lc[0], self.hc[1], self.hc[2]),
+                                          Node(7, self.lc[0], self.lc[1], self.hc[2]),
+                                          Node(8, self.hc[0], self.lc[1], self.hc[2]))
 
-        self.mesh_generator_process = StructuredMeshGeneratorProcess(domain_geometry,
-                                                                     self.mp,
-                                                                     parameters)
+        self.mesh_generator_process = Kratos.StructuredMeshGeneratorProcess(domain_geometry,
+                                                                        self.mp,
+                                                                        parameters)
     def FillModelPartWithNewMesh(self):
         n_elements = len(self.mp.Elements)
         if n_elements > 0:

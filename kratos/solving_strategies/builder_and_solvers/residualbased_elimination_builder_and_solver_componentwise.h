@@ -28,6 +28,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -349,9 +350,9 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size() );
 
-        for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        for(GlobalPointersVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
-            BaseType::mDofSet.push_back( iii->pGetDof(rVar).get() );
+            BaseType::mDofSet.push_back( iii->pGetDof(rVar) );
         }
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
@@ -557,21 +558,21 @@ protected:
         unsigned int pos = (mActiveNodes.begin())->GetDofPosition(rVar);
         //constructing the system matrix row by row
         int index_i;
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
             const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
             if( current_dof.IsFixed() == false)
             {
                 index_i = (current_dof).EquationId();
-                WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                 std::vector<int>& indices = index_list[index_i];
                 indices.reserve(neighb_nodes.size()+1);
 
                 //filling the first neighbours list
                 indices.push_back(index_i);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
@@ -634,24 +635,24 @@ protected:
         #pragma omp parallel for firstprivate(number_of_threads,pos) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
         {
-            WeakPointerVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
-            WeakPointerVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
+            GlobalPointersVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
+            GlobalPointersVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
 
-            for(WeakPointerVector< Node<3> >::iterator in = it_begin;
+            for(GlobalPointersVector< Node<3> >::iterator in = it_begin;
                     in!=it_end; in++)
             {
                 const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
                 if( current_dof.IsFixed() == false)
                 {
                     int index_i = (current_dof).EquationId();
-                    WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<int>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size()+1);
 
                     //filling the first neighbours list
                     indices.push_back(index_i);
-                    for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                    for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
@@ -729,7 +730,7 @@ private:
     /**@name Member Variables */
     /*@{ */
     TVariableType const & rVar;
-    WeakPointerVector<Node<3> > mActiveNodes;
+    GlobalPointersVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operators*/

@@ -5,8 +5,6 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,

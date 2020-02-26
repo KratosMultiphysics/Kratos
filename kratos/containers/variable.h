@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 #if !defined(KRATOS_VARIABLE_H_INCLUDED )
@@ -25,7 +25,7 @@
 // Project includes
 #include "includes/define.h"
 #include "variable_data.h"
-#include "utilities/stl_io.h"
+#include "utilities/stl_vector_io.h"
 
 namespace Kratos
 {
@@ -80,8 +80,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** 
-     * Constructor with specific name and zero value 
+    /**
+     * Constructor with specific name and zero value
      * @param NewName The name to be assigned to the new variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
@@ -102,7 +102,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    
+
     /**
      * Assignment operator.
      * @param rOtherVariable The old variable to be assigned
@@ -119,8 +119,8 @@ public:
     ///@{
 
     /**
-     * Clone creates a copy of the object using a copy constructor of the class. 
-     * It is useful to avoid shallow copying of complex objects and also without 
+     * Clone creates a copy of the object using a copy constructor of the class.
+     * It is useful to avoid shallow copying of complex objects and also without
      * actually having information about the variable type.
      * @param pSource The pointer of the variable to be cloned
      * @return A raw pointer of the variable
@@ -131,8 +131,8 @@ public:
     }
 
     /**
-     * Copy is very similar to Clone except that it also the destination 
-     * pointer also passed to it. It is a helpful method specially 
+     * Copy is very similar to Clone except that it also the destination
+     * pointer also passed to it. It is a helpful method specially
      * to create a copy of heterogeneous data arrays
      * @param pSource The pointer of the variable to be copied
      * @param pDestination The pointer of the destination variable
@@ -144,9 +144,9 @@ public:
     }
 
     /**
-     * Assign is very similar to Copy. It just differs in using an assignment 
-     * operator besides the copy constructor. Copy creates a new object while 
-     * Assign does the assignment for two existing objects. 
+     * Assign is very similar to Copy. It just differs in using an assignment
+     * operator besides the copy constructor. Copy creates a new object while
+     * Assign does the assignment for two existing objects.
      * @param pSource The pointer of the value to be assigned
      * @param pDestination The pointer of the destination value
      */
@@ -156,7 +156,7 @@ public:
     }
 
     /**
-     * AssignZero is a special case of Assign for which variable zero value used as source. 
+     * AssignZero is a special case of Assign for which variable zero value used as source.
      * This method is useful for initializing arrays or resetting values in memory.
      * @param pDestination The pointer of the destination variable
      */
@@ -167,8 +167,8 @@ public:
     }
 
     /**
-     *  Delete removes an object of variable type from memory. It calls a 
-     * destructor of objects to prevent memory leak and frees the memory 
+     *  Delete removes an object of variable type from memory. It calls a
+     * destructor of objects to prevent memory leak and frees the memory
      * allocated for this object assuming that the object is allocated in heap.
      * @param pSource The pointer of the variable to be deleted
      */
@@ -178,8 +178,8 @@ public:
     }
 
     /**
-     *  Destruct eliminates an object maintaining the memory it is using. 
-     * However, the unlike Delete it does nothing with the memory allocated to it. 
+     *  Destruct eliminates an object maintaining the memory it is using.
+     * However, the unlike Delete it does nothing with the memory allocated to it.
      * So it is very useful in case of reallocating a part of the memory.
      * @param pSource The pointer of the variable to be destructed
      */
@@ -189,9 +189,9 @@ public:
     }
 
     /**
-     *  Print is an auxiliary method to produce output of given variable 
-     * knowing its address. For example writing an heterogenous container 
-     * in an output stream can be done using this method. Point assumes 
+     *  Print is an auxiliary method to produce output of given variable
+     * knowing its address. For example writing an heterogenous container
+     * in an output stream can be done using this method. Point assumes
      * that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
@@ -202,9 +202,9 @@ public:
     }
 
     /**
-     * PrintData is an auxiliary method to produce output only the value of given variable 
-     * knowing its address. For example writing an heterogenous container 
-     * in an output stream can be done using this method. Point assumes 
+     * PrintData is an auxiliary method to produce output only the value of given variable
+     * knowing its address. For example writing an heterogenous container
+     * in an output stream can be done using this method. Point assumes
      * that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
@@ -275,7 +275,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /** 
+    /**
      * Turn back information as a string.
      */
     std::string Info() const override
@@ -320,7 +320,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
- 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -446,6 +446,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLE_H_INCLUDED  defined 
+#endif // KRATOS_VARIABLE_H_INCLUDED  defined
 
 

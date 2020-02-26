@@ -7,16 +7,14 @@
 //
 //
 
-#if !defined(KRATOS_SET_MATERIAL_PROPERTIES_TO_SOLID_NODES_PROCESS_H_INCLUDED )
-#define  KRATOS_SET_MATERIAL_PROPERTIES_TO_SOLID_NODES_PROCESS_H_INCLUDED
-
+#if !defined(KRATOS_SET_MATERIAL_PROPERTIES_TO_SOLID_NODES_PROCESS_H_INCLUDED)
+#define KRATOS_SET_MATERIAL_PROPERTIES_TO_SOLID_NODES_PROCESS_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -28,257 +26,230 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
-
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
-  typedef  ModelPart::NodesContainerType                      NodesContainerType;
-  typedef  ModelPart::ElementsContainerType                ElementsContainerType;
-  typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
-  typedef std::size_t SizeType;
+///@}
+///@name Type Definitions
+///@{
+typedef ModelPart::NodesContainerType NodesContainerType;
+typedef ModelPart::ElementsContainerType ElementsContainerType;
+typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
+typedef std::size_t SizeType;
 
- 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
+/// Short class definition.
+/** Detail class definition.
    */
-  class SetMaterialPropertiesToSolidNodesProcess
+class SetMaterialPropertiesToSolidNodesProcess
     : public MesherProcess
-  {
-  public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of SetMaterialPropertiesToSolidNodesProcess
-    KRATOS_CLASS_POINTER_DEFINITION( SetMaterialPropertiesToSolidNodesProcess );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    SetMaterialPropertiesToSolidNodesProcess(ModelPart& rModelPart)
-      : mrModelPart(rModelPart)
-    {
-
-    }
-
-    /// Destructor.
-    virtual ~SetMaterialPropertiesToSolidNodesProcess()
-    {
-    }
-
-    void operator()()
-    {
-      Execute();
-    }
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void Execute() override
-    {
-      KRATOS_TRY
-
-	double density = 0;
-      double young_modulus = 0;
-      double poisson_ratio = 0;
-  
-#pragma omp parallel
-      {
-	  
-	ModelPart::ElementIterator ElemBegin;
-	ModelPart::ElementIterator ElemEnd;
-	OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
-	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-	  {
-	    ModelPart::PropertiesType &elemProperties=itElem->GetProperties();
-
-	    density = elemProperties[DENSITY];
-	    young_modulus = elemProperties[YOUNG_MODULUS];
-	    poisson_ratio = elemProperties[POISSON_RATIO];
-	    
-	    Geometry<Node <3> >& rGeom = itElem->GetGeometry();
-	    const SizeType NumNodes = rGeom.PointsNumber();
-	    for (SizeType i = 0; i < NumNodes; ++i)
-	      {
-		rGeom[i].FastGetSolutionStepValue(YOUNG_MODULUS)=young_modulus;
-		rGeom[i].FastGetSolutionStepValue(DENSITY)=density;
-		rGeom[i].FastGetSolutionStepValue(POISSON_RATIO)=poisson_ratio;
-	      }
-
-	    
-	  }
-
-
-      }
-
-      
-      KRATOS_CATCH(" ")    
-	};
-
-    ///@}
-    ///@name Operators
-    ///@{ 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const  override
-    {
-      return "SetMaterialPropertiesToSolidNodesProcess";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-      rOStream << "SetMaterialPropertiesToSolidNodesProcess";
-    }
-
-    
-
-
-    
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ModelPart& mrModelPart;
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-  private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    SetMaterialPropertiesToSolidNodesProcess& operator=(SetMaterialPropertiesToSolidNodesProcess const& rOther);
-
-    /// Copy constructor.
-    //SetMaterialPropertiesToSolidNodesProcess(SetMaterialPropertiesToSolidNodesProcess const& rOther);
-
-
-    ///@}
-
-  }; // Class SetMaterialPropertiesToSolidNodesProcess
-
-  ///@}
-
+{
+public:
   ///@name Type Definitions
   ///@{
 
+  /// Pointer definition of SetMaterialPropertiesToSolidNodesProcess
+  KRATOS_CLASS_POINTER_DEFINITION(SetMaterialPropertiesToSolidNodesProcess);
+
+  ///@}
+  ///@name Life Cycle
+  ///@{
+
+  /// Default constructor.
+  SetMaterialPropertiesToSolidNodesProcess(ModelPart &rModelPart)
+      : mrModelPart(rModelPart)
+  {
+  }
+
+  /// Destructor.
+  virtual ~SetMaterialPropertiesToSolidNodesProcess()
+  {
+  }
+
+  void operator()()
+  {
+    Execute();
+  }
+
+  ///@}
+  ///@name Operations
+  ///@{
+
+  void Execute() override
+  {
+    KRATOS_TRY
+
+    double density = 0;
+    double young_modulus = 0;
+    double poisson_ratio = 0;
+
+#pragma omp parallel
+    {
+
+      ModelPart::ElementIterator ElemBegin;
+      ModelPart::ElementIterator ElemEnd;
+      OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
+      for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+      {
+        ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
+
+        density = elemProperties[DENSITY];
+        young_modulus = elemProperties[YOUNG_MODULUS];
+        poisson_ratio = elemProperties[POISSON_RATIO];
+
+        Geometry<Node<3>> &rGeom = itElem->GetGeometry();
+        const SizeType NumNodes = rGeom.PointsNumber();
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+          rGeom[i].FastGetSolutionStepValue(YOUNG_MODULUS) = young_modulus;
+          if (rGeom[i].SolutionStepsDataHas(SOLID_DENSITY))
+          {
+            rGeom[i].FastGetSolutionStepValue(SOLID_DENSITY) = density;
+          }
+          rGeom[i].FastGetSolutionStepValue(DENSITY) = density;
+          rGeom[i].FastGetSolutionStepValue(POISSON_RATIO) = poisson_ratio;
+        }
+      }
+    }
+
+    KRATOS_CATCH(" ")
+  };
+
+  ///@}
+  ///@name Operators
+  ///@{
+
+  ///@}
+  ///@name Access
+  ///@{
+
+  ///@}
+  ///@name Inquiry
+  ///@{
 
   ///@}
   ///@name Input and output
   ///@{
 
-
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    SetMaterialPropertiesToSolidNodesProcess& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const SetMaterialPropertiesToSolidNodesProcess& rThis)
+  /// Turn back information as a string.
+  std::string Info() const override
   {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
+    return "SetMaterialPropertiesToSolidNodesProcess";
   }
+
+  /// Print information about this object.
+  void PrintInfo(std::ostream &rOStream) const override
+  {
+    rOStream << "SetMaterialPropertiesToSolidNodesProcess";
+  }
+
+protected:
+  ///@name Protected static Member Variables
+  ///@{
+
+  ///@}
+  ///@name Protected member Variables
+  ///@{
+
+  ///@}
+  ///@name Protected  Access
+  ///@{
+  ModelPart &mrModelPart;
+
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
+
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
+
   ///@}
 
+private:
+  ///@name Static Member Variables
+  ///@{
 
-}  // namespace Kratos.
+  ///@}
+  ///@name Member Variables
+  ///@{
 
-#endif // KRATOS_SET_MATERIAL_PROPERTIES_TO_SOLID_NODES_PROCESS_H_INCLUDED  defined 
+  ///@}
+  ///@name Private Operators
+  ///@{
 
+  ///@}
+  ///@name Private Operations
+  ///@{
+
+  ///@}
+  ///@name Private  Access
+  ///@{
+
+  ///@}
+  ///@name Private Inquiry
+  ///@{
+
+  ///@}
+  ///@name Un accessible methods
+  ///@{
+
+  /// Assignment operator.
+  SetMaterialPropertiesToSolidNodesProcess &operator=(SetMaterialPropertiesToSolidNodesProcess const &rOther);
+
+  /// Copy constructor.
+  //SetMaterialPropertiesToSolidNodesProcess(SetMaterialPropertiesToSolidNodesProcess const& rOther);
+
+  ///@}
+
+}; // Class SetMaterialPropertiesToSolidNodesProcess
+
+///@}
+
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
+/// input stream function
+inline std::istream &operator>>(std::istream &rIStream,
+                                SetMaterialPropertiesToSolidNodesProcess &rThis);
+
+/// output stream function
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const SetMaterialPropertiesToSolidNodesProcess &rThis)
+{
+  rThis.PrintInfo(rOStream);
+  rOStream << std::endl;
+  rThis.PrintData(rOStream);
+
+  return rOStream;
+}
+///@}
+
+} // namespace Kratos.
+
+#endif // KRATOS_SET_MATERIAL_PROPERTIES_TO_SOLID_NODES_PROCESS_H_INCLUDED  defined

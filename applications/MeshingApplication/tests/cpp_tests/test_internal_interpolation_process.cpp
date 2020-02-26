@@ -21,7 +21,7 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 /* Processes */
 #include "processes/find_nodal_h_process.h"
@@ -59,7 +59,7 @@ namespace Kratos
 //             gid_io.WriteMesh(rModelPart.GetMesh());
 //             gid_io.FinalizeMesh();
 //             gid_io.InitializeResults(label, rModelPart.GetMesh());
-//             auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+//             const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
 //             gid_io.PrintOnGaussPoints(this_var, rModelPart, label);
 //         }
 
@@ -195,7 +195,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(r_model_part, "pre1");
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -294,7 +294,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -390,7 +390,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(r_model_part, "pre2");
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -490,7 +490,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -567,7 +567,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(r_model_part, "pre1");
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -584,7 +584,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
@@ -646,7 +646,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -663,7 +663,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
@@ -722,7 +722,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(r_model_part, "pre2");
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -739,7 +739,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
@@ -802,7 +802,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -819,7 +819,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)

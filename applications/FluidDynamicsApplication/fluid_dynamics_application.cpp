@@ -129,6 +129,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(TAUTWO);
     KRATOS_REGISTER_VARIABLE(PRESSURE_MASSMATRIX_COEFFICIENT);
     KRATOS_REGISTER_VARIABLE(FLUID_STRESS);
+    KRATOS_REGISTER_VARIABLE(GAPS);
     KRATOS_REGISTER_VARIABLE(DIVERGENCE);
     KRATOS_REGISTER_VARIABLE(AUX_DISTANCE);
 
@@ -178,6 +179,9 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( TURBULENCE_STATISTICS_DATA)
     KRATOS_REGISTER_VARIABLE( UPDATE_STATISTICS )
 
+    // Auxiliary variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DRAG_FORCE_CENTER)
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
@@ -188,7 +192,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("QSVMS2D4N",mQSVMS2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMS3D8N",mQSVMS3D8N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS2D3N",mTimeIntegratedQSVMS2D3N);
-    KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS3D4M",mTimeIntegratedQSVMS3D4N);
+    KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS3D4N",mTimeIntegratedQSVMS3D4N);
     KRATOS_REGISTER_ELEMENT("DVMS2D3N",mDVMS2D3N);
     KRATOS_REGISTER_ELEMENT("DVMS3D4N",mDVMS3D4N);
     KRATOS_REGISTER_ELEMENT("FIC2D3N",mFIC2D3N);
@@ -196,7 +200,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("FIC3D4N",mFIC3D4N);
     KRATOS_REGISTER_ELEMENT("FIC3D8N",mFIC3D8N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC2D3N",mTimeIntegratedFIC2D3N);
-    KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4M",mTimeIntegratedFIC3D4N);
+    KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4N",mTimeIntegratedFIC3D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes2D3N",mSymbolicNavierStokes2D3N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes3D4N",mSymbolicNavierStokes3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokes2D3N",mEmbeddedSymbolicNavierStokes2D3N);
@@ -236,6 +240,8 @@ void KratosFluidDynamicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D", mHerschelBulkleyVMS2D);
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D", mHerschelBulkleyVMS3D);
+    KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D3N", mHerschelBulkleyVMS2D); //this is the name the element should have according to the naming convention
+    KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D4N", mHerschelBulkleyVMS3D); //this is the name the element should have according to the naming convention
 
     KRATOS_REGISTER_ELEMENT("Stokes3D4N", mStokes3D);
     KRATOS_REGISTER_ELEMENT("StokesTwoFluid3D4N", mStokes3DTwoFluid);
@@ -263,10 +269,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("WallCondition3D3N", mWallCondition3D);  //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_CONDITION("WallCondition2D", mWallCondition2D);
     KRATOS_REGISTER_CONDITION("WallCondition3D", mWallCondition3D);
-    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D", mFSWernerWengleWallCondition2D);
-    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D", mFSWernerWengleWallCondition3D);
-    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D", mFSGeneralizedWallCondition2D);
-    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition3D", mFSGeneralizedWallCondition3D);
+    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D2N", mFSWernerWengleWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D3N", mFSWernerWengleWallCondition3D);
+    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D2N", mFSGeneralizedWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition3D3N", mFSGeneralizedWallCondition3D);
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous2D", mWallConditionDiscontinuous2D);
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D", mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D2N", mMonolithicWallCondition2D);

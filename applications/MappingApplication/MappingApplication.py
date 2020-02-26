@@ -14,8 +14,6 @@ KM._ImportApplicationAsModule(application, application_name, application_folder,
 TODO:
     - Test for Serialization
     - Test for local-search?
-    - Finish new tests => requires first implementation in core
-    - Cleanup & remove old tests
     - Cleanup how the MapperParams are used
     - Further cleanup Trilinos and try some things (read up on opt-stuff)
     - use std::unordered_set for row & column indices-vectors in trilinos => does the map need sorted indices?
@@ -23,5 +21,4 @@ TODO:
     - Function-Documentation
     - Delete copy and assignment-constructors?
     - testing => do some logical tests with USE_TRANSPOSE
-    - MapperFlags: Check that they are used correctly and all of them are used in tests (USE_TRANSPOSE)
 '''

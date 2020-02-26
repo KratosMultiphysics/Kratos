@@ -62,7 +62,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUP );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUP );
     ///@}
 
 
@@ -246,7 +246,8 @@ protected:
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
-                            const double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight,
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation and addition of the vectors of the RHS

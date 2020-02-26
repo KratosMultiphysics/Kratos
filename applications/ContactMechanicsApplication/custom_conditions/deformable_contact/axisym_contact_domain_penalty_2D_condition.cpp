@@ -66,7 +66,7 @@ AxisymContactDomainPenalty2DCondition&  AxisymContactDomainPenalty2DCondition::o
 
 Condition::Pointer AxisymContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<AxisymContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<AxisymContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************

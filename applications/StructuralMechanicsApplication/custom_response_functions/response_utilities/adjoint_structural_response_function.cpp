@@ -25,7 +25,8 @@ namespace Kratos
 
     /// Constructor.
     AdjointStructuralResponseFunction::AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
-      : mrModelPart(rModelPart)
+      : mrModelPart(rModelPart),
+        mResponseSettings(ResponseSettings)
     {
         KRATOS_TRY;
 
@@ -34,11 +35,7 @@ namespace Kratos
 
         // Mode 1: semi-analytic sensitivities
         if (gradient_mode == "semi_analytic")
-        {
             mGradientMode = 1;
-            double delta = ResponseSettings["step_size"].GetDouble();
-            mDelta = delta;
-        }
         else
             KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
 
@@ -52,8 +49,13 @@ namespace Kratos
 
         if(mGradientMode == 1)
         {
-            VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, mrModelPart.Elements());
-            VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, mrModelPart.Conditions());
+            double perturbation_size = mResponseSettings["step_size"].GetDouble();
+            mrModelPart.GetProcessInfo()[PERTURBATION_SIZE] = perturbation_size;
+
+            bool adapt_perturbation_size = false;
+            if(mResponseSettings.Has("adapt_step_size"))
+                adapt_perturbation_size = mResponseSettings["adapt_step_size"].GetBool();
+            mrModelPart.GetProcessInfo()[ADAPT_PERTURBATION_SIZE] = adapt_perturbation_size;
         }
 
         KRATOS_CATCH("");

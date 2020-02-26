@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/adjoint_extensions.h"
+#include "custom_elements/total_lagrangian.h"
 
 namespace Kratos
 {
@@ -65,7 +66,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointSolidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointSolidElement);
 
     ///@}
     ///@name Life Cycle
@@ -85,6 +86,10 @@ public:
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
+
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override;
 
     void Initialize() override;
@@ -151,6 +156,8 @@ private:
     }
     ///@}
 };
+
+KRATOS_API_EXTERN template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement<TotalLagrangian>;
 
 ///@}
 

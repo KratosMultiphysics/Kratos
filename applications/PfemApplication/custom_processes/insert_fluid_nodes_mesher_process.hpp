@@ -231,6 +231,12 @@ class InsertFluidNodesMesherProcess
 
   }
 
+		void CopyDofs(Node<3>::DofsContainerType const& From, Node<3>::DofsContainerType& To){
+			for(auto& p_dof : From){
+				To.push_back(Kratos::unique_ptr<Dof<double>>(new Dof<double>(*p_dof)));
+			}
+		}
+
   //**************************************************************************
   //**************************************************************************
 
@@ -354,9 +360,9 @@ class InsertFluidNodesMesherProcess
         rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
 	if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+    	CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+    	CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -395,9 +401,9 @@ class InsertFluidNodesMesherProcess
                 rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
                 if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else{
                   std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
                 }
@@ -571,9 +577,9 @@ class InsertFluidNodesMesherProcess
         rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
 	if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+    CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+    CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -612,9 +618,9 @@ class InsertFluidNodesMesherProcess
                 rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
                 if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else{
                   std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
                 }
@@ -702,7 +708,7 @@ class InsertFluidNodesMesherProcess
       //generating the dofs
       for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
       {
-        Node<3>::DofType& rDof = *iii;
+        Node<3>::DofType& rDof = **iii;
         Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
         //(p_new_dof)->FreeDof();

@@ -97,8 +97,8 @@ public:
         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
             for (auto& r_dof : (rModelPart.NodesBegin()+i)->GetDofs()) {
-                if (r_dof.IsFree()) {
-                    r_dof.GetSolutionStepValue() = 0.0;
+                if (r_dof->IsFree()) {
+                    r_dof->GetSolutionStepValue() = 0.0;
                 }
             }
         }

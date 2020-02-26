@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "custom_elements/qfluid_2d.h"
 #include "utilities/math_utils.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos

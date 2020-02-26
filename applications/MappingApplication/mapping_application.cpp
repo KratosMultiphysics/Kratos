@@ -50,7 +50,6 @@
     }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "mpi.h"
     // Macro to register the mapper WITH MPI
     #define KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)                                            \
         {                                                                                                 \
@@ -99,5 +98,6 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
+    KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
 }
 }  // namespace Kratos.

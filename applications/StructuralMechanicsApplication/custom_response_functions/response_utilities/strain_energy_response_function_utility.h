@@ -158,7 +158,7 @@ public:
 		//                 + \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} - \frac{\partial K}{\partial x} )
 
 		// First gradients are initialized
-		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 
 		// Gradient calculation
@@ -266,15 +266,15 @@ protected:
 				Vector derived_RHS = Vector(0);
 
 				// x-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
                 // y-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
                 // z-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node

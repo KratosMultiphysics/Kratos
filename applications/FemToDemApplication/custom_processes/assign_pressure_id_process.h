@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license:
+//  License:         BSD License
+//                     Kratos default license:
 //kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -23,17 +23,17 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 
-
 class AssignPressureIdProcess : public Process 
 {
  public:
+
   /// Pointer definition of ApplyMultipointConstraintsProcess
   KRATOS_CLASS_POINTER_DEFINITION(AssignPressureIdProcess);
 
   typedef std::size_t IndexType;
-  // Constructor
-  AssignPressureIdProcess(ModelPart &r_model_part);
 
+  // Constructor
+  AssignPressureIdProcess(ModelPart& rModelPart);
 
   // Destructor
   ~AssignPressureIdProcess() override = default;
@@ -47,7 +47,8 @@ class AssignPressureIdProcess : public Process
 protected:
 
   // Member Variables
-  ModelPart &mr_model_part;
+  ModelPart& mrModelPart;
+  std::string mPressureName;
 
 };  // Class
 

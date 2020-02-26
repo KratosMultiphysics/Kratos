@@ -92,7 +92,7 @@ Element::Pointer MeshElement::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -106,7 +106,7 @@ Element::Pointer MeshElement::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MeshElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -120,7 +120,7 @@ Element::Pointer MeshElement::Clone (
 {
     KRATOS_TRY
 
-    Element::Pointer p_new_elem = Kratos::make_shared<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Element::Pointer p_new_elem = Kratos::make_intrusive<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
     return p_new_elem;

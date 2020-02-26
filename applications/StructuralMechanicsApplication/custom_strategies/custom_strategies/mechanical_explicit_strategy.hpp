@@ -68,7 +68,7 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
+    typedef ModelPart::VariableComponentType VariableComponentType;
     /// DoF types definition
     typedef typename Node<3>::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
@@ -259,6 +259,11 @@ public:
                 }
             }
 
+            // Precompute for masses and inertias
+            if(r_model_part.MasterSlaveConstraints().size() > 0) {
+                ConstraintUtilities::PreComputeExplicitConstraintMassAndInertia(r_model_part);
+            }
+
             this->mInitializeWasPerformed = true;
         }
 
@@ -318,40 +323,11 @@ public:
                     it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
                 }
             }
-        }
 
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method add the contributions of the residual
-     * @param pScheme The integration scheme considered
-     * @param rModelPart The model of the problem to solve
-     */
-    void CalculateAndAddRHS(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart
-        )
-    {
-        KRATOS_TRY
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ConditionsArrayType& r_conditions = rModelPart.Conditions();
-        ElementsArrayType& r_elements = rModelPart.Elements();
-
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-        Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
-
-        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
-            auto it_cond = r_conditions.begin() + i;
-            pScheme->Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
-        }
-
-        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-            auto it_elem = r_elements.begin() + i;
-            pScheme->Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+            // Precompute for masses and inertias
+            if(r_model_part.MasterSlaveConstraints().size() > 0) {
+                ConstraintUtilities::PreComputeExplicitConstraintMassAndInertia(r_model_part);
+            }
         }
 
         KRATOS_CATCH("")
@@ -374,8 +350,18 @@ public:
         // Initialize the non linear iteration
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-        // Compute residual forces on the model part
-        this->CalculateAndAddRHS(pScheme, r_model_part);
+        pScheme->Predict(r_model_part, dof_set_dummy, rA, rDx, rb);
+
+        // Pre-compute MPC contributions
+        if(r_model_part.MasterSlaveConstraints().size() > 0) {
+            std::vector<std::string> dof_variable_names(2);
+            dof_variable_names[0] = "DISPLACEMENT";
+            dof_variable_names[1] = "ROTATION";
+            std::vector<std::string> residual_variable_names(2);
+            residual_variable_names[0] = "FORCE_RESIDUAL";
+            residual_variable_names[1] = "MOMENT_RESIDUAL";
+            ConstraintUtilities::PreComputeExplicitConstraintConstribution(r_model_part, dof_variable_names, residual_variable_names);
+        }
 
         // Explicitly integrates the equation of motion.
         pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb);

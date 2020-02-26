@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-
-import KratosMultiphysics as Kratos
+from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.PfemFluidDynamicsApplication
+from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
-from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
+from importlib import import_module
 
 class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
 
@@ -12,7 +12,7 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self.model = model
         self.sdem_project_parameters = parameters
         self.project_parameters = self.sdem_project_parameters['fluid_parameters']
-        self.dimension = self.project_parameters["problem_data"]["dimension"].GetInt()
+        self.dimension = self.project_parameters["solver_settings"]["domain_size"].GetInt()
         self.vars_man = variables_management
         variables_management.nodal_results, variables_management.gauss_points_results = [], []
 
@@ -27,10 +27,10 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
-        self.AddFluidVariablesBySwimmingDEMAlgorithm()
+        self.AddFluidVariablesForSwimmingDEM()
         super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
 
-    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+    def AddFluidVariablesForSwimmingDEM(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
 
     def RunSingleTimeStep(self):
@@ -39,6 +39,13 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self._GetSolver().SolveSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
+
+    def _CreateSolver(self):
+        python_module_name = "KratosMultiphysics.SwimmingDEMApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
 if __name__ == '__main__':
     from sys import argv
@@ -58,8 +65,8 @@ if __name__ == '__main__':
         parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = Kratos.Parameters(parameter_file.read())
+        parameters = Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    model = Model()
     simulation = DEMCoupledFluidDynamicsAnalysis(model,parameters)
     simulation.Run()

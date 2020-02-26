@@ -6,7 +6,7 @@ namespace Kratos
 {
 namespace
 { // cpp internals
-namespace smtmpf
+namespace test_model_part_factory_cpp
 { // cotire unity guard
 void AddVariables(ModelPart* pModelPart);
 void CreateNodes(ModelPart* pModelPart, const Element& rElementPrototype);
@@ -14,34 +14,35 @@ void CreatePropertiesAndElements(ModelPart* pModelPart,
                                  const Element& rElementPrototype,
                                  const ConstitutiveLaw& rCLPrototype);
 void AddDofs(ModelPart* pModelPart);
-} // namespace smtmpf
+} // namespace test_model_part_factory_cpp
 } // namespace
 
 ModelPart& CreateStructuralMechanicsTestModelPart(Model* pModel,
                                                   const Element& rElementPrototype,
                                                   const ConstitutiveLaw& rCLPrototype,
-                                                  std::function<void(ModelPart*)> CustomBC)
+                                                  std::function<void(ModelPart*)> CustomFunction)
 {
+    using namespace test_model_part_factory_cpp;
     const std::string name = "StructuralMechanicsTestModelPart";
     if (pModel->HasModelPart(name))
     {
         pModel->DeleteModelPart(name);
     }
     ModelPart& model_part = pModel->CreateModelPart(name);
-    smtmpf::AddVariables(&model_part);
-    smtmpf::CreateNodes(&model_part, rElementPrototype);
+    AddVariables(&model_part);
+    CreateNodes(&model_part, rElementPrototype);
     model_part.GetProcessInfo()[DOMAIN_SIZE] =
         rElementPrototype.GetGeometry().WorkingSpaceDimension();
-    smtmpf::CreatePropertiesAndElements(&model_part, rElementPrototype, rCLPrototype);
+    CreatePropertiesAndElements(&model_part, rElementPrototype, rCLPrototype);
     model_part.SetBufferSize(2);
-    smtmpf::AddDofs(&model_part);
-    CustomBC(&model_part);
+    AddDofs(&model_part);
+    CustomFunction(&model_part);
     return model_part;
 }
 
 namespace
 { // cpp internals
-namespace smtmpf
+namespace test_model_part_factory_cpp
 { // cotire unity guard
 void AddVariables(ModelPart* pModelPart)
 {
@@ -80,7 +81,7 @@ void CreatePropertiesAndElements(ModelPart* pModelPart,
 {
     // Create properties
     const std::size_t properties_id = 1;
-    auto& r_prop = pModelPart->GetProperties(properties_id);
+    auto& r_prop = *pModelPart->CreateNewProperties(properties_id);
     r_prop[CONSTITUTIVE_LAW] = rCLPrototype.Clone();
     r_prop[DENSITY] = 1000.0;
     r_prop[YOUNG_MODULUS] = 1400000.0;
@@ -91,9 +92,10 @@ void CreatePropertiesAndElements(ModelPart* pModelPart,
     r_prop[VOLUME_ACCELERATION](1) = 100.0;
     // Create elements
     PointerVector<Node<3>> nodes;
-    nodes.push_back(pModelPart->pGetNode(1));
-    nodes.push_back(pModelPart->pGetNode(2));
-    nodes.push_back(pModelPart->pGetNode(3));
+    for (std::size_t i = 0; i < rElementPrototype.GetGeometry().size(); ++i)
+    {
+        nodes.push_back(pModelPart->pGetNode(i+1));
+    }
     auto p_new_elem =
         rElementPrototype.Create(1, nodes, pModelPart->pGetProperties(properties_id));
     pModelPart->AddElement(p_new_elem);
@@ -108,6 +110,6 @@ void AddDofs(ModelPart* pModelPart)
         r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
     }
 }
-} // namespace smtmpf
+} // namespace test_model_part_factory_cpp
 } // namespace
 } // namespace Kratos

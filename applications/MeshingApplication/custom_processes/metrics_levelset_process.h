@@ -17,7 +17,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 namespace Kratos
 {
@@ -96,7 +96,7 @@ public:
      */
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
+        const Variable<array_1d<double,3>>& rVariableGradient = DISTANCE_GRADIENT,
         Parameters ThisParameters = Parameters(R"({})")
         );
 

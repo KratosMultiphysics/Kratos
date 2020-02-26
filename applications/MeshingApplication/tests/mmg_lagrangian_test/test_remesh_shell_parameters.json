@@ -1,0 +1,158 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "test_remesh_shell",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "mmg_lagrangian_test/test_remesh_shell"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "mmg_lagrangian_test/test_remesh_shell_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.5
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
+        "rotation_dofs"                      : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [],
+        "recursive_remeshing_process" :[
+        {
+            "python_module"   : "mmg_process",
+            "kratos_module"   : "KratosMultiphysics.MeshingApplication",
+            "help"                  : "This process automatically remesh using MMG library",
+            "process_name"          : "MmgProcess",
+            "Parameters"            : {
+                "model_part_name"                  : "Structure",
+                "strategy"                         : "Hessian",
+                "hessian_strategy_parameters"              :{
+                    "metric_variable"                  : ["DISPLACEMENT"]
+                },
+                "automatic_remesh"                 : true,
+                "automatic_remesh_parameters"      :{
+                    "automatic_remesh_type"            : "Ratio",
+                    "min_size_ratio"                   : 1.0e-2,
+                    "max_size_ratio"                   : 2.0e-1
+                },
+                "initial_remeshing"                : false,
+                "initial_step"                     : 2,
+                "step_frequency"                   : 2,
+                "filename"                         : "mmg_lagrangian_test/test_remesh_shell",
+                "save_external_files"              : true,
+                "echo_level"                       : 0
+            }
+        }
+        ],
+        "compare_two_files_check_process" :[
+        {
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"                  : "This process compares two files and executes an Unittest Assert",
+            "process_name"          : "CompareTwoFilesCheckProcess",
+            "Parameters"            : {
+                "reference_file_name"   : "mmg_lagrangian_test/test_remesh_shell_result.sol",
+                "output_file_name"      : "mmg_lagrangian_test/test_remesh_shell_step=2.sol",
+                "dimension"             : 3,
+                "tolerance"             : 1.0e-3,
+                "relative_tolerance"    : 1.0e-3,
+                "comparison_type"       : "sol_file"
+            }
+        }
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_remesh_shell",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "MultipleFiles"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","VOLUME_ACCELERATION"],
+                        "nodal_nonhistorical_results": [],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "Structure.computing_domain",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : true,
+                "folder_name"                        : "vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","ROTATION"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : []
+            }
+        }]
+    }
+}

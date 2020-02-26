@@ -87,11 +87,50 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar "End Nodes"
     puts $FileVar ""
     puts $FileVar ""
-    
+ 
     ## Elements
     set Groups [GiD_Info conditions Body_Part groups]
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
+
+        set ElementName ""
+        if {[lindex [lindex $Groups $i] 24] eq "false"} {
+            if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
+                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
+                set ElementName "SmallStrainRankineFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
+                set ElementName "SmallStrainSimoJuFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
+                set ElementName "SmallStrainDruckerPragerFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
+                set ElementName "SmallStrainVonMisesFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
+                set ElementName "SmallStrainTrescaFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
+                set ElementName "SmallStrainMohrCoulombFemDemElement3D"
+            } else {
+                set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
+            }        
+        } else {
+            if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
+                set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Rankine"} {
+                set ElementName "TotalLagrangianRankineFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "SimoJu"} {
+                set ElementName "TotalLagrangianSimoJuFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "DruckerPrager"} {
+                set ElementName "TotalLagrangianDruckerPragerFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "VonMises"} {
+                set ElementName "TotalLagrangianVonMisesFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Tresca"} {
+                set ElementName "TotalLagrangianTrescaFemDemElement3D"
+            } elseif {[lindex [lindex $Groups $i] 3] eq "MohrCoulomb"} {
+                set ElementName "TotalLagrangianMohrCoulombFemDemElement3D"
+            } else {
+                set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement3D"
+            }  
+        }  
          # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 		
@@ -101,7 +140,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 		} elseif {[GiD_AccessValue get gendata Use_Hexahedrons] eq "true"} {
             WriteElements FileVar [lindex $Groups $i] Hexahedra FemDem3DHexahedronElement $BodyElemsProp Hexahedron3D8Connectivities
 		} else {
-			WriteElements FileVar [lindex $Groups $i] tetrahedra FemDem3DElement $BodyElemsProp Tetrahedron3D4Connectivities
+			WriteElements FileVar [lindex $Groups $i] tetrahedra $ElementName $BodyElemsProp Tetrahedron3D4Connectivities
         }
 	}
     puts $FileVar ""

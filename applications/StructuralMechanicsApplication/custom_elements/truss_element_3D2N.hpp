@@ -43,7 +43,7 @@ namespace Kratos
         ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussElement3D2N);
 
 
         typedef Element BaseType;
@@ -109,6 +109,8 @@ namespace Kratos
          */
         virtual BoundedMatrix<double,msLocalSize,msLocalSize>
          CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+
+        void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,
@@ -225,7 +227,7 @@ namespace Kratos
         /**
          * @brief This function calculates the current Green-Lagrange strain
          */
-        double CalculateGreenLagrangeStrain();
+        double CalculateGreenLagrangeStrain()const;
 
         /**
          * @brief This function calculates self-weight forces
@@ -255,6 +257,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
+        double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
@@ -273,8 +276,7 @@ namespace Kratos
          * @param rSaveInternalVariables Boolean to save internal constit. law variables
          */
         virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo,
-            const bool rSaveInternalVariables);
+            const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**

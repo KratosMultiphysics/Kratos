@@ -9,16 +9,15 @@
 #
 # ==============================================================================
 
-# Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+# importing the Kratos Library
+import KratosMultiphysics as KM
 
 # Import logger base classes
-from value_logger_base import ValueLogger
+from .value_logger_base import ValueLogger
 
 # Import additional libraries
 import csv
-from custom_timer import Timer
+from .custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerPenalizedProjection( ValueLogger ):
@@ -32,8 +31,8 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             row.append("{:>13s}".format("df_abs[%]"))
             row.append("{:>13s}".format("df_rel[%]"))
 
-            for itr in range(self.specified_constraints.size()):
-                con_type = self.specified_constraints[itr]["type"].GetString()
+            for itr in range(self.constraints.size()):
+                con_type = self.constraints[itr]["type"].GetString()
                 row.append("{:>13s}".format("c"+str(itr+1)+": "+con_type))
                 row.append("{:>13s}".format("c"+str(itr+1)+"_ref"))
 
@@ -44,35 +43,36 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
-        objective_id = self.specified_objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", "{:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
+        objective_id = self.objectives[0]["identifier"].GetString()
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
 
-        print("> Absolut change of objective = ","{:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration])," [%]")
-        print("> Relative change of objective = ","{:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration])," [%]\n")
+        KM.Logger.PrintInfo("ShapeOpt", "Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
+        KM.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
 
-        for itr in range(self.specified_constraints.size()):
-            constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.value_history[constraint_id][self.current_iteration]))
+        for itr in range(self.constraints.size()):
+            constraint_id = self.constraints[itr]["identifier"].GetString()
+            KM.Logger.PrintInfo("ShapeOpt", "Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:>4d}".format(self.current_iteration))
+            row.append("{:>4d}".format(self.current_index))
 
-            objective_id = self.specified_objectives[0]["identifier"].GetString()
-            row.append(" {:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration]))
+            objective_id = self.objectives[0]["identifier"].GetString()
+            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["abs_change_objective"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["rel_change_objective"][self.current_index]))
 
-            for itr in range(self.specified_constraints.size()):
-                constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-                row.append(" {:> .5E}".format(self.value_history[constraint_id][self.current_iteration]))
+            for itr in range(self.constraints.size()):
+                constraint_id = self.constraints[itr]["identifier"].GetString()
+                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
 
-            row.append(" {:> .5E}".format(self.value_history["correction_scaling"][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["step_size"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.history["correction_scaling"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["step_size"][self.current_index]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 

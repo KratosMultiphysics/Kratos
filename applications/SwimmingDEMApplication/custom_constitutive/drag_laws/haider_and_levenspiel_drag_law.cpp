@@ -22,12 +22,12 @@ namespace Kratos {
                                        double particle_radius,
                                        double fluid_density,
                                        double fluid_kinematic_viscosity,
-                                       array_1d<double, 3>& slip_velocity,
+                                       array_1d<double, 3>& minus_slip_velocity,
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
         const double sphericity = r_geometry[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
-        double drag_coeff       = 0.5 * Globals::Pi * SWIMMING_POW_2(particle_radius) * fluid_density * SWIMMING_MODULUS_3(slip_velocity);
+        double drag_coeff       = 0.5 * Globals::Pi * SWIMMING_POW_2(particle_radius) * fluid_density * SWIMMING_MODULUS_3(minus_slip_velocity);
 
         double A = exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity * sphericity);
         double B = 0.0964 + 0.5565 * sphericity;
@@ -36,6 +36,6 @@ namespace Kratos {
 
         drag_coeff *= (24.0 * (1.0 + A * pow(reynolds_number, B))) / reynolds_number + C * reynolds_number / (reynolds_number + D);
 
-        noalias(drag_force) = drag_coeff * slip_velocity;
+        noalias(drag_force) = drag_coeff * minus_slip_velocity;
     }
 } // namespace Kratos

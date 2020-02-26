@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -773,7 +773,7 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
     {
         auto node = refined_begin + i;
         bool is_refined_interface = true;
-        WeakPointerVector<NodeType>& father_nodes = node->GetValue(FATHER_NODES);
+        GlobalPointersVector<NodeType>& father_nodes = node->GetValue(FATHER_NODES);
         for (auto father_node = father_nodes.begin(); father_node < father_nodes.end(); father_node++)
         {
             if (father_node->IsNot(INTERFACE))
@@ -781,7 +781,7 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
         }
 
         if (is_refined_interface)
-            mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
+            mRefinedInterfaceContainer.push_back(Kratos::intrusive_ptr<NodeType>(*node.base()));
     }
 }
 

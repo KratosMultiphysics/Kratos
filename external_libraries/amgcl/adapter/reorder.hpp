@@ -158,57 +158,6 @@ struct reordered_vector {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class Matrix>
-struct value_type< adapter::reordered_matrix<Matrix> >
-    : value_type<Matrix>
-{};
-
-template <class Matrix>
-struct rows_impl< adapter::reordered_matrix<Matrix> >
-{
-    static size_t get(const adapter::reordered_matrix<Matrix> &A) {
-        return A.rows();
-    }
-};
-
-template <class Matrix>
-struct cols_impl< adapter::reordered_matrix<Matrix> >
-{
-    static size_t get(const adapter::reordered_matrix<Matrix> &A) {
-        return A.cols();
-    }
-};
-
-template <class Matrix>
-struct nonzeros_impl< adapter::reordered_matrix<Matrix> >
-{
-    static size_t get(const adapter::reordered_matrix<Matrix> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class Matrix>
-struct row_iterator< adapter::reordered_matrix<Matrix> >
-{
-    typedef
-        typename adapter::reordered_matrix<Matrix>::row_iterator
-        type;
-};
-
-template <class Matrix>
-struct row_begin_impl< adapter::reordered_matrix<Matrix> >
-{
-    typedef adapter::reordered_matrix<Matrix> M;
-    static typename row_iterator<M>::type
-    get(const M &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class Matrix>

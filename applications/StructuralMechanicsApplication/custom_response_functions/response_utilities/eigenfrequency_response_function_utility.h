@@ -136,7 +136,7 @@ public:
     void CalculateGradient()
     {
         CheckIfAllNecessaryEigenvaluesAreComputed();
-        VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+        VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
         PerformSemiAnalyticSensitivityAnalysis();
     }
 
@@ -293,7 +293,7 @@ protected:
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                 DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], eigenvectors_of_element[i], CurrentProcessInfo);
 
-            const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+            const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
 
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())
@@ -348,7 +348,7 @@ protected:
             const Matrix& rNodeEigenvectors = r_node_i.GetValue(EIGENVECTOR_MATRIX);
             for (std::size_t dof_index = 0; dof_index < r_node_dofs.size(); dof_index++)
             {
-                const auto& current_dof = std::begin(r_node_dofs) + dof_index;
+                const auto& current_dof = *(std::begin(r_node_dofs) + dof_index);
                 const std::size_t dof_index_at_element = std::distance(eq_ids.begin(), std::find(eq_ids.begin(), eq_ids.end(), current_dof->EquationId()));
                 rEigenvectorOfElement(dof_index_at_element) = rNodeEigenvectors((eigenfrequency_id-1), dof_index);
             }

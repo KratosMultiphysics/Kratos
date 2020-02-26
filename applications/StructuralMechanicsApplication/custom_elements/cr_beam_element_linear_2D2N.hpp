@@ -27,23 +27,23 @@
 
 namespace Kratos
 {
-    /**
-     * @class CrBeamElementLinear2D2N
-     *
-     * @brief This is a linear 2D-2node beam element with 2 translational dofs and 1 rotational dof per node inheriting from CrBeamElement2D2N
-     *
-     * @author Klaus B Sautter
-     */
+/**
+ * @class CrBeamElementLinear2D2N
+ *
+ * @brief This is a linear 2D-2node beam element with 2 translational dofs and 1 rotational dof per node inheriting from CrBeamElement2D2N
+ *
+ * @author Klaus B Sautter
+ */
 
-    class CrBeamElementLinear2D2N : public CrBeamElement2D2N
-    {
-    public:
-        KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear2D2N);
+class CrBeamElementLinear2D2N : public CrBeamElement2D2N
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElementLinear2D2N);
 
 
-        CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-        CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-                        PropertiesType::Pointer pProperties);
+    CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
+    CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+                            PropertiesType::Pointer pProperties);
 
     /**
      * @brief Creates a new element
@@ -56,7 +56,7 @@ namespace Kratos
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     /**
      * @brief Creates a new element
@@ -69,61 +69,61 @@ namespace Kratos
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
 
-        ~CrBeamElementLinear2D2N() override;
+    ~CrBeamElementLinear2D2N() override;
 
-        void CalculateLocalSystem(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateRightHandSide(
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateLeftHandSide(
-            MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo) override;
 
 
     /////////////////////////////////////////////////
     ///////////// CUSTOM FUNCTIONS --->>
     /////////////////////////////////////////////////
 
-        /**
-         * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
-         */
-        BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
+    /**
+     * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
+     */
+    BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
 
-        /**
-         * @brief This function calculates the reference length
-         */
-        double CalculateLength() const override;
-
-
-        void GetValueOnIntegrationPoints(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector< array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateOnIntegrationPoints(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector< array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-    private:
-        CrBeamElementLinear2D2N() {};
-
-        // stores the globalized master stiffness matrix for reaction forces
-        Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
+    /**
+     * @brief This function calculates the reference length
+     */
+    double CalculateLength() const override;
 
 
-        friend class Serializer;
-        void save(Serializer& rSerializer) const override;
-        void load(Serializer& rSerializer) override;
-    };
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+private:
+    CrBeamElementLinear2D2N() {};
+
+    // stores the globalized master stiffness matrix for reaction forces
+    Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
+
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+};
 
 }
 

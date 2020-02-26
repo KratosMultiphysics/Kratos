@@ -7,14 +7,14 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.DelaunayMeshingApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemFluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Model, Parameters
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication
+import KratosMultiphysics.ExternalSolversApplication
 
 from swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
 

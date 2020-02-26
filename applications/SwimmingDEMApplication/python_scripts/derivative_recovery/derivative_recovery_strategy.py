@@ -1,7 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.SwimmingDEMApplication import *
 import sys
 
 from . import recoverer
@@ -28,12 +26,12 @@ class DerivativeRecoveryStrategy:
         self.laplacian_type = self.parameters["laplacian_calculation_type"].GetInt()
         self.vorticity_type = self.parameters["vorticity_calculation_type"].GetInt()
         self.pressure_grad_type = self.parameters["pressure_grad_recovery_type"].GetInt()
-        self.fluid_fraction_grad_type = self.parameters["fluid_fraction_grad_type"].GetInt()
+        self.fluid_fraction_grad_type = self.parameters["coupling"]["backward_coupling"]["fluid_fraction_grad_type"].GetInt()
 
         self.do_pre_recovery = False
         self.must_reconstruct_gradient = self.laplacian_type in {0, 3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
 
-        if self.parameters["fluid_already_calculated"].GetBool(): # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
+        if self.parameters["custom_fluid"]["fluid_already_calculated"].GetBool(): # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
             self.pre_computed_derivatives = self.parameters["load_derivatives"].GetBool()
         else:
             self.pre_computed_derivatives = False

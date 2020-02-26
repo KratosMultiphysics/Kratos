@@ -4,14 +4,18 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 ## Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return NavierStokesCompressibleSolver(model, custom_settings)
 
 class NavierStokesCompressibleSolver(FluidSolver):
 
-    def _ValidateSettings(self,settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -43,6 +47,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : true,
@@ -54,22 +59,18 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "move_mesh_flag": false
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
-
+        default_settings.AddMissingParameters(super(NavierStokesCompressibleSolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesCompressibleSolver,self).__init__(model,custom_settings)
 
         self.element_name = "CompressibleNavierStokes"
         self.condition_name = "Condition"
         self.min_buffer_size = 3
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
@@ -88,7 +89,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_CAPACITY_RATIO)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE) ## ?
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) ## ?
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA) ## ?
@@ -125,6 +125,13 @@ class NavierStokesCompressibleSolver(FluidSolver):
             print("ERROR: _GetAutomaticTimeSteppingUtility out of date")
             #self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+
         # Creating the solution strategy
         self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                  self.settings["absolute_tolerance"].GetDouble())
@@ -133,12 +140,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
         #(self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt()
         (self.conv_criteria).SetEchoLevel(3)
 
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
-                                                                            self.settings["time_order"].GetInt())
-
-
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.IS_STRUCTURE)
+        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP)
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
         #time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme() # DOFs (4,5)
 
@@ -170,12 +173,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
 
     def InitializeSolutionStep(self):
-        (self.bdf_process).Execute()
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         (self.solver).InitializeSolutionStep()
 
 
     def Solve(self):
-        (self.bdf_process).Execute()
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         (self.solver).Solve()
 
     def PrepareModelPart(self):
@@ -192,7 +195,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
 
@@ -216,4 +218,3 @@ class NavierStokesCompressibleSolver(FluidSolver):
             #""")
         #else:
             #raise Exception("Domain size is not 2 or 3!!")
-

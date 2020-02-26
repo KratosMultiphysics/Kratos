@@ -20,8 +20,8 @@ namespace Kratos
       typedef BaseType::ElementsIterator                           ElementsIterator;
       typedef BaseType::ConditionsArrayType                        ConditionsArrayType;
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;
-      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+      typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
       /// Pointer definition of ExplicitSolverStrategy
@@ -39,9 +39,8 @@ namespace Kratos
                              ParticleCreatorDestructor::Pointer p_creator_destructor,
                              DEM_FEM_Search::Pointer p_dem_fem_search,
                              SpatialSearch::Pointer pSpSearch,
-                             Parameters strategy_parameters,
-                             const bool do_search_balls = true)
-      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters, do_search_balls)
+                             Parameters strategy_parameters)
+      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters)
       {
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
       }
@@ -91,26 +90,24 @@ namespace Kratos
         //BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),2);
       }
 
-      virtual double Solve() override
+      virtual double SolveSolutionStep() override
       {
 
         KRATOS_TRY
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
-        BaseType::InitializeSolutionStep();
         SchemePredict();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
         BaseType::ForceOperations(r_model_part);
         SchemeCorrect();
-        BaseType::FinalizeSolutionStep();
 
         return 0.00;
 
         KRATOS_CATCH("")
 
-      }//Solve()
+      }//SolveSolutionStep()
 
   };//ClassIterativeSolverStrategy
 

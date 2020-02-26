@@ -12,7 +12,6 @@
 //
 
 #include "mpi.h"
-#include "mpi/mpi_environment.h"
 #include "includes/parallel_environment.h"
 
 #include "testing/testing.h"
@@ -21,14 +20,14 @@ namespace Kratos {
 
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentSetUp, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIEnvironmentSetUp, KratosMPICoreFastSuite)
 {
     KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("World"), true);
     KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("Serial"), true);
     KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("NotReallyACommunicator"), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreFastSuite)
 {
     int rank;
     int size;

@@ -4,7 +4,7 @@ CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces 
-QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,SimoJu,Rankine,DruckerPrager)
+QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
 VALUE: 35.00e9
@@ -20,7 +20,7 @@ QUESTION: Thickness
 VALUE: 1.0
 HELP: If t = 1.0 implies plane strain, otherwise plane stress
 QUESTION: Compressive_Yield_Strength
-VALUE: 30e6
+VALUE: 30.0e6
 HELP: Units in IS: Pa
 QUESTION: Tensile_Yield_Strength
 VALUE: 1.5e6
@@ -28,17 +28,16 @@ HELP: Units in IS: Pa
 QUESTION: Tensile_Fracture_Energy
 VALUE: 1.5e5
 QUESTION: Internal_Friction_Angle
-VALUE: 32
+VALUE: 32.0
 HELP: Units Degrees
 QUESTION: Rayleigh_Beta
-VALUE: 0.005
+VALUE: 0.02
 HELP: D = R_alpha*M + r_beta*K
 QUESTION: Rayleigh_Alpha
-VALUE: 0.00
+VALUE: 0.5
 HELP: D = R_alpha*M + r_beta*K
-QUESTION: Characteristic_length
-VALUE: 0.02
-HELP: Units in IS: m // Radius of the averaged mapping circle
+QUESTION: Large_Displacement_Calculation#CB#(true,false)
+VALUE: false
 END CONDITION
 
 CONDITION: Initial_DEM_Part
@@ -48,7 +47,6 @@ GROUPALLOW: points lines
 HELP: Select the nodes to create initial DEM elements (skin elements)
 QUESTION: Apply_initial_DEM#CB#(true,false)
 VALUE: false
-
 END CONDITION
 
 

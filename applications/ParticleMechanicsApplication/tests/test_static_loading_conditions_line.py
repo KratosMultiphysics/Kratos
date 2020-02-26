@@ -3,7 +3,7 @@ import KratosMultiphysics
 
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import math
+from math import sqrt
 
 
 class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
@@ -18,7 +18,7 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
 
         # Create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
-        mp.CreateNewNode(2,math.sqrt(2),math.sqrt(2.0),0.0)
+        mp.CreateNewNode(2,sqrt(2),sqrt(2.0),0.0)
         length = 2.0
 
         # Ensure that the property 1 is created
@@ -48,10 +48,10 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
         cond.SetValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,10.0)
         cond.SetValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE,5.0)
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
-        self.assertAlmostEqual(rhs[0],0.5*(1+5*math.sqrt(2.0)/2.0)*length)
-        self.assertAlmostEqual(rhs[1],0.5*(2.0-5*math.sqrt(2.0)/2.0)*length)
-        self.assertAlmostEqual(rhs[2],0.5*(1+5*math.sqrt(2.0)/2.0)*length)
-        self.assertAlmostEqual(rhs[3], 0.5*(2.0-5*math.sqrt(2.0)/2.0)*length)
+        self.assertAlmostEqual(rhs[0],0.5*(1+5*sqrt(2.0)/2.0)*length)
+        self.assertAlmostEqual(rhs[1],0.5*(2.0-5*sqrt(2.0)/2.0)*length)
+        self.assertAlmostEqual(rhs[2],0.5*(1+5*sqrt(2.0)/2.0)*length)
+        self.assertAlmostEqual(rhs[3], 0.5*(2.0-5*sqrt(2.0)/2.0)*length)
 
         ## Finally we apply TO THE NODES, a linearly varying POSITIVE_FACE_PRESSURE ranging from -100.0 to -200.0
         mp.Nodes[1].SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0,-100.0)

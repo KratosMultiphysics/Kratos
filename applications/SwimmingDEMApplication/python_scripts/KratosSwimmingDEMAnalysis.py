@@ -7,13 +7,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication   import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-
-from swimming_DEM_analysis import SwimmingDEMAnalysis
+import KratosMultiphysics
+from KratosMultiphysics import Model, Parameters
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
 
 class SwimmingDEMAnalysisWithFlush(SwimmingDEMAnalysis):
     def __init__(self, model, algorithm = None, parameters=Parameters("{}")):

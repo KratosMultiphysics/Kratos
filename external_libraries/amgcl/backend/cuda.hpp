@@ -365,27 +365,6 @@ struct cuda {
 // Backend interface implementation
 //---------------------------------------------------------------------------
 template < typename V >
-struct rows_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        return A.rows();
-    }
-};
-
-template < typename V >
-struct cols_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        return A.cols();
-    }
-};
-
-template < typename V >
-struct nonzeros_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        return A.nonzeros();
-    }
-};
-
-template < typename V >
 struct bytes_impl< thrust::device_vector<V> > {
     static size_t get(const thrust::device_vector<V> &v) {
         return v.size() * sizeof(V);

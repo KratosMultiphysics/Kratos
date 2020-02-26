@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics as Kratos
 from . import recoverer
 
 class PostProcessGradientMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
@@ -10,4 +9,7 @@ class PostProcessGradientMaterialAccelerationRecoverer(recoverer.MaterialAcceler
         recoverer.MaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
 
     def RecoverMaterialAcceleration(self):
-        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
+        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part,
+                                                                       Kratos.VELOCITY,
+                                                                       Kratos.ACCELERATION,
+                                                                       Kratos.MATERIAL_ACCELERATION)

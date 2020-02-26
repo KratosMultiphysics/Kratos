@@ -1,8 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # importing the Kratos Library
 import KratosMultiphysics as kratoscore
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.FluidDynamicsApplication as cfd
-import KratosMultiphysics.IncompressibleFluidApplication
+
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(main_model_part, custom_settings):
     return StokesSolver(main_model_part, custom_settings)
@@ -56,7 +59,6 @@ class StokesSolver:
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solvers
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
 
@@ -113,7 +115,7 @@ class StokesSolver:
             aux_params = kratoscore.Parameters("{}")
             aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             aux_params.AddValue("skin_parts",self.settings["skin_parts"])
-            import check_and_prepare_model_process_fluid
+
             check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
 
@@ -137,7 +139,12 @@ class StokesSolver:
     def Initialize(self):
         compute_model_part = self.GetComputingModelPart()
 
-        self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(compute_model_part,2)
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
 
         time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme()
 
@@ -181,7 +188,8 @@ class StokesSolver:
         pass #one should write the restart file here
 
     def Solve(self):
-        self.bdf_process.Execute()
+        # Compute the BDF coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         if(self.settings["force_steady_state"].GetBool()):
             bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
@@ -192,7 +200,8 @@ class StokesSolver:
         self.fluid_solver.Solve()
 
     def InitializeSolutionStep(self):
-        self.bdf_process.Execute()
+        # Compute the BDF coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         if(self.settings["force_steady_state"].GetBool()):
             bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
@@ -219,5 +228,3 @@ class StokesSolver:
 
     def Check(self):
         self.fluid_solver.Check()
-
-

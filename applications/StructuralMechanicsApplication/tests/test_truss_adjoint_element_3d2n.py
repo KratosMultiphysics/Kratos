@@ -53,7 +53,7 @@ def create_property_perturbed_elements(model_part, delta, new_element_name):
         copy_solution_step_data_of_node(node, old_node, 0, 0)
 
     for element in perturbed_model_part.Elements:
-        element.Initialize()
+        element.Initialize(perturbed_model_part.ProcessInfo)
 
     return perturbed_model_part
 
@@ -94,7 +94,7 @@ def create_shape_perturbed_elements(model_part, delta, new_element_name):
         copy_solution_step_data_of_node(perturbed_model_part.Nodes[i*4+4], old_node, 0, 0)
 
     for element in perturbed_model_part.Elements:
-        element.Initialize()
+        element.Initialize(perturbed_model_part.ProcessInfo)
 
     return perturbed_model_part
 
@@ -117,13 +117,6 @@ def FD_calculate_sensitivity_matrix(primal_element, primal_model_part, perturbed
 
     return FDPseudoLoadMatrix
 
-def assert_matrix_almost_equal(matrix1, matrix2, prec=7):
-    KratosUnittest.TestCase().assertEqual(matrix1.Size1(), matrix2.Size1())
-    KratosUnittest.TestCase().assertEqual(matrix1.Size2(), matrix2.Size2())
-    for i in range(matrix1.Size1()):
-        for j in range(matrix1.Size2()):
-            KratosUnittest.TestCase().assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-
 class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -139,9 +132,7 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part, dim)
         prop = self.model_part.GetProperties()[1]
 
-        self.model_part.CreateNewElement("TrussLinearElement3D2N", 1, [1, 2], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferenceTrussLinearElement3D2N", 1, [1, 2], prop)
         self.adjoint_truss_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("TrussLinearElement3D2N", 2, [1, 2], prop)
@@ -154,8 +145,8 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, 0.002400)
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, 0.377976)
 
-        self.truss_element.Initialize()
-        self.adjoint_truss_element.Initialize()
+        self.truss_element.Initialize(self.model_part.ProcessInfo)
+        self.adjoint_truss_element.Initialize(self.model_part.ProcessInfo)
 
 
     def test_CalculateSensitivityMatrix_Property(self):
@@ -172,9 +163,10 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
 
         # Pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix()
-        self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.CROSS_AREA, PseudoLoadMatrix, self.model_part.ProcessInfo)
-        assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
 
 
     def test_CalculateSensitivityMatrix_Shape(self):
@@ -190,9 +182,11 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix()
-        self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
-        self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE, PseudoLoadMatrix,self.model_part.ProcessInfo)
-        assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
+
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
+        self.adjoint_truss_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, PseudoLoadMatrix,self.model_part.ProcessInfo)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
 
 
 class TestTrussAdjointElement(KratosUnittest.TestCase):
@@ -210,9 +204,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part, dim)
         prop = self.model_part.GetProperties()[1]
 
-        self.model_part.CreateNewElement("TrussElement3D2N", 1, [1, 2], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferenceTrussElement3D2N", 1, [1, 2], prop)
         self.adjoint_truss_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("TrussElement3D2N", 2, [1, 2], prop)
@@ -225,8 +217,8 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, 0.2400)
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, 0.377976)
 
-        self.truss_element.Initialize()
-        self.adjoint_truss_element.Initialize()
+        self.truss_element.Initialize(self.model_part.ProcessInfo)
+        self.adjoint_truss_element.Initialize(self.model_part.ProcessInfo)
 
 
     def test_CalculateSensitivityMatrix_Property(self):
@@ -243,9 +235,11 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
 
         # Pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix()
-        self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
+
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.CROSS_AREA, PseudoLoadMatrix, self.model_part.ProcessInfo)
-        assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
 
 
     def test_CalculateSensitivityMatrix_Shape(self):
@@ -262,9 +256,11 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix()
-        self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
-        self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE, PseudoLoadMatrix,self.model_part.ProcessInfo)
-        assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
+
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
+        self.adjoint_truss_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, PseudoLoadMatrix,self.model_part.ProcessInfo)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
 
 if __name__ == '__main__':
     KratosUnittest.main()

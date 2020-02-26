@@ -62,7 +62,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of @{KRATOS_NAME_CAMEL}
-    KRATOS_CLASS_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
 
     ///@}
     ///@name Life Cycle
@@ -121,7 +121,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * creates a new condition pointer
@@ -130,7 +130,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * creates a new condition pointer and clones the previous condition data
@@ -139,7 +139,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     /**
      * this determines the condition equation ID vector for all condition

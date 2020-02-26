@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
+from importlib import import_module
 
 BaseAnalysis = DEM_analysis_stage.DEMAnalysisStage
 
@@ -13,15 +13,20 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         super(FluidCoupledDEMAnalysisStage, self).__init__(model, project_parameters['dem_parameters'])
 
     def SetSolverStrategy(self):
-        import swimming_sphere_strategy as SolverStrategy
+        import KratosMultiphysics.SwimmingDEMApplication.swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
 
     def _CreateSolver(self):
-        return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
-                                                     self.creator_destructor,
-                                                     self.dem_fem_search,
-                                                     self.sdem_parameters,
-                                                     self.procedures)
+        def SetSolverStrategy():
+            strategy_file_name = self.sdem_parameters['dem_parameters']['solver_settings']['strategy'].GetString()
+            imported_module = import_module("KratosMultiphysics.SwimmingDEMApplication" + "." + strategy_file_name)
+            return imported_module
+
+        return SetSolverStrategy().SwimmingStrategy(self.all_model_parts,
+                                                    self.creator_destructor,
+                                                    self.dem_fem_search,
+                                                    self.sdem_parameters,
+                                                    self.procedures)
 
     def SelectTranslationalScheme(self):
         translational_scheme = BaseAnalysis.SelectTranslationalScheme(self)
@@ -29,9 +34,9 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
 
         if translational_scheme is None:
             if translational_scheme_name == 'Hybrid_Bashforth':
-                return HybridBashforthScheme()
+                return SDEM.HybridBashforthScheme()
             elif translational_scheme_name == "TerminalVelocityScheme":
-                return TerminalVelocityScheme()
+                return SDEM.TerminalVelocityScheme()
             else:
                 return None
         else:
@@ -45,13 +50,13 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         if rotational_scheme is None:
             if rotational_scheme_name == 'Direct_Integration':
                 if translational_scheme_name == 'Hybrid_Bashforth':
-                    return HybridBashforthScheme()
+                    return SDEM.HybridBashforthScheme()
                 elif translational_scheme_name == 'TerminalVelocityScheme':
-                    return TerminalVelocityScheme()
+                    return SDEM.TerminalVelocityScheme()
             elif rotational_scheme_name == 'Runge_Kutta':
-                return RungeKuttaScheme()
+                return SDEM.RungeKuttaScheme()
             elif rotational_scheme_name == 'Quaternion_Integration':
-                return QuaternionIntegrationScheme()
+                return SDEM.QuaternionIntegrationScheme()
             else:
                 return None
         else:
@@ -69,7 +74,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         if watcher_type == 'Empty':
             return None
         elif watcher_type == 'ParticlesHistoryWatcher':
-            return ParticlesHistoryWatcher()
+            return DEM.ParticlesHistoryWatcher()
 
     def IsTimeToPrintPostProcess(self):
         return self.analytic_data_counter.Tick()

@@ -28,18 +28,18 @@ namespace Kratos {
                                                double particle_radius,
                                                double fluid_density,
                                                double fluid_kinematic_viscosity,
-                                               array_1d<double, 3>& slip_velocity,
+                                               array_1d<double, 3>& minus_slip_velocity,
                                                array_1d<double, 3>& rotation_induced_lift,
                                                const ProcessInfo& r_current_process_info)
     {
         Node<3>& node = r_geometry[0];
-        const array_1d<double, 3> slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
+        const array_1d<double, 3> minus_slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));
-        array_1d<double, 3> slip_rot_cross_slip_vel;
-        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, slip_velocity, slip_rot_cross_slip_vel)
+        array_1d<double, 3> minus_slip_rot_cross_slip_vel;
+        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(minus_slip_rot, minus_slip_velocity, minus_slip_rot_cross_slip_vel)
 
-        const double norm_of_slip_vel = SWIMMING_MODULUS_3(slip_velocity);
-        const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
+        const double norm_of_slip_vel = SWIMMING_MODULUS_3(minus_slip_velocity);
+        const double norm_of_slip_rot = SWIMMING_MODULUS_3(minus_slip_rot);
         const double rot_reynolds = this->ComputeParticleRotationReynoldsNumber(norm_of_slip_rot,
                                                                                 particle_radius,
                                                                                 fluid_kinematic_viscosity);
@@ -50,7 +50,7 @@ namespace Kratos {
 
         else {
             const double lift_coeff = 0.45  + (rot_reynolds / reynolds_number - 0.45) * std::exp(- 0.05684 * std::pow(rot_reynolds, 0.4) * std::pow(reynolds_number, 0.3));
-            noalias(rotation_induced_lift) = 0.5 *  fluid_density * Globals::Pi * SWIMMING_POW_2(particle_radius) * lift_coeff * norm_of_slip_vel * slip_rot_cross_slip_vel / norm_of_slip_rot;
+            noalias(rotation_induced_lift) = 0.5 *  fluid_density * Globals::Pi * SWIMMING_POW_2(particle_radius) * lift_coeff * norm_of_slip_vel * minus_slip_rot_cross_slip_vel / norm_of_slip_rot;
         }
     }
 

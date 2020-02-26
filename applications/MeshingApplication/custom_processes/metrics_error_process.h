@@ -67,7 +67,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 

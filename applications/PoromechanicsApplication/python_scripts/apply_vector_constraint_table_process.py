@@ -12,49 +12,49 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = Model[settings["model_part_name"].GetString()]
         variable_name = settings["variable_name"].GetString()
 
         self.components_process_list = []
 
         if settings["active"][0].GetBool() == True:
-            x_params = KratosMultiphysics.Parameters("{}")
-            x_params.AddValue("model_part_name",settings["model_part_name"])
+            self.x_params = KratosMultiphysics.Parameters("{}")
+            self.x_params.AddValue("model_part_name",settings["model_part_name"])
             if settings.Has("is_fixed"):
-                x_params.AddValue("is_fixed",settings["is_fixed"][0])
-            x_params.AddValue("value",settings["value"][0])
-            x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
+                self.x_params.AddValue("is_fixed",settings["is_fixed"][0])
+            self.x_params.AddValue("value",settings["value"][0])
+            self.x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
             if settings["table"][0].GetInt() == 0:
-                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, x_params))
+                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.x_params))
             else:
-                x_params.AddValue("table",settings["table"][0])
-                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, x_params))
+                self.x_params.AddValue("table",settings["table"][0])
+                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(self.model_part, self.x_params))
 
         if settings["active"][1].GetBool() == True:
-            y_params = KratosMultiphysics.Parameters("{}")
-            y_params.AddValue("model_part_name",settings["model_part_name"])
+            self.y_params = KratosMultiphysics.Parameters("{}")
+            self.y_params.AddValue("model_part_name",settings["model_part_name"])
             if settings.Has("is_fixed"):
-                y_params.AddValue("is_fixed",settings["is_fixed"][1])
-            y_params.AddValue("value",settings["value"][1])
-            y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
+                self.y_params.AddValue("is_fixed",settings["is_fixed"][1])
+            self.y_params.AddValue("value",settings["value"][1])
+            self.y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
             if settings["table"][1].GetInt() == 0:
-                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, y_params))
+                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.y_params))
             else:
-                y_params.AddValue("table",settings["table"][1])
-                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, y_params))
+                self.y_params.AddValue("table",settings["table"][1])
+                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(self.model_part, self.y_params))
 
         if settings["active"][2].GetBool() == True:
-            z_params = KratosMultiphysics.Parameters("{}")
-            z_params.AddValue("model_part_name",settings["model_part_name"])
+            self.z_params = KratosMultiphysics.Parameters("{}")
+            self.z_params.AddValue("model_part_name",settings["model_part_name"])
             if settings.Has("is_fixed"):
-                z_params.AddValue("is_fixed",settings["is_fixed"][2])
-            z_params.AddValue("value",settings["value"][2])
-            z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
+                self.z_params.AddValue("is_fixed",settings["is_fixed"][2])
+            self.z_params.AddValue("value",settings["value"][2])
+            self.z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
             if settings["table"][2].GetInt() == 0:
-                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, z_params))
+                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.z_params))
             else:
-                z_params.AddValue("table",settings["table"][2])
-                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, z_params))
+                self.z_params.AddValue("table",settings["table"][2])
+                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(self.model_part, self.z_params))
 
     def ExecuteInitialize(self):
 

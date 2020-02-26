@@ -203,7 +203,7 @@ public:
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = RatioDisplacement;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteDisplacementNorm;
 
-            if ( (RatioDisplacement <= mRatioTolerance  ||  AbsoluteDisplacementNorm < mAbsoluteTolerance) || RatioOtherDoF <= mRatioTolerance  || AbsoluteOtherDoFNorm < mAbsoluteTolerance  )
+            if ( (RatioDisplacement <= mRatioTolerance  ||  AbsoluteDisplacementNorm < mAbsoluteTolerance) && (RatioOtherDoF <= mRatioTolerance  || AbsoluteOtherDoFNorm < mAbsoluteTolerance) )
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
@@ -420,7 +420,7 @@ private:
                 }
                 else
                 {
-                    mReferenceOtherDoFNorm += AuxValue*AuxValue;
+                    DeltaOtherDoFNorm += AuxValue*AuxValue;
                 }
             }
         }

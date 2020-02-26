@@ -24,7 +24,7 @@
 #include "utilities/geometry_utilities.h"
 
 
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"

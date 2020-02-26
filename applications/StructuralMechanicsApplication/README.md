@@ -120,7 +120,6 @@ The application includes tests to check the proper functioning of the applicatio
     * Formfinding strategies
     * Eigensolver strategy
     * Harmonic analysis strategies
-    * Arc-length strategy
 
 - Schemes:
     * Relaxation scheme

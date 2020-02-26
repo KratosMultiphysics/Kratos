@@ -13,22 +13,43 @@
 #include "adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
 
 
 namespace Kratos
 {
 
-AdjointFiniteDifferenceTrussElementLinear::AdjointFiniteDifferenceTrussElementLinear(Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferenceTrussElement(pPrimalElement)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
+    if (rVariable == ADJOINT_STRAIN) {
+        std::vector<Vector> strain_vector;
+        this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
+        if (rOutput.size() != strain_vector.size()) {
+            rOutput.resize(strain_vector.size());
+        }
+
+        KRATOS_ERROR_IF(strain_vector[0].size() != 3) << "Dimension of strain vector not as expected!" << std::endl;
+
+        for(IndexType i = 0; i < strain_vector.size(); ++i) {
+            for (IndexType j = 0; j < 3 ; ++j) {
+                rOutput[i][j] = strain_vector[i][j];
+            }
+        }
+    } else {
+        this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
 }
 
-AdjointFiniteDifferenceTrussElementLinear::~AdjointFiniteDifferenceTrussElementLinear()
-{
-}
 
-
-void AdjointFiniteDifferenceTrussElementLinear::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -39,34 +60,38 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateStressDisplacementDeriv
     {
         // ensure that adjoint load is determined without influence of pre-stress
         // pre-stress does not cancel out when computing this derivative with unit-displacements!
-        Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
+        Properties::Pointer p_global_properties = this->mpPrimalElement->pGetProperties();
 
         Properties::Pointer p_local_property(Kratos::make_shared<Properties>(*p_global_properties));
-        mpPrimalElement->SetProperties(p_local_property);
+        this->mpPrimalElement->SetProperties(p_local_property);
 
         p_local_property->SetValue(TRUSS_PRESTRESS_PK2, 0.0);
 
-        AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative(rStressVariable,
+        AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDisplacementDerivative(rStressVariable,
                                            rOutput, rCurrentProcessInfo);
 
-        mpPrimalElement->SetProperties(p_global_properties);
+        this->mpPrimalElement->SetProperties(p_global_properties);
     }
     else
-        AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative(rStressVariable,
+        AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDisplacementDerivative(rStressVariable,
                                    rOutput, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferenceTrussElementLinear::save(Serializer& rSerializer) const
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferenceTrussElement);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
-void AdjointFiniteDifferenceTrussElementLinear::load(Serializer& rSerializer)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferenceTrussElement);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
+
+template class AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
 
 } // namespace Kratos.
 

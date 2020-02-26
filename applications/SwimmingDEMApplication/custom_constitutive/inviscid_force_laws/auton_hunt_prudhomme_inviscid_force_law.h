@@ -36,7 +36,7 @@ namespace Kratos {
     protected:
 
         double GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
-                                         const array_1d<double, 3>& slip_acc) override;
+                                         const array_1d<double, 3>& minus_slip_acc) override;
 
     private:
         bool mDoApplyFaxenCorrections;

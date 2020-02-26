@@ -64,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/node.h"
@@ -256,7 +256,7 @@ public:
                 double zc = in->Z();
 
                 double h = 10000000.0;
-                for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
                     double x = i->X();
@@ -352,7 +352,7 @@ public:
             if (distance==default_distance)
             {
                 //KRATOS_WATCH(distance)
-                WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
                 bool inner_elem=false;
                 //int i=0;
                 //while (neighb[i]>0 && i<neighb.size())
@@ -391,7 +391,7 @@ public:
                 distance=in->FastGetSolutionStepValue(DISTANCE);
                 if (distance==-default_distance)
                 {
-                    WeakPointerVector< Node<3> >& neighb= in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node<3> >& neighb= in->GetValue(NEIGHBOUR_NODES);
                     for (unsigned int i=0; i<neighb.size(); i++)
                     {
                         distance_temp=neighb[i].FastGetSolutionStepValue(DISTANCE);
@@ -566,6 +566,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_LOCATOR_PROCESS_INCLUDED  defined 
+#endif // KRATOS_EMBEDDED_LOCATOR_PROCESS_INCLUDED  defined
 
 

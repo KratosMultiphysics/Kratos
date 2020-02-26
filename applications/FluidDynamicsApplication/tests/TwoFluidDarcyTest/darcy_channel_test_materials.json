@@ -1,0 +1,25 @@
+{
+    "properties" : [{
+        "model_part_name" : "Fluid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "NewtonianTwoFluid3DLaw"
+            },
+            "Variables"        : {
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Fluid",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "NewtonianTwoFluid3DLaw"
+            },
+            "Variables"        : {
+            },
+            "Tables"           : {}
+        }
+    }]
+}

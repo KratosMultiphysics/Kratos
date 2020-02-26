@@ -11,6 +11,7 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "dem_wall.h"
+#include "../custom_strategies/schemes/glued_to_wall_scheme.h"
 
 namespace Kratos
 
@@ -21,15 +22,15 @@ class KRATOS_API(DEM_APPLICATION) RigidFace3D : public DEMWall
 public:
 
     // Counted pointer of RigidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( RigidFace3D );
-	
-	
-    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
-    typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidFace3D );
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
-    typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+
+    typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+    typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+    typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
+
+    typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+    typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -65,8 +66,9 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
+    void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
@@ -81,12 +83,13 @@ public:
                                       array_1d<double, 3>& wall_delta_disp_at_contact_point,
                                       array_1d<double, 3>& wall_velocity_at_contact_point,
                                       int& ContactType) override;
-    
+
     array_1d<double, 3> GetVelocity();
 
 protected:
-  
+
 private:
+    void AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle);
 
     friend class Serializer;
 
@@ -110,4 +113,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_RIGIDFACE3D_H_INCLUDED  defined 
+#endif // KRATOS_RIGIDFACE3D_H_INCLUDED  defined

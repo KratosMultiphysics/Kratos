@@ -12,8 +12,7 @@ def MultilevelLinearSolver(tolerance, max_iterations):
     # settings of the ML solver
     MLList = ParameterList()
 
-    default_settings = EpetraDefaultSetter()
-    default_settings.SetDefaults(MLList, "SA")
+    MultiLevelSolver.SetDefaults(MLList, "SA")
 
     MLList.set("ML output", 10)
     MLList.set("max levels", 3)

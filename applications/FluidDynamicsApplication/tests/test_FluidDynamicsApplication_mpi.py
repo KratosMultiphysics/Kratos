@@ -11,8 +11,8 @@ try:
 except ImportError:
     raise Exception("KratosMPI could not be imported!")
 
-if KratosMPI.mpi.size != 2:
-    raise Exception("The MPI tests currently suport only being run with 2 processors!")
+if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
+    raise Exception("The MPI tests currently support only being run with 2 processors!")
 
 # Import the tests or test_classes to create the suits
 

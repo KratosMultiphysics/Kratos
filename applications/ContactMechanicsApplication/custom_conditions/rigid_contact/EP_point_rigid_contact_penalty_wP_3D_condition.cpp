@@ -55,7 +55,7 @@ namespace Kratos
    Condition::Pointer EPPointRigidContactPenaltywP3DCondition::Create(IndexType NewId, NodesArrayType
          const& ThisNodes,  PropertiesType::Pointer pProperties) const
    {
-     return Kratos::make_shared<EPPointRigidContactPenaltywP3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+     return Kratos::make_intrusive<EPPointRigidContactPenaltywP3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    Condition::Pointer EPPointRigidContactPenaltywP3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
@@ -64,7 +64,7 @@ namespace Kratos
       NewCondition.mCurrentInfo = this->mCurrentInfo;
       NewCondition.mSavedInfo   = this->mSavedInfo;
 
-      return Kratos::make_shared<EPPointRigidContactPenaltywP3DCondition>(NewCondition);
+      return Kratos::make_intrusive<EPPointRigidContactPenaltywP3DCondition>(NewCondition);
 
    }
 

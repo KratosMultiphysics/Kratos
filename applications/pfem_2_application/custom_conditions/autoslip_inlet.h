@@ -385,7 +385,7 @@ protected:
         {
             const NodeType& rConstNode = rGeometry[itNode];
             const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
-            if( y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0 )
+            if( y > 0.0 && rConstNode.Is(SLIP) )
             {
                 array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);

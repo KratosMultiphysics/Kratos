@@ -58,7 +58,7 @@ RigidBodySegregatedVElement::RigidBodySegregatedVElement(RigidBodySegregatedVEle
 
 Element::Pointer RigidBodySegregatedVElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodySegregatedVElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<RigidBodySegregatedVElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -74,7 +74,7 @@ Element::Pointer RigidBodySegregatedVElement::Clone(IndexType NewId, NodesArrayT
   NewElement.SetFlags(this->GetFlags());
   NewElement.mStepVariable = mStepVariable;
 
-  return Kratos::make_shared<RigidBodySegregatedVElement>(NewElement);
+  return Kratos::make_intrusive<RigidBodySegregatedVElement>(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************

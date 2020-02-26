@@ -1,0 +1,225 @@
+{
+"ElementType" : "SwimmingDEMElement",
+
+"time_stepping" : {
+    "automatic_time_step" : false,
+    "time_step" : 0.004
+},
+
+"problem_data" : {
+    "problem_name" : "settling_cube",
+    "parallel_type" : "OpenMP",
+    "echo_level" : 1,
+    "start_time" : 0.0,
+    "end_time" : 0.3
+},
+
+"do_print_results_option" : false,
+
+"output_interval" : 0.05,
+
+"coupling" : {
+    "coupling_level_type" : 1,
+    "coupling_weighing_type" : 1,
+    "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
+    "interaction_start_time" : 0.01,
+    "forward_coupling" : {
+        "time_averaging_type" : 0
+    },
+
+    "backward_coupling" : {
+        "meso_scale_length" : 0.2,
+        "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
+        "shape_factor" : 0.5,
+        "filter_velocity_option" : false,
+        "apply_time_filter_to_fluid_fraction_option" : false,
+        "min_fluid_fraction" : 0.2,
+        "fluid_fraction_grad_type" : 0,
+        "calculate_diffusivity_option" : false,
+        "viscosity_modification_type" : 0
+    }
+},
+
+"properties" : [{
+    "model_part_name" : "DEMModelPart.Parts_DEM",
+    "properties_id" : 1,
+    "hydrodynamic_law_parameters": {
+    "name": "HydrodynamicInteractionLaw",
+    "buoyancy_parameters": {
+        "name":"ArchimedesBuoyancyLaw"
+    },
+    "inviscid_force_parameters": {
+        "name":"AutonHuntPrudhommeInviscidForceLaw",
+        "do_apply_faxen_corrections": false
+    },
+    "drag_parameters": {
+        "name":"StokesDragLaw"
+    },
+    "history_force_parameters": {
+        "name":"default",
+        "quadrature_order": 2,
+        "mae_parameters": {
+            "do_use_mae": false,
+            "m": 10,
+            "window_time_interval": 0.1,
+            "type":4
+        }
+    }
+}
+}],
+
+"processes" : {
+    "auxiliar_process_list" : [{
+        "python_module" : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name" : "FromJsonCheckResultProcess",
+        "Parameters" : {
+            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+            "input_file_name" : "fluid_dem_tests/fluid_dem_errors_no_history.json",
+            "model_part_name" : "SpheresPart",
+            "time_frequency" : 0.05
+        }
+    }]
+},
+
+"json_output_process" : [{
+    "python_module" : "json_output_process",
+    "kratos_module" : "KratosMultiphysics",
+    "process_name" : "JsonOutputProcess",
+    "Parameters" : {
+        "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "output_file_name" : "fluid_dem_tests/fluid_dem_errors_no_history.json",
+        "model_part_name" : "SpheresPart",
+        "time_frequency" : 0.05
+    }
+}],
+
+"fluid_parameters" : {
+    "problem_data" : {
+        "problem_name" : "fluid_dem_tests/settling_cube",
+        "parallel_type" : "OpenMP",
+        "echo_level" : 0,
+        "start_time" : 0.0,
+        "end_time" : 1.0
+    },
+
+    "solver_settings" : {
+        "model_part_name" : "FluidModelPart",
+        "domain_size" : 3,
+        "solver_type" : "Monolithic",
+        "model_import_settings" : {
+            "input_type" : "mdpa",
+            "input_filename" : "fluid_dem_tests/settling_cubeFluid"
+        },
+        "echo_level" : 0,
+        "compute_reactions" : false,
+        "maximum_iterations" : 10,
+        "relative_velocity_tolerance" : 0.001,
+        "absolute_velocity_tolerance" : 1e-5,
+        "relative_pressure_tolerance" : 0.001,
+        "absolute_pressure_tolerance" : 1e-5,
+        "linear_solver_settings" : {
+            "solver_type" : "amgcl",
+            "max_iteration" : 200,
+            "tolerance" : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type" : "ilu0",
+            "krylov_type" : "gmres",
+            "coarsening_type" : "aggregation",
+            "scaling" : true
+        },
+        "volume_model_part_name" : "Parts_fluid",
+        "skin_parts" : ["NoSlip3D_walls"],
+        "no_skin_parts" : [],
+        "time_stepping" : {
+            "automatic_time_step" : false,
+            "time_step" : 0.01
+        },
+        "formulation" : {
+            "element_type" : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau" : 0.1
+        }
+    },
+    "processes" : {
+        "initial_conditions_process_list" : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters" : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_walls"
+            }
+        }],
+        "gravity" : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name" : "AssignVectorByDirectionProcess",
+            "Parameters" : {
+                "model_part_name" : "FluidModelPart.Parts_fluid",
+                "variable_name" : "BODY_FORCE",
+                "modulus" : 9.81,
+                "constrained" : false,
+                "direction" : [0.0,0.0,-1.0]
+            }
+        }],
+
+
+        "auxiliar_process_list" : []
+    }
+},
+
+"dem_parameters" : {
+    "Dimension" : 3,
+    "PeriodicDomainOption" : false,
+    "BoundingBoxOption" : false,
+    "AutomaticBoundingBoxOption" : false,
+    "BoundingBoxEnlargementFactor" : 1.1,
+    "BoundingBoxStartTime" : 0.0,
+    "BoundingBoxStopTime" : 1000.0,
+    "BoundingBoxMaxX" : 10,
+    "BoundingBoxMaxY" : 10,
+    "BoundingBoxMaxZ" : 10,
+    "BoundingBoxMinX" : -10,
+    "BoundingBoxMinY" : -10,
+    "BoundingBoxMinZ" : -10,
+    "dem_inlet_option" : false,
+    "RotationOption" : true,
+    "CleanIndentationsOption" : false,
+    "solver_settings" : {
+        "strategy" : "swimming_sphere_strategy",
+        "RemoveBallsInitiallyTouchingWalls" : false
+    },
+    "VirtualMassCoefficient" : 1.0,
+    "RollingFrictionOption" : false,
+    "GlobalDamping" : 0.0,
+    "ContactMeshOption" : false,
+    "Multifile" : "multiple_files",
+    "ElementType" : "SwimmingDEMElement",
+    "TranslationalIntegrationScheme" : "Hybrid_Bashforth",
+    "RotationalIntegrationScheme" : "Direct_Integration",
+    "MaxTimeStep" : 1e-6,
+    "FinalTime" : 1.0,
+    "GraphExportFreq" : 0.001,
+    "VelTrapGraphExportFreq" : 0.001,
+    "OutputTimeStep" : 0.01,
+    "PostBoundingBox" : false,
+    "PostLocalContactForce" : false,
+    "PostDisplacement" : true,
+    "PostRadius" : true,
+    "PostVelocity" : true,
+    "PostAngularVelocity" : false,
+    "PostElasticForces" : false,
+    "PostContactForces" : false,
+    "PostRigidElementForces" : false,
+    "PostStressStrainOption" : false,
+    "PostTangentialElasticForces" : false,
+    "PostTotalForces" : false,
+    "PostPressure" : false,
+    "PostShearStress" : false,
+    "PostNonDimensionalVolumeWear" : false,
+    "PostParticleMoment" : false,
+    "PostEulerAngles" : false,
+    "PostRollingResistanceMoment" : false,
+    "problem_name" : "fluid_dem_tests/settling_cube"
+}
+}

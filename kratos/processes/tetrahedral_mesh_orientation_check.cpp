@@ -41,7 +41,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL)) << "Missing NORMAL variable on solution step data" << std::endl;
-        VariableUtils().SetVectorVar(NORMAL, ZeroVector(3), mrModelPart.Nodes());
+        VariableUtils().SetVariable(NORMAL, ZeroVector(3), mrModelPart.Nodes());
     }
 
     // Begin by orienting all of the elements in the volume
@@ -136,7 +136,7 @@ void TetrahedralMeshOrientationCheck::Execute()
                     }
 
                     if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS)) {
-                        WeakPointerVector< Element > vector_of_neighbours;
+                        GlobalPointersVector< Element > vector_of_neighbours;
                         vector_of_neighbours.resize(1);
                         vector_of_neighbours(0) = Element::WeakPointer( *it_elem.base() );
                         for (Condition::Pointer p_cond : list_conditions) {

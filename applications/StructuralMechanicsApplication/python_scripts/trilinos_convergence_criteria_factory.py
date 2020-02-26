@@ -2,10 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 
@@ -23,7 +21,7 @@ class convergence_criterion:
 
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
 
-        if(echo_level >= 1 and KratosMPI.mpi.rank == 0):
+        if(echo_level >= 1):
             KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]::", "MPI CONVERGENCE CRITERION : " + convergence_criterion_parameters["convergence_criterion"].GetString())
 
         if(convergence_crit == "displacement_criterion"):

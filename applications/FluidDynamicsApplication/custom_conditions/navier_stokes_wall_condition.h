@@ -73,7 +73,7 @@ public:
     ///@{
 
     /// Pointer definition of NavierStokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(NavierStokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NavierStokesWallCondition);
 
     struct ConditionDataStruct
     {
@@ -181,7 +181,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<NavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<NavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new NavierStokesWallCondition object.
@@ -192,7 +192,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< NavierStokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< NavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
     /**

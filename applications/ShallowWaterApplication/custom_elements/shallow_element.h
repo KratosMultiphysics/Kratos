@@ -7,10 +7,10 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_ELEMENT_H_INCLUDED )
+#ifndef KRATOS_SHALLOW_ELEMENT_H_INCLUDED
 #define KRATOS_SHALLOW_ELEMENT_H_INCLUDED
 
 // System includes
@@ -132,7 +132,7 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<ShallowElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<ShallowElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -147,7 +147,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<ShallowElement>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<ShallowElement>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -160,7 +160,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        Element::Pointer p_new_elem = Kratos::make_shared<ShallowElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Element::Pointer p_new_elem = Kratos::make_intrusive<ShallowElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;

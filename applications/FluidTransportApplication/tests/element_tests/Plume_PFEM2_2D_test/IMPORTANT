@@ -1,0 +1,1 @@
+This test is run with a lumped mass matrix to have a reference of the result. It should be run with the consistent matrix (+ time stabilization parameter) but it would require a re-compilation.

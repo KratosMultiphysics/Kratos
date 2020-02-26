@@ -1,9 +1,10 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.mpi # only needed until the command-line can parse "--using-mpi"
 
-from mpi_test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
-from mpi_test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
-from mpi_test_laplacian_mesh_motion_2d import TestCase as TTestCaseLaplacian2D
-from mpi_test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
+from test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
+from test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
+from test_laplacian_mesh_motion_2d import TestCase as TTestCaseLaplacian2D
+from test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
 
 
 ## NIGTHLY TESTS

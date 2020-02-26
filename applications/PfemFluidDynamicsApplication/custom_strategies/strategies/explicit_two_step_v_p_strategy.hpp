@@ -1,17 +1,16 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:           MSantasusana $
-//   Last modified by:    $Co-Author:         JMCarbonell $
-//   Date:                $Date:               April 2014 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemFluidDynamicsApplication $
+//   Created by:          $Author:              MSantasusana $
+//   Last modified by:    $Co-Author:            JMCarbonell $
+//   Date:                $Date:                  April 2014 $
+//   Revision:            $Revision:                     0.0 $
 //
 //
 
 #if !defined(KRATOS_EXPLICIT_TWO_STEP_V_P_STRATEGY)
-#define  KRATOS_EXPLICIT_TWO_STEP_V_P_STRATEGY
+#define KRATOS_EXPLICIT_TWO_STEP_V_P_STRATEGY
 
 /* System includes */
-
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
@@ -24,779 +23,733 @@
 //default builder and solver
 #include "custom_strategies/builders_and_solvers/explicit_two_step_v_p_builder_and_solver.hpp"
 
-
 namespace Kratos
 {
 
-  template<class TSparseSpace,
-	   class TDenseSpace, // = DenseSpace<double>,
-	   class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-	   >
-  class ExplicitTwoStepVPStrategy
+template <class TSparseSpace,
+          class TDenseSpace,  // = DenseSpace<double>,
+          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          >
+class ExplicitTwoStepVPStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+{
+public:
+  /** Counted pointer of ClassName */
+
+  KRATOS_CLASS_POINTER_DEFINITION(ExplicitTwoStepVPStrategy);
+
+  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+
+  typedef typename BaseType::TDataType TDataType;
+
+  typedef TSparseSpace SparseSpaceType;
+
+  typedef typename BaseType::TSchemeType TSchemeType;
+
+  typedef typename BaseType::DofsArrayType DofsArrayType;
+
+  typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+  typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
+  typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
+  typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+
+  typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+
+  typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+
+  typedef ModelPart::NodesContainerType NodesArrayType;
+
+  typedef ModelPart::ElementsContainerType ElementsArrayType;
+
+  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+
+  /** Constructors.
+     */
+  ExplicitTwoStepVPStrategy(
+      ModelPart &model_part,
+      bool MoveMeshFlag = true)
+      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
   {
-  public:
+  }
 
-    /** Counted pointer of ClassName */
-
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitTwoStepVPStrategy);
-
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-
-    typedef typename BaseType::TDataType TDataType;
-
-    typedef TSparseSpace SparseSpaceType;
-
-    typedef typename BaseType::TSchemeType TSchemeType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    typedef ModelPart::NodesContainerType NodesArrayType;
-
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-
-
-    /** Constructors.
-     */
-    ExplicitTwoStepVPStrategy(
-			      ModelPart& model_part,
-			      bool MoveMeshFlag = true
-			      )
+  ExplicitTwoStepVPStrategy(
+      ModelPart &model_part,
+      typename TSchemeType::Pointer pScheme,
+      typename TLinearSolver::Pointer pNewLinearSolver,
+      bool CalculateReactions = false,
+      bool ReformDofSetAtEachStep = true,
+      bool MoveMeshFlag = true)
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
-    {
-    }
+  {
+    KRATOS_TRY
 
-    ExplicitTwoStepVPStrategy(
-			      ModelPart& model_part,
-			      typename TSchemeType::Pointer pScheme,
-			      typename TLinearSolver::Pointer pNewLinearSolver,
-			      bool CalculateReactions = false,
-			      bool ReformDofSetAtEachStep = true,
-			      bool MoveMeshFlag = true
-			      )
-      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
-    {
-      KRATOS_TRY
+    // std::cout<<"ExplicitTwoStepVPStrategy "<<std::endl;
 
-	// std::cout<<"ExplicitTwoStepVPStrategy "<<std::endl;
+    // typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
-	// typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+    //set flags to default values
+    // mCalculateReactionsFlag = CalculateReactions;
+    // mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-	//set flags to default values
-        // mCalculateReactionsFlag = CalculateReactions;
-        // mReformDofSetAtEachStep = ReformDofSetAtEachStep;
+    mCalculateReactionsFlag = false;
+    mReformDofSetAtEachStep = true;
 
-	mCalculateReactionsFlag = false;
-      mReformDofSetAtEachStep = true;
+    //saving the scheme
+    mpScheme = pScheme;
 
-      //saving the scheme
-      mpScheme = pScheme;
+    //saving the linear solver
+    mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
 
-      //saving the linear solver
-      mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
+    //setting up the default builder and solver
+    mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
+        new ExplicitTwoStepVPBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
 
-      //setting up the default builder and solver
-      mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-	(
-	 new ExplicitTwoStepVPBuilderAndSolver <TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
-	 );
+    //set flags to start correcty the calculations
+    mSolutionStepIsInitialized = false;
+    mInitializeWasPerformed = false;
 
-      //set flags to start correcty the calculations
-      mSolutionStepIsInitialized  = false;
-      mInitializeWasPerformed     = false;
+    //set EchoLevel to the default value (only time is displayed)
+    SetEchoLevel(1);
 
-      //set EchoLevel to the default value (only time is displayed)
-      SetEchoLevel(1);
+    //set RebuildLevel to the default value
+    BaseType::SetRebuildLevel(0);
 
-      //set RebuildLevel to the default value 
-      BaseType::SetRebuildLevel(0);  
+    //set it true for explicit :: taking the default geometry lumping factors
+    BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true;
 
-      //set it true for explicit :: taking the default geometry lumping factors
-      BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
+    // BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(mpLinearSolver, PRESSURE));
 
-      // BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(mpLinearSolver, PRESSURE));
-	
-      KRATOS_CATCH( "" )
-	}
+    KRATOS_CATCH("")
+  }
 
-    /** Destructor.
+  /** Destructor.
      */
-    virtual ~ExplicitTwoStepVPStrategy()
-    {
-    }
+  virtual ~ExplicitTwoStepVPStrategy()
+  {
+  }
 
-    /** Destructor.
+  /** Destructor.
      */
 
-    //Set and Get Scheme ... containing Builder, Update and other
+  //Set and Get Scheme ... containing Builder, Update and other
 
-    void SetScheme(typename TSchemeType::Pointer pScheme)
-    {
-      mpScheme = pScheme;
-    };
+  void SetScheme(typename TSchemeType::Pointer pScheme)
+  {
+    mpScheme = pScheme;
+  };
 
-    typename TSchemeType::Pointer GetScheme()
-    {
-      return mpScheme;
-    };
-    
-    //Set and Get the BuilderAndSolver
+  typename TSchemeType::Pointer GetScheme()
+  {
+    return mpScheme;
+  };
 
-    void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
-    {
-      mpBuilderAndSolver = pNewBuilderAndSolver;
-    };
+  //Set and Get the BuilderAndSolver
 
-    typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
-    {
-      return mpBuilderAndSolver;
-    };
-    
-    //Ser and Get Flags
-  
-    void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
-    {
-      mInitializeWasPerformed = InitializePerformedFlag;
-    }
+  void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
+  {
+    mpBuilderAndSolver = pNewBuilderAndSolver;
+  };
 
-    bool GetInitializePerformedFlag()
-    {
-      return mInitializeWasPerformed;
-    }
+  typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
+  {
+    return mpBuilderAndSolver;
+  };
 
-    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
-    {
-      mCalculateReactionsFlag = CalculateReactionsFlag;
-    }
+  //Ser and Get Flags
 
-    bool GetCalculateReactionsFlag()
-    {
-      return mCalculateReactionsFlag;
-    }
+  void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
+  {
+    mInitializeWasPerformed = InitializePerformedFlag;
+  }
 
-    void SetReformDofSetAtEachStepFlag(bool flag)
-    {
+  bool GetInitializePerformedFlag()
+  {
+    return mInitializeWasPerformed;
+  }
 
-      mReformDofSetAtEachStep = flag;
+  void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+  {
+    mCalculateReactionsFlag = CalculateReactionsFlag;
+  }
 
-    }
+  bool GetCalculateReactionsFlag()
+  {
+    return mCalculateReactionsFlag;
+  }
 
-    bool GetReformDofSetAtEachStepFlag()
-    {
-      return mReformDofSetAtEachStep;
-    }
+  void SetReformDofSetAtEachStepFlag(bool flag)
+  {
 
-    //level of echo for the solving strategy
-    // 0 -> mute... no echo at all
-    // 1 -> printing time and basic informations
-    // 2 -> printing linear solver data
-    // 3 -> Print of debug informations:
-    //    Echo of stiffness matrix, Dx, b...
+    mReformDofSetAtEachStep = flag;
+  }
 
-    void SetEchoLevel(int Level) override
-    {
-      BaseType::mEchoLevel = Level;
+  bool GetReformDofSetAtEachStepFlag()
+  {
+    return mReformDofSetAtEachStep;
+  }
 
-    }
+  //level of echo for the solving strategy
+  // 0 -> mute... no echo at all
+  // 1 -> printing time and basic informations
+  // 2 -> printing linear solver data
+  // 3 -> Print of debug informations:
+  //    Echo of stiffness matrix, Dx, b...
 
-    //**********************************************************************
-    //**********************************************************************
+  void SetEchoLevel(int Level) override
+  {
+    BaseType::mEchoLevel = Level;
+  }
 
-    void Initialize() override
-    {
-      KRATOS_TRY
+  //**********************************************************************
+  //**********************************************************************
 
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme                     = GetScheme();
-      typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-      ModelPart& r_model_part                                   = BaseType::GetModelPart();
+  void Initialize() override
+  {
+    KRATOS_TRY
 
-      TSystemMatrixType mA = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
+    //pointers needed in the solution
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+    ModelPart &r_model_part = BaseType::GetModelPart();
 
-      // std::cout<<" INITIALIZE  "<<std::endl;
-	
-      //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-      if (pScheme->SchemeIsInitialized() == false)
-	pScheme->Initialize(BaseType::GetModelPart());
-        
-      //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-      if (pScheme->ElementsAreInitialized() == false)
-	pScheme->InitializeElements(BaseType::GetModelPart());
+    TSystemMatrixType mA = TSystemMatrixType(); //dummy initialization. Not used in builder and solver.
 
-      //Initialize The Conditions- OPERATIONS TO BE DONE ONCE
-      if (pScheme->ConditionsAreInitialized() == false)
-	pScheme->InitializeConditions(BaseType::GetModelPart());
+    // std::cout<<" INITIALIZE  "<<std::endl;
 
-      pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
-      TSystemVectorType mb  = TSystemVectorType();
-      pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //calculate Residual for scheme initialization
-        
-      mInitializeWasPerformed = true;
+    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+    if (pScheme->SchemeIsInitialized() == false)
+      pScheme->Initialize(BaseType::GetModelPart());
 
-      // this->UpdatePressure(r_model_part);
+    //Initialize The Elements - OPERATIONS TO BE DONE ONCE
+    if (pScheme->ElementsAreInitialized() == false)
+      pScheme->InitializeElements(BaseType::GetModelPart());
 
-      //std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
+    //Initialize The Conditions- OPERATIONS TO BE DONE ONCE
+    if (pScheme->ConditionsAreInitialized() == false)
+      pScheme->InitializeConditions(BaseType::GetModelPart());
 
-      KRATOS_CATCH( "" )
-	}
+    pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+    TSystemVectorType mb = TSystemVectorType();
+    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //calculate Residual for scheme initialization
 
-    //**********************************************************************
-    //**********************************************************************
-    
-    void InitializeSolutionStep() override
-    {
-      KRATOS_TRY
+    mInitializeWasPerformed = true;
 
-	// std::cout<<" InitializeSolutionStep() in explicit two step v p"<<std::endl;
+    // this->UpdatePressure(r_model_part);
 
-        typename TSchemeType::Pointer pScheme                     = GetScheme();
-      typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-      ModelPart& r_model_part                                   = BaseType::GetModelPart();
+    //std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
 
-      TSystemMatrixType mA = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
-      TSystemVectorType mDx = TSystemVectorType();
-      TSystemVectorType mb = TSystemVectorType();
+    KRATOS_CATCH("")
+  }
 
-      //initial operations ... things that are constant over the Solution Step
-      pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+  //**********************************************************************
+  //**********************************************************************
 
-      // if(BaseType::mRebuildLevel > 0)
-      // {
-      //   pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
-      // }
-      pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+  void InitializeSolutionStep() override
+  {
+    KRATOS_TRY
 
-      mSolutionStepIsInitialized = true;
+    // std::cout<<" InitializeSolutionStep() in explicit two step v p"<<std::endl;
 
-      KRATOS_CATCH( "" )
-	}
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+    ModelPart &r_model_part = BaseType::GetModelPart();
 
+    TSystemMatrixType mA = TSystemMatrixType(); //dummy initialization. Not used in builder and solver.
+    TSystemVectorType mDx = TSystemVectorType();
+    TSystemVectorType mb = TSystemVectorType();
 
-    //**********************************************************************
-    //**********************************************************************
-    /*
+    //initial operations ... things that are constant over the Solution Step
+    pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+    // if(BaseType::mRebuildLevel > 0)
+    // {
+    //   pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+    // }
+    pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+
+    mSolutionStepIsInitialized = true;
+
+    KRATOS_CATCH("")
+  }
+
+  //**********************************************************************
+  //**********************************************************************
+  /*
       SOLUTION OF THE PROBLEM OF INTEREST
     */
-    //**********************************************************************
+  //**********************************************************************
 
+  double Solve() override
+  {
+    KRATOS_TRY
 
-    double Solve() override
+    // std::cout<<" Solve() in explicit two step v p"<<std::endl;
+
+    //pointers needed in the solution
+    typename TSchemeType::Pointer pScheme = GetScheme();
+    typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+    ModelPart &r_model_part = BaseType::GetModelPart();
+
+    DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
+    TSystemMatrixType mA = TSystemMatrixType();
+    TSystemVectorType mDx = TSystemVectorType();
+    TSystemVectorType mBmomentum = TSystemVectorType();
+    TSystemVectorType mBcontinuity = TSystemVectorType();
+
+    //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+    //if the operations needed were already performed this does nothing
+    if (mInitializeWasPerformed == false)
+      Initialize();
+
+    //prints informations about the current time
+    if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0)
     {
-      KRATOS_TRY
+      std::cout << " " << std::endl;
+      std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
+    }
 
-	// std::cout<<" Solve() in explicit two step v p"<<std::endl;
+    ProcessInfo rCurrentProcessInfo = r_model_part.GetProcessInfo();
+    //double currentTime   = rCurrentProcessInfo[TIME];
+    //int step   = rCurrentProcessInfo[STEP];
+    //double timeStep     = rCurrentProcessInfo[DELTA_TIME];
 
-	//pointers needed in the solution
-	typename TSchemeType::Pointer pScheme = GetScheme();
-      typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-      ModelPart& r_model_part                                   = BaseType::GetModelPart();
-    
-      DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
-      TSystemMatrixType mA  = TSystemMatrixType();
-      TSystemVectorType mDx = TSystemVectorType();
-      TSystemVectorType mBmomentum  = TSystemVectorType();
-      TSystemVectorType mBcontinuity  = TSystemVectorType();
-        
-      //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-      //if the operations needed were already performed this does nothing
-      if(mInitializeWasPerformed == false)
-	Initialize();
-            
-      //prints informations about the current time
-      if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0 )
-	{
-	  std::cout << " " << std::endl;
-	  std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
-	}
+    //initialize solution step
+    // if(mSolutionStepIsInitialized == false)
+    // InitializeSolutionStep();
 
-      ProcessInfo rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      //double currentTime   = rCurrentProcessInfo[TIME]; 
-      //int step   = rCurrentProcessInfo[STEP]; 
-      //double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+    // it predicts the timeStep, it clear the RHS of momentum and continuity
+    pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mBmomentum);
 
-    
-       
-      //initialize solution step
-      // if(mSolutionStepIsInitialized == false)
-      // InitializeSolutionStep();
+    ////////////////////// starting momentum step solution /////////////////////
 
-      // it predicts the timeStep, it clear the RHS of momentum and continuity
-      pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mBmomentum);
+    pBuilderAndSolver->Build(pScheme, r_model_part, mA, mBmomentum);
 
-      ////////////////////// starting momentum step solution /////////////////////
+    // if(step==2)
+    // InitializeDensity(r_model_part);
 
-      pBuilderAndSolver->Build(pScheme, r_model_part, mA, mBmomentum);
-    
-      // if(step==2)
-      // InitializeDensity(r_model_part);
-    
-      pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mBcontinuity);
+    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mBcontinuity);
 
-      pScheme->Update(r_model_part, rDofSet, mA, mDx, mBmomentum); // Explicitly integrates the equation of motion.
+    pScheme->Update(r_model_part, rDofSet, mA, mDx, mBmomentum); // Explicitly integrates the equation of motion.
 
-      //Finalisation of the solution step,
-      //operations to be done after achieving convergence, for example the
-      //Final Residual Vector (mb) has to be saved in there
-      //to avoid error accumulation
-      pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBmomentum);
+    //Finalisation of the solution step,
+    //operations to be done after achieving convergence, for example the
+    //Final Residual Vector (mb) has to be saved in there
+    //to avoid error accumulation
+    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBmomentum);
 
-      //move the mesh if needed
-      BaseType::MoveMesh();
+    //move the mesh if needed
+    BaseType::MoveMesh();
 
-      //Cleaning memory after the solution
-      pScheme->Clean();
+    //Cleaning memory after the solution
+    pScheme->Clean();
 
-      //reset flags for next step
-      mSolutionStepIsInitialized = false;
+    //reset flags for next step
+    mSolutionStepIsInitialized = false;
 
-      ////////////////////// momentum step solution finished /////////////////////
+    ////////////////////// momentum step solution finished /////////////////////
 
+    // pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mBcontinuity);
 
-      // pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mBcontinuity);
+    pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
 
-      pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix  
+    // pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
 
-      // pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
+    // this->ComputeAndUpdatePressureFromDensity(r_model_part,rCurrentProcessInfo);
+    // if(timeStep<currentTime)
 
-      // this->ComputeAndUpdatePressureFromDensity(r_model_part,rCurrentProcessInfo);
-      // if(timeStep<currentTime)
+    this->UpdateDensity(r_model_part, rCurrentProcessInfo);  // it computes the new density and saves the previous ones in PRESSURE,1
+    this->UpdatePressure(r_model_part, rCurrentProcessInfo); // it computes the new pressures
 
-      this->UpdateDensity(r_model_part,rCurrentProcessInfo); // it computes the new density and saves the previous ones in PRESSURE,1
-      this->UpdatePressure(r_model_part,rCurrentProcessInfo); // it computes the new pressures
+    pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBcontinuity);
 
-      pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mBcontinuity);
+    pScheme->Clean();
 
-      pScheme->Clean();
+    return 0.00;
 
-      return 0.00;
+    KRATOS_CATCH("")
+  }
 
-      KRATOS_CATCH( "" )
+  //   //**********************************************************************
+  //   //**********************************************************************
+  //   /*
+  //                     SOLUTION OF THE PROBLEM OF INTEREST
+  //    */
+  //   //**********************************************************************
 
-	}
+  // double Solve()
+  // {
+  //   KRATOS_TRY
 
-  
-    //   //**********************************************************************
-    //   //**********************************************************************
-    //   /*
-    //                     SOLUTION OF THE PROBLEM OF INTEREST
-    //    */
-    //   //**********************************************************************
+  //     // std::cout<<" Solve() in explicit two step v p"<<std::endl;
 
+  //   //pointers needed in the solution
+  //   typename TSchemeType::Pointer pScheme = GetScheme();
+  //   typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+  //   ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-    // double Solve()
-    // {
-    //   KRATOS_TRY
+  //   DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
+  //   TSystemMatrixType mA  = TSystemMatrixType();
+  //   TSystemVectorType mDx = TSystemVectorType();
+  //   TSystemVectorType mb  = TSystemVectorType();
 
-    //     // std::cout<<" Solve() in explicit two step v p"<<std::endl;
+  //   //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+  //   //if the operations needed were already performed this does nothing
+  //   if(mInitializeWasPerformed == false)
+  //     Initialize();
 
-    //   //pointers needed in the solution
-    //   typename TSchemeType::Pointer pScheme = GetScheme();
-    //   typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-    //   ModelPart& r_model_part                                   = BaseType::GetModelPart();
-    
-    //   DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
-    //   TSystemMatrixType mA  = TSystemMatrixType();
-    //   TSystemVectorType mDx = TSystemVectorType();
-    //   TSystemVectorType mb  = TSystemVectorType();
-        
-    //   //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-    //   //if the operations needed were already performed this does nothing
-    //   if(mInitializeWasPerformed == false)
-    //     Initialize();
-            
-    //   //prints informations about the current time
-    //   if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0 )
-    //     {
-    // 	std::cout << " " << std::endl;
-    // 	std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
-    //     }
+  //   //prints informations about the current time
+  //   if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0 )
+  //     {
+  // 	std::cout << " " << std::endl;
+  // 	std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
+  //     }
 
+  //   //initialize solution step
+  //   // if(mSolutionStepIsInitialized == false)
+  //   // InitializeSolutionStep();
 
-       
-    //   //initialize solution step
-    //   // if(mSolutionStepIsInitialized == false)
-    //   // InitializeSolutionStep();
+  //   // it predicts the timeStep, it clear the RHS of momentum and continuity
+  //   pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mb);
 
-    //   // it predicts the timeStep, it clear the RHS of momentum and continuity
-    //   pScheme->InitializeSolutionStep(r_model_part, mA, mDx, mb);
+  //   ////////////////////// starting momentum step solution /////////////////////
 
-    //   ////////////////////// starting momentum step solution /////////////////////
+  //   pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
 
-    //   pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix  
+  //   pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
 
-    //   pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
+  //   pScheme->Update(r_model_part, rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
 
-    //   pScheme->Update(r_model_part, rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
+  //   //Finalisation of the solution step,
+  //   //operations to be done after achieving convergence, for example the
+  //   //Final Residual Vector (mb) has to be saved in there
+  //   //to avoid error accumulation
+  //   pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
 
-    //   //Finalisation of the solution step,
-    //   //operations to be done after achieving convergence, for example the
-    //   //Final Residual Vector (mb) has to be saved in there
-    //   //to avoid error accumulation
-    //   pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+  //   //move the mesh if needed
+  //   BaseType::MoveMesh();
 
+  //   //Cleaning memory after the solution
+  //   pScheme->Clean();
 
-    //   //move the mesh if needed
-    //   BaseType::MoveMesh();
+  //   //reset flags for next step
+  //   mSolutionStepIsInitialized = false;
 
-    //   //Cleaning memory after the solution
-    //   pScheme->Clean();
+  //   ////////////////////// momentum step solution finished /////////////////////
 
-    //   //reset flags for next step
-    //   mSolutionStepIsInitialized = false;
+  //   pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
 
-    //   ////////////////////// momentum step solution finished /////////////////////
+  //   this->UpdatePressure(r_model_part); // Explicitly integrates the equation of motion.
 
+  //   pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
 
-    //   pBuilderAndSolver->Build(pScheme, r_model_part, mA, mb);
+  //   pScheme->Clean();
 
-    //   this->UpdatePressure(r_model_part); // Explicitly integrates the equation of motion.
+  //   return 0.00;
 
-    //   pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+  //   KRATOS_CATCH( "" )
 
-    //   pScheme->Clean();
+  //     }
 
-    //   return 0.00;
+  void InitializeDensity(ModelPart &rModelPart)
+  {
+    KRATOS_TRY
 
-    //   KRATOS_CATCH( "" )
+    std::cout << "InitializeDensity() InitializeDensity() InitializeDensity() InitializeDensity()" << std::endl;
+    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
-    //     }
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
-
-    
-    void InitializeDensity(ModelPart& rModelPart)
-    {
-      KRATOS_TRY
-
-
-	std::cout<<"InitializeDensity() InitializeDensity() InitializeDensity() InitializeDensity()"<<std::endl;
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      
-      OpenMPUtils::PartitionVector NodePartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
-	
-      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
 #pragma omp parallel for firstprivate(NodeBegin)
-      for(int i = 0;  i < nnodes; i++)
-	{
-	  NodesArrayType::iterator itNode = NodeBegin + i;
-	  
-	  // Current step information "N+1" (before step update).
-	  // double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
-	  double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
-	  previous_density=1000;
-	}
-
-      KRATOS_CATCH("")
-	}
-
-  
-    void ComputeAndUpdatePressureFromDensity(ModelPart& rModelPart,ProcessInfo rCurrentProcessInfo)
+    for (int i = 0; i < nnodes; i++)
     {
-      KRATOS_TRY
+      NodesArrayType::iterator itNode = NodeBegin + i;
 
-	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      
-      OpenMPUtils::PartitionVector NodePartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
-	
-      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      // Current step information "N+1" (before step update).
+      // double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+      double &previous_density = (itNode)->FastGetSolutionStepValue(PRESSURE, 0);
+      previous_density = 1000;
+    }
 
-      // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
-      // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+    KRATOS_CATCH("")
+  }
+
+  void ComputeAndUpdatePressureFromDensity(ModelPart &rModelPart, ProcessInfo rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
+
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+    // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
+    // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
 
 #pragma omp parallel for firstprivate(NodeBegin)
-      for(int i = 0;  i < nnodes; i++)
-	{
-	  NodesArrayType::iterator itNode = NodeBegin + i;
-	  
-	  // Current step information "N+1" (before step update).
-	  const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
-	  double& density_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
-	  double current_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
-	  double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
-	  // double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
-
-	  if(bulk_term!=0){
-	    // Solution of the explicit equation:
-	    if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
-	      // (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;	   
-	      current_density =  density_rhs/bulk_term;
-	      double bulkModulus=2100000000;
-	      double initialDensity=1000;
-	      double gammaExponent=7.0;
-	      double densityRatio=current_density/initialDensity;
-	      double powerDensityRatio=pow(densityRatio,gammaExponent);
-	      current_pressure = - bulkModulus*(powerDensityRatio-1.0);
-	      // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
-	    }else	if((itNode)->Is(ISOLATED)){
-	      std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
-	      current_pressure  =0;
-	    }
-	  }
-
-
-
-
-	
-	}
-
-      KRATOS_CATCH("")
-	}
-
-  
-    void UpdateDensity(ModelPart& rModelPart,ProcessInfo rCurrentProcessInfo)
+    for (int i = 0; i < nnodes; i++)
     {
-      KRATOS_TRY
+      NodesArrayType::iterator itNode = NodeBegin + i;
 
-	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      
-      OpenMPUtils::PartitionVector NodePartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
-	
-      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+      // Current step information "N+1" (before step update).
+      const double &bulk_term = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+      double &density_rhs = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+      double current_density = (itNode)->FastGetSolutionStepValue(PRESSURE, 0);
+      double &current_pressure = (itNode)->FastGetSolutionStepValue(PRESSURE, 0);
+      // double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+      if (bulk_term != 0)
+      {
+        // Solution of the explicit equation:
+        if ((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED))
+        {
+          // (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;
+          current_density = density_rhs / bulk_term;
+          double bulkModulus = 2100000000;
+          double initialDensity = 1000;
+          double gammaExponent = 7.0;
+          double densityRatio = current_density / initialDensity;
+          double powerDensityRatio = pow(densityRatio, gammaExponent);
+          current_pressure = -bulkModulus * (powerDensityRatio - 1.0);
+          // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
+        }
+        else if ((itNode)->Is(ISOLATED))
+        {
+          std::cout << "ISOLATED NODE " << (itNode)->X() << " " << (itNode)->Y() << std::endl;
+          current_pressure = 0;
+        }
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  void UpdateDensity(ModelPart &rModelPart, ProcessInfo rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
+
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
 #pragma omp parallel for firstprivate(NodeBegin)
-      for(int i = 0;  i < nnodes; i++)
-	{
-	  NodesArrayType::iterator itNode = NodeBegin + i;
-	  
-	  // Current step information "N+1" (before step update).
-	  const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
-	  double& density_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
-	  double& current_density  = (itNode)->FastGetSolutionStepValue(DENSITY,0);
-	  // double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
-
-	  if(bulk_term!=0){
-	    // Solution of the explicit equation:
-	    // (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;
-	    current_density =  density_rhs/bulk_term;
-	    // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
-
-	  }
-
-	}
-
-      KRATOS_CATCH("")
-	}
-
-    void UpdatePressure(ModelPart& rModelPart,ProcessInfo rCurrentProcessInfo)
+    for (int i = 0; i < nnodes; i++)
     {
-      KRATOS_TRY
+      NodesArrayType::iterator itNode = NodeBegin + i;
 
-	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      
-      OpenMPUtils::PartitionVector NodePartition;
-      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
-	
-      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-      NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
-    
-      // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
-      // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
+      // Current step information "N+1" (before step update).
+      const double &bulk_term = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+      double &density_rhs = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+      double &current_density = (itNode)->FastGetSolutionStepValue(DENSITY, 0);
+      // double& previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+      if (bulk_term != 0)
+      {
+        // Solution of the explicit equation:
+        // (itNode)->FastGetSolutionStepValue(PRESSURE,1)=current_density;
+        current_density = density_rhs / bulk_term;
+        // std::cout<<currentTime<<" s) -> current_density "<<current_density<<" density_rhs= "<<density_rhs<<"   bulk_term "<<bulk_term<<std::endl;
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  void UpdatePressure(ModelPart &rModelPart, ProcessInfo rCurrentProcessInfo)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+    OpenMPUtils::PartitionVector NodePartition;
+    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
+
+    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+    NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+    // double currentTime   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
+    // double timeStep     = rCurrentProcessInfo[DELTA_TIME];
 
 #pragma omp parallel for firstprivate(NodeBegin)
-      for(int i = 0;  i < nnodes; i++)
-	{
-	  NodesArrayType::iterator itNode = NodeBegin + i;
-	  
-	  // Current step information "N+1" (before step update).
-	  double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
-	  double& current_density  = (itNode)->FastGetSolutionStepValue(DENSITY,0);
-	  // double current_density=current_pressure;
-	  // double previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
-
-	  // Solution of the explicit equation:
-	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
-	    double bulkModulus=2100000000;
-	    double initialDensity=1000;
-	    double gammaExponent=7.0;
-	    double densityRatio=current_density/initialDensity;
-	    double powerDensityRatio=pow(densityRatio,gammaExponent);
-
-	    current_pressure = - bulkModulus*(powerDensityRatio-1.0);
-
-	  
-	    // std::cout<<currentTime<<" s) -> previous_density "<<previous_density<<" current_density "<<current_density<<" densityRatio="<<densityRatio<<"   powerDensityRatio="<<powerDensityRatio<<"    current_pressure  "<<current_pressure<<std::endl;
-	  }
-
-	  if((itNode)->Is(ISOLATED)){
-	    // std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
-	    current_pressure  =0;
-	  }
-	}
-
-      KRATOS_CATCH("")
-	}
-
-    //   void UpdatePressure(ModelPart& rModelPart)
-    //   {
-    //     KRATOS_TRY
-
-    //       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-      
-    //     OpenMPUtils::PartitionVector NodePartition;
-    //     OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
-	
-    //     const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-    //     NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
-
-    // #pragma omp parallel for firstprivate(NodeBegin)
-    //     for(int i = 0;  i < nnodes; i++)
-    //       {
-    // 	NodesArrayType::iterator itNode = NodeBegin + i;
-	  
-    // 	// Current step information "N+1" (before step update).
-    // 	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
-    // 	double& pressure_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
-    // 	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
-    // 	double& previous_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
-
-    // 	if(bulk_term!=0){
-    // 	  // Solution of the explicit equation:
-    // 	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
-    // 	    previous_pressure=current_pressure;
-    // 	    current_pressure =  pressure_rhs/bulk_term;
-    // 	  }
-    // 	}
-    // 	if((itNode)->Is(ISOLATED)){
-    // 	  // std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
-    // 	    current_pressure  =0;
-    // 	    previous_pressure  =0;
-    // 	}
-    //       }
-
-    //     KRATOS_CATCH("")
-    //       }
-
-  
-    //**********************************************************************
-    //**********************************************************************
-
-    void Clear() override
+    for (int i = 0; i < nnodes; i++)
     {
-      KRATOS_TRY
-        std::cout << "Explicit strategy Clear function used" << std::endl;
+      NodesArrayType::iterator itNode = NodeBegin + i;
 
-      //setting to zero the internal flag to ensure that the dof sets are recalculated
-      //GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-      //GetBuilderAndSolver()->Clear();
+      // Current step information "N+1" (before step update).
+      double &current_pressure = (itNode)->FastGetSolutionStepValue(PRESSURE, 0);
+      double &current_density = (itNode)->FastGetSolutionStepValue(DENSITY, 0);
+      // double current_density=current_pressure;
+      // double previous_density  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
 
-      GetScheme()->Clear();
+      // Solution of the explicit equation:
+      if ((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED))
+      {
+        double bulkModulus = 2100000000;
+        double initialDensity = 1000;
+        double gammaExponent = 7.0;
+        double densityRatio = current_density / initialDensity;
+        double powerDensityRatio = pow(densityRatio, gammaExponent);
 
-      KRATOS_CATCH( "" )
-	}
-    
-    
-    
+        current_pressure = -bulkModulus * (powerDensityRatio - 1.0);
 
-    /*@} */
-    /**@name Operators
+        // std::cout<<currentTime<<" s) -> previous_density "<<previous_density<<" current_density "<<current_density<<" densityRatio="<<densityRatio<<"   powerDensityRatio="<<powerDensityRatio<<"    current_pressure  "<<current_pressure<<std::endl;
+      }
+
+      if ((itNode)->Is(ISOLATED))
+      {
+        // std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+        current_pressure = 0;
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  //   void UpdatePressure(ModelPart& rModelPart)
+  //   {
+  //     KRATOS_TRY
+
+  //       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+  //     OpenMPUtils::PartitionVector NodePartition;
+  //     OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+
+  //     const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+  //     NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
+
+  // #pragma omp parallel for firstprivate(NodeBegin)
+  //     for(int i = 0;  i < nnodes; i++)
+  //       {
+  // 	NodesArrayType::iterator itNode = NodeBegin + i;
+
+  // 	// Current step information "N+1" (before step update).
+  // 	const double& bulk_term  = (itNode)->FastGetSolutionStepValue(NODAL_MASS);
+  // 	double& pressure_rhs  = (itNode)->FastGetSolutionStepValue(NODAL_ERROR);
+  // 	double& current_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,0);
+  // 	double& previous_pressure  = (itNode)->FastGetSolutionStepValue(PRESSURE,1);
+
+  // 	if(bulk_term!=0){
+  // 	  // Solution of the explicit equation:
+  // 	  if((itNode)->IsFixed(PRESSURE) == false && (itNode)->IsNot(ISOLATED)){
+  // 	    previous_pressure=current_pressure;
+  // 	    current_pressure =  pressure_rhs/bulk_term;
+  // 	  }
+  // 	}
+  // 	if((itNode)->Is(ISOLATED)){
+  // 	  // std::cout<<"ISOLATED NODE "<<(itNode)->X()<<" "<<(itNode)->Y()<<std::endl;
+  // 	    current_pressure  =0;
+  // 	    previous_pressure  =0;
+  // 	}
+  //       }
+
+  //     KRATOS_CATCH("")
+  //       }
+
+  //**********************************************************************
+  //**********************************************************************
+
+  void Clear() override
+  {
+    KRATOS_TRY
+    std::cout << "Explicit strategy Clear function used" << std::endl;
+
+    //setting to zero the internal flag to ensure that the dof sets are recalculated
+    //GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
+    //GetBuilderAndSolver()->Clear();
+
+    GetScheme()->Clear();
+
+    KRATOS_CATCH("")
+  }
+
+  /*@} */
+  /**@name Operators
      */
-    /*@{ */
+  /*@{ */
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+  /*@} */
+  /**@name Operations */
+  /*@{ */
 
+  /*@} */
+  /**@name Access */
 
-    /*@} */
-    /**@name Access */
+  /*@{ */
 
-    /*@{ */
+  /*@} */
+  /**@name Inquiry */
+  /*@{ */
 
+  /*@} */
+  /**@name Friends */
+  /*@{ */
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+  /*@} */
 
+private:
+  /**@name Protected static Member Variables */
+  /*@{ */
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+  /*@} */
+  /**@name Protected member Variables */
+  /*@{ */
 
+  /*@} */
+  /**@name Protected Operators*/
+  /*@{ */
 
-    /*@} */
+  /*@} */
+  /**@name Protected Operations*/
+  /*@{ */
 
-  private:
-    /**@name Protected static Member Variables */
-    /*@{ */
+  /*@} */
+  /**@name Protected  Access */
+  /*@{ */
 
+  /*@} */
+  /**@name Protected Inquiry */
+  /*@{ */
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+  /*@} */
+  /**@name Protected LifeCycle */
+  /*@{ */
 
+  /*@} */
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+protected:
+  /**@name Static Member Variables */
+  /*@{ */
 
+  /*@} */
+  /**@name Member Variables */
+  /*@{ */
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+  typename TSchemeType::Pointer mpScheme;
 
+  typename TLinearSolver::Pointer mpLinearSolver;
 
+  typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+  TSystemVectorPointerType mpDx;
+  TSystemVectorPointerType mpb;
+  TSystemMatrixPointerType mpA;
 
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
-  protected:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-    typename TSchemeType::Pointer mpScheme;
-
-    typename TLinearSolver::Pointer mpLinearSolver;
-
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
-
-    TSystemVectorPointerType mpDx;
-    TSystemVectorPointerType mpb;
-    TSystemMatrixPointerType mpA;
-
-
-    /**
+  /**
        Flag telling if it is needed to reform the DofSet at each
        solution step or if it is possible to form it just once
        - true  => reforme at each time step
@@ -804,100 +757,87 @@ namespace Kratos
 
        Default = false
     */
-    bool mReformDofSetAtEachStep;
+  bool mReformDofSetAtEachStep;
 
-    /**
+  /**
        Flag telling if it is needed or not to compute the reactions
 
        default = true
     */
-    bool mCalculateReactionsFlag;
+  bool mCalculateReactionsFlag;
 
-    bool mSolutionStepIsInitialized;
+  bool mSolutionStepIsInitialized;
 
-    bool mInitializeWasPerformed;
-    
-    bool mComputeTime; 
-    
+  bool mInitializeWasPerformed;
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-    
-    //**********************************************************************
-    //**********************************************************************
+  bool mComputeTime;
 
-    
-    void CalculateReactions()
-    {
+  /*@} */
+  /**@name Private Operators*/
+  /*@{ */
 
-    }
+  //**********************************************************************
+  //**********************************************************************
 
-    //**********************************************************************
-    //**********************************************************************
-    
-    /**
+  void CalculateReactions()
+  {
+  }
+
+  //**********************************************************************
+  //**********************************************************************
+
+  /**
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    
-    int Check() override
-    {
-      KRATOS_TRY
-        
-        BaseType::Check();
 
-      GetScheme()->Check(BaseType::GetModelPart());
+  int Check() override
+  {
+    KRATOS_TRY
 
-      return 0;
+    BaseType::Check();
 
-      KRATOS_CATCH( "" )
-	}
+    GetScheme()->Check(BaseType::GetModelPart());
 
-    
-    //***************************************************************************
-    //***************************************************************************
+    return 0;
 
+    KRATOS_CATCH("")
+  }
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-    /** Copy constructor.
-     */
-    ExplicitTwoStepVPStrategy(const ExplicitTwoStepVPStrategy& Other)
-    {
-    };
-
-
-    /*@} */
-
-  }; /* Class ExplicitTwoStepVPStrategy */
+  //***************************************************************************
+  //***************************************************************************
 
   /*@} */
-
-  /**@name Type Definitions */
+  /**@name Private Operations*/
   /*@{ */
 
+  /*@} */
+  /**@name Private  Access */
+  /*@{ */
 
   /*@} */
+  /**@name Private Inquiry */
+  /*@{ */
+
+  /*@} */
+  /**@name Un accessible methods */
+  /*@{ */
+
+  /** Copy constructor.
+     */
+  ExplicitTwoStepVPStrategy(const ExplicitTwoStepVPStrategy &Other){};
+
+  /*@} */
+
+}; /* Class ExplicitTwoStepVPStrategy */
+
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+
+/*@} */
 
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_TWO_STEP_V_P_STRATEGY  defined */
-

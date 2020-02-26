@@ -112,21 +112,21 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
     std::vector<Node<3>::Pointer> nodes_pointer_vect(11);
 
     // Tetrahedra nodes
-    nodes_pointer_vect[0] = Kratos::make_shared<Node<3>>(1, 0.0, 0.0, 0.0);
-    nodes_pointer_vect[1] = Kratos::make_shared<Node<3>>(2, 1.0, 0.0, 0.0);
-    nodes_pointer_vect[2] = Kratos::make_shared<Node<3>>(3, 0.0, 1.0, 0.0);
-    nodes_pointer_vect[3] = Kratos::make_shared<Node<3>>(4, 0.0, 0.0, 1.0);
+    nodes_pointer_vect[0] = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+    nodes_pointer_vect[1] = Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
+    nodes_pointer_vect[2] = Kratos::make_intrusive<Node<3>>(3, 0.0, 1.0, 0.0);
+    nodes_pointer_vect[3] = Kratos::make_intrusive<Node<3>>(4, 0.0, 0.0, 1.0);
 
     // Edge intersection candidate nodes
-    nodes_pointer_vect[4] = Kratos::make_shared<Node<3>>(5, 0.5, 0.0, 0.0); // Edge 01
-    nodes_pointer_vect[5] = Kratos::make_shared<Node<3>>(6, 0.0, 0.5, 0.0); // Edge 02
-    nodes_pointer_vect[6] = Kratos::make_shared<Node<3>>(7, 0.0, 0.0, 0.5); // Edge 03
-    nodes_pointer_vect[7] = Kratos::make_shared<Node<3>>(8, 0.5, 0.5, 0.0); // Edge 12
-    nodes_pointer_vect[8] = Kratos::make_shared<Node<3>>(9, 0.5, 0.0, 0.5); // Edge 13
-    nodes_pointer_vect[9] = Kratos::make_shared<Node<3>>(10, 0.0, 0.5, 0.5); // Edge 23
+    nodes_pointer_vect[4] = Kratos::make_intrusive<Node<3>>(5, 0.5, 0.0, 0.0); // Edge 01
+    nodes_pointer_vect[5] = Kratos::make_intrusive<Node<3>>(6, 0.0, 0.5, 0.0); // Edge 02
+    nodes_pointer_vect[6] = Kratos::make_intrusive<Node<3>>(7, 0.0, 0.0, 0.5); // Edge 03
+    nodes_pointer_vect[7] = Kratos::make_intrusive<Node<3>>(8, 0.5, 0.5, 0.0); // Edge 12
+    nodes_pointer_vect[8] = Kratos::make_intrusive<Node<3>>(9, 0.5, 0.0, 0.5); // Edge 13
+    nodes_pointer_vect[9] = Kratos::make_intrusive<Node<3>>(10, 0.0, 0.5, 0.5); // Edge 23
 
     // Baricenter
-    nodes_pointer_vect[10] = Kratos::make_shared<Node<3>>(11, 0.25, 0.25, 0.25); // Baricenter
+    nodes_pointer_vect[10] = Kratos::make_intrusive<Node<3>>(11, 0.25, 0.25, 0.25); // Baricenter
 
     // Loop all the splitting patterns
     std::vector<std::vector<unsigned int>> a(6);
@@ -188,8 +188,9 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
 
                                 // If required, save sub tetra faces
                                 if (compute_faces) {
+                                    const auto faces = p_sub_tetra->GenerateFaces();
                                     for (unsigned int i_face = 0; i_face < 4; ++i_face) {
-                                       sub_tetras_faces[i_elem * 4 + i_face] = (p_sub_tetra->Faces())[i_face];
+                                       sub_tetras_faces[i_elem * 4 + i_face] = faces[i_face];
                                     }
                                 }
 

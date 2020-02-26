@@ -3,14 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes KM bac
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import the explicit solver (the explicit one is derived from it)
-import structural_mechanics_explicit_dynamic_solver
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_explicit_dynamic_solver
 
 # Import auxiliar methods
-import auxiliar_methods_solvers
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ContactExplicitMechanicalSolver(model, custom_settings)
@@ -27,17 +26,10 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-
-        ## Settings string in json format
-        contact_settings = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
-
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.validate_and_transfer_matching_settings(self.settings, contact_settings)
-        self.contact_settings = contact_settings["contact_settings"]
-
         # Construct the base solver.
-        super(ContactExplicitMechanicalSolver, self).__init__(model, self.settings)
+        super(ContactExplicitMechanicalSolver, self).__init__(model, custom_settings)
+
+        self.contact_settings = self.settings["contact_settings"]
 
         # Setting default configurations true by default
         auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
@@ -48,7 +40,12 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
 
-        self.print_on_rank_zero("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+        KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
 
     def AddVariables(self):
 
@@ -57,7 +54,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
 
-        self.print_on_rank_zero("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Variables ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
@@ -66,7 +63,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
 
-        self.print_on_rank_zero("::[Contact Mechanical Explicit Dynamic Solver]:: ", "DOF's ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
         super(ContactExplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
@@ -100,12 +97,8 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         else:
             return self.delta_time
 
-    def print_on_rank_zero(self, *args):
-        # This function will be overridden in the trilinos-solvers
-        KM.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        # This function will be overridden in the trilinos-solvers
-        KM.Logger.PrintWarning(" ".join(map(str,args)))
-
-    #### Private functions ####
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults

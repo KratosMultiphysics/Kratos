@@ -61,7 +61,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianAxisymmetry );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianAxisymmetry );
     ///@}
 
     /**
@@ -284,6 +284,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    using UpdatedLagrangian::CalculateDeformationMatrix;
 
     ///@}
     ///@name Private  Access

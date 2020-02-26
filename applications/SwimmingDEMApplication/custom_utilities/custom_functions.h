@@ -104,8 +104,8 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-// This function assesses the stationarity based on the pressure field varaition.
-// Its tolerance applies to the adimensinalised pressure variation between consecutive
+// This function assesses the stationarity based on the pressure field variation.
+// Its tolerance applies to the non-dimensional pressure variation between consecutive
 // measurements.
 bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 {

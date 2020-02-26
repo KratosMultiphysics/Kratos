@@ -21,7 +21,10 @@
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
+#include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "input_output/vtk_output.h"
+#include "utilities/variable_utils.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "custom_searching/interface_communicator_mpi.h"
 #endif
@@ -172,16 +175,18 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::ValidateInput(Parameters MapperSettings)
+void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::ValidateInput()
 {
     MapperUtilities::CheckInterfaceModelParts(0);
-    ValidateParameters(MapperSettings);
+
+    Parameters mapper_default_settings(GetMapperDefaultSettings());
+    mMapperSettings.ValidateAndAssignDefaults(mapper_default_settings);
 
     if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
         const double search_radius = MapperUtilities::ComputeSearchRadius(
                                         mrModelPartOrigin,
                                         mrModelPartDestination,
-                                        MapperSettings["echo_level"].GetInt());
+                                        mMapperSettings["echo_level"].GetInt());
         mMapperSettings["search_radius"].SetDouble(search_radius);
     }
 }
@@ -189,28 +194,48 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::ValidateInput(Parameter
 template<class TSparseSpace, class TDenseSpace>
 void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const int EchoLevel)
 {
-    const int comm_rank = mrModelPartDestination.GetCommunicator().MyPID();
     std::stringstream warning_msg;
 
-    for (const auto& rp_local_sys : mMapperLocalSystems)
-    {
+    if (EchoLevel > 1) {
+        // Initialize the values for printing later
+        VariableUtils().SetNonHistoricalVariable(PAIRING_STATUS, 1, mrModelPartDestination.Nodes());
+    }
+
+    for (const auto& rp_local_sys : mMapperLocalSystems) {
         const auto pairing_status = rp_local_sys->GetPairingStatus();
 
-        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound)
-        {
-            warning_msg << rp_local_sys->PairingInfo(EchoLevel, comm_rank);
+        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound) {
+            warning_msg << rp_local_sys->PairingInfo(EchoLevel);
 
             if (pairing_status == MapperLocalSystem::PairingStatus::Approximation)
                 warning_msg << " is using an approximation";
             else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo)
                 warning_msg << " has not found a neighbor";
 
-            KRATOS_WARNING("Mapper") << warning_msg.str() << std::endl;
+            KRATOS_WARNING_ALL_RANKS("Mapper") << warning_msg.str() << std::endl; // TODO use data-comm of the destination-MP
 
             // reset the stringstream
             warning_msg.str( std::string() );
             warning_msg.clear();
         }
+    }
+
+    if (EchoLevel > 1) {
+        // print a debug ModelPart to check the pairing
+
+        std::string prefix = Info() + "_PairingStatus_";
+
+        Parameters vtk_params( R"({
+            "file_format"                        : "binary",
+            "output_precision"                   : 7,
+            "output_control_type"                : "step",
+            "custom_name_prefix"                 : "",
+            "save_output_files_in_folder"        : false,
+            "nodal_data_value_variables"         : ["PAIRING_STATUS"]
+        })");
+
+        vtk_params["custom_name_prefix"].SetString(prefix);
+        VtkOutput(mrModelPartDestination, vtk_params).PrintOutput();
     }
 }
 

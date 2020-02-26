@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 
@@ -30,11 +30,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "utilities/stl_io.h"
+#include "utilities/stl_vector_io.h"
 
 // Filters
 #define KRATOS_LOG_ADD_CUSTOM_FILTER(STRING) KratosLogUtils::GetInstance().AddCustomFilter(STRING);
-#define KRATOS_LOG_FILTER(STRING)            KratosLogUtils::GetInstance().Filter(STRING)  
+#define KRATOS_LOG_FILTER(STRING)            KratosLogUtils::GetInstance().Filter(STRING)
 
 // Stamps
 #define KRATOS_TIME_STAMP "[" << KratosLogUtils::GetInstance().CurrentDateTime() << "]"
@@ -100,17 +100,17 @@
 #define KRATOS_LOG_TRACE_IF_N(C,N)    KRATOS_LOG_IF_N(KRATOS_SEVERITY_TRACE,C)      << KRATOS_LOG_TRACE_STAMP
 #define KRATOS_LOG_TRACE_FIRST_N(N)   KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_TRACE,N)   << KRATOS_LOG_TRACE_STAMP
 #else
-#define KRATOS_LOG_DEBUG              
-#define KRATOS_LOG_DEBUG_N(N)         
-#define KRATOS_LOG_DEBUG_IF(C)        
-#define KRATOS_LOG_DEBUG_IF_N(C,N)    
-#define KRATOS_LOG_DEBUG_FIRST_N(N)   
+#define KRATOS_LOG_DEBUG
+#define KRATOS_LOG_DEBUG_N(N)
+#define KRATOS_LOG_DEBUG_IF(C)
+#define KRATOS_LOG_DEBUG_IF_N(C,N)
+#define KRATOS_LOG_DEBUG_FIRST_N(N)
 
-#define KRATOS_LOG_TRACE              
-#define KRATOS_LOG_TRACE_N(N)         
-#define KRATOS_LOG_TRACE_IF(C)        
-#define KRATOS_LOG_TRACE_IF_N(C,N)    
-#define KRATOS_LOG_TRACE_FIRST_N(N)   
+#define KRATOS_LOG_TRACE
+#define KRATOS_LOG_TRACE_N(N)
+#define KRATOS_LOG_TRACE_IF(C)
+#define KRATOS_LOG_TRACE_IF_N(C,N)
+#define KRATOS_LOG_TRACE_FIRST_N(N)
 #endif
 
 // Normal log
@@ -125,19 +125,19 @@
   if (++KRATOS_LOG_OCCURRENCES > __N__) KRATOS_LOG_OCCURRENCES -= __N__; \
   if (KRATOS_LOG_OCCURRENCES == 1) \
     KRATOS_LOG(KRATOS_SEVERITY)
-    
+
 // If block
 #define KRATOS_LOG_IF(KRATOS_SEVERITY,__C__) \
   if (__C__) \
     KRATOS_LOG(KRATOS_SEVERITY)
-    
+
 // If-Each-N block
 #define KRATOS_LOG_IF_N(KRATOS_SEVERITY,__C__,__N__) \
   static int KRATOS_LOG_OCCURRENCES = 0;\
   if (++KRATOS_LOG_OCCURRENCES > __N__) KRATOS_LOG_OCCURRENCES -= __N__; \
   if ((__C__) && KRATOS_LOG_OCCURRENCES == 1) \
     KRATOS_LOG(KRATOS_SEVERITY)
-    
+
 // First-N block
 #define KRATOS_LOG_FIRST_N(KRATOS_SEVERITY,__N__) \
   static int KRATOS_LOG_OCCURRENCES = 0;\
@@ -165,7 +165,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-  
+
 enum KRATOS_SEVERITY {
   KRATOS_SEVERITY_ERROR,
   KRATOS_SEVERITY_WARNING,
@@ -175,60 +175,60 @@ enum KRATOS_SEVERITY {
   KRATOS_SEVERITY_TRACE,
   KRATOS_LOG_SOLVER
 };
- 
-template<KRATOS_SEVERITY S>  
+
+template<KRATOS_SEVERITY S>
 class KratosLog : public std::ostream
 {
   private:
-    
+
     KratosLog<S>();
-    
+
     static bool         mInstanceFlag;
     static KratosLog *  mpInstance;
-    
+
   public:
-         
+
     ~KratosLog<S>();
-    
+
     static KratosLog<S>& GetInstance();
-    
+
     void SetSeverityLevel(int severity);
     void SetOutput(std::string const& LogFileName);
-    
+
     int getSeverity();
     std::ostream& getOutput();
-    
+
     bool            mPrintLogOnScreen;
     int             mSeverityLevel;
     std::ofstream * mOutputFile;
-    
-};  
+
+};
 
 class KratosLogUtils
 {
   private:
-  
+
     KratosLogUtils();
-    
+
     static bool mInstanceFlag;
     static KratosLogUtils * mpInstance;
-    
+
     std::vector<std::string> * mFilterString;
-    
+
   public:
-    
+
     ~KratosLogUtils();
-    
+
     static KratosLogUtils& GetInstance();
-    
+
     void AddCustomFilter(const std::string filter);
-    
+
     const std::string CurrentDateTime();
     const std::string CurrentDateTime(const char * format);
     const char * Filter(const char * inputString);
     const char * FilterNamespace(const char * inputString);
     const char * FilterCustom(const char * inputString, std::vector<std::string> remove);
-    
+
 };
 
 ///@}
@@ -240,7 +240,7 @@ class KratosLogUtils
 ///@}
 ///@name Input and output
 ///@{
-  
+
 // Generic Specialization
 template<KRATOS_SEVERITY S>
 KratosLog<S>::KratosLog()
@@ -265,33 +265,33 @@ void KratosLog<S>::SetOutput(std::string const& LogFileName)
 }
 
 template<KRATOS_SEVERITY S>
-KratosLog<S>& KratosLog<S>::GetInstance() 
+KratosLog<S>& KratosLog<S>::GetInstance()
 {
     if(!mInstanceFlag)
-    {   
+    {
         mInstanceFlag = 1;
         mpInstance = new KratosLog<S>();
         mpInstance->SetOutput("KratosLog.log");
     }
-    
+
     return (*mpInstance);
 }
 
 // Error specialization
 inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, std::ostream& (*fn)(std::ostream&))
-{ 
+{
   if(out.mPrintLogOnScreen)
     fn(std::cout);
-  
+
   fn((*out.mOutputFile));
   (*out.mOutputFile).flush();
-  
+
     abort();
   //TODO: Throw exception abort();
 
   return out;
 }
-      
+
 template<class T>
 inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, const T& data)
 {
@@ -301,25 +301,25 @@ inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY
   }
 
   (*out.mOutputFile) << data;
-  
+
   //TODO: Throw exception abort();
-  
-  return out;  
+
+  return out;
 }
-    
+
 // Error specialization
 template<KRATOS_SEVERITY S>
 inline KratosLog<S> & operator << (KratosLog<S> &out, std::ostream& (*fn)(std::ostream&))
-{ 
+{
   if(out.mPrintLogOnScreen)
     fn(std::cout);
-  
+
   fn((*out.mOutputFile));
   (*out.mOutputFile).flush();
 
   return out;
 }
-  
+
 template<class T, KRATOS_SEVERITY S>
 inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
 {
@@ -329,8 +329,8 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
   }
 
   (*out.mOutputFile) << data;
-  
-  return out;  
+
+  return out;
 }
 
 ///@}
@@ -338,6 +338,6 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_LOG_H_INCLUDED  defined 
+#endif // KRATOS_KRATOS_LOG_H_INCLUDED  defined
 
 
