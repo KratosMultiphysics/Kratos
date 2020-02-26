@@ -254,6 +254,68 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
+    /// Returns the number of spans in U (which are larger than 0).
+    SizeType NumberOfKnotSpansU()
+    {
+        SizeType knot_span_counter = 0;
+        for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+            if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                knot_span_counter++;
+            }
+        }
+        return knot_span_counter;
+    }
+
+    /// Returns the number of spans in V (which are larger than 0).
+    SizeType NumberOfKnotSpansV()
+    {
+        SizeType knot_span_counter = 0;
+        for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+            if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                knot_span_counter++;
+            }
+        }
+        return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @return vector of domain intervals.
+     */
+    std::vector<double> SpansU() const
+    {
+        std::vector<double> result(NumberOfSpansU());
+
+        result[0] = mKnotsU[0];
+
+        IndexType conter = 1;
+        for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+            if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                result[counter] = mKnotsU[i + 1];
+                counter++;
+            }
+        }
+        return result;
+    }
+
+    /* @brief Provides all knot spans within direction v.
+     * @return vector of domain intervals.
+     */
+    std::vector<double> SpansV() const
+    {
+        std::vector<double> result(NumberOfSpansV());
+
+        result[0] = mKnotsV[0];
+
+        IndexType conter = 1;
+        for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+            if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                result[counter] = mKnotsV[i + 1];
+                counter++;
+            }
+        }
+        return result;
+    }
+
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
