@@ -53,6 +53,8 @@ class EigensystemSolver
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    typedef double ValueType;
+
     EigensystemSolver(
         Parameters param
     ) : mParam(param)
