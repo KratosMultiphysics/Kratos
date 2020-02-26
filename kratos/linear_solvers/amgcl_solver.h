@@ -574,7 +574,7 @@ public:
             mBlockSize = max_block_size;
         }
 
-        KRATOS_ERROR_IF(mBlockSize != maxBlockSize) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << maxBlockSize << std::endl;
+        KRATOS_ERROR_IF(mBlockSize != max_block_size) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << max_block_size << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 
