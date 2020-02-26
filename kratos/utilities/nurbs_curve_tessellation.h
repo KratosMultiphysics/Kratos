@@ -36,6 +36,8 @@ public:
     ///@{
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointerType;
+
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
     typedef std::vector<std::pair<double, Vector>> TessellationType;
     typedef typename GeometryType::IndexType IndexType;
