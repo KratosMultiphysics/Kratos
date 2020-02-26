@@ -41,7 +41,11 @@ public:
     typedef typename GeometryType::IndexType IndexType;
     typedef typename GeometryType::SizeType SizeType;
 
-private:    // static methods
+    ///@}
+private:
+    ///@name Private Static Methods
+    ///@{
+
     static double DistanceToLine(
         const typename GeometryType::CoordinatesArrayType& rPoint, 
         const typename GeometryType::CoordinatesArrayType& rLineA,
@@ -54,9 +58,9 @@ private:    // static methods
         return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
     }
 
-public:
     ///@}
-    ///@name Life Cycle
+public:
+    ///@name Private Static Methods
     ///@{
 
     /// Conctructor for tessellation of a nurbs curve
@@ -239,22 +243,12 @@ public:
     }
 
     private:
-    ///@name Private Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Private Member Variables
     ///@{
 
     TessellationType mTesselation;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private Serialization
-    ///@{
 };
 
 } // namespace NurbsCurveTessellation
