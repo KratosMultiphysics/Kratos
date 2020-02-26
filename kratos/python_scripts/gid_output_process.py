@@ -166,8 +166,8 @@ class GiDOutputProcess(KM.Process):
 
         if settings.Has('result_file_configuration'):
             sub_settings_where_var_is = settings['result_file_configuration']
-            old_name = 'output_frequency'
-            new_name = 'output_interval'
+            old_name = 'write_properties_id'
+            new_name = 'write_ids'
 
             if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
                 sub_settings_where_var_is.AddEmptyValue(new_name).SetBool(sub_settings_where_var_is[old_name].GetBool())
