@@ -199,6 +199,37 @@ public:
         return points;
     }
 
+
+    /* @brief This method returns polygon of this curve with equal curve segments.
+     * @param pGeometry Pointer to the geometry
+     * @param NumberOfPoints The total amount of nodes including start and end node.
+     * @param Start parameter of polygon.
+     * @param End parameter of polygon.
+     */
+    static TessellationType ComputePolygon(
+        const GeometryPointerType& pGeometry,
+        const SizeType NumberOfPoints,
+        const double Start,
+        const double End)
+    {
+        TessellationType points(NumberOfPoints);
+
+        CoordinatesArrayType parameter = ZeroVector(3);
+        CoordinatesArrayType result;
+
+        double length = Start - End;
+        double delta_length = length / (NumberOfPoints - 1);
+
+        // compute sample points
+        for (IndexType i = 0; i < NumberOfPoints; ++i) {
+            parameter[0] = Start + delat_length * i;
+            pGeometry->GlobalCoordinates(result, parameter);
+            points[i] = { parameter[0], result };
+        }
+
+        return points;
+    }
+
     /** 
     * @brief This method returns the already computed tessellation of a curve
     * @return return std::vector<std::pair<double, Vector>> tessellation
