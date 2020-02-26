@@ -51,6 +51,10 @@ public:
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
+    // Using GetPoint functions
+    using BaseType::pGetPoint;
+    using BaseType::GetPoint;
+
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
