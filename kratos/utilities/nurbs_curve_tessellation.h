@@ -36,6 +36,7 @@ public:
     ///@{
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
     typedef std::vector<std::pair<double, Vector>> TessellationType;
     typedef typename GeometryType::IndexType IndexType;
@@ -225,7 +226,7 @@ public:
 
         // compute sample points
         for (IndexType i = 0; i < NumberOfPoints; ++i) {
-            parameter[0] = Start + delat_length * i;
+            parameter[0] = Start + delta_length * i;
             CoordinatesArrayType result;
             rGeometry.GlobalCoordinates(result, parameter);
             points[i] = { parameter[0], result };
