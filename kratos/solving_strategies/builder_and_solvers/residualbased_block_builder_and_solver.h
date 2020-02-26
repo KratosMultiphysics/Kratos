@@ -145,18 +145,13 @@ public:
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
 
-        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","Please write a number"};
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_at_process_info"};
 
         if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
-            double aux_value = 0.0;
-            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs);
-            number_stream >> aux_value;
-            if (aux_value < std::numeric_limits<double>::epsilon()) {
-                std::stringstream msg;
-                msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
-                msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
-                KRATOS_ERROR << msg.str() << std::endl;
-            }
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_at_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
         }
 
         // The first option will not consider any scaling (the diagonal values will be replaced with 1)
@@ -176,9 +171,6 @@ public:
             } else { // Otherwise we will assume we impose a numerical value
                 mOptions.Set(CONSIDER_NORM_DIAGONAL, false);
                 mOptions.Set(CONSIDER_PRESCRIBED_DIAGONAL, true);
-                // We assume it is a number
-                std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs);
-                number_stream >> mScaleFactor;
             }
         }
         mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
@@ -913,7 +905,7 @@ public:
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
-        mScaleFactor = GetScaleNorm(rA);
+        mScaleFactor = GetScaleNorm(rModelPart, rA);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel firstprivate(system_size)
@@ -1584,17 +1576,24 @@ protected:
 
     /**
      * @brief This method returns the scale norm considering for scaling the diagonal
+     * @param rModelPart The problem model part
      * @param rA The LHS matrix
      * @return The scale norm
      */
-    double GetScaleNorm(TSystemMatrixType& rA)
+    double GetScaleNorm(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
         if (mOptions.Is(NO_SCALING) ) {
             return 1.0;
         } else {
             if (mOptions.Is(CONSIDER_PRESCRIBED_DIAGONAL)) {
-                KRATOS_ERROR_IF(mScaleFactor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
-                return mScaleFactor;
+                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+                KRATOS_ERROR_IF_NOT(r_current_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
+                const double scale_factor = r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
+                KRATOS_ERROR_IF(scale_factor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
+                return scale_factor;
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
                     return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
