@@ -78,12 +78,6 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
         ## Set the nodal properties flag
         self.element_has_nodal_properties = True
 
-        ## Construct the linear solver
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])     ## Vedere
-
-        ## Set the element replace settings
-        #self._SetCompressibleElementReplaceSettings()
-
         print("Construction of NavierStokesCompressibleExplicitSolver finished.")
 
     def AddVariables(self):     ## Che cosa fa questa funzione? Devono esistere da qualche parte le variabili che aggiungo?
@@ -142,41 +136,14 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
         # Set the time discretization utility to compute the BDF coefficients
         time_order = self.settings["time_order"].GetInt()
         if time_order == 2:
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order) ## To develop for different RK schemes
         else:
             raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
 
-        # Creating the solution strategy
-##        self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
-##                                                                 self.settings["absolute_tolerance"].GetDouble())
-
-
-        #(self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt()
-##        (self.conv_criteria).SetEchoLevel(3)
-
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-##        rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.SLIP) ## AM: See implementation for the explicit case
-##        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
-
-        print("domain_size = {}".format(domain_size))
-
-        print(self.computing_model_part)
 
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
-
-##        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        
-        # self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
-        #                                                                     time_scheme,
-        #                                                                     self.linear_solver,
-        #                                                                     self.conv_criteria,
-        #                                                                     builder_and_solver,
-        #                                                                     self.settings["maximum_iterations"].GetInt(),
-        #                                                                     self.settings["compute_reactions"].GetBool(),
-        #                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-        #                                                                     self.settings["move_mesh_flag"].GetBool())
 
         self.solver = KratosFluid.RungeKuttaStrategy(
             self.GetComputingModelPart(),
@@ -187,12 +154,7 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        #(self.solver).SetEchoLevel(1)
-
-        # for node in self.computing_model_part.Nodes:
-        #     print(node)
-
-
+       
         (self.solver).Initialize()
         
 
@@ -202,42 +164,12 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 
 
     def InitializeSolutionStep(self):
-##        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-## AM:Credo che questa roba sia già implementata in RungeKuttaStrategy
         (self.solver).InitializeSolutionStep()
 
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
-            # time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            # for node in self.model.GetModelPart("MainModelPart.AutomaticInlet2D_Automatic_inlet_velocity_Auto1").Nodes:
-            #     den = 1 + 1*time
-            #     vel = time
-            #     temp = 300
-            #     node.Fix(KratosMultiphysics.DENSITY)
-            #     node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,den)            
-
-            #     node.Fix(KratosMultiphysics.MOMENTUM_X)
-            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_X,0,den*vel)
-
-            #     node.Fix(KratosMultiphysics.MOMENTUM_Y)
-            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Y,0,0)
-
-            #     node.Fix(KratosMultiphysics.TOTAL_ENERGY)
-            #     node.SetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY,0,den*(707*temp + 0.5*vel*vel))   
-
-            # for node in self.model.GetModelPart("MainModelPart.NoSlip2D_No_Slip_Auto1").Nodes:
-            #     node.Fix(KratosMultiphysics.MOMENTUM_X)
-            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_X,0,0)
-
-            #     node.Fix(KratosMultiphysics.MOMENTUM_Y)
-            #     node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Y,0,0)
-
-            # for node in self.model.GetModelPart("MainModelPart.Outlet2D_Outlet_pressure_Auto1").Nodes:
-            #     node.Fix(KratosMultiphysics.DENSITY)
-            #     node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,1)                                                                              
-            #     # print("Sto facendo")
             return is_converged
         else:
             return True
