@@ -568,7 +568,13 @@ public:
         else
             mBlockSize = ndof;
 
-        mBlockSize = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+        int maxBlockSize = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+
+        if(mBlockSize == 0) {
+            mBlockSize = maxBlockSize;
+        }
+
+        KRATOS_ERROR_IF(mBlockSize != maxBlockSize) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << maxBlockSize << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 
