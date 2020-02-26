@@ -65,6 +65,8 @@ from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Custom Scipy Solver test
+from test_custom_scipy_base_solver import TestCustomScipyBaseSolver
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements
@@ -306,6 +308,8 @@ def AssembleTestSuites():
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
+    # Custom Scipy Solver test
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements
