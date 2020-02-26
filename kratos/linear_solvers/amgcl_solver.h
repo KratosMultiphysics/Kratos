@@ -571,7 +571,7 @@ public:
         int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
 
         if(mBlockSize == 0) {
-            mBlockSize = maxBlockSize;
+            mBlockSize = max_block_size;
         }
 
         KRATOS_ERROR_IF(mBlockSize != maxBlockSize) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << maxBlockSize << std::endl;
