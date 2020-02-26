@@ -158,7 +158,7 @@ public:
     std::vector<double> Spans() const
     {
         auto interval = mpNurbsCurve->DomainInterval();
-        this->Spans(interval.GetT0(), interval.GetT1());
+        return this->Spans(interval.GetT0(), interval.GetT1());
     }
 
     /*
