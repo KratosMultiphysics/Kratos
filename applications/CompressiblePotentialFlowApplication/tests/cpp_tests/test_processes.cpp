@@ -109,7 +109,7 @@ namespace Kratos {
       Vector resultant_force(3);
       ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
 
-      std::array<double,3> reference({0.0, 0.5, 0.0});
+      std::array<double,3> reference{0.0, 0.5, 0.0};
       KRATOS_WATCH(resultant_force)
 
       for (unsigned int i = 0; i < 3; i++) {
@@ -244,7 +244,7 @@ namespace Kratos {
       std::vector<ModelPart::IndexType> elemNodes_1{ 1, 2, 3 };
       model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes_1, pElemProp);
 
-      auto r_element = model_part.GetElement(1);
+      auto& r_element = model_part.GetElement(1);
 
       r_element.GetValue(WAKE) = 1;
       Vector wake_elemental_distances(3);
@@ -282,10 +282,10 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(nodal_area, 0.166667, 1e-6);
         auto nodal_velocity = r_node.GetValue(VELOCITY);
         KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
-        KRATOS_CHECK_NEAR(nodal_velocity[1], 2, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_velocity[1], 1, 1e-6);
         KRATOS_CHECK_NEAR(nodal_velocity[2], 0, 1e-6);
         auto nodal_pressure = r_node.GetValue(PRESSURE_COEFFICIENT);
-        KRATOS_CHECK_NEAR(nodal_pressure, 0.95, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_pressure, 0.98, 1e-6);
       }
     }
   } // namespace Testing
