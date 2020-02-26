@@ -141,19 +141,14 @@ public:
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
         
         // Auxiliar set for dirichlet dofs
-        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","Please write a number"};
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
 
         // Check the values
         if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
-            double aux_value = 0.0;
-            std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs);
-            number_stream >> aux_value;
-            if (aux_value < std::numeric_limits<double>::epsilon()) {
-                std::stringstream msg;
-                msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
-                msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
-                KRATOS_ERROR << msg.str() << std::endl;
-            }
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
         }
         
         // The first option will not consider any scaling (the diagonal values will be replaced with 1)
@@ -173,29 +168,21 @@ public:
             } else { // Otherwise we will assume we impose a numerical value
                 BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
                 BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, true);
-                // We assume it is a number
-                std::stringstream number_stream(r_diagonal_values_for_dirichlet_dofs); 
-                number_stream >> BaseType::mScaleFactor; 
             }
         }
         
         // Auxiliar set for constraints
-        std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","Please write a number"};
+        std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","defined_in_process_info"};
         
         // Definition of the constraint scale factor
         const std::string& r_constraint_scale_factor = ThisParameters["constraint_scale_factor"].GetString();
 
         // Check the values
         if (available_options_for_constraints_scale.find(r_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
-            double aux_value = 0.0;
-            std::stringstream number_stream(r_constraint_scale_factor);
-            number_stream >> aux_value;
-            if (aux_value < std::numeric_limits<double>::epsilon()) {
-                std::stringstream msg;
-                msg << "Currently prescribed constraint scale factor : " << r_constraint_scale_factor << "\n";
-                msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
-                KRATOS_ERROR << msg.str() << std::endl;
-            }
+            std::stringstream msg;
+            msg << "Currently prescribed constraint scale factor : " << r_constraint_scale_factor << "\n";
+            msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
         }
         
         // This case will consider the mean value in the diagonal as a scaling value
@@ -208,9 +195,6 @@ public:
         } else { // Otherwise we will assume we impose a numerical value
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, true);
-            // We assume it is a number
-            std::stringstream number_stream(r_constraint_scale_factor); 
-            number_stream >> mConstraintFactor; 
         }
         
         // Definition of the auxiliar constraint scale factor
@@ -218,15 +202,10 @@ public:
         
         // Check the values
         if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
-            double aux_value = 0.0;
-            std::stringstream number_stream(r_auxiliar_constraint_scale_factor);
-            number_stream >> aux_value;
-            if (aux_value < std::numeric_limits<double>::epsilon()) {
-                std::stringstream msg;
-                msg << "Currently prescribed constraint scale factor : " << r_auxiliar_constraint_scale_factor << "\n";
-                msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or write a number as a string" << "\n";
-                KRATOS_ERROR << msg.str() << std::endl;
-            }
+            std::stringstream msg;
+            msg << "Currently prescribed constraint scale factor : " << r_auxiliar_constraint_scale_factor << "\n";
+            msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
         }
         
         // This case will consider the mean value in the diagonal as a scaling value
@@ -239,9 +218,6 @@ public:
         } else { // Otherwise we will assume we impose a numerical value
             BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
             BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, true);
-            // We assume it is a number
-            std::stringstream number_stream(r_auxiliar_constraint_scale_factor); 
-            number_stream >> mAuxiliarConstraintFactor; 
         }
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
         if (ThisParameters["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
@@ -734,6 +710,9 @@ public:
         KRATOS_TRY
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            // Getting process info
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            
             // First build the relation matrix
             BuildMasterSlaveConstraints(rModelPart);
 
@@ -772,10 +751,9 @@ public:
 
             // Definition of the auxiliar values
             const bool has_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR);
-            const double constraint_scale_factor = has_constraint_scale_factor ? mConstraintFactor : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
-            if (!has_constraint_scale_factor) {
-                mConstraintFactor = constraint_scale_factor;
-            }
+            KRATOS_ERROR_IF(has_constraint_scale_factor && !r_current_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "Constraint scale factor not defined at process info" << std::endl;
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
+            mConstraintFactor = constraint_scale_factor;
 
             /* Fill common blocks */
             // Fill blocks
@@ -799,10 +777,9 @@ public:
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Definition of the build scale factor auxiliar value
                 const bool has_auxiliar_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR);
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? mAuxiliarConstraintFactor : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
-                if (!has_auxiliar_constraint_scale_factor) {
-                    mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
-                }
+                KRATOS_ERROR_IF(has_auxiliar_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliar constraint scale factor not defined at process info" << std::endl;
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
+                mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
 
                 // Create auxiliar identity matrix
                 TSystemMatrixType identity_matrix(number_of_slave_dofs, number_of_slave_dofs);
