@@ -168,7 +168,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Solve the structure problem
         is_converged = self.structure_solver.SolveSolutionStep()
         if not is_converged:
-            KratosMultiphysics.Logger.PrintWarningInfo("Structure solver did not converge.")
+            KratosMultiphysics.Logger.PrintWarning("Structure solver did not converge.")
 
     def _SolveStructureDoubleFaced(self):
         # Set the redistribution settings
@@ -211,7 +211,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Solve the structure problem
         is_converged = self.structure_solver.SolveSolutionStep()
         if not is_converged:
-            KratosMultiphysics.Logger.PrintWarningInfo("Structure solver did not converge.")
+            KratosMultiphysics.Logger.PrintWarning("Structure solver did not converge.")
 
     def _ComputeDisplacementResidualSingleFaced(self):
         # Project the structure displacement onto the fluid interface
