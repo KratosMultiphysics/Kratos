@@ -135,7 +135,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
-                pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+                pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             Parameters default_parameters( R"({
                 "desired_iterations": 4,
@@ -160,7 +160,7 @@ public:
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++) {
                     mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
-                    [i] = rParameters["loads_variable_list"][i].GetString();
+                    mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
                 }
             }
 
