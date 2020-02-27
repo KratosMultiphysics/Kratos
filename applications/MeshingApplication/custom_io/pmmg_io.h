@@ -53,14 +53,14 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// Index definition
-    typedef std::size_t                                               IndexType;
+/// Index definition
+typedef std::size_t IndexType;
 
-    /// Size definition
-    typedef std::size_t                                                SizeType;
+/// Size definition
+typedef std::size_t SizeType;
 
-    /// Index vector
-    typedef std::vector<IndexType>                              IndexVectorType;
+/// Index vector
+typedef std::vector<IndexType> IndexVectorType;
 
 ///@}
 ///@name  Enum's
@@ -81,233 +81,232 @@ namespace Kratos
  * @details This class is an IO tool for MMG .mesh files
  * @author Vicente Mataix Ferrandiz
  */
-    template<PMMGLibrary TPMMGLibrary>
-    class KRATOS_API(MESHING_APPLICATION) ParMmgIO
-            : public IO
+template<PMMGLibrary TPMMGLibrary>
+class KRATOS_API(MESHING_APPLICATION) ParMmgIO
+        : public IO
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MmgIO
+    KRATOS_CLASS_POINTER_DEFINITION(ParMmgIO);
+
+    /// Node containers definition
+    typedef ModelPart::NodesContainerType NodesArrayType;
+    /// Elements containers definition
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    /// Conditions containers definition
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+
+    /// Node definition
+    typedef Node<3> NodeType;
+    // Geometry definition
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Mesh definition
+    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
+    /// Properties container definition
+    typedef MeshType::PropertiesContainerType PropertiesContainerType;
+    /// Nodes container definition
+    typedef MeshType::NodeConstantIterator NodeConstantIterator;
+    /// Conditions container definition
+    typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
+    /// Elements container definition
+    typedef MeshType::ElementConstantIterator ElementConstantIterator;
+
+    /// Conditions array size
+    static constexpr SizeType Dimension = 3;
+
+    /// Conditions array size
+    static constexpr SizeType ConditionsArraySize = 2;
+
+    /// Elements array size
+    static constexpr SizeType ElementsArraySize = 2;
+
+    /// The type of array considered for the tensor
+    typedef array_1d<double, 6> TensorArrayType;
+
+    /// Double vector
+    typedef std::vector<double> DoubleVectorType;
+
+    /// Double vector map
+    typedef std::unordered_map<DoubleVectorType, IndexType, KeyHasherRange<DoubleVectorType>, KeyComparorRange<DoubleVectorType> > DoubleVectorMapType;
+
+    /// Index vector map
+    typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
+
+    /// Colors map
+    typedef std::unordered_map<IndexType, IndexType> ColorsMapType;
+
+    /// Index pair
+    typedef std::pair<IndexType, IndexType> IndexPairType;
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    // Constructor
+
+    /// Constructor with filenames.
+    ParMmgIO(
+            std::string const &rFilename,
+            Parameters ThisParameters = Parameters(R"({})"),
+            const Flags Options = IO::READ | IO::NOT_IGNORE_VARIABLES_ERROR | IO::SKIP_TIMER
+    );
+
+    /// Destructor.
+    ~ParMmgIO() override = default;
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This read the current stream file in order to write a model part
+     */
+    void ReadModelPart(ModelPart &rModelPart) override;
+
+    /**
+     * @brief This writes the current model part info a file
+     */
+    void WriteModelPart(ModelPart &rModelPart) override;
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
     {
-    public:
+        return "ParMmgIO";
+    }
 
-        ///@name Type Definitions
-        ///@{
+    /// Print information about this object.
+    void PrintInfo(std::ostream &rOStream) const override
+    {
+        rOStream << "ParMmgIO";
+    }
 
-        /// Pointer definition of MmgIO
-        KRATOS_CLASS_POINTER_DEFINITION(ParMmgIO);
+    /// Print object's data.
+    void PrintData(std::ostream &rOStream) const override
+    {
+    }
 
-        /// Node containers definition
-        typedef ModelPart::NodesContainerType                        NodesArrayType;
-        /// Elements containers definition
-        typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-        /// Conditions containers definition
-        typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
+protected:
 
-        /// Node definition
-        typedef Node <3>                                                   NodeType;
-        // Geometry definition
-        typedef Geometry<NodeType>                                     GeometryType;
+    ///@name Protected static Member Variables
+    ///@{
 
-        /// Mesh definition
-        typedef Mesh<NodeType, Properties, Element, Condition>             MeshType;
-        /// Properties container definition
-        typedef MeshType::PropertiesContainerType           PropertiesContainerType;
-        /// Nodes container definition
-        typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
-        /// Conditions container definition
-        typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
-        /// Elements container definition
-        typedef MeshType::ElementConstantIterator           ElementConstantIterator;
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-        //TODO other dimms supported?
-        /// Conditions array size
-        static constexpr SizeType Dimension =  3;
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-        /// Conditions array size
-        static constexpr SizeType ConditionsArraySize = 2;
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-        /// Elements array size
-        static constexpr SizeType ElementsArraySize = 2;
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-        /// The type of array considered for the tensor
-        typedef array_1d<double, 6> TensorArrayType;
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-        /// Double vector
-        typedef std::vector<double> DoubleVectorType;
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-        /// Double vector map
-        typedef std::unordered_map<DoubleVectorType, IndexType, KeyHasherRange<DoubleVectorType>, KeyComparorRange<DoubleVectorType> > DoubleVectorMapType;
+    ///@}
 
-        /// Index vector map
-        typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
+private:
+    ///@name Static Member Variables
+    ///@{
 
-        /// Colors map
-        typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-        /// Index pair
-        typedef std::pair<IndexType,IndexType> IndexPairType;
+    std::string mFilename;                       /// The name of the file
+    Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
+    Flags mOptions;                              /// Configuration flags
 
-        ///@}
-        ///@name  Enum's
-        ///@{
+    ParMmgUtilities<TPMMGLibrary> mParMmmgUtilities;    /// The ParMMG utilities class
 
-        ///@}
-        ///@name Life Cycle
-        ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-        // Constructor
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-        /// Constructor with filenames.
-        ParMmgIO(
-                std::string const& rFilename,
-                Parameters ThisParameters = Parameters(R"({})"),
-                const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER
-        );
-
-        /// Destructor.
-        ~ParMmgIO() override = default;
-
-        ///@}
-        ///@name Access
-        ///@{
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-        ///@}
-        ///@name Operations
-        ///@{
-
-        /**
-         * @brief This read the current stream file in order to write a model part
-         */
-        void ReadModelPart(ModelPart& rModelPart) override;
-
-        /**
-         * @brief This writes the current model part info a file
-         */
-        void WriteModelPart(ModelPart& rModelPart) override;
-
-        ///@}
-        ///@name Access
-        ///@{
-
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        /// Turn back information as a string.
-        std::string Info() const override
-        {
-            return "ParMmgIO";
-        }
-
-        /// Print information about this object.
-        void PrintInfo(std::ostream& rOStream) const override
-        {
-            rOStream << "ParMmgIO";
-        }
-
-        /// Print object's data.
-        void PrintData(std::ostream& rOStream) const override
-        {
-        }
-
-    protected:
-
-        ///@name Protected static Member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-        ///@}
-
-    private:
-        ///@name Static Member Variables
-        ///@{
-
-        ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::string mFilename;                       /// The name of the file
-        Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
-        Flags mOptions;                              /// Configuration flags
-
-        ParMmgUtilities<TPMMGLibrary> mParMmmgUtilities;    /// The ParMMG utilities class
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-
-        /**
-         * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-         */
-        Parameters GetDefaultParameters()
-        {
-            Parameters default_parameters = Parameters(R"(
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters()
+    {
+        Parameters default_parameters = Parameters(R"(
         {
             "echo_level"                           : 0
-        })" );
+        })");
 
-            return default_parameters;
-        }
+        return default_parameters;
+    }
 
-        ///@}
-        ///@name Private  Access
-        ///@{
-
-
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
 //     /// Assignment operator.
 //     MmgIO& operator=(MmgIO const& rOther);
@@ -315,9 +314,9 @@ namespace Kratos
 //     /// Copy constructor.
 //     MmgIO(MmgIO const& rOther);
 
-        ///@}
+    ///@}
 
-    };// class ParMmgIO
+};// class ParMmgIO
 ///@}
 
 ///@name Type Definitions
@@ -329,21 +328,21 @@ namespace Kratos
 ///@{
 
 /// input stream function
-    template<PMMGLibrary TPMMGLibrary>
-    inline std::istream& operator >> (std::istream& rIStream,
-                                      ParMmgIO<TPMMGLibrary>& rThis);
+template<PMMGLibrary TPMMGLibrary>
+inline std::istream &operator>>(std::istream &rIStream,
+                                ParMmgIO<TPMMGLibrary> &rThis);
 
 /// output stream function
-    template<PMMGLibrary TPMMGLibrary>
-    inline std::ostream& operator << (std::ostream& rOStream,
-                                      const ParMmgIO<TPMMGLibrary>& rThis)
-    {
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
+template<PMMGLibrary TPMMGLibrary>
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const ParMmgIO<TPMMGLibrary> &rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-        return rOStream;
-    }
+    return rOStream;
+}
 
 }// namespace Kratos.
 #endif /* KRATOS_PMMG_IO defined */

@@ -192,10 +192,10 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
     }
 
     // Check if the number of given entities match with mesh size
-    //mPMmmgUtilities.CheckMeshData();
+    //mPMmmgUtilities.CheckMeshData(); //not implemented
 
     // Save to file
-    // if (safe_to_file) SaveSolutionToFile(false);
+     if (safe_to_file) SaveSolutionToFile(false);
 
     // We execute the remeshing
     ExecuteRemeshing();
@@ -453,7 +453,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
 
     /* Save to file */
-    // if (save_to_file) SaveSolutionToFile(true);
+     if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
@@ -696,9 +696,9 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     mPMmmgUtilities.OutputSol(file_name);
 
     // The current displacement
-    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        mPMmmgUtilities.OutputDisplacement(file_name);
-    }
+//    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+//        mPMmmgUtilities.OutputDisplacement(file_name);//not implemented
+//    }
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files

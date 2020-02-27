@@ -939,15 +939,15 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
 
     // Number Of iterations
     if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_niter, static_cast<int>(ConfigurationParameters["advanced_parameters"]["niter"].GetInt())) != 1 )
-        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+        KRATOS_ERROR << "Unable to set number of remeshing iterations" << std::endl;
 
     // Mesh Size
     if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_meshSize, static_cast<int>(ConfigurationParameters["advanced_parameters"]["meshSize"].GetInt())) != 1 )
-        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+        KRATOS_ERROR << "Unable to set target mesh size of Mmg" << std::endl;
 
     // Mesh Ratio
     if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_metisRatio, static_cast<int>(ConfigurationParameters["advanced_parameters"]["metisRatio"].GetInt())) != 1 )
-        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+        KRATOS_ERROR << "Unable to set wanted ratio # mesh / # metis super nodes" << std::endl;
 
     // hgradreq ( To Be added)
     // if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_hgradreq, static_cast<int>(ConfigurationParameters["advanced_parameters"]["hgradreq"].GetDouble())) != 1 )
@@ -955,7 +955,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
 
     // API Mode: Forced to "1" all the time
     if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_APImode, static_cast<int>(PMMG_APIDISTRIB_nodes)) != 1 )
-        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+        KRATOS_ERROR << "Unable to set initialize parallel library through interface faces or nodes" << std::endl;
 
     // Set the angle detection
     const bool deactivate_detect_angle = ConfigurationParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
