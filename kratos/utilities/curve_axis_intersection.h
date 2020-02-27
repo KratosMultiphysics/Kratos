@@ -98,13 +98,10 @@ namespace Kratos
             double& rMax,
             double Parameter)
         {
-            KRATOS_ERROR_IF(rAxis.size() < 2)
-                << "Size of axis vector needs to be at least 2. It must contain the boundaries, too."
-                << std::endl;
-
             for (IndexType i = 0; i < rAxis.size(); ++i) {
                 KRATOS_ERROR_IF(i == rAxis.size() - 1)
-                    << "Point of polygon not within the axis boundaries." << std::endl;
+                    << "Point of polygon not within the axis boundaries. Axis are: "
+                    << rAxis << ". Searched parameter is: " << Parameter << std::endl;
                 rMin = std::min(rAxis[i], rAxis[i + 1]);
                 rMax = std::max(rAxis[i], rAxis[i + 1]);
 
@@ -133,6 +130,13 @@ namespace Kratos
             const auto polygon = CurveTesselationType::ComputePolygon(
                 rGeometry, 100, Start, End);
 
+            KRATOS_ERROR_IF(rAxis1.size() < 2)
+                << "Size of axis vector 1 is: " << rAxis1.size() << ". It needs to be at least 2. It must contain the boundaries, too."
+                << std::endl;
+            KRATOS_ERROR_IF(rAxis2.size() < 2)
+                << "Size of axis vector 2 is: " << rAxis2.size() << ". It needs to be at least 2. It must contain the boundaries, too."
+                << std::endl;
+
             // initialize axes
             IndexType axis_index_1, axis_index_2;
             double min_1, max_1, min_2, max_2;
@@ -145,6 +149,7 @@ namespace Kratos
                         rGeometry, rAxis1[axis_index_1], rAxis1[axis_index_1 + 1],
                         std::get<0>(polygon[i]), std::get<0>(polygon[i + 1]), Tolerance);
                     intersection_parameters.push_back(intersection_parameter);
+                    KRATOS_WATCH(std::get<1>(polygon[i])[1])
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
 
@@ -153,6 +158,7 @@ namespace Kratos
                         rGeometry, rAxis2[axis_index_2], rAxis2[axis_index_2 + 1],
                         std::get<0>(polygon[i]), std::get<0>(polygon[i + 1]), Tolerance);
                     intersection_parameters.push_back(intersection_parameter);
+                    KRATOS_WATCH(std::get<1>(polygon[i])[0])
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1]);
                 }
             }
