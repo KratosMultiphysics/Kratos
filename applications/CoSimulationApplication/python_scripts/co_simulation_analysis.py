@@ -90,8 +90,12 @@ class CoSimulationAnalysis(AnalysisStage):
         if self.flush_stdout:
             CoSimulationAnalysis.Flush()
 
-    def GetSubSolver(self, sub_solver_name):
-        return self._GetSolver().GetSubSolver(sub_solver_name)
+    def _GetSolver(self, solver_name=""):
+        solver = super(CoSimulationAnalysis, self)._GetSolver()
+        if solver_name == "":
+            return solver
+        else:
+            return solver._GetSolver(solver_name)
 
     @staticmethod
     def Flush():

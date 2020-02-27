@@ -52,13 +52,13 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["data_transfer_operators"],
             self.echo_level)
 
-    def GetSubSolver(self, solver_name):
+    def _GetSolver(self, solver_name):
         solver_name, *sub_solver_names = solver_name.split(".")
-        this_solver = self.solver_wrappers[solver_name]
+        solver = self.solver_wrappers[solver_name]
         if len(sub_solver_names) > 0:
-            return this_solver.GetSubSolver(".".join(sub_solver_names))
+            return solver.GetSubSolver(".".join(sub_solver_names))
         else:
-            return this_solver
+            return solver
 
     def Initialize(self):
         for solver in self.solver_wrappers.values():
