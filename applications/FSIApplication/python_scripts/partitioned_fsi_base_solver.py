@@ -20,17 +20,13 @@ def CreateSolver(model, project_parameters):
     return PartitionedFSIBaseSolver(model, project_parameters)
 
 class PartitionedFSIBaseSolver(PythonSolver):
-
-    def _ValidateSettings(self, project_parameters):
-        project_parameters.ValidateAndAssignDefaults(self.GetDefaultSettings())
-
+    def __init__(self, model, project_parameters):
+        # TODO: Remove this as soon as the MPCs are implemented in MPI
+        # This has to be done prior to the defaults check to avoid the structural solver to throw an error in MPI
         if not project_parameters["structure_solver_settings"].Has("multi_point_constraints_used"):
             project_parameters["structure_solver_settings"].AddEmptyValue("multi_point_constraints_used")
             project_parameters["structure_solver_settings"]["multi_point_constraints_used"].SetBool(False)
 
-        return project_parameters
-
-    def __init__(self, model, project_parameters):
         # Call the base Python solver constructor
         # Note that default settings in GetDefaultSettings() are validated in here
         self._validate_settings_in_baseclass = True
