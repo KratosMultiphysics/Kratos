@@ -47,6 +47,9 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
+        
+        else: # In case there are no DEM yet
+            self.OnlyUpdateTimeAndStepInDEM()
 
 
 
@@ -62,10 +65,20 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         # Print required info
         self.PrintPlotsFiles()
 
-#BeforeSolveDEMOperations============================================================================================================================
+#============================================================================================================================
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time += self.DEM_Solution.solver.dt
         self.DEM_Solution.step += 1
+        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
+                                                                   self.DEM_Solution.time,
+                                                                   self.DEM_Solution.solver.dt,
+                                                                   self.DEM_Solution.step,
+                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+
+#============================================================================================================================
+    def OnlyUpdateTimeAndStepInDEM(self):
+        self.DEM_Solution.time = self.FEM_Solution.time
+        self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
                                                                    self.DEM_Solution.time,
                                                                    self.DEM_Solution.solver.dt,
