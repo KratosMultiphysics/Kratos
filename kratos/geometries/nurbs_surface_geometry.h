@@ -284,7 +284,7 @@ public:
     std::vector<double> SpansU() const
     {
         std::vector<double> result;
-        result.resize(this->NumberOfKnotSpansU());
+        result.resize(this->NumberOfKnotSpansU() + 1);
 
         result[0] = mKnotsU[0];
 
@@ -304,7 +304,7 @@ public:
     std::vector<double> SpansV() const
     {
         std::vector<double> result;
-        result.resize(this->NumberOfKnotSpansV());
+        result.resize(this->NumberOfKnotSpansV() + 1);
 
         result[0] = mKnotsV[0];
 
