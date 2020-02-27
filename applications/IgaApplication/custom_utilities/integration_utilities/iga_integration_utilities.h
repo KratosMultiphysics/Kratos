@@ -79,7 +79,7 @@ namespace IgaIntegrationUtilities
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
-    static std::vector<Element::Pointer> GetIntegrationDomainGeometrySurface(
+    /*static std::vector<Element::Pointer> GetIntegrationDomainGeometrySurface(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
         const TrimmedSurfaceClipping& rClipper,
         int ShapeFunctionDerivativesOrder)
@@ -279,7 +279,7 @@ namespace IgaIntegrationUtilities
             }
         }
         return new_elements;
-    }
+    }*/
 
     static std::vector<Element::Pointer> GetIntegrationDomainSurfaceEdgeSurfaceEdge(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface1,

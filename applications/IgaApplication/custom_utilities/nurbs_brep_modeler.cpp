@@ -127,7 +127,7 @@ namespace Kratos
             }
             else
             {
-                std::string type = element_parameter["parameters"]["type"].GetString();
+                /*std::string type = element_parameter["parameters"]["type"].GetString();
                 std::string name = element_parameter["parameters"]["name"].GetString();
                 int shape_function_derivatives_order = element_parameter["parameters"]["shape_function_derivatives_order"].GetInt();
 
@@ -297,31 +297,31 @@ namespace Kratos
                         }
                     }
                 }
-/*
-                KRATOS_WATCH(element_vector.size())
 
-                if (type == "element")
-                {
-                    int id = 1;
-                    if (sub_model_part.GetRootModelPart().Elements().size() > 0)
-                        id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
+                // KRATOS_WATCH(element_vector.size())
 
-                    IgaIntegrationUtilities::ChangeElementType(
-                        element_vector, sub_model_part, name, id);
-                }
+                // if (type == "element")
+                // {
+                //     int id = 1;
+                //     if (sub_model_part.GetRootModelPart().Elements().size() > 0)
+                //         id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
 
-                if (type == "condition")
-                {
-                    int id = 0;
-                    if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
-                        id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+                //     IgaIntegrationUtilities::ChangeElementType(
+                //         element_vector, sub_model_part, name, id);
+                // }
 
-                    IgaIntegrationUtilities::ChangeConditionType(
-                        element_vector, sub_model_part, name, id);
-                }
+                // if (type == "condition")
+                // {
+                //     int id = 0;
+                //     if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
+                //         id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
 
-*/
-                KRATOS_WATCH(model_part)
+                //     IgaIntegrationUtilities::ChangeConditionType(
+                //         element_vector, sub_model_part, name, id);
+                // }
+
+
+                KRATOS_WATCH(model_part)*/
             }
         }
     }
