@@ -1,6 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 11)
+#set (CMAKE_CXX_STANDARD 11)
 
 # Setting some policies
 # No recursive dereferencing
@@ -130,7 +130,7 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++14")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
   endif()
