@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla (based on Elisa Magliozzi previous work)
 //
@@ -487,36 +487,23 @@ void CompressibleNavierStokesExplicit<2>::CalculateMassMatrix(
     constexpr IndexType n_nodes = 3;
     constexpr IndexType block_size = 4;
 
-    // Hardcoded shape functions for linear triangular element
-    // This is explicitly done to minimize the allocation and matrix acceses
-    // The notation N_i_j means shape function for node j in Gauss pt. i
-    const double one_sixt = 1.0 / 6.0;
-    const double two_third = 2.0 / 3.0;
-    const double N_0_0 = one_sixt;
-    const double N_0_1 = one_sixt;
-    const double N_0_2 = two_third;
-    const double N_1_0 = one_sixt;
-    const double N_1_1 = two_third;
-    const double N_1_2 = one_sixt;
-    const double N_2_0 = two_third;
-    const double N_2_1 = one_sixt;
-    const double N_2_2 = one_sixt;
-
     // Initialize and fill the mass matrix values
+    const double one_six = 1.0 / 6.0;
+    const double one_twelve = 1.0 / 12.0;
     const unsigned int size = n_nodes * block_size;
     rMassMatrix = ZeroMatrix(size, size);
-    rMassMatrix(0, 0) = N_0_0; rMassMatrix(0, 4) = N_0_1; rMassMatrix(0, 8) = N_0_2;
-    rMassMatrix(1, 1) = N_0_0; rMassMatrix(1, 5) = N_0_1; rMassMatrix(1, 9) = N_0_2;
-    rMassMatrix(2, 2) = N_0_0; rMassMatrix(2, 6) = N_0_1; rMassMatrix(2, 10) = N_0_2;
-    rMassMatrix(3, 3) = N_0_0; rMassMatrix(3, 7) = N_0_1; rMassMatrix(3, 11) = N_0_2;
-    rMassMatrix(4, 0) = N_1_0; rMassMatrix(4, 4) = N_1_1; rMassMatrix(4, 8) = N_1_2;
-    rMassMatrix(5, 1) = N_1_0; rMassMatrix(5, 5) = N_1_1; rMassMatrix(5, 9) = N_1_2;
-    rMassMatrix(6, 2) = N_1_0; rMassMatrix(6, 6) = N_1_1; rMassMatrix(6, 10) = N_1_2;
-    rMassMatrix(7, 3) = N_1_0; rMassMatrix(7, 7) = N_1_1; rMassMatrix(7, 11) = N_1_2;
-    rMassMatrix(8, 0) = N_2_0; rMassMatrix(8, 4) = N_2_1; rMassMatrix(8, 8) = N_2_2;
-    rMassMatrix(9, 1) = N_2_0; rMassMatrix(9, 5) = N_2_1; rMassMatrix(9, 9) = N_2_2;
-    rMassMatrix(10, 2) = N_2_0; rMassMatrix(10, 6) = N_2_1; rMassMatrix(10, 10) = N_2_2;
-    rMassMatrix(11, 3) = N_2_0; rMassMatrix(11, 7) = N_2_1; rMassMatrix(11, 11) = N_2_2;
+    rMassMatrix(0, 0) = one_six; rMassMatrix(0, 4) = one_twelve; rMassMatrix(0, 8) = one_twelve;
+    rMassMatrix(1, 1) = one_six; rMassMatrix(1, 5) = one_twelve; rMassMatrix(1, 9) = one_twelve;
+    rMassMatrix(2, 2) = one_six; rMassMatrix(2, 6) = one_twelve; rMassMatrix(2, 10) = one_twelve;
+    rMassMatrix(3, 3) = one_six; rMassMatrix(3, 7) = one_twelve; rMassMatrix(3, 11) = one_twelve;
+    rMassMatrix(4, 0) = one_twelve; rMassMatrix(4, 4) = one_six; rMassMatrix(4, 8) = one_twelve;
+    rMassMatrix(5, 1) = one_twelve; rMassMatrix(5, 5) = one_six; rMassMatrix(5, 9) = one_twelve;
+    rMassMatrix(6, 2) = one_twelve; rMassMatrix(6, 6) = one_six; rMassMatrix(6, 10) = one_twelve;
+    rMassMatrix(7, 3) = one_twelve; rMassMatrix(7, 7) = one_six; rMassMatrix(7, 11) = one_twelve;
+    rMassMatrix(8, 0) = one_twelve; rMassMatrix(8, 4) = one_twelve; rMassMatrix(8, 8) = one_six;
+    rMassMatrix(9, 1) = one_twelve; rMassMatrix(9, 5) = one_twelve; rMassMatrix(9, 9) = one_six;
+    rMassMatrix(10, 2) = one_twelve; rMassMatrix(10, 6) = one_twelve; rMassMatrix(10, 10) = one_six;
+    rMassMatrix(11, 3) = one_twelve; rMassMatrix(11, 7) = one_twelve; rMassMatrix(11, 11) = one_six;
 
     // Here we assume that all the Gauss pt. have the same weight so we multiply by the volume
     rMassMatrix *= GetGeometry().Area();
@@ -530,49 +517,31 @@ void CompressibleNavierStokesExplicit<3>::CalculateMassMatrix(
     constexpr IndexType n_nodes = 4;
     constexpr IndexType block_size = 5;
 
-    // Hardcoded shape functions for linear tetrahedra element
-    // This is explicitly done to minimize the alocation and matrix acceses
-    // The notation N_i_j means shape function for node j in Gauss pt. i
-    const double N_0_0 = 0.58541020;
-    const double N_0_1 = 0.13819660;
-    const double N_0_2 = 0.13819660;
-    const double N_0_3 = 0.13819660;
-    const double N_1_0 = 0.13819660;
-    const double N_1_1 = 0.58541020;
-    const double N_1_2 = 0.13819660;
-    const double N_1_3 = 0.13819660;
-    const double N_2_0 = 0.13819660;
-    const double N_2_1 = 0.13819660;
-    const double N_2_2 = 0.58541020;
-    const double N_2_3 = 0.13819660;
-    const double N_3_0 = 0.13819660;
-    const double N_3_1 = 0.13819660;
-    const double N_3_2 = 0.13819660;
-    const double N_3_3 = 0.58541020;
-
     // Initialize and fill the mass matrix values
+    const double one_ten = 0.1;
+    const double one_twenty = 0.05;
     const unsigned int size = n_nodes * block_size;
     rMassMatrix = ZeroMatrix(size, size);
-    rMassMatrix(0, 0) = N_0_0; rMassMatrix(0, 5) = N_0_1; rMassMatrix(0, 10) = N_0_2; rMassMatrix(0,15) = N_0_3;
-    rMassMatrix(1, 1) = N_0_0; rMassMatrix(1, 6) = N_0_1; rMassMatrix(1, 11) = N_0_2; rMassMatrix(1,16) = N_0_3;
-    rMassMatrix(2, 2) = N_0_0; rMassMatrix(2, 7) = N_0_1; rMassMatrix(2, 12) = N_0_2; rMassMatrix(2,17) = N_0_3;
-    rMassMatrix(3, 3) = N_0_0; rMassMatrix(3, 8) = N_0_1; rMassMatrix(3, 13) = N_0_2; rMassMatrix(3,18) = N_0_3;
-    rMassMatrix(4, 4) = N_0_0; rMassMatrix(4, 9) = N_0_1; rMassMatrix(4, 14) = N_0_2; rMassMatrix(4,19) = N_0_3;
-    rMassMatrix(5, 0) = N_1_0; rMassMatrix(5, 5) = N_1_1; rMassMatrix(5, 10) = N_1_2; rMassMatrix(5,15) = N_1_3;
-    rMassMatrix(6, 1) = N_1_0; rMassMatrix(6, 6) = N_1_1; rMassMatrix(6, 11) = N_1_2; rMassMatrix(6,16) = N_1_3;
-    rMassMatrix(7, 2) = N_1_0; rMassMatrix(7, 7) = N_1_1; rMassMatrix(7, 12) = N_1_2; rMassMatrix(7,17) = N_1_3;
-    rMassMatrix(8, 3) = N_1_0; rMassMatrix(8, 8) = N_1_1; rMassMatrix(8, 13) = N_1_2; rMassMatrix(8,18) = N_1_3;
-    rMassMatrix(9, 4) = N_1_0; rMassMatrix(9, 9) = N_1_1; rMassMatrix(9, 14) = N_1_2; rMassMatrix(9,19) = N_1_3;
-    rMassMatrix(10, 0) = N_2_0; rMassMatrix(10, 5) = N_2_1; rMassMatrix(10, 10) = N_2_2; rMassMatrix(10,15) = N_2_3;
-    rMassMatrix(11, 1) = N_2_0; rMassMatrix(11, 6) = N_2_1; rMassMatrix(11, 11) = N_2_2; rMassMatrix(11,16) = N_2_3;
-    rMassMatrix(12, 2) = N_2_0; rMassMatrix(12, 7) = N_2_1; rMassMatrix(12, 12) = N_2_2; rMassMatrix(12,17) = N_2_3;
-    rMassMatrix(13, 3) = N_2_0; rMassMatrix(13, 8) = N_2_1; rMassMatrix(13, 13) = N_2_2; rMassMatrix(13,18) = N_2_3;
-    rMassMatrix(14, 4) = N_2_0; rMassMatrix(14, 9) = N_2_1; rMassMatrix(14, 14) = N_2_2; rMassMatrix(14,19) = N_2_3;
-    rMassMatrix(15, 0) = N_3_0; rMassMatrix(15, 5) = N_3_1; rMassMatrix(15, 10) = N_3_2; rMassMatrix(15,15) = N_3_3;
-    rMassMatrix(16, 1) = N_3_0; rMassMatrix(16, 6) = N_3_1; rMassMatrix(16, 11) = N_3_2; rMassMatrix(16,16) = N_3_3;
-    rMassMatrix(17, 2) = N_3_0; rMassMatrix(17, 7) = N_3_1; rMassMatrix(17, 12) = N_3_2; rMassMatrix(17,17) = N_3_3;
-    rMassMatrix(18, 3) = N_3_0; rMassMatrix(18, 8) = N_3_1; rMassMatrix(18, 13) = N_3_2; rMassMatrix(18,18) = N_3_3;
-    rMassMatrix(19, 4) = N_3_0; rMassMatrix(19, 9) = N_3_1; rMassMatrix(19, 14) = N_3_2; rMassMatrix(19,19) = N_3_3;
+    rMassMatrix(0, 0) = one_ten; rMassMatrix(0, 5) = one_twenty; rMassMatrix(0, 10) = one_twenty; rMassMatrix(0,15) = one_twenty;
+    rMassMatrix(1, 1) = one_ten; rMassMatrix(1, 6) = one_twenty; rMassMatrix(1, 11) = one_twenty; rMassMatrix(1,16) = one_twenty;
+    rMassMatrix(2, 2) = one_ten; rMassMatrix(2, 7) = one_twenty; rMassMatrix(2, 12) = one_twenty; rMassMatrix(2,17) = one_twenty;
+    rMassMatrix(3, 3) = one_ten; rMassMatrix(3, 8) = one_twenty; rMassMatrix(3, 13) = one_twenty; rMassMatrix(3,18) = one_twenty;
+    rMassMatrix(4, 4) = one_ten; rMassMatrix(4, 9) = one_twenty; rMassMatrix(4, 14) = one_twenty; rMassMatrix(4,19) = one_twenty;
+    rMassMatrix(5, 0) = one_twenty; rMassMatrix(5, 5) = one_ten; rMassMatrix(5, 10) = one_twenty; rMassMatrix(5,15) = one_twenty;
+    rMassMatrix(6, 1) = one_twenty; rMassMatrix(6, 6) = one_ten; rMassMatrix(6, 11) = one_twenty; rMassMatrix(6,16) = one_twenty;
+    rMassMatrix(7, 2) = one_twenty; rMassMatrix(7, 7) = one_ten; rMassMatrix(7, 12) = one_twenty; rMassMatrix(7,17) = one_twenty;
+    rMassMatrix(8, 3) = one_twenty; rMassMatrix(8, 8) = one_ten; rMassMatrix(8, 13) = one_twenty; rMassMatrix(8,18) = one_twenty;
+    rMassMatrix(9, 4) = one_twenty; rMassMatrix(9, 9) = one_ten; rMassMatrix(9, 14) = one_twenty; rMassMatrix(9,19) = one_twenty;
+    rMassMatrix(10, 0) = one_twenty; rMassMatrix(10, 5) = one_twenty; rMassMatrix(10, 10) = one_ten; rMassMatrix(10,15) = one_twenty;
+    rMassMatrix(11, 1) = one_twenty; rMassMatrix(11, 6) = one_twenty; rMassMatrix(11, 11) = one_ten; rMassMatrix(11,16) = one_twenty;
+    rMassMatrix(12, 2) = one_twenty; rMassMatrix(12, 7) = one_twenty; rMassMatrix(12, 12) = one_ten; rMassMatrix(12,17) = one_twenty;
+    rMassMatrix(13, 3) = one_twenty; rMassMatrix(13, 8) = one_twenty; rMassMatrix(13, 13) = one_ten; rMassMatrix(13,18) = one_twenty;
+    rMassMatrix(14, 4) = one_twenty; rMassMatrix(14, 9) = one_twenty; rMassMatrix(14, 14) = one_ten; rMassMatrix(14,19) = one_twenty;
+    rMassMatrix(15, 0) = one_twenty; rMassMatrix(15, 5) = one_twenty; rMassMatrix(15, 10) = one_twenty; rMassMatrix(15,15) = one_ten;
+    rMassMatrix(16, 1) = one_twenty; rMassMatrix(16, 6) = one_twenty; rMassMatrix(16, 11) = one_twenty; rMassMatrix(16,16) = one_ten;
+    rMassMatrix(17, 2) = one_twenty; rMassMatrix(17, 7) = one_twenty; rMassMatrix(17, 12) = one_twenty; rMassMatrix(17,17) = one_ten;
+    rMassMatrix(18, 3) = one_twenty; rMassMatrix(18, 8) = one_twenty; rMassMatrix(18, 13) = one_twenty; rMassMatrix(18,18) = one_ten;
+    rMassMatrix(19, 4) = one_twenty; rMassMatrix(19, 9) = one_twenty; rMassMatrix(19, 14) = one_twenty; rMassMatrix(19,19) = one_ten;
 
     // Here we assume that all the Gauss pt. have the same weight so we multiply by the volume
     rMassMatrix *= GetGeometry().Volume();
