@@ -82,7 +82,7 @@ namespace Kratos
             p_node_2->Set(ACTIVE, true);
 
             id_cond++;
-            Condition::Pointer pcond0 = rModelPart.CreateNewCondition("Condition2D2N", id_cond, {{1, 2}}, p_cond_prop);
+            Condition::Pointer pcond0 = rModelPart.CreateNewCondition("LineCondition2D2N", id_cond, {{1, 2}}, p_cond_prop);
             r_slave_model_part.AddCondition(pcond0);
             pcond0->Set(SLAVE, true);
             pcond0->Set(MASTER, false);
@@ -112,7 +112,7 @@ namespace Kratos
 
             id_cond++;
             this_set.AddId(id_cond);
-            Condition::Pointer pcond1 = r_masterModelPart.CreateNewCondition("Condition2D2N", id_cond, {{3, 4}}, p_cond_prop);
+            Condition::Pointer pcond1 = r_masterModelPart.CreateNewCondition("LineCondition2D2N", id_cond, {{3, 4}}, p_cond_prop);
             r_masterModelPart.AddCondition(pcond1);
             pcond1->Set(SLAVE, false);
             pcond1->Set(MASTER, true);
@@ -120,7 +120,7 @@ namespace Kratos
 
             id_cond++;
             this_set.AddId(id_cond);
-            Condition::Pointer pcond2 = r_masterModelPart.CreateNewCondition("Condition2D2N", id_cond, {{4, 5}}, p_cond_prop);
+            Condition::Pointer pcond2 = r_masterModelPart.CreateNewCondition("LineCondition2D2N", id_cond, {{4, 5}}, p_cond_prop);
             r_masterModelPart.AddCondition(pcond2);
             pcond2->Set(SLAVE, false);
             pcond2->Set(MASTER, true);
@@ -141,7 +141,7 @@ namespace Kratos
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
                     id_cond++;
-                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition2D2N"));
+                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactLineCondition2D2N"));
                     Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop, p_master_cond->pGetGeometry());
                     // We set the geometrical values
                     r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
