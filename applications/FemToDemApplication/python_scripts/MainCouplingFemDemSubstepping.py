@@ -51,8 +51,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         else: # In case there are no DEM yet
             self.OnlyUpdateTimeAndStepInDEM()
 
-
-
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
             self.TransferNodalForcesToFEM()
