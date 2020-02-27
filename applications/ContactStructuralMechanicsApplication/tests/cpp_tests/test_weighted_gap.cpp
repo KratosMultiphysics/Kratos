@@ -141,7 +141,7 @@ namespace Kratos
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
                     id_cond++;
-                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactLineCondition2D2N"));
+                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition2D2N"));
                     Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop, p_master_cond->pGetGeometry());
                     // We set the geometrical values
                     r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
