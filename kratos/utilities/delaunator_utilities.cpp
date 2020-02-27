@@ -15,7 +15,6 @@
 // External includes
 #define REAL double
 
-#pragma once
 #if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
 #define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
@@ -205,3 +204,5 @@ std::vector<std::size_t> ComputeTrianglesConnectivityWithTriangle(const std::vec
 
 } // namespace DelaunatorUtilities
 } // namespace Kratos
+
+#undef REAL
