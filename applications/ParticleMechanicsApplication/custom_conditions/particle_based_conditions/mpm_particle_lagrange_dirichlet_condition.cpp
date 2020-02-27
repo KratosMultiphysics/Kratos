@@ -240,9 +240,17 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 const int index = dimension * i;
 
                 for (unsigned int j = 0; j < dimension; j++)
+                {
                     gap_function[index+j]          = r_displacement[j] ;
+                    imposed_displacement[index+j] = r_imposed_displacement[j];
+                }
+                    
 
             }
+            right_hand_side = prod(lagrange_matrix, gap_function) - imposed_displacement;
+
+            gap_function = ZeroVector(matrix_size);
+            imposed_displacement = ZeroVector(matrix_size);
             auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
             const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
             for (unsigned int j = 0; j < dimension; j++){
@@ -250,9 +258,11 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 imposed_displacement[dimension * number_of_nodes+j] = r_imposed_displacement[j];
             }
                     
+            //Imposition of prescribed displacements RHS
+            // |N_i*lamda+N_i*k*(Sum(N_j*uj))-up)   |
+            // |Sum(N_i*ui)-up                      |
 
-
-            right_hand_side = prod(lagrange_matrix, gap_function) - imposed_displacement;
+            right_hand_side += prod(lagrange_matrix, gap_function) - imposed_displacement;
             noalias(rRightHandSideVector) -= right_hand_side;
 
         }
