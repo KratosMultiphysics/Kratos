@@ -313,7 +313,7 @@ public:
             is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDxf, mb);
         }
 
-        while (is_converged == false && iteration_number++ < mMaxIterationNumber) {
+        while (!is_converged && iteration_number++ < mMaxIterationNumber) {
             // Setting the number of iterations
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -810,7 +810,7 @@ protected:
         // Save the applied Lambda factor
         mLambda_old = mLambda;
     }
-    
+
 }; /* Class RammArcLengthStrategy */
 
 } // namespace Kratos
