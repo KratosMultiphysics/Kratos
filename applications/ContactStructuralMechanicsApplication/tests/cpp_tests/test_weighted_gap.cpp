@@ -597,7 +597,7 @@ namespace Kratos
             for (std::size_t i = 0; i < NumberOfDivisions; i++) {
                 id_cond++;
                 const std::size_t ref_id = (2 * i)+1;
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("SurfaceCondition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
                 r_slave_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, true);
                 p_cond->Set(MASTER, false);
@@ -657,7 +657,7 @@ namespace Kratos
                 id_cond++;
                 this_set.AddId(id_cond);
                 const std::size_t ref_id = (2 * (i + NumberOfDivisions + 1)+1);
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("SurfaceCondition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
                 r_master_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, false);
                 p_cond->Set(MASTER, true);
