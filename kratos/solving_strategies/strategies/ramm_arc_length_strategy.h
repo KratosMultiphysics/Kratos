@@ -17,10 +17,10 @@
 #define KRATOS_RAMM_ARC_LENGTH_STRATEGY
 
 // Project includes
-#include "solving_strategies/residualbased_newton_raphson_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-// Application includes
-// #include "poromechanics_application_variables.h"
+#include "includes/variables.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -66,9 +66,6 @@ public:
 
     ///@name Type Definitions
     ///@{
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -94,11 +91,11 @@ public:
 
     using BaseType::mpConvergenceCriteria;
 
-    using BaseType::mpA; //Tangent matrix
+    using BaseType::mpA; // Tangent matrix
 
-    using BaseType::mpb; //Residual vector of iteration i
+    using BaseType::mpb; // Residual vector of iteration i
 
-    using BaseType::mpDx; //Delta x of iteration i
+    using BaseType::mpDx; // Delta x of iteration i
 
     using BaseType::mReformDofSetAtEachStep;
 
@@ -109,10 +106,6 @@ public:
     using BaseType::mMaxIterationNumber;
 
     using BaseType::mInitializeWasPerformed;
-
-    using BaseType::mSubModelPartList;
-
-    using BaseType::mVariableNames;
 
     ///@}
     ///@name Life Cycle
@@ -148,7 +141,6 @@ public:
                 "desired_iterations": 4,
                 "max_radius_factor": 20.0,
                 "min_radius_factor": 0.5,
-                "body_domain_sub_model_part_list": [],
                 "loads_sub_model_part_list": [],
                 "loads_variable_list" : []
             }  )");
@@ -164,17 +156,17 @@ public:
                 mVariableNames.resize(rParameters["loads_variable_list"].size());
 
                 if (mSubModelPartList.size() != mVariableNames.size())
-                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
+                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
-                for(unsigned int i = 0; i < mVariableNames.size(); i++) {
-                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()) );
-                    º[i] = rParameters["loads_variable_list"][i].GetString();
+                for (unsigned int i = 0; i < mVariableNames.size(); i++) {
+                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
+                    [i] = rParameters["loads_variable_list"][i].GetString();
                 }
             }
 
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
-            mMaxRadiusFactor = rParameters["max_radius_factor"].GetDouble();
-            mMinRadiusFactor = rParameters["min_radius_factor"].GetDouble();
+            mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
+            mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
 
             mInitializeArcLengthWasPerformed = false;
         }
