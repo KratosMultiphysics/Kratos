@@ -131,9 +131,12 @@ public:
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~PoromechanicsRammArcLengthStrategy() override {}
+    ~RammArcLengthStrategy() override {}
 
 
+    /**
+     * @brief Initialization of member variables and prior operations
+     */
     void Initialize() override
     {
         KRATOS_TRY
@@ -191,8 +194,10 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
     void InitializeSolutionStep() override
     {
         KRATOS_TRY
@@ -211,8 +216,10 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
 	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
@@ -357,8 +364,11 @@ public:
 		return is_converged;
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
 	void FinalizeSolutionStep() override
 	{
 		KRATOS_TRY
@@ -419,8 +429,9 @@ public:
 		KRATOS_CATCH("")
 	}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Clears the internal storage
+     */
     void Clear() override
     {
         KRATOS_TRY
@@ -448,8 +459,9 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief This should be considered as a "post solution" convergence check which is useful for coupled analysis - the convergence criteria used is the one used inside the "solve" step
+     */
     bool IsConverged() override
     {
         KRATOS_TRY
@@ -472,8 +484,9 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief This method updates the value of the external loads according to the arc-length load factor mLambda
+     */
     virtual void UpdateLoads()
     {
         KRATOS_TRY
@@ -487,11 +500,15 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
+    ///@name Static Member Variables
+    ///@{
 
-    /// Member Variables
+    ///@}
+    ///@name Member Variables
+    ///@{
+
     TSystemVectorPointerType mpf; /// Vector of reference external forces
     TSystemVectorPointerType mpDxf; /// Delta x of A*Dxf=f
     TSystemVectorPointerType mpDxb; /// Delta x of A*Dxb=b
@@ -508,8 +525,10 @@ protected:
     double mNormxEquilibrium; /// Norm of the solution vector in equilibrium
     double mDLambdaStep; /// Delta lambda of the current step
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
+     */
     int Check() override
     {
         KRATOS_TRY
@@ -525,8 +544,9 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to initialize a system vector
+     */
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL)
@@ -541,8 +561,9 @@ protected:
             v.resize(mpBuilderAndSolver->GetEquationSystemSize(), false);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to storage the initial system vector
+     */
     void SaveInitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL)
@@ -557,8 +578,12 @@ protected:
             v.resize(mpBuilderAndSolver->GetEquationSystemSize(), true);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to build the system applying Dirichlet conditions
+     * @param mA The LHS matrix
+     * @param mDx The displacement increment vector
+     * @param mb The residual vector
+     */
     void BuildWithDirichlet(TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
     {
         KRATOS_TRY
@@ -569,8 +594,13 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to Update the database and the external loads
+     * @param rDofSet The degrees of freedom
+     * @param mA The LHS matrix
+     * @param mDx The displacement increment vector
+     * @param mb The residual vector
+     */
     virtual void Update(DofsArrayType& rDofSet, TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
     {
         KRATOS_TRY
@@ -584,8 +614,9 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to clear all the member system vectors
+     */
     void ClearStep()
     {
         KRATOS_TRY
@@ -610,8 +641,9 @@ protected:
         KRATOS_CATCH("");
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    /**
+     * @brief Function to modify the value of the external loads according to the load factor mLambda
+     */
     void UpdateExternalLoads()
     {
         // Update External Loads
@@ -671,8 +703,8 @@ protected:
         mLambda_old = mLambda;
     }
 
-}; // Class PoromechanicsRammArcLengthStrategy
+}; /* Class RammArcLengthStrategy */
 
 } // namespace Kratos
 
-#endif // KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_STRATEGY  defined
+#endif // KRATOS_RAMM_ARC_LENGTH_STRATEGY  defined
