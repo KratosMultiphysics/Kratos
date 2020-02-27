@@ -301,7 +301,7 @@ class ULF_FSISolver:
         if (self.domain_size == 2):
             (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", "Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc", "Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc", "SurfaceCondition3D3N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
 
             # remesh CHECK for 3D or 2D
         # calculating fluid neighbours before applying boundary conditions
