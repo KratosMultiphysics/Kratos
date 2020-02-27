@@ -160,6 +160,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Prepare variables
     GeneralVariables Variables;
+    const double augmentation_factor = this->GetValue(MPC_AUGMENTATION_FACTOR);
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
@@ -203,18 +204,23 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                 const unsigned int ibase = dimension * number_of_nodes;
 
-                // Matrix in following shape:
-                // |0       N^T|
-                // |N       0  |
-
-                for (unsigned int k = 0; k < dimension; k++)
+                // Matrix in following shape: k...augmentation factor
+                // |k*N^T*N       N^T|
+                // |N             0  |
+                for (unsigned int j = 0; j < number_of_nodes; j++)
                 {
-                    lagrange_matrix(i* dimension+k, i* dimension+k) = 0.001;///this->GetIntegrationWeight();
-                    lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
-                    lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+                    for (unsigned int k = 0; k < dimension; k++)
+                    {
+                        lagrange_matrix(i* dimension+k, j* dimension+k) = augmentation_factor * Variables.N[i] * Variables.N[j];
+                    }
                 }
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
+                lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+            }
         }
-
+        
         lagrange_matrix  *= this->GetIntegrationWeight();
 
         // Calculate LHS Matrix and RHS Vector

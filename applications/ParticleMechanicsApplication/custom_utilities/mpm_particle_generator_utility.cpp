@@ -280,6 +280,7 @@ namespace MPMParticleGeneratorUtility
 
         double mpc_area = 0.0;
         double mpc_penalty_factor = 0.0;
+        double mpc_augmentation_factor = 0.0;
         bool mpc_fix_dof = false;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
@@ -531,6 +532,8 @@ namespace MPMParticleGeneratorUtility
                             mpc_imposed_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
+                        if (i->Has(MPC_AUGMENTATION_FACTOR))
+                            mpc_augmentation_factor = i->GetValue(MPC_AUGMENTATION_FACTOR);
                         if (i->Has(FIX_DOF))
                             mpc_fix_dof = i->GetValue(FIX_DOF);
 
@@ -663,6 +666,8 @@ namespace MPMParticleGeneratorUtility
                             else{
                                 if (boundary_condition_type == 1)
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                if (boundary_condition_type == 2)
+                                    p_condition->SetValue(MPC_AUGMENTATION_FACTOR, mpc_augmentation_factor);
                                 else if (boundary_condition_type == 3)
                                     p_condition->SetValue(FIX_DOF, mpc_fix_dof);
 

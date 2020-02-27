@@ -17,6 +17,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "particles_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
+                "augmentation_factor"       : 0,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -51,6 +52,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             self.boundary_condition_type = 1
         elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
             self.boundary_condition_type = 2
+            self.augmentation_factor = settings["augmentation_factor"].GetDouble()
         elif (self.imposition_type == "fixdof" or self.imposition_type == "FixDof"):
             self.fix_dof = False
             self.boundary_condition_type = 3
@@ -131,6 +133,8 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 ### Set necessary essential BC variables
                 if self.boundary_condition_type==1:
                     condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                if self.boundary_condition_type==2:
+                    condition.SetValue(KratosParticle.MPC_AUGMENTATION_FACTOR, self.augmentation_factor)
                 elif self.boundary_condition_type==3:
                     condition.SetValue(KratosParticle.FIX_DOF, self.fix_dof)
 
@@ -185,7 +189,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
                 ## IMPOSED DISPLACEMENT
                 previous_displacement = mpc.GetValue(KratosParticle.MPC_DISPLACEMENT)
-                incremental_displacement= self.value - previous_displacement
+                incremental_displacement= self.value #- previous_displacement
                 mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
                
     
