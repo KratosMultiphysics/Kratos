@@ -282,7 +282,7 @@ class ULF_FSISolver:
         h_factor = 0.2
         if (self.domain_size == 2):
             h_factor = 0.25
-            (self.Mesher).ReGenerateMesh("UlfFrac2D", "Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UlfFrac2D", "LineCondition2D2N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
             (self.Mesher).ReGenerateMesh("UlfFrac3D", "SurfaceCondition3D3N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
 
