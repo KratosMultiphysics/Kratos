@@ -316,7 +316,7 @@ class ULF_FSISolver:
             #(self.Mesher).ReGenerateMesh("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
             (self.Mesher).ReGenerateMeshGlass("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","SurfaceCondition3D3N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
 
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
