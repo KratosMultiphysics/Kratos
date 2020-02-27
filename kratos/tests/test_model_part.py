@@ -444,7 +444,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.Conditions[1].Id, 1)
         self.assertEqual(len(model_part.Conditions), 1)
 
-        model_part.CreateNewCondition("Condition2D", 2000, [2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("LineCondition2D2N", 2000, [2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 2)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
@@ -600,8 +600,8 @@ class TestModelPart(KratosUnittest.TestCase):
         n3 = model_part2.CreateNewNode(3,2.0,3.1,0.2)
         n4 = model_part2.CreateNewNode(4,2.0,3.1,10.2)
 
-        model_part1.CreateNewCondition("Condition2D", 1, [1,2], sub1.GetProperties()[1])
-        model_part1.CreateNewCondition("Condition2D", 2, [1,2], sub1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 1, [1,2], sub1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [1,2], sub1.GetProperties()[1])
 
         c1 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 1, [1,3,4], model_part2.GetProperties()[1])
         c3 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 3, [1,3,4], model_part2.GetProperties()[1])
