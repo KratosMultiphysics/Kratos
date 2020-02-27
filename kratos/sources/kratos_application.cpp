@@ -188,20 +188,6 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
     KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
-    //deprecated conditions start
-    KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);
-    KRATOS_REGISTER_CONDITION("Condition2D2N", mCondition2D2N);
-    KRATOS_REGISTER_CONDITION("Condition2D3N", mCondition2D3N);
-    KRATOS_REGISTER_CONDITION("Condition3D",
-        mCondition3D);  // Note: The name could be changed to Condition3D3N (conflict with the quadratic line)
-    KRATOS_REGISTER_CONDITION("Condition3D2N", mCondition3D2N);
-    KRATOS_REGISTER_CONDITION("Condition3D3N", mCondition3D3N);
-    KRATOS_REGISTER_CONDITION("Condition3D6N", mCondition3D6N);
-    KRATOS_REGISTER_CONDITION("Condition3D4N", mCondition3D4N);
-    KRATOS_REGISTER_CONDITION("Condition3D8N", mCondition3D8N);
-    KRATOS_REGISTER_CONDITION("Condition3D9N", mCondition3D9N);
-    //deprecated conditions start
-
     KRATOS_REGISTER_CONDITION("PeriodicCondition", mPeriodicCondition)
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)
     KRATOS_REGISTER_CONDITION("PeriodicConditionCorner", mPeriodicConditionCorner)

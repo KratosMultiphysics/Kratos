@@ -343,20 +343,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
 
-    // BEGIN Deprecated conditions
-    const MeshCondition mCondition;
-    const MeshCondition mCondition2D;
-    const MeshCondition mCondition2D2N;
-    const MeshCondition mCondition2D3N;
-    const MeshCondition mCondition3D;
-    const MeshCondition mCondition3D2N;
-    const MeshCondition mCondition3D3N;
-    const MeshCondition mCondition3D6N;
-    const MeshCondition mCondition3D4N;
-    const MeshCondition mCondition3D8N;
-    const MeshCondition mCondition3D9N;
-    // END Deprecated conditions
-
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
     const PeriodicCondition mPeriodicConditionEdge;
