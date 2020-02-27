@@ -89,7 +89,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
             KratosMultiphysics.Node(8, -0.25,  0.75,  0.5))
         parameters = KratosMultiphysics.Parameters("{}")
         parameters.AddEmptyValue("element_name").SetString("Element3D4N")
-        parameters.AddEmptyValue("condition_name").SetString("Condition3D3N")
+        parameters.AddEmptyValue("condition_name").SetString("SurfaceCondition3D3N")
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
         parameters.AddEmptyValue("number_of_divisions").SetInt(26)
 
