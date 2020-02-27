@@ -84,19 +84,6 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mMasterSlaveConstraint(),
       mLinearMasterSlaveConstraint(),
 
-      // Deprecated conditions start
-      mCondition2D( 0, GeometryType::Pointer(new Geometry<NodeType >(GeometryType::PointsArrayType(2)))),
-      mCondition2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
-      mCondition2D3N( 0, GeometryType::Pointer(new Line2D3<NodeType >(GeometryType::PointsArrayType(3)))),
-      mCondition3D( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),  // Note: Could be interesting to change the name to mCondition3D3N (conflict with quadratic line)
-      mCondition3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
-      mCondition3D3N( 0, GeometryType::Pointer(new Line3D3<NodeType >(GeometryType::PointsArrayType(3)))),
-      mCondition3D6N( 0, GeometryType::Pointer(new Triangle3D6<NodeType >(GeometryType::PointsArrayType(6)))),
-      mCondition3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
-      mCondition3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
-      mCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
-      // Deprecated conditions end
-
       // Periodic conditions
       mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mPeriodicConditionEdge( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
