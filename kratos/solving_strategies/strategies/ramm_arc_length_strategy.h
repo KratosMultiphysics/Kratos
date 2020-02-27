@@ -17,10 +17,10 @@
 #define KRATOS_RAMM_ARC_LENGTH_STRATEGY
 
 // Project includes
-#include "custom_strategies/strategies/poromechanics_newton_raphson_strategy.hpp"
+#include "solving_strategies/residualbased_newton_raphson_strategy.h"
 
 // Application includes
-#include "poromechanics_application_variables.h"
+// #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -57,7 +57,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class RammArcLengthStrategy 
-    : public PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 
 public:
@@ -70,7 +70,7 @@ public:
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
+    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
@@ -110,9 +110,9 @@ public:
 
     using BaseType::mInitializeWasPerformed;
 
-    using MotherType::mSubModelPartList;
+    using BaseType::mSubModelPartList;
 
-    using MotherType::mVariableNames;
+    using BaseType::mVariableNames;
 
     ///@}
     ///@name Life Cycle
@@ -141,9 +141,37 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-        ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
+        ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
+            Parameters default_parameters( R"({
+                "desired_iterations": 4,
+                "max_radius_factor": 20.0,
+                "min_radius_factor": 0.5,
+                "body_domain_sub_model_part_list": [],
+                "loads_sub_model_part_list": [],
+                "loads_variable_list" : []
+            }  )");
+
+            // Validate agains defaults
+            rParameters.ValidateAndAssignDefaults(default_parameters);
+
+            mpParameters = &rParameters;
+
+            // Set Load SubModelParts and Variable names
+            if (rParameters["loads_sub_model_part_list"].size() > 0) {
+                mSubModelPartList.resize(rParameters["loads_sub_model_part_list"].size());
+                mVariableNames.resize(rParameters["loads_variable_list"].size());
+
+                if (mSubModelPartList.size() != mVariableNames.size())
+                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
+
+                for(unsigned int i = 0; i < mVariableNames.size(); i++) {
+                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()) );
+                    º[i] = rParameters["loads_variable_list"][i].GetString();
+                }
+            }
+
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
             mMaxRadiusFactor = rParameters["max_radius_factor"].GetDouble();
             mMinRadiusFactor = rParameters["min_radius_factor"].GetDouble();
@@ -167,7 +195,7 @@ public:
         KRATOS_TRY
 
         if (mInitializeWasPerformed == false) {
-            MotherType::Initialize();
+            BaseType::Initialize();
 
             if (mInitializeArcLengthWasPerformed == false) {
                 //set up the system
@@ -510,21 +538,25 @@ protected:
     ///@name Member Variables
     ///@{
 
-    TSystemVectorPointerType mpf; /// Vector of reference external forces
-    TSystemVectorPointerType mpDxf; /// Delta x of A*Dxf=f
-    TSystemVectorPointerType mpDxb; /// Delta x of A*Dxb=b
+    TSystemVectorPointerType mpf;      /// Vector of reference external forces
+    TSystemVectorPointerType mpDxf;    /// Delta x of A*Dxf=f
+    TSystemVectorPointerType mpDxb;    /// Delta x of A*Dxb=b
     TSystemVectorPointerType mpDxPred; /// Delta x of prediction phase
     TSystemVectorPointerType mpDxStep; /// Delta x of the current step
 
-    unsigned int mDesiredIterations; /// This is used to calculate the radius of the next step
+    unsigned int mDesiredIterations;   /// This is used to calculate the radius of the next step
 
     bool mInitializeArcLengthWasPerformed;
 
     double mMaxRadiusFactor, mMinRadiusFactor; /// Used to limit the radius of the arc length strategy
-    double mRadius, mRadius_0; /// Radius of the arc length strategy
-    double mLambda, mLambda_old; /// Loading factor
-    double mNormxEquilibrium; /// Norm of the solution vector in equilibrium
-    double mDLambdaStep; /// Delta lambda of the current step
+    double mRadius, mRadius_0;                 /// Radius of the arc length strategy
+    double mLambda, mLambda_old;               /// Loading factor
+    double mNormxEquilibrium;                  /// Norm of the solution vector in equilibrium
+    double mDLambdaStep;                       /// Delta lambda of the current step
+
+    Parameters* mpParameters;
+    std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
+    std::vector<std::string> mVariableNames;   // Name of the nodal variable associated to every SubModelPart
 
     /**
      * @brief Function to perform expensive checks.
@@ -534,7 +566,7 @@ protected:
     {
         KRATOS_TRY
 
-        int ierr = MotherType::Check();
+        int ierr = BaseType::Check();
         if(ierr != 0) return ierr;
 
         KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_LAMBDA);
