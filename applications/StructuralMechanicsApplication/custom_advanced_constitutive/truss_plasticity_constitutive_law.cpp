@@ -138,7 +138,7 @@ double& TrussPlasticityConstitutiveLaw::CalculateValue(
 void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2Custom(Parameters& rValues, double& rCurrentAccumulatedPlasticStrain, double& rCurrentPlasticAlpha)
 {
     KRATOS_ERROR_IF_NOT(rValues.IsSetStrainVector()) << "Strain vector not set" << std::endl;
-    KRATOS_ERROR_IF_NOT(rValues.IsSetStressVector()) << "Stress vector not set" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(rValues.IsSetStressVector()) << "Stress vector not set" << std::endl;
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
