@@ -174,7 +174,6 @@ public:
 
     /**
      * @brief Destructor.
-     * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
     ~RammArcLengthStrategy() override {}
 
@@ -253,7 +252,7 @@ public:
             this->InitializeSystemVector(mpDxPred);
             this->InitializeSystemVector(mpDxStep);
         }
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
 
@@ -342,10 +341,10 @@ public:
             noalias(mDx) = mDxb + DLambda*mDxf;
 
             //Check solution before update
-            if ( mNormxEquilibrium > 1.0e-10 ) {
+            if (mNormxEquilibrium > 1.0e-10) {
                 NormDx = TSparseSpace::TwoNorm(mDx);
 
-                if( (NormDx/mNormxEquilibrium) > 1.0e3 || (std::abs(DLambda)/std::abs(mLambda-mDLambdaStep)) > 1.0e3 ) {
+                if ((NormDx/mNormxEquilibrium) > 1.0e3 || (std::abs(DLambda)/std::abs(mLambda-mDLambdaStep)) > 1.0e3) {
                     is_converged = false;
                     break;
                 }
@@ -358,14 +357,14 @@ public:
             this->Update(rDofSet, mA, mDx, mb);
 
             // Move the mesh if needed
-            if (BaseType::MoveMeshFlag() == true) 
+            if (BaseType::MoveMeshFlag()) 
                 BaseType::MoveMesh();
 
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
             // Check convergence
-            if (is_converged == true) {
-                if (mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+            if (is_converged) {
+                if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(mb);
                     mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
                 }
@@ -410,11 +409,11 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-        if (BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED] == true) {
+        if (BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED]) {
             // Modify the radius to advance faster when convergence is achieved
             if (mRadius > mMaxRadiusFactor*mRadius_0)
                 mRadius = mMaxRadiusFactor*mRadius_0;
-            else if(mRadius < mMinRadiusFactor*mRadius_0)
+            else if (mRadius < mMinRadiusFactor*mRadius_0)
                 mRadius = mMinRadiusFactor*mRadius_0;
 
             // Update Norm of x
@@ -423,13 +422,13 @@ public:
             KRATOS_INFO("Ramm's Arc Length Strategy") << "************ NO CONVERGENCE: restoring equilibrium path ************" << std::endl;
             TSystemVectorType& mDxStep = *mpDxStep;
 
-            //update results
+            // Update results
             mLambda -= mDLambdaStep;
             noalias(mDx) = -mDxStep;
             this->Update(rDofSet, mA, mDx, mb);
 
-            //move the mesh if needed
-            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+            // Move the mesh if needed
+            if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
         }
 
         BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA] = mLambda;
@@ -444,9 +443,8 @@ public:
         //reset flags for next step
         mSolutionStepIsInitialized = false;
 
-        if (mReformDofSetAtEachStep == true) { // Deallocate the system vectors
+        if (mReformDofSetAtEachStep) // Deallocate the system vectors
             this->ClearStep();
-        }
 
 		KRATOS_CATCH("")
 	}
@@ -572,8 +570,9 @@ protected:
 
         mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
-        //move the mesh if needed
-        if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag()) 
+            BaseType::MoveMesh();
 
         mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
@@ -585,7 +584,7 @@ protected:
 
         // Correction phase 
         while (is_converged == false && iteration_number < mMaxIterationNumber) {
-            //setting the number of iteration
+            // Setting the number of iterations
             iteration_number += 1;
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -599,8 +598,9 @@ protected:
 
             mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
-            //move the mesh if needed
-            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+            // Move the mesh if needed
+            if (BaseType::MoveMeshFlag()) 
+                BaseType::MoveMesh();
 
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
@@ -613,7 +613,6 @@ protected:
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;
         }
-
         return is_converged;
     }
 
@@ -765,13 +764,11 @@ protected:
     void UpdateExternalLoads()
     {
         // Update External Loads
-        for(unsigned int i = 0; i < mVariableNames.size(); i++)
-        {
+        for(unsigned int i = 0; i < mVariableNames.size(); i++) {
             ModelPart& rSubModelPart = *(mSubModelPartList[i]);
             const std::string& VariableName = mVariableNames[i];
 
-            if( KratosComponents< Variable<double> >::Has( VariableName ) )
-            {
+            if (KratosComponents< Variable<double> >::Has(VariableName)) {
                 Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
 
                 #pragma omp parallel
@@ -780,15 +777,12 @@ protected:
                     ModelPart::NodeIterator NodesEnd;
                     OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
 
-                    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                    {
+                    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) {
                         double& rvalue = itNode->FastGetSolutionStepValue(var);
                         rvalue *= (mLambda/mLambda_old);
                     }
                 }
-            }
-            else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
-            {
+            } else if (KratosComponents< Variable<array_1d<double,3>>>::Has(VariableName)) {
                 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
                 component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
                 component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
@@ -800,8 +794,7 @@ protected:
                     ModelPart::NodeIterator NodesEnd;
                     OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
 
-                    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                    {
+                    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) {
                         double& rvaluex = itNode->FastGetSolutionStepValue(varx);
                         rvaluex *= (mLambda/mLambda_old);
                         double& rvaluey = itNode->FastGetSolutionStepValue(vary);
@@ -810,17 +803,14 @@ protected:
                         rvaluez *= (mLambda/mLambda_old);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", VariableName )
             }
         }
-
         // Save the applied Lambda factor
         mLambda_old = mLambda;
     }
-
+    
 }; /* Class RammArcLengthStrategy */
 
 } // namespace Kratos
