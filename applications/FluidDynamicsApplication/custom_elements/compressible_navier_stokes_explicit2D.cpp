@@ -94,25 +94,7 @@ void ShockCapturing(const double mu,
 void LocalMassMatrix(array_1d<double,12>& LumpedMassMatrix,const array_1d<double,3>& N, const unsigned int nodesElement)
 {
 
-    unsigned int t;
-
-    for (unsigned int i = 0; i < nodesElement; i++){
-
-        t = 3*i;
-
-        LumpedMassMatrix(t)     = 0.0;
-        LumpedMassMatrix(t + 1) = 0.0;
-        LumpedMassMatrix(t + 2) = 0.0;
-        LumpedMassMatrix(t + 3) = 0.0;
-
-        for (unsigned int j = 0; j < nodesElement; j++){
-            LumpedMassMatrix(t)     += N(i)*N(j);
-            LumpedMassMatrix(t + 1) += N(i)*N(j);
-            LumpedMassMatrix(t + 2) += N(i)*N(j);
-            LumpedMassMatrix(t + 3) += N(i)*N(j);
-        }
-
-    }
+    
 }
 
 
@@ -120,22 +102,6 @@ template<>
 void CompressibleNavierStokesExplicit<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    unsigned int SpaceDimension = 2;
-    unsigned int nScalarVariables = SpaceDimension + 2;
-    unsigned int nodesElement = 3;
-    unsigned int nNodalVariables  = nodesElement*nScalarVariables;
-
-    if (rResult.size() != nNodalVariables)
-        rResult.resize(nNodalVariables, false);         // A che serve sta roba?
-
-    for(unsigned int i=0; i<nodesElement; i++)
-    {
-       rResult[i*(nScalarVariables)  ]  =  this->GetGeometry()[i].GetDof(DENSITY).EquationId();	// Collect current value of nodal variable into a local vector U?
-       rResult[i*(nScalarVariables)+1]  =  this->GetGeometry()[i].GetDof(MOMENTUM_X).EquationId();
-       rResult[i*(nScalarVariables)+2]  =  this->GetGeometry()[i].GetDof(MOMENTUM_Y).EquationId();
-       rResult[i*(nScalarVariables)+3]  =  this->GetGeometry()[i].GetDof(TOTAL_ENERGY).EquationId();
-    }
 
     KRATOS_CATCH("")
 }
@@ -146,45 +112,13 @@ void CompressibleNavierStokesExplicit<2>::GetDofList(DofsVectorType& ElementalDo
 {
     KRATOS_TRY
 
-    unsigned int SpaceDimension = 2;
-    unsigned int nScalarVariables = SpaceDimension + 2;
-    unsigned int nodesElement = 3;
-    unsigned int nNodalVariables  = nodesElement*nScalarVariables;
-
-    if (ElementalDofList.size() != nNodalVariables)     // A che serve sta roba ?
-        ElementalDofList.resize(nNodalVariables);
-
-    for(unsigned int i=0; i<nodesElement; i++)
-    {
-        ElementalDofList[i*(nScalarVariables)  ]  =  this->GetGeometry()[i].pGetDof(DENSITY);		// Difference with the operation made before? 
-        ElementalDofList[i*(nScalarVariables)+1]  =  this->GetGeometry()[i].pGetDof(MOMENTUM_X);
-        ElementalDofList[i*(nScalarVariables)+2]  =  this->GetGeometry()[i].pGetDof(MOMENTUM_Y);
-        ElementalDofList[i*(nScalarVariables)+3]  =  this->GetGeometry()[i].pGetDof(TOTAL_ENERGY);
-    }
-
     KRATOS_CATCH("");
 }
 
 template<>
 void CompressibleNavierStokesExplicit<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,12,12>& lhs, const ElementDataStruct& data)
 {   
-    const unsigned int nodesElement = 3;
-    const unsigned int SpaceDimension = 2;
-    const unsigned int nScalarVariables = SpaceDimension + 2;
-    const unsigned int nNodalVariables = nScalarVariables*nodesElement;
-
-    array_1d<double,nNodalVariables>      LumpedMassMatrix;
-
-    const array_1d<double,nodesElement>&   N = data.N;
-
-    LocalMassMatrix(LumpedMassMatrix, N, nodesElement);
-
-    for (unsigned int i = 0; i < nNodalVariables; i++){
-        for (unsigned int j = 0; j < nNodalVariables; j++){
-            lhs(i,j) = 0.0;
-            if (i == j)     lhs(i,j) = LumpedMassMatrix(i);
-        }
-    }
+    
 }
 
 
@@ -229,18 +163,20 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     array_1d<double,nNodalVariables>     F;
     
 	
-    // Replace with right coefficient according to the time scheme used
-    const double& ctau = 0.5;
+    
+    const double& ctau = 0.5;   // This coefficient multiplyes the divergence of the velocity in the calculation of tau. 
+                                // In 3d would be 0.66667
     
     const double& dt = data.dt;
 
+    // In this implementation this function returns only nodal forces, rgardless of the time integration scheme used.
     // const double& bdf0 = data.bdf0;
     // const double& bdf1 = data.bdf1;
     // const double& bdf2 = data.bdf2;
 
-    const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			// Lo mismo de antes // Da tenere come sono e riordinare
+    const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			
     const BoundedMatrix<double,nodesElement,nScalarVariables>& UUn = data.Un;
-    const BoundedMatrix<double,nodesElement,nScalarVariables>& Up = data.Up;
+    const BoundedMatrix<double,nodesElement,nScalarVariables>& Up = data.Up;    // Useful for the stabilizing part.
     BoundedMatrix<double,nodesElement,nScalarVariables> UUp;
 
     const BoundedMatrix<double,nodesElement,SpaceDimension>& f_ext = data.f_ext;			
@@ -261,28 +197,19 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     const double stab_c2 = 2.0;    
 
     // Get shape function values
-    const array_1d<double,nodesElement>& N = data.N;					        // N (in which point?)
-    const BoundedMatrix<double,nodesElement,SpaceDimension>& DN = data.DN_DX;	// DN (in which point ?)
+    const array_1d<double,nodesElement>& N = data.N;					       
+    const BoundedMatrix<double,nodesElement,SpaceDimension>& DN = data.DN_DX;	
 
     // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,SpaceDimension> f_gauss = prod(trans(f_ext), N);      // Da tenere così
+    const array_1d<double,SpaceDimension> f_gauss = prod(trans(f_ext), N);      
     const double r_gauss = N(0)*r(0) + N(1)*r(1) + N(2)*r(2);
-    //    const BoundedMatrix<double,dim,BlockSize> grad_U = prod(trans(DN), U); /*TO DO: WRONG MIGHT BE REMOVED*/   // Appost
-    //    const array_1d<double,nScalarVariables> accel_gauss = bdf0*U_gauss+bdf1*prod(trans(Un), N)+bdf2*prod(trans(Unn), N); 	// OK
-
+    
 
     // Define U and Udot
     for (i = 0; i < nodesElement; i++){
         for (j = 0; j < nScalarVariables; j++){
             
-//            p = i*nScalarVariables + j; 
-
-//            U(p) = UU(i,j);
-//            Un(p) = UUn(i,j);
-
-//            up(p) = (U(Up) - Un(p))/dt;
-            UUp(i,j) = (UU(i,j) - UUn(i,j))/dt;
-            //up(p) = Up(i,j);
+            UUp(i,j) = (UU(i,j) - UUn(i,j))/dt;   // This could be done better, since we have an estimation of the udot from the previous substep
             
         }
     }
@@ -307,7 +234,8 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     for (i = 0; i < nNodalVariables*nScalarVariables; i++ )  NN(i) = 0.0;
 
-    
+    // This is convenient during the implementation but has to be removed 
+    // after some modification of the remainding part of the file
     for (j = 0; j < nodesElement; j++){
 
         NN(0 * nNodalVariables + j*nScalarVariables    ) = N(j);
@@ -316,9 +244,10 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
         NN(3 * nNodalVariables + j*nScalarVariables + 3) = N(j);
 
     }
-    
+
+    // This is convenient during the implementation but has to be removed 
+    // after some modification of the remainding part of the file    
     for ( i = 0; i < nScalarVariables * SpaceDimension * nNodalVariables; i++)  gradV[i] = 0.0;
-			
 
 	for (i = 0; i < nodesElement; i++ ){
         
