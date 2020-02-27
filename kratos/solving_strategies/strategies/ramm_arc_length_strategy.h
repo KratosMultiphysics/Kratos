@@ -156,7 +156,7 @@ public:
                 mVariableNames.resize(rParameters["loads_variable_list"].size());
 
                 if (mSubModelPartList.size() != mVariableNames.size())
-                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++) {
                     mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
@@ -549,6 +549,101 @@ protected:
     Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames;   // Name of the nodal variable associated to every SubModelPart
+
+    /**
+     * @brief This method checks the convergence of the arc-length algorithm
+     */
+    virtual bool CheckConvergence()
+    {
+        //  Prediction phase 
+        // Initialize variables
+		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+
+        mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
+        TSparseSpace::SetToZero(mA);
+        TSparseSpace::SetToZero(mb);
+        TSparseSpace::SetToZero(mDx);
+
+        mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+
+        mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+        //move the mesh if needed
+        if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+        mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
+        unsigned int iteration_number = 0;
+        bool is_converged = false;
+        double dofs_ratio = 1000.0;
+        double ReferenceDofsNorm;
+        double NormDx;
+
+        // Correction phase 
+        while (is_converged == false && iteration_number < mMaxIterationNumber) {
+            //setting the number of iteration
+            iteration_number += 1;
+            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+            mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
+            TSparseSpace::SetToZero(mA);
+            TSparseSpace::SetToZero(mb);
+            TSparseSpace::SetToZero(mDx);
+
+            mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+
+            mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+            //move the mesh if needed
+            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+            mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
+            NormDx = TSparseSpace::TwoNorm(mDx);
+            ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
+            dofs_ratio = NormDx/ReferenceDofsNorm;
+            KRATOS_INFO("Newton Raphson Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
+            KRATOS_INFO("Newton Raphson Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
+
+            if(dofs_ratio <= 1.0e-3)
+                is_converged = true;
+        }
+
+        return is_converged;
+    }
+
+    /**
+     * @brief This method computes the norm of the reference DoFs
+     */
+    double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
+    {
+        double ReferenceDofsNorm = 0.0;
+
+        int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector DofSetPartition;
+        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+
+        #pragma omp parallel reduction(+:ReferenceDofsNorm)
+        {
+            int k = OpenMPUtils::ThisThread();
+
+            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
+            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
+
+            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
+                if (itDof->IsFree()) {
+                    const double& temp = itDof->GetSolutionStepValue();
+                    ReferenceDofsNorm += temp*temp;
+                }
+            }
+        }
+        return sqrt(ReferenceDofsNorm);
+    }
 
     /**
      * @brief Function to perform expensive checks.
