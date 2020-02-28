@@ -143,15 +143,11 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             gid_io.WriteNodalResults(KratosMultiphysics.REACTION,local_nodes,0.0,0)
             gid_io.FinalizeResults()
 
-        # clean temporary files
-        if KratosMultiphysics.DataCommunicator.GetDefault().Rank() == 0:
-            for f in glob.glob(GetFilePath('*.time')):
-                os.remove(f)
+        # Clean temporary files
+        KratosMultiphysics.kratos_utilities.DeleteTimeFiles(".")
 
     def test_accelerator(self,accelerator_settings,force1,force2,solution):
-
-        print("")
-        print("Testing accelerator: ",accelerator_settings["solver_type"].GetString())
+        KratosMultiphysics.Logger.PrintInfo('','Testing accelerator: ' + accelerator_settings["solver_type"].GetString())
 
         top_part = self.model_part.GetSubModelPart("Top")
 
@@ -167,8 +163,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         res_norm = self.ComputeResidualNorm(residual)
 
         while (nl_it <= self.accelerator_iterations):
-
-            print(KratosMultiphysics.DataCommunicator.GetDefault().Rank(),": Iteration: ", nl_it," residual norm: ", res_norm, file=sys.stderr)
+            print(KratosMultiphysics.DataCommunicator.GetDefault().Rank(),": Iteration: ", str(nl_it)," residual norm: ", str(res_norm), file=sys.stderr)
 
             if res_norm > self.accelerator_tolerance:
                 coupling_utility.InitializeNonLinearIteration()
