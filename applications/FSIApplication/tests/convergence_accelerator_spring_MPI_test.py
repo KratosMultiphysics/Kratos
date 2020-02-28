@@ -163,7 +163,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         res_norm = self.ComputeResidualNorm(residual)
 
         while (nl_it <= self.accelerator_iterations):
-            print(KratosMultiphysics.DataCommunicator.GetDefault().Rank(),": Iteration: ", str(nl_it)," residual norm: ", str(res_norm), file=sys.stderr)
+            KratosMultiphysics.Logger.PrintInfoOnAllRanks('', str(KratosMultiphysics.DataCommunicator.GetDefault().Rank()) + ": Iteration: " + str(nl_it) + " residual norm: " + str(res_norm) + file=sys.stderr)
 
             if res_norm > self.accelerator_tolerance:
                 coupling_utility.InitializeNonLinearIteration()
