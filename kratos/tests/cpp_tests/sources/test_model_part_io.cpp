@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 				3    0    5.0             //fixing it or not does not change anything since it is not a degree of freedom, it's just info that will be used by the condition
 				End NodalData
 
-				Begin Conditions Condition2D2N
+				Begin Conditions LineCondition2D2N
 				1 1 1 2
                                 2 1 3 4
 				End Conditions
@@ -214,8 +214,8 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
     std::vector<ModelPart::IndexType> cond_nodes_2 = {3,4};
     std::vector<ModelPart::IndexType> cond_nodes_3 = {4};
-    main_model_part.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
-    main_model_part.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
+    main_model_part.CreateNewCondition("LineCondition2D2N", 1, cond_nodes_1, p_properties_1);
+    main_model_part.CreateNewCondition("LineCondition2D2N", 2, cond_nodes_2, p_properties_1);
     main_model_part.CreateNewCondition("PointCondition2D1N", 3, cond_nodes_3, p_properties_1);
 
     //conditional data
