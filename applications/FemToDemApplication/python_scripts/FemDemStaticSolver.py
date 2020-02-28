@@ -67,10 +67,10 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         return mechanical_scheme
 
     def _create_mechanical_solver(self):
-        if(self.settings["component_wise"].GetBool() == True):
+        if (self.settings["component_wise"].GetBool()):
             mechanical_solver = self._create_component_wise_strategy()
-        elif(self.settings["line_search"].GetBool() == True):
-            if(self.settings["implex"].GetBool() == True):
+        elif (self.settings["line_search"].GetBool()):
+            if(self.settings["implex"].GetBool()):
                 mechanical_solver = self._create_line_search_implex_strategy()
             else:
                 mechanical_solver = self._create_line_search_strategy()
