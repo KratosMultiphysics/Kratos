@@ -234,7 +234,6 @@ public:
             }
         }
 #endif
-
         KRATOS_CATCH("");
     }
 
@@ -288,6 +287,24 @@ public:
         }
     }
 
+
+    //hard coded for now
+    int MapPhi(std::string DofName) 
+    {
+        std::map<std::string,int> mymap;
+
+        mymap["DISPLACEMENT_X"] = 3;
+        mymap["DISPLACEMENT_Y"] = 4;
+        mymap["DISPLACEMENT_Z"] = 5;        
+        mymap["ROTATION_X"]=0;
+        mymap["ROTATION_Y"]=1;
+        mymap["ROTATION_Z"]=2;                
+
+        return(mymap[DofName]);
+
+    }
+
+
     void GetDofValues(const std::vector<DofPointerType> &rDofList, TSystemVectorType &rX)
     {
         unsigned int i = 0;
@@ -314,12 +331,9 @@ public:
         Vector brom = ZeroVector(mRomDofs);
         TSystemVectorType x(Dx.size());
 
-        //find the rom basis
-        this->GetDofValues(mDofList, x);
-
         double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
         Vector xrom = ZeroVector(mRomDofs);
-        this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
+        //this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
         const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
 
@@ -361,19 +375,17 @@ public:
                 pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 Element::DofsVectorType dofs;
                 it_el->GetDofList(dofs, CurrentProcessInfo);
-                //assemble the elemental contribution - here is where the ROM acts
-                //compute the elemental reduction matrix Phi
                 const auto &geom = it_el->GetGeometry();
-                Matrix PhiElemental(geom.size() * mNodalDofs, mRomDofs);
-
-                for (unsigned int i = 0; i < geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
-                        if (dofs[i * mNodalDofs + k]->IsFixed())
-                            row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
-                        else
-                            row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
-                    }
+                int ThisNodalDofs = dofs.size()/geom.size();
+                Matrix PhiElemental = ZeroMatrix(geom.size() * ThisNodalDofs, mRomDofs);  
+                for(unsigned int k = 0; k < dofs.size(); ++k){
+                    int node_id = dofs[k]->Id();
+                    const Matrix &current_rom_nodal_basis = (rModelPart.pGetNode(node_id))->GetValue(ROM_BASIS); //Can avoid re-reading the same matrix
+                    std::string variable_name = dofs[k]->GetVariable().Name();
+                    if (dofs[k]->IsFixed())
+                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
+                    else
+                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi(variable_name)); 
                 }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -402,17 +414,30 @@ public:
                 //assemble the elemental contribution - here is where the ROM acts
                 //compute the elemental reduction matrix Phi
                 const auto &r_geom = it->GetGeometry();
-                Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
-
-                for (unsigned int i = 0; i < r_geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
-                        if (dofs[i * mNodalDofs + k]->IsFixed())
-                            row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
-                        else
-                            row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
-                    }
+                int ThisNodalDofs = dofs.size()/r_geom.size();
+                //KRATOS_WATCH(ThisNodalDofs)            
+                Matrix PhiElemental = ZeroMatrix(r_geom.size() * ThisNodalDofs, mRomDofs);  
+                //Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
+                for(unsigned int k = 0; k < dofs.size(); ++k){
+                    int node_id = dofs[k]->Id();
+                    const Matrix &current_rom_nodal_basis = (rModelPart.pGetNode(node_id))->GetValue(ROM_BASIS); //Can avoid re-reading the same matrix
+                    std::string variable_name = dofs[k]->GetVariable().Name();
+                    if (dofs[k]->IsFixed())
+                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
+                    else
+                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi(variable_name));                    
+                    //KRATOS_WATCH(PhiElemental)
                 }
+                // // Replaced loop...
+                // for (unsigned int i = 0; i < r_geom.size(); ++i){
+                //     const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
+                //     for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
+                //         if (dofs[i * mNodalDofs + k]->IsFixed())
+                //             row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+                //         else
+                //             row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                //     }
+                // }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
@@ -427,6 +452,7 @@ public:
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
+
         //solve for the rom unkowns dunk = Arom^-1 * brom
         Vector dxrom(xrom.size());
         double start_solve = OpenMPUtils::GetCurrentTime();
@@ -439,7 +465,13 @@ public:
         noalias(xrom) += dxrom;
 
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
-        ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
+        // ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
+                
+        for (auto dof : BaseType::mDofSet ){
+            Dx[dof.Id()] = inner_prod(  row(  rModelPart.pGetNode(dof.Id())->GetValue(ROM_BASIS)    , MapPhi(dof.GetVariable().Name())   )     , dxrom);  // Not efficient 
+        }
+
+
         const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
     }
@@ -531,7 +563,7 @@ protected:
      */
     typename TLinearSolver::Pointer mpLinearSystemSolver;
 
-    DofsArrayType mDofSet;
+    //DofsArrayType mDofSet;
     std::vector<DofPointerType> mDofList;
 
     bool mReshapeMatrixFlag = false;
