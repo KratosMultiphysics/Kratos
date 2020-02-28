@@ -97,7 +97,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         if mesh_solver_settings.Has("calculate_mesh_velocity"):
             if not mesh_solver_settings["calculate_mesh_velocity"].GetBool():
                 mesh_solver_settings.SetValue("calculate_mesh_velocity", True)
-                KratosMultiphysics.Logger.PrintWarning("","Mesh velocity calculation was desactivated. Switching \"calculate_mesh_velocity\" on")
+                KratosMultiphysics.Logger.PrintWarning("","Mesh velocity calculation was deactivated. Switching \"calculate_mesh_velocity\" on")
         else:
             mesh_solver_settings.AddEmptyValue("calculate_mesh_velocity").SetBool(True)
 
