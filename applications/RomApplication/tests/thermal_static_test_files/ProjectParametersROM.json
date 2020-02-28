@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "GiD_Model",
+        "problem_name": "Square_Radiation_Stationary",
         "parallel_type": "OpenMP",
         "time_step": 1.0,
         "start_time": 0.0,
@@ -14,7 +14,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "GiD_Model"
+            "input_filename": "Square_Radiation_Stationary"
         },
         "material_import_settings": {
             "materials_filename": "ConvectionDiffusionMaterials.json"
@@ -45,7 +45,7 @@
             "nodal_unknowns": [
                 "TEMPERATURE"
             ],
-            "number_of_rom_dofs": 15
+            "number_of_rom_dofs": 14
         },
         "element_replace_settings": {
             "element_name": "LaplacianElement",
@@ -54,7 +54,49 @@
     },
     "processes": {
         "initial_conditions_process_list": [],
-        "constraints_process_list": [],
+        "constraints_process_list": [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.HeatFlux2D_Top_Wall",
+                "variable_name"   : "FACE_HEAT_FLUX",
+                "constrained"     : false,
+                "value"           : -700.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.HeatFlux2D_Bottom_Wall",
+                "variable_name"   : "FACE_HEAT_FLUX",
+                "constrained"     : false,
+                "value"           : 700.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.ImposedTemperature2D_Left_Wall",
+                "variable_name"   : "TEMPERATURE",
+                "constrained"     : true,
+                "value"           : 90.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_thermal_face_process",
+            "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
+            "Parameters"    : {
+                "model_part_name"        : "ThermalModelPart.ThermalFace2D_Right_Wall",
+                "ambient_temperature"    : 12.0,
+                "add_ambient_radiation"  : true,
+                "emissivity"             : 0.8,
+                "add_ambient_convection" : true,
+                "convection_coefficient" : 100.0,
+                "interval"               : [0.0,"End"]
+            }
+        }],
         "list_other_processes": [
             {
                 "python_module": "assign_scalar_variable_process",

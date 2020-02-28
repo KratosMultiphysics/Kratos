@@ -189,10 +189,10 @@ namespace Kratos {
       std::vector<ModelPart::IndexType> cond3{4, 3};
       std::vector<ModelPart::IndexType> cond4{3, 1};
 
-      model_part.CreateNewCondition("Condition2D2N", 1, cond1, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 2, cond2, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 3, cond3, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 4, cond4, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 1, cond1, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 2, cond2, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 3, cond3, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 4, cond4, pProp);
 
 
       // Set initial potential
