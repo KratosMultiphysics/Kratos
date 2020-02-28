@@ -248,7 +248,6 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
     KRATOS_TRY
 
     constexpr unsigned int n_nodes = 3;
-    constexpr unsigned int block_size = 4;
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -1076,7 +1075,6 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
     KRATOS_TRY
 
     constexpr unsigned int n_nodes = 4;
-    constexpr unsigned int block_size = 5;
 
     // Struct to pass around the data
     ElementDataStruct data;
