@@ -55,7 +55,7 @@ namespace Kratos
  * @details It checks the connectivity of the elements
  * @author Riccardo Rossi
 */
-class FindNodalNeighboursProcess
+class KRATOS_API(KRATOS_CORE) FindNodalNeighboursProcess
     : public Process
 {
 public:
