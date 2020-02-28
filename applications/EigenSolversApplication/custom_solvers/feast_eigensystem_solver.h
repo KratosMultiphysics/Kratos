@@ -67,42 +67,39 @@ class FEASTEigensystemSolver
             "search_lowest_eigenvalues": false,
             "search_highest_eigenvalues": false,
             "e_min" : 0.0,
-            "e_max" : 1.0,
+            "e_max" : 0.0,
+            "e_mid_re" : 0.0,
+            "e_mid_im" : 0.0,
+            "e_r" : 0.0,
             "subspace_size" : 0,
-            "max_iteration": 1000,
-            "tolerance": 1e-6,
+            "max_iteration": 20,
+            "tolerance": 1e-12,
             "echo_level": 1
         })");
 
-        //TODO: e_mid, r for complex!!!!!!!!!!
-
         mParam.ValidateAndAssignDefaults(default_params);
 
-        BaseType::SetTolerance(mParam["tolerance"].GetDouble());
-        // BaseType::SetMaxIterationsNumber(mParam["max_iteration"].GetInt());
+        KRATOS_ERROR_IF( mParam["number_of_eigenvalues"].GetInt() < 0 ) <<
+            "Invalid number of eigenvalues provided\n";
 
-        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Cannot search for highest and lowest eigenvalues at the same time\n";
+        KRATOS_ERROR_IF( mParam["subspace_size"].GetInt() < 0 ) <<
+            "Invalid subspace size provided\n";
 
-        KRATOS_ERROR_IF( mParam["e_min"].GetDouble() > mParam["e_max"].GetDouble() ) <<
-            "Invalid eigenvalue limits provided\n";
+        KRATOS_ERROR_IF( mParam["max_iteration"].GetInt() < 1 ) <<
+            "Invalid maximal number of iterations provided\n";
 
-        KRATOS_INFO_IF( "FEASTEigensystemSolver", 
-            (mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool()) 
-            && (mParam["subspace_size"].GetInt() > 0) ) <<
-            "Manually defined subspace size will be overwritten because extremal eigenvalues are sought\n";
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
+            "Manually defined subspace size will be overwritten to match the defined number of eigenvalues\n";
+
+        const ValueType T = {};
+        CheckParameters(T);
     }
 
     ~FEASTEigensystemSolver() override {}
 
     /**
-     * Solve the generalized eigenvalue problem using an eigen subspace iteration method
-     * The implementation follows the code from
-     * K. J. Bathe, Finite Element Procedures second Edition, ISBN-13: 978-0979004957
-     * page 954 and following
-     * The naming of the variables is chose according to the reference.
-     *
-     * K is a symmetric matrix. M is a symmetric positive-definite matrix.
+     * Solve the generalized eigenvalue problem
      */
     void Solve(
         SparseMatrixType& rK,
@@ -113,17 +110,20 @@ class FEASTEigensystemSolver
         // settings
         const size_t system_size = rK.size1();
         size_t subspace_size;
+        const ValueType T = {};
 
         if( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() )
         {
             subspace_size = 2 * static_cast<size_t>(mParam["number_of_eigenvalues"].GetInt());
         }
+        else if( mParam["subspace_size"].GetInt() == 0 )
+        {
+            subspace_size = 1.5 * static_cast<size_t>(mParam["number_of_eigenvalues"].GetInt());
+        }
         else
         {
             subspace_size = static_cast<size_t>(mParam["subspace_size"].GetInt());
         }
-
-        const int echo_level = mParam["echo_level"].GetInt();
 
         if( rEigenvalues.size() != subspace_size )
             rEigenvalues.resize(subspace_size, false);
@@ -133,14 +133,16 @@ class FEASTEigensystemSolver
 
         // create column based matrix for the fortran routine
         matrix<ValueType, column_major> tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
-        // matrix<double, column_major> tmp_eigenvectors = FeastEigenvectorMatrix(rEigenvectors);
         VectorType residual(subspace_size);
 
         // set FEAST settings
         int fpm[64] = {};
         feastinit(fpm);
 
-        echo_level > 0 ? fpm[0] = 1 : fpm[0] = 0;
+        mParam["echo_level"].GetInt() > 0 ? fpm[0] = 1 : fpm[0] = 0;
+
+        fpm[2] = -std::log10(mParam["tolerance"].GetDouble());
+        fpm[3] = mParam["max_iteration"].GetInt();
 
         if( mParam["search_lowest_eigenvalues"].GetBool() )
         {
@@ -154,17 +156,14 @@ class FEASTEigensystemSolver
         char UPLO = 'F';
         int N = static_cast<int>(system_size);
 
+        // provide matrices in array form. fortran indices start with 1, must be int
         double* A = reinterpret_cast<double*>(rK.value_data().begin());
         int IA[N+1] = {};
-        // KRATOS_WATCH(N+1)
-        // KRATOS_WATCH(rK.index1_data().size())
         for( int i=0; i<N+1; ++i )
         {
             IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
         }
         int JA[IA[N]-1] = {};
-        // KRATOS_WATCH(IA[N])
-        // KRATOS_WATCH(rK.index2_data().size())
         for( int i=0; i<IA[N]-1; ++i )
         {
             JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
@@ -172,15 +171,11 @@ class FEASTEigensystemSolver
 
         double* B = reinterpret_cast<double*>(rM.value_data().begin());
         int IB[N+1] = {};
-        // KRATOS_WATCH(N+1)
-        // KRATOS_WATCH(rM.index1_data().size())
         for( int i=0; i<N+1; ++i )
         {
             IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
         }
         int JB[IB[N]-1] = {};
-        // KRATOS_WATCH(IB[N])
-        // KRATOS_WATCH(rM.index2_data().size())
         for( int i=0; i<IB[N]-1; ++i )
         {
             JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
@@ -188,8 +183,10 @@ class FEASTEigensystemSolver
 
         double epsout;
         int loop;
-        double Emin = mParam["e_min"].GetDouble();
-        double Emax = mParam["e_max"].GetDouble();
+        ValueType E1 = GetE1(T);
+        double E2 = GetE2(T);
+        double* Emin = reinterpret_cast<double*>(&E1);
+        double* Emax = reinterpret_cast<double*>(&E2);
         int M0 = static_cast<int>(subspace_size);
         double* E = reinterpret_cast<double*>(rEigenvalues.data().begin());
         double* X = reinterpret_cast<double*>(tmp_eigenvectors.data().begin());
@@ -197,32 +194,20 @@ class FEASTEigensystemSolver
         double* res = reinterpret_cast<double*>(residual.data().begin());
         int info;
 
-        ValueType T;
-        // dfeast_scsrgv(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, &Emin, &Emax, &M0, E, X, &M, res, &info);
+        // call feast
         fptr feast = CallFeast(T);
+        feast(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
 
-        feast(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, &Emin, &Emax, &M0, E, X, &M, res, &info);
-        
+        KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output.\n";
+        KRATOS_INFO_IF("FeastEigensystemSolver", info > 0 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
+        KRATOS_INFO_IF("FeastEigensystemSolver", info == 7) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
+
         // copy eigenvectors back to the provided row based matrix
         noalias(rEigenvectors) = tmp_eigenvectors;
 
-        // discard the spurious eigenvalues
-        if( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() )
-        {
-            // rEigenvectors.resize(system_size, subspace_size/2, true);
-            rEigenvalues.resize(subspace_size/2, true);
-        }
-
-        // // --- output
-        // if (echo_level > 0) {
-        //     double end_time = OpenMPUtils::GetCurrentTime();
-        //     double duration = end_time - start_time;
-
-        //     Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
-
-        //     KRATOS_INFO("FEASTEigensystemSolver:") << "Completed in " << duration << " seconds" << std::endl
-        //               << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
-        // }
+        // truncate the results to the converged eigenvalues
+        rEigenvectors.resize(system_size, M, true);
+        rEigenvalues.resize(M, true);
     }
 
     /**
@@ -252,6 +237,54 @@ class FEASTEigensystemSolver
     fptr CallFeast(std::complex<double> T)
     {
         return zfeast_scsrgv;
+    }
+
+    double GetE1(double T)
+    {
+        return mParam["e_min"].GetDouble();
+    }
+
+    double GetE2(double T)
+    {
+        return mParam["e_max"].GetDouble();
+    }
+
+    std::complex<double> GetE1(std::complex<double> T)
+    {
+        return std::complex<double>(mParam["e_mid_re"].GetDouble(), mParam["e_mid_im"].GetDouble());
+    }
+
+    double GetE2(std::complex<double> T)
+    {
+        return mParam["e_r"].GetDouble();
+    }
+
+    void CheckParameters(double T)
+    {
+        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Cannot search for highest and lowest eigenvalues at the same time\n";
+
+        KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
+            "Invalid eigenvalue limits provided\n";
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
+            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices\n";
+    }
+
+    void CheckParameters(std::complex<double> T)
+    {
+        KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
+            "Invalid search radius provided\n";
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
+            "Manually defined e_min, e_max are not used for complex symmetric matrices\n";
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver", 
+            mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Search for extremal eigenvalues is only available for Hermitian problems\n";
+
     }
 
 }; // class FEASTEigensystemSolver
