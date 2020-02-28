@@ -36,9 +36,6 @@ namespace Kratos
 namespace Testing
 {
 
-    // Tolerance
-    constexpr double tolerance = 1.0e-6;
-
     typedef Node<3> NodeType;
 
     typedef ParticleHardeningLaw HL;
@@ -94,9 +91,9 @@ namespace Testing
         stress_trial_analytic[1] = -1.69230769230e+05;
         stress_trial_analytic[2] =  1.46153846154e+05;
 
-        KRATOS_CHECK_NEAR(stress(0,0), stress_trial_analytic[0], tolerance);
-        KRATOS_CHECK_NEAR(stress(1,1), stress_trial_analytic[1], tolerance);
-        KRATOS_CHECK_NEAR(stress(2,2), stress_trial_analytic[2], tolerance);
+        KRATOS_CHECK_NEAR(stress(0,0), stress_trial_analytic[0], 1e-6);
+        KRATOS_CHECK_NEAR(stress(1,1), stress_trial_analytic[1], 1e-6);
+        KRATOS_CHECK_NEAR(stress(2,2), stress_trial_analytic[2], 1e-6);
 
         // Compute new stresses after return mapping
         Matrix dummy_deformation_gradient = IdentityMatrix(3);
@@ -109,9 +106,9 @@ namespace Testing
         const double yield_analytic = 5.90371799617e+05;
 
         KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, tolerance);
-        KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], tolerance);
-        KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], tolerance);
-        KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], tolerance);
+        KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], 1e-6);
+        KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], 1e-6);
+        KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], 1e-6);
 
     }
 
