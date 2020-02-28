@@ -107,6 +107,8 @@ public:
 
     using BaseType::mInitializeWasPerformed;
 
+    static constexpr double dof_ratio_tolerance = 1e-3;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -143,7 +145,7 @@ public:
                 "min_radius_factor": 0.5,
                 "loads_sub_model_part_list": [],
                 "loads_variable_list" : []
-            }  )");
+            })");
 
             // Validate agains defaults
             rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -185,16 +187,16 @@ public:
     {
         KRATOS_TRY
 
-        if (mInitializeWasPerformed == false) {
+        if (!mInitializeWasPerformed) {
             BaseType::Initialize();
 
             if (mInitializeArcLengthWasPerformed == false) {
-                //set up the system
-                if (mpBuilderAndSolver->GetDofSetIsInitializedFlag() == false) {
-                    //setting up the list of the DOFs to be solved
+                // Set up the system
+                if (!mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
+                    // Setting up the list of the DOFs to be solved
                     mpBuilderAndSolver->SetUpDofSet(mpScheme, BaseType::GetModelPart());
 
-                    //shaping correctly the system
+                    // Shaping correctly the system
                     mpBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
                 }
 
@@ -219,7 +221,7 @@ public:
 
                 mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mf);
 
-                //Initialize the loading factor Lambda
+                // Initialize the loading factor Lambda
                 mLambda = 0.0;
                 mLambda_old = 1.0;
 
@@ -231,7 +233,6 @@ public:
                 KRATOS_INFO("Ramm's Arc Length Strategy") << "Strategy Initialized" << std::endl;
             }
         }
-
         KRATOS_CATCH( "" )
     }
 
@@ -243,7 +244,7 @@ public:
     {
         KRATOS_TRY
 
-		if (mSolutionStepIsInitialized == false) {
+		if (!mSolutionStepIsInitialized) {
             BaseType::InitializeSolutionStep();
 
             this->SaveInitializeSystemVector(mpf);
@@ -276,7 +277,7 @@ public:
         TSystemVectorType& mDxStep = *mpDxStep;
 
         // Initializing the parameters of the iteration loop
-        double NormDx;
+        double norm_dx;
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
@@ -301,12 +302,12 @@ public:
         this->Update(rDofSet, mA, mDxPred, mb);
 
         // Move the mesh if needed
-        if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        if(BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 
         // Correction phase
-        if (is_converged == true) {
+        if (is_converged) {
             mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDxf, mb);
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+            if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(mb);
                 mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
             }
@@ -336,15 +337,15 @@ public:
 
             mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDxb, mb);
 
-            DLambda = -TSparseSpace::Dot(mDxPred, mDxb)/TSparseSpace::Dot(mDxPred, mDxf);
+            DLambda = -TSparseSpace::Dot(mDxPred, mDxb) / TSparseSpace::Dot(mDxPred, mDxf);
 
             noalias(mDx) = mDxb + DLambda*mDxf;
 
             //Check solution before update
             if (mNormxEquilibrium > 1.0e-10) {
-                NormDx = TSparseSpace::TwoNorm(mDx);
+                norm_dx = TSparseSpace::TwoNorm(mDx);
 
-                if ((NormDx/mNormxEquilibrium) > 1.0e3 || (std::abs(DLambda)/std::abs(mLambda-mDLambdaStep)) > 1.0e3) {
+                if ((norm_dx / mNormxEquilibrium) > 1.0e3 || (std::abs(DLambda) / std::abs(mLambda - mDLambdaStep)) > 1.0e3) {
                     is_converged = false;
                     break;
                 }
@@ -402,7 +403,7 @@ public:
         unsigned int iteration_number = BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER];
 
         // Update the radius
-        mRadius = mRadius*sqrt(double(mDesiredIterations)/double(iteration_number));
+        mRadius = mRadius*sqrt(double(mDesiredIterations) / double(iteration_number));
 
         DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
@@ -428,7 +429,8 @@ public:
             this->Update(rDofSet, mA, mDx, mb);
 
             // Move the mesh if needed
-            if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
+            if (BaseType::MoveMeshFlag()) 
+                BaseType::MoveMesh();
         }
 
         BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA] = mLambda;
@@ -462,7 +464,7 @@ public:
         SparseSpaceType::Clear(mpDxPred);
         SparseSpaceType::Clear(mpDxStep);
 
-        TSystemVectorType& mf = *mpf;
+        TSystemVectorType& mf   = *mpf;
         TSystemVectorType& mDxf = *mpDxf;
         TSystemVectorType& mDxb = *mpDxb;
         TSystemVectorType& mDxPred = *mpDxPred;
@@ -528,21 +530,21 @@ protected:
     ///@name Member Variables
     ///@{
 
-    TSystemVectorPointerType mpf;      /// Vector of reference external forces
-    TSystemVectorPointerType mpDxf;    /// Delta x of A*Dxf=f
-    TSystemVectorPointerType mpDxb;    /// Delta x of A*Dxb=b
-    TSystemVectorPointerType mpDxPred; /// Delta x of prediction phase
-    TSystemVectorPointerType mpDxStep; /// Delta x of the current step
+    TSystemVectorPointerType mpf;      // Vector of reference external forces
+    TSystemVectorPointerType mpDxf;    // Delta x of A*Dxf=f
+    TSystemVectorPointerType mpDxb;    // Delta x of A*Dxb=b
+    TSystemVectorPointerType mpDxPred; // Delta x of prediction phase
+    TSystemVectorPointerType mpDxStep; // Delta x of the current step
 
-    unsigned int mDesiredIterations;   /// This is used to calculate the radius of the next step
+    unsigned int mDesiredIterations;   // This is used to calculate the radius of the next step
 
     bool mInitializeArcLengthWasPerformed;
 
-    double mMaxRadiusFactor, mMinRadiusFactor; /// Used to limit the radius of the arc length strategy
-    double mRadius, mRadius_0;                 /// Radius of the arc length strategy
-    double mLambda, mLambda_old;               /// Loading factor
-    double mNormxEquilibrium;                  /// Norm of the solution vector in equilibrium
-    double mDLambdaStep;                       /// Delta lambda of the current step
+    double mMaxRadiusFactor, mMinRadiusFactor; // Used to limit the radius of the arc length strategy
+    double mRadius, mRadius_0;                 // Radius of the arc length strategy
+    double mLambda, mLambda_old;               // Loading factor
+    double mNormxEquilibrium;                  // Norm of the solution vector in equilibrium
+    double mDLambdaStep;                       // Delta lambda of the current step
 
     Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; // List of every SubModelPart associated to an external load
@@ -579,11 +581,11 @@ protected:
         unsigned int iteration_number = 0;
         bool is_converged = false;
         double dofs_ratio = 1000.0;
-        double ReferenceDofsNorm;
-        double NormDx;
+        double reference_dof_norm;
+        double norm_dx;
 
         // Correction phase 
-        while (is_converged == false && iteration_number < mMaxIterationNumber) {
+        while (!is_converged && iteration_number < mMaxIterationNumber) {
             // Setting the number of iterations
             iteration_number += 1;
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -604,13 +606,13 @@ protected:
 
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
-            NormDx = TSparseSpace::TwoNorm(mDx);
-            ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
-            dofs_ratio = NormDx/ReferenceDofsNorm;
+            norm_dx = TSparseSpace::TwoNorm(mDx);
+            reference_dof_norm = this->CalculateReferenceDofsNorm(rDofSet);
+            dofs_ratio = norm_dx / reference_dof_norm;
             KRATOS_INFO("Newton Raphson Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
             KRATOS_INFO("Newton Raphson Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
 
-            if(dofs_ratio <= 1.0e-3)
+            if(dofs_ratio <= dof_ratio_tolerance)
                 is_converged = true;
         }
         return is_converged;
@@ -621,27 +623,27 @@ protected:
      */
     double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
     {
-        double ReferenceDofsNorm = 0.0;
+        double reference_dof_norm = 0.0;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+        int num_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector dof_set_partition;
+        OpenMPUtils::DivideInPartitions(rDofSet.size(), num_threads, dof_set_partition);
 
-        #pragma omp parallel reduction(+:ReferenceDofsNorm)
+        #pragma omp parallel reduction(+:reference_dof_norm)
         {
             int k = OpenMPUtils::ThisThread();
 
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
+            typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_set_partition[k];
+            typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_set_partition[k+1];
 
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
+            for (typename DofsArrayType::iterator itDof = dof_begin; itDof != dof_end; ++itDof) {
                 if (itDof->IsFree()) {
                     const double& temp = itDof->GetSolutionStepValue();
-                    ReferenceDofsNorm += temp*temp;
+                    reference_dof_norm += temp*temp;
                 }
             }
         }
-        return sqrt(ReferenceDofsNorm);
+        return sqrt(reference_dof_norm);
     }
 
     /**
@@ -669,8 +671,8 @@ protected:
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL) {
-            TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
-            pv.swap(pNewv);
+            TSystemVectorPointerType p_new_v = TSystemVectorPointerType(new TSystemVectorType(0));
+            pv.swap(p_new_v);
         }
 
         TSystemVectorType& v = *pv;
@@ -685,8 +687,8 @@ protected:
     void SaveInitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL) {
-            TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
-            pv.swap(pNewv);
+            TSystemVectorPointerType p_new_v = TSystemVectorPointerType(new TSystemVectorType(0));
+            pv.swap(p_new_v);
         }
 
         TSystemVectorType& v = *pv;
@@ -764,47 +766,47 @@ protected:
     void UpdateExternalLoads()
     {
         // Update External Loads
-        for(unsigned int i = 0; i < mVariableNames.size(); i++) {
-            ModelPart& rSubModelPart = *(mSubModelPartList[i]);
-            const std::string& VariableName = mVariableNames[i];
+        for (unsigned int i = 0; i < mVariableNames.size(); i++) {
+            ModelPart& r_sub_model_part = *(mSubModelPartList[i]);
+            const std::string& r_variable_name = mVariableNames[i];
 
-            if (KratosComponents< Variable<double> >::Has(VariableName)) {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
+            if (KratosComponents< Variable<double> >::Has(r_variable_name)) {
+                Variable<double> variable = KratosComponents<Variable<double>>::Get(r_variable_name);
 
                 #pragma omp parallel
                 {
                     ModelPart::NodeIterator NodesBegin;
                     ModelPart::NodeIterator NodesEnd;
-                    OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
+                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),NodesBegin,NodesEnd);
 
-                    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) {
-                        double& rvalue = itNode->FastGetSolutionStepValue(var);
-                        rvalue *= (mLambda/mLambda_old);
+                    for (ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node) {
+                        double& r_value = it_node->FastGetSolutionStepValue(variable);
+                        r_value *= (mLambda / mLambda_old);
                     }
                 }
-            } else if (KratosComponents< Variable<array_1d<double,3>>>::Has(VariableName)) {
-                typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-                component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
-                component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
-                component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+            } else if (KratosComponents< Variable<array_1d<double,3>>>::Has(r_variable_name)) {
+                typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> component_type;
+                component_type varx = KratosComponents<component_type>::Get(r_variable_name + std::string("_X"));
+                component_type vary = KratosComponents<component_type>::Get(r_variable_name + std::string("_Y"));
+                component_type varz = KratosComponents<component_type>::Get(r_variable_name + std::string("_Z"));
 
                 #pragma omp parallel
                 {
                     ModelPart::NodeIterator NodesBegin;
                     ModelPart::NodeIterator NodesEnd;
-                    OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
+                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),NodesBegin,NodesEnd);
 
-                    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) {
-                        double& rvaluex = itNode->FastGetSolutionStepValue(varx);
-                        rvaluex *= (mLambda/mLambda_old);
-                        double& rvaluey = itNode->FastGetSolutionStepValue(vary);
-                        rvaluey *= (mLambda/mLambda_old);
-                        double& rvaluez = itNode->FastGetSolutionStepValue(varz);
-                        rvaluez *= (mLambda/mLambda_old);
+                    for (ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node) {
+                        double& rvaluex = it_node->FastGetSolutionStepValue(varx);
+                        rvaluex *= (mLambda / mLambda_old);
+                        double& rvaluey = it_node->FastGetSolutionStepValue(vary);
+                        rvaluey *= (mLambda / mLambda_old);
+                        double& rvaluez = it_node->FastGetSolutionStepValue(varz);
+                        rvaluez *= (mLambda / mLambda_old);
                     }
                 }
             } else {
-                KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", VariableName )
+                KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", r_variable_name )
             }
         }
         // Save the applied Lambda factor
