@@ -25,7 +25,7 @@ namespace Testing
 {
 
     // Tolerance
-    static constexpr double tolerance = 1.0e-6;
+    constexpr double tolerance = 1.0e-6;
 
     // Generate hydrostatic principal stress of value 3
     Vector CreateHydrostaticStressVector()

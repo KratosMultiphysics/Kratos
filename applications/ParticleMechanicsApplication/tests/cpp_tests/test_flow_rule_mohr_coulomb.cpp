@@ -37,7 +37,7 @@ namespace Testing
 {
 
     // Tolerance
-    static constexpr double tolerance = 1.0e-6;
+    constexpr double tolerance = 1.0e-6;
 
     typedef Node<3> NodeType;
 

@@ -25,7 +25,7 @@ namespace Testing
 {
 
     // Tolerance
-    static constexpr double tolerance = 1.0e-6;
+    constexpr double tolerance = 1.0e-6;
 
     // Number of Iteration and computation tolerance
     static constexpr unsigned int num_iteration = 100;
