@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -40,6 +39,9 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+//forward declaring ModelPart to be avoid cross references
+class ModelPart;
+    
 /**
  * @namespace DelaunatorUtilities
  * @ingroup KratosCore

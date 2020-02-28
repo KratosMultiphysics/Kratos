@@ -17,6 +17,7 @@
 #include "triangle.h"
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/delaunator_utilities.h"
 
 namespace Kratos
