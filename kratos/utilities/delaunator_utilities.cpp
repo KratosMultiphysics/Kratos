@@ -134,6 +134,13 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
         rModelPart.CreateNewElement("Element2D3N", counter, {{r_triangles[i] + 1,r_triangles[i + 1] + 1, r_triangles[i + 2] + 1}}, p_elem_prop);
         ++counter;
     }
+    
+    // Check orientation
+    for (auto& r_elem : rModelPart.Elements()) {
+        if(r_elem.GetGeometry().Area() < 0.0) {
+            r_elem.GetGeometry()(0).swap(r_elem.GetGeometry()(1));
+        }
+    }
 
     KRATOS_CATCH("")
 }
