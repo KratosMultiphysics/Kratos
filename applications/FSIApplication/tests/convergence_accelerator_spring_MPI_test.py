@@ -102,7 +102,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
     def setUp(self):
 
         # So far, the MPI convergence accelerator tests must be run with 2 processes
-        if (KratosMultiphysics.DataCommunicator.GetDefault().Size() != 2):
+        if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
             raise Exception("The MPI convergence accelerator tests must be run with 2 processes.")
 
         self.print_gid_output = False
