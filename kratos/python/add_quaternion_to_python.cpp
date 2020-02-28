@@ -44,6 +44,7 @@ void  AddQuaternionToPython(pybind11::module& m) {
 
     py::class_<Quaternion<double>, Quaternion<double>::Pointer>(m, "Quaternion")
     .def(py::init<>())
+    .def("__str__", PrintObject<Quaternion<double>>)
     .def_property("X", QuaternionGetX, QuaternionSetX)
     .def_property("Y", QuaternionGetY, QuaternionSetY)
     .def_property("Z", QuaternionGetZ, QuaternionSetZ)
