@@ -5,7 +5,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla (based on Elisa Magliozzi previous work)
@@ -61,16 +61,9 @@ namespace Kratos
  * @tparam TDim The space dimension (2 or 3)
  * @tparam TNumNodes The number of nodes
  */
-template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
+template< unsigned int TDim, unsigned int TNumNodes = TDim + 1, unsigned int TBlockSize = TDim + 2 >
 class CompressibleNavierStokesExplicit : public Element
 {
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    static constexpr unsigned int mBlockSize = TDim + 2;
-
-    ///@}
 public:
     ///@name Type Definitions
     ///@{
@@ -80,7 +73,7 @@ public:
 
     struct ElementDataStruct
     {
-        BoundedMatrix<double, TNumNodes, mBlockSize> U;
+        BoundedMatrix<double, TNumNodes, TBlockSize> U;
         BoundedMatrix<double, TNumNodes, TDim> f_ext;
         array_1d<double, TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
         array_1d<double, TDim> f_gauss;
@@ -173,15 +166,24 @@ public:
     }
 
     /**
-     * This is called to calculate the elemental explicit residual contribution
-     * The computed residual will be later on assembled in the reaction DOFs
-     * inside the add explicit contribution method.
+     * This is called during the assembling process in order
+     * to calculate the elemental right hand side vector only.
+     * Note that this is explicitly forbidden as this element is
+     * conceived to work with bounded arrays for the sake of efficiency.
+     * A CalculateRightHandSideInternal() method is implemented instead.
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit compressible Navier-Stokes element. Call the CalculateRightHandSideInternal() instead.";
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * This is called during the assembling process in order
@@ -315,6 +317,17 @@ protected:
      * @return double The computed element size
      */
     double CalculateElementSize(const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX);
+
+    /**
+     * @brief Internal CalculateRightHandSide() method
+     * This auxiliary RHS calculated method is created to bypass the element API
+     * In this way bounded vectors can be used in the explicit residual calculation
+     * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
+     * @param rCurrentProcessInfo Refeecen to the current process inf
+     */
+    void CalculateRightHandSideInternal(
+        BoundedVector<double, TBlockSize * TNumNodes>& rRightHandSideBoundedVector,
+        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access

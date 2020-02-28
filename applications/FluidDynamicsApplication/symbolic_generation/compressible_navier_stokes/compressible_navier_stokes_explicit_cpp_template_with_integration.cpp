@@ -144,8 +144,8 @@ void CompressibleNavierStokesExplicit<3>::GetDofList(
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
+template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
+int CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -188,8 +188,8 @@ int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
+template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -225,8 +225,8 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     CalculateShockCapturingValues(rData);
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
+template <unsigned int TDim, unsigned int TNumNodes, unsigned int TBlockSize>
+double CompressibleNavierStokesExplicit<TDim, TNumNodes, TBlockSize>::CalculateElementSize(const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX)
 {
     double h = 0.0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -241,8 +241,8 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateElementSize(B
 }
 
 template <>
-void CompressibleNavierStokesExplicit<2>::CalculateRightHandSide(
-    VectorType &rRightHandSideVector,
+void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
+    BoundedVector<double, 12> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -250,10 +250,6 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSide(
     constexpr unsigned int n_nodes = 3;
     constexpr unsigned int block_size = 4;
     constexpr unsigned int matrix_size = n_nodes * block_size;
-
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false); //false says not to preserve existing storage!!
-    }
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -290,21 +286,6 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSide(
     const double &U_2_2 = data.U(2, 2);
     const double &U_2_3 = data.U(2, 3);
 
-    // Hardcoded shape functions for linear triangular element
-    // This is explicitly done to minimize the allocation and matrix acceses
-    // The notation N_i_j means shape function for node j in Gauss pt. i
-    const double one_sixt = 1.0/6.0;
-    const double two_third = 2.0/3.0;
-    const double N_0_0 = one_sixt;
-    const double N_0_1 = one_sixt;
-    const double N_0_2 = two_third;
-    const double N_1_0 = one_sixt;
-    const double N_1_1 = two_third;
-    const double N_1_2 = one_sixt;
-    const double N_2_0 = two_third;
-    const double N_2_1 = one_sixt;
-    const double N_2_2 = one_sixt;
-
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
@@ -318,14 +299,14 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSide(
     //substitute_rhs_2D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
+    rRightHandSideBoundedVector *= data.volume / static_cast<double>(n_nodes);
 
     KRATOS_CATCH("")
 }
 
 template<>
-void CompressibleNavierStokesExplicit<3>::CalculateRightHandSide(
-    VectorType &rRightHandSideVector,
+void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
+    BoundedVector<double, 20> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -333,10 +314,6 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSide(
     constexpr unsigned int n_nodes = 4;
     constexpr unsigned int block_size = 5;
     constexpr unsigned int matrix_size = n_nodes * block_size;
-
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false); //false says not to preserve existing storage!!
-    }
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -381,26 +358,6 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSide(
     const double &U_3_3 = data.U(3, 3);
     const double &U_3_4 = data.U(3, 4);
 
-    // Hardcoded shape functions for linear tetrahedra element
-    // This is explicitly done to minimize the alocation and matrix acceses
-    // The notation N_i_j means shape function for node j in Gauss pt. i
-    const double N_0_0 = 0.58541020;
-    const double N_0_1 = 0.13819660;
-    const double N_0_2 = 0.13819660;
-    const double N_0_3 = 0.13819660;
-    const double N_1_0 = 0.13819660;
-    const double N_1_1 = 0.58541020;
-    const double N_1_2 = 0.13819660;
-    const double N_1_3 = 0.13819660;
-    const double N_2_0 = 0.13819660;
-    const double N_2_1 = 0.13819660;
-    const double N_2_2 = 0.58541020;
-    const double N_2_3 = 0.13819660;
-    const double N_3_0 = 0.13819660;
-    const double N_3_1 = 0.13819660;
-    const double N_3_2 = 0.13819660;
-    const double N_3_3 = 0.58541020;
-
     // Hardcoded shape functions gradients for linear tetrahedra element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
@@ -420,7 +377,7 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSide(
     //substitute_rhs_3D
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideVector *= data.volume / static_cast<double>(n_nodes);
+    rRightHandSideBoundedVector *= data.volume / static_cast<double>(n_nodes);
 
     KRATOS_CATCH("")
 }
@@ -433,22 +390,23 @@ void CompressibleNavierStokesExplicit<2>::AddExplicitContribution(const ProcessI
     constexpr IndexType block_size = 4;
 
     // Calculate the explicit residual vector
-    VectorType rhs;
-    CalculateRightHandSide(rhs, rCurrentProcessInfo);
+    BoundedVector<double, 12> rhs;
+    CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
 
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        const IndexType aux = i_node * block_size;
 #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[i_node * block_size];
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[aux];
         auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
         for (IndexType d = 0; d < dim; ++d) {
 #pragma omp atomic
-            r_mom[d] += rhs[i_node * block_size + (d + 1)];
+            r_mom[d] += rhs[aux + (d + 1)];
         }
 #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(REACTION_ENERGY) += rhs[i_node * block_size + 3];
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_ENERGY) += rhs[aux + 3];
     }
 }
 
@@ -460,22 +418,23 @@ void CompressibleNavierStokesExplicit<3>::AddExplicitContribution(const ProcessI
     constexpr IndexType block_size = 5;
 
     // Calculate the explicit residual vector
-    VectorType rhs;
-    CalculateRightHandSide(rhs, rCurrentProcessInfo);
+    BoundedVector<double, 20> rhs;
+    CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
 
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        const IndexType aux = i_node * block_size;
 #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[i_node * block_size];
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[aux];
         auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
         for (IndexType d = 0; d < dim; ++d) {
 #pragma omp atomic
-            r_mom[d] += rhs[i_node * block_size + (d + 1)];
+            r_mom[d] += rhs[aux + (d + 1)];
         }
 #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(REACTION_ENERGY) += rhs[i_node * block_size + 4];
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_ENERGY) += rhs[aux + 4];
     }
 }
 

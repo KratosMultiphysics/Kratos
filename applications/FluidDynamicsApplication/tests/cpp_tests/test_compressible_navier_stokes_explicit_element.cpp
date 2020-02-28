@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
@@ -39,8 +39,11 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitVsImplicitRHS2D3N, Flu
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     r_model_part.AddNodalSolutionStepVariable(DENSITY);
+    r_model_part.AddNodalSolutionStepVariable(REACTION_DENSITY);
     r_model_part.AddNodalSolutionStepVariable(MOMENTUM);
+    r_model_part.AddNodalSolutionStepVariable(REACTION);
     r_model_part.AddNodalSolutionStepVariable(TOTAL_ENERGY);
+    r_model_part.AddNodalSolutionStepVariable(REACTION_ENERGY);
     r_model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     r_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     r_model_part.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
@@ -89,13 +92,20 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitVsImplicitRHS2D3N, Flu
 
     // Compute explicit RHS
     const auto &r_process_info = r_model_part.GetProcessInfo();
-    Vector RHS_expl = ZeroVector(12);
     p_elem_expl->Initialize(r_process_info);
-    p_elem_expl->CalculateRightHandSide(RHS_expl, r_process_info);
+    p_elem_expl->AddExplicitContribution(r_process_info);
 
     // Check obtained RHS values
     // We check against the RHS obtained with the original implicit element without the intertial terms and the shock capturing
     std::vector<double> RHS_impl({0.134831, 0.328435, 0.324492, 1.15847, -0.695681, -2.39476, -2.34955, -8.87494, -0.698156, -2.30026, -2.39888, -8.75893});
+    std::vector<double> RHS_expl(12);
+    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
+        const auto it_node = r_model_part.NodesBegin() + i_node;
+        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
+        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
+        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
+        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
+    }
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_impl, 1e-5);
 }
 
@@ -112,8 +122,11 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitVsImplicitRHS3D4N, Flu
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     r_model_part.AddNodalSolutionStepVariable(DENSITY);
+    r_model_part.AddNodalSolutionStepVariable(REACTION_DENSITY);
     r_model_part.AddNodalSolutionStepVariable(MOMENTUM);
+    r_model_part.AddNodalSolutionStepVariable(REACTION);
     r_model_part.AddNodalSolutionStepVariable(TOTAL_ENERGY);
+    r_model_part.AddNodalSolutionStepVariable(REACTION_ENERGY);
     r_model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     r_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     r_model_part.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
@@ -162,14 +175,22 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitVsImplicitRHS3D4N, Flu
     }
 
     // Compute explicit RHS
-    Vector RHS_expl = ZeroVector(20);
     const auto &r_process_info = r_model_part.GetProcessInfo();
     p_elem_expl->Initialize(r_process_info);
-    p_elem_expl->CalculateRightHandSide(RHS_expl, r_process_info);
+    p_elem_expl->AddExplicitContribution(r_process_info);
 
     // Check obtained RHS values
     // We check against the RHS obtained with the original implicit element without the intertial terms and the shock capturing
     std::vector<double> RHS_impl({0.186062, 0.525773, 0.525316, 0.524028, 2.61985, -0.329746, -1.07454, -1.04549, -1.04842, -5.41058, -0.33065, -1.02446, -1.07384, -1.03918, -5.33134, -0.330744, -1.01243, -1.02437, -1.06775, -5.25722});
+    std::vector<double> RHS_expl(20);
+    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
+        const auto it_node = r_model_part.NodesBegin() + i_node;
+        RHS_expl[i_node * 5    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
+        RHS_expl[i_node * 5 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
+        RHS_expl[i_node * 5 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
+        RHS_expl[i_node * 5 + 3] = it_node->FastGetSolutionStepValue(REACTION_Z);
+        RHS_expl[i_node * 5 + 4] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
+    }
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_impl, 1e-5);
 }
 
