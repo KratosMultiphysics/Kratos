@@ -82,6 +82,7 @@ class NavierStokesCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 
     def AddVariables(self):     ## Che cosa fa questa funzione? Devono esistere da qualche parte le variabili che aggiungo?
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RK4)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RHS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RHS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_RHS)

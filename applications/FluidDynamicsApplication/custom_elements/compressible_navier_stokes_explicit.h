@@ -163,7 +163,8 @@ public:
 
         // Gauss point position
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
-        GetShapeFunctionsOnGauss(Ncontainer);
+        int IntegrationType = 1;        // 0 for exact integration, 1 for nodal integration
+        GetShapeFunctionsOnGauss(Ncontainer, IntegrationType);
 
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
         {
@@ -213,11 +214,14 @@ public:
 
         // Gauss point position
         // BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
-        // GetShapeFunctionsOnGauss(Ncontainer);
+        // int IntegrationType = 1;        // 0 for exact integration, 1 for nodal integration
+        // GetShapeFunctionsOnGauss(Ncontainer, IntegrationType);
 
+        // One point integration
         BoundedMatrix<double,1, TNumNodes> Ncontainer;
         GetShapeFunctionsOnUniqueGauss(Ncontainer);
 
+        
         const unsigned int NGauss = Ncontainer.size1();
 
         // Loop on gauss point
@@ -255,8 +259,6 @@ public:
                 #pragma omp atomic
                 momentum[2] += rRightHandSideVector[BlockSize*i + 3];
             }
-
-          //  r_geom[i].FastGetSolutionStepValue(MOMENTUM_RHS) = momentum; // Dubbio !
 
             #pragma omp atomic
             r_geom[i].FastGetSolutionStepValue(TOTAL_ENERGY_RHS) += rRightHandSideVector[BlockSize*i + TDim + 1];
@@ -527,24 +529,43 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer)
-    {
-        Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
-        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
-        Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
-        Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer, int IntegrationType)
+    {   
+        if (IntegrationType == 0){
+            Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
+            Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
+            Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
+            Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
+        }
+        if (IntegrationType == 1){
+            // In case of nodal integration
+            Ncontainer(0,0) = 1.0; Ncontainer(0,1) = 0.0; Ncontainer(0,2) = 0.0; Ncontainer(0,3) = 0.0;
+            Ncontainer(1,0) = 0.0; Ncontainer(1,1) = 1.0; Ncontainer(1,2) = 0.0; Ncontainer(1,3) = 0.0;
+            Ncontainer(2,0) = 0.0; Ncontainer(2,1) = 0.0; Ncontainer(2,2) = 1.0; Ncontainer(2,3) = 0.0;
+            Ncontainer(3,0) = 0.0; Ncontainer(3,1) = 0.0; Ncontainer(3,2) = 0.0; Ncontainer(3,3) = 1.0;
+        }
     }
 
     // 2D triangle shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
-    {
-        const double one_sixt = 1.0/6.0;
-        const double two_third = 2.0/3.0;
-        Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
-        Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
-        Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer, int IntegrationType)
+    {   
+
+        if (IntegrationType == 0){
+            const double one_sixt = 1.0/6.0;
+            const double two_third = 2.0/3.0;
+            Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
+            Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
+            Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
+        }
+        if (IntegrationType == 1){
+            // In case of nodal integration
+            Ncontainer(0,0) = 1.0; Ncontainer(0,1) = 0.0; Ncontainer(0,2) = 0.0;
+            Ncontainer(1,0) = 0.0; Ncontainer(1,1) = 1.0; Ncontainer(1,2) = 0.0;
+            Ncontainer(2,0) = 0.0; Ncontainer(2,1) = 0.0; Ncontainer(2,2) = 1.0;
+        }
     }
 
+    
     // 3D tetrahedra shape functions values at centered Gauss point
     void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,4>& Ncontainer)
     {
