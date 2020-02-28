@@ -15,11 +15,8 @@
 
 // Project includes
 #include "containers/model.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
-#include "includes/gid_io.h"
 #include "utilities/cpp_tests_utilities.h"
 
 /* Processes */
