@@ -44,12 +44,15 @@ namespace Kratos
  * @namespace CppTestsUtilities
  * @ingroup KratosCore
  * @brief This namespace includes utilities for simplifying the deploy of C++ tests
+ * @details The following method are implemented :
+ * - Create2DGeometry: Creates a simple mesh of triangles 
+ * - Create3DGeometry: Creates a simple mesh of tetrahedra 
  * @author Vicente Mataix Ferrandiz
  */
 namespace CppTestsUtilities
 {
     /**
-     * @brief This method creates a simple geometry in 2D
+     * @brief This method creates a simple geometry in 2D (triangles) 
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param rElementName The element name considered
      */
@@ -59,7 +62,7 @@ namespace CppTestsUtilities
         );
 
     /**
-     * @brief This method creates a simple geometry in 3D
+     * @brief This method creates a simple geometry in 3D (tetrahedra) 
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param rElementName The element name considered
      */
