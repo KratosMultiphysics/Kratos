@@ -23,6 +23,7 @@
 
 // Application includes
 #include "drag_and_moment_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -78,6 +79,7 @@ namespace Kratos
 
         // Iterate the model part elements to compute the drag
         array_1d<double, 3> elem_drag;
+        array_1d<double, 3> elem_drag_center;
 
         // Auxiliary var to make the reduction
         double drag_x_red = 0.0;
@@ -90,16 +92,14 @@ namespace Kratos
         #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) private(elem_drag) schedule(dynamic)
         for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
             auto it_elem = rModelPart.ElementsBegin() + i;
-            auto x = it_elem->GetGeometry().Center().X() - rReferencePoint[0];
-            auto y = it_elem->GetGeometry().Center().X() - rReferencePoint[1];
-            auto z = it_elem->GetGeometry().Center().X() - rReferencePoint[2];
+            it_elem->Calculate(DRAG_FORCE_CENTER, elem_drag_center, rModelPart.GetProcessInfo());
             it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
             drag_x_red += elem_drag[0];
             drag_y_red += elem_drag[1];
             drag_z_red += elem_drag[2];
-            moment_x_red += y * elem_drag[2] - z * elem_drag[1];
-            moment_y_red += z * elem_drag[0] - x * elem_drag[2];
-            moment_z_red += x * elem_drag[1] - y * elem_drag[0];
+            moment_x_red += elem_drag_center[1] * elem_drag[2] - elem_drag_center[2] * elem_drag[1];
+            moment_y_red += elem_drag_center[2] * elem_drag[0] - elem_drag_center[0] * elem_drag[2];
+            moment_z_red += elem_drag_center[0] * elem_drag[1] - elem_drag_center[1] * elem_drag[0];
         }
 
         drag_x += drag_x_red;

@@ -110,8 +110,8 @@ class ComputeDragAndMomentProcess(KratosMultiphysics.Process):
                     format(drag_force_and_moment[3],self.format)+" "+format(drag_force_and_moment[4],self.format)+" "+format(drag_force_and_moment[5],self.format)+"\n")
 
     def ExecuteFinalize(self):
-        if (self.model_part.GetCommunicator().MyPID() == 0):
-            if (self.write_drag_output_file):
+        if (self.write_drag_output_file):
+            if (self.model_part.GetCommunicator().MyPID() == 0):
                 self.output_file.close()
 
     def _GetFileHeader(self):
