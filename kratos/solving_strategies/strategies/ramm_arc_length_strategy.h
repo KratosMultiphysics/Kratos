@@ -205,14 +205,14 @@ public:
                 // Compute initial radius (mRadius_0)
                 mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
                 TSystemMatrixType& mA = *mpA;
-                TSystemVectorType& mDx = *mpDx;
+
+				TSystemVectorType& mDx = *mpDx;
                 TSystemVectorType& mb = *mpb;
                 TSparseSpace::SetToZero(mA);
                 TSparseSpace::SetToZero(mDx);
                 TSparseSpace::SetToZero(mb);
 
                 mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-
                 mRadius_0 = TSparseSpace::TwoNorm(mDx);
                 mRadius = mRadius_0;
 
