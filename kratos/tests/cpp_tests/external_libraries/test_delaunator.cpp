@@ -22,8 +22,10 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "utilities/timer.h"
 #include "utilities/delaunator_utilities.h"
+// #include "input_output/vtk_output.h"
 
 namespace Kratos {
 
@@ -89,10 +91,10 @@ inline void validatewithtolerance(
     
     KRATOS_CHECK_LESS_EQUAL((triangles_area - HullArea)/HullArea, Tolerance);
 
-    // Save filled debug model part
-    if (fill_model_part) {
-        VtkOutput(r_triangle_model_part, Parameters(R"({"element_data_value_variables" : ["NODAL_MAUX"]})")).PrintOutput();
-    }
+//     // Save filled debug model part
+//     if (fill_model_part) {
+//         VtkOutput(r_triangle_model_part, Parameters(R"({"element_data_value_variables" : ["NODAL_MAUX"]})")).PrintOutput();
+//     }
 }
 
 inline void validate(
