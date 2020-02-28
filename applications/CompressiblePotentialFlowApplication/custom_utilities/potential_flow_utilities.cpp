@@ -339,6 +339,57 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 }
 
 template <int Dim, int NumNodes>
+double ComputeDensity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Reading free stream conditions
+    const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
+
+    // Computing local mach number
+    double local_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+
+    if (local_mach_number > mach_number_limit)
+    { // Clamping the mach number to mach_number_limit
+        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
+        local_mach_number = mach_number_limit;
+    }
+
+    // Computing squares
+    const double M_inf_2 = M_inf * M_inf;
+    const double M_2 = local_mach_number * local_mach_number;
+
+    // Computing density according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+    const double numerator = 1 + (heat_capacity_ratio - 1) * M_inf_2 / 2;
+    const double denominator = 1 + (heat_capacity_ratio - 1) * M_2 / 2;
+    const double base = numerator / denominator;
+
+    if (base > 0.0)
+    {
+        return rho_inf * pow(base, 1 / (heat_capacity_ratio - 1));
+    }
+    else
+    {
+        KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
+        return rho_inf * 0.00001;
+    }
+}
+
+template <int Dim, int NumNodes>
+double ComputeDensityDerivative(const double& rDensity, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Reading free stream conditions
+    const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
+
+    return -pow(rho_inf, heat_capacity_ratio - 1) *
+           pow(rDensity, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -440,6 +491,8 @@ template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const Pr
 template double ComputePerturbationLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDensity<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDensityDerivative<2, 3>(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -465,6 +518,8 @@ template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const Pr
 template double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDensity<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDensityDerivative<3, 4>(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
