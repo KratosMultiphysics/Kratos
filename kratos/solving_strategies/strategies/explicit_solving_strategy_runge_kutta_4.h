@@ -64,16 +64,6 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    // typedef typename DofsArrayType::iterator DofIteratorType;
-
-    // typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
-
-    // typedef ModelPart::NodesContainerType NodesArrayType;
-
-    // typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-    // typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategyRungeKutta4);
 
@@ -190,6 +180,7 @@ protected:
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Set the auxiliary RK vectors
+        LocalSystemVectorType u_n(dof_size);
         LocalSystemVectorType rk_k1(dof_size);
         LocalSystemVectorType rk_k2(dof_size);
         LocalSystemVectorType rk_k3(dof_size);
@@ -199,17 +190,24 @@ protected:
         const double dt = BaseType::GetDeltaTime();
         KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
         auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
 
         // Set the previous step solution in the current buffer position
+        // Note that we only do this for the DOFs that are not fixed
+        // Contrairiwise, we save in an auxiliary vector the value of the fixed DOFs
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
             auto it_dof = r_dof_set.begin() + i_dof;
+            double& r_u = it_dof->GetSolutionStepValue(0);
             if (!it_dof->IsFixed()) {
-                it_dof->GetSolutionStepValue(0) = it_dof->GetSolutionStepValue(1);
+                r_u = it_dof->GetSolutionStepValue(1);
+            } else {
+                u_n(i_dof) = r_u;
             }
         }
 
         // 1st RK step
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 1);
         p_explicit_bs->BuildRHS(r_model_part);
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
@@ -217,14 +215,20 @@ protected:
             // Save current value in the corresponding vector
             const double& r_res = it_dof->GetSolutionStepReactionValue();
             rk_k1(i_dof) = r_res;
-            // Update the current DOF values
+            // Do the DOF update
+            double& r_u = it_dof->GetSolutionStepValue(0);
+            const double& r_u_old = it_dof->GetSolutionStepValue(1);
             if (!it_dof->IsFixed()) {
                 const double mass = r_lumped_mass_vector(i_dof);
-                it_dof->GetSolutionStepValue(0) = it_dof->GetSolutionStepValue(1) + mA21 * (dt / mass) * r_res;
+                r_u = r_u_old + mA21 * (dt / mass) * r_res;
+            } else {
+                const double delta_u = u_n(i_dof) - r_u_old;
+                r_u = r_u_old + mA21 * delta_u;
             }
         }
 
         // 2nd RK STEP
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 2);
         p_explicit_bs->BuildRHS(r_model_part);
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
@@ -233,13 +237,19 @@ protected:
             const double& r_res = it_dof->GetSolutionStepReactionValue();
             rk_k2(i_dof) = r_res;
             // Do the DOF update
+            double& r_u = it_dof->GetSolutionStepValue(0);
+            const double& r_u_old = it_dof->GetSolutionStepValue(1);
             if (!it_dof->IsFixed()) {
                 const double mass = r_lumped_mass_vector(i_dof);
-                it_dof->GetSolutionStepValue(0) = it_dof->GetSolutionStepValue(1) + mA32 * (dt / mass) * r_res;
+                r_u = r_u_old + mA32 * (dt / mass) * r_res;
+            } else {
+                const double delta_u = u_n(i_dof) - r_u_old;
+                r_u = r_u_old + mA32 * delta_u;
             }
         }
 
         // 3rd RK STEP
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 3);
         p_explicit_bs->BuildRHS(r_model_part);
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
@@ -248,17 +258,23 @@ protected:
             const double& r_res = it_dof->GetSolutionStepReactionValue();
             rk_k3(i_dof) = r_res;
             // Do the DOF update
+            double& r_u = it_dof->GetSolutionStepValue(0);
+            const double& r_u_old = it_dof->GetSolutionStepValue(1);
             if (!it_dof->IsFixed()) {
                 const double mass = r_lumped_mass_vector(i_dof);
-                it_dof->GetSolutionStepValue(0) = it_dof->GetSolutionStepValue(1) + mA43 * (dt / mass) * r_res;
+                r_u = r_u_old + mA43 * (dt / mass) * r_res;
+            } else {
+                const double delta_u = u_n(i_dof) - r_u_old;
+                r_u = r_u_old + mA43 * delta_u;
             }
         }
 
         // 4rd RK STEP
+        r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
         p_explicit_bs->BuildRHS(r_model_part);
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
+            const auto it_dof = r_dof_set.begin() + i_dof;
             // Save current value in the corresponding vector
             const double& r_res = it_dof->GetSolutionStepReactionValue();
             rk_k4(i_dof) = r_res;
@@ -269,12 +285,28 @@ protected:
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
             auto it_dof = r_dof_set.begin() + i_dof;
             // Do the DOF update
+            double& r_u = it_dof->GetSolutionStepValue(0);
+            const double& r_u_old = it_dof->GetSolutionStepValue(1);
             if (!it_dof->IsFixed()) {
                 const double mass = r_lumped_mass_vector(i_dof);
-                it_dof->GetSolutionStepValue(0) = it_dof->GetSolutionStepValue(1) + (dt / mass) * (mB1 * rk_k1(i_dof) + mB2 * rk_k2(i_dof) + mB3 * rk_k3(i_dof) + mB4 * rk_k4(i_dof));
+                r_u = r_u_old + (dt / mass) * (mB1 * rk_k1(i_dof) + mB2 * rk_k2(i_dof) + mB3 * rk_k3(i_dof) + mB4 * rk_k4(i_dof));
+            } else {
+                r_u = u_n(i_dof);
             }
         }
     }
+
+    /**
+     * @brief Initialize the Runge-Kutta substep
+     * This method is intended to implement all the operations required before each Runge-Kutta substep
+     */
+    virtual void InitializeRungeKuttaSubStep() {};
+
+    /**
+     * @brief Finalize the Runge-Kutta substep
+     * This method is intended to implement all the operations required after each Runge-Kutta substep
+     */
+    virtual void FinalizeRungeKuttaSubStep() {};
 
     ///@}
     ///@name Protected  Access

@@ -559,11 +559,21 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Calculate the explicit update
+     * This method is intended to implement the explicit update calculation
+     * Note that it has to be implemented according to the explicit scheme in a derived class
+     */
     virtual void SolveWithLumpedMassMatrix()
     {
         KRATOS_ERROR << "Calling the base ExplicitSolvingStrategy SolveWithLumpedMassMatrix(). Implement the specific explicit scheme solution update in a derived class" << std::endl;
     }
 
+    /**
+     * @brief Get the Delta Time object
+     * This method returns the DELTA_TIME from the ProcessInfo container
+     * @return const double
+     */
     virtual inline const double GetDeltaTime()
     {
         return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
