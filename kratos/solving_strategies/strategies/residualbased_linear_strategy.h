@@ -374,7 +374,7 @@ public:
             for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
 
-            //the following is needed since we need to eventually compute time derivatives after applying 
+            //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
@@ -825,14 +825,14 @@ private:
     virtual void EchoInfo()
     {
         TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
+        // TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb  = *mpb;
 
         if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
         {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
+            // KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+            // KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
+            // KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {

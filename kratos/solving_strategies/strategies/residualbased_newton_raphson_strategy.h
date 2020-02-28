@@ -1127,19 +1127,19 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual void EchoInfo(const unsigned int IterationNumber)
     {
         TSystemMatrixType& rA  = *mpA;
-        TSystemVectorType& rDx = *mpDx;
+        // TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb  = *mpb;
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
-            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
+            // KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
+            // KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
+            // KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+            // KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
+            // KRATOS_INFO("RHS") << "RHS  = " << rb << std::endl;
         }
         else if (this->GetEchoLevel() == 4) //print to matrix market file
         {
