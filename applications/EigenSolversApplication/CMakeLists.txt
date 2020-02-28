@@ -11,10 +11,6 @@
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
-if(POLICY CMP0079)
-  cmake_policy(SET CMP0079 NEW)
-endif(POLICY CMP0079)
-
 message( "**** configuring KratosEigenSolversApplication ****" )
 
 ################### PYBIND11
