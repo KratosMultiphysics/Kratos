@@ -102,15 +102,16 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
     const auto it_node_begin = r_nodes_array.begin();
 
     // The vector to fill
-    std::vector<double> coordinates;
+    const std::size_t number_of_nodes = r_nodes_array.size();
+    std::vector<double> coordinates(2*number_of_nodes, 0.0);
 
     // NOTE: 2D asssumed
-    for(std::size_t i=0; i<r_nodes_array.size(); ++i) {
+    for(std::size_t i=0; i<number_of_nodes; ++i) {
         auto it_node = it_node_begin + i;
 
         // Filling coordinates buffer
-        coordinates.push_back(it_node->X());
-        coordinates.push_back(it_node->Y());
+        coordinates[2*i]   = it_node->X();
+        coordinates[2*i+1] = it_node->Y();
     }
 
     // Creating the triangles
