@@ -57,18 +57,11 @@ namespace DelaunatorUtilities
     void KRATOS_API(KRATOS_CORE) CreateTriangleMeshFromNodes(ModelPart& rModelPart);
 
     /**
-     * @brief This method returns the triangles connectivity from a list of coordinates
-     * @param rCoordinates The list of coordinates, first X, then Y, for each point of the point cloud
-     * @return The connectivity vector
-     */
-    std::vector<std::size_t> KRATOS_API(KRATOS_CORE) ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates);
-
-    /**
      * @brief This method returns the triangles connectivity from a list of coordinates (using triangle library)
      * @param rCoordinates The list of coordinates, first X, then Y, for each point of the point cloud
      * @return The connectivity vector
      */
-    std::vector<std::size_t> KRATOS_API(KRATOS_CORE) ComputeTrianglesConnectivityWithTriangle(const std::vector<double>& rCoordinates);
+    std::vector<std::size_t> KRATOS_API(KRATOS_CORE) ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates);
 
 }; // namespace DelaunatorUtilities
 }  // namespace Kratos

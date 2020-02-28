@@ -143,15 +143,6 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
 
 std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates)
 {
-    // Use triangle library
-    return ComputeTrianglesConnectivityWithTriangle(rCoordinates);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::vector<std::size_t> ComputeTrianglesConnectivityWithTriangle(const std::vector<double>& rCoordinates)
-{
     // Creating the containers for the input and output
     struct triangulateio in_mid;
     struct triangulateio out_mid;

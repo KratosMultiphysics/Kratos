@@ -61,7 +61,7 @@ inline void validatewithtolerance(
     triangles_areas.clear();
     std::size_t counter = 0;
     Timer::Start("Triangle");
-    const auto& r_triangles_list = DelaunatorUtilities::ComputeTrianglesConnectivityWithTriangle(rCoordinates);
+    const auto& r_triangles_list = DelaunatorUtilities::ComputeTrianglesConnectivity(rCoordinates);
     Timer::Stop("Triangle");
 
     if (Debug != "")
