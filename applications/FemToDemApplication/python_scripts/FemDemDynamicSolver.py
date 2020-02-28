@@ -177,6 +177,21 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
 
 
     def _create_ramm_arc_length_strategy(self):
+        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
+        import json
+        self.loads_sub_sub_model_part_list = []
+        for i in range(self.settings["arc_length_loads_sub_model_part_list"].size()):
+            self.loads_sub_sub_model_part_list.append("sub_" + self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
+
+        computing_model_part = self.GetComputingModelPart()
+
+        # We create the arc-length loads subsubmodel parts
+        for i in range(self.loads_sub_sub_model_part_list.size()):
+            computing_sub_model = computing_model_part.CreateSubModelPart("sub_" + self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
+            for node in self.main_model_part.GetSubModelPart(self.settings["arc_length_loads_sub_model_part_list"][i].GetString()).Nodes:
+                computing_sub_model.AddNode(node, 0)
+
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()

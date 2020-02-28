@@ -126,7 +126,7 @@ public:
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
     RammArcLengthStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -136,7 +136,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-        ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
+        ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             Parameters default_parameters( R"({
@@ -147,7 +147,7 @@ public:
                 "loads_variable_list" : []
             })");
 
-            // Validate agains defaults
+            // Validate against defaults
             rParameters.ValidateAndAssignDefaults(default_parameters);
 
             mpParameters = &rParameters;
@@ -161,7 +161,7 @@ public:
                     KRATOS_THROW_ERROR(std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
+                    mSubModelPartList[i] = &(rModelPart.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
                     mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
                 }
             }

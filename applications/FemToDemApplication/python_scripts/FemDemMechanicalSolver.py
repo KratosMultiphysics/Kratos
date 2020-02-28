@@ -86,7 +86,7 @@ class FemDemMechanicalSolver(object):
             "arc_length_loads_variable_list":         [],
             "arc_length_desired_iterations":          4,
             "arc_length_max_radius_factor":           10.0,
-            "arc_length_min_radius_factor":           1.0,
+            "arc_length_min_radius_factor":           1.0
         }
         """)
 
