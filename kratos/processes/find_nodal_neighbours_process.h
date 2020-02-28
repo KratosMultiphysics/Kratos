@@ -14,24 +14,17 @@
 #if !defined(KRATOS_FIND_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED )
 #define  KRATOS_FIND_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
-
 
 namespace Kratos
 {
@@ -42,9 +35,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType NodesContainerType;
-typedef  ModelPart::ElementsContainerType ElementsContainerType;
-
 
 ///@}
 ///@name  Enum's
@@ -58,8 +48,12 @@ typedef  ModelPart::ElementsContainerType ElementsContainerType;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/** 
+ * @class FindNodalNeighboursProcess
+ * @ingroup KratosCore
+ * @brief This method allows to look for neighbours in a triangular or tetrahedral mesh
+ * @details It checks the connectivity of the elements
+ * @author Riccardo Rossi
 */
 class FindNodalNeighboursProcess
     : public Process
@@ -68,6 +62,24 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The nodes container type
+    typedef ModelPart::NodesContainerType NodesContainerType;
+    
+    /// The elements container type
+    typedef ModelPart::ElementsContainerType ElementsContainerType;
+    
+    /// The node definition
+    typedef Node<3> NodeType;
+    
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+    
+    /// The index type
+    typedef std::size_t IndexType;
+    
+    /// The size type
+    typedef std::size_t SizeType;
+    
     /// Pointer definition of FindNodalNeighboursProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindNodalNeighboursProcess);
 
@@ -75,15 +87,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /// avg_elems ------ expected number of neighbour elements per node.,
-    /// avg_nodes ------ expected number of neighbour Nodes
-    /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    FindNodalNeighboursProcess(ModelPart& model_part, unsigned int avg_elems = 10, unsigned int avg_nodes = 10)
-        : mr_model_part(model_part)
+    /**
+     * @brief Default constructor.
+     * @details The better the guess for the quantities above the less memory occupied and the fastest the algorithm
+     * @param rModelPart The modelpart to be processed
+     * @param AverageElements Expected number of neighbour elements per node.
+     * @param AverageNodes Expected number of neighbour Nodes
+    */
+    FindNodalNeighboursProcess(
+        ModelPart& rModelPart, 
+        SizeType AverageElements = 10, 
+        SizeType AverageNodes = 10
+        ) : mrModelPart(rModelPart),
+            mAverageElements(AverageElements),
+            mAverageNodes(AverageNodes)
     {
-        mavg_elems = avg_elems;
-        mavg_nodes = avg_nodes;
     }
 
     /// Destructor.
@@ -101,73 +119,19 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        NodesContainerType& rNodes = mr_model_part.Nodes();
-        ElementsContainerType& rElems = mr_model_part.Elements();
+    /**
+     * @brief This method esxecutes the neighbour search
+     */
+    void Execute() override;
 
-        //first of all the neighbour nodes and elements array are initialized to the guessed size
-        //and empties the old entries
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            (in->GetValue(NEIGHBOUR_NODES)).reserve(mavg_nodes);
-            auto& rN = in->GetValue(NEIGHBOUR_NODES);
-            rN.erase(rN.begin(),rN.end() );
-
-            (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mavg_elems);
-            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-            rE.erase(rE.begin(),rE.end() );
-        }
-
-        //add the neighbour elements to all the nodes in the mesh
-        for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
-        {
-            Element::GeometryType& pGeom = ie->GetGeometry();
-            for(unsigned int i = 0; i < pGeom.size(); i++)
-            {
-                //KRATOS_WATCH( pGeom[i] );
-                (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
-                //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).size() );
-            }
-        }
-
-        //adding the neighbouring nodes
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-
-            for(unsigned int ie = 0; ie < rE.size(); ie++)
-            {
-                Element::GeometryType& pGeom = rE[ie].GetGeometry();
-                for(unsigned int i = 0; i < pGeom.size(); i++)
-                {
-                    if(pGeom[i].Id() != in->Id() )
-                    {
-                        GlobalPointer<Node<3>> temp(pGeom(i));
-                        AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
-                    }
-                }
-            }
-        }
-    }
-
-    void ClearNeighbours()
-    {
-        NodesContainerType& rNodes = mr_model_part.Nodes();
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-            rE.erase(rE.begin(),rE.end());
-
-            auto& rN = in->GetValue(NEIGHBOUR_NODES);
-            rN.erase(rN.begin(),rN.end() );
-        }
-    }
+    /**
+     * @brief This method clears the neighbours found
+     */
+    void ClearNeighbours();
 
     ///@}
     ///@name Access
@@ -253,29 +217,34 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    unsigned int mavg_elems;
-    unsigned int mavg_nodes;
+    
+    ModelPart& mrModelPart;    /// The modelpart to be processed
+    SizeType mAverageElements; /// Expected number of neighbour elements per node.
+    SizeType mAverageNodes;    /// Expected number of neighbour nodes
 
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    //******************************************************************************************
-    //******************************************************************************************
-    template< class TDataType > void  AddUniqueWeakPointer
-    (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType> candidate)
+    /**
+     * @brief This method allows to add an unique weak pointer to a vector of global pointers
+     * @param rVector The vector containing the global pointers 
+     * @param Candidate The candidate to add
+     */
+    template< class TDataType > 
+    void  AddUniqueWeakPointer(
+        GlobalPointersVector<TDataType>& rVector, 
+        const GlobalPointer<TDataType> Candidate
+        )
     {
-        auto i = v.begin();
-        auto endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate)->Id())
-        {
+        auto i = rVector.begin();
+        auto endit = rVector.end();
+        while ( i != endit && (i)->Id() != (Candidate)->Id()) {
             i++;
         }
-        if( i == endit )
-        {
-            v.push_back(candidate);
+        if( i == endit ) {
+            rVector.push_back(Candidate);
         }
 
     }
