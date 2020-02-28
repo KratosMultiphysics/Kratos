@@ -189,8 +189,10 @@ public:
 
         if (!mInitializeWasPerformed) {
             BaseType::Initialize();
+            //Initialize ProcessInfo variables
+            BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED] = true;
 
-            if (mInitializeArcLengthWasPerformed == false) {
+            if (!mInitializeArcLengthWasPerformed) {
                 // Set up the system
                 if (!mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
                     // Setting up the list of the DOFs to be solved
@@ -775,11 +777,11 @@ protected:
 
                 #pragma omp parallel
                 {
-                    ModelPart::NodeIterator NodesBegin;
-                    ModelPart::NodeIterator NodesEnd;
-                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),NodesBegin,NodesEnd);
+                    ModelPart::NodeIterator node_begin;
+                    ModelPart::NodeIterator node_end;
+                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),node_begin,node_end);
 
-                    for (ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node) {
+                    for (ModelPart::NodeIterator it_node = node_begin; it_node != node_end; ++it_node) {
                         double& r_value = it_node->FastGetSolutionStepValue(variable);
                         r_value *= (mLambda / mLambda_old);
                     }
@@ -792,11 +794,11 @@ protected:
 
                 #pragma omp parallel
                 {
-                    ModelPart::NodeIterator NodesBegin;
-                    ModelPart::NodeIterator NodesEnd;
-                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),NodesBegin,NodesEnd);
+                    ModelPart::NodeIterator node_begin;
+                    ModelPart::NodeIterator node_end;
+                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),node_begin,node_end);
 
-                    for (ModelPart::NodeIterator it_node = NodesBegin; it_node != NodesEnd; ++it_node) {
+                    for (ModelPart::NodeIterator it_node = node_begin; it_node != node_end; ++it_node) {
                         double& rvaluex = it_node->FastGetSolutionStepValue(varx);
                         rvaluex *= (mLambda / mLambda_old);
                         double& rvaluey = it_node->FastGetSolutionStepValue(vary);
