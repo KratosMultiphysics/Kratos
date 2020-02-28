@@ -105,7 +105,7 @@ namespace Testing
         stress_analytic[2] = -5.31271630223e+04;
         const double yield_analytic = 5.90371799617e+05;
 
-        KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, tolerance);
+        KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, 1e-6);
         KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], 1e-6);
         KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], 1e-6);
         KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], 1e-6);
