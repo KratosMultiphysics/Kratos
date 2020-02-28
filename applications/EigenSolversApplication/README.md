@@ -45,7 +45,7 @@ The application provides the following direct solvers for dense systems of equat
 
 *SPD = Symmetric Positive Definite
 
-## Generalized eigensystem solver
+## Generalized eigensystem solvers
 
 The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
 
@@ -58,6 +58,22 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     "max_iteration": 1000,
     "tolerance": 1e-6,
     "echo_level": 1
+}
+```
+If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex symmetric systems. The cmake switch `USE_FEAST4` must be set to `ON` and the location of the compiled FEAST library has to be specified using `FEAST4_ROOT`, e.g.
+```batch
+-DUSE_FEAST4=ON \
+-DFEAST4_ROOT=/home/me/compiled/FEAST/4.0 \
+```
+
+**Example:**
+```json
+{
+    "solver_type": "eigen_feast",
+    "number_of_eigenvalues": 3,
+    "search_lowest_eigenvalues": true,
+    "e_min" : 0.0,
+    "e_max" : 0.2
 }
 ```
 
