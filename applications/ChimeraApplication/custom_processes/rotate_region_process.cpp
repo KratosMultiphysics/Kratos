@@ -35,11 +35,13 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
   mToCalculateTorque = mParameters["calculate_torque"].GetBool();
   mMomentOfInertia = mParameters["moment_of_inertia"].GetDouble();
   mRotationalDamping = mParameters["rotational_damping"].GetDouble();
-  KRATOS_ERROR_IF(mToCalculateTorque && mAngularVelocityRadians != 0.0)
-      << "RotateRegionProcess: both \"calculate_torque\" and "
-         "\"angular_velocity_radians\" cannot be specified. Please check the "
-         "input."
+  if (mToCalculateTorque && mAngularVelocityRadians != 0.0){
+     KRATOS_INFO_ONCE("RotateRegionProcess ") << "both \"calculate_torque\" and "
+         "\"angular_velocity_radians\" are specified. So only calculating Torque and printing."
       << std::endl;
+      mPrintTorque = true;
+      mToCalculateTorque = false;
+  }
 
   KRATOS_WARNING_IF("RotateRegionProcess",
                     mToCalculateTorque && mMomentOfInertia == 0.0)
@@ -285,6 +287,10 @@ void RotateRegionProcess::CalculateCurrentRotationState()
   KRATOS_INFO("RotateRegionProcess") << "Current angular velocity   :: " << mAngularVelocityRadians << std::endl;
   KRATOS_INFO("RotateRegionProcess") << "Current angle of rotation  :: " << mTheta << std::endl;
   KRATOS_INFO("RotateRegionProcess") << "dCurrent angle of rotation :: " << mDTheta << std::endl;
+  if(mPrintTorque){
+    double torque = CalculateTorque();
+    KRATOS_INFO("RotateRegionProcess") << "Current torque             :: " << torque << std::endl;
+  }
 
   r_torque_model_part.SetValue(ROTATIONAL_ANGLE, mTheta);
   r_torque_model_part.SetValue(ROTATIONAL_VELOCITY, mAngularVelocityRadians);

@@ -209,6 +209,7 @@ private:
   double mTheta;
   double mDTheta;
   bool mToCalculateTorque;
+  bool mPrintTorque;
   double mMomentOfInertia;
   double mRotationalDamping;
   double mTorque;

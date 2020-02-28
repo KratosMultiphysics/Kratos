@@ -56,9 +56,6 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
             if ( axis_of_rotation[0] == 0.0 and axis_of_rotation[1] == 0.0 and axis_of_rotation[2] == 0.0):
                 raise Exception("The values (vector) of the entry 'axis_of_rotation' are all zero. This is not admissible.")
 
-        if (settings["calculate_torque"].GetBool() and settings["angular_velocity_radians"].GetDouble()!=0.0):
-            raise Exception("'calculate_torque' is set to true and 'angular_velocity_radians' is not zero. This is not admissible.")
-
         if(settings["calculate_torque"].GetBool() and settings["moment_of_inertia"].GetDouble() == 0.0):
             warnings.warn(" 'moment_of_inertia' is zero !!")
         if(settings["calculate_torque"].GetBool() and settings["rotational_damping"].GetDouble() == 0.0):
