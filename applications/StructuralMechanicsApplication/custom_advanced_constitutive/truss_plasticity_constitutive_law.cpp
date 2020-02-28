@@ -67,26 +67,13 @@ void TrussPlasticityConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-bool& TrussPlasticityConstitutiveLaw::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG) rValue = this->mCurrentInElasticFlag;
-    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
-    return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
 double& TrussPlasticityConstitutiveLaw::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
-    if(rThisVariable == PLASTIC_STRAIN) rValue = this->mAccumulatedPlasticStrainVector[0];
-    else if(rThisVariable == PLASTIC_ALPHA) rValue = this->mPlasticAlphaVector[0];
+    if(rThisVariable == PLASTIC_STRAIN) rValue = mAccumulatedPlasticStrain;
+    else if(rThisVariable == PLASTIC_ALPHA) rValue = mPlasticAlpha;
     else KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
@@ -111,22 +98,10 @@ void TrussPlasticityConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if(rThisVariable == PLASTIC_STRAIN) this->mAccumulatedPlasticStrainVector[0] = rValue;
-    else if(rThisVariable == PLASTIC_ALPHA) this->mPlasticAlphaVector[0] = rValue;
+    if(rThisVariable == PLASTIC_STRAIN) mAccumulatedPlasticStrain = rValue;
+    else if(rThisVariable == PLASTIC_ALPHA) mPlasticAlpha = rValue;
     else KRATOS_ERROR << "Can't set the specified value" << std::endl;
 }
-
-//************************************************************************************
-//************************************************************************************
-
-void TrussPlasticityConstitutiveLaw::SetValue(const Variable<bool>& rThisVariable,
-                          const bool& rValue,
-                          const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rThisVariable == INELASTIC_FLAG) this->mCurrentInElasticFlag = rValue;
-    else KRATOS_ERROR << "Can't set the specified value" << std::endl;
-}
-
 
 //************************************************************************************
 //************************************************************************************
@@ -143,7 +118,7 @@ double& TrussPlasticityConstitutiveLaw::CalculateValue(
         const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
         const double hardening_modulus = r_material_properties[HARDENING_MODULUS_1D];
         const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
-        if (this->mCurrentInElasticFlag)
+        if (mCurrentInElasticFlag)
         {
             KRATOS_DEBUG_ERROR_IF((hardening_modulus+youngs_modulus)<numerical_limit)
              << "Dividing by 0 when calculating the plastic tangent modulus" << std::endl;
@@ -157,94 +132,57 @@ double& TrussPlasticityConstitutiveLaw::CalculateValue(
     return rValue;
 }
 
-Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue)
+
+//************************************************************************************
+//************************************************************************************
+void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2Custom(Parameters& rValues, double& rCurrentAccumulatedPlasticStrain, double& rCurrentPlasticAlpha)
 {
+    KRATOS_ERROR_IF_NOT(rValues.IsSetStrainVector()) << "Strain vector not set" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(rValues.IsSetStressVector()) << "Stress vector not set" << std::endl;
 
-    if(rThisVariable == NORMAL_STRESS)
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const double prestress = r_material_properties[TRUSS_PRESTRESS_PK2];
+
+
+    const double axial_strain (rValues.GetStrainVector()[0]);
+    rCurrentAccumulatedPlasticStrain = mAccumulatedPlasticStrain;
+    rCurrentPlasticAlpha = mPlasticAlpha;
+    const double elastic_trial_strain = axial_strain-rCurrentAccumulatedPlasticStrain;
+    const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
+    double current_stress  = youngs_modulus*elastic_trial_strain;
+    // consider pre-stress in plastic algorithm
+    current_stress += prestress;
+    double temp_stress(current_stress);
+
+    // start plastic algorithm
+    mCurrentInElasticFlag = CheckIfIsPlasticRegime(rValues,current_stress);
+    if (mCurrentInElasticFlag)
     {
-        constexpr SizeType dofs = 6;
-        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        const double hardening_modulus = r_material_properties[HARDENING_MODULUS_1D];
+        const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
+        const double trial_yield_function = TrialYieldFunction(r_material_properties,current_stress);
 
-        rValue = ZeroVector(dofs);
-        double current_stress = this->mStressState;
+        const double delta_gamma = trial_yield_function/(youngs_modulus+hardening_modulus);
+        current_stress = 1.00 - ((delta_gamma*youngs_modulus)/std::abs(temp_stress));
+        current_stress = current_stress * temp_stress;
 
-
-        if (this->mCurrentInElasticFlag)
-        {
-            const double hardening_modulus = r_material_properties[HARDENING_MODULUS_1D];
-            const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
-            const double trial_yield_function = this->TrialYieldFunction(r_material_properties,current_stress);
-
-
-            const double delta_gamma = trial_yield_function/(youngs_modulus+hardening_modulus);
-            current_stress = 1.00 - ((delta_gamma*youngs_modulus)/std::abs(this->mStressState));
-            current_stress = current_stress * this->mStressState;
-
-            this->mAccumulatedPlasticStrainVector[0] = this->mAccumulatedPlasticStrainVector[0] + (delta_gamma*MathUtils<double>::Sign(this->mStressState));
-            this->mPlasticAlphaVector[0] = this->mPlasticAlphaVector[0] + delta_gamma;
-        }
-
-        rValue[0] = -1.0 * current_stress;
-        rValue[3] = 1.0 * current_stress;
-
-        this->mStressState = current_stress;
-
+        rCurrentAccumulatedPlasticStrain += delta_gamma*MathUtils<double>::Sign(temp_stress);
+        rCurrentPlasticAlpha += delta_gamma;
     }
-    else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
-    return rValue;
+
+    // return only material response
+    Vector& stress_vector = rValues.GetStressVector();
+    stress_vector = ZeroVector(1);
+    stress_vector[0] = current_stress-prestress;
 }
 
-//************************************************************************************
-//************************************************************************************
 
-array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<array_1d<double, 3 > >& rVariable,
-	array_1d<double, 3 > & rValue)
-    {
-        if (rVariable == FORCE)
-        {
-            constexpr SizeType dimension = 3;
-            rValue = ZeroVector(dimension);
-            rValue[0] = this->mStressState;
-            rValue[1] = 0.0;
-            rValue[2] = 0.0;
-        }
-        else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
-        return rValue;
-    }
-
-
-//************************************************************************************
-//************************************************************************************
-// calculate the trial stress ! call this only in element::InitializeNonLinearIteration !!
 void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
-    const double axial_strain (rValues.GetStrainVector()[0]);
-    double current_plastic_strain (0.00);
-    this->GetValue(PLASTIC_STRAIN,current_plastic_strain);
-
-    const double elastic_trial_strain = axial_strain-current_plastic_strain;
-    const double youngs_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-
-    Vector& stress_vector = rValues.GetStressVector();
-
-    if (stress_vector.size() != 1) stress_vector.resize(1, false);
-    stress_vector[0] = youngs_modulus*elastic_trial_strain;
-
-
-    this->mStressState = stress_vector[0];
-    this->mCurrentInElasticFlag = this->CheckIfIsPlasticRegime(rValues);
-
-    if (this->CheckPlasticIterationHistory())
-    {
-        this->mAccumulatedPlasticStrainVector[0] = this->mAccumulatedPlasticStrainVector[1];
-        this->mPlasticAlphaVector[0] = this->mPlasticAlphaVector[1];
-    }
-
+    double temp_accumulated_plastic_strain;
+    double temp_plastic_alpha;
+    CalculateMaterialResponsePK2Custom(rValues,temp_accumulated_plastic_strain,temp_plastic_alpha);
 }
 
 
@@ -258,7 +196,7 @@ double TrussPlasticityConstitutiveLaw::TrialYieldFunction(const Properties& rMat
     const double hardening_modulus = rMaterialProperties[HARDENING_MODULUS_1D];
 
     double trial_yield_function =  std::abs(rCurrentStress);
-    trial_yield_function -= yield_stress_limit + (hardening_modulus*this->mPlasticAlphaVector[0]);
+    trial_yield_function -= yield_stress_limit + (hardening_modulus*mPlasticAlpha);
 
     return trial_yield_function;
 }
@@ -267,16 +205,14 @@ double TrussPlasticityConstitutiveLaw::TrialYieldFunction(const Properties& rMat
 //************************************************************************************
 //************************************************************************************
 
-bool TrussPlasticityConstitutiveLaw::CheckIfIsPlasticRegime(Parameters& rValues)
+bool TrussPlasticityConstitutiveLaw::CheckIfIsPlasticRegime(Parameters& rValues,const double& rCurrentStress)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
-
     bool is_in_plastic_regime = false;
-    const double trial_yield_function = this->TrialYieldFunction(rValues.GetMaterialProperties(),rValues.GetStressVector()[0]);
-    if (trial_yield_function > 0.00) is_in_plastic_regime = true;
+    const double trial_yield_function = TrialYieldFunction(rValues.GetMaterialProperties(),rCurrentStress);
+    if (trial_yield_function > numerical_limit) is_in_plastic_regime = true;
 
-
-    const double check_limits = (rValues.GetStressVector()[0]/rValues.GetMaterialProperties()[YOUNG_MODULUS])+this->mAccumulatedPlasticStrainVector[0];
+    const double check_limits = (rCurrentStress/rValues.GetMaterialProperties()[YOUNG_MODULUS])+mAccumulatedPlasticStrain;
     if (std::abs(check_limits)<numerical_limit) is_in_plastic_regime=false;
 
     return is_in_plastic_regime;
@@ -285,8 +221,14 @@ bool TrussPlasticityConstitutiveLaw::CheckIfIsPlasticRegime(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-
-
+void TrussPlasticityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+{
+    double temp_accumulated_plastic_strain;
+    double temp_plastic_alpha;
+    CalculateMaterialResponsePK2Custom(rValues,temp_accumulated_plastic_strain,temp_plastic_alpha);
+    mAccumulatedPlasticStrain = temp_accumulated_plastic_strain;
+    mPlasticAlpha = temp_plastic_alpha;
+}
 
 int TrussPlasticityConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
@@ -307,24 +249,4 @@ int TrussPlasticityConstitutiveLaw::Check(
     KRATOS_CHECK(rMaterialProperties.Has(HARDENING_MODULUS_1D));
     return 0;
 }
-
-
-void TrussPlasticityConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-                    const GeometryType& rElementGeometry,
-                    const Vector& rShapeFunctionsValues,
-                    const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mPreviousInElasticFlag = this->mCurrentInElasticFlag;
-}
-
-
-
-void TrussPlasticityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
-{
-    this->mAccumulatedPlasticStrainVector[1] = this->mAccumulatedPlasticStrainVector[0];
-    this->mPlasticAlphaVector[1] = this->mPlasticAlphaVector[0];
-    this->mCurrentInElasticFlag = false;
-    this->mPreviousInElasticFlag = false;
-}
-
 } // Namespace Kratos

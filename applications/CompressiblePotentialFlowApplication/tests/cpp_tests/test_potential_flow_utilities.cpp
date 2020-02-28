@@ -53,7 +53,7 @@ void GenerateTestingElement(ModelPart& rModelPart) {
 
 void AssignPotentialsToElement(Element& rElement) {
     // Define the nodal values
-    std::array<double, 3> potential({0.0, 150.0, 350.0});
+    std::array<double, 3> potential{0.0, 150.0, 350.0};
 
     for (unsigned int i = 0; i < 3; i++)
         rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) =

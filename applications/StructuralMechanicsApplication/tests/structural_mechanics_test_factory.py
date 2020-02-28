@@ -9,6 +9,35 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+def SelectAndVerifyLinearSolver(settings, skiptest):
+    # The mechanical solver selects automatically the fastest linear-solver available
+    # this might not be appropriate for a test, therefore in case nothing is specified,
+    # the previous default linear-solver is set
+    if not settings["solver_settings"].Has("linear_solver_settings"):
+        # check if running in MPI because there we use a different default linear solver
+        if IsDistributedRun():
+            default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type" : "amesos",
+                "amesos_solver_type" : "Amesos_Klu"
+            }""")
+
+        else:
+            default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type": "EigenSolversApplication.sparse_lu"
+            }""")
+        settings["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+
+    solver_type = settings["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
+    solver_type_splitted = solver_type.split(".")
+    if len(solver_type_splitted) == 2:
+        # this means that we use a solver from an application
+        # hence we have to check if it exists, otherwise skip the test
+        app_name = solver_type_splitted[0]
+        solver_name = solver_type_splitted[1]
+        if not kratos_utils.CheckIfApplicationsAvailable(app_name):
+            skiptest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
+
+
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
@@ -18,33 +47,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            # The mechanical solver selects automatically the fastest linear-solver available
-            # this might not be appropriate for a test, therefore in case nothing is specified,
-            # the previous default linear-solver is set
-            if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
-                # check if running in MPI because there we use a different default linear solver
-                if IsDistributedRun():
-                    default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type" : "amesos",
-                        "amesos_solver_type" : "Amesos_Klu"
-                    }""")
-
-                else:
-                    default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type": "EigenSolversApplication.sparse_lu"
-                    }""")
-                ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
-
-            solver_type = ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
-            solver_type_splitted = solver_type.split(".")
-            if len(solver_type_splitted) == 2:
-                # this means that we use a solver from an application
-                # hence we have to check if it exists, otherwise skip the test
-                app_name = solver_type_splitted[0]
-                solver_name = solver_type_splitted[1]
-                if not kratos_utils.CheckIfApplicationsAvailable(app_name):
-                    self.skipTest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
-
+            SelectAndVerifyLinearSolver(ProjectParameters, self.skipTest)
 
             self.modify_parameters(ProjectParameters)
 
