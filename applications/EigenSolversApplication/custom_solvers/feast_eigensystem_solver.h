@@ -62,7 +62,7 @@ class FEASTEigensystemSolver
     {
         Parameters default_params(R"(
         {
-            "solver_type": "feast_eigensystem",
+            "solver_type": "eigen_feast",
             "number_of_eigenvalues": 0,
             "search_lowest_eigenvalues": false,
             "search_highest_eigenvalues": false,

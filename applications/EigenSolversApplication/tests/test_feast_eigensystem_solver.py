@@ -3,7 +3,7 @@ import os
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.EigenSolversApplication as EiSA
+from KratosMultiphysics import eigen_solver_factory
 
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     def test_real_symmetric_gev(self):
@@ -41,7 +41,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
         # Construct the solver
-        eigen_solver = EiSA.FEASTEigensystemSolver(settings)
+        eigen_solver = eigen_solver_factory.ConstructSolver(settings)
 
         # Solve
         eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
@@ -69,7 +69,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_feast",
+            "solver_type": "eigen_feast_complex",
             "number_of_eigenvalues": 3,
             "e_mid_re" : 0.0,
             "e_mid_im" : 0.0,
@@ -103,7 +103,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         eigenvectors = KratosMultiphysics.ComplexMatrix(n, 1)
 
         # Construct the solver
-        eigen_solver = EiSA.ComplexFEASTEigensystemSolver(settings)
+        eigen_solver = eigen_solver_factory.ConstructSolver(settings)
 
         # Solve
         eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
