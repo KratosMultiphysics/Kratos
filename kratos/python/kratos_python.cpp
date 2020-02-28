@@ -30,7 +30,6 @@
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"
 #include "add_mat_variables_to_python.h"
-#include "add_legacy_structural_app_vars_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
 #include "add_points_to_python.h"
@@ -97,7 +96,6 @@ PYBIND11_MODULE(Kratos, m)
     AddALEVariablesToPython(m);
     AddC2CVariablesToPython(m);
     AddFSIVariablesToPython(m);
-    AddLegacyStructuralAppVarsToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);

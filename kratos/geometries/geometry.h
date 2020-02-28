@@ -28,6 +28,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
+#include "containers/data_value_container.h"
 
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
@@ -308,7 +309,7 @@ public:
         , mPoints(ThisPoints)
     {
     }
-
+  
     Geometry(
         IndexType GeometryId,
         const PointsArrayType& ThisPoints,
@@ -338,11 +339,11 @@ public:
     * @note Copied geometry shares the same Id as the
     *       original geometry.
     */
-    Geometry(
-        const Geometry& rOther)
-        : mId(rOther.mId)
-        , mpGeometryData(rOther.mpGeometryData)
-        , mPoints(rOther.mPoints)
+    Geometry( const Geometry& rOther )
+        : mId(rOther.mId),
+          mpGeometryData(rOther.mpGeometryData),
+          mPoints(rOther.mPoints),
+          mData(rOther.mData)
     {
     }
 
@@ -359,11 +360,11 @@ public:
     * @note Copied geometry shares the same Id as the
     *       original geometry.
     */
-    template<class TOtherPointType>
-    Geometry(
-        Geometry<TOtherPointType> const & rOther)
-        : mId(rOther.mId)
-        , mpGeometryData(rOther.mpGeometryData)
+    template<class TOtherPointType> 
+    Geometry( Geometry<TOtherPointType> const & rOther )
+        : mId(rOther.mId),
+          mpGeometryData(rOther.mpGeometryData),
+          mData(rOther.mData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
@@ -399,6 +400,7 @@ public:
     {
         mpGeometryData = rOther.mpGeometryData;
         mPoints = rOther.mPoints;
+        mData = rOther.mData;
 
         return *this;
     }
@@ -570,6 +572,67 @@ public:
     virtual const PointPointerContainerType& GetContainer() const
     {
         return mPoints.GetContainer();
+    }
+
+    ///@}
+    ///@name Data Container
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& GetData()
+    {
+      return mData;
+    }
+
+    DataValueContainer const& GetData() const
+    {
+      return mData;
+    }
+
+    void SetData(DataValueContainer const& rThisData)
+    {
+      mData = rThisData;
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(
+        const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
     }
 
     ///@}
@@ -3045,16 +3108,34 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
     * @param IntegrationPointIndex the corresponding contorl point of this geometry
-    * @return the shape function or derivative value related to the input parameters
-    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
     const Matrix& ShapeFunctionDerivatives(
         IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        return mpGeometryData->ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+    }
+
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex) const
+    {
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, GetDefaultIntegrationMethod());
     }
 
     /** This method gives second order derivatives of all shape
@@ -3494,6 +3575,9 @@ private:
 
     PointsArrayType mPoints;
 
+    DataValueContainer mData;
+
+  
     ///@}
     ///@name Id Bit-Change Operations
     ///@{
@@ -3559,13 +3643,15 @@ private:
     {
         rSerializer.save("Id", mId);
         rSerializer.save( "Points", mPoints);
+        rSerializer.save("Data", mData);
     }
 
     virtual void load( Serializer& rSerializer )
     {
         rSerializer.load("Id", mId);
         rSerializer.load( "Points", mPoints );
-    }
+        rSerializer.load("Data", mData);
+   }
 
     ///@}
     ///@name Private Operations
