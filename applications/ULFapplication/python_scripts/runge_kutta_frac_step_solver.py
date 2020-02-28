@@ -165,7 +165,7 @@ class RungeKuttaFracStepSolver:
         ((self.model_part).Conditions).clear();
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","Condition2D", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","LineCondition2D2N", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
 
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)
