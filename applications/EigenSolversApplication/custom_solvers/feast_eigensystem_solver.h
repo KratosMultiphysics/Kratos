@@ -17,10 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-// #include "linear_solvers/iterative_solver.h"
 #include "linear_solvers/linear_solver.h"
-#include "utilities/openmp_utils.h"
-// #include "custom_utilities/ublas_wrapper.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 
@@ -45,7 +42,6 @@ class FEASTEigensystemSolver
   public:
     KRATOS_CLASS_POINTER_DEFINITION(FEASTEigensystemSolver);
 
-    // typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType> BaseType;
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
@@ -99,7 +95,7 @@ class FEASTEigensystemSolver
     ~FEASTEigensystemSolver() override {}
 
     /**
-     * Solve the generalized eigenvalue problem
+     * Solve the generalized eigenvalue problem using FEAST
      */
     void Solve(
         SparseMatrixType& rK,

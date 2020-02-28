@@ -42,7 +42,6 @@ if( USE_EIGEN_MKL MATCHES ON )
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
-#external:
 if( USE_FEAST4 MATCHES ON )
     if( USE_EIGEN_MKL MATCHES OFF )
         message( FATAL_ERROR "FEAST4 can only be used with MKL" )
@@ -54,14 +53,6 @@ if( USE_FEAST4 MATCHES ON )
     include_directories( ${FEAST4_ROOT}/include )
     add_definitions(-DUSE_FEAST4)
 endif()
-
-# if(${INCLUDE_FEAST} MATCHES ON)
-# if (NOT DEFINED FEAST_ROOT)
-#     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST/4.0 )
-# endif(NOT DEFINED FEAST_ROOT)
-# include(CMakeAddFortranSubdirectory)
-# cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST NO_EXTERNAL_INSTALL )
-# include_directories( ${FEAST_ROOT}/include )
 
 ## generate variables with the sources
 set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
@@ -81,10 +72,6 @@ file(
 add_library( KratosEigenSolversCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} )
 target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
-
-# add_library(feast)
-# target_link_libraries(feast44 mkl_rt gfortran m)
-# set(FEAST_LINK_LIBS feast4 )#mkl_rt gfortran m)
 
 ## EigenSolversApplication python module
 pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
