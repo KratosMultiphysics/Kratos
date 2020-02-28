@@ -126,7 +126,7 @@ class FemDemMechanicalSolver(object):
             self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
 
         # Add specific variables for the problem conditions
-        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
+        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','FORCE_LOAD']
 
         # Add nodal force variables for component wise calculation
         if( self.settings.Has("component_wise") ):
