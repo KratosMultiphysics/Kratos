@@ -20,6 +20,11 @@
 #include "add_mpi_communicator_to_python.h"
 #include "add_mpi_data_communicator_to_python.h"
 #include "add_mpi_utilities_to_python.h"
+#include "add_mpi_spaces_to_python.h"
+#include "add_mpi_solving_strategies_to_python.h"
+#include "add_mpi_builder_and_solvers_to_python.h"
+#include "add_mpi_schemes_to_python.h"
+#include "add_mpi_convergence_criteria_to_python.h"
 
 #include "includes/parallel_environment.h"
 
@@ -41,6 +46,11 @@ PYBIND11_MODULE(KratosMPI, m)
     AddMPICommunicatorToPython(m);
     AddMPIDataCommunicatorToPython(m);
     AddMPIUtilitiesToPython(m);
+    AddMPISpacesToPython(m);
+    AddMPISolvingStrategiesToPython(m);
+    AddMPIBuilderAndSolversToPython(m);
+    AddMPISchemesToPython(m);
+    AddMPIConvergenceCriteriasToPython(m);
 }
 
 }
