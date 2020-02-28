@@ -249,7 +249,6 @@ void CompressibleNavierStokesExplicit<2>::CalculateRightHandSideInternal(
 
     constexpr unsigned int n_nodes = 3;
     constexpr unsigned int block_size = 4;
-    constexpr unsigned int matrix_size = n_nodes * block_size;
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -313,7 +312,6 @@ void CompressibleNavierStokesExplicit<3>::CalculateRightHandSideInternal(
 
     constexpr unsigned int n_nodes = 4;
     constexpr unsigned int block_size = 5;
-    constexpr unsigned int matrix_size = n_nodes * block_size;
 
     // Struct to pass around the data
     ElementDataStruct data;
