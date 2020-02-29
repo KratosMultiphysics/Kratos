@@ -102,13 +102,15 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
          */
         virtual BoundedMatrix<double,msLocalSize,msLocalSize>
          CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+
+        void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,
@@ -225,7 +227,7 @@ namespace Kratos
         /**
          * @brief This function calculates the current Green-Lagrange strain
          */
-        double CalculateGreenLagrangeStrain();
+        double CalculateGreenLagrangeStrain()const;
 
         /**
          * @brief This function calculates self-weight forces
@@ -255,10 +257,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+        double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
@@ -266,14 +265,6 @@ namespace Kratos
          * @brief This function checks if self weight is present
          */
         bool HasSelfWeight() const;
-
-        /**
-         * @brief This function calls the constitutive law to get stresses
-         * @param rCurrentProcessInfo Current process info
-         * @param rSaveInternalVariables Boolean to save internal constit. law variables
-         */
-        virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**

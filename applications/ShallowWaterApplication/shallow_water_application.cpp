@@ -47,20 +47,12 @@ namespace Kratos
 
         mSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+
         mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
-        mPrimitiveVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mPrimitiveVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mConservedVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mConservedVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mEulerPrimVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mEulerPrimVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mEulerConsVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mEulerConsVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
+        mConservedElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3     <Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mConservedElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
 
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
 
@@ -88,15 +80,30 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(DRY_HEIGHT)
         KRATOS_REGISTER_VARIABLE(WATER_HEIGHT)
         KRATOS_REGISTER_VARIABLE(WATER_SURFACE)
+        KRATOS_REGISTER_VARIABLE(PERMEABILITY)
+        KRATOS_REGISTER_VARIABLE(DRY_DISCHARGE_PENALTY)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variableS for PFEM2
+        KRATOS_REGISTER_VARIABLE(NUMBER_OF_PARTICLES)
+        KRATOS_REGISTER_VARIABLE(SUM_AREAS)
+        KRATOS_REGISTER_VARIABLE(PARTICLE_AREA)
+        KRATOS_REGISTER_VARIABLE(PARTICLE_WEIGHT)
+        KRATOS_REGISTER_VARIABLE(SUM_PARTICLES_WEIGHTS)
+        KRATOS_REGISTER_VARIABLE(MASS_WEIGHT)
         KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
         KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)
         KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
         KRATOS_REGISTER_VARIABLE(DELTA_SCALAR1)
         KRATOS_REGISTER_VARIABLE(PROJECTED_VECTOR1)
         KRATOS_REGISTER_VARIABLE(DELTA_VECTOR1)
+        KRATOS_REGISTER_VARIABLE(CURRENT_ELEMENT)
+
+        // Benchmark variables
+        KRATOS_REGISTER_VARIABLE(EXACT_HEIGHT)
+        KRATOS_REGISTER_VARIABLE(HEIGHT_ERROR)
+        KRATOS_REGISTER_VARIABLE(EXACT_VELOCITY)
+        KRATOS_REGISTER_VARIABLE(VELOCITY_ERROR)
 
         // Units conversion
         KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)
@@ -119,20 +126,12 @@ namespace Kratos
 
         KRATOS_REGISTER_ELEMENT("SWE2D3N", mSWE2D3N)
         KRATOS_REGISTER_ELEMENT("SWE2D4N", mSWE2D4N)
+
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N)
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
 
-        KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
-        KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
-
-        KRATOS_REGISTER_ELEMENT("ConservedVarElement2D3N", mConservedVarElement2D3N)   // mesh stage element
-        KRATOS_REGISTER_ELEMENT("ConservedVarElement2D4N", mConservedVarElement2D4N)   // mesh stage element
-
-        KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D3N", mEulerPrimVarElement2D3N)   // eulerian element
-        KRATOS_REGISTER_ELEMENT("EulerPrimVarElement2D4N", mEulerPrimVarElement2D4N)   // eulerian element
-
-        KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D3N", mEulerConsVarElement2D3N)   // eulerian element
-        KRATOS_REGISTER_ELEMENT("EulerConsVarElement2D4N", mEulerConsVarElement2D4N)   // eulerian element
+        KRATOS_REGISTER_ELEMENT("ConservedElement2D3N", mConservedElement2D3N)
+        KRATOS_REGISTER_ELEMENT("ConservedElement2D4N", mConservedElement2D4N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }

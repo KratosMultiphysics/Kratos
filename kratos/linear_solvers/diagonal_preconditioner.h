@@ -115,16 +115,13 @@ public:
     */
     void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
-        mTemp.resize(int(TSparseSpaceType::Size(rX)));
-
-        int i;
+        mDiagonal.resize(TSparseSpaceType::Size(rX));
+        mTemp.resize(TSparseSpaceType::Size(rX));
 
         const DataType zero = DataType();
-// 	  const DataType one = DataType(1.00);
 
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(rA.size1()) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(rA.size1()) ; ++i)
         {
             double diag_Aii = rA(i,i);
             if(diag_Aii != zero)
@@ -132,14 +129,6 @@ public:
             else
                 KRATOS_THROW_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
         }
-// 	      mDiagonal[i] = one;
-
-        /* 	  std::cout << "mDiagonal : " << mDiagonal << std::endl; */
-
-        /* for(i = 0 ; i < rA.RowsNumber() ; ++i)
-           for(j = 0 ; j < rA.RowsNumber() ; ++j) */
-
-
     }
 
     void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
@@ -149,9 +138,8 @@ public:
 
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             mTemp[i] = rX[i] * mDiagonal[i];
         TSparseSpaceType::Mult(rA,mTemp, rY);
         ApplyLeft(rY);
@@ -159,9 +147,8 @@ public:
 
     void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             mTemp[i] = rX[i] * mDiagonal[i];
         TSparseSpaceType::TransposeMult(rA,mTemp, rY);
         ApplyRight(rY);
@@ -169,9 +156,8 @@ public:
 
     VectorType& ApplyLeft(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -179,9 +165,8 @@ public:
 
     VectorType& ApplyRight(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -195,9 +180,8 @@ public:
     */
     VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -205,9 +189,8 @@ public:
 
     VectorType& ApplyTransposeRight(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -215,12 +198,8 @@ public:
 
     VectorType& ApplyInverseRight(VectorType& rX) override
     {
-// 	  const DataType zero = DataType();
-
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            /*	    if(mDiagonal[i] != zero)*/
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] /= mDiagonal[i];
 
         return rX;
@@ -228,9 +207,8 @@ public:
 
     VectorType& Finalize(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
+        #pragma omp parallel for
+        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
             rX[i] *= mDiagonal[i];
 
         return rX;
@@ -387,4 +365,3 @@ inline std::ostream& operator << (std::ostream& OStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_DIAGONAL_PRECONDITIONER_H_INCLUDED  defined
-

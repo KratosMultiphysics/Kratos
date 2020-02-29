@@ -59,7 +59,7 @@ namespace Kratos
 //             gid_io.WriteMesh(rModelPart.GetMesh());
 //             gid_io.FinalizeMesh();
 //             gid_io.InitializeResults(label, rModelPart.GetMesh());
-//             auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+//             const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
 //             gid_io.PrintOnGaussPoints(this_var, rModelPart, label);
 //         }
 
@@ -584,7 +584,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
@@ -663,7 +663,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
@@ -739,7 +739,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
@@ -819,7 +819,7 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
                 elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)

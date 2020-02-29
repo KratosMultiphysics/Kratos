@@ -33,9 +33,7 @@
         "linear_solver_settings":{
             "solver_type": "skyline_lu_complex"
         }
-	},
-        "problem_domain_sub_model_part_list" : ["Parts_Solid"],
-        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_Dirichlet"],
+        },
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -46,7 +44,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Dirichlet",
+            "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0]
         }

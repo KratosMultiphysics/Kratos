@@ -496,11 +496,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-//     /// Assignment operator.
-//     MmgProcess& operator=(MmgProcess const& rOther);
+    /// Assignment operator.
+    MmgProcess& operator=(MmgProcess const& rOther);
 
-//     /// Copy constructor.
-//     MmgProcess(MmgProcess const& rOther);
+    /// Copy constructor.
+    MmgProcess(MmgProcess const& rOther);
 
     ///@}
 

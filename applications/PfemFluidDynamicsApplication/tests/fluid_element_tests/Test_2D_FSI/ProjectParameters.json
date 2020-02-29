@@ -20,6 +20,9 @@
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI"
         },
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_2D_FSI/PfemFluidDynamicsMaterials.json"
+        },
         "maximum_pressure_iterations"        : 6,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
@@ -95,6 +98,14 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
                     "threshold_variable"  : "PLASTIC_STRAIN",
@@ -126,12 +137,6 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
                 "elemental_variables_to_transfer" : []
@@ -161,6 +166,14 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
                     "threshold_variable"  : "PLASTIC_STRAIN",
@@ -192,12 +205,6 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
                 "elemental_variables_to_transfer" : []
@@ -227,6 +234,14 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
                     "threshold_variable"  : "PLASTIC_STRAIN",
@@ -258,12 +273,6 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
                 "elemental_variables_to_transfer" : []
@@ -272,16 +281,14 @@
     }],
     "processes": {
         "constraints_process_list" : [{
-            "python_module" : "assign_vector_components_to_nodes_process",
-            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-            "help"          : "This process fixes the selected components of a given vector variable",
-            "process_name"  : "AssignVectorComponentsToNodesProcess",
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name"     : "VELOCITY_Velocity_Auto1",
-                "variable_name"       : "VELOCITY",
-                "value"               : [0.0,0.0,0.0],
-                "compound_assignment" : "direct",
-                "interval"            : [0.0,"End"]
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
             }
         }],
         "loads_process_list"       : [],

@@ -1,0 +1,97 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "snapthrough",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 34.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 1e-9,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 1e-9,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "rotation_dofs"                      : false,
+        "displacement_control"               : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_top",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "displacement_control_with_direction_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PrescribedDisplacement_top",
+                "direction"       : "y",
+                "point_load_value": -1.0,
+                "prescribed_displacement_value" : "-0.065*t",
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT","REACTION","LOAD_FACTOR"],
+                "gauss_points_check_variables" : ["FORCE","GREEN_LAGRANGE_STRAIN_VECTOR","PK2_STRESS_VECTOR"],
+                "input_file_name"  : "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : 1.0
+            }
+        }
+        ]},
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT","REACTION","LOAD_FACTOR"],
+            "gauss_points_output_variables" : ["FORCE","GREEN_LAGRANGE_STRAIN_VECTOR","PK2_STRESS_VECTOR"],
+            "output_file_name" : "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : 1.0
+        }
+    }
+    ]
+}

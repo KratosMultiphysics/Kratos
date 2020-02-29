@@ -192,9 +192,6 @@ public:
       mstrategy_z->Solve();
     }
 
-    MoveMeshUtilities::MoveMesh(
-        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
-
     if (mreform_dof_set_at_each_step == true)
     {
         mstrategy_x->Clear();
