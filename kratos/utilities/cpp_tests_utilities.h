@@ -56,13 +56,15 @@ namespace CppTestsUtilities
     /**
      * @brief This method creates a simple geometry in 2D (triangles) 
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param rElementName The element name considered
-     * @param Initialize If initialize the elements
+     * @param rElementName The entity name considered
+     * @param Initialize If initialize the entities
+     * @param Elements If create elements or conditions
      */
     void KRATOS_API(KRATOS_CORE) Create2DGeometry(
         ModelPart& rModelPart, 
-        const std::string& rElementName,
-        const bool Initialize = true
+        const std::string& rEntityName,
+        const bool Initialize = true,
+        const bool Elements = true
         );
 
     /**

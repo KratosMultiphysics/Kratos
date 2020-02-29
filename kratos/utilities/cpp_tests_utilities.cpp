@@ -24,8 +24,9 @@ namespace CppTestsUtilities
 {
 void Create2DGeometry(
     ModelPart& rModelPart, 
-    const std::string& rElementName,
-    const bool Initialize
+    const std::string& rEntityName,
+    const bool Initialize,
+    const bool Elements
     )
 {
     Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
@@ -38,16 +39,30 @@ void Create2DGeometry(
     rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
     rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
 
-    rModelPart.CreateNewElement(rElementName, 1, {{1,2,3}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 2, {{1,3,4}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 3, {{2,5,3}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 4, {{5,6,3}}, p_elem_prop);
+    if (Elements) {
+        rModelPart.CreateNewElement(rEntityName, 1, {{1,2,3}}, p_elem_prop);
+        rModelPart.CreateNewElement(rEntityName, 2, {{1,3,4}}, p_elem_prop);
+        rModelPart.CreateNewElement(rEntityName, 3, {{2,5,3}}, p_elem_prop);
+        rModelPart.CreateNewElement(rEntityName, 4, {{5,6,3}}, p_elem_prop);
 
-    // Initialize Elements
-    if (Initialize) {
-        const auto& r_process_info = rModelPart.GetProcessInfo();
-        for (auto& r_elem : rModelPart.Elements())
-            r_elem.Initialize(r_process_info);
+        // Initialize Elements
+        if (Initialize) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            for (auto& r_elem : rModelPart.Elements())
+                r_elem.Initialize(r_process_info);
+        }
+    } else {
+        rModelPart.CreateNewCondition(rEntityName, 1, {{1,2,3}}, p_elem_prop);
+        rModelPart.CreateNewCondition(rEntityName, 2, {{1,3,4}}, p_elem_prop);
+        rModelPart.CreateNewCondition(rEntityName, 3, {{2,5,3}}, p_elem_prop);
+        rModelPart.CreateNewCondition(rEntityName, 4, {{5,6,3}}, p_elem_prop);
+
+        // Initialize Elements
+        if (Initialize) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            for (auto& r_cond : rModelPart.Conditions())
+                r_cond.Initialize(r_process_info);
+        }
     }
 }
 
