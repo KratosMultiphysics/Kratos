@@ -56,13 +56,13 @@ namespace CppTestsUtilities
     /**
      * @brief This method creates a simple geometry in 2D (triangles) 
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param rElementName The entity name considered
+     * @param EntityName The entity name considered
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
     void KRATOS_API(KRATOS_CORE) Create2DGeometry(
         ModelPart& rModelPart, 
-        const std::string& rEntityName,
+        const std::string EntityName = "Element2D3N",
         const bool Initialize = true,
         const bool Elements = true
         );
@@ -70,24 +70,24 @@ namespace CppTestsUtilities
     /**
      * @brief This method creates a simple geometry in 3D (tetrahedra)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param rElementName The element name considered
+     * @param ElementName The element name considered
      * @param Initialize If initialize the elements
      */
     void KRATOS_API(KRATOS_CORE) Create3DGeometry(
         ModelPart& rModelPart,
-        const std::string& rElementName,
+        const std::string ElementName = "Element3D4N",
         const bool Initialize = true
         );
 
     /**
      * @brief This method creates a simple geometry in 3D (tetrahedra quadratic)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param rElementName The element name considered
+     * @param ElementName The element name considered
      * @param Initialize If initialize the elements
      */
     void KRATOS_API(KRATOS_CORE) Create3DQuadraticGeometry(
         ModelPart& rModelPart, 
-        const std::string& rElementName,
+        const std::string ElementName = "Element3D10N",
         const bool Initialize = true
         );
 
