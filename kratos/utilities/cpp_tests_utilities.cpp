@@ -24,7 +24,8 @@ namespace CppTestsUtilities
 {
 void Create2DGeometry(
     ModelPart& rModelPart, 
-    const std::string& rElementName
+    const std::string& rElementName,
+    const bool Initialize
     )
 {
     Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
@@ -43,8 +44,11 @@ void Create2DGeometry(
     rModelPart.CreateNewElement(rElementName, 4, {{5,6,3}}, p_elem_prop);
 
     // Initialize Elements
-    for (auto& r_elem : rModelPart.Elements())
-        r_elem.Initialize();
+    if (Initialize) {
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& r_elem : rModelPart.Elements())
+            r_elem.Initialize(r_process_info);
+    }
 }
 
 /***********************************************************************************/
@@ -52,7 +56,8 @@ void Create2DGeometry(
 
 void Create3DGeometry(
     ModelPart& rModelPart, 
-    const std::string& rElementName
+    const std::string& rElementName,
+    const bool Initialize
     )
 {
     Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
@@ -86,8 +91,11 @@ void Create3DGeometry(
     rModelPart.CreateNewElement(rElementName, 12, {{3,2,1,6}}, p_elem_prop);
 
     // Initialize Elements
-    for (auto& r_elem : rModelPart.Elements())
-        r_elem.Initialize();
+    if (Initialize) {
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& r_elem : rModelPart.Elements())
+            r_elem.Initialize(r_process_info);
+    }
 }
 
 } // namespace ConstraintUtilities
