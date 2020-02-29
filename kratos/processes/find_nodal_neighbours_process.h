@@ -79,7 +79,7 @@ public:
         KRATOS_WARNING("FindNodalNeighboursProcess") << 
             R"(please call separetely FindGlobalNodalNeighboursProcess 
             and FindGlobalNodalElementalNeighboursProcess. 
-            The two calculations are are currently independent,
+            The two calculations are currently independent,
              hence memory savings can be achieved)" << std::endl;
     }
 
