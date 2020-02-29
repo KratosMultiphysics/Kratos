@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -33,7 +33,6 @@
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "linear_solvers/scaling_solver.h"
-#include "linear_solvers/mixedup_linear_solver.h"
 
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/diagonal_preconditioner.h"
@@ -71,7 +70,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
     typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
     typedef DeflatedCGSolver<SpaceType,  LocalSpaceType> DeflatedCGSolverType;
-    typedef MixedUPLinearSolver<SpaceType,  LocalSpaceType> MixedUPLinearSolverType;
     typedef BICGSTABSolver<SpaceType,  LocalSpaceType> BICGSTABSolverType;
     typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
     typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
@@ -233,12 +231,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("__str__", PrintObject<DeflatedCGSolverType>)
     ;
 
-    py::class_<MixedUPLinearSolverType, MixedUPLinearSolverType::Pointer,IterativeSolverType>(m,"MixedUPLinearSolver")
-    .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
-    .def(py::init<Parameters,LinearSolverType::Pointer, LinearSolverType::Pointer >())
-    .def("__str__", PrintObject<MixedUPLinearSolverType>)
-    ;
-
     py::class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer,IterativeSolverType>(m,"DeflatedGMRESSolver")
     .def(py::init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
     .def("__str__", PrintObject<DeflatedGMRESSolverType>)
@@ -249,4 +241,3 @@ void  AddLinearSolversToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-
