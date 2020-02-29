@@ -56,13 +56,13 @@ namespace CppTestsUtilities
     /**
      * @brief This method creates a simple geometry in 2D (triangles)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param EntityName The entity name considered
+     * @param rEntityName The entity name considered
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
     void KRATOS_API(KRATOS_CORE) Create2DGeometry(
         ModelPart& rModelPart,
-        const std::string EntityName = "Element2D3N",
+        const std::string& rEntityName = "Element2D3N",
         const bool Initialize = true,
         const bool Elements = true
         );
@@ -70,13 +70,13 @@ namespace CppTestsUtilities
     /**
      * @brief This method creates a simple geometry in 2D (quadrilaterals)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param EntityName The entity name considered
+     * @param rEntityName The entity name considered
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
     void KRATOS_API(KRATOS_CORE) Create2DQuadrilateralsGeometry(
         ModelPart& rModelPart, 
-        const std::string EntityName = "Element2D4N",
+        const std::string& rEntityName = "Element2D4N",
         const bool Initialize = true,
         const bool Elements = true
         );
@@ -84,36 +84,36 @@ namespace CppTestsUtilities
     /**
      * @brief This method creates a simple geometry in 3D (tetrahedra)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param ElementName The element name considered
+     * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
     void KRATOS_API(KRATOS_CORE) Create3DGeometry(
         ModelPart& rModelPart,
-        const std::string ElementName = "Element3D4N",
+        const std::string& rElementName = "Element3D4N",
         const bool Initialize = true
         );
 
     /**
      * @brief This method creates a simple geometry in 3D (hexahedra)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param ElementName The element name considered
+     * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
     void KRATOS_API(KRATOS_CORE) Create3DHexahedraGeometry(
         ModelPart& rModelPart,
-        const std::string ElementName = "Element3D8N",
+        const std::string& rElementName = "Element3D8N",
         const bool Initialize = true
         );
 
     /**
      * @brief This method creates a simple geometry in 3D (tetrahedra quadratic)
      * @param rModelPart Reference to the ModelPart containing the problem
-     * @param ElementName The element name considered
+     * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
     void KRATOS_API(KRATOS_CORE) Create3DQuadraticGeometry(
         ModelPart& rModelPart, 
-        const std::string ElementName = "Element3D10N",
+        const std::string& rElementName = "Element3D10N",
         const bool Initialize = true
         );
 
