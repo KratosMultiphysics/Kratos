@@ -27,7 +27,7 @@ void Create2DGeometry(
     const std::string& rElementName
     )
 {
-    Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+    Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
     // First we create the nodes
     rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -55,7 +55,7 @@ void Create3DGeometry(
     const std::string& rElementName
     )
 {
-    Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+    Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
     // First we create the nodes
     rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
