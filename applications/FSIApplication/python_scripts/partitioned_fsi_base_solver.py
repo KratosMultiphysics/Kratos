@@ -106,6 +106,26 @@ class PartitionedFSIBaseSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[PartitionedFSIBaseSolver]::", "ALE mesh solver construction finished.")
         KratosMultiphysics.Logger.PrintInfo("::[PartitionedFSIBaseSolver]::", "Partitioned FSI base solver construction finished.")
 
+    @classmethod
+    def GetDefaultSettings(cls):
+        """This function returns the default-settings used by this class
+        """
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "echo_level": 0,
+            "parallel_type": "OpenMP",
+            "solver_type": "partitioned",
+            "structure_solver_settings": {
+            },
+            "fluid_solver_settings":{
+            },
+            "mesh_solver_settings":{
+            },
+            "coupling_settings":{
+            }
+        }""")
+        this_defaults.AddMissingParameters(super(PartitionedFSIBaseSolver, cls).GetDefaultSettings())
+        return this_defaults
+
     def GetMinimumBufferSize(self):
         # Get structure buffer size
         buffer_structure = self.structure_solver.GetMinimumBufferSize()

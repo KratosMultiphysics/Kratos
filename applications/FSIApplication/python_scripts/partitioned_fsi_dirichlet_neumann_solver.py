@@ -21,20 +21,11 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
     def GetDefaultSettings(cls):
         """This function returns the default-settings used by this class
         """
-        return KratosMultiphysics.Parameters("""{
-            "echo_level": 0,
-            "parallel_type": "OpenMP",
-            "solver_type": "partitioned",
-            "coupling_scheme": "dirichlet_neumann",
-            "structure_solver_settings": {
-            },
-            "fluid_solver_settings":{
-            },
-            "mesh_solver_settings":{
-            },
-            "coupling_settings":{
-            }
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "coupling_scheme": "dirichlet_neumann"
         }""")
+        this_defaults.AddMissingParameters(super(PartitionedFSIDirichletNeumannSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def Initialize(self):
         # Get the domain size

@@ -23,20 +23,11 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
     def GetDefaultSettings(cls):
         """This function returns the default-settings used by this class
         """
-        return KratosMultiphysics.Parameters("""{
-            "echo_level": 0,
-            "parallel_type": "MPI",
-            "solver_type": "partitioned",
-            "coupling_scheme": "dirichlet_neumann",
-            "structure_solver_settings": {
-            },
-            "fluid_solver_settings":{
-            },
-            "mesh_solver_settings":{
-            },
-            "coupling_settings":{
-            }
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "coupling_scheme": "dirichlet_neumann"
         }""")
+        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIDirichletNeumannSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def Initialize(self):
         # Set the Trilinos space
