@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos
