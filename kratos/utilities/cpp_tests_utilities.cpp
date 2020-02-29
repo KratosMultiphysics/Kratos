@@ -29,7 +29,7 @@ void Create2DGeometry(
     const bool Elements
     )
 {
-    Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
     // First we create the nodes
     rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -40,10 +40,10 @@ void Create2DGeometry(
     rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
 
     if (Elements) {
-        rModelPart.CreateNewElement(rEntityName, 1, {{1,2,3}}, p_elem_prop);
-        rModelPart.CreateNewElement(rEntityName, 2, {{1,3,4}}, p_elem_prop);
-        rModelPart.CreateNewElement(rEntityName, 3, {{2,5,3}}, p_elem_prop);
-        rModelPart.CreateNewElement(rEntityName, 4, {{5,6,3}}, p_elem_prop);
+        rModelPart.CreateNewElement(rEntityName, 1, {{1,2,3}}, p_prop);
+        rModelPart.CreateNewElement(rEntityName, 2, {{1,3,4}}, p_prop);
+        rModelPart.CreateNewElement(rEntityName, 3, {{2,5,3}}, p_prop);
+        rModelPart.CreateNewElement(rEntityName, 4, {{5,6,3}}, p_prop);
 
         // Initialize Elements
         if (Initialize) {
@@ -52,10 +52,10 @@ void Create2DGeometry(
                 r_elem.Initialize(r_process_info);
         }
     } else {
-        rModelPart.CreateNewCondition(rEntityName, 1, {{1,2,3}}, p_elem_prop);
-        rModelPart.CreateNewCondition(rEntityName, 2, {{1,3,4}}, p_elem_prop);
-        rModelPart.CreateNewCondition(rEntityName, 3, {{2,5,3}}, p_elem_prop);
-        rModelPart.CreateNewCondition(rEntityName, 4, {{5,6,3}}, p_elem_prop);
+        rModelPart.CreateNewCondition(rEntityName, 1, {{1,2,3}}, p_prop);
+        rModelPart.CreateNewCondition(rEntityName, 2, {{1,3,4}}, p_prop);
+        rModelPart.CreateNewCondition(rEntityName, 3, {{2,5,3}}, p_prop);
+        rModelPart.CreateNewCondition(rEntityName, 4, {{5,6,3}}, p_prop);
 
         // Initialize Elements
         if (Initialize) {
@@ -75,7 +75,7 @@ void Create3DGeometry(
     const bool Initialize
     )
 {
-    Properties::Pointer p_elem_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
     // First we create the nodes
     rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -92,18 +92,18 @@ void Create3DGeometry(
     rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
     rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
 
-    rModelPart.CreateNewElement(rElementName, 1, {{12,10,8,9}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 2, {{4,6,9,7}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 3, {{11,7,9,8}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 4, {{5,3,8,6}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 5, {{4,6,7,3}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 6, {{2,3,5,6}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 7, {{10,9,6,8}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 8, {{7,8,3,6}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 9, {{7,8,6,9}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 10, {{4,1,6,3}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 11, {{9,12,11,8}}, p_elem_prop);
-    rModelPart.CreateNewElement(rElementName, 12, {{3,2,1,6}}, p_elem_prop);
+    rModelPart.CreateNewElement(rElementName, 1, {{12,10,8,9}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 2, {{4,6,9,7}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 3, {{11,7,9,8}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 4, {{5,3,8,6}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 5, {{4,6,7,3}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 6, {{2,3,5,6}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 7, {{10,9,6,8}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 8, {{7,8,3,6}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 9, {{7,8,6,9}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 10, {{4,1,6,3}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 11, {{9,12,11,8}}, p_prop);
+    rModelPart.CreateNewElement(rElementName, 12, {{3,2,1,6}}, p_prop);
 
     // Initialize Elements
     if (Initialize) {
