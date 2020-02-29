@@ -41,7 +41,6 @@
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 #include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
-#include "linear_solvers/deflated_gmres_solver.h"
 
 namespace Kratos
 {
@@ -76,7 +75,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
-    typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
 
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
     typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
@@ -229,11 +227,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
 // 		  .def(py::init<double, unsigned int,  PreconditionerType::Pointer, ModelPart*>())
     //.def("",&LinearSolverType::)
     .def("__str__", PrintObject<DeflatedCGSolverType>)
-    ;
-
-    py::class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer,IterativeSolverType>(m,"DeflatedGMRESSolver")
-    .def(py::init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
-    .def("__str__", PrintObject<DeflatedGMRESSolverType>)
     ;
 
 }
