@@ -23,7 +23,7 @@ namespace Kratos
 namespace CppTestsUtilities
 {
 void Create2DGeometry(
-    ModelPart& rModelPart, 
+    ModelPart& rModelPart,
     const std::string EntityName,
     const bool Initialize,
     const bool Elements
@@ -56,6 +56,49 @@ void Create2DGeometry(
         rModelPart.CreateNewCondition(EntityName, 2, {{1,3,4}}, p_prop);
         rModelPart.CreateNewCondition(EntityName, 3, {{2,5,3}}, p_prop);
         rModelPart.CreateNewCondition(EntityName, 4, {{5,6,3}}, p_prop);
+
+        // Initialize Elements
+        if (Initialize) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            for (auto& r_cond : rModelPart.Conditions())
+                r_cond.Initialize(r_process_info);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Create2DQuadrilateralsGeometry(
+    ModelPart& rModelPart, 
+    const std::string EntityName,
+    const bool Initialize,
+    const bool Elements
+    )
+{
+    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+
+    // First we create the nodes
+    rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+    rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+    rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+    if (Elements) {
+        rModelPart.CreateNewElement(EntityName, 1, {{1,2,3,4}}, p_prop);
+        rModelPart.CreateNewElement(EntityName, 2, {{2,5,6,3}}, p_prop);
+
+        // Initialize Elements
+        if (Initialize) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            for (auto& r_elem : rModelPart.Elements())
+                r_elem.Initialize(r_process_info);
+        }
+    } else {
+        rModelPart.CreateNewCondition(EntityName, 1, {{1,2,3,4}}, p_prop);
+        rModelPart.CreateNewCondition(EntityName, 2, {{2,5,6,3}}, p_prop);
 
         // Initialize Elements
         if (Initialize) {
@@ -104,6 +147,43 @@ void Create3DGeometry(
     rModelPart.CreateNewElement(ElementName, 10, {{4,1,6,3}}, p_prop);
     rModelPart.CreateNewElement(ElementName, 11, {{9,12,11,8}}, p_prop);
     rModelPart.CreateNewElement(ElementName, 12, {{3,2,1,6}}, p_prop);
+
+    // Initialize Elements
+    if (Initialize) {
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& r_elem : rModelPart.Elements())
+            r_elem.Initialize(r_process_info);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Create3DHexahedraGeometry(
+    ModelPart& rModelPart,
+    const std::string ElementName,
+    const bool Initialize
+    )
+{
+    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+
+    // First we create the nodes
+    rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+    rModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+    rModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+    rModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
+    rModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+    rModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
+
+    rModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
+    rModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
+    rModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
+    rModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
+    rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
+    rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
+
+    rModelPart.CreateNewElement(ElementName, 1, {{5,8,6,2,3,7,4,1}}, p_prop);
+    rModelPart.CreateNewElement(ElementName, 2, {{8,12,10,6,7,11,9,4}}, p_prop);
 
     // Initialize Elements
     if (Initialize) {
