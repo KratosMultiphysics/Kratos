@@ -45,7 +45,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             
-            CppTestsUtilities::Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
+            CppTestsUtilities::Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N", false);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -93,7 +93,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            CppTestsUtilities::Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
+            CppTestsUtilities::Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N", false);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
