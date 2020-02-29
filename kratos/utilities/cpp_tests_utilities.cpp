@@ -41,6 +41,10 @@ void Create2DGeometry(
     rModelPart.CreateNewElement(rElementName, 2, {{1,3,4}}, p_elem_prop);
     rModelPart.CreateNewElement(rElementName, 3, {{2,5,3}}, p_elem_prop);
     rModelPart.CreateNewElement(rElementName, 4, {{5,6,3}}, p_elem_prop);
+
+    // Initialize Elements
+    for (auto& r_elem : rModelPart.Elements())
+        r_elem.Initialize();
 }
 
 /***********************************************************************************/
@@ -80,6 +84,10 @@ void Create3DGeometry(
     rModelPart.CreateNewElement(rElementName, 10, {{4,1,6,3}}, p_elem_prop);
     rModelPart.CreateNewElement(rElementName, 11, {{9,12,11,8}}, p_elem_prop);
     rModelPart.CreateNewElement(rElementName, 12, {{3,2,1,6}}, p_elem_prop);
+
+    // Initialize Elements
+    for (auto& r_elem : rModelPart.Elements())
+        r_elem.Initialize();
 }
 
 } // namespace ConstraintUtilities
