@@ -358,12 +358,6 @@ protected:
                                                    VectorType &rRightHandSideVector,
                                                    ProcessInfo &rCurrentProcessInfo){};
 
-  virtual void ComputeMaterialParameters(double &Density,
-                                         double &DeviatoricCoeff,
-                                         double &VolumetricCoeff,
-                                         ProcessInfo &rCurrentProcessInfo,
-                                         ElementalVariables &rElementalVariables){};
-
   virtual void ComputeMaterialParametersGranularGas(double &Density,
                                                     double &DeviatoricCoeff,
                                                     double &VolumetricCoeff,

@@ -127,24 +127,6 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeNonLinearIt
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::ComputeMaterialParameters(
-    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff, ProcessInfo &currentProcessInfo,
-    ElementalVariables &rElementalVariables) {
-    Density = this->GetProperties()[DENSITY];
-    double YoungModulus = this->GetProperties()[YOUNG_MODULUS];
-    double PoissonRatio = this->GetProperties()[POISSON_RATIO];
-    double timeStep = currentProcessInfo[DELTA_TIME];
-
-    DeviatoricCoeff = timeStep * YoungModulus / (1.0 + PoissonRatio) * 0.5;
-    VolumetricCoeff = timeStep * PoissonRatio * YoungModulus / ((1.0 + PoissonRatio) * (1.0 - 2.0 * PoissonRatio)) +
-                      2.0 * DeviatoricCoeff / 3.0;
-
-    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
-    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
-    this->mMaterialDensity = Density;
-}
-
-template <unsigned int TDim>
 int TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;

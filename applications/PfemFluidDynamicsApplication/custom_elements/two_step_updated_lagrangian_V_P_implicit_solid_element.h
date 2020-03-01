@@ -291,12 +291,6 @@ protected:
   ///@name Protected Operations
   ///@{
 
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override;
-
   /// Add integration point contribution to the mass matrix.
   /**
        * A constistent mass matrix is used.

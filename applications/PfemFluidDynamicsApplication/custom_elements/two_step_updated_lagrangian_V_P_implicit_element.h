@@ -342,12 +342,6 @@ protected:
                                              VectorType &rRightHandSideVector,
                                              ProcessInfo &rCurrentProcessInfo) override{};
 
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override{};
-
   void ComputeMaterialParametersGranularGas(double &Density,
                                             double &DeviatoricCoeff,
                                             double &VolumetricCoeff,

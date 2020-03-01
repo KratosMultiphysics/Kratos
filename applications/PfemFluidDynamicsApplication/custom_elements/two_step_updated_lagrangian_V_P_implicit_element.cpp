@@ -120,8 +120,6 @@ void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEqua
 
     bool computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
 
-    this->ComputeMaterialParameters(Density, DeviatoricCoeff, VolumetricCoeff, rCurrentProcessInfo, rElementalVariables);
-
     this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo);
 
     if (computeElement == true)

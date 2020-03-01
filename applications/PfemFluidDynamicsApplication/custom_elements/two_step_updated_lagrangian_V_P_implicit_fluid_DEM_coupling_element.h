@@ -289,12 +289,6 @@ protected:
   ///@name Protected Operations
   ///@{
 
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override;
-
   void ComputeBoundRHSVector(VectorType &BoundRHSVector,
                              const ShapeFunctionsType &rN,
                              const double TimeStep,

@@ -291,12 +291,6 @@ protected:
   ///@name Protected Operations
   ///@{
 
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override;
-
   /**
        * A constistent mass matrix is used.
        * @param rMassMatrix The local matrix where the result will be added.
