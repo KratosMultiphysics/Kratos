@@ -31,6 +31,12 @@ namespace Kratos
 namespace EntitiesUtilities
 {
     /**
+     * @brief This method initializes all the entities (conditions, elements, constraints)
+     * @param rModelPart The model of the problem to solve
+     */
+    void KRATOS_API(KRATOS_CORE) InitializeAllEntities(ModelPart& rModelPart);
+
+    /**
      * @brief This method initializes all the conditions
      * @param rModelPart The model of the problem to solve
      */
@@ -72,21 +78,6 @@ namespace EntitiesUtilities
                 }
             }
         }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method initializes all the entities (conditions, elements, constraints)
-     * @param rModelPart The model of the problem to solve
-     */
-    void InitializeAllEntities(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        InitializeEntities<Condition>(rModelPart);
-        InitializeEntities<Element>(rModelPart);
-        InitializeEntities<MasterSlaveConstraint>(rModelPart);
 
         KRATOS_CATCH("")
     }
