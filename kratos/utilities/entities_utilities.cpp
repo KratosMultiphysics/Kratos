@@ -21,20 +21,6 @@ namespace Kratos
 {
 namespace EntitiesUtilities
 {
-void InitializeAllEntities(ModelPart& rModelPart)
-{
-    KRATOS_TRY
-
-    InitializeEntities<Condition>(rModelPart);
-    InitializeEntities<Element>(rModelPart);
-    InitializeEntities<MasterSlaveConstraint>(rModelPart);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<>
 PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart)
 {
