@@ -90,23 +90,10 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::ComputeMat
     DeviatoricCoeff = this->GetProperties()[DYNAMIC_VISCOSITY];
   }
 
-  // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
-  // std::cout<<"Density "<<Density<<std::endl;
-  // std::cout<<"FluidBulkModulus "<<FluidBulkModulus<<std::endl;
-  // std::cout<<"staticFrictionCoefficient "<<staticFrictionCoefficient<<std::endl;
-  // std::cout<<"DeviatoricCoeff "<<DeviatoricCoeff<<std::endl;
-
   this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
   this->mMaterialVolumetricCoefficient = VolumetricCoeff;
   this->mMaterialDensity = Density;
 
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
-  //   }
 }
 
 template <unsigned int TDim>
