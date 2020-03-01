@@ -69,7 +69,7 @@ Element::Pointer UpdatedLagrangianVImplicitSolidElement<TDim>::Clone(IndexType N
 
 template <>
 void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
@@ -115,7 +115,7 @@ void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted
 
 template <>
 void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 

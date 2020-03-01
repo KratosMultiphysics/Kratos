@@ -571,9 +571,8 @@ protected:
   bool CheckStrain3(VectorType &SpatialDefRate,
                     MatrixType &SpatialVelocityGrad);
 
-  virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                                double TimeStep,
-                                                unsigned int g){};
+  virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
+                                                unsigned int g, const ProcessInfo &rCurrentProcessInfo){};
 
   /// Write the value of a variable at a point inside the element to a double
   /**

@@ -367,9 +367,8 @@ protected:
                                   const ShapeFunctionDerivativesType &rShapeDeriv,
                                   const double Weight) override;
 
-  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                        double TimeStep,
-                                        unsigned int g) override;
+  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
+                                        const ProcessInfo &rCurrentProcessInfo) override;
 
   void CalculateTauFIC(double &TauOne,
                        double ElemSize,

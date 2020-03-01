@@ -310,7 +310,7 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeElementalVa
 
 template <>
 void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
@@ -348,7 +348,7 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::CalcElasticPlasticCauchy
 
 template <>
 void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
@@ -421,7 +421,7 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::UpdateCauchyStress(un
   const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
   if (computeElement == true)
   {
-    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g);
+    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo);
   }
 
   this->mCurrentTotalCauchyStress[g] = this->mUpdatedTotalCauchyStress[g];

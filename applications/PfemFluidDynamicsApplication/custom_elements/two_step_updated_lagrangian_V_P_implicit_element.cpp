@@ -123,7 +123,7 @@ void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEqua
 
     this->ComputeMaterialParameters(Density, DeviatoricCoeff, VolumetricCoeff, rCurrentProcessInfo, rElementalVariables);
 
-    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g);
+    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo);
 
     // std::vector<double> rOutput;
     // this->GetElementalValueForOutput(YIELDED,rOutput);
