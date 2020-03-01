@@ -1532,8 +1532,6 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchy
 {
 
   double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
-  // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-  // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
   double DefX = rElementalVariables.SpatialDefRate[0];
   double DefY = rElementalVariables.SpatialDefRate[1];
@@ -1544,25 +1542,9 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchy
   double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
   double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
 
-  // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
-  // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
-  // double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
-
-  // sigmaDev_xx=rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  // sigmaDev_yy=rElementalVariables.CurrentDeviatoricCauchyStress[1];
-  // sigmaDev_xy=rElementalVariables.CurrentDeviatoricCauchyStress[2];
-
-  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
-
   double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
   double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
   double sigmaTot_xy = sigmaDev_xy;
-
-  // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
-  // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
-  // sigmaDev_xy= sigmaTot_xy;
 
   rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
   rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
@@ -1572,37 +1554,6 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchy
   rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
   rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_xy;
 
-  // double TauNorm=sqrt((0.5*sigmaDev_xx*sigmaDev_xx + 0.5*sigmaDev_yy*sigmaDev_yy + sigmaDev_xy*sigmaDev_xy));
-  // double FluidYieldShear=0;
-  // this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
-
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
-  //   }
-
-  // if(TauNorm>FluidYieldShear){
-  //   this->SetValue(YIELDED,1.0);
-
-  //   for (SizeType i = 0; i < NumNodes; ++i){
-
-  // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 1;
-  // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
-  //   }
-  // }else{
-
-  //   this->SetValue(YIELDED,0.0);
-  //   // std::vector<double> rOutput;
-  //   // this->GetElementalValueForOutput(YIELDED,rOutput);
-
-  //   for (SizeType i = 0; i < NumNodes; ++i){
-  // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 0;
-  // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
-  //   }
-  // }
 }
 
 template <>
@@ -1610,8 +1561,6 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchy
 {
 
   double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
-  // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-  // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
   double DefX = rElementalVariables.SpatialDefRate[0];
   double DefY = rElementalVariables.SpatialDefRate[1];
@@ -1629,40 +1578,12 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchy
   double sigmaDev_xz = 2 * CurrSecondLame * DefXZ;
   double sigmaDev_yz = 2 * CurrSecondLame * DefYZ;
 
-  // double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
-  // double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
-  // double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
-  // double sigmaTot_xy= 2*CurrSecondLame*DefXY;
-  // double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
-  // double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
-
-  // sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  // sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
-  // sigmaDev_zz+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
-  // sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[3];
-  // sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
-  // sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
-
   double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
   double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
   double sigmaTot_zz = sigmaDev_zz + rElementalVariables.MeanPressure;
   double sigmaTot_xy = sigmaDev_xy;
   double sigmaTot_xz = sigmaDev_xz;
   double sigmaTot_yz = sigmaDev_yz;
-
-  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  // sigmaTot_zz+=rElementalVariables.CurrentTotalCauchyStress[2];
-  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[3];
-  // sigmaTot_xz+=rElementalVariables.CurrentTotalCauchyStress[4];
-  // sigmaTot_yz+=rElementalVariables.CurrentTotalCauchyStress[5];
-
-  // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
-  // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
-  // sigmaDev_zz= sigmaTot_zz - rElementalVariables.MeanPressure;
-  // sigmaDev_xy= sigmaTot_xy;
-  // sigmaDev_xz= sigmaTot_xz;
-  // sigmaDev_yz= sigmaTot_yz;
 
   rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
   rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
