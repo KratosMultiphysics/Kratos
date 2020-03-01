@@ -24,8 +24,8 @@
         },
         "rom_settings": {
             "nodal_unknowns": [
-                "DISPLACEMENT",
-                "2"
+                "DISPLACEMENT_X",
+                "DISPLACEMENT_Y"
             ],
             "number_of_rom_dofs": 3
         },
