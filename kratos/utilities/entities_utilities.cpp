@@ -19,13 +19,15 @@
 
 namespace Kratos
 {
-void EntitiesUtilities::InitializeAllEntities(ModelPart& rModelPart)
+namespace EntitiesUtilities
+{
+void InitializeAllEntities(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
-    EntitiesUtilities::InitializeEntities<Element>(rModelPart);
-    EntitiesUtilities::InitializeEntities<MasterSlaveConstraint>(rModelPart);
+    InitializeEntities<Condition>(rModelPart);
+    InitializeEntities<Element>(rModelPart);
+    InitializeEntities<MasterSlaveConstraint>(rModelPart);
 
     KRATOS_CATCH("")
 }
@@ -34,7 +36,7 @@ void EntitiesUtilities::InitializeAllEntities(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-ModelPart::ElementsContainerType& EntitiesUtilities::GetEntities<Element>(ModelPart& rModelPart)
+ModelPart::ElementsContainerType& GetEntities<Element>(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
@@ -43,7 +45,7 @@ ModelPart::ElementsContainerType& EntitiesUtilities::GetEntities<Element>(ModelP
 /***********************************************************************************/
 
 template<>
-ModelPart::ConditionsContainerType& EntitiesUtilities::GetEntities<Condition>(ModelPart& rModelPart)
+ModelPart::ConditionsContainerType& GetEntities<Condition>(ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
@@ -52,9 +54,10 @@ ModelPart::ConditionsContainerType& EntitiesUtilities::GetEntities<Condition>(Mo
 /***********************************************************************************/
 
 template<>
-ModelPart::MasterSlaveConstraintContainerType& EntitiesUtilities::GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart)
+ModelPart::MasterSlaveConstraintContainerType& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart)
 {
     return rModelPart.MasterSlaveConstraints();
 }
 
+} // namespace EntitiesUtilities
 } // namespace Kratos

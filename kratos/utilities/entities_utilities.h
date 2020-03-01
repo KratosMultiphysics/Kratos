@@ -22,62 +22,38 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
 /**
- * @class EntitiesUtilities
+ * @namespace EntitiesUtilities
  * @ingroup KratosCore
  * @brief This namespace includes several utilities necessaries for the computation of entities functions in a efficient way
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KRATOS_CORE) EntitiesUtilities
+namespace EntitiesUtilities
 {
-public:
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
     /**
      * @brief This method initializes all the entities (conditions, elements, constraints)
      * @param rModelPart The model of the problem to solve
      */
-    static void InitializeAllEntities(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) InitializeAllEntities(ModelPart& rModelPart);
 
     /**
      * @brief This method initializes all the conditions
      * @param rModelPart The model of the problem to solve
      */
     template<class TEntityType>
-    static void InitializeEntities(ModelPart& rModelPart)
+    PointerVectorSet<TEntityType, IndexedObject>& KRATOS_API(KRATOS_CORE) GetEntities(ModelPart& rModelPart);
+
+    /**
+     * @brief This method initializes all the conditions
+     * @param rModelPart The model of the problem to solve
+     */
+    template<class TEntityType>
+    void InitializeEntities(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         // The number of entities
-        auto& r_entities_array = EntitiesUtilities::GetEntities<TEntityType>(rModelPart);
+        auto& r_entities_array = GetEntities<TEntityType>(rModelPart);
         const int number_of_entities = static_cast<int>(r_entities_array.size());
         const auto it_ent_begin = r_entities_array.begin();
 
@@ -105,49 +81,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    ///@}
-    ///@name Acces
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief This method initializes all the conditions
-     * @param rModelPart The model of the problem to solve
-     */
-    template<class TEntityType>
-    static PointerVectorSet<TEntityType, IndexedObject>& GetEntities(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Acces
