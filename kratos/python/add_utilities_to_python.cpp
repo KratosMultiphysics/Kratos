@@ -1240,11 +1240,11 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     // EntitiesUtilities
     auto entities_utilities = m.def_submodule("EntitiesUtilities");
-    entities_utilities.def("InitializeEntities", &EntitiesUtilities::InitializeEntities );
-    entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeConditions );
-    entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeElements );
-    entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeMasterSlaveConstraints );
-    
+    entities_utilities.def("InitializeAllEntities", &EntitiesUtilities::InitializeAllEntities );
+    entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeEntities<Condition> );
+    entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeEntities<Element> );
+    entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeEntities<MasterSlaveConstraint> );
+
     // GeometricalTransformationUtilities
     auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
