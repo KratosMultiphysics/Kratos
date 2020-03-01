@@ -36,7 +36,7 @@ void InitializeAllEntities(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-ModelPart::ElementsContainerType& GetEntities<Element>(ModelPart& rModelPart)
+PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
@@ -45,7 +45,7 @@ ModelPart::ElementsContainerType& GetEntities<Element>(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-ModelPart::ConditionsContainerType& GetEntities<Condition>(ModelPart& rModelPart)
+PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
@@ -54,7 +54,7 @@ ModelPart::ConditionsContainerType& GetEntities<Condition>(ModelPart& rModelPart
 /***********************************************************************************/
 
 template<>
-ModelPart::MasterSlaveConstraintContainerType& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart)
+PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart)
 {
     return rModelPart.MasterSlaveConstraints();
 }
