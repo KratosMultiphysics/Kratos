@@ -29,7 +29,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         this_defaults = KratosMultiphysics.Parameters("""{
             "parallel_type": "MPI"
         }""")
-        this_defaults.AddMissingParameters(super(PartitionedFSIDirichletNeumannSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIBaseSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
