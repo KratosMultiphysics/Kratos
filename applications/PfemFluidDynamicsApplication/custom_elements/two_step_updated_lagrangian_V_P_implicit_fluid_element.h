@@ -313,23 +313,11 @@ protected:
                                        double &bulkCoefficient,
                                        double timeStep) override;
 
-  double ComputeNonLinearViscosity(double &equivalentStrainRate);
-
   void ComputeMaterialParametersGranularGas(double &Density,
                                             double &DeviatoricCoeff,
                                             double &VolumetricCoeff,
                                             ProcessInfo &rCurrentProcessInfo,
                                             ElementalVariables &rElementalVariables) override;
-
-  double ComputeJopMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputeBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputePapanastasiouMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputeBarkerMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables);
 
   void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
                              const double Weight) override;
