@@ -19,6 +19,7 @@
 
 // Project includes
 #include "fem_to_dem_application_variables.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -86,6 +87,10 @@ class FEMDEMCouplingUtilities
         const double DemTime);
 
     void RestoreStructuralSolution(ModelPart &rStructureModelPart);
+
+    void AddExplicitImpulses(ModelPart &rStructureModelPart, const double DEMTimeStep);
+
+    void ComputeAndTranferAveragedContactTotalForces(ModelPart &rStructureModelPart, const double FEMtimeStep);
     
 
 

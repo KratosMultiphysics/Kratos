@@ -33,6 +33,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SaveStructuralSolution",&FEMDEMCouplingUtilities::SaveStructuralSolution)
         .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities::InterpolateStructuralSolution)
         .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities::RestoreStructuralSolution)
+        .def("AddExplicitImpulses",&FEMDEMCouplingUtilities::AddExplicitImpulses)
+        .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
         ;
 }
 
