@@ -27,15 +27,16 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         # Perform substepping
         pseudo_substepping_time = 0
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
-            KratosFemDem.FEMDEM_coupling_utilities3D().SaveStructuralSolution(self.FEM_Solution.main_model_part)
+            KratosFemDem.FEMDEMCouplingUtilities().SaveStructuralSolution(self.FEM_Solution.main_model_part)
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
                 ### Begin Substepping 
                 self.BeforeSolveDEMOperations()
-                KratosFemDem.FEMDEM_coupling_utilities3D().InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
-                                                                                         self.FEM_Solution.delta_time,
-                                                                                         self.FEM_Solution.time
-                                                                                         self.DEM_Solution.solver.dt,
-                                                                                         self.DEM_Solution.time)
+                KratosFemDem.FEMDEMCouplingUtilities().InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
+                                                                                       self.FEM_Solution.delta_time,
+                                                                                       self.FEM_Solution.time,
+                                                                                       self.DEM_Solution.solver.dt,
+                                                                                       self.DEM_Solution.time)
+                self.UpdateDEMVariables()
 
                 #### SOLVE DEM #########################################
                 self.DEM_Solution.solver.Solve()
@@ -45,7 +46,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
                 # We reset the position of the slave DEM
-                # self.UpdateDEMVariables()
+                self.UpdateDEMVariables()
 
                 # DEM GiD print output
                 self.PrintDEMResults()
@@ -56,7 +57,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
             ### End Substepping
             # Reset the data base for the FEM
-            KratosFemDem.FEMDEM_coupling_utilities3D().RestoreStructuralSolution(self.FEM_Solution.main_model_part)
+            KratosFemDem.FEMDEMCouplingUtilities().RestoreStructuralSolution(self.FEM_Solution.main_model_part)
 
         else: # In case there are no DEM yet
             self.OnlyUpdateTimeAndStepInDEM()
