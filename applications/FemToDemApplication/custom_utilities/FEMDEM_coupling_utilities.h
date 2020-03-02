@@ -82,6 +82,8 @@ class FEMDEMCouplingUtilities
         const double FemTime,
         const double DemDeltaTime,
         const double DemTime);
+
+    void RestoreStructuralSolution(ModelPart &rStructureModelPart);
     
 
 

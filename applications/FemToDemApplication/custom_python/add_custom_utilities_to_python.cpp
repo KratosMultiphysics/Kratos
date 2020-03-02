@@ -31,13 +31,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<FEMDEMCouplingUtilities<2>(m,"FEMDEMCouplingUtilities2D")
         .def(py::init<ModelPart&>())
         .def("SaveStructuralSolution",&FEMDEMCouplingUtilities<2>::SaveStructuralSolution)
-        // .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities<2>::InterpolateStructuralSolution)
+        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities<2>::RestoreStructuralSolution)
         ;
 
     py::class_<FEMDEMCouplingUtilities<3>(m,"FEMDEMCouplingUtilities3D")
         .def(py::init<ModelPart&>())
         .def("SaveStructuralSolution",&FEMDEMCouplingUtilities<3>::SaveStructuralSolution)
-        // .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities<3>::InterpolateStructuralSolution)
+        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities<3>::RestoreStructuralSolution)
         ;
 
 
