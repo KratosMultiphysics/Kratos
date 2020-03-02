@@ -38,20 +38,12 @@ namespace Kratos
     private:
         static double BisectionToAxis(
             const GeometryType& rCurve,
-            double IntersectionAxis1,
-            double IntersectionAxis2,
+            double IntersectionAxis,
             double Parameter1,
             double Parameter2,
             IndexType AxisDirectionIndex,
             double Tolerance = 1e-6)
         {
-            // obtain correct axis
-            double max = std::max(Parameter1, Parameter2);
-            double min = std::min(Parameter1, Parameter2);
-            const double intersection_axis = ((IntersectionAxis1 > min) && (IntersectionAxis1 < max))
-                ? IntersectionAxis1
-                : IntersectionAxis2;
-
             double parameter_smaller, parameter_bigger;
             CoordinatesArrayType point_1, point_2;
             CoordinatesArrayType parameter_1 = ZeroVector(3);
@@ -61,7 +53,7 @@ namespace Kratos
             rCurve.GlobalCoordinates(point_1, parameter_1);
             rCurve.GlobalCoordinates(point_2, parameter_2);
 
-            double distance = point_1[AxisDirectionIndex] - intersection_axis;
+            double distance = point_1[AxisDirectionIndex] - IntersectionAxis;
             if (distance < 0) {
                 parameter_smaller = parameter_1[0];
                 parameter_bigger = parameter_2[0];
@@ -77,9 +69,9 @@ namespace Kratos
                 new_parameter[0] = (parameter_smaller + parameter_bigger) / 2;
                 CoordinatesArrayType point_new;
                 rCurve.GlobalCoordinates(point_new, new_parameter);
-                distance = point_new[AxisDirectionIndex] - intersection_axis;
-                if (std::abs(distance) < Tolerance)
-                {
+                distance = point_new[AxisDirectionIndex] - IntersectionAxis;
+
+                if (std::abs(distance) < Tolerance) {
                     return new_parameter[0];
                 }
                 if (distance < 0)
@@ -144,21 +136,33 @@ namespace Kratos
             GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[0])[1]);
 
             for (IndexType i = 1; i < polygon.size(); ++i) {
-                if (std::get<1>(polygon[i])[0] < min_1 || std::get<1>(polygon[i])[0] > max_1) {
+                if (std::get<1>(polygon[i])[0] < min_1) {
                     double intersection_parameter = BisectionToAxis(
-                        rGeometry, rAxis1[axis_index_1], rAxis1[axis_index_1 + 1],
-                        std::get<0>(polygon[i]), std::get<0>(polygon[i + 1]), Tolerance);
+                        rGeometry, min_1,
+                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
                     intersection_parameters.push_back(intersection_parameter);
-                    KRATOS_WATCH(std::get<1>(polygon[i])[1])
+                    GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
+                }
+                else if (std::get<1>(polygon[i])[0] > max_1) {
+                    double intersection_parameter = BisectionToAxis(
+                        rGeometry, max_1,
+                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
+                    intersection_parameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
 
-                if (std::get<1>(polygon[i])[1] < min_2 || std::get<1>(polygon[i])[1] > max_2) {
+                if (std::get<1>(polygon[i])[1] < min_2) {
                     double intersection_parameter = BisectionToAxis(
-                        rGeometry, rAxis2[axis_index_2], rAxis2[axis_index_2 + 1],
-                        std::get<0>(polygon[i]), std::get<0>(polygon[i + 1]), Tolerance);
+                        rGeometry, min_2,
+                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
                     intersection_parameters.push_back(intersection_parameter);
-                    KRATOS_WATCH(std::get<1>(polygon[i])[0])
+                    GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1]);
+                }
+                else if (std::get<1>(polygon[i])[1] > max_2) {
+                    double intersection_parameter = BisectionToAxis(
+                        rGeometry, max_2,
+                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
+                    intersection_parameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1]);
                 }
             }

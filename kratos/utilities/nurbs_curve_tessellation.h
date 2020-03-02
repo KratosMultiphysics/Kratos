@@ -221,7 +221,7 @@ public:
 
         CoordinatesArrayType parameter = ZeroVector(3);
 
-        double length = Start - End;
+        double length = End - Start;
         double delta_length = length / (NumberOfPoints - 1);
 
         // compute sample points
