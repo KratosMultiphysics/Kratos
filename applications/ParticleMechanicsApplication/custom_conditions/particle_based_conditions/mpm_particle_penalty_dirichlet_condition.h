@@ -148,14 +148,10 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
+    array_1d<double, 3> m_unit_normal;
 
     ///@}
     ///@name Protected Operators
@@ -207,6 +203,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    double m_penalty = 1.0;
 
     ///@}
     ///@name Private Operators
