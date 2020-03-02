@@ -106,12 +106,22 @@ public:
         mNodalDofs = mNodalVariablesNames.size();
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
 
-        // Setting up mapping: VARIABLE_NAME --> CORRECT_ROW_IN_BASIS
-        for(int k=0; k<mNodalDofs; k++){
-            std::string key = mNodalVariablesNames[k];
-            MapPhi[key] = k;
-            KRATOS_WATCH(key)
-            KRATOS_WATCH(k)
+        // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
+        for(int k=0; k<mNodalDofs; k++){            
+            if(KratosComponents<Variable<double>>::Has(mNodalVariablesNames[k]))
+            {
+                const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
+                KRATOS_WATCH(var.Name())
+                MapPhi[var.Key()] = k;
+            }            
+            else if(KratosComponents<ModelPart::VariableComponentType>::Has(mNodalVariablesNames[k]))
+            {
+                const auto& var = KratosComponents<ModelPart::VariableComponentType>::Get(mNodalVariablesNames[k]);
+                KRATOS_WATCH(var.Name())
+                MapPhi[var.Key()] = k;
+            }
+            else
+                KRATOS_ERROR << "variable type not valid" << std::endl;
         }
     }
 
@@ -372,7 +382,7 @@ public:
                 for(unsigned int k = 0; k < dofs.size(); ++k){
                     int node_id = dofs[k]->Id();
                     const Matrix &current_rom_nodal_basis = (rModelPart.pGetNode(node_id))->GetValue(ROM_BASIS); //Can avoid re-reading the same matrix
-                    std::string variable_name = dofs[k]->GetVariable().Name();
+                    auto variable_name = dofs[k]->GetVariable().Key();
                     if (dofs[k]->IsFixed())
                         row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
                     else
@@ -402,6 +412,12 @@ public:
                 //calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
+                // dof_node_id
+
+                // for(auto& node : geom)
+                //     if(node->Id() == dof_node_id)
+                //        return node
+
                 //assemble the elemental contribution - here is where the ROM acts
                 //compute the elemental reduction matrix Phi
                 const auto &r_geom = it->GetGeometry();
@@ -410,7 +426,7 @@ public:
                 for(unsigned int k = 0; k < dofs.size(); ++k){
                     int node_id = dofs[k]->Id();
                     const Matrix &current_rom_nodal_basis = (rModelPart.pGetNode(node_id))->GetValue(ROM_BASIS); //Can avoid re-reading the same matrix
-                    std::string variable_name = dofs[k]->GetVariable().Name();
+                    auto variable_name = dofs[k]->GetVariable().Key();
                     if (dofs[k]->IsFixed())
                         row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
                     else
@@ -455,7 +471,7 @@ public:
         // ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
                 
         for (auto dof : BaseType::mDofSet ){
-            Dx[dof.Id()] = inner_prod(  row(  rModelPart.pGetNode(dof.Id())->GetValue(ROM_BASIS)    , MapPhi[dof.GetVariable().Name()]   )     , dxrom);  // Not efficient 
+            Dx[dof.Id()] = inner_prod(  row(  rModelPart.pGetNode(dof.Id())->GetValue(ROM_BASIS)    , MapPhi[dof.GetVariable().Key()]   )     , dxrom);  // Not efficient 
         }
 
 
@@ -574,7 +590,7 @@ protected:
     std::vector<std::string> mNodalVariablesNames;
     int mNodalDofs;
     int mRomDofs;
-    std::map<std::string,int> MapPhi;
+    std::map<Kratos::VariableData::KeyType,int> MapPhi;
 
     /*@} */
     /**@name Protected Operations*/
