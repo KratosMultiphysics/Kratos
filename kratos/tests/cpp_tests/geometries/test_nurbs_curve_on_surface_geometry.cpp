@@ -335,10 +335,6 @@ typedef Node<3> NodeType;
 
         auto spans = curve_on_surface.Spans();
 
-        KRATOS_WATCH(spans.size())
-
-        std::cout << "watchahah: " << spans[0] << ", " << spans[1] << ", " << spans[2] << ", " << spans[3] << std::endl;
-
         KRATOS_CHECK_EQUAL(spans.size(), 5);
     }
 } // namespace Testing.
