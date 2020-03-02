@@ -269,7 +269,7 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeElementalVa
     voigtsize = 6;
   }
   rElementalVariables.voigtsize = voigtsize;
-
+  rElementalVariables.ConstitutiveMatrix = ZeroMatrix(voigtsize, voigtsize);
   rElementalVariables.DetFgrad = 1;
   rElementalVariables.DetFgradVel = 1;
   rElementalVariables.DeviatoricInvariant = 1;

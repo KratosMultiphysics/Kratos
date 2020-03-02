@@ -1163,6 +1163,8 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeElementalVa
   }
   rElementalVariables.voigtsize = voigtsize;
 
+  rElementalVariables.ConstitutiveMatrix = ZeroMatrix(voigtsize, voigtsize);
+
   rElementalVariables.DetFgrad = 1.0;
 
   rElementalVariables.DetFgradVel = 1.0;

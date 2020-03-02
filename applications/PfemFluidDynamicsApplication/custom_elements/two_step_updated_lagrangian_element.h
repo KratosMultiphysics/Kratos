@@ -85,6 +85,7 @@ protected:
     MatrixType FgradVel;
     MatrixType InvFgradVel;
     MatrixType SpatialVelocityGrad;
+    MatrixType ConstitutiveMatrix;
     // Stress state
     double MeanPressure;
     VectorType CurrentTotalCauchyStress;
