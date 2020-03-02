@@ -191,5 +191,9 @@ namespace Kratos
         if (rVariable == POINT_LOAD) {
             m_point_load = rValues[0];
         }
+        else {
+            MPMParticleBaseLoadCondition::SetValueOnIntegrationPoints(
+                rVariable, rValues, rCurrentProcessInfo);
+        }
     }
 } // Namespace Kratos
