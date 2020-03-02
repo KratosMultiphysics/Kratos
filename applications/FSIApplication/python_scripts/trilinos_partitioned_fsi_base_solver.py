@@ -22,6 +22,16 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     def __init__(self, model, project_parameters):
         super(TrilinosPartitionedFSIBaseSolver, self).__init__(model, project_parameters)
 
+    @classmethod
+    def GetDefaultSettings(cls):
+        """This function returns the default-settings used by this class
+        """
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "parallel_type": "MPI"
+        }""")
+        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIBaseSolver, cls).GetDefaultSettings())
+        return this_defaults
+
     def AddVariables(self):
         ## Structure variables addition
         # Standard CSM variables addition
@@ -46,16 +56,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
 
-    def _PrintInfoOnRankZero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str, args)))
-
-    def _PrintWarningOnRankZero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintWarning(" ".join(map(str, args)))
-
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = self._CreateEpetraCommunicator()
@@ -69,7 +69,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             self._GetFluidInterfaceSubmodelPart(),
             self._GetEpetraCommunicator(),
             self.settings["coupling_settings"]["coupling_strategy_settings"])
-        self._PrintInfoOnRankZero("::[TrilinosPartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosPartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
         return convergence_accelerator
 
     def _GetPartitionedFSIUtilities(self):
@@ -152,7 +152,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
     def _ComputeMeshPredictionSingleFaced(self):
         step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        self._PrintInfoOnRankZero("Computing time step ",str(step)," prediction...")
+        KratosMultiphysics.Logger.PrintInfo("Computing time step ",str(step)," prediction...")
 
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
@@ -180,7 +180,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         # Solve the current step structure problem with the previous step fluid interface nodal fluxes
         is_converged = self.structure_solver.SolveSolutionStep()
         if not is_converged:
-            self._PrintWarningOnRankZero("Mesh prediction structure solver did not converge.")
+            KratosMultiphysics.Logger.PrintWarningInfo("Mesh prediction structure solver did not converge.")
 
         # Map the obtained structure displacement to the fluid interface
         self.interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
@@ -191,11 +191,11 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.mesh_solver.SolveSolutionStep()
         self.mesh_solver.FinalizeSolutionStep()
 
-        self._PrintInfoOnRankZero("Mesh prediction computed.")
+        KratosMultiphysics.Logger.PrintInfo("Mesh prediction computed.")
 
     def _ComputeMeshPredictionDoubleFaced(self):
         step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        self._PrintInfoOnRankZero("Computing time step ",str(step)," prediction...")
+        KratosMultiphysics.Logger.PrintInfo("Computing time step ",str(step)," prediction...")
 
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
@@ -236,7 +236,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         # Solve the current step structure problem with the previous step fluid interface nodal fluxes
         is_converged = self.structure_solver.SolveSolutionStep()
         if not is_converged:
-            self._PrintWarningOnRankZero("Mesh prediction structure solver did not converge.")
+            KratosMultiphysics.Logger.PrintWarningInfo("Mesh prediction structure solver did not converge.")
 
         # Map the obtained structure displacement to the fluid interface
         self.pos_interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
@@ -245,4 +245,4 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         # Solve the mesh problem
         self.mesh_solver.Solve()
 
-        self._PrintInfoOnRankZero("Mesh prediction computed.")
+        KratosMultiphysics.Logger.PrintInfo("Mesh prediction computed.")
