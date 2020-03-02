@@ -122,33 +122,28 @@ public:
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
 
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Inquiry
+    ///@name Access Set Values
     ///@{
 
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
+    void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
