@@ -319,7 +319,7 @@ class FracStepSolver:
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
 
-        (self.Mesher).ReGenerateMesh("Fluid3DGLS","Condition3D", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
+        (self.Mesher).ReGenerateMesh("Fluid3DGLS","SurfaceCondition3D3N", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
 
 
         (self.fluid_neigh_finder).Execute();
@@ -378,10 +378,10 @@ class FracStepSolver:
 
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("QFluid2D","LineCondition2D2N", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
         elif (self.domain_size == 3):
             
-            (self.Mesher).ReGenerateMesh("QFluid3D","Condition3D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
+            (self.Mesher).ReGenerateMesh("QFluid3D","SurfaceCondition3D3N", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
 
 
         (self.fluid_neigh_finder).Execute();
