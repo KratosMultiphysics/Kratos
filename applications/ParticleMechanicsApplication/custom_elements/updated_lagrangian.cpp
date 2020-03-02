@@ -1670,7 +1670,17 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<doub
 void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
-{}
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        rValues[0] = mMP.cauchy_stress_vector;
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        rValues[0] = mMP.almansi_strain_vector;
+    }
+}
 
 ///@}
 ///@name Access Set Values
@@ -1729,7 +1739,18 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<doub
 void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
-{}
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        mMP.cauchy_stress_vector = rValues[0];
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        mMP.almansi_strain_vector = rValues[0];
+    }
+}
 
 ///@}
 
