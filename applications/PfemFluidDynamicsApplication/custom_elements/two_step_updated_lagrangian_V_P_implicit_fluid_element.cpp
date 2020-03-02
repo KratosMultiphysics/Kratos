@@ -1256,28 +1256,43 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchy
     ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
     double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
 
-    double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-    double DefX = rElementalVariables.SpatialDefRate[0];
-    double DefY = rElementalVariables.SpatialDefRate[1];
-    double DefXY = rElementalVariables.SpatialDefRate[2];
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    double DefVol = rElementalVariables.VolumetricDefRate;
-    double sigmaDev_xx = 2 * CurrSecondLame * (DefX - DefVol / 3.0);
-    double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
-    double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
+    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
 
-    double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
-    double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
-    double sigmaTot_xy = sigmaDev_xy;
+    // Temporary workaround, to be updated
+    auto r_geometry = this->GetGeometry();
+    r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
 
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = sigmaDev_xy;
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-    rElementalVariables.UpdatedTotalCauchyStress[0] = sigmaTot_xx;
-    rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
-    rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_xy;
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.UpdatedDeviatoricCauchyStress[2];
+
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
+    const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
+
+    DeviatoricCoeff = rElementalVariables.ConstitutiveMatrix(voigt_size - 1, voigt_size - 1);
+    VolumetricCoeff = bulk_modulus * time_step;
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
+
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
 }
 
 template <>
@@ -1285,44 +1300,47 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchy
     ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
     double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
 
-    double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-    double DefX = rElementalVariables.SpatialDefRate[0];
-    double DefY = rElementalVariables.SpatialDefRate[1];
-    double DefZ = rElementalVariables.SpatialDefRate[2];
-    double DefXY = rElementalVariables.SpatialDefRate[3];
-    double DefXZ = rElementalVariables.SpatialDefRate[4];
-    double DefYZ = rElementalVariables.SpatialDefRate[5];
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    double DefVol = rElementalVariables.VolumetricDefRate;
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
+    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
 
-    double sigmaDev_xx = 2 * CurrSecondLame * (DefX - DefVol / 3.0);
-    double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
-    double sigmaDev_zz = 2 * CurrSecondLame * (DefZ - DefVol / 3.0);
-    double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
-    double sigmaDev_xz = 2 * CurrSecondLame * DefXZ;
-    double sigmaDev_yz = 2 * CurrSecondLame * DefYZ;
+    // Temporary workaround, to be updated
+    auto r_geometry = this->GetGeometry();
+    r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
 
-    double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
-    double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
-    double sigmaTot_zz = sigmaDev_zz + rElementalVariables.MeanPressure;
-    double sigmaTot_xy = sigmaDev_xy;
-    double sigmaTot_xz = sigmaDev_xz;
-    double sigmaTot_yz = sigmaDev_yz;
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = sigmaDev_zz;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = sigmaDev_xy;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = sigmaDev_xz;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = sigmaDev_yz;
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.UpdatedDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.UpdatedDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
 
-    rElementalVariables.UpdatedTotalCauchyStress[0] = sigmaTot_xx;
-    rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
-    rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_zz;
-    rElementalVariables.UpdatedTotalCauchyStress[3] = sigmaTot_xy;
-    rElementalVariables.UpdatedTotalCauchyStress[4] = sigmaTot_xz;
-    rElementalVariables.UpdatedTotalCauchyStress[5] = sigmaTot_yz;
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
+    const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
+
+    DeviatoricCoeff = rElementalVariables.ConstitutiveMatrix(voigt_size - 1, voigt_size - 1);
+    VolumetricCoeff = bulk_modulus * time_step;
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
+
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
 }
 
 template <unsigned int TDim>

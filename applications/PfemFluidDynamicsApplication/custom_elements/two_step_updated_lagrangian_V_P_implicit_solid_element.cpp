@@ -341,36 +341,51 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::CalcElasticPlasticCauchy
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-    double DefX = rElementalVariables.SpatialDefRate[0];
-    double DefY = rElementalVariables.SpatialDefRate[1];
-    double DefXY = rElementalVariables.SpatialDefRate[2];
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    double DefVol = rElementalVariables.VolumetricDefRate;
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.CurrentDeviatoricCauchyStress);
 
-    double sigmaDev_xx = 2 * CurrSecondLame * (DefX - DefVol / 3.0);
-    double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
-    double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-    sigmaDev_xx += rElementalVariables.CurrentDeviatoricCauchyStress[0];
-    sigmaDev_yy += rElementalVariables.CurrentDeviatoricCauchyStress[1];
-    sigmaDev_xy += rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
 
-    double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
-    double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
-    double sigmaTot_xy = sigmaDev_xy;
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
 
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = sigmaDev_xy;
-
-    rElementalVariables.UpdatedTotalCauchyStress[0] = sigmaTot_xx;
-    rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
-    rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_xy;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
+
+    double poisson_ratio = mpConstitutiveLaw->CalculateValue(constitutive_law_values, POISSON_RATIO, poisson_ratio);
+    double young_modulus = mpConstitutiveLaw->CalculateValue(constitutive_law_values, YOUNG_MODULUS, young_modulus);
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    DeviatoricCoeff = time_step * young_modulus / (2.0 * (1.0 + poisson_ratio));
+    VolumetricCoeff =
+        time_step * poisson_ratio * young_modulus / ((1.0 + poisson_ratio) * (1.0 - 2.0 * poisson_ratio)) +
+        2.0 / 3.0 * DeviatoricCoeff;
+
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
 }
 
 template <>
@@ -381,56 +396,61 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>::CalcElasticPlasticCauchy
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-    double DefX = rElementalVariables.SpatialDefRate[0];
-    double DefY = rElementalVariables.SpatialDefRate[1];
-    double DefZ = rElementalVariables.SpatialDefRate[2];
-    double DefXY = rElementalVariables.SpatialDefRate[3];
-    double DefXZ = rElementalVariables.SpatialDefRate[4];
-    double DefYZ = rElementalVariables.SpatialDefRate[5];
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    double DefVol = rElementalVariables.VolumetricDefRate;
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.CurrentDeviatoricCauchyStress);
 
-    double sigmaDev_xx = 2 * CurrSecondLame * (DefX - DefVol / 3.0);
-    double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
-    double sigmaDev_zz = 2 * CurrSecondLame * (DefZ - DefVol / 3.0);
-    double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
-    double sigmaDev_xz = 2 * CurrSecondLame * DefXZ;
-    double sigmaDev_yz = 2 * CurrSecondLame * DefYZ;
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-    sigmaDev_xx += rElementalVariables.CurrentDeviatoricCauchyStress[0];
-    sigmaDev_yy += rElementalVariables.CurrentDeviatoricCauchyStress[1];
-    sigmaDev_zz += rElementalVariables.CurrentDeviatoricCauchyStress[2];
-    sigmaDev_xy += rElementalVariables.CurrentDeviatoricCauchyStress[3];
-    sigmaDev_xz += rElementalVariables.CurrentDeviatoricCauchyStress[4];
-    sigmaDev_yz += rElementalVariables.CurrentDeviatoricCauchyStress[5];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-    double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
-    double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
-    double sigmaTot_zz = sigmaDev_zz + rElementalVariables.MeanPressure;
-    double sigmaTot_xy = sigmaDev_xy;
-    double sigmaTot_xz = sigmaDev_xz;
-    double sigmaTot_yz = sigmaDev_yz;
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] =
+        rElementalVariables.CurrentDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = sigmaDev_zz;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = sigmaDev_xy;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = sigmaDev_xz;
-    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = sigmaDev_yz;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0] = rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1] = rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2] = rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-    rElementalVariables.UpdatedTotalCauchyStress[0] = sigmaTot_xx;
-    rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
-    rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_zz;
-    rElementalVariables.UpdatedTotalCauchyStress[3] = sigmaTot_xy;
-    rElementalVariables.UpdatedTotalCauchyStress[4] = sigmaTot_xz;
-    rElementalVariables.UpdatedTotalCauchyStress[5] = sigmaTot_yz;
-
-    this->mCurrentTotalCauchyStress[g] = rElementalVariables.CurrentTotalCauchyStress;
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
-    this->mCurrentDeviatoricCauchyStress[g] = rElementalVariables.CurrentDeviatoricCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
+
+    double poisson_ratio = mpConstitutiveLaw->CalculateValue(constitutive_law_values, POISSON_RATIO, poisson_ratio);
+    double young_modulus = mpConstitutiveLaw->CalculateValue(constitutive_law_values, YOUNG_MODULUS, young_modulus);
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    DeviatoricCoeff = time_step * young_modulus / (2.0 * (1.0 + poisson_ratio));
+    VolumetricCoeff =
+        time_step * poisson_ratio * young_modulus / ((1.0 + poisson_ratio) * (1.0 - 2.0 * poisson_ratio)) +
+        2.0 / 3.0 * DeviatoricCoeff;
+
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
 }
 
 template <unsigned int TDim>
