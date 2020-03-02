@@ -1608,8 +1608,81 @@ void UpdatedLagrangian::DecimalCorrection(Vector& rVector)
     KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
+
+///@}
+///@name Access Get Values
+///@{
+
+void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_MATERIAL_ID) {
+        rValues[0] = GetProperties().Id();
+    }
+}
+
+void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{}
+
+void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_COORD) {
+        rValues[0] = mMP.xg;
+    }
+}
+
+void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{}
+
+///@}
+///@name Access Set Values
+///@{
+
+void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+}
+
+void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{}
+
+void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_COORD) {
+        mMP.xg = rValues[0];
+    }
+
+}
+
+void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{}
+
+///@}
+
 /**
  * This function provides the place to perform checks on the completeness of the input.
  * It is designed to be called only once (or anyway, not often) typically at the beginning
