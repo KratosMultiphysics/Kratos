@@ -20,15 +20,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         self.FEM_Solution.solver.Solve()
         ########################################################
 
-        if self.FEM_Solution.step == 1:
-            self.FEM_Solution.main_model_part.GetElement(221).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.GetElement(218).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.GetElement(222).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.GetElement(233).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.GetElement(229).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.GetElement(225).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
-
         self.ExecuteBeforeGeneratingDEM()
         self.GenerateDEM() # we create the new DEM of this time step
         self.ExecuteAfterGeneratingDEM()
