@@ -195,4 +195,31 @@ void FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void FEMDEMCouplingUtilities::ResetContactImpulses(
+    ModelPart& rStructureModelPart
+    )
+{
+    auto& r_sub_model_conditions = rStructureModelPart.GetSubModelPart("ContactForcesDEMConditions");
+    const auto it_cond_begin = r_sub_model_conditions.ConditionsBegin();
+    auto& r_process_info = rStructureModelPart.GetProcessInfo();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(r_sub_model_conditions.Conditions().size()); i++) {
+        auto it_cond = it_cond_begin + i;
+        auto& r_geometry = it_cond->GetGeometry();
+        auto& r_node = r_geometry[0];
+
+        if (r_node.GetValue(IS_DEM)) {
+            auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
+            array_1d<double,3>& r_explicit_impulse_node = r_node.FastGetSolutionStepValue(CONTACT_IMPULSE);
+            array_1d<double,3>& r_explicit_impulse_DEM = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(CONTACT_IMPULSE);
+            array_1d<double,3> zero_vector = ZeroVector(3);
+            r_explicit_impulse_node = zero_vector;
+            r_explicit_impulse_DEM  = zero_vector;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace Kratos

@@ -69,6 +69,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
             FEMDEM_utilities.ComputeAndTranferAveragedContactTotalForces(self.FEM_Solution.main_model_part, self.FEM_Solution.delta_time)
+            FEMDEM_utilities.ResetContactImpulses(self.FEM_Solution.main_model_part)
 
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 

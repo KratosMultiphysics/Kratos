@@ -91,6 +91,8 @@ class FEMDEMCouplingUtilities
     void AddExplicitImpulses(ModelPart &rStructureModelPart, const double DEMTimeStep);
 
     void ComputeAndTranferAveragedContactTotalForces(ModelPart &rStructureModelPart, const double FEMtimeStep);
+
+    void ResetContactImpulses(ModelPart &rStructureModelPart);
     
 
 
