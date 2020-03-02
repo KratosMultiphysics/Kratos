@@ -189,9 +189,8 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
     // Prepare variables
     GeneralVariables Variables;
-    const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
     const double & r_mpc_area = this->GetIntegrationWeight();
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
 
     // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);
@@ -212,13 +211,11 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
-        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
-        const double normal_force = MathUtils<double>::Dot(mpc_force,unit_normal_vector);
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            mpc_force = -1.0 * normal_force * unit_normal_vector;
+            mpc_force = -1.0 * normal_force * m_unit_normal;
         else
             mpc_force = ZeroVector(3);
     }
