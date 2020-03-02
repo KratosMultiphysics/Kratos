@@ -804,20 +804,17 @@ public:
             // First we do a check
             CheckVariableExists(rVar, rNodes);
 
-            // I assume that all the nodes sharing the same varibles list from modelpart
-            rNodes.begin()->pGetVariablesList()->AddDof(&rVar);
-
-            if(IsFixed == true) {
+            if(IsFixed) {
                 #pragma omp parallel for
                 for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
                     NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pAddDof(rVar)->FixDof();
+                    it_node->pGetDof(rVar)->FixDof();
                 }
             } else {
                 #pragma omp parallel for
                 for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
                     NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pAddDof(rVar)->FreeDof();
+                    it_node->pGetDof(rVar)->FreeDof();
                 }
             }
         }
