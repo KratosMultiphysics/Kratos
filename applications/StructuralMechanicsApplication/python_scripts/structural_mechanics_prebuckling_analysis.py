@@ -13,37 +13,27 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
         """This function initializes the StructuralMechanicsPrebucklingAnalysis
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         """
-        self._GetSolver().ImportModelPart()
-        self._GetSolver().PrepareModelPart()
-        self._GetSolver().AddDofs()
-
-        self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
-
-        ##here we initialize user-provided processes
-        self._AnalysisStage__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitialize()
-
-        self._GetSolver().Initialize()
-        self.Check()
-
-        self.ModifyAfterSolverInitialize()
-
-        for process in self._GetListOfProcesses():
-            process.ExecuteBeforeSolutionLoop()
-
-        # Parameter TIME is used as load multiplier. All time specifications will be ignored.
         problem_data = self.project_parameters["problem_data"]
         if problem_data.Has("start_time"):
             warn_msg = 'Parameter TIME is used as load factor. \n'
             warn_msg += 'Parameter "start_time" will be ignored!'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
+        else:
+            # Create dummy parameter
+            aux_settings = KratosMultiphysics.Parameters(r"""{ "start_time" : 1.0 }""")
+            problem_data.AddMissingParameters(aux_settings)
 
         if problem_data.Has("end_time"):
             warn_msg = 'Parameter TIME is used as load factor. \n'
             warn_msg += 'Parameter "end_time" will be ignored!'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
+        else:
+            # Create dummy paramter
+            aux_settings = KratosMultiphysics.Parameters(r"""{ "end_time" : 1.0 }""")
+            problem_data.AddMissingParameters(aux_settings)
+
+        # Initialize super class
+        super().Initialize()
 
         # Initialize solution stepping
         self.step = 0
