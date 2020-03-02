@@ -46,7 +46,12 @@ void SerializerLoad(Serializer& rSerializer, std::string const & rName, TObjectT
     return rSerializer.load(rName, rObject);
 }
 
-
+template< class TObjectType >
+void SerializerLoadFromBeginning(Serializer& rSerializer, std::string const & rName, TObjectType& rObject)
+{
+    rSerializer.SetLoadState();
+    return rSerializer.load(rName, rObject);
+}
 
 void SerializerPrint(Serializer& rSerializer)
 {
@@ -70,14 +75,14 @@ void  AddSerializerToPython(pybind11::module& m)
                 }
             )
         ) 
-    .def("SetLoadState",&Serializer::SetLoadState)
-    .def("SeekBegin",&Serializer::SeekBegin)
-    .def("SeekEnd",&Serializer::SeekEnd)
     .def("Load",SerializerLoad<ModelPart>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
     .def("Load",SerializerLoad<Parameters>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Parameters>)
     .def("Save",SerializerSave<Parameters>)
     .def("Load",SerializerLoad<Model>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Model>)
     .def("Save",SerializerSave<Model>)
     .def("Print", SerializerPrint)
     ;

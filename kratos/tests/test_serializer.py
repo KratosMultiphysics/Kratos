@@ -40,7 +40,6 @@ class TestSerializer(KratosUnittest.TestCase):
 
         # Deserialize and store the new model
         self.current_model = KratosMultiphysics.Model()
-        self.serialized_model.SetLoadState()
         self.serialized_model.Load("ModelSerialization",self.current_model)
 
     def _check_results(self):
@@ -88,14 +87,11 @@ class TestSerializer(KratosUnittest.TestCase):
 
         # Loading model several times
         first_model = KratosMultiphysics.Model()
-        serialized_model.SetLoadState()
         serialized_model.Load("ModelSerialization", first_model)
         second_model = KratosMultiphysics.Model()
-        serialized_model.SetLoadState()
-        serialized_model.Load("ModelSerialization", second_model)
+        serialized_model.LoadFromBeginning("ModelSerialization", second_model)
         third_model = KratosMultiphysics.Model()
-        serialized_model.SetLoadState()
-        serialized_model.Load("ModelSerialization", third_model)
+        serialized_model.LoadFromBeginning("ModelSerialization", third_model)
 
         self.assertTrue(third_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(third_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
