@@ -104,6 +104,9 @@ public:
     ///@name Access
     ///@{
 
+    void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -208,6 +211,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    array_1d<double, 3> m_point_load;
 
     ///@}
     ///@name Private Operators
