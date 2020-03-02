@@ -40,7 +40,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Newtonian3DLaw : public PfemFl
     /**
      * Counted pointer of Newtonian3DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(Newtonian2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(Newtonian3DLaw);
 
     /**
      * Life Cycle
