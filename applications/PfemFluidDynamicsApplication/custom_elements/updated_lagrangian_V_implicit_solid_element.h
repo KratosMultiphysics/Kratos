@@ -101,6 +101,12 @@ public:
 
   typedef typename BaseType::ElementalVariables ElementalVariables;
 
+  ///Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  ///Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -273,6 +279,8 @@ protected:
   ///@}
   ///@name Protected member Variables
   ///@{
+
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
   ///@}
   ///@name Protected Operators

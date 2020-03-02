@@ -22,6 +22,7 @@
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
 
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
 
@@ -108,6 +109,13 @@ public:
   typedef typename BaseType::ElementalVariables ElementalVariables;
 
   typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+
+  /// Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  ///Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -282,6 +290,8 @@ protected:
   ///@}
   ///@name Protected member Variables
   ///@{
+
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
   ///@}
   ///@name Protected Operators
