@@ -10,8 +10,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 from KratosMultiphysics import eigen_solver_factory
-from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 def CreateSolver(main_model_part, custom_settings):
     return PrebucklingSolver(main_model_part, custom_settings)

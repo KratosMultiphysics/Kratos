@@ -3,7 +3,6 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import eigen_solver_factory
 
 try:
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
@@ -18,6 +17,7 @@ except ImportError:
 
 
 class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
+    @classmethod
     def _add_dofs(self,mp):
         # Adding dofs AND their corresponding reactions
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
@@ -157,11 +157,11 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         load_on_cond2[2] = 0.0
         # Center Nodes
         if( direction > 0):
-            max = NumOfNodes*(NumOfNodes-1)
+            max_ = NumOfNodes*(NumOfNodes-1)
         else:
-            max = NumOfNodes**2-1
+            max_ = NumOfNodes**2-1
 
-        for i in range(nodes[0]+NumOfNodes,max,NumOfNodes):
+        for i in range(nodes[0]+NumOfNodes,max_,NumOfNodes):
             counter = counter + 1
             cond_tmp = mp.CreateNewCondition("PointLoadCondition3D1N",counter,[i],mp.GetProperties()[0])
             cond_tmp.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond2)
