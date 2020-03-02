@@ -116,8 +116,6 @@ public:
 
     void GetValuesVector(Vector& rValues, int Step = 0 ) override;
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;

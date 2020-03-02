@@ -96,40 +96,13 @@ namespace Kratos
     }
 
     template <class TPrimalCondition>
-    void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        // As some of the loading parameters are saved in the non-historical database of the condition these parameters
-        // have to be explicitly transfered from the adjoint to the primal condition. The transfered parameters
-        // are needed by the primal condition in order to compute later on its contribution to the stiffness matrix for the
-        // adjoint problem and the sensitivity matrix as the condition contribution to the pseudo-load.
-        const auto& r_const_this = *this;
-        if(this->Has(SURFACE_LOAD)) {
-            this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, r_const_this.GetValue(SURFACE_LOAD));
-        }
-        if(this->Has(PRESSURE)) {
-            this->pGetPrimalCondition()->SetValue(PRESSURE, r_const_this.GetValue(PRESSURE));
-        }
-        if(this->Has(NEGATIVE_FACE_PRESSURE)) {
-            this->pGetPrimalCondition()->SetValue(NEGATIVE_FACE_PRESSURE, r_const_this.GetValue(NEGATIVE_FACE_PRESSURE));
-        }
-        if(this->Has(POSITIVE_FACE_PRESSURE)) {
-            this->pGetPrimalCondition()->SetValue(POSITIVE_FACE_PRESSURE, r_const_this.GetValue(POSITIVE_FACE_PRESSURE));
-        }
-
-        BaseType::InitializeSolutionStep(rCurrentProcessInfo);
-
-        KRATOS_CATCH( "" )
-    }
-
-    template <class TPrimalCondition>
     void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
+        ProcessInfo process_info = rCurrentProcessInfo;
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType local_size = number_of_nodes * dimension;
@@ -146,13 +119,16 @@ namespace Kratos
             Vector perturbed_RHS;
             this->CalculateRightHandSide(RHS, process_info);
 
-            const auto& r_const_this = *this;
-            this->pGetPrimalCondition()->SetValue(rDesignVariable, (r_const_this.GetValue(rDesignVariable) + delta));
+            const auto design_variable_value = this->pGetPrimalCondition()->GetValue(rDesignVariable);
+
+            // perturb design variable
+            this->pGetPrimalCondition()->SetValue(rDesignVariable, (design_variable_value + delta));
             this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, process_info);
 
             row(rOutput, 0) = (perturbed_RHS - RHS) / delta;
 
-            this->pGetPrimalCondition()->SetValue(rDesignVariable, r_const_this.GetValue(rDesignVariable));
+            // unperturb design variable
+            this->pGetPrimalCondition()->SetValue(rDesignVariable, design_variable_value);
         }
         else {
             if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
@@ -228,21 +204,21 @@ namespace Kratos
             }
             noalias(rOutput) = ZeroMatrix(dimension,local_size);
 
-            const auto& r_const_this = *this;
-            auto surface_load = r_const_this.GetValue(SURFACE_LOAD);
-
+            const auto surface_load = this->pGetPrimalCondition()->GetValue(SURFACE_LOAD);
+            array_1d<double,3> disturbance = ZeroVector(3);
+            noalias(disturbance) = surface_load;
             for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
-                surface_load[dir_i] += delta;
-                this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, surface_load);
+                disturbance[dir_i] += delta;
+                this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, disturbance);
 
                 this->pGetPrimalCondition()->CalculateRightHandSide(perturbed_RHS, process_info);
                 row(rOutput, dir_i) = (perturbed_RHS - RHS) / delta;
 
-                surface_load[dir_i] -= delta;
+                disturbance[dir_i] -= delta;
                 perturbed_RHS = Vector(0);
             }
-            // unperturb design variable in data base of the primal condition
-            this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, r_const_this.GetValue(SURFACE_LOAD));
+            // unperturb design variable
+            this->pGetPrimalCondition()->SetValue(SURFACE_LOAD, surface_load);
         }
         else {
             if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
