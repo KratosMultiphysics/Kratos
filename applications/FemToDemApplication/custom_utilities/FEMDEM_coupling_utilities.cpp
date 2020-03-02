@@ -176,18 +176,23 @@ void FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces(
         if (r_node.GetValue(IS_DEM)) {
             array_1d<double, 3> dem_forces;
             auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
-            array_1d<double,3> explicit_impulse_node = r_node.FastGetSolutionStepValue(CONTACT_IMPULSE);
-            array_1d<double,3> explicit_impulse_DEM = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(CONTACT_IMPULSE);
+            array_1d<double,3>& r_explicit_impulse_node = r_node.FastGetSolutionStepValue(CONTACT_IMPULSE);
+            array_1d<double,3>& r_explicit_impulse_DEM = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(CONTACT_IMPULSE);
+            auto copy_impulse_node = r_explicit_impulse_node;
+            auto copy_impulse_DEM  = r_explicit_impulse_DEM;
             if (!r_process_info[DEMFEM_CONTACT]) {
-                dem_forces = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(CONTACT_IMPULSE) / FEMtimeStep;
+                noalias(dem_forces) = copy_impulse_DEM / FEMtimeStep;
             } else { // In the DE-FE contact the force is stored at the FEM nodes
                 array_1d<double,3>& r_dem_forces_ball = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
                 array_1d<double,3>& r_dem_forces_wall = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
-                r_dem_forces_ball = explicit_impulse_DEM / FEMtimeStep;
-                r_dem_forces_wall = explicit_impulse_node / FEMtimeStep;
-                dem_forces = r_dem_forces_ball + r_dem_forces_wall;
+                noalias(r_dem_forces_ball) = copy_impulse_DEM / FEMtimeStep;
+                noalias(r_dem_forces_wall) = copy_impulse_node / FEMtimeStep;
+                noalias(dem_forces) = r_dem_forces_ball + r_dem_forces_wall;
             }
             it_cond->SetValue(FORCE_LOAD, dem_forces);
+            // We reset it for the next substepping
+            noalias(r_explicit_impulse_node) = ZeroVector(3);
+            noalias(r_explicit_impulse_DEM)  = ZeroVector(3);
         }
     }
 }
