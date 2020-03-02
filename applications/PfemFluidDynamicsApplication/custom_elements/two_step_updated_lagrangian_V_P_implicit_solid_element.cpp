@@ -68,40 +68,45 @@ Element::Pointer TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Clone(Ind
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize()
-{
-  KRATOS_TRY;
+void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize() {
+    KRATOS_TRY;
 
-  // LargeDisplacementElement::Initialize();
-  const GeometryType &rGeom = this->GetGeometry();
-  SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-  // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
-  if (this->mCurrentTotalCauchyStress.size() != integration_points_number)
-    this->mCurrentTotalCauchyStress.resize(integration_points_number);
+    const GeometryType &rGeom = this->GetGeometry();
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
 
-  if (this->mCurrentDeviatoricCauchyStress.size() != integration_points_number)
-    this->mCurrentDeviatoricCauchyStress.resize(integration_points_number);
+    if (this->mCurrentTotalCauchyStress.size() != integration_points_number)
+        this->mCurrentTotalCauchyStress.resize(integration_points_number);
 
-  if (this->mUpdatedTotalCauchyStress.size() != integration_points_number)
-    this->mUpdatedTotalCauchyStress.resize(integration_points_number);
+    if (this->mCurrentDeviatoricCauchyStress.size() != integration_points_number)
+        this->mCurrentDeviatoricCauchyStress.resize(integration_points_number);
 
-  if (this->mUpdatedDeviatoricCauchyStress.size() != integration_points_number)
-    this->mUpdatedDeviatoricCauchyStress.resize(integration_points_number);
+    if (this->mUpdatedTotalCauchyStress.size() != integration_points_number)
+        this->mUpdatedTotalCauchyStress.resize(integration_points_number);
 
-  unsigned int voigtsize = 3;
-  if (TDim == 3)
-  {
-    voigtsize = 6;
-  }
-  for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
-  {
-    this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
-    this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
-    this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
-    this->mUpdatedDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
-  }
+    if (this->mUpdatedDeviatoricCauchyStress.size() != integration_points_number)
+        this->mUpdatedDeviatoricCauchyStress.resize(integration_points_number);
 
-  KRATOS_CATCH("");
+    unsigned int voigtsize = 3;
+    if (TDim == 3) {
+        voigtsize = 6;
+    }
+    for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++) {
+        this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
+        this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
+        this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
+        this->mUpdatedDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
+    }
+
+    // If we are restarting, the constitutive law will be already defined
+    if (mpConstitutiveLaw == nullptr) {
+        const Properties &r_properties = this->GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+            << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
+            << r_properties.Id() << "." << std::endl;
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim>
