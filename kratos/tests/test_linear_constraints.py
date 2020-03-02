@@ -59,15 +59,15 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_BCs(self):
         bcs = self.mp.GetSubModelPart("FixedEdgeNodes")
-        KM.VariableUtils().SetScalarVar(KM.DISPLACEMENT_X, 0.0, bcs.Nodes)
-        KM.VariableUtils().SetScalarVar(KM.DISPLACEMENT_Y, 0.0, bcs.Nodes)
+        KM.VariableUtils().SetVariable(KM.DISPLACEMENT_X, 0.0, bcs.Nodes)
+        KM.VariableUtils().SetVariable(KM.DISPLACEMENT_Y, 0.0, bcs.Nodes)
 
         KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_X, True, bcs.Nodes)
         KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_Y, True, bcs.Nodes)
 
         bcmn = self.mp.GetSubModelPart("MovingNodes")
-        KM.VariableUtils().SetScalarVar(KM.DISPLACEMENT_X, 0.01, bcmn.Nodes)
-        KM.VariableUtils().SetScalarVar(KM.DISPLACEMENT_Y, 0.0, bcmn.Nodes)
+        KM.VariableUtils().SetVariable(KM.DISPLACEMENT_X, 0.01, bcmn.Nodes)
+        KM.VariableUtils().SetVariable(KM.DISPLACEMENT_Y, 0.0, bcmn.Nodes)
         KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_X, True, bcmn.Nodes)
         KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_Y, True, bcmn.Nodes)
 

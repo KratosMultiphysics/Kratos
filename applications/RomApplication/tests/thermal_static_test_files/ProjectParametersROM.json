@@ -1,0 +1,124 @@
+{
+    "problem_data": {
+        "problem_name": "Square_Radiation_Stationary",
+        "parallel_type": "OpenMP",
+        "time_step": 1.0,
+        "start_time": 0.0,
+        "end_time": 0.99,
+        "echo_level": 0
+    },
+    "solver_settings": {
+        "solver_type": "stationary",
+        "analysis_type": "non_linear",
+        "model_part_name": "ThermalModelPart",
+        "domain_size": 2,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "Square_Radiation_Stationary"
+        },
+        "material_import_settings": {
+            "materials_filename": "ConvectionDiffusionMaterials.json"
+        },
+        "line_search": false,
+        "echo_level": 0,
+        "compute_reactions": false,
+        "max_iteration": 10,
+        "convergence_criterion": "residual_criterion",
+        "solution_relative_tolerance": 1e-5,
+        "solution_absolute_tolerance": 1e-7,
+        "residual_relative_tolerance": 1e-5,
+        "residual_absolute_tolerance": 1e-7,
+        "problem_domain_sub_model_part_list": [
+            "Parts_Body"
+        ],
+        "processes_sub_model_part_list": [
+            "TEMPERATURE_Body",
+            "HeatFlux2D_Top_Wall",
+            "HeatFlux2D_Bottom_Wall",
+            "ImposedTemperature2D_Left_Wall",
+            "ThermalFace2D_Right_Wall"
+        ],
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "rom_settings": {
+            "nodal_unknowns": [
+                "TEMPERATURE"
+            ],
+            "number_of_rom_dofs": 14
+        },
+        "element_replace_settings": {
+            "element_name": "LaplacianElement",
+            "condition_name": "ThermalFace"
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [],
+        "constraints_process_list": [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.HeatFlux2D_Top_Wall",
+                "variable_name"   : "FACE_HEAT_FLUX",
+                "constrained"     : false,
+                "value"           : -700.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.HeatFlux2D_Bottom_Wall",
+                "variable_name"   : "FACE_HEAT_FLUX",
+                "constrained"     : false,
+                "value"           : 700.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.ImposedTemperature2D_Left_Wall",
+                "variable_name"   : "TEMPERATURE",
+                "constrained"     : true,
+                "value"           : 90.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_thermal_face_process",
+            "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
+            "Parameters"    : {
+                "model_part_name"        : "ThermalModelPart.ThermalFace2D_Right_Wall",
+                "ambient_temperature"    : 12.0,
+                "add_ambient_radiation"  : true,
+                "emissivity"             : 0.8,
+                "add_ambient_convection" : true,
+                "convection_coefficient" : 100.0,
+                "interval"               : [0.0,"End"]
+            }
+        }],
+        "list_other_processes": [
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "ThermalModelPart.Parts_Body",
+                    "variable_name": "HEAT_FLUX",
+                    "value": 0.0,
+                    "constrained": false
+                }
+            }
+        ]
+    },
+    "output_processes": {
+        "gid_output": [],
+        "vtk_output": []
+    },
+    "restart_options": {
+        "SaveRestart": "False",
+        "RestartFrequency": 0,
+        "LoadRestart": "False",
+        "Restart_Step": 0
+    }
+}

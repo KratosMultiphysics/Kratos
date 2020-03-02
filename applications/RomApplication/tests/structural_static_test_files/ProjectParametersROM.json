@@ -1,0 +1,97 @@
+{
+    "problem_data": {
+        "problem_name": "Structure_Static_2D",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "solver_type": "Static",
+        "model_part_name": "Structure",
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "Structure_Static_2D"
+        },
+        "material_import_settings": {
+            "materials_filename": "StructuralMaterials.json"
+        },
+        "time_stepping": {
+            "time_step": 1.1
+        },
+        "rom_settings": {
+            "nodal_unknowns": [
+                "DISPLACEMENT",
+                "2"
+            ],
+            "number_of_rom_dofs": 3
+        },
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 10,
+        "problem_domain_sub_model_part_list": ["Parts_Structure"],
+        "processes_sub_model_part_list": ["DISPLACEMENT_Ground","PointLoad2D_Load_on_points_Auto1","LineLoad2D_InterfaceStructure","LineLoad2D_Load_on_lines_Auto1"],
+        "rotation_dofs": false
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "Structure.DISPLACEMENT_Ground",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [true,true,true],
+                    "value": [0.0,0.0,0.0],
+                    "interval": [0.0,"End"]
+                }
+            }
+        ],
+        "loads_process_list": [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad2D_Load_on_points_Auto1",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_InterfaceStructure",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 50.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes": []
+    },
+    "output_processes": {
+        "gid_output": [],
+        "vtk_output": []
+    }
+}
