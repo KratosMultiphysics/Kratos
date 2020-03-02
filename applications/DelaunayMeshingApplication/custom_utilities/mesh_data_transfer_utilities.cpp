@@ -1348,6 +1348,13 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
         new_element->SetProperties(pElemNewProp);
     }
 
+    // Clone the constitutive law
+    const PropertiesType& rProperties = new_element->GetProperties();
+    if (rProperties.Has(CONSTITUTIVE_LAW)) {
+        const ConstitutiveLaw::Pointer& pConstitutiveLaw = rProperties[CONSTITUTIVE_LAW];
+        new_element->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw->Clone());
+    }
+
     //check
     //new_element->PrintInfo(std::cout);
 
