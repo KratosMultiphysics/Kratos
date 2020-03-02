@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,10 +11,9 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
-#if !defined(KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA)
-#define KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS__RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA
+#if !defined(RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA)
+#define RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA
 
 /* System includes */
 #include <unordered_set>
@@ -107,9 +104,7 @@ public:
 
     /** Destructor.
      */
-    ~ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera() override
-    {
-    }
+    ~ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera() = default;
 
     ///@}
     ///@name Operators
@@ -156,13 +151,12 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    TSystemMatrixType mL; /// This is L matrix described above (at class definition)
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    TSystemMatrixType mL; /// This is L matrix described above (at class definition)
     ///@}
-    ///@name ProtectedM_LN2
+    ///@name Protected operators
     ///@{
 
     ///@}
@@ -218,17 +212,14 @@ protected:
             SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(L_transpose_matrix, mL, 1.0);
 
             TSystemVectorType b_modified(rb.size());
-            //boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rb, b_modified, true);
             TSparseSpace::Mult(L_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
             b_modified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(BaseType::mT.size2(), rA.size2());
-            //boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rA, auxiliar_A_matrix, true);
             SparseMatrixMultiplicationUtility::MatrixMultiplication(L_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
             L_transpose_matrix.resize(0, 0, false);                                                             //free memory
 
-            //boost::numeric::ublas::axpy_prod(auxiliar_A_matrix, BaseType::mT, rA, true);
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, BaseType::mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                                        //free memory
 
@@ -265,35 +256,6 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
     ///@{
 
     ///@}

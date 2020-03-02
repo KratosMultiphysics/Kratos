@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,7 +11,6 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 // Project includes
@@ -25,12 +22,6 @@ namespace Kratos {
 template <int TDim>
     ApplyChimeraProcessMonolithic<TDim>::ApplyChimeraProcessMonolithic(ModelPart& rMainModelPart, Parameters iParameters)
         : BaseType(rMainModelPart, iParameters)
-    {
-    }
-
-    /// Destructor.
-template <int TDim>
-    ApplyChimeraProcessMonolithic<TDim>::~ApplyChimeraProcessMonolithic()
     {
     }
 

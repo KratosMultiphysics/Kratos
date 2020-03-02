@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,10 +11,10 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 // Application includes
+#include <omp.h>
 #include "custom_processes/apply_chimera_process.h"
 #include "containers/model.h"
 #include "utilities/builtin_timer.h"
@@ -263,7 +261,7 @@ void ApplyChimera<TDim>::FormulateChimera(const Parameters BackgroundParam,
         PatchParameters, r_background_boundary_model_part, DomainType);
 
     BuiltinTimer bg_distance_calc_time;
-    DistanceCalculationUtility<TDim>::CalculateDistance(
+    ChimeraDistanceCalculationUtility<TDim>::CalculateDistance(
         r_background_model_part, r_patch_boundary_model_part);
     KRATOS_INFO_IF(
         "Distance calculation on background took                  : ", mEchoLevel > 0)
@@ -298,9 +296,9 @@ void ApplyChimera<TDim>::FormulateChimera(const Parameters BackgroundParam,
 
 template <int TDim>
 void ApplyChimera<TDim>::CreateConstraintIds(std::vector<int>& rIdVector,
-                                             const ApplyChimera<TDim>::IndexType NumberOfConstraintsRequired)
+                                             const IndexType NumberOfConstraintsRequired)
 {
-    ApplyChimera<TDim>::IndexType max_constraint_id = 0;
+    IndexType max_constraint_id = 0;
     // Get current maximum constraint ID
     if (mrMainModelPart.MasterSlaveConstraints().size() != 0) {
         mrMainModelPart.MasterSlaveConstraints().Sort();
@@ -317,19 +315,19 @@ void ApplyChimera<TDim>::CreateConstraintIds(std::vector<int>& rIdVector,
 
 template <int TDim>
 void ApplyChimera<TDim>::ApplyContinuityWithMpcs(ModelPart& rBoundaryModelPart,
-                                                 ApplyChimera<TDim>::PointLocatorType& pBinLocator)
+                                                 PointLocatorType& pBinLocator)
 {
 }
 
 template <int TDim>
 template <typename TVariableType>
 void ApplyChimera<TDim>::AddMasterSlaveRelation(
-    ApplyChimera<TDim>::MasterSlaveConstraintContainerType& rMasterSlaveContainer,
+    MasterSlaveConstraintContainerType& rMasterSlaveContainer,
     const LinearMasterSlaveConstraint& rCloneConstraint,
     unsigned int ConstraintId,
-    ApplyChimera<TDim>::NodeType& rMasterNode,
+    NodeType& rMasterNode,
     TVariableType& rMasterVariable,
-    ApplyChimera<TDim>::NodeType& rSlaveNode,
+    NodeType& rSlaveNode,
     TVariableType& rSlaveVariable,
     const double Weight,
     const double Constant)
@@ -346,13 +344,13 @@ void ApplyChimera<TDim>::AddMasterSlaveRelation(
 template <int TDim>
 template <typename TVariableType>
 void ApplyChimera<TDim>::ApplyContinuityWithElement(
-    Geometry<ApplyChimera<TDim>::NodeType>& rGeometry,
-    ApplyChimera<TDim>::NodeType& rBoundaryNode,
+    Geometry<NodeType>& rGeometry,
+    NodeType& rBoundaryNode,
     Vector& rShapeFuncWeights,
     TVariableType& rVariable,
     unsigned int StartIndex,
     std::vector<int>& rConstraintIdVector,
-    ApplyChimera<TDim>::MasterSlaveConstraintContainerType& rMsContainer)
+    MasterSlaveConstraintContainerType& rMsContainer)
 {
     const auto& r_clone_constraint = new LinearMasterSlaveConstraint();
     // Initialise the boundary nodes dofs to 0 at ever time steps
@@ -374,11 +372,11 @@ void ApplyChimera<TDim>::ApplyContinuityWithElement(
 
 template <int TDim>
 void ApplyChimera<TDim>::ReserveMemoryForConstraintContainers(
-    ModelPart& rModelPart, ApplyChimera<TDim>::MasterSlaveContainerVectorType& rContainerVector)
+    ModelPart& rModelPart, MasterSlaveContainerVectorType& rContainerVector)
 {
 #pragma omp parallel
     {
-        const ApplyChimera<TDim>::IndexType num_constraints_per_thread =
+        const IndexType num_constraints_per_thread =
             (rModelPart.NumberOfNodes() * 4) / omp_get_num_threads();
 #pragma omp single
         {
@@ -408,9 +406,9 @@ int ApplyChimera<TDim>::RemoveExistingConstraintsForNode(ModelPart::NodeType& rB
 
 template <int TDim>
 void ApplyChimera<TDim>::AddConstraintsToModelpart(ModelPart& rModelPart,
-                                                   ApplyChimera<TDim>::MasterSlaveContainerVectorType& rContainerVector)
+                                                   MasterSlaveContainerVectorType& rContainerVector)
 {
-    ApplyChimera<TDim>::IndexType n_total_constraints = 0;
+    IndexType n_total_constraints = 0;
     for (auto& container : rContainerVector) {
         const int n_constraints = static_cast<int>(container.size());
         n_total_constraints += n_constraints;
@@ -429,9 +427,9 @@ void ApplyChimera<TDim>::AddConstraintsToModelpart(ModelPart& rModelPart,
 template <int TDim>
 void ApplyChimera<TDim>::FormulateConstraints(
     ModelPart& rBoundaryModelPart,
-    ApplyChimera<TDim>::PointLocatorType& rBinLocator,
-    ApplyChimera<TDim>::MasterSlaveContainerVectorType& rVelocityMasterSlaveContainerVector,
-    ApplyChimera<TDim>::MasterSlaveContainerVectorType& rPressureMasterSlaveContainerVector)
+    PointLocatorType& rBinLocator,
+    MasterSlaveContainerVectorType& rVelocityMasterSlaveContainerVector,
+    MasterSlaveContainerVectorType& rPressureMasterSlaveContainerVector)
 {
     std::vector<int> vector_of_non_found_nodes;
     const int n_boundary_nodes = static_cast<int>(rBoundaryModelPart.Nodes().size());
@@ -439,8 +437,8 @@ void ApplyChimera<TDim>::FormulateConstraints(
     int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
     CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
-    ApplyChimera<TDim>::IndexType found_counter = 0;
-    ApplyChimera<TDim>::IndexType removed_counter = 0;
+    IndexType found_counter = 0;
+    IndexType removed_counter = 0;
 
     BuiltinTimer loop_over_b_nodes;
 #pragma omp parallel for shared(constraints_id_vector,               \
@@ -507,7 +505,7 @@ ModelPart& ApplyChimera<TDim>::ExtractPatchBoundary(const Parameters PatchParame
             r_modified_patch_model_part.CreateSubModelPart(
                 mBoundaryName + r_modified_patch_model_part.Name());
         BuiltinTimer distance_calc_time_patch;
-        DistanceCalculationUtility<TDim>::CalculateDistance(
+        ChimeraDistanceCalculationUtility<TDim>::CalculateDistance(
             r_patch_model_part, rBackgroundBoundaryModelpart);
         KRATOS_INFO_IF(
             "Distance calculation on patch took                       : ", mEchoLevel > 0)
@@ -542,7 +540,7 @@ typename ApplyChimera<TDim>::PointLocatorPointerType ApplyChimera<TDim>::GetPoin
 {
     if (mPointLocatorsMap.count(rModelPart.Name()) == 0) {
         PointLocatorPointerType p_point_locator =
-            Kratos::make_shared<ApplyChimera<TDim>::PointLocatorType>(rModelPart);
+            Kratos::make_shared<PointLocatorType>(rModelPart);
         p_point_locator->UpdateSearchDatabase();
         mPointLocatorsMap[rModelPart.Name()] = p_point_locator;
         return p_point_locator;
@@ -556,14 +554,14 @@ typename ApplyChimera<TDim>::PointLocatorPointerType ApplyChimera<TDim>::GetPoin
 }
 
 template <int TDim>
-bool ApplyChimera<TDim>::SearchNode(ApplyChimera<TDim>::PointLocatorType& rBinLocator,
+bool ApplyChimera<TDim>::SearchNode(PointLocatorType& rBinLocator,
                                     NodeType& rNodeToFind,
                                     Element::Pointer& prHostElement,
                                     Vector& rWeights)
 {
     const int max_results = 10000;
-    typename ApplyChimera<TDim>::PointLocatorType::ResultContainerType results(max_results);
-    typename ApplyChimera<TDim>::PointLocatorType::ResultIteratorType result_begin =
+    typename PointLocatorType::ResultContainerType results(max_results);
+    typename PointLocatorType::ResultIteratorType result_begin =
         results.begin();
 
     bool is_found = false;
@@ -591,13 +589,13 @@ bool ApplyChimera<TDim>::SearchNode(ApplyChimera<TDim>::PointLocatorType& rBinLo
 
 template <int TDim>
 void ApplyChimera<TDim>::MakeConstraints(
-    ApplyChimera<TDim>::NodeType& rNodeToFind,
+    NodeType& rNodeToFind,
     Element::Pointer& rHostElement,
     Vector& rWeights,
-    ApplyChimera<TDim>::MasterSlaveConstraintContainerType& rVelocityMsConstraintsVector,
-    ApplyChimera<TDim>::MasterSlaveConstraintContainerType& rPressureMsConstraintsVector,
+    MasterSlaveConstraintContainerType& rVelocityMsConstraintsVector,
+    MasterSlaveConstraintContainerType& rPressureMsConstraintsVector,
     std::vector<int>& rConstraintIdVector,
-    const ApplyChimera<TDim>::IndexType StartConstraintId)
+    const IndexType StartConstraintId)
 {
     Geometry<NodeType>& r_geom = rHostElement->GetGeometry();
     int init_index = 0;

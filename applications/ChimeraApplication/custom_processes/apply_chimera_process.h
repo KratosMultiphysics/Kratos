@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,13 +11,13 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
+
+
 #if !defined(KRATOS_APPLY_CHIMERA_H_INCLUDED)
 #define KRATOS_APPLY_CHIMERA_H_INCLUDED
 
 // System includes
-#include "omp.h"
 #include <unordered_map>
 
 // External includes
@@ -56,6 +54,16 @@ namespace Kratos {
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @class ApplyChimera
+ *
+ * @ingroup ChimeraApplication
+ *
+ * @brief This class contains methods applies the continuity between the patch and background using linear master-slave constraints.
+ * @details This serves as a base class for monolithic and fractional step processes which choose who and where the constraints created are stored. for example velocity and pressure constraints are to be saved seperately for fractional step. 
+ *
+*/
 
 template <int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) ApplyChimera : public Process {
@@ -132,7 +140,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     ModelPart& mrMainModelPart;
-    int mNumberOfLevels; 
+    int mNumberOfLevels;
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     int mEchoLevel;
@@ -141,9 +149,9 @@ protected:
     bool mIsFormulated;
 
     // Modelpart names which are generated here
-    std::string mModifiedName = "ChimeraModified";
-    std::string mBoundaryName = "ChimeraBoundary";
-    std::string mHoleName = "ChimeraHole";
+    const std::string mModifiedName = "ChimeraModified";
+    const std::string mBoundaryName = "ChimeraBoundary";
+    const std::string mHoleName = "ChimeraHole";
     ///@}
     ///@name Protected Operators
     ///@{
@@ -177,7 +185,7 @@ protected:
      * @param NumberOfConstraintsRequired The number of further constraints
      * required. used for calculation of unique ids.
      */
-    virtual void CreateConstraintIds(std::vector<int>& rIdVector,
+    void CreateConstraintIds(std::vector<int>& rIdVector,
                                      const IndexType NumberOfConstraintsRequired);
     /**
      * @brief Applies the continuity between the boundary modelpart and the

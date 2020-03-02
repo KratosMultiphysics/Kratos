@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,7 +11,6 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 // Application includes
@@ -25,11 +22,6 @@ template <int TDim>
 ApplyChimeraProcessFractionalStep<TDim>::ApplyChimeraProcessFractionalStep(ModelPart& rMainModelPart,
                                                                            Parameters iParameters)
     : BaseType(rMainModelPart, iParameters)
-{
-}
-
-template <int TDim>
-ApplyChimeraProcessFractionalStep<TDim>::~ApplyChimeraProcessFractionalStep()
 {
 }
 

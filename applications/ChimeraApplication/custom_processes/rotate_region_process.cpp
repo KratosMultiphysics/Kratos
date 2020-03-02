@@ -1,4 +1,19 @@
 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					        Navaneeth K Narayanan
+//
+
+
 #include "rotate_region_process.h"
 
 // Application includes
@@ -8,7 +23,7 @@ namespace Kratos
 
 /// Constructor.
 RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rParameters)
-    : Process(Flags()), mrModelPart(rModelPart), mParameters(rParameters)
+    : Process(), mrModelPart(rModelPart), mParameters(rParameters)
 {
 
   Parameters default_parameters(R"(
@@ -31,11 +46,10 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
   mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
   auto axis_of_rotation_raw = mParameters["axis_of_rotation"].GetVector();
   double norm = norm_2(axis_of_rotation_raw);
+  KRATOS_ERROR_IF(norm<1e-10)<<"Norm of the Axis of rotation is close to zero. Please check the input!"<<std::endl;
   mAxisOfRotationVector = axis_of_rotation_raw / norm;
   mTheta = 0.0;
   mToCalculateTorque = mParameters["calculate_torque"].GetBool();
-  mMomentOfInertia = mParameters["moment_of_inertia"].GetDouble();
-  mRotationalDamping = mParameters["rotational_damping"].GetDouble();
   KRATOS_ERROR_IF(mToCalculateTorque && mAngularVelocityRadians != 0.0)
       << "RotateRegionProcess: both \"calculate_torque\" and "
          "\"angular_velocity_radians\" cannot be specified. Please check the "
@@ -43,28 +57,21 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
       << std::endl;
 
   KRATOS_WARNING_IF("RotateRegionProcess",
-                    mToCalculateTorque && mMomentOfInertia == 0.0)
+                    mToCalculateTorque && mParameters["moment_of_inertia"].GetDouble() == 0.0)
       << "No moment_of_inertia specified. So no rotation possible"
       << std::endl;
 
   if (mToCalculateTorque)
   {
     mpRotationSystem = Kratos::make_shared<RotationSystem>(
-        mMomentOfInertia, mRotationalDamping);
+        mParameters["moment_of_inertia"].GetDouble(), mParameters["rotational_damping"].GetDouble() );
   }
 }
-
-/// Destructor.
-RotateRegionProcess::~RotateRegionProcess() {}
-
-void RotateRegionProcess::ExecuteBeforeSolutionLoop() {}
 
 void RotateRegionProcess::SetAngularVelocity(const double NewAngularVelocity)
 {
   mAngularVelocityRadians = NewAngularVelocity;
 }
-
-void RotateRegionProcess::SetTorque(const double NewTorque) { mTorque = NewTorque; }
 
 void RotateRegionProcess::ExecuteInitializeSolutionStep()
 {
@@ -98,7 +105,7 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
     if (domain_size > 2)
       it_node->Z() = transformed_coordinates[2];
 
-    it_node->FastGetSolutionStepValue(ROTATION_MESH_DISPLACEMENT) = transformed_coordinates - it_node->GetInitialPosition().Coordinates();
+    noalias(it_node->FastGetSolutionStepValue(ROTATION_MESH_DISPLACEMENT)) = transformed_coordinates - it_node->GetInitialPosition().Coordinates();
 
     // Computing the linear velocity at this it_node
     DenseVector<double> radius(3);
@@ -107,45 +114,36 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
     radius[1] = it_node->Y() - mCenterOfRotation[1];
     radius[2] = it_node->Z() - mCenterOfRotation[2];
     CalculateLinearVelocity(mAxisOfRotationVector, radius, linear_velocity);
-    it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0) =
-        mAngularVelocityRadians * linear_velocity[0];
-    it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0) =
-        mAngularVelocityRadians * linear_velocity[1];
+    auto& r_rotational_mesh_vel = it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY, 0);
+
+    r_rotational_mesh_vel[0] = mAngularVelocityRadians * linear_velocity[0];
+    r_rotational_mesh_vel[1] = mAngularVelocityRadians * linear_velocity[1];
     if (domain_size > 2)
-      it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0) =
-          mAngularVelocityRadians * linear_velocity[2];
+      r_rotational_mesh_vel[2] = mAngularVelocityRadians * linear_velocity[2];
 
     if (mParameters["is_ale"].GetBool())
     {
-      it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) =
-            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0);
-      it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) =
-            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0);
+      auto& r_mesh_vel = it_node->FastGetSolutionStepValue(MESH_VELOCITY, 0);
+
+      r_mesh_vel[0] = it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0);
+      r_mesh_vel[1] = it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0);
       if (domain_size > 2)
-        it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) =
-            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0);
+        r_mesh_vel[2] = it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0);
+
+      auto& r_vel = it_node->FastGetSolutionStepValue(VELOCITY, 0);
 
       if (it_node->IsFixed(VELOCITY_X))
-        it_node->FastGetSolutionStepValue(VELOCITY_X, 0) =
-            it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
-
+        r_vel[0] = it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
       if (it_node->IsFixed(VELOCITY_Y))
-        it_node->FastGetSolutionStepValue(VELOCITY_Y, 0) =
-            it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
-
+        r_vel[1] = it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
       if (domain_size > 2)
         if (it_node->IsFixed(VELOCITY_Z))
-          it_node->FastGetSolutionStepValue(VELOCITY_Z, 0) =
-              it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
+          r_vel[2] = it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
     }
   }
 
   KRATOS_CATCH("");
 }
-
-void RotateRegionProcess::ExecuteFinalizeSolutionStep() {}
-
-void RotateRegionProcess::ExecuteAfterOutputStep() {}
 
 std::string RotateRegionProcess::Info() const
 {
@@ -330,8 +328,7 @@ double RotateRegionProcess::CalculateTorque() const
                                                          : torque)
   for (int i_node = 0; i_node < num_nodes; ++i_node)
   {
-    NodeIteratorType it_node = it_node_begin;
-    std::advance(it_node, i_node);
+    NodeIteratorType it_node = it_node_begin + i_node;
 
     array_1d<double, 3> torque_vector;
     const array_1d<double, 3> r_vector =
@@ -346,10 +343,6 @@ double RotateRegionProcess::CalculateTorque() const
     torque += rho * (torque_vector[0] * mAxisOfRotationVector[0] +
                      torque_vector[1] * mAxisOfRotationVector[1] +
                      torque_vector[2] * mAxisOfRotationVector[2]);
-
-    //       torque += std::sqrt(torque_vector[0]*torque_vector[0] +
-    //                           torque_vector[1]*torque_vector[1] +
-    //                           torque_vector[2]*torque_vector[2]);
   }
   return torque;
 }

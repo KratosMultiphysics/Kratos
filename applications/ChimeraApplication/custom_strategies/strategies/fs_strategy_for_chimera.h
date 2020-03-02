@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,7 +11,6 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 // 
 
 #ifndef KRATOS_FS_STRATEGY_FOR_CHIMERA_H
@@ -89,7 +86,16 @@ public:
     }
 
     /// Destructor.
-    ~FSStrategyForChimera() override{}
+    ~FSStrategyForChimera() = default;
+
+
+    /// Assignment operator.
+    FSStrategyForChimera& operator=(FSStrategyForChimera const& rOther) = delete;
+
+    /// Copy constructor.
+    FSStrategyForChimera(FSStrategyForChimera const& rOther) = delete;
+
+
 
     ///@}
     ///@name Operators
@@ -202,7 +208,6 @@ protected:
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = BaseType::mpMomentumStrategy->Solve();
 
-            // SetHoleVariablesToZero(rModelPart);
             // Check convergence
             Converged = BaseType::CheckFractionalStepConvergence(NormDv);
 
@@ -270,8 +275,6 @@ protected:
         for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();
              iExtraSteps != BaseType::mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
-
-        // SetHoleVariablesToZero(rModelPart);
 
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
@@ -344,8 +347,8 @@ protected:
 
 
          //For correcting projections for chimera
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             const auto& master_dofs = constraint.GetMasterDofsVector();
@@ -443,8 +446,8 @@ protected:
                 }
             }
 
-            auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-            const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+            auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+            const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
             {
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -512,8 +515,8 @@ protected:
                 }
             }
 
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
             {
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -559,8 +562,8 @@ protected:
 
      void ChimeraProjectionCorrection(ModelPart& rModelPart)
      {
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -586,12 +589,12 @@ protected:
             IndexType slave_i = 0;
             for(const auto& slave_dof : slave_dofs)
             {
-                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                const IndexType slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
                 auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
                 IndexType master_j = 0;
                 for(const auto& master_dof : master_dofs)
                 {
-                    const auto master_node_id = master_dof->Id();
+                    const IndexType master_node_id = master_dof->Id();
                     const double weight = r_relation_matrix(slave_i, master_j);
                     auto& r_master_node = rModelPart.Nodes()[master_node_id];
 
@@ -611,7 +614,7 @@ protected:
         rModelPart.GetCommunicator().AssembleNonHistoricalData(PRESS_PROJ);
         rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
 
-        for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+        for (auto itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
         {
             if (itNode->GetValue(NODAL_AREA) > mAreaTolerance)
             {
@@ -632,8 +635,8 @@ protected:
 
     void ChimeraVelocityCorrection(ModelPart& rModelPart)
     {
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -725,21 +728,6 @@ private:
     ///@{
 
 
-    void SetHoleVariablesToZero(ModelPart& rModelPart)
-    {
-        const array_1d<double,3> Zero(3,0.0);
-        for ( auto itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem )
-        {
-            if(!(*itElem)->Is(ACTIVE))
-            {
-                for(auto& node : (*itElem)->GetGeometry()){
-                    node.FastGetSolutionStepValue(VELOCITY)  = Zero;
-                    node.FastGetSolutionStepValue(PRESSURE)  = 0.0;
-                }
-            }
-        }
-    }
-
     void InitializeStrategy(SolverSettingsType& rSolverConfig,
             bool PredictorCorrector)
     {
@@ -810,13 +798,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    FSStrategyForChimera& operator=(FSStrategyForChimera const& rOther){}
-
-    /// Copy constructor.
-    FSStrategyForChimera(FSStrategyForChimera const& rOther){}
-
 
     ///@}
 

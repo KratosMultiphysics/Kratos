@@ -4,15 +4,12 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					        Navaneeth K Narayanan
-// ==============================================================================
 //
 
 #ifndef ROTATE_REGION_PROCESS_H
@@ -65,24 +62,16 @@ public:
   RotateRegionProcess(ModelPart &rModelPart, Parameters rParameters);
 
   /// Destructor.
-  virtual ~RotateRegionProcess();
-
-  void ExecuteBeforeSolutionLoop() override;
+  ~RotateRegionProcess() = default;
 
   void SetAngularVelocity(const double NewAngularVelocity);
 
-  void SetTorque(const double NewTorque);
-
   void ExecuteInitializeSolutionStep() override;
 
-  void ExecuteFinalizeSolutionStep() override;
-
-  void ExecuteAfterOutputStep() override;
-
-  virtual std::string Info() const override;
+  std::string Info() const override;
 
   /// Print information about this object.
-  virtual void PrintInfo(std::ostream &rOStream) const override;
+  void PrintInfo(std::ostream &rOStream) const override;
 
   /// Print object's data.
   void PrintData();
@@ -155,14 +144,14 @@ private:
     double GetCurrentOmega() const;
 
   private:
-    double mDt;
-    double mMomentOfInertia;
-    double mDampingCoeff;
-    double mTorque;
-    double mTime;
-    DenseVector<double> mBdf2Coeff;
-    DenseVector<double> mTheta;
-    DenseVector<double> mOmega;
+    double mDt; /// The time step (same as the timestep of the simulation)
+    double mMomentOfInertia; /// Moment of inertia of the modelpart (input)
+    double mDampingCoeff;    /// Rotational damping of the system (input)
+    double mTorque;          /// Torque acting on the modelpart. Calculated and updated every time step.
+    double mTime;            /// Current time of simulation.
+    DenseVector<double> mBdf2Coeff;  /// The coefficients for BDF2 time integration. Has 3 coefficients fro BDF2.
+    DenseVector<double> mTheta;      /// Current The angle of rotation theta.
+    DenseVector<double> mOmega;      /// Current angular velocity Omega.
 
     /*
      * @brief Calculates the Intertial torque acting on the system
@@ -200,20 +189,16 @@ private:
     void Update(double UpdateTheta);
   };
 
-  ModelPart &mrModelPart;
-  Parameters mParameters;
-  std::string mSubModelPartName;
-  double mAngularVelocityRadians;
-  array_1d<double, 3> mAxisOfRotationVector;
-  array_1d<double, 3> mCenterOfRotation;
-  double mTheta;
-  double mDTheta;
-  bool mToCalculateTorque;
-  double mMomentOfInertia;
-  double mRotationalDamping;
-  double mTorque;
-  RotationSystem::Pointer mpRotationSystem;
-  double mTime;
+  ModelPart &mrModelPart; /// The modelpart which is to be rotated and on which the torque is to be calculated.
+  Parameters mParameters; /// Input Parameters
+  double mAngularVelocityRadians; /// When a rotation is applied, the angular velocity in rads/sec
+  array_1d<double, 3> mAxisOfRotationVector; /// The axis of rotation around which the rotation has to be taken place.
+  array_1d<double, 3> mCenterOfRotation; /// The center of rotation.
+  double mTheta; /// Angle of rotation at current time step. This is calculated from beginning beginning.
+  double mDTheta; /// Update in the current angle of rotation mTheta for next timestep.
+  bool mToCalculateTorque; /// A bool to check if torque is to be automatically calculated on the given modelpart. This also activates the auto rotation of the modelpart. So will not work together with specifying the mAngularVelocityRadians.
+  RotationSystem::Pointer mpRotationSystem; /// pointer to the object to the ODE system which does time integration (BDF2) using calculated torque and calculate mTheta and mAngularVelocityRadians.
+  double mTime; /// Current Time.
 
   ///@}
 
