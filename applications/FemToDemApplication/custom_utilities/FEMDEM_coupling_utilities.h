@@ -74,7 +74,15 @@ class FEMDEMCouplingUtilities
     ///@name Operations
     ///@{
 
+    void SaveStructuralSolution(ModelPart& rStructureModelPart);
 
+    void InterpolateStructuralSolution(
+        ModelPart &rStructureModelPart,
+        const double FemDeltaTime,
+        const double FemTime,
+        const double DemDeltaTime,
+        const double DemTime);
+    
 
 
 }; // class FEMDEMCouplingUtilities

@@ -30,13 +30,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<FEMDEMCouplingUtilities<2>(m,"FEMDEMCouplingUtilities2D")
         .def(py::init<ModelPart&>())
-        // .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities<2>::SaveStructuralSolution)
         // .def("Finalize",&RVEPeriodicityUtility::Finalize)
         ;
 
     py::class_<FEMDEMCouplingUtilities<3>(m,"FEMDEMCouplingUtilities3D")
         .def(py::init<ModelPart&>())
-        // .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities<3>::SaveStructuralSolution)
         // .def("Finalize",&RVEPeriodicityUtility::Finalize)
         ;
 
