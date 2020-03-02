@@ -495,8 +495,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         else:
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 
     def _set_constitutive_law(self):
         ## Construct the constitutive law needed for the embedded element
