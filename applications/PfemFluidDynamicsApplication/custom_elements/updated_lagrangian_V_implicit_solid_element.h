@@ -303,28 +303,29 @@ protected:
   /* 				const ShapeFunctionDerivativesType& rDN_DX, */
   /* 				unsigned int g); */
 
- void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                       const ProcessInfo &rCurrentProcessInfo) override;
+  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override;
 
- double GetThetaMomentum() override { return 1.0; };
+  double GetThetaMomentum() override { return 1.0; };
 
- double GetThetaContinuity() override { return 1.0; };
+  double GetThetaContinuity() override { return 1.0; };
 
- ///@}
- ///@name Protected  Access
- ///@{
+  ///@}
+  ///@name Protected  Access
+  ///@{
 
- ///@}
- ///@name Protected Inquiry
- ///@{
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
 
- ///@}
- ///@name Protected LifeCycle
- ///@{
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
 
- ///@}
+  ///@}
 
-private:
+ private:
   ///@name Static Member Variables
   ///@{
 
