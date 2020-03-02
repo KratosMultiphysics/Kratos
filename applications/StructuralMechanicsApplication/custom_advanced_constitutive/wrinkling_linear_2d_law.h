@@ -121,72 +121,76 @@ public:
      */
     SizeType GetStrainSize() override;
 
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (template)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    template <class T>
-    bool THas(const Variable<T>& rTemplateVariable) const;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (bool)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<bool>& rThisVariable) override;
+    bool Has(const Variable<bool>& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (int)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<int>& rThisVariable) override;
+    bool Has(const Variable<int>& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<double>& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (Vector)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<Vector>& rThisVariable) override;
+    bool Has(const Variable<Vector>& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<Matrix>& rThisVariable) override;
+    bool Has(const Variable<Matrix>& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (array_1d<double, 3 >)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override;
+    bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (array_1d<double, 6 >)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override;
-
-
-    /**
-     * @brief Returns the value of a specified variable (template)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    template <class T>
-    T& TGetValue(const Variable<T>& rTemplateVariable, T& rTemplateValue);
+    bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override
+    {
+        return mpConstitutiveLaw->Has(rThisVariable);
+    }
 
     /**
      * @brief Returns the value of a specified variable (bool)
@@ -194,10 +198,11 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
+    bool& GetValue(const Variable<bool>& rThisVariable,bool& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Returns the value of a specified variable (int)
@@ -205,10 +210,11 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    int& GetValue(
-        const Variable<int>& rThisVariable,
-        int& rValue
-        ) override;
+    int& GetValue(const Variable<int>& rThisVariable,int& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -216,10 +222,11 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& GetValue(
-        const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
+    double& GetValue(const Variable<double>& rThisVariable,double& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Returns the value of a specified variable (Vector)
@@ -227,10 +234,11 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    Vector& GetValue(
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
+    Vector& GetValue(const Variable<Vector>& rThisVariable,Vector& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Returns the value of a specified variable (Matrix)
@@ -238,10 +246,11 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable,Matrix& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Returns the value of a specified variable (array_1d<double, 3 > )
@@ -249,10 +258,12 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    array_1d<double, 3 > & GetValue(
-        const Variable<array_1d<double, 3 > >& rThisVariable,
-        array_1d<double, 3 > & rValue
-        ) override;
+    array_1d<double, 3 >& GetValue(const Variable<array_1d<double, 3 >>& rThisVariable,array_1d<double, 3 >& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
+
 
     /**
      * @brief Returns the value of a specified variable (array_1d<double, 6 > )
@@ -260,10 +271,11 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    array_1d<double, 6 > & GetValue(
-        const Variable<array_1d<double, 6 > >& rThisVariable,
-        array_1d<double, 6 > & rValue
-        ) override;
+    array_1d<double, 6 >& GetValue(const Variable<array_1d<double, 6 >>& rThisVariable,array_1d<double, 6 >& rValue) override
+    {
+        mpConstitutiveLaw->GetValue(rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (bool)
@@ -272,11 +284,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    bool& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
+    bool& CalculateValue(Parameters& rParameterValues,const Variable<bool>& rThisVariable,
+        bool& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (int)
@@ -285,11 +298,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    int& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<int>& rThisVariable,
-        int& rValue
-        ) override;
+    int& CalculateValue(Parameters& rParameterValues,
+        const Variable<int>& rThisVariable,int& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (double)
@@ -298,12 +312,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    double& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
-
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,double& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (Vector)
@@ -312,11 +326,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    Vector& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,Vector& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (Matrix)
@@ -325,12 +340,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-     Matrix& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
+    Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,Matrix& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (array_1d<double, 3 >)
@@ -339,12 +354,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-     array_1d<double, 3 > & CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rValue
-        ) override;
-
+    array_1d<double, 3 >& CalculateValue(Parameters& rParameterValues,
+        const Variable<array_1d<double, 3 >>& rThisVariable,array_1d<double, 3 >& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Calculates the value of a specified variable (array_1d<double, 6 >)
@@ -353,12 +368,12 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    array_1d<double, 6 > & CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<array_1d<double, 6 > >& rVariable,
-        array_1d<double, 6 > & rValue
-        ) override;
-
+    array_1d<double, 6 >& CalculateValue(Parameters& rParameterValues,
+        const Variable<array_1d<double, 6 >>& rThisVariable,array_1d<double, 6 >& rValue) override
+    {
+        mpConstitutiveLaw->CalculateValue(rParameterValues,rThisVariable,rValue);
+        return rValue;
+    }
 
     /**
      * @brief Sets the value of a specified variable (boolean)
@@ -366,11 +381,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    void SetValue(
-        const Variable<bool>& rThisVariable,
-        const bool& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void SetValue(const Variable<bool>& rThisVariable,const bool& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Sets the value of a specified variable (int)
@@ -378,11 +393,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    void SetValue(
-        const Variable<int>& rThisVariable,
-        const int& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void SetValue(const Variable<int>& rThisVariable,const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Sets the value of a specified variable (double)
@@ -390,11 +405,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-     void SetValue(
-        const Variable<double>& rThisVariable,
-        const double& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void SetValue(const Variable<double>& rThisVariable,const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Sets the value of a specified variable (Vector)
@@ -402,11 +417,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    void SetValue(
-        const Variable<Vector >& rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void SetValue(const Variable<Vector>& rThisVariable,const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Sets the value of a specified variable (Matrix)
@@ -414,11 +429,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    void SetValue(
-        const Variable<Matrix >& rThisVariable,
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void SetValue(const Variable<Matrix>& rThisVariable,const Matrix& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Sets the value of a specified variable (array_1d<double, 3 > )
@@ -426,12 +441,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    void SetValue(
-        const Variable<array_1d<double, 3 > >& rThisVariable,
-        const array_1d<double, 3 > & rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
+    void SetValue(const Variable<array_1d<double, 3 >>& rThisVariable,
+        const array_1d<double, 3 >& rValue,const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Sets the value of a specified variable (array_1d<double, 6 > )
@@ -439,11 +453,11 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    void SetValue(
-        const Variable<array_1d<double, 6 > >& rThisVariable,
-        const array_1d<double, 6 > & rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    void SetValue(const Variable<array_1d<double, 6 >>& rThisVariable,
+        const array_1d<double, 6 >& rValue,const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 
     /**
      * This is to be called at the very beginning of the calculation
