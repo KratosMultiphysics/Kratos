@@ -49,12 +49,10 @@ typedef std::size_t SizeType;
  * @ingroup FemToDemApplication
  * @brief This class includes several utilities necessaries for the coupling between the FEM and the DEM
  * @details The methods are static, so it can be called without constructing the class
- * @tparam TDimension The dimension of the problem
+ * @tparam TDim The dimension of the problem
  * @author Alejandro Cornejo
  */
-template<
-    SizeType TDimension = 3
-    >
+template<SizeType TDim = 3>
 class FEMDEMCouplingUtilities
 {
   public:
