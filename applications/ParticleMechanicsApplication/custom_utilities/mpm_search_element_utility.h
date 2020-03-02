@@ -76,7 +76,8 @@ namespace MPMSearchElementUtility
 
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
-                const array_1d<double,3>& xg = element_itr->GetValuesOnIntegrationPoints(MPC_COORD)[0];
+                std::vector<array_1d<double, 3>> xg;
+                element_itr->GetValuesOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo())[0];
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
@@ -108,7 +109,8 @@ namespace MPMSearchElementUtility
 
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 
-                const array_1d<double,3>& xg = condition_itr->GetValuesOnIntegrationPoints(MPC_COORD)[0];
+                std::vector<array_1d<double, 3>> xg;
+                condition_itr->GetValuesOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo())[0];
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
