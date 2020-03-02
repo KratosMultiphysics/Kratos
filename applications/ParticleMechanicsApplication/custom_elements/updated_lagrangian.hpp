@@ -86,7 +86,7 @@ protected:
 
     struct MaterialPointVariables
     {
-    private:
+    public:
         // Particle Position
         CoordinatesArrayType xg;
         // MP_MASS
@@ -124,8 +124,7 @@ protected:
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
 
-    public:
-        MaterialPointVariables(SizeType StrainSize)
+        MaterialPointVariables(SizeType WorkingSpaceDimension)
         {
             // MP_MASS
             mass = 1.0;
@@ -134,10 +133,14 @@ protected:
             // MP_VOLUME
             volume = 1.0;
 
+            SizeType strain_size = (WorkingSpaceDimension == 2)
+                ? 3
+                : 6;
+
             // MP_CAUCHY_STRESS_VECTOR
-            cauchy_stress_vector = ZeroVector(StrainSize);
+            cauchy_stress_vector = ZeroVector(strain_size);
             // MP_ALMANSI_STRAIN_VECTOR
-            almansi_strain_vector = ZeroVector(StrainSize);
+            almansi_strain_vector = ZeroVector(strain_size);
 
             // MP_DELTA_PLASTIC_STRAIN
             delta_plastic_strain = 1.0;
@@ -544,6 +547,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    MaterialPointVariables mMP;
+
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
