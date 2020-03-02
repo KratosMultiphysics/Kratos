@@ -71,7 +71,6 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
-            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
             if self._GetSolver().get_mechanical_solution_strategy().GetSolutionFoundFlag():
@@ -120,14 +119,3 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
 
-    def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
-        if is_converged is None:
-            if not hasattr(self, '_map_ret_val_depr_warnings'):
-                self._map_ret_val_depr_warnings = []
-            solver_class_name = self._GetSolver().__class__.__name__
-            # used to only print the deprecation-warning once
-            if not solver_class_name in self._map_ret_val_depr_warnings:
-                self._map_ret_val_depr_warnings.append(solver_class_name)
-                warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
-                warn_msg += 'the state of convergence from "SolveSolutionStep"'
-                IssueDeprecationWarning("PrebucklingAnalysis", warn_msg)
