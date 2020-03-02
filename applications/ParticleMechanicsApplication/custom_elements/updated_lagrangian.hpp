@@ -67,7 +67,6 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-    typedef typename GeometryType::CoordinatesArrayType ArrayType;
 
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangian );
