@@ -72,10 +72,6 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( DOUBLE_LAGRANGE_MULTIPLIER );
-    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR );
 
     // Constraint enum
     enum class CONSTRAINT_FACTOR {CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR = 0, CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR = 1, CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR = 2};
@@ -182,14 +178,11 @@ public:
         
         // This case will consider the mean value in the diagonal as a scaling value
         if (r_constraint_scale_factor == "use_mean_diagonal") {
-            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
-            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
+            mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
         } else if (r_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
-            BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
-            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
+            mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         } else { // Otherwise we will assume we impose a numerical value
-            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, false);
-            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, true);
+            mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
         }
         
         // Definition of the auxiliar constraint scale factor
@@ -205,14 +198,11 @@ public:
         
         // This case will consider the mean value in the diagonal as a scaling value
         if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
-            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
-            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
+            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
         } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
-            BaseType:: mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, true);
-            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
+            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         } else { // Otherwise we will assume we impose a numerical value
-            BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, false);
-            BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, true);
+            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
         }
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
         if (ThisParameters["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
@@ -231,10 +221,8 @@ public:
         // Setting flags
         BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
-        BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
-        BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
-        BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR, true);
-        BaseType::mOptions.Set(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR, false);
+        mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
+        mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
     }
 
@@ -631,11 +619,11 @@ public:
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             // First we check if CONSTRAINT_SCALE_FACTOR is defined
-            if (!BaseType::mOptions.Is(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR)) {
+            if (mConstraintFactorConsidered != CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR) {
                 TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
                 BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
                 this->BuildLHS(pScheme, rModelPart, A);
-                const double constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(A) : this->GetDiagonalNorm(A);
+                const double constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(A) : this->GetDiagonalNorm(A);
                 mConstraintFactor = constraint_scale_factor;
             }
 
@@ -744,9 +732,9 @@ public:
             DenseMatrix<bool> transpose_blocks(number_of_blocks, number_of_blocks);
 
             // Definition of the auxiliar values
-            const bool has_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR);
+            const bool has_constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
             KRATOS_ERROR_IF(has_constraint_scale_factor && !r_current_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "Constraint scale factor not defined at process info" << std::endl;
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
             mConstraintFactor = constraint_scale_factor;
 
             /* Fill common blocks */
@@ -770,9 +758,9 @@ public:
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Definition of the build scale factor auxiliar value
-                const bool has_auxiliar_constraint_scale_factor = BaseType::mOptions.Is(CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR);
+                const bool has_auxiliar_constraint_scale_factor = mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
                 KRATOS_ERROR_IF(has_auxiliar_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliar constraint scale factor not defined at process info" << std::endl;
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : BaseType::mOptions.Is(CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR) ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
                 mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
 
                 // Create auxiliar identity matrix
@@ -1238,14 +1226,6 @@ private:
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(1));
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR(Kratos::Flags::Create(6));
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR(Kratos::Flags::Create(7));
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR(Kratos::Flags::Create(8));
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR(Kratos::Flags::Create(9));
 
 ///@}
 
