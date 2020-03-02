@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/kratos_components.h"
-#include "geometries/geometry.h"
+#include "geometries/register_kratos_components_for_geometry.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"

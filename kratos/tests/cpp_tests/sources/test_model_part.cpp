@@ -52,10 +52,10 @@ namespace Kratos {
         condition_nodes_3[0] = p_node_5;
         condition_nodes_3[1] = p_node_6;
 
-        Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("Condition2D2N", 1, PointerVector<NodeType>{condition_nodes_0}, p_elem_prop);
-        Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("Condition2D2N", 2, PointerVector<NodeType>{condition_nodes_1}, p_elem_prop);
-        Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("Condition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
-        Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("Condition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
+        Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, PointerVector<NodeType>{condition_nodes_0}, p_elem_prop);
+        Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, PointerVector<NodeType>{condition_nodes_1}, p_elem_prop);
+        Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("LineCondition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
+        Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("LineCondition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
 
         rModelPart.CreateNewGeometry("Line2D2", 1, PointerVector<NodeType>{condition_nodes_0});
         rModelPart.CreateNewGeometry("Line2D2", 2, PointerVector<NodeType>{condition_nodes_1});

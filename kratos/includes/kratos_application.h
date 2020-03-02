@@ -34,6 +34,7 @@
 #include "includes/geometrical_object.h"
 
 /* Geometries definition */
+#include "geometries/register_kratos_components_for_geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
@@ -398,13 +399,13 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometry
-    const std::size_t size_quadrature = 1;
-    const QuadraturePointGeometry<NodeType, 3>* mpQuadraturePointGeometryVolume3dPrototype = new QuadraturePointGeometry<NodeType, 3>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 3, 2>* mpQuadraturePointGeometrySurface3dPrototype = new QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 2>* mpQuadraturePointGeometrySurface2dPrototype = new QuadraturePointGeometry<NodeType, 2>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 3, 1>* mpQuadraturePointGeometryCurve3dPrototype = new QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(size_quadrature));
-    const QuadraturePointGeometry<NodeType, 2, 1>* mpQuadraturePointGeometryCurve2dPrototype = new QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(size_quadrature));
-    
+    const std::size_t num_nodes = 0;
+    const QuadraturePointGeometry<NodeType, 3, 3> mQuadraturePointGeometryVolume3dPrototype  = QuadraturePointGeometry<NodeType, 3, 3>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 3, 2> mQuadraturePointGeometrySurface3dPrototype = QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 2, 2> mQuadraturePointGeometrySurface2dPrototype = QuadraturePointGeometry<NodeType, 2, 2>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 3, 1> mQuadraturePointGeometryCurve3dPrototype   = QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(num_nodes));
+    const QuadraturePointGeometry<NodeType, 2, 1> mQuadraturePointGeometryCurve2dPrototype   = QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(num_nodes));
+
     // General conditions must be defined
 
     // Point conditions
@@ -425,20 +426,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
-
-    // BEGIN Deprecated conditions
-    const MeshCondition mCondition;
-    const MeshCondition mCondition2D;
-    const MeshCondition mCondition2D2N;
-    const MeshCondition mCondition2D3N;
-    const MeshCondition mCondition3D;
-    const MeshCondition mCondition3D2N;
-    const MeshCondition mCondition3D3N;
-    const MeshCondition mCondition3D6N;
-    const MeshCondition mCondition3D4N;
-    const MeshCondition mCondition3D8N;
-    const MeshCondition mCondition3D9N;
-    // END Deprecated conditions
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
