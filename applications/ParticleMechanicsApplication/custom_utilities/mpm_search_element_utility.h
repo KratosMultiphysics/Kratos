@@ -77,13 +77,13 @@ namespace MPMSearchElementUtility
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
                 std::vector<array_1d<double, 3>> xg;
-                element_itr->GetValuesOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo())[0];
+                element_itr->GetValueOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true) {
                         pelem->Set(ACTIVE);
@@ -110,13 +110,13 @@ namespace MPMSearchElementUtility
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 
                 std::vector<array_1d<double, 3>> xg;
-                condition_itr->GetValuesOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo())[0];
+                condition_itr->GetValueOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true) {
                         pelem->Set(ACTIVE);
