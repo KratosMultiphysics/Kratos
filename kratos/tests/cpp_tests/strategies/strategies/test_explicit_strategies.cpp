@@ -116,7 +116,6 @@ namespace Testing
         // Set the test model part
         const double delta_time = 1.5; // Set time step
         GenerateTestModelPart(r_model_part); // Create the geometry
-        r_model_part.GetNode(1).FastGetSolutionStepValue(TEMPERATURE) = 50.0; // Set initial solution
 
         // Create the RK4 explicit strategy
         const bool move_mesh_flag = false;
@@ -131,6 +130,8 @@ namespace Testing
         // Solve and check the two first RK4 steps
         p_explicit_strategy->Initialize();
         auto p_test_node = r_model_part.pGetNode(1);
+        p_test_node->FastGetSolutionStepValue(TEMPERATURE) = 50.0; // Set initial solution
+
         // 1st step
         r_model_part.CloneTimeStep(delta_time);
         p_explicit_strategy->InitializeSolutionStep();
