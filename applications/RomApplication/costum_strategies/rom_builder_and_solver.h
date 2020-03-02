@@ -107,21 +107,20 @@ public:
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
-        for(int k=0; k<mNodalDofs; k++){            
+        for(int k=0; k<mNodalDofs; k++){
             if(KratosComponents<Variable<double>>::Has(mNodalVariablesNames[k]))
             {
                 const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
-                KRATOS_WATCH(var.Name())
                 MapPhi[var.Key()] = k;
             }            
             else if(KratosComponents<ModelPart::VariableComponentType>::Has(mNodalVariablesNames[k]))
             {
                 const auto& var = KratosComponents<ModelPart::VariableComponentType>::Get(mNodalVariablesNames[k]);
-                KRATOS_WATCH(var.Name())
                 MapPhi[var.Key()] = k;
             }
             else
                 KRATOS_ERROR << "variable type not valid" << std::endl;
+            
         }
     }
 
@@ -377,16 +376,22 @@ public:
                 Element::DofsVectorType dofs;
                 it_el->GetDofList(dofs, CurrentProcessInfo);
                 const auto &geom = it_el->GetGeometry();
-                int ThisNodalDofs = dofs.size()/geom.size();
-                Matrix PhiElemental = ZeroMatrix(geom.size() * ThisNodalDofs, mRomDofs);  
+                int ThisNodalDofs = dofs.size()/geom.size(); // This will not work for mixed elements
+                Matrix PhiElemental(geom.size() * ThisNodalDofs, mRomDofs);
+                Matrix current_rom_nodal_basis;
                 for(unsigned int k = 0; k < dofs.size(); ++k){
-                    int node_id = dofs[k]->Id();
-                    const Matrix &current_rom_nodal_basis = (rModelPart.pGetNode(node_id))->GetValue(ROM_BASIS); //Can avoid re-reading the same matrix
-                    auto variable_name = dofs[k]->GetVariable().Key();
+                    unsigned int node_id = dofs[k]->Id();
+                    auto variable_key = dofs[k]->GetVariable().Key();
+                    if(k%ThisNodalDofs==0){ //This avoids re-reading the same matrix                    
+                        for(auto &node : geom){
+                            if (node.Id() == node_id)
+                                current_rom_nodal_basis = node.GetValue(ROM_BASIS);
+                        }
+                    }
                     if (dofs[k]->IsFixed())
-                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
+                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
                     else
-                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi[variable_name]);            
+                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi[variable_key]);
                 }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -405,43 +410,29 @@ public:
             bool condition_is_active = true;
             if ((it)->IsDefined(ACTIVE))
                 condition_is_active = (it)->Is(ACTIVE);
-
             if (condition_is_active){
                 Condition::DofsVectorType dofs;
                 it->GetDofList(dofs, CurrentProcessInfo);
                 //calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                // dof_node_id
-
-                // for(auto& node : geom)
-                //     if(node->Id() == dof_node_id)
-                //        return node
-
-                //assemble the elemental contribution - here is where the ROM acts
-                //compute the elemental reduction matrix Phi
-                const auto &r_geom = it->GetGeometry();
-                int ThisNodalDofs = dofs.size()/r_geom.size();
-                Matrix PhiElemental = ZeroMatrix(r_geom.size() * ThisNodalDofs, mRomDofs);         
+                const auto &geom = it->GetGeometry();
+                int ThisNodalDofs = dofs.size()/geom.size(); // This will not work for mixed elements
+                Matrix PhiElemental(geom.size() * ThisNodalDofs, mRomDofs);
+                Matrix current_rom_nodal_basis;
                 for(unsigned int k = 0; k < dofs.size(); ++k){
-                    int node_id = dofs[k]->Id();
-                    const Matrix &current_rom_nodal_basis = (rModelPart.pGetNode(node_id))->GetValue(ROM_BASIS); //Can avoid re-reading the same matrix
-                    auto variable_name = dofs[k]->GetVariable().Key();
+                    unsigned int node_id = dofs[k]->Id();
+                    auto variable_key = dofs[k]->GetVariable().Key();
+                    if(k%ThisNodalDofs==0){ //This avoids re-reading the same matrix                  
+                        for(auto &node : geom){
+                            if (node.Id() == node_id)
+                                current_rom_nodal_basis = node.GetValue(ROM_BASIS);
+                        }
+                    }                
                     if (dofs[k]->IsFixed())
-                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
+                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
                     else
-                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi[variable_name]); 
+                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi[variable_key]);       
                 }
-                // // Replaced loop...
-                // for (unsigned int i = 0; i < r_geom.size(); ++i){
-                //     const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
-                //     for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
-                //         if (dofs[i * mNodalDofs + k]->IsFixed())
-                //             row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
-                //         else
-                //             row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
-                //     }
-                // }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
@@ -450,6 +441,7 @@ public:
                 pScheme->CleanMemory(*(it.base()));
             }
         }
+
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
@@ -468,10 +460,11 @@ public:
         noalias(xrom) += dxrom;
 
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
-        // ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
-                
+        //ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
+
+
         for (auto dof : BaseType::mDofSet ){
-            Dx[dof.Id()] = inner_prod(  row(  rModelPart.pGetNode(dof.Id())->GetValue(ROM_BASIS)    , MapPhi[dof.GetVariable().Key()]   )     , dxrom);  // Not efficient 
+            Dx[dof.EquationId()] = inner_prod(  row(  rModelPart.pGetNode(dof.Id())->GetValue(ROM_BASIS)    , MapPhi[dof.GetVariable().Key()]   )     , dxrom);  // Can be improved 
         }
 
 
