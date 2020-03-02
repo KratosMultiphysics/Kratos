@@ -320,8 +320,7 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/
     // Update MP_Density
-    const double MP_density = (GetProperties()[DENSITY]) / Variables.detFT;
-    this->SetValue(MP_DENSITY, MP_density);
+    mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
 
     // The MP_Volume (integration weight) is evaluated
     mMP.volume = mMP.mass / mMP.density;
