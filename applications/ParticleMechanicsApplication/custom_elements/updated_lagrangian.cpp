@@ -991,7 +991,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     mMP.xg = new_xg;
 
     // Update the MP Acceleration
-    this -> SetValue(MP_ACCELERATION,MP_acceleration);
+    mMP.acceleration = MP_acceleration;
 
     // Update the MP total displacement
     mMP.displacement += delta_xg;
