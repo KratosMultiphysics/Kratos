@@ -26,9 +26,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template <SizeType TDim>
-FEMDEMCouplingUtilities<TDim>::FEMDEMCouplingUtilities(
-    ModelPart& rModelPart
-    )
+FEMDEMCouplingUtilities<TDim>::FEMDEMCouplingUtilities()
 {
 }
 
