@@ -34,18 +34,18 @@ namespace MPMParticleGeneratorUtility
                                         bool IsMixedFormulation)
     {
         // Initialize zero the variables needed
-        array_1d<double,3> xg = ZeroVector(3);
-        array_1d<double,3> mp_displacement = ZeroVector(3);
-        array_1d<double,3> mp_velocity = ZeroVector(3);
-        array_1d<double,3> mp_acceleration = ZeroVector(3);
-        array_1d<double,3> mp_volume_acceleration = ZeroVector(3);
+        std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
+        std::vector<array_1d<double,3>> mp_displacement = { ZeroVector(3) };
+        std::vector<array_1d<double,3>> mp_velocity = { ZeroVector(3) };
+        std::vector<array_1d<double,3>> mp_acceleration = { ZeroVector(3) };
+        std::vector<array_1d<double,3>> mp_volume_acceleration = { ZeroVector(3) };
 
-        Vector mp_cauchy_stress_vector = ZeroVector(6);
-        Vector mp_almansi_strain_vector = ZeroVector(6);
-        double mp_pressure = 0.0;
+        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
+        std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
+        std::vector<double> mp_pressure = { 0.0 };
 
-        double mp_mass;
-        double mp_volume;
+        std::vector<double> mp_mass(0);
+        std::vector<double> mp_volume(0);
 
         // Determine element index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements();
@@ -200,12 +200,12 @@ namespace MPMParticleGeneratorUtility
                     const double area = r_geometry.Area();
                     if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
                         const double thickness = i->GetProperties()[THICKNESS];
-                        mp_mass = area * thickness * density / integration_point_per_elements;
+                        mp_mass[0] = area * thickness * density / integration_point_per_elements;
                     }
                     else {
-                        mp_mass = area * density / integration_point_per_elements;
+                        mp_mass[0] = area * density / integration_point_per_elements;
                     }
-                    mp_volume = area / integration_point_per_elements;
+                    mp_volume[0] = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
@@ -215,36 +215,37 @@ namespace MPMParticleGeneratorUtility
                         new_element_id = last_element_id + PointNumber;
                         Element::Pointer p_element = new_element.Create(new_element_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
-                        const double MP_density  = density;
+                        std::vector<double> MP_density = { density };
                         const int MP_material_id = material_id;
 
-                        xg.clear();
+                        xg[0].clear();
 
                         // Loop over the nodes of the grid element
                         for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++)
                         {
                             for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                             {
-                                xg[dimension] = xg[dimension] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dimension];
+                                xg[0][dimension] = xg[0][dimension] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dimension];
                             }
                         }
 
+                        const ProcessInfo process_info = ProcessInfo();
+
                         // Setting particle element's initial condition
-                        p_element->SetValue(MP_MATERIAL_ID, MP_material_id);
-                        p_element->SetValue(MP_DENSITY, MP_density);
-                        p_element->SetValue(MP_MASS, mp_mass);
-                        p_element->SetValue(MP_VOLUME, mp_volume);
-                        p_element->SetValue(MP_COORD, xg);
-                        p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
-                        p_element->SetValue(MP_VELOCITY, mp_velocity);
-                        p_element->SetValue(MP_ACCELERATION, mp_acceleration);
-                        p_element->SetValue(MP_VOLUME_ACCELERATION, mp_volume_acceleration);
-                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector);
-                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector);
+                        p_element->SetValueOnIntegrationPoints(MP_DENSITY, MP_density, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_VOLUME, mp_volume, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_COORD, xg, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
+                        p_element->SetValueOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
 
                         if(IsMixedFormulation)
                         {
-                            p_element->SetValue(MP_PRESSURE, mp_pressure);
+                            p_element->SetValueOnIntegrationPoints(MP_PRESSURE, mp_pressure, process_info);
                         }
 
                         // Add the MP Element to the model part
