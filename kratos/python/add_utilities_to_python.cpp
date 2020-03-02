@@ -809,7 +809,6 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 2 > ::FindMaximumEdgeSize)
         .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::class_<ParallelDistanceCalculator < 3 > >(m,"ParallelDistanceCalculator3D")
@@ -820,7 +819,6 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 3 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
         .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::class_<BruteForcePointLocator> (m, "BruteForcePointLocator")

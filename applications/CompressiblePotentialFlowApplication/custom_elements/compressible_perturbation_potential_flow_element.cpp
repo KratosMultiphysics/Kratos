@@ -313,12 +313,10 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdV
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        //r_geometry[i].SetLock();
         if (!r_geometry[i].GetValue(TRAILING_EDGE))
             rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
             rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-        //r_geometry[i].UnSetLock();
     }
 }
 
