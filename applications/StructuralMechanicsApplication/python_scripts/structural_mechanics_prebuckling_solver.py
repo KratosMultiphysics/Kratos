@@ -10,6 +10,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 from KratosMultiphysics import eigen_solver_factory
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
 def CreateSolver(main_model_part, custom_settings):
     return PrebucklingSolver(main_model_part, custom_settings)
@@ -79,7 +80,7 @@ class PrebucklingSolver(MechanicalSolver):
 
     # Builder and Solver Static
     def _create_builder_and_solver(self):
-        """This methos is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
+        """This method is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
         if self.settings["block_builder"].GetBool():
             warn_msg = '"Elimination Builder is required. \n'
             warn_msg += '"block_builder" specification will be ignored'
@@ -87,6 +88,19 @@ class PrebucklingSolver(MechanicalSolver):
         linear_solver = self.get_linear_solver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
+
+    # Convergence Criterion
+    def _create_convergence_criterion(self):
+        """This method is overridden to make sure it always uses "displacement_criterion" """
+        convergence_criterion_setting = self._get_convergence_criterion_settings()
+        if convergence_criterion_setting["convergence_criterion"].GetString() != "displacement_criterion":
+            warn_msg = 'Convergence criterion "displacement_criterion" is required. \n'
+            warn_msg += '"' + convergence_criterion_setting["convergence_criterion"].GetString() + '" specification will be ignored'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
+            convergence_criterion_setting["convergence_criterion"].SetString("displacement_criterion")
+
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(convergence_criterion_setting)
+        return convergence_criterion.mechanical_convergence_criterion
 
     def _create_mechanical_solution_strategy(self):
         solution_scheme = self.get_solution_scheme()
