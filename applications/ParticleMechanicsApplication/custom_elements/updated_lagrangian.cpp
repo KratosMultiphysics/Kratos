@@ -910,8 +910,8 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     mDeterminantF0         = rVariables.detF* rVariables.detF0;
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
 
-    this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
-    this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
+    mMP.cauchy_stress_vector = rVariables.StressVector;
+    mMP.almansi_strain_vector = rVariables.StrainVector;
 
     // Delta Plastic Strains
     mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain );
