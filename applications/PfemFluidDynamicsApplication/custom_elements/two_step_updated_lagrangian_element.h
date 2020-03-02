@@ -23,6 +23,7 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/constitutive_law.h"
 
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -139,6 +140,12 @@ public:
   /* typedef Element::PropertiesType::Pointer PropertiesType::Pointer; */
 
   typedef Element::PropertiesType PropertiesType;
+
+  /// Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  /// Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
   ///@}
   ///@name Life Cycle
@@ -334,6 +341,8 @@ protected:
   ///@}
   ///@name Protected member Variables
   ///@{
+
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
   ///@}
   ///@name Protected Operators
