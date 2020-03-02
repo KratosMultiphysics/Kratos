@@ -292,7 +292,9 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::InitializeElementalVa
 
 template <>
 void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
+
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
@@ -330,7 +332,9 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<2>::CalcElasticPlasticCauchy
 
 template <>
 void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
+
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
@@ -401,9 +405,12 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::UpdateCauchyStress(un
   // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
   bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
   const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-  if (computeElement == true)
-  {
-    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo);
+  double Density = 0;
+  double DeviatoricCoeff = 0;
+  double VolumetricCoeff = 0;
+  if (computeElement == true) {
+      this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density,
+                                             DeviatoricCoeff, VolumetricCoeff);
   }
 
   this->mCurrentTotalCauchyStress[g] = this->mUpdatedTotalCauchyStress[g];

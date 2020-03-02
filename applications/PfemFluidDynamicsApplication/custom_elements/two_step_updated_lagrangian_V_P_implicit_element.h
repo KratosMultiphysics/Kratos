@@ -422,7 +422,8 @@ protected:
                                           const double Weight){};
 
   void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                        const ProcessInfo &rCurrentProcessInfo) override{};
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override{};
 
   virtual void CalculateTauFIC(double &TauOne,
                                double ElemSize,

@@ -567,7 +567,8 @@ protected:
                     MatrixType &SpatialVelocityGrad);
 
   virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
-                                                unsigned int g, const ProcessInfo &rCurrentProcessInfo){};
+                                                unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                                double &DeviatoricCoeff, double &VolumetricCoeff){};
 
   /// Write the value of a variable at a point inside the element to a double
   /**

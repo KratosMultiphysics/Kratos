@@ -1206,7 +1206,9 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeElementalVa
 
 template <>
 void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
+
     double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
 
     double DefX = rElementalVariables.SpatialDefRate[0];
@@ -1233,7 +1235,9 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchy
 
 template <>
 void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo) {
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
+
     double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
 
     double DefX = rElementalVariables.SpatialDefRate[0];

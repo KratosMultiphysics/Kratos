@@ -336,7 +336,8 @@ protected:
                              const double BoundRHSCoeffDev) override{};
 
   void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                        const ProcessInfo &rCurrentProcessInfo) override;
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override;
 
   void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                              VectorType &rRightHandSideVector,
