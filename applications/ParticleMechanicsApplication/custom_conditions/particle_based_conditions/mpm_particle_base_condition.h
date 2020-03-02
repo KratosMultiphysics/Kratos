@@ -249,7 +249,6 @@ public:
     }
 
     ///@}
-    ///@}
     ///@name Access Get Values
     ///@{
 
@@ -257,12 +256,22 @@ public:
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access Set Values
     ///@{
 
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValueOnIntegrationPoints(
+        const Variable<double>& rVariable,
         std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -286,6 +295,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    array_1d<double, 3> m_xg;
 
     ///@}
     ///@name Protected Operators

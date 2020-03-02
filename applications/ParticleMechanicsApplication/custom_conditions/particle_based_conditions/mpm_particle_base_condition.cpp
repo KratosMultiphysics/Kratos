@@ -387,6 +387,18 @@ void MPMParticleBaseCondition::GetValueOnIntegrationPoints(
     }
 }
 
+void MPMParticleBaseCondition::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_COORD) {
+        rValues[0] = m_xg;
+    }
+}
+
 void MPMParticleBaseCondition::SetValueOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
@@ -397,6 +409,19 @@ void MPMParticleBaseCondition::SetValueOnIntegrationPoints(
 
     if (rVariable == MPC_AREA) {
         m_area = rValues[0];
+    }
+}
+
+void MPMParticleBaseCondition::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_COORD) {
+        m_xg = rValues[0];
     }
 }
 
