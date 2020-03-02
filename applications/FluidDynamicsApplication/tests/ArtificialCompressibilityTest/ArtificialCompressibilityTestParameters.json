@@ -84,7 +84,6 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.NoSlip2D_No_slip"
             }
         },{
@@ -92,7 +91,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "variable_name"   : "VELOCITY",
                 "value"           : [1.0, 0.0, 0.0],
                 "constrained"     : [true,true,true],
@@ -104,7 +102,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,

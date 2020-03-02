@@ -11,6 +11,8 @@ using_pykratos = UsingPyKratos()
 # The expected definitions are here to make the handling of the
 # multiline-stings easier (no need to deal with indentation)
 coupling_interface_data_str = '''CouplingInterfaceData:
+	Name: "default"
+	SolverWrapper: "default_solver"
 	ModelPart: "mp_4_test"
 	IsDistributed: False
 	Variable: "DISPLACEMENT" (Vector with dimension: 2)
@@ -110,6 +112,64 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data = CouplingInterfaceData(settings, self.model)
         coupling_data.Initialize()
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
+
+    def test_without_initialization(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "DISPLACEMENT",
+            "dimension"       : 2
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        # coupling_data.Initialize() # intentially commented to raise error
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.PrintInfo()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetModelPart()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.IsDistributed()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.Size()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetBufferSize()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetData()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.SetData([])
+
+    def test_unallowed_names(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "PRESSURE"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa.bbbb")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa bbb")
+
+
+    def test_var_does_not_exist(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "var_that_hopefully_none_will_ever_create_otherwise_this_test_will_be_wrong"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'does not exist!'):
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_dim_scalar(self):
         settings = KM.Parameters("""{
@@ -220,6 +280,17 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data.Initialize()
+
+    def test_non_existing_model_part(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "something",
+            "variable_name"   : "PRESSURE",
+            "location"        : "node_non_historical"
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        with self.assertRaisesRegex(Exception, "The specified ModelPart is not in the Model, only the following ModelParts are available:"):
             coupling_data.Initialize()
 
     def test_GetHistoricalVariableDict(self):

@@ -140,6 +140,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
       .def_readonly_static("SELECT_TESSELLATION_ELEMENTS",&MesherUtilities::SELECT_TESSELLATION_ELEMENTS)
       .def_readonly_static("KEEP_ISOLATED_NODES",&MesherUtilities::KEEP_ISOLATED_NODES)
+      .def_readonly_static("REFINE_WALL_CORNER",&MesherUtilities::REFINE_WALL_CORNER)
       ;
 
 

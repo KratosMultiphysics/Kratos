@@ -28,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "containers/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -120,6 +121,7 @@ public:
 
 
     typedef Node < 3 > NodeType;
+    typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
@@ -233,6 +235,21 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
+
+    /// The Geometry Container.
+    /**
+    * Contains all geometries, which can be adressed by specific identifiers.
+    */
+    typedef GeometryContainer<GeometryType> GeometryContainerType;
+
+    /// Geometry Iterator
+    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+
+    /// Const Geometry Iterator
+    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
+
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -853,6 +870,65 @@ public:
      */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
+    /**
+     * @brief Returns if the sub Properties corresponding to it's address exists
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool HasProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    const PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    const PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
     /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveProperties(IndexType PropertiesId, IndexType ThisIndex = 0);
@@ -1271,6 +1347,117 @@ public:
         return GetMesh(ThisIndex).ConditionsArray();
     }
 
+    ///@}
+    ///@name Geometry Container
+    ///@{
+
+    SizeType NumberOfGeometries() const
+    {
+        return mGeometries.NumberOfGeometries();
+    }
+
+
+    /// Adds a geometry to the geometry container.
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
+
+
+    /// Returns the Geometry::Pointer corresponding to the Id
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the const Geometry::Pointer corresponding to the Id
+    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns a reference geometry corresponding to the id
+    GeometryType& GetGeometry(IndexType GeometryId) {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a const reference geometry corresponding to the id
+    const GeometryType& GetGeometry(IndexType GeometryId) const {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a reference geometry corresponding to the name
+    GeometryType& GetGeometry(std::string GeometryName) {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+    /// Returns a const reference geometry corresponding to the name
+    const GeometryType& GetGeometry(std::string GeometryName) const {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+
+    /// Checks if has geometry by id.
+    bool HasGeometry(IndexType GeometryId) const {
+        return mGeometries.HasGeometry(GeometryId);
+    }
+
+    /// Checks if has geometry by name.
+    bool HasGeometry(std::string GeometryName) const {
+        return mGeometries.HasGeometry(GeometryName);
+    }
+
+
+    /// Removes a geometry by id.
+    void RemoveGeometry(IndexType GeometryId);
+
+    /// Removes a geometry by name.
+    void RemoveGeometry(std::string GeometryName);
+
+    /// Removes a geometry by id from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(IndexType GeometryId);
+
+    /// Removes a geometry by name from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(std::string GeometryName);
+
+
+    /// Begin geometry iterator
+    GeometryIterator GeometriesBegin() {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// End geometry iterator
+    GeometryIterator GeometriesEnd() {
+        return mGeometries.GeometriesEnd();
+    }
+
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
+
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
 
     ///@}
     ///@name Sub model parts
@@ -1337,6 +1524,11 @@ public:
     }
 
     SubModelPartsContainerType& SubModelParts()
+    {
+        return mSubModelParts;
+    }
+
+    const SubModelPartsContainerType& SubModelParts() const
     {
         return mSubModelParts;
     }
@@ -1460,6 +1652,20 @@ public:
     ///@{
 
     /**
+     * @brief This method returns the full name of the model part (including the parents model parts)
+     * @details This is evaluated in a recursive way
+     * @return The full name of the model part
+     */
+    std::string FullName() const
+    {
+        std::string full_name = this->Name();
+        if (this->IsSubModelPart()) {
+            full_name = this->GetParentModelPart()->FullName() + "." + full_name;
+        }
+        return full_name;
+    }
+
+    /**
      * @brief This method returns the name list of submodelparts
      * @return A vector conrtaining the list of submodelparts contained
      */
@@ -1565,6 +1771,8 @@ private:
 
     MeshesContainerType mMeshes; /// The container of all meshes
 
+    GeometryContainerType mGeometries; /// The container of geometries
+
     VariablesList::Pointer mpVariablesList; /// The variable list
 
     Communicator::Pointer mpCommunicator; /// The communicator
@@ -1583,6 +1791,25 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
 
     /**
      * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)

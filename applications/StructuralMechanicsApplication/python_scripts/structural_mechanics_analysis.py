@@ -18,46 +18,39 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         solver_settings = project_parameters["solver_settings"]
 
         if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
-            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+            raise Exception("StructuralMechanicsAnalysis: " + '"domain_size" defined both in "problem_data" and "solver_settings"!')
 
         if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
-            warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_sett"ings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+            raise Exception("StructuralMechanicsAnalysis: " + '"model_part_name" defined both in problem_data" and "solver_settings"!')
 
         if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
-            warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+            raise Exception("StructuralMechanicsAnalysis: " + '"time_stepping" defined both in "problem_data" and "solver_settings"!')
 
         if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
-            time_stepping_params = KratosMultiphysics.Parameters("{}")
-            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
-            solver_settings.AddValue("time_stepping", time_stepping_params)
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the time_step, this was removed!")
 
         if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the domain_size, this was removed!")
 
-        if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
+        # Detect is a contact problem
+        # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
+        solver_settings = project_parameters["solver_settings"]
+        self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
+
+        if self.contact_problem:
+            if solver_settings.Has("use_computing_model_part"):
+                if not solver_settings["use_computing_model_part"].GetBool():
+                    KM.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
+                    solver_settings["use_computing_model_part"].SetBool(True)
+            else:
+                solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)
+
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
         super(StructuralMechanicsAnalysis, self).Initialize()
-
-        # Detect is a contact problem
-        # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
-        solver_settings = self.project_parameters["solver_settings"]
-        self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
 
         # In case of contact problem
         if self.contact_problem:
@@ -125,9 +118,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         warn_msg += 'in "solver_settings"\n'
                         KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
 
-        if not self.project_parameters.Has("processes"): # TODO this check is only for backwards-compatibility => to be removed
-            return
-
         # Checking if the processes-submodelparts are added to the ComputingModelPart
         # creating a list with the names of smps that will be added to the ComputingModelPart
         # note that the names here are WITHOUT the MainModelPart-Name
@@ -170,66 +160,32 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
-                deprecation_warning_issued = False
-                from KratosMultiphysics.process_factory import KratosProcessFactory
-                factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
-                        if not deprecation_warning_issued:
-                            info_msg  = "Using the old way to create the processes, this will be removed!\n"
-                            info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
-                            info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
-                            info_msg += "for a description of the new format"
-                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
-                            deprecation_warning_issued = True
+                        info_msg  = "Using the old way to create the processes, this was removed!\n"
+                        info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                        info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                        info_msg += "for a description of the new format"
+                        raise Exception("StructuralMechanicsAnalysis: " + info_msg)
 
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
                         raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+                info_msg  = "Using the old way to create the gid-output, this was removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
+                raise Exception("StructuralMechanicsAnalysis: " + info_msg)
         else:
             raise NameError("wrong parameter name")
 
         return list_of_processes
 
-    def _SetUpGiDOutput(self):
-        '''Initialize a GiD output instance'''
-        self.__CheckForDeprecatedGiDSettings()
-        if self.parallel_type == "OpenMP":
-            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
-        elif self.parallel_type == "MPI":
-            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
-
-        gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                   self.project_parameters["output_configuration"])
-
-        return gid_output
-
     def _GetSimulationName(self):
         return "::[KSM Simulation]:: "
-
-    def __CheckForDeprecatedGiDSettings(self):
-        if self.project_parameters["output_configuration"].Has("result_file_configuration"):
-            res_file_config = self.project_parameters["output_configuration"]["result_file_configuration"]
-            if res_file_config.Has("nodal_results"):
-                nodal_res = res_file_config["nodal_results"]
-                for i in range(nodal_res.size()):
-                    var_name = nodal_res[i].GetString()
-                    if var_name == "TORQUE":
-                        err_msg  = 'Requesting output for "TORQUE" which is not available any more\n'
-                        err_msg += 'It was renamed to "REACTION_MOMENT"'
-                        raise Exception(err_msg)
 
 if __name__ == "__main__":
     from sys import argv

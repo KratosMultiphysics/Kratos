@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
@@ -18,6 +18,8 @@
 #include "includes/define_python.h"
 #include "add_constraint_to_python.h"
 #include "includes/master_slave_constraint.h"
+#include "includes/linear_master_slave_constraint.h"
+#include "constraints/slip_constraint.h"
 
 namespace Kratos
 {
@@ -114,8 +116,43 @@ void AddConstraintToPython(pybind11::module &m)
     .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
     .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
 
+    .def("GetMasterDofsVector", &MasterSlaveConstraint::GetMasterDofsVector, pybind11::return_value_policy::reference_internal)
+    .def("GetSlaveDofsVector", &MasterSlaveConstraint::GetSlaveDofsVector, pybind11::return_value_policy::reference_internal)
+    .def("CalculateLocalSystem", &MasterSlaveConstraint::CalculateLocalSystem)
+
     .def("__str__", PrintObject<MasterSlaveConstraint>)
     ;
+
+    pybind11::class_<LinearMasterSlaveConstraint, LinearMasterSlaveConstraint::Pointer, MasterSlaveConstraint, Flags>
+            (m, "LinearMasterSlaveConstraint")
+    .def(pybind11::init<
+        MasterSlaveConstraint::IndexType,
+        MasterSlaveConstraint::DofPointerVectorType&,
+        MasterSlaveConstraint::DofPointerVectorType&,
+        const MasterSlaveConstraint::MatrixType&,
+        const MasterSlaveConstraint::VectorType&
+        >())
+    ;
+
+
+    pybind11::class_<SlipConstraint, SlipConstraint::Pointer, LinearMasterSlaveConstraint, Flags>
+            (m, "SlipConstraint")
+    .def(pybind11::init<
+        SlipConstraint::IndexType,
+        Dof<double>* ,
+        Dof<double>* ,
+        array_1d<double,3>
+        >())
+    .def(pybind11::init<
+        SlipConstraint::IndexType,
+        Dof<double>* ,
+        Dof<double>* ,
+        Dof<double>* ,
+        array_1d<double,3>
+        >())
+    ;
+
+
 }
 
 } // namespace Python.

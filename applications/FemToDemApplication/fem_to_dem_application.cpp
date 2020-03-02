@@ -59,7 +59,10 @@ void KratosFemToDemApplication::Register()
      KratosApplication::Register();
     
     //REGISTER VARIABLES FEM2DEM
-    // KRATOS_REGISTER_VARIABLE(NO_MESH)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION_BACKUP)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_BACKUP)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VOLUME)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_INITIAL_VOLUME)
     KRATOS_REGISTER_VARIABLE(DEM_PARTICLE_POINTER)
     KRATOS_REGISTER_VARIABLE(FRAGILE)
     KRATOS_REGISTER_VARIABLE(VOLUME_COUNTED)
@@ -88,6 +91,7 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_VARIABLE(RECONSTRUCT_PRESSURE_LOAD)
     KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
     KRATOS_REGISTER_VARIABLE(STRESS_THRESHOLD)
+    KRATOS_REGISTER_VARIABLE(DEMFEM_CONTACT)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(MAPPING_PROCEDURE)
     KRATOS_REGISTER_VARIABLE(INITIAL_THRESHOLD)
@@ -110,6 +114,7 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_VARIABLE(STRAIN_TENSOR);
     KRATOS_REGISTER_VARIABLE(STRESS_TENSOR);
     KRATOS_REGISTER_VARIABLE(STRESS_TENSOR_INTEGRATED);
+    KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
     
     // Composite
     KRATOS_REGISTER_VARIABLE(CONCRETE_STRESS_TENSOR);
@@ -174,10 +179,14 @@ void KratosFemToDemApplication::Register()
     Serializer::Register("ElasticIsotropic3D", mElasticIsotropic3D);
     Serializer::Register("LinearPlaneStress", mLinearPlaneStress);
     Serializer::Register("LinearPlaneStrain", mLinearPlaneStrain);
+    Serializer::Register("HyperElasticIsotropicNeoHookean3D", mHyperElasticIsotropicNeoHookean3D);
+    Serializer::Register("HyperElasticIsotropicNeoHookeanPlaneStrain2D", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropic3D", mElasticIsotropic3D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStress", mLinearPlaneStress)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStrain", mLinearPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookean3D", mHyperElasticIsotropicNeoHookean3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlaneStrain2D", mHyperElasticIsotropicNeoHookeanPlaneStrain2D)
 
 }
 

@@ -63,7 +63,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N",
                     "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
-                    "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N"
+                    "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
                 },
                 "condition_name_table" :
                 {
@@ -71,9 +72,6 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N"
                 },
                 "ignore_conditions" : [
-                    "Condition3D",
-                    "Condition3D3N",
-                    "Condition3D4N",
                     "SurfaceCondition3D3N",
                     "SurfaceCondition3D4N"
                 ]

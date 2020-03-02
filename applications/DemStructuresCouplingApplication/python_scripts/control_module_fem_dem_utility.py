@@ -20,6 +20,7 @@ class ControlModuleFemDemUtility(object):
             face_area = 0.088343
 
         self.top_fem_model_part = Model["Structure.SurfacePressure3D_top_pressure"]
+        #self.top_fem_model_part = Model["Structure.SurfacePressure3D_sigmaZpos"]
         self.top_dem_model_part = spheres_model_part.GetSubModelPart("topdem")
         top_settings = KratosMultiphysics.Parameters( """
         {
@@ -47,6 +48,7 @@ class ControlModuleFemDemUtility(object):
         self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.top_fem_model_part, self.top_dem_model_part, top_settings))
 
         self.bot_fem_model_part = Model["Structure.SurfacePressure3D_bottom_pressure"]
+        #self.bot_fem_model_part = Model["Structure.SurfacePressure3D_sigmaZneg"]
         self.bot_dem_model_part = spheres_model_part.GetSubModelPart("botdem")
         bot_settings = KratosMultiphysics.Parameters( """
         {

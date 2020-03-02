@@ -51,7 +51,7 @@
             "input_filename" : "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
         },
         "model_part_name"              : "MainModelPart",
         "maximum_iterations"           : 1000,
@@ -60,9 +60,9 @@
         "compute_reactions"            : true,
         "reform_dofs_at_each_step"     : false,
         "relative_velocity_tolerance"  : 1e-5,
-        "absolute_velocity_tolerance"  : 1e-7,
+        "absolute_velocity_tolerance"  : 1e-9,
         "relative_pressure_tolerance"  : 1e-5,
-        "absolute_pressure_tolerance"  : 1e-7,
+        "absolute_pressure_tolerance"  : 1e-9,
         "linear_solver_settings"       : {
             "solver_type"         : "amgcl",
             "max_iteration"       : 200,
@@ -96,8 +96,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Inlet2D_Inlet",
+                "model_part_name" : "MainModelPart.Inlet2D_Inlet",
                 "variable_name"   : "VELOCITY",
                 "modulus"         : 1.0,
                 "direction"       : [1.0,0.0,0.0]
@@ -107,8 +106,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet2D_Outlet",
+                "model_part_name" : "MainModelPart.Outlet2D_Outlet",
                 "variable_name"   : "PRESSURE",
                 "value"           : 0
             }
@@ -117,16 +115,14 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Cylinder"
+                "model_part_name" : "MainModelPart.NoSlip2D_Cylinder"
             }
         },{
             "python_module" : "apply_noslip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Wall"
+                "model_part_name" : "MainModelPart.NoSlip2D_Wall"
             }
         }],
         "gravity"                          : [{
@@ -134,8 +130,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "constrained"     : false,
@@ -161,7 +156,7 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ComputeBodyFittedDragProcess",
             "Parameters" : {
-                "model_part_name"           : "NoSlip2D_Cylinder",
+                "model_part_name"           : "MainModelPart.NoSlip2D_Cylinder",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
                 "print_drag_to_screen"      : false,

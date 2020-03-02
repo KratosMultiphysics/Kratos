@@ -52,10 +52,10 @@ namespace Kratos {
         condition_nodes_3[0] = p_node_5;
         condition_nodes_3[1] = p_node_6;
 
-        Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("Condition2D2N", 1, PointerVector<NodeType>{condition_nodes_0}, p_elem_prop);
-        Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("Condition2D2N", 2, PointerVector<NodeType>{condition_nodes_1}, p_elem_prop);
-        Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("Condition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
-        Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("Condition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
+        Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, PointerVector<NodeType>{condition_nodes_0}, p_elem_prop);
+        Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, PointerVector<NodeType>{condition_nodes_1}, p_elem_prop);
+        Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("LineCondition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
+        Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("LineCondition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
 
         // Now we create the "elements"
         std::vector<NodeType::Pointer> element_nodes_0 (3);
@@ -133,6 +133,17 @@ namespace Kratos {
         KRATOS_CHECK_IS_FALSE(r_model_part.HasNodalSolutionStepVariable(PRESSURE));
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartFullName, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("SubModelPart");
+        ModelPart& r_sub_sub_model_part = r_sub_model_part.CreateSubModelPart("SubSubModelPart");
+
+        KRATOS_CHECK_STRING_EQUAL(r_model_part.FullName(), "Main");
+        KRATOS_CHECK_STRING_EQUAL(r_sub_model_part.FullName(), "Main.SubModelPart");
+        KRATOS_CHECK_STRING_EQUAL(r_sub_sub_model_part.FullName(), "Main.SubModelPart.SubSubModelPart");
+    }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartEmptyName, KratosCoreFastSuite)
     {

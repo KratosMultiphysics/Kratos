@@ -206,7 +206,7 @@ def delete_archives():
         except OSError:
             pass
 
-    folders_to_delete_list      = glob('*Data')
+    folders_to_delete_list = []
     folders_to_delete_list.extend(glob('*ists'))
     folders_to_delete_list.extend(glob('*ults'))
     folders_to_delete_list.extend(glob('*he__'))

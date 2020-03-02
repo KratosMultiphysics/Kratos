@@ -38,7 +38,7 @@ class MeshControllerWithSolver(MeshController) :
                 "time_stepping" : {
                     "time_step"       : 1.0
                 },
-                "mesh_motion_linear_solver_settings" : {
+                "linear_solver_settings" : {
                     "solver_type" : "amgcl",
                     "smoother_type":"ilu0",
                     "krylov_type": "gmres",
@@ -48,7 +48,7 @@ class MeshControllerWithSolver(MeshController) :
                     "tolerance": 1e-7
                 },
                 "compute_reactions"         : false,
-                "calculate_mesh_velocities" : false
+                "calculate_mesh_velocity"   : false
             },
             "processes" : {
                 "boundary_conditions_process_list" : []
@@ -59,8 +59,8 @@ class MeshControllerWithSolver(MeshController) :
         self.MeshSolverSettings["solver_settings"].ValidateAndAssignDefaults(default_settings["solver_settings"])
         self.MeshSolverSettings["processes"].ValidateAndAssignDefaults(default_settings["processes"])
 
-        if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
-            MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
+        if not self.MeshSolverSettings["solver_settings"].Has("linear_solver_settings"):
+            MeshSolverSettings.AddValue("linear_solver_settings", default_settings["solver_settings"]["linear_solver_settings"])
             KM.Logger.PrintInfo("ShapeOpt", "::[MeshControllerWithSolver]:: using default linear solver for mesh motion.")
 
         if not MeshSolverSettings.Has("problem_data"):

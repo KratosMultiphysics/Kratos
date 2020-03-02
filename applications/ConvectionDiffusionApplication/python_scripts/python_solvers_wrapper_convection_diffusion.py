@@ -24,6 +24,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
             solver_module_name = "coupled_fluid_thermal_solver"
 
+        elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
+            solver_module_name = "coupled_structural_thermal_solver"
+
         elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
 

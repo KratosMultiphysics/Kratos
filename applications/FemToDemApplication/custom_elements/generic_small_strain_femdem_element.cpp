@@ -728,7 +728,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
         rOutput.resize( number_of_integration_points );
 
 
-    if ( rVariable == INSITU_STRESS ) {
+    if (rVariable == INSITU_STRESS) {
         const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
         Vector strain_vector( strain_size );
 
@@ -738,7 +738,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
             rOutput[point_number] = this->mConstitutiveLawVector[point_number]->GetValue( INSITU_STRESS, rOutput[point_number] );
         }
-    } else if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR ) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
         // Create and initialize element variables:
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
