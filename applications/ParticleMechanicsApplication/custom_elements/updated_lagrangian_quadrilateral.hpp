@@ -124,7 +124,7 @@ protected:
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
 
-        MaterialPointVariables(SizeType WorkingSpaceDimension)
+        explicit MaterialPointVariables(SizeType WorkingSpaceDimension)
         {
             // MP_MASS
             mass = 1.0;
