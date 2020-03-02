@@ -91,13 +91,13 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'y'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
             #     POINT_LOAD_Y,0,load_size_dir)
         if(which_dof == 'x'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
