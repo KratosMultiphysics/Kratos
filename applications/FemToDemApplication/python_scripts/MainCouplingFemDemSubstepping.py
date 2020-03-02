@@ -38,7 +38,8 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                                                                self.FEM_Solution.time,
                                                                self.DEM_Solution.solver.dt,
                                                                self.DEM_Solution.time)
-                                                               
+                self.UpdateDEMVariables()
+
                 #### SOLVE DEM #########################################
                 self.DEM_Solution.solver.Solve()
                 ########################################################
@@ -49,11 +50,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
                 # We reset the position of the slave DEM
-                FEMDEM_utilities.InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
-                                                               self.FEM_Solution.delta_time,
-                                                               self.FEM_Solution.time,
-                                                               self.DEM_Solution.solver.dt,
-                                                               self.DEM_Solution.time)
+                self.UpdateDEMVariables()
 
                 # DEM GiD print output
                 self.PrintDEMResults()
