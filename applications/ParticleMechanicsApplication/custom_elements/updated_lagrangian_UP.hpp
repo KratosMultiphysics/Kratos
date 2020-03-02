@@ -188,6 +188,11 @@ public:
     ///@name Access
     ///@{
 
+    void SetValueOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -405,6 +410,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    double m_mp_pressure;
 
     ///@}
     ///@name Private Operators
