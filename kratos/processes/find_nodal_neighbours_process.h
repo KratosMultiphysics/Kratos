@@ -86,7 +86,7 @@ public:
     FindNodalNeighboursProcess(ModelPart& model_part, unsigned int avg_elems, unsigned int avg_nodes)
         : FindNodalNeighboursProcess(model_part)
     {
-        KRATOS_WARNING("FindNodalNeighboursProcess") << "parameters avg_elems and avg_nodes are currently ignored" << std::endl;
+        KRATOS_WARNING("FindNodalNeighboursProcess") << "parameters avg_elems and avg_nodes are currently ignored. This constructor will be removed on the 2 of april 2020" << std::endl;
     }
     /// Destructor.
     ~FindNodalNeighboursProcess() override
