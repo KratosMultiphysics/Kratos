@@ -328,14 +328,23 @@ typedef Node<3> NodeType;
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnNurbsSurfaceSpans, KratosCoreNurbsGeometriesFastSuite)
+    // test intersection with background surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceSpans, KratosCoreNurbsGeometriesFastSuite)
     {
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
 
         auto spans = curve_on_surface.Spans();
 
+        // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);
+
+        // Compare each value
+        KRATOS_CHECK_NEAR(spans[0], 0, TOLERANCE);
+        KRATOS_CHECK_NEAR(spans[1], 4.02565, 1e-4);
+        KRATOS_CHECK_NEAR(spans[2], 11.6569, 1e-4);
+        KRATOS_CHECK_NEAR(spans[3], 19.2881, 1e-4);
+        KRATOS_CHECK_NEAR(spans[4], 23.3137, 1e-4);
     }
 } // namespace Testing.
 } // namespace Kratos.
