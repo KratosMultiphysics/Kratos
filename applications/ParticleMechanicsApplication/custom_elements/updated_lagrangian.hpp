@@ -66,6 +66,9 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename GeometryType::CoordinatesArrayType ArrayType;
+
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangian );
     ///@}
@@ -80,6 +83,76 @@ protected:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
+
+    struct MaterialPointVariables
+    {
+    private:
+        // Particle Position
+        CoordinatesArrayType xg;
+        // MP_MASS
+        double mass;
+        // MP_DENSITY
+        double density;
+        // MP_VOLUME
+        double volume;
+
+        // MP_DISPLACEMENT
+        array_1d<double, 3> displacement;
+        // MP_VELOCITY
+        array_1d<double, 3> velocity;
+        // MP_ACCELERATION
+        array_1d<double, 3> acceleration;
+
+        // MP_VOLUME_ACCELERATION
+        array_1d<double, 3> volume_acceleration;
+
+        // MP_CAUCHY_STRESS_VECTOR
+        Vector cauchy_stress_vector;
+        // MP_ALMANSI_STRAIN_VECTOR
+        Vector almansi_strain_vector;
+
+        // MP_DELTA_PLASTIC_STRAIN
+        double delta_plastic_strain;
+        // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+        double delta_plastic_volumetric_strain;
+        // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+        double delta_plastic_deviatoric_strain;
+        // MP_EQUIVALENT_PLASTIC_STRAIN
+        double equivalent_plastic_strain;
+        // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+        double accumulated_plastic_volumetric_strain;
+        // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+        double accumulated_plastic_deviatoric_strain;
+
+    public:
+        MaterialPointVariables(SizeType StrainSize)
+        {
+            // MP_MASS
+            mass = 1.0;
+            // MP_DENSITY
+            density = 1.0;
+            // MP_VOLUME
+            volume = 1.0;
+
+            // MP_CAUCHY_STRESS_VECTOR
+            cauchy_stress_vector = ZeroVector(StrainSize);
+            // MP_ALMANSI_STRAIN_VECTOR
+            almansi_strain_vector = ZeroVector(StrainSize);
+
+            // MP_DELTA_PLASTIC_STRAIN
+            delta_plastic_strain = 1.0;
+            // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+            delta_plastic_volumetric_strain = 1.0;
+            // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+            delta_plastic_deviatoric_strain = 1.0;
+            // MP_EQUIVALENT_PLASTIC_STRAIN
+            equivalent_plastic_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+            accumulated_plastic_volumetric_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+            accumulated_plastic_deviatoric_strain = 1.0;
+        }
+    };
 
     /**
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
