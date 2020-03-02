@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file scripts/docker_files/docker_file_ci/Dockerfile --tag kratosmultiphysics/kratos-image-ci
+      run: docker build . --file scripts/docker_files/docker_file_ci/DockerFile --tag kratosmultiphysics/kratos-image-ci
     - name: Docker Login
       uses: azure/docker-login@v1
       with:
