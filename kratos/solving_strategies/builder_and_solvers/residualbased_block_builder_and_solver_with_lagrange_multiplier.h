@@ -77,6 +77,10 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL_AUXILIAR_CONSTRAINT_FACTOR );
     KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_PRESCRIBED_AUXILIAR_CONSTRAINT_FACTOR );
 
+    // Constraint enum
+    enum class CONSTRAINT_FACTOR {CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR = 0, CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR = 1, CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR = 2};
+    enum class AUXILIAR_CONSTRAINT_FACTOR {CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR = 0, CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR = 1, CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR = 2};
+    
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier);
 
@@ -152,23 +156,14 @@ public:
         }
         
         // The first option will not consider any scaling (the diagonal values will be replaced with 1)
-        if (r_diagonal_values_for_dirichlet_dofs == "non_scale") {
-            BaseType::mOptions.Set(BaseType::NO_SCALING, true);
-            BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
-            BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
-        } else { 
-            BaseType::mOptions.Set(BaseType::NO_SCALING, false);
-            // This case will consider the maximum value in the diagonal as a scaling value
-            if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
-                BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
-                BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
-            } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
-                BaseType:: mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
-                BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, false);
-            } else { // Otherwise we will assume we impose a numerical value
-                BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, false);
-                BaseType::mOptions.Set(BaseType::CONSIDER_PRESCRIBED_DIAGONAL, true);
-            }
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
         }
         
         // Auxiliar set for constraints
@@ -234,8 +229,7 @@ public:
         : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
-        BaseType::mOptions.Set(BaseType::NO_SCALING, false);
-        BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, true);
+        BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
         BaseType::mOptions.Set(CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR, true);
         BaseType::mOptions.Set(CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR, false);
@@ -918,9 +912,12 @@ protected:
 
     std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave; /// A map of the correspondance between the slave dofs
     TSystemVectorType mLagrangeMultiplierVector;                       /// This is vector containing the Lagrange multiplier solution
-    double mConstraintFactor = 0.0;                               /// The constraint scale factor
-    double mAuxiliarConstraintFactor = 0.0;                       /// The auxiliar constraint scale factor
+    double mConstraintFactor = 0.0;                                    /// The constraint scale factor
+    double mAuxiliarConstraintFactor = 0.0;                            /// The auxiliar constraint scale factor
 
+    CONSTRAINT_FACTOR mConstraintFactorConsidered;                  /// The value considered for the constraint factor
+    AUXILIAR_CONSTRAINT_FACTOR mAuxiliarConstraintFactorConsidered; /// The value considered for the auxiliar constraint factor
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -1240,7 +1237,7 @@ private:
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(5));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR(Kratos::Flags::Create(6));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
