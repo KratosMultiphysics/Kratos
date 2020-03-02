@@ -42,6 +42,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.BACKUP_LAST_STRUCTURAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.SMOOTHED_STRUCTURAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_IMPULSE)
 
 
         # Read model_part (note: the buffer_size is set here) (restart is read here)
