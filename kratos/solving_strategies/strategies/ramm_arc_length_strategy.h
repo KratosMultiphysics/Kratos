@@ -490,7 +490,7 @@ public:
     {
         KRATOS_TRY
 
-        bool IsConverged = true;
+        bool is_converged = true;
 
         // Note: Initialize() needs to be called beforehand
 		this->InitializeSolutionStep();
@@ -498,11 +498,11 @@ public:
 		this->Predict();
 
         // Solve the problem with constant load
-		IsConverged = this->CheckConvergence();
+		is_converged = this->CheckConvergence();
 
 		this->FinalizeSolutionStep();
 
-        return IsConverged;
+        return is_converged;
 
         KRATOS_CATCH("")
     }
@@ -786,7 +786,7 @@ protected:
                         r_value *= (mLambda / mLambda_old);
                     }
                 }
-            } else if (KratosComponents< Variable<array_1d<double,3>>>::Has(r_variable_name)) {
+            } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {
                 typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> component_type;
                 component_type varx = KratosComponents<component_type>::Get(r_variable_name + std::string("_X"));
                 component_type vary = KratosComponents<component_type>::Get(r_variable_name + std::string("_Y"));
