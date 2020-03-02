@@ -89,17 +89,17 @@ namespace Kratos
         double moment_y_red = 0.0;
         double moment_z_red = 0.0;
 
-        #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) private(elem_drag) schedule(dynamic)
+        #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) reduction(+:moment_x_red) reduction(+:moment_y_red) reduction(+:moment_z_red) private(elem_drag, elem_drag_center) schedule(dynamic)
         for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
             auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Calculate(DRAG_FORCE_CENTER, elem_drag_center, rModelPart.GetProcessInfo());
+            // it_elem->Calculate(DRAG_FORCE_CENTER, elem_drag_center, rModelPart.GetProcessInfo());
             it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
             drag_x_red += elem_drag[0];
             drag_y_red += elem_drag[1];
             drag_z_red += elem_drag[2];
-            moment_x_red += elem_drag_center[1] * elem_drag[2] - elem_drag_center[2] * elem_drag[1];
-            moment_y_red += elem_drag_center[2] * elem_drag[0] - elem_drag_center[0] * elem_drag[2];
-            moment_z_red += elem_drag_center[0] * elem_drag[1] - elem_drag_center[1] * elem_drag[0];
+            moment_x_red += 0.0; //(elem_drag_center[1] - rReferencePoint[1]) * elem_drag[2] - (elem_drag_center[2] - rReferencePoint[2]) * elem_drag[1];
+            moment_y_red += 0.0; //(elem_drag_center[2] - rReferencePoint[2]) * elem_drag[0] - (elem_drag_center[0] - rReferencePoint[0]) * elem_drag[2];
+            moment_z_red += 0.0; //(elem_drag_center[0] - rReferencePoint[0]) * elem_drag[1] - (elem_drag_center[1] - rReferencePoint[1]) * elem_drag[0];
         }
 
         drag_x += drag_x_red;
@@ -117,7 +117,7 @@ namespace Kratos
 
     /* External functions *****************************************************/
 
-    /// output stream function
+    /// output stream function5
     inline std::ostream& operator << (
         std::ostream& rOStream,
         const DragAndMomentUtilities& rThis) {
