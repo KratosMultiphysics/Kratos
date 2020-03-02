@@ -44,8 +44,8 @@ namespace MPMParticleGeneratorUtility
         std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
         std::vector<double> mp_pressure = { 0.0 };
 
-        std::vector<double> mp_mass(0);
-        std::vector<double> mp_volume(0);
+        std::vector<double> mp_mass(1);
+        std::vector<double> mp_volume(1);
 
         // Determine element index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements();
