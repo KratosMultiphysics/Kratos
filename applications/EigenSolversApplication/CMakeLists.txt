@@ -39,7 +39,7 @@ if( USE_EIGEN_MKL MATCHES ON )
 endif()
 
 if( USE_FEAST4 MATCHES ON )
-    if( USE_EIGEN_MKL MATCHES OFF )
+    if( USE_EIGEN_MKL MATCHES OFF OR NOT DEFINED USE_EIGEN_MKL )
         message( FATAL_ERROR "FEAST4 can only be used with MKL" )
     endif()
     if( NOT DEFINED FEAST4_ROOT )
