@@ -21,7 +21,7 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
         self.ModifyInitialGeometry()
 
         ##here we initialize user-provided processes
-        self.__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
+        self._AnalysisStage__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
@@ -108,13 +108,4 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
 
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
-
-    def __CreateListOfProcesses(self):
-        """This function creates the processes and the output-processes
-        """
-        order_processes_initialization = self._GetOrderOfProcessesInitialization()
-        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
-        order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
-        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
-        self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
 
