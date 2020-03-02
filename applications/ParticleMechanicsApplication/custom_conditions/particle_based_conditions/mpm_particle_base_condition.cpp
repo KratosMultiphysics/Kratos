@@ -394,7 +394,7 @@ void MPMParticleBaseCondition::GetValueOnIntegrationPoints(const Variable<array_
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == MP_COORD) {
+    if (rVariable == MPC_COORD) {
         rValues[0] = m_xg;
     }
 }
@@ -420,7 +420,7 @@ void MPMParticleBaseCondition::SetValueOnIntegrationPoints(const Variable<array_
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
 
-    if (rVariable == MP_COORD) {
+    if (rVariable == MPC_COORD) {
         m_xg = rValues[0];
     }
 }
