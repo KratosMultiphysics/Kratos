@@ -28,21 +28,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 	namespace py = pybind11;
 
-    py::class_<FEMDEMCouplingUtilities<2>(m,"FEMDEMCouplingUtilities2D")
-        .def(py::init<ModelPart&>())
-        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities<2>::SaveStructuralSolution)
-        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities<2>::InterpolateStructuralSolution)
-        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities<2>::RestoreStructuralSolution)
+    py::class_<FEMDEMCouplingUtilities>(m,"FEMDEMCouplingUtilities")
+        .def(py::init<>())
+        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities::SaveStructuralSolution)
+        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities::InterpolateStructuralSolution)
+        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities::RestoreStructuralSolution)
         ;
-
-    py::class_<FEMDEMCouplingUtilities<3>(m,"FEMDEMCouplingUtilities3D")
-        .def(py::init<ModelPart&>())
-        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities<3>::SaveStructuralSolution)
-        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities<3>::InterpolateStructuralSolution)
-        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities<3>::RestoreStructuralSolution)
-        ;
-
-
 }
 
 }  // namespace Python.

@@ -52,13 +52,12 @@ typedef std::size_t SizeType;
  * @tparam TDim The dimension of the problem
  * @author Alejandro Cornejo
  */
-template<SizeType TDim = 3>
 class FEMDEMCouplingUtilities
 {
   public:
     ///@name Type definitions
     ///@{
-
+    KRATOS_CLASS_POINTER_DEFINITION(FEMDEMCouplingUtilities);
     /// The index type definition
     typedef std::size_t IndexType;
 
@@ -73,6 +72,9 @@ class FEMDEMCouplingUtilities
     ///@}
     ///@name Operations
     ///@{
+
+    /// Default constructor.
+    FEMDEMCouplingUtilities(){}
 
     void SaveStructuralSolution(ModelPart& rStructureModelPart);
 

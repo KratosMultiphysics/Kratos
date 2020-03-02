@@ -17,7 +17,7 @@
 #include "includes/condition.h"
 #include "includes/model_part.h"
 #include "custom_utilities/FEMDEM_coupling_utilities.h"
-#include "dem_structures_coupling_application_variables.h"
+#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {
@@ -25,22 +25,11 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <SizeType TDim>
-FEMDEMCouplingUtilities<TDim>::FEMDEMCouplingUtilities()
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <SizeType TDim>
-void FEMDEMCouplingUtilities<TDim>::SaveStructuralSolution(
+void FEMDEMCouplingUtilities::SaveStructuralSolution(
         ModelPart& rStructureModelPart
     ) 
 {
-
     KRATOS_TRY
-
     const int number_of_nodes = static_cast<int>(rStructureModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator node_begin = rStructureModelPart.NodesBegin();
 
@@ -64,8 +53,7 @@ void FEMDEMCouplingUtilities<TDim>::SaveStructuralSolution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <SizeType TDim>
-void FEMDEMCouplingUtilities<TDim>::InterpolateStructuralSolution(
+void FEMDEMCouplingUtilities::InterpolateStructuralSolution(
     ModelPart& rStructureModelPart, 
     const double FemDeltaTime, 
     const double FemTime, 
@@ -74,7 +62,6 @@ void FEMDEMCouplingUtilities<TDim>::InterpolateStructuralSolution(
     )
 {
     KRATOS_TRY
-
     const double previous_FemTime = FemTime - FemDeltaTime;
     const double time_factor = (DemTime - previous_FemTime) / FemDeltaTime;
     const double previous_time_factor = (DemTime - DemDeltaTime - previous_FemTime) / FemDeltaTime;
@@ -108,13 +95,11 @@ void FEMDEMCouplingUtilities<TDim>::InterpolateStructuralSolution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <SizeType TDim>
-void FEMDEMCouplingUtilities<TDim>::RestoreStructuralSolution(
+void FEMDEMCouplingUtilities::RestoreStructuralSolution(
     ModelPart& rStructureModelPart
     )
 {
     KRATOS_TRY
-
     const int number_of_nodes = static_cast<int>(rStructureModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator node_begin = rStructureModelPart.NodesBegin();
 
@@ -131,14 +116,10 @@ void FEMDEMCouplingUtilities<TDim>::RestoreStructuralSolution(
 
         noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates() + it_node->FastGetSolutionStepValue(DISPLACEMENT);
     }
-
     KRATOS_CATCH("") 
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-template class FEMDEMCouplingUtilities<3>;
-template class FEMDEMCouplingUtilities<2>;
 
 } // namespace Kratos
