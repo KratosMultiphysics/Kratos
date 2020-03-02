@@ -107,7 +107,13 @@ public:
 
     using BaseType::mInitializeWasPerformed;
 
-    static constexpr double dof_ratio_tolerance = 1e-3;
+    static constexpr double dof_ratio_tolerance = 1.0e-3;
+
+    static constexpr double dx_max_tolerance = 1.0e3;
+
+    static constexpr double dx_min_tolerance = 1.0e-10;
+
+    static constexpr double lambda_max_tolerance = 1.0e3;
 
     ///@}
     ///@name Life Cycle
@@ -344,10 +350,10 @@ public:
             noalias(mDx) = mDxb + DLambda*mDxf;
 
             //Check solution before update
-            if (mNormxEquilibrium > 1.0e-10) {
+            if (mNormxEquilibrium > dx_min_tolerance) {
                 norm_dx = TSparseSpace::TwoNorm(mDx);
 
-                if ((norm_dx / mNormxEquilibrium) > 1.0e3 || (std::abs(DLambda) / std::abs(mLambda - mDLambdaStep)) > 1.0e3) {
+                if ((norm_dx / mNormxEquilibrium) > dx_max_tolerance || (std::abs(DLambda) / std::abs(mLambda - mDLambdaStep)) > lambda_max_tolerance) {
                     is_converged = false;
                     break;
                 }
