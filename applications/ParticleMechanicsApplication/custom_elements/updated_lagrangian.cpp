@@ -41,6 +41,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
 
 UpdatedLagrangian::UpdatedLagrangian( )
     : Element( )
+    , mMP(0)
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
@@ -48,6 +49,7 @@ UpdatedLagrangian::UpdatedLagrangian( )
 //************************************************************************************
 UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
+    , mMP(pGeometry->WorkingSpaceDimension())
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -57,6 +59,7 @@ UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGe
 
 UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
+    , mMP(pGeometry->WorkingSpaceDimension())
 {
     mFinalizedStep = true;
 
@@ -67,6 +70,7 @@ UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGe
 
 UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
     :Element(rOther)
+    ,mMP(rOther.mMP)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -80,6 +84,8 @@ UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
 UpdatedLagrangian&  UpdatedLagrangian::operator=(UpdatedLagrangian const& rOther)
 {
     Element::operator=(rOther);
+
+    mMP = rOther.mMP;
 
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
@@ -104,6 +110,8 @@ Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType cons
 Element::Pointer UpdatedLagrangian::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
     UpdatedLagrangian NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    NewElement.mMP = mMP;
 
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
@@ -177,7 +185,7 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
+    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
 
     // Reading shape functions local gradients
     rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De);
