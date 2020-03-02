@@ -4,31 +4,12 @@ import os
 
 # Import Kratos core and apps
 import KratosMultiphysics
-from KratosMultiphysics.StructuralMechanicsApplication import *
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
-
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-    has_eigensolvers_application = True
-else:
-    has_eigensolvers_application = False
-
-# This utility will control the execution scope in case we need to access files or we depend
-# on specific relative locations of the files.
-
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+has_eigensolvers_application = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
 
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -37,7 +18,7 @@ def _get_test_working_dir():
 class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
-        with controlledExecutionScope(_get_test_working_dir()):
+        with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
@@ -55,7 +36,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
     def _calculate_response_and_gradient(self):
         # Within this location context:
-        with controlledExecutionScope(_get_test_working_dir()):
+        with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             self.response_function.InitializeSolutionStep()
             self.response_function.CalculateValue()
             self.value = self.response_function.GetValue()
@@ -65,7 +46,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(_get_test_working_dir()):
+        with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             self.response_function.Finalize()
 
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
@@ -91,10 +72,10 @@ class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFact
     def test_execution(self):
         self._calculate_response_and_gradient()
         model_part = self.response_function.adjoint_analysis.model.GetModelPart("rectangular_plate_structure")
-        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_X), 0.0, 10)
-        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), 0.0, 10)
-        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), 0.012125502238309537)
-        self.assertAlmostEqual(model_part.Nodes[4].GetSolutionStepValue(ADJOINT_ROTATION_Y), -0.029186453309188263)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 0.0, 10)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), 0.0, 10)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), 0.012125502238309537)
+        self.assertAlmostEqual(model_part.Nodes[4].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Y), -0.029186453309188263)
 
         self.assertAlmostEqual(self.value, 0.12125502238309535)
 
@@ -109,10 +90,10 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
         self._calculate_response_and_gradient()
 
         model_part = self.response_function.adjoint_analysis.model.GetModelPart("rectangular_plate_structure")
-        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_X), 0.0, 10)
-        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), 0.0, 10)
-        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), -0.0823339298948347)
-        self.assertAlmostEqual(model_part.Nodes[4].GetSolutionStepValue(ADJOINT_ROTATION_Y), 0.5348048603644553)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 0.0, 10)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), 0.0, 10)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -0.0823339298948347)
+        self.assertAlmostEqual(model_part.Nodes[4].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION_Y), 0.5348048603644553)
 
         self.assertAlmostEqual(self.value, -0.8233392989483465)
 
@@ -127,9 +108,9 @@ class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory
         self._calculate_response_and_gradient()
 
         model_part = self.response_function.adjoint_analysis.model.GetModelPart("cantilever_beam")
-        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_X), 7.657448651571309, 10)
-        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
-        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 7.657448651571309, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
 
         self.assertIsClose(self.value, 1610060.3904999627)
 
