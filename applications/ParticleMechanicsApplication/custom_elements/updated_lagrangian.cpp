@@ -1628,7 +1628,20 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<int>& rVariab
 void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
-{}
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_DENSITY) {
+        rValues[0] = mMP.density;
+    }
+    else if (rVariable == MP_MASS) {
+        rValues[0] = mMP.mass;
+    }
+    else if (rVariable == MP_VOLUME) {
+        rValues[0] = mMP.volume;
+    }
+}
 
 void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
@@ -1639,6 +1652,18 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<doub
 
     if (rVariable == MP_COORD) {
         rValues[0] = mMP.xg;
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        rValues[0] = mMP.displacement;
+    }
+    else if (rVariable == MP_VELOCITY) {
+        rValues[0] = mMP.velocity;
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        rValues[0] = mMP.acceleration;
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        rValues[0] = mMP.volume_acceleration;
     }
 }
 
@@ -1660,7 +1685,21 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<int>& rVariab
 void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
-{}
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_MASS) {
+        mMP.mass = rValues[0];
+    }
+    else if (rVariable == MP_DENSITY) {
+        mMP.density = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME) {
+        mMP.volume = rValues[0];
+    }
+}
 
 void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
@@ -1673,7 +1712,18 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<doub
     if (rVariable == MP_COORD) {
         mMP.xg = rValues[0];
     }
-
+    else if (rVariable == MP_DISPLACEMENT) {
+        mMP.displacement = rValues[0];
+    }
+    else if (rVariable == MP_VELOCITY) {
+        mMP.velocity = rValues[0];
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        mMP.acceleration = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        mMP.volume_acceleration = rValues[0];
+    }
 }
 
 void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
