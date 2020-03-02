@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/FEMDEM_coupling_utilities.h"
 
 namespace Kratos
 {
@@ -25,7 +26,21 @@ namespace Python
 {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-	using namespace pybind11;
+	namespace py = pybind11;
+
+    py::class_<FEMDEMCouplingUtilities<2>(m,"FEMDEMCouplingUtilities2D")
+        .def(py::init<ModelPart&>())
+        // .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        // .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    py::class_<FEMDEMCouplingUtilities<3>(m,"FEMDEMCouplingUtilities3D")
+        .def(py::init<ModelPart&>())
+        // .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        // .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+
 }
 
 }  // namespace Python.
