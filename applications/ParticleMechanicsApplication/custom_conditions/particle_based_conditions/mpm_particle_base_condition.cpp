@@ -374,12 +374,38 @@ Matrix& MPMParticleBaseCondition::CalculateCurrentDisp(Matrix & rCurrentDisp, co
     KRATOS_CATCH( "" )
 }
 
+void MPMParticleBaseCondition::GetValueOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_AREA) {
+        rValues[0] = m_area;
+    }
+}
+
+void MPMParticleBaseCondition::SetValueOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo) {
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_AREA) {
+        m_area = rValues[0];
+    }
+}
+
 //***********************************************************************
 //***********************************************************************
 
 double MPMParticleBaseCondition::GetIntegrationWeight()
 {
-    return this->GetValue(MPC_AREA);
+    return m_area;
 }
 
 } // Namespace Kratos

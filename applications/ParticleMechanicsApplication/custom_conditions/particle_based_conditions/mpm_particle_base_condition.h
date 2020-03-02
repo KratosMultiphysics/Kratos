@@ -93,14 +93,19 @@ public:
 
     // Constructor void
     MPMParticleBaseCondition()
+        : m_area(1.0)
     {};
 
     // Constructor using an array of nodes
-    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+        : Condition(NewId,pGeometry)
+        , m_area(1.0)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+        : Condition(NewId,pGeometry,pProperties)
+        , m_area(1.0)
     {};
 
     // Destructor
@@ -244,9 +249,21 @@ public:
     }
 
     ///@}
-    ///@name Access
+    ///@}
+    ///@name Access Get Values
     ///@{
 
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Access Set Values
+    ///@{
+
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -331,7 +348,7 @@ private:
     ///@name Member Variables
     ///@{
 
-
+    double m_area;
 
     ///@}
     ///@name Private Operators
