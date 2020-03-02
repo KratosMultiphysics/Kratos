@@ -1984,14 +1984,18 @@ private:
 			{
 				TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
 			}
-			else
-			{ //it assigns the material properties of the second node (not rigid) to the master node. It avoids smoothing of material parameters
-				TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+			else {
+                // Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
+            	if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID)) {
+                    TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+                } else {
+                    TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+                }
 			}
 			// if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
 			//   TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
 			// }
-		}
+        }
 
 		//set the coordinates to the original value
 		const array_1d<double, 3> ZeroNormal(3, 0.0);
