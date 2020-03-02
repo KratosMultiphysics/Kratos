@@ -87,7 +87,7 @@ public:
     /**
      * @brief Destructor.
      */
-    ~WrinklingLinear2DLaw() override;
+    ~WrinklingLinear2DLaw() override = default;
 
     ///@}
     ///@name Operators

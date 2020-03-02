@@ -10,7 +10,6 @@
 //
 // System includes
 #include <iostream>
-#include <set>
 
 // External includes
 
@@ -23,61 +22,40 @@ namespace Kratos
 {
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
-
 WrinklingLinear2DLaw::WrinklingLinear2DLaw()
     : ConstitutiveLaw()
 {
 }
-
 /******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
-
 WrinklingLinear2DLaw::WrinklingLinear2DLaw(const WrinklingLinear2DLaw& rOther)
     : ConstitutiveLaw(rOther),
       mpConstitutiveLaw(rOther.mpConstitutiveLaw)
 {
 }
-
 /********************************CLONE**********************************************/
 /***********************************************************************************/
-
 ConstitutiveLaw::Pointer WrinklingLinear2DLaw::Clone() const
 {
     return Kratos::make_shared<WrinklingLinear2DLaw>(*this);
 }
-
 /*******************************CONSTRUCTOR*****************************************/
 /***********************************************************************************/
-
 ConstitutiveLaw::Pointer WrinklingLinear2DLaw::Create(Kratos::Parameters NewParameters) const
 {
     return Kratos::make_shared<WrinklingLinear2DLaw>();
 }
-
-//*******************************DESTRUCTOR*******************************************
-/***********************************************************************************/
-
-WrinklingLinear2DLaw::~WrinklingLinear2DLaw()
-{
-};
-
-
-
 std::size_t WrinklingLinear2DLaw::WorkingSpaceDimension()
 {
     KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension()<2) << "WorkingSpaceDimension must be bigger than 1" << std::endl;
     return mpConstitutiveLaw->WorkingSpaceDimension();
 }
-
-
 std::size_t WrinklingLinear2DLaw::GetStrainSize()
 {
     SizeType strain_size = 3;
     KRATOS_ERROR_IF_NOT(mpConstitutiveLaw->GetStrainSize()==3) << "Wrinkling law only works for 2D base laws (strain size = 3)" << std::endl;
     return strain_size;
 }
-
-
 void WrinklingLinear2DLaw::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -91,7 +69,6 @@ void WrinklingLinear2DLaw::InitializeMaterial(
     mpConstitutiveLaw = base_claw_prop[CONSTITUTIVE_LAW]->Clone();
     mpConstitutiveLaw->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
-
 void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
@@ -176,27 +153,18 @@ void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parame
     }
     KRATOS_CATCH("");
 }
-
 void WrinklingLinear2DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY;
     mpConstitutiveLaw->InitializeMaterialResponsePK2(rValues);
     KRATOS_CATCH("");
 }
-
-
-
-
 void WrinklingLinear2DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY;
     mpConstitutiveLaw->FinalizeMaterialResponsePK2(rValues);
     KRATOS_CATCH("");
 }
-
-
-
-
 void WrinklingLinear2DLaw::ResetMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -205,14 +173,11 @@ void WrinklingLinear2DLaw::ResetMaterial(
 {
     mpConstitutiveLaw->ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
-
-
 void WrinklingLinear2DLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mStrainSize = GetStrainSize();
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
-
 void WrinklingLinear2DLaw::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
 {
     // Make sure to divide rNonPrincipalVector[2]/2 if strains are passed
@@ -220,7 +185,6 @@ void WrinklingLinear2DLaw::PrincipalVector(Vector& rPrincipalVector, const Vecto
     rPrincipalVector[0] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
     rPrincipalVector[1] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
 }
-
 void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain, Vector& rWrinklingDirectionVector)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -267,8 +231,6 @@ void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, c
 
 
 }
-
-
 int WrinklingLinear2DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
