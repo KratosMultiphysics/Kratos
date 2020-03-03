@@ -19,9 +19,6 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
 
-/* Include pybind to convert Kratos matrix to Numpy  */
-#include <pybind11/pybind11.h>
-
 /* Application includes */
 #include "rom_application_variables.h"
 
@@ -148,26 +145,6 @@ namespace Kratos
                 }
             }
         return MatrixResiduals;
-        }
-
-        void convert_to_numpy(const Matrix & KratosMatrix, pybind11::object NumpyMatrix)
-        {
-            PyObject* pobj = NumpyMatrix.ptr();
-            Py_buffer pybuf;
-            PyObject_GetBuffer(pobj, &pybuf, PyBUF_SIMPLE);
-            void *buf = pybuf.buf;
-            double *p = (double*)buf;
-            Py_XDECREF(pobj);
-
-			unsigned int n_rows = KratosMatrix.size1();
-			unsigned int n_cols = KratosMatrix.size2();
-            for (unsigned int i = 0; i < n_rows; i++)
-            {
-                for (unsigned int j = 0; j < n_cols; j++)
-                {
-                    p[i*n_cols+j] = KratosMatrix(i,j);
-                }
-            }
         }
 
         protected:
