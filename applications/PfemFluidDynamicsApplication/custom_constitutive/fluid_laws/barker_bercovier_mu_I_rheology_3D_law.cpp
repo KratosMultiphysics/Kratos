@@ -94,7 +94,7 @@ void BarkerBercovierMuIRheology3DLaw::CalculateMaterialResponseCauchy(Parameters
         inertial_number = equivalent_strain_rate * grain_diameter / std::sqrt(std::fabs(mean_pressure) / grain_density);
     }
 
-    double exponent = 0.0;
+    double exponent;
 
     if (inertial_number > inertial_number_one) {
         const double first_viscous_term = static_friction;
