@@ -164,6 +164,8 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;

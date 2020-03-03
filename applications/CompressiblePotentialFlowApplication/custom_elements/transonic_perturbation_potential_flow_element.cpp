@@ -142,6 +142,13 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVe
 }
 
 template <int Dim, int NumNodes>
+void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    FindUpstreamElementSharingFace(rCurrentProcessInfo);
+    //FindUpstreamElementSharingNode(rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     FindUpstreamElementSharingFace(rCurrentProcessInfo);
@@ -431,17 +438,17 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
+    const double DrhoDu2 = ComputeDensityDerivative(upwind_density, rCurrentProcessInfo);
     array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     noalias(rLeftHandSideMatrix) +=
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+        data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
     noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
     const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+        data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
 }
 
 template <int Dim, int NumNodes>
@@ -457,10 +464,10 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHan
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
+    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
     array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
 
-    noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
+    noalias(rRightHandSideVector) = - data.vol * upwind_density * prod(data.DN_DX, velocity);
 }
 
 template <int Dim, int NumNodes>
@@ -956,9 +963,11 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetSortedIds(std:
 template <int Dim, int NumNodes>
 inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::pGetUpstreamElement() const
 {
+    KRATOS_TRY
     KRATOS_ERROR_IF(mpUpstreamElement.get() == nullptr)
-        << "No element found for element #" << this->Id() << std::endl;
+        << "No upstream element found for element #" << this->Id() << std::endl;
     return mpUpstreamElement;
+    KRATOS_CATCH("");
 }
 
 // serializer
