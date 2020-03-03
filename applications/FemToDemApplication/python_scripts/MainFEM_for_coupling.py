@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication.MainFemDem as MainFemDem
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.DemStructuresCouplingApplication as DEM_Structures
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
@@ -36,6 +37,12 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         self.main_model_part.AddNodalSolutionStepVariable(DEM.ELASTIC_FORCES)
         self.main_model_part.AddNodalSolutionStepVariable(DEM.TANGENTIAL_ELASTIC_FORCES)
         self.main_model_part.AddNodalSolutionStepVariable(DEM.SHEAR_STRESS)
+
+        # For the Substepping
+        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.BACKUP_LAST_STRUCTURAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.SMOOTHED_STRUCTURAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_IMPULSE)
 
 
         # Read model_part (note: the buffer_size is set here) (restart is read here)
