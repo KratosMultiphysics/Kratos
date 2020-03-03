@@ -390,6 +390,44 @@ double ComputeDensityDerivative(const double& rDensity, const ProcessInfo& rCurr
 }
 
 template <int Dim, int NumNodes>
+double ComputeUpwindDensity(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(rElement, rUpstreamElement, rCurrentProcessInfo);
+    const double density = ComputeDensity<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double upstream_density = ComputeDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+
+    return density - upwind_factor * (density - upstream_density);
+}
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactor(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
+    const double M_c_2 = mach_number_limit * mach_number_limit;
+
+    const double local_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double M_2 = local_mach_number * local_mach_number;
+    const double upwind_factor = 1 - M_c_2 / M_2;
+
+    const double upstream_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double M_up_2 = upstream_mach_number * upstream_mach_number;
+    const double upstream_upwind_factor = 1 - M_c_2 / M_up_2;
+
+    if(upwind_factor < 0.0){
+        // Subsonic flow (local_mach_number < mach_number_limit)
+        return 0.0;
+    }
+    else if( upwind_factor > upstream_upwind_factor){
+        // Supersonic flow and accelerating (local_mach_number > upstream_mach_number)
+        return upwind_factor;
+    }
+    else{
+        // Supersonic flow and decelerating (local_mach_number < upstream_mach_number)
+        return upstream_upwind_factor;
+    }
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -493,6 +531,8 @@ template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const Proc
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensity<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivative<2, 3>(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindDensity<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactor<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -520,6 +560,8 @@ template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const Proc
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensity<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivative<3, 4>(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindDensity<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactor<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
