@@ -24,6 +24,7 @@
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
 
 namespace Kratos
 {
@@ -1622,6 +1623,10 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<int>& rVariab
     if (rVariable == MP_MATERIAL_ID) {
         rValues[0] = GetProperties().Id();
     }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+    }
 }
 
 void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
@@ -1639,6 +1644,22 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<double>& rVar
     }
     else if (rVariable == MP_VOLUME) {
         rValues[0] = mMP.volume;
+    }
+    else if (rVariable == MP_POTENTIAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
+    }
+    else if (rVariable == MP_KINETIC_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateKineticEnergy(*this);
+    }
+    else if (rVariable == MP_STRAIN_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
+    }
+    else if (rVariable == MP_TOTAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
@@ -1664,6 +1685,10 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<doub
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         rValues[0] = mMP.volume_acceleration;
     }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+    }
 }
 
 void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -1678,6 +1703,10 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVar
     }
     else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
         rValues[0] = mMP.almansi_strain_vector;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
@@ -1708,6 +1737,10 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<double>& rVar
     else if (rVariable == MP_VOLUME) {
         mMP.volume = rValues[0];
     }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+    }
 }
 
 void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
@@ -1733,6 +1766,10 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<doub
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         mMP.volume_acceleration = rValues[0];
     }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+    }
 }
 
 void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -1748,6 +1785,10 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVar
     }
     else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
         mMP.almansi_strain_vector = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
