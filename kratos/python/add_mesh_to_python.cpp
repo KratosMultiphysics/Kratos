@@ -302,17 +302,26 @@ pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
 }
 
 template< class TObject >
-void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, pybind11::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsArray1d(
+    TObject& dummy,
+    const Variable< array_1d<double,3> >& rVariable,
+    pybind11::list values_list,
+    const ProcessInfo& rCurrentProcessInfo )
 {
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
-    std::vector< array_1d<double,3> > values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
+    SizeType nb_integration_points = dummy.GetGeometry().IntegrationPointsNumber();
+    std::vector< array_1d<double,3> > values(nb_integration_points);
+    for( SizeType i=0; i< nb_integration_points; i++ )
     {
-        if(py::isinstance<array_1d<double,3> >(values_list[i]))
-            values[i] = (values_list[i]).cast<array_1d<double,3> >();
-        else
+        if (py::isinstance<array_1d<double, 3> >(values_list[i])) {
+            values[i] = (values_list[i]).cast<array_1d<double, 3> >();
+        }
+        else if (py::isinstance<Vector>(values_list[i])) {
+            Vector value_vector = (values_list[i]).cast<Vector>();
+            values[i] = value_vector;
+        }
+        else {
             KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
+        }
     }
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
