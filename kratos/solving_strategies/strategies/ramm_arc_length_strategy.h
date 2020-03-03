@@ -353,9 +353,10 @@ public:
             if (mNormxEquilibrium > dx_min_tolerance) {
                 norm_dx = TSparseSpace::TwoNorm(mDx);
 
-                if ((norm_dx / mNormxEquilibrium) > dx_max_tolerance || (std::abs(DLambda) / std::abs(mLambda - mDLambdaStep)) > lambda_max_tolerance) {
-                    is_converged = false;
-                    break;
+                if ((norm_dx / mNormxEquilibrium) > dx_max_tolerance ||
+                   (std::abs(DLambda) / std::abs(mLambda - mDLambdaStep)) > lambda_max_tolerance) {
+                        is_converged = false;
+                        break;
                 }
             }
 
@@ -617,8 +618,8 @@ protected:
             norm_dx = TSparseSpace::TwoNorm(mDx);
             reference_dof_norm = this->CalculateReferenceDofsNorm(rDofSet);
             dofs_ratio = norm_dx / reference_dof_norm;
-            KRATOS_INFO("Newton Raphson Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
-            KRATOS_INFO("Newton Raphson Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
+            KRATOS_INFO("Ramm's Arc Length Strategy") << "TEST ITERATION: "  << iteration_number << std::endl;
+            KRATOS_INFO("Ramm's Arc Length Strategy") << "    Dofs Ratio = " << dofs_ratio       << std::endl;
 
             if(dofs_ratio <= dof_ratio_tolerance)
                 is_converged = true;
@@ -644,14 +645,14 @@ protected:
             typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_set_partition[k];
             typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_set_partition[k+1];
 
-            for (typename DofsArrayType::iterator itDof = dof_begin; itDof != dof_end; ++itDof) {
-                if (itDof->IsFree()) {
-                    const double& temp = itDof->GetSolutionStepValue();
+            for (typename DofsArrayType::iterator it_dof = dof_begin; it_dof != dof_end; ++it_dof) {
+                if (it_dof->IsFree()) {
+                    const double& temp = it_dof->GetSolutionStepValue();
                     reference_dof_norm += temp*temp;
                 }
             }
         }
-        return sqrt(reference_dof_norm);
+        return std::sqrt(reference_dof_norm);
     }
 
     /**
