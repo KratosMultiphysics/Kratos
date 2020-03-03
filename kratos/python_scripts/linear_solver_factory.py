@@ -111,21 +111,6 @@ def ConstructSolver(configuration):
             assume_constant_structure,
             max_reduced_size)
     #
-    elif(solver_type == "GMRES-UP Block" or solver_type == "GMRES-UP_Block" ):
-        velocity_linear_solver = ConstructSolver(
-            configuration.velocity_block_configuration)
-        pressure_linear_solver = ConstructSolver(
-            configuration.pressure_block_configuration)
-        m = configuration.gmres_krylov_space_dimension
-        max_it = configuration.max_iteration
-        tol = configuration.tolerance
-        linear_solver = MixedUPLinearSolver(
-            velocity_linear_solver,
-            pressure_linear_solver,
-            tol,
-            max_it,
-            m)
-    #
     elif(solver_type == "Skyline LU factorization" or solver_type == "Skyline_LU_factorization" or solver_type == "SkylineLUFactorizationSolver"):
         linear_solver = SkylineLUFactorizationSolver()
     #

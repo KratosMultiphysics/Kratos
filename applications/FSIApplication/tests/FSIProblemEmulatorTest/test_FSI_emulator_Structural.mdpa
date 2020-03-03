@@ -30,7 +30,7 @@ Begin Conditions PointLoadCondition2D1N// GUI group identifier: Point_load
 1 0 7
 End Conditions
 
-Begin Conditions Condition2D2N// GUI group identifier: Solid_interface
+Begin Conditions LineCondition2D2N// GUI group identifier: Solid_interface
 2 0 9 5
 3 0 5 2
 End Conditions
