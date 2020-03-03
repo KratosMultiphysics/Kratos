@@ -57,29 +57,40 @@ def ComputeFirstOrderNLSensitivityFactors(response_value_array, load_factor_arra
     return sensitivity_first_order
 
 
-def ComputeSecondOrderNLSensitivityFactors(response_value_array, load_factor_array):
-    lambda_0 = load_factor_array[0]
-    lambda_1 = load_factor_array[1]
-    lambda_2 = load_factor_array[2]
-    delta_10 = lambda_1 - lambda_0
-    delta_20 = lambda_2 - lambda_0
-    if (delta_10 < 1e-10) or (delta_20 < 1e-10):
-        raise Exception("Pseudo-time steps are not valid!")
+#def ComputeSecondOrderNLSensitivityFactors(response_value_array, load_factor_array):
+#    lambda_0 = load_factor_array[0]
+#    lambda_1 = load_factor_array[1]
+#    lambda_2 = load_factor_array[2]
+#    delta_10 = lambda_1 - lambda_0
+#    delta_20 = lambda_2 - lambda_0
+#    if (delta_10 < 1e-10) or (delta_20 < 1e-10):
+#        raise Exception("Pseudo-time steps are not valid!")
+#
+#    response_0 = response_value_array[0]
+#    response_1 = response_value_array[1]
+#    response_2 = response_value_array[2]
+#
+#    sensitivity_second_order = 0.0
+#
+#
+#    slope_10 = (response_1 - response_0) / delta_10
+#    slope_20 = (response_2 - response_0) / delta_20
+#
+#    if abs(slope_10) > 1e-10:
+#        sensitivity_second_order = slope_20 / slope_10
+#
+#    return sensitivity_second_order
 
-    response_0 = response_value_array[0]
-    response_1 = response_value_array[1]
-    response_2 = response_value_array[2]
+def ComputeSecondOrderNLSensitivityFactors(effect_values, action_values):
+    #sen_1 = ComputeSensitivtyFirstOrder([action_values[0],action_values[1]], [effect_values[0], effect_values[1]])
+    #sen_2 = ComputeSensitivtyFirstOrder([action_values[0],action_values[2]], [effect_values[0], effect_values[2]])
+    nabla_1 = effect_values[1] / effect_values[0]
+    nabla_2 = effect_values[2] / effect_values[0]
+    f_1 = action_values[1] / action_values[0]
+    f_2 = action_values[2] / action_values[0]
 
-    sensitivity_second_order = 0.0
-
-
-    slope_10 = (response_1 - response_0) / delta_10
-    slope_20 = (response_2 - response_0) / delta_20
-
-    if abs(slope_10) > 1e-10:
-        sensitivity_second_order = slope_20 / slope_10
-
-    return sensitivity_second_order
+    sen_2 = nabla_2 / (nabla_1 + (nabla_1 - 1) * (f_2 - f_1) / (f_1 - 1))
+    return sen_2
 
 
 def AssembleVectorValuesIntoMatrix(given_vector, row_size, column_size):
@@ -95,12 +106,13 @@ def AssembleVectorValuesIntoMatrix(given_vector, row_size, column_size):
     return m
 
 def AssembleResults(component, variable, result_list):
-    output_variable_1 = KratosMultiphysics.KratosGlobals.GetVariable(variable.Name() + "_NL_SENSITIVITY")
-    output_variable_2 = KratosMultiphysics.KratosGlobals.GetVariable(variable.Name() + "_NL_SENSITIVITY_FIRST_ORDER")
-    output_variable_3 = KratosMultiphysics.KratosGlobals.GetVariable(variable.Name() + "_NL_SENSITIVITY_SECOND_ORDER")
-    variable_list = ((output_variable_1, output_variable_2, output_variable_3))
+    #output_variable_1 = KratosMultiphysics.KratosGlobals.GetVariable(variable.Name() + "_NL_SENSITIVITY")
+    output_variable_2 = KratosMultiphysics.KratosGlobals.GetVariable(variable.Name() + "_NL1_SENSITIVITY")
+    output_variable_3 = KratosMultiphysics.KratosGlobals.GetVariable(variable.Name() + "_NL2_SENSITIVITY")
+    variable_list = ((output_variable_2, output_variable_3))
     for var_i, res_i in zip(variable_list, result_list):
         component.SetValue(var_i, res_i)
+
 
 class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
     """
@@ -175,22 +187,28 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
 
         for variable in self.nodal_variables:
             if variable.Name() == "DISPLACEMENT":
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY, zero_vector(3), self.model_part.Nodes)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER, zero_vector(3), self.model_part.Nodes)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER, zero_vector(3), self.model_part.Nodes)
+                #KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY, zero_vector(3), self.model_part.Nodes)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL1_SENSITIVITY, zero_vector(3), self.model_part.Nodes)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL2_SENSITIVITY, zero_vector(3), self.model_part.Nodes)
         for variable in self.gauss_points_variables:
             if variable.Name() == "FORCE":
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY, zero_vector(3), self.model_part.Elements)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY_FIRST_ORDER, zero_vector(3), self.model_part.Elements)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY_SECOND_ORDER, zero_vector(3), self.model_part.Elements)
+                #KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY, zero_vector(3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL1_SENSITIVITY, zero_vector(3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL2_SENSITIVITY, zero_vector(3), self.model_part.Elements)
             elif variable.Name() == "SHELL_MOMENT_GLOBAL":
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY, zero_matrix(3, 3), self.model_part.Elements)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_FIRST_ORDER, zero_matrix(3, 3), self.model_part.Elements)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_SECOND_ORDER, zero_matrix(3, 3), self.model_part.Elements)
+                #KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY, zero_matrix(3, 3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL1_SENSITIVITY, zero_matrix(3, 3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL2_SENSITIVITY, zero_matrix(3, 3), self.model_part.Elements)
             elif variable.Name() == "VON_MISES_STRESS":
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY, 0.0, self.model_part.Elements)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY_FIRST_ORDER, 0.0, self.model_part.Elements)
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY_SECOND_ORDER, 0.0, self.model_part.Elements)
+                #KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY, 0.0, self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL1_SENSITIVITY, 0.0, self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL2_SENSITIVITY, 0.0, self.model_part.Elements)
+            elif variable.Name() == "PK2_STRESS_VECTOR":
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(PK2_STRESS_VECTOR_NL1_SENSITIVITY, zero_vector(3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(PK2_STRESS_VECTOR_NL2_SENSITIVITY, zero_vector(3), self.model_part.Elements)
+            elif variable.Name() == "PRINCIPAL_PK2_STRESS_VECTOR":
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(PRINCIPAL_PK2_STRESS_VECTOR_NL1_SENSITIVITY, zero_vector(2), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(PRINCIPAL_PK2_STRESS_VECTOR_NL2_SENSITIVITY, zero_vector(2), self.model_part.Elements)
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -333,7 +351,6 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                 count += 1
 
         json_utilities.write_external_json(self.file_name, data)
-
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -508,7 +525,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
             # Nodal values
             for node in self.sensitivity_model_part.Nodes:
                 compute = self.__CheckFlag(node)
-                curvature_array = KratosMultiphysics.Array3()
+                #curvature_array = KratosMultiphysics.Array3()
                 sen_first_array = KratosMultiphysics.Array3()
                 sen_second_array = KratosMultiphysics.Array3()
                 if (compute == True):
@@ -519,7 +536,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Component"):
                             values_json = self.data["NODE_" + str(node.Id)][variable_name]
-                            result_list.append(ComputeEFCurvature(values_json, input_time_list, self.absolute_value))
+                            #result_list.append(ComputeEFCurvature(values_json, input_time_list, self.absolute_value))
                             result_list.append(ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list))
                             result_list.append(ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list))
 
@@ -528,28 +545,28 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                                 # X-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_X"]
-                                curvature_array[0] = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                #curvature_array[0] = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                 sen_first_array[0] = ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                 sen_second_array[0] = ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                 # Y-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Y"]
-                                curvature_array[1] = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                #curvature_array[1] = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                 sen_first_array[1] = ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                 sen_second_array[1] = ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                 # Z-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Z"]
-                                curvature_array[2] = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                #curvature_array[2] = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                 sen_first_array[2] = ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                 sen_second_array[2] = ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
 
-                                result_list.extend([curvature_array, sen_first_array, sen_second_array])
+                                result_list.extend([sen_first_array, sen_second_array])
 
                         AssembleResults(node, variable, result_list)
 
             # Elemental values
             for elem in self.sensitivity_model_part.Elements:
                 compute = self.__CheckFlag(elem)
-                curvature_array = KratosMultiphysics.Array3()
+                #curvature_array = KratosMultiphysics.Array3()
                 sen_first_array = KratosMultiphysics.Array3()
                 sen_second_array = KratosMultiphysics.Array3()
                 if (compute == True):
@@ -565,14 +582,14 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                         if (variable_type == "Double" or variable_type == "Component"):
                             for gp in range(gauss_point_number):
                                 values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name][str(gp)]
-                                curvature = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                #curvature = ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                 sen_first = ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                 sen_second = ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                 #TODO test it not used so far!
-                                curvature /= gauss_point_number
+                                #curvature /= gauss_point_number
                                 sen_first /= gauss_point_number
                                 sen_second /= gauss_point_number
-                                result_list.extend([curvature, sen_first, sen_second])
+                                result_list.extend([sen_first, sen_second])
 
                         # Array variable
                         elif variable_type == "Array":
@@ -580,30 +597,30 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                                 for gp in range(gauss_point_number):
                                     # X-component
                                     values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)]
-                                    curvature_array[0] += ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                    #curvature_array[0] += ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                     sen_first_array[0] += ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                     sen_second_array[0] += ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                     # Y-component
                                     values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Y"][str(gp)]
-                                    curvature_array[1] += ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                    #curvature_array[1] += ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                     sen_first_array[1] += ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                     sen_second_array[1] += ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                     # Z-component
                                     values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Z"][str(gp)]
-                                    curvature_array[2] += ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
+                                    #curvature_array[2] += ComputeEFCurvature(values_json, input_time_list, self.absolute_value)
                                     sen_first_array[2] += ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
                                     sen_second_array[2] += ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
-                            curvature_array /= gauss_point_number
+                            #curvature_array /= gauss_point_number
                             sen_first_array /= gauss_point_number
                             sen_second_array /= gauss_point_number
-                            result_list.extend([curvature_array, sen_first_array, sen_second_array])
+                            result_list.extend([sen_first_array, sen_second_array])
 
                         # Matrix variable
                         elif variable_type == "Matrix":
                             row_size = value[0].Size1()
                             column_size = value[0].Size2()
                             result_size = row_size*column_size
-                            curvature_vector = zero_vector(result_size)
+                            #curvature_vector = zero_vector(result_size)
                             sen_first_vector = zero_vector(result_size)
                             sen_second_vector = zero_vector(result_size)
                             for gp in range(gauss_point_number):
@@ -612,19 +629,42 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                                     index = 0
                                     for value1, value2, value3 in zip(values_json[0], values_json[1], values_json[2]):
                                         values_array = [value1, value2, value3]
-                                        curvature_vector[index] += ComputeEFCurvature(values_array, input_time_list, self.absolute_value)
+                                        #curvature_vector[index] += ComputeEFCurvature(values_array, input_time_list, self.absolute_value)
                                         sen_first_vector[index] += ComputeFirstOrderNLSensitivityFactors(values_array, input_time_list)
                                         sen_second_vector[index] += ComputeSecondOrderNLSensitivityFactors(values_array, input_time_list)
                                         index += 1
                                 else:
                                     raise Exception("Number of response values does not fit!")
-                            curvature_vector /= gauss_point_number
+                            #curvature_vector /= gauss_point_number
                             sen_first_vector /= gauss_point_number
                             sen_second_vector /= gauss_point_number
-                            curvature_matrix = AssembleVectorValuesIntoMatrix(curvature_vector, row_size, column_size)
+                            #curvature_matrix = AssembleVectorValuesIntoMatrix(curvature_vector, row_size, column_size)
                             sen_first_matrix = AssembleVectorValuesIntoMatrix(sen_first_vector, row_size, column_size)
                             sen_second_matrix = AssembleVectorValuesIntoMatrix(sen_second_vector, row_size, column_size)
-                            result_list.extend([curvature_matrix, sen_first_matrix, sen_second_matrix])
+                            result_list.extend([sen_first_matrix, sen_second_matrix])
+
+                        # Vector variable
+                        elif variable_type == "Vector":
+                            result_size = value[0].Size()
+                            #curvature_vector = zero_vector(result_size)
+                            sen_first_vector = zero_vector(result_size)
+                            sen_second_vector = zero_vector(result_size)
+                            for gp in range(gauss_point_number):
+                                values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)]
+                                if len(values_json) is 3:
+                                    index = 0
+                                    for value1, value2, value3 in zip(values_json[0], values_json[1], values_json[2]):
+                                        values_array = [value1, value2, value3]
+                                        #curvature_vector[index] += ComputeEFCurvature(values_array, input_time_list, self.absolute_value)
+                                        sen_first_vector[index] += ComputeFirstOrderNLSensitivityFactors(values_array, input_time_list)
+                                        sen_second_vector[index] += ComputeSecondOrderNLSensitivityFactors(values_array, input_time_list)
+                                        index += 1
+                                else:
+                                    raise Exception("Number of response values does not fit!")
+                            #curvature_vector /= gauss_point_number
+                            sen_first_vector /= gauss_point_number
+                            sen_second_vector /= gauss_point_number
+                            result_list.extend([sen_first_vector, sen_second_vector])
 
                         AssembleResults(elem, variable, result_list)
 
@@ -649,6 +689,13 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
 
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         return [ KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() ) for i in range( 0, parameter.size() ) ]
+
+
+    def __kratos_vector_to__python_list(self, value):
+        list = []
+        for index in range(len(value)):
+            list.append(value[index])
+        return list
 
 
     def __CheckFlag(self, component):
