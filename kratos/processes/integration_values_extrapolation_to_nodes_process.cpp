@@ -221,40 +221,32 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     // Assemble nodal data
     if (mExtrapolateNonHistorical)
     {
-        for (const auto p_var : mDoubleVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        for (const auto p_var : mDoubleVariable) {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
         }
-        for (const auto p_var : mArrayVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        for (const auto p_var : mArrayVariable)  {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
         }
-        for (const auto p_var : mVectorVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        for (const auto p_var : mVectorVariable) {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
         }
-        for (const auto p_var : mMatrixVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        for (const auto p_var : mMatrixVariable) {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
         }
     }
     else
     {
-        for (const auto p_var : mDoubleVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        for (const auto p_var : mDoubleVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
         }
-        for (const auto p_var : mArrayVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        for (const auto p_var : mArrayVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
         }
-        for (const auto p_var : mVectorVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        for (const auto p_var : mVectorVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
         }
-        for (const auto p_var : mMatrixVariable)
-        {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        for (const auto p_var : mMatrixVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
         }
     }
 
