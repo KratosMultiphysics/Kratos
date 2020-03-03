@@ -33,23 +33,13 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::INVERTED_SEARCH(Kratos::Flags::Create(0));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_INVERTED_SEARCH(Kratos::Flags::Create(0, false));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CREATE_AUXILIAR_CONDITIONS(Kratos::Flags::Create(1));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_CREATE_AUXILIAR_CONDITIONS(Kratos::Flags::Create(1, false));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MULTIPLE_SEARCHS(Kratos::Flags::Create(2));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_MULTIPLE_SEARCHS(Kratos::Flags::Create(2, false));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PREDEFINE_MASTER_SLAVE(Kratos::Flags::Create(3));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_PREDEFINE_MASTER_SLAVE(Kratos::Flags::Create(3, false));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PURE_SLIP(Kratos::Flags::Create(4));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_PURE_SLIP(Kratos::Flags::Create(4, false));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -712,9 +702,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
 
     // Whole model parts names
-    std::string whole_master_model_part_name = "", whole_slave_model_part_name = "";
-    GetWholeModelPartName(r_master_model_part, whole_master_model_part_name);
-    GetWholeModelPartName(r_slave_model_part, whole_slave_model_part_name);
+    const std::string whole_master_model_part_name = r_master_model_part.FullName();
+    const std::string whole_slave_model_part_name = r_slave_model_part.FullName();
 
     // Creating Parameters
     Parameters octree_parameters = mThisParameters["octree_search_parameters"];
@@ -893,7 +882,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMort
 {
     KRATOS_TRY
 
-    VariableUtils().SetVariableForFlag(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -907,7 +896,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponents
     KRATOS_TRY
 
     const array_1d<double, 3> zero_array = ZeroVector(3);
-    VariableUtils().SetVariableForFlag(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -920,7 +909,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictio
 {
     KRATOS_TRY
 
-    VariableUtils().SetVariableForFlag(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -1577,32 +1566,32 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeW
     switch(mTypeSolution) {
         case TypeSolution::VectorLagrangeMultiplier :
             if (mrMainModelPart.Is(SLIP)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
-                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             } else if (mrMainModelPart.Is(CONTACT)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             } else
-                VariableUtils().SetVectorVar(WEIGHTED_VECTOR_RESIDUAL, zero_array, r_nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_VECTOR_RESIDUAL, zero_array, r_nodes_array);
             break;
         case TypeSolution::ScalarLagrangeMultiplier :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SCALAR_RESIDUAL, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_SCALAR_RESIDUAL, 0.0, r_nodes_array);
             break;
         case TypeSolution::NormalContactStress :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
         case TypeSolution::FrictionlessPenaltyMethod :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
         case TypeSolution::FrictionalPenaltyMethod :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             break;
         case TypeSolution::OtherFrictionless :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
         case TypeSolution::OtherFrictional :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             break;
     }
 

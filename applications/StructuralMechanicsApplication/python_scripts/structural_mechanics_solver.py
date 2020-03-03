@@ -16,6 +16,9 @@ from KratosMultiphysics import python_linear_solver_factory as linear_solver_fac
 from KratosMultiphysics import auxiliary_solver_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+# Other imports
+from importlib import import_module
+
 class MechanicalSolver(PythonSolver):
     is_imported = False
     """The base class for structural mechanics solvers.
@@ -45,6 +48,9 @@ class MechanicalSolver(PythonSolver):
     """
     def __init__(self, model, custom_settings):
         settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
+
+        if settings_have_smps_for_comp_mp:
+            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
@@ -245,7 +251,17 @@ class MechanicalSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
         if self.use_computing_model_part:
@@ -305,17 +321,20 @@ class MechanicalSolver(PythonSolver):
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
-        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        if (materials_filename != "" and MechanicalSolver.is_imported == False):
-            # Add constitutive laws and material properties from json file to model parts.
-            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
-            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            print("Read: ")
-            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+        if self.settings["material_import_settings"].Has("custom_reader"): # We use our own file for reading
+            custom_reader = import_module(self.settings["material_import_settings"]["custom_reader"].GetString())
+            custom_reader.ReadMaterials(self.model, self.settings["material_import_settings"])
             materials_imported = True
-            MechanicalSolver.is_imported = True
-        else:
-            materials_imported = False
+        else: # We follow the normal path
+            materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+            if materials_filename != "":
+                # Add constitutive laws and material properties from json file to model parts.
+                material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+                material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+                KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+                materials_imported = True
+            else:
+                materials_imported = False
         return materials_imported
 
     def is_restarted(self):

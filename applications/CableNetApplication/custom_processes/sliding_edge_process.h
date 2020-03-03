@@ -361,7 +361,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
     }
 
     void SetmIsInitialized(const bool& check) {this->mIsInitialized = check;}
-    const bool GetmIsInitialized() const {return this->mIsInitialized;}
+    bool GetmIsInitialized() const {return this->mIsInitialized;}
 
 
 

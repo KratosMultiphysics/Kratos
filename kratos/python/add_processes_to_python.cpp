@@ -59,6 +59,7 @@
 #include "processes/sub_model_part_skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/time_averaging_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -238,11 +239,8 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
     ;
     orientation_check_interface.attr("ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
-    orientation_check_interface.attr("NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
     orientation_check_interface.attr("COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_NODAL_NORMALS;
-    orientation_check_interface.attr("NOT_COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_NODAL_NORMALS;
     orientation_check_interface.attr("COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_CONDITION_NORMALS;
-    orientation_check_interface.attr("NOT_COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_CONDITION_NORMALS;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -254,7 +252,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
     py::class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess3D")
             .def(py::init<ModelPart&, LinearSolverType::Pointer>())
@@ -262,7 +259,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
@@ -603,6 +599,10 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 }
 

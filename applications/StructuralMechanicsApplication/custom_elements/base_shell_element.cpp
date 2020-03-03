@@ -130,17 +130,17 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
         const NodeType& i_node = r_geom[i];
-        const array_1d<double, 3>& vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
-        // TODO also include the angular velocity
+        const array_1d<double, 3>& r_vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double, 3>& r_ang_vel = i_node.FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
 
         const IndexType index = i * 6;
-        rValues[index]     = vel[0];
-        rValues[index + 1] = vel[1];
-        rValues[index + 2] = vel[2];
+        rValues[index]     = r_vel[0];
+        rValues[index + 1] = r_vel[1];
+        rValues[index + 2] = r_vel[2];
 
-        rValues[index + 3] = 0.0;
-        rValues[index + 4] = 0.0;
-        rValues[index + 5] = 0.0;
+        rValues[index + 3] = r_ang_vel[0];
+        rValues[index + 4] = r_ang_vel[1];
+        rValues[index + 5] = r_ang_vel[2];
     }
 }
 
@@ -156,17 +156,17 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
         const NodeType& i_node = r_geom[i];
-        const array_1d<double, 3>& acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
-        // TODO also include the angular acceleration
+        const array_1d<double, 3>& r_acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double, 3>& r_ang_acc = i_node.FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
 
         const IndexType index = i * 6;
-        rValues[index]     = acc[0];
-        rValues[index + 1] = acc[1];
-        rValues[index + 2] = acc[2];
+        rValues[index]     = r_acc[0];
+        rValues[index + 1] = r_acc[1];
+        rValues[index + 2] = r_acc[2];
 
-        rValues[index + 3] = 0.0;
-        rValues[index + 4] = 0.0;
-        rValues[index + 5] = 0.0;
+        rValues[index + 3] = r_ang_acc[0];
+        rValues[index + 4] = r_ang_acc[1];
+        rValues[index + 5] = r_ang_acc[2];
     }
 }
 

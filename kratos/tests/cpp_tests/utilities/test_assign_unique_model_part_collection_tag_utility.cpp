@@ -19,9 +19,10 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
+#include "includes/kratos_filesystem.h"
+#include "utilities/cpp_tests_utilities.h"
 
 /* Utilities */
-#include "utilities/os_utilities.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 
 namespace Kratos
@@ -46,31 +47,17 @@ namespace Kratos
             ModelPart& r_first_sub_modelpart_3 = r_first_model_part.CreateSubModelPart("ZSubModelPart3");
             ModelPart& r_first_sub_modelpart_4 = r_first_model_part.CreateSubModelPart("YSubModelPart4");
 
-            // Creating the Properties
-            Properties::Pointer p_elem_prop = r_first_model_part.CreateNewProperties(0);
-
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = r_first_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = r_first_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = r_first_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_4 = r_first_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = r_first_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = r_first_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+            CppTestsUtilities::Create2DGeometry(r_first_model_part, "Element2D3N");
 
             // Adding nodes to random submodelparts
-            r_first_sub_modelpart_1.AddNode(p_node_1);
-            r_first_sub_modelpart_2.AddNode(p_node_4);
-            r_first_sub_modelpart_3.AddNode(p_node_5);
-            r_first_sub_modelpart_4.AddNode(p_node_6);
-
-            Element::Pointer p_elem_0 = r_first_model_part.CreateNewElement("Element2D3N", 1, {{1,2,3}}, p_elem_prop);
-            Element::Pointer p_elem_1 = r_first_model_part.CreateNewElement("Element2D3N", 2, {{1,3,4}}, p_elem_prop);
-            Element::Pointer p_elem_2 = r_first_model_part.CreateNewElement("Element2D3N", 3, {{2,5,3}}, p_elem_prop);
-            Element::Pointer p_elem_3 = r_first_model_part.CreateNewElement("Element2D3N", 4, {{5,6,3}}, p_elem_prop);
+            r_first_sub_modelpart_1.AddNode(r_first_model_part.pGetNode(1));
+            r_first_sub_modelpart_2.AddNode(r_first_model_part.pGetNode(4));
+            r_first_sub_modelpart_3.AddNode(r_first_model_part.pGetNode(5));
+            r_first_sub_modelpart_4.AddNode(r_first_model_part.pGetNode(6));
 
             // Adding nodes to random submodelparts
-            r_first_sub_modelpart_1.AddElement(p_elem_0);
-            r_first_sub_modelpart_2.AddElement(p_elem_3);
+            r_first_sub_modelpart_1.AddElement(r_first_model_part.pGetElement(1));
+            r_first_sub_modelpart_2.AddElement(r_first_model_part.pGetElement(4));
 
 //             // Debug
 //             KRATOS_WATCH(first_model_part)
@@ -155,35 +142,21 @@ namespace Kratos
             ModelPart& r_first_sub_modelpart_3 = r_first_model_part.CreateSubModelPart("ZSubModelPart3");
             ModelPart& r_first_sub_modelpart_4 = r_first_model_part.CreateSubModelPart("YSubModelPart4");
 
-            // Creating the Properties
-            Properties::Pointer p_elem_prop = r_first_model_part.CreateNewProperties(0);
-
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = r_first_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = r_first_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = r_first_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_4 = r_first_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = r_first_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = r_first_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+            CppTestsUtilities::Create2DGeometry(r_first_model_part, "Element2D3N");
 
             // Adding nodes to random submodelparts
-            r_first_sub_modelpart_1.AddNode(p_node_1);
-            r_first_sub_modelpart_1a.AddNode(p_node_2);
-            r_first_sub_modelpart_1b.AddNode(p_node_3);
-            r_first_sub_modelpart_2.AddNode(p_node_4);
-            r_first_sub_modelpart_3.AddNode(p_node_5);
-            r_first_sub_modelpart_4.AddNode(p_node_6);
-
-            Element::Pointer p_elem_0 = r_first_model_part.CreateNewElement("Element2D3N", 1, {{1,2,3}}, p_elem_prop);
-            Element::Pointer p_elem_1 = r_first_model_part.CreateNewElement("Element2D3N", 2, {{1,3,4}}, p_elem_prop);
-            Element::Pointer p_elem_2 = r_first_model_part.CreateNewElement("Element2D3N", 3, {{2,5,3}}, p_elem_prop);
-            Element::Pointer p_elem_3 = r_first_model_part.CreateNewElement("Element2D3N", 4, {{5,6,3}}, p_elem_prop);
+            r_first_sub_modelpart_1.AddNode(r_first_model_part.pGetNode(1));
+            r_first_sub_modelpart_1a.AddNode(r_first_model_part.pGetNode(2));
+            r_first_sub_modelpart_1b.AddNode(r_first_model_part.pGetNode(3));
+            r_first_sub_modelpart_2.AddNode(r_first_model_part.pGetNode(4));
+            r_first_sub_modelpart_3.AddNode(r_first_model_part.pGetNode(5));
+            r_first_sub_modelpart_4.AddNode(r_first_model_part.pGetNode(6));
 
             // Adding nodes to random submodelparts
-            r_first_sub_modelpart_1.AddElement(p_elem_0);
-            r_first_sub_modelpart_1a.AddElement(p_elem_1);
-            r_first_sub_modelpart_1b.AddElement(p_elem_2);
-            r_first_sub_modelpart_2.AddElement(p_elem_3);
+            r_first_sub_modelpart_1.AddElement(r_first_model_part.pGetElement(1));
+            r_first_sub_modelpart_1a.AddElement(r_first_model_part.pGetElement(2));
+            r_first_sub_modelpart_1b.AddElement(r_first_model_part.pGetElement(3));
+            r_first_sub_modelpart_2.AddElement(r_first_model_part.pGetElement(4));
 
             AssignUniqueModelPartCollectionTagUtility collections_utility(r_first_model_part);
 
@@ -323,7 +296,7 @@ namespace Kratos
                 }
             }
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/" + filename + ".json").c_str());
+            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), filename + ".json"}));
         }
 
     } // namespace Testing

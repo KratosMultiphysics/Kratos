@@ -37,6 +37,8 @@
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 
+#include <amgcl/coarsening/rigid_body_modes.hpp>
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -369,36 +371,32 @@ public:
         KRATOS_ERROR_IF(TSparseSpaceType::Size(rB) != TSparseSpaceType::Size1(rA)) << "size of b does not match the size of A. b size is " << TSparseSpaceType::Size(rB)
             << " matrix size is " << TSparseSpaceType::Size1(rA) << std::endl;
 
-        // Set block size
 
-        if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
-            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
-            mAMGCLParameters.put("precond.coarsening.aggr.block_size",mBlockSize);
-        }
         mAMGCLParameters.put("solver.tol", mTolerance);
         mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
 
         if(mUseAMGPreconditioning)
             mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough/mBlockSize);
 
-        Matrix B;
-        if(mUseAMGPreconditioning && mProvideCoordinates) {
-            B = ZeroMatrix(  TSparseSpaceType::Size1(rA), mBlockSize*4  );
-            for(IndexType i=0; i<TSparseSpaceType::Size1(rA); i+=mBlockSize) {
-                for( IndexType j=0; j<static_cast<IndexType>(mBlockSize); j++) {
-                    B(i+j,  j) = 1.0;
+        // Use rigid body modes or set block size
+        int static_block_size = mUseBlockMatricesIfPossible ? mBlockSize : 1;
+        if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
+            std::vector<double> B;
+            int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
+                    boost::make_iterator_range(
+                        &mCoordinates[0][0],
+                        &mCoordinates[0][0] + TSparseSpaceType::Size1(rA)),
+                    B);
 
-                    IndexType inode = i/mBlockSize;
-
-                    B(i+j, mBlockSize +j*3 + 0) = mCoordinates[inode][0];
-                    B(i+j, mBlockSize +j*3 + 1) = mCoordinates[inode][1];
-                    B(i+j, mBlockSize +j*3 + 2) = mCoordinates[inode][2];
-                }
-            }
-
-            mAMGCLParameters.put("precond.coarsening.nullspace.cols", B.size2());
-            mAMGCLParameters.put("precond.coarsening.nullspace.rows", B.size1());
-            mAMGCLParameters.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
+            static_block_size = 1;
+            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
+            mAMGCLParameters.put("precond.coarsening.aggr.block_size", 1);
+            mAMGCLParameters.put("precond.coarsening.nullspace.cols",  nmodes);
+            mAMGCLParameters.put("precond.coarsening.nullspace.rows",  TSparseSpaceType::Size1(rA));
+            mAMGCLParameters.put("precond.coarsening.nullspace.B",     &B[0]);
+        } else if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
+            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
+            mAMGCLParameters.put("precond.coarsening.aggr.block_size", mBlockSize);
         }
 
         if(mVerbosity > 1)
@@ -443,7 +441,7 @@ public:
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
                     << TSparseSpaceType::Size1(rA) << std::endl;
             }
-            AMGCLSolve(mBlockSize, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
+            AMGCLSolve(static_block_size, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
@@ -545,7 +543,7 @@ public:
         ) override
     {
         int old_ndof = -1;
-        unsigned int old_node_id = rDofSet.begin()->Id();
+        unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
         int ndof=0;
         for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
             if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
@@ -569,6 +567,14 @@ public:
             mBlockSize = 1;
         else
             mBlockSize = ndof;
+
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+
+        if(mBlockSize == 0) {
+            mBlockSize = max_block_size;
+        }
+
+        KRATOS_ERROR_IF(mBlockSize != max_block_size) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << max_block_size << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 

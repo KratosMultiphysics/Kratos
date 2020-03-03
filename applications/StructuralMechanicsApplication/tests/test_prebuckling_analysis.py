@@ -3,7 +3,6 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import eigen_solver_factory
 
 try:
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
@@ -11,13 +10,14 @@ try:
 except ImportError:
     eigen_solvers_is_available = False
 
-#A simply supported square plate under compression loading is computed
+#A simply supported square plate under compressive loading is computed
 #The test compares the buckling load/multiplier between one model with symmetry conditions (quarter of the plate) and a full model
 #Futhermore the results are checked against a reference solution from abaqus (element S4R)
 #http://130.149.89.49:2080/v6.8/books/bmk/default.htm?startat=ch01s02ach17.html
 
 
 class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
+    @classmethod
     def _add_dofs(self,mp):
         # Adding dofs AND their corresponding reactions
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
@@ -36,7 +36,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
 
     def _create_nodes(self,mp, NumOfNodes,length):
-        #Create Nodes
+        # Create Nodes
         counter = 0
         for y in range(NumOfNodes):
             for x in range(NumOfNodes):
@@ -59,7 +59,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
 
     def _apply_material_properties(self,mp):
-        #define properties
+        # Define properties
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1e8)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,0.01)
@@ -121,7 +121,24 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
             eig_strategy.Solve()
             if( i%2 == 1):
                 LoadFactor.append( mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR][0] )
+            self._updateConditions(mp,NumOfNodes)
         return LoadFactor
+
+    def _updateConditions(self,mp,NumOfNodes):
+        conditions = mp.GetConditions()
+        load_multiplier = mp.ProcessInfo[KratosMultiphysics.TIME]
+        for i, condition in enumerate(conditions):
+            tmp =  condition.GetValue(StructuralMechanicsApplication.POINT_LOAD)
+            load = 0.25
+            # Corner nodes have different values
+            if i < 2 or i == NumOfNodes or i == NumOfNodes+1:
+                load = 0.125
+            if tmp[0] > 0.0:
+                tmp[0] = load_multiplier*load
+            else:
+                tmp[0] = -1*load_multiplier*load
+            condition.SetValue( StructuralMechanicsApplication.POINT_LOAD, tmp )
+
 
     def _set_conditions(self,mp,nodes,NumOfNodes,direction,counter):
         # Corner Nodes
@@ -133,61 +150,61 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         load_on_cond1[1] = 0.0
         load_on_cond1[2] = 0.0
         cond1.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond1)
-        cond2.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond1)                    
+        cond2.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond1)
         load_on_cond2 = KratosMultiphysics.Vector(3)
         load_on_cond2[0] = direction*0.25
         load_on_cond2[1] = 0.0
         load_on_cond2[2] = 0.0
         # Center Nodes
         if( direction > 0):
-            max = NumOfNodes*(NumOfNodes-1)
+            max_ = NumOfNodes*(NumOfNodes-1)
         else:
-            max = NumOfNodes**2-1
-        
-        for i in range(nodes[0]+NumOfNodes,max,NumOfNodes):
+            max_ = NumOfNodes**2-1
+
+        for i in range(nodes[0]+NumOfNodes,max_,NumOfNodes):
             counter = counter + 1
             cond_tmp = mp.CreateNewCondition("PointLoadCondition3D1N",counter,[i],mp.GetProperties()[0])
             cond_tmp.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond2)
 
     def _apply_Bcs_Symmetry(self,mp,NumOfNodes):
-        #create a submodelpart for dirichlet boundary conditions
+        # Create a submodelpart for dirichlet boundary conditions
         bcs_dirichlet_left = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_left")
         bcs_dirichlet_right = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_right")
         bcs_dirichlet_lower = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_lower")
         bcs_dirichlet_upper = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_upper")
         bcs_dirichlet_left.AddNodes(range(1,NumOfNodes*NumOfNodes,NumOfNodes))
         self._apply_BCs_sym_vertical(bcs_dirichlet_left)
-        #Right Edge
+        # Right Edge
         bcs_dirichlet_right.AddNodes(range(NumOfNodes, NumOfNodes*NumOfNodes+1, NumOfNodes))
         self._apply_BCs_simple_vertical(bcs_dirichlet_right)
-        #Lower Edge
+        # Lower Edge
         bcs_dirichlet_lower.AddNodes(range(1,NumOfNodes+1,1))
         self._apply_BCs_sym_horizontal( bcs_dirichlet_lower )
-        #Upper Edge
+        # Upper Edge
         bcs_dirichlet_upper.AddNodes( range(( NumOfNodes-1)*NumOfNodes+1, NumOfNodes*NumOfNodes+1, 1) )
         self._apply_BCs_simple_horizontal(bcs_dirichlet_upper )
 
     def _apply_Bcs_Full(self,mp,NumOfNodes):
-        #create a submodelpart for dirichlet boundary conditions
+        # Create a submodelpart for dirichlet boundary conditions
         bcs_dirichlet_left = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_left")
         bcs_dirichlet_right = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_right")
         bcs_dirichlet_lower = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_lower")
         bcs_dirichlet_upper = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_upper")
         bcs_dirichlet_left.AddNodes(range(1,NumOfNodes*NumOfNodes,NumOfNodes))
         self._apply_BCs_simple_vertical(bcs_dirichlet_left)
-        #Right Edge
+        # Right Edge
         bcs_dirichlet_right.AddNodes(range(NumOfNodes, NumOfNodes*NumOfNodes+1, NumOfNodes))
         self._apply_BCs_simple_vertical(bcs_dirichlet_right)
-        #Lower Edge
+        # Lower Edge
         bcs_dirichlet_lower.AddNodes(range(1,NumOfNodes+1,1))
         self._apply_BCs_simple_horizontal( bcs_dirichlet_lower )
-        #Upper Edge
+        # Upper Edge
         bcs_dirichlet_upper.AddNodes( range(( NumOfNodes-1)*NumOfNodes+1, NumOfNodes**2+1, 1) )
         self._apply_BCs_simple_horizontal(bcs_dirichlet_upper )
         bcs_dirichlet_center_up = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_center_up")
         bcs_dirichlet_center_low = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_center_low")
         bcs_dirichlet_center = mp.CreateSubModelPart("BoundaryCondtionsDirichlet_center")
-        #Apply additional boundary conditions at the center nodes to statically determinate the plate
+        # Apply additional boundary conditions at the center nodes to statically determinate the plate
         # Uppder center Node
         bcs_dirichlet_center_up.AddNodes([int(NumOfNodes**2-(NumOfNodes-1)/2)])
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, bcs_dirichlet_center_up.Nodes)
@@ -223,7 +240,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
             self._set_conditions(mp,[NumOfNodes,NumOfNodes**2],NumOfNodes,-1,1)
             #Loads on left edge
             self._set_conditions(mp,[1,NumOfNodes*(NumOfNodes-1)+1],NumOfNodes,1,NumOfNodes+1)
-            
+
         return mp
 
 
@@ -235,33 +252,6 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         #Compare value against reference from abaqus
         self.assertLess( abs(1-load_multiplier1[0]/reference), 1.0e-2)
 
-    # def __post_process(self, main_model_part):
-    #     from gid_output_process import GiDOutputProcess
-    #     self.gid_output = GiDOutputProcess(main_model_part,
-    #                                 "gid_output",
-    #                                 KratosMultiphysics.Parameters("""
-    #                                     {
-    #                                         "result_file_configuration" : {
-    #                                             "gidpost_flags": {
-    #                                                 "GiDPostMode": "GiD_PostBinary",
-    #                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
-    #                                                 "WriteConditionsFlag": "WriteConditions",
-    #                                                 "MultiFileFlag": "SingleFile"
-    #                                             },
-    #                                             "nodal_results"       : ["DISPLACEMENT","ROTATION"],
-    #                                             "gauss_point_results" : []
-    #                                         }
-    #                                     }
-    #                                     """)
-    #                                 )
-
-    #     self.gid_output.ExecuteInitialize()
-    #     self.gid_output.ExecuteBeforeSolutionLoop()
-    #     self.gid_output.ExecuteInitializeSolutionStep()
-    #     self.gid_output.PrintOutput()
-    #     self.gid_output.ExecuteFinalizeSolutionStep()
-    #     self.gid_output.ExecuteFinalize()
-
 class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
     @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
     def test_dynamic_eigenvalue_analysis(self):
@@ -269,11 +259,11 @@ class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
         #Construct model with symmetry conditions (quarter of the full plate 1x1)
         NumOfNodesPerSide = 5
         LoadSteps = 18
-        Length = 1        
+        Length = 1
         current_model_sym = KratosMultiphysics.Model()
         mp_sym = self._set_up_system(current_model_sym,NumOfNodesPerSide,Length,True)
         loadFactor_sym = self._solve_prebuckling_problem(mp_sym,NumOfNodesPerSide,LoadSteps)
-        
+
         #Construct full model (whole plate 2x2)
         NumOfNodesPerSide = 9
         LoadSteps = 2
@@ -284,7 +274,7 @@ class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
         #print(loadFactor_sym)
         #print(loadFactor_full)
         self._check_load_multiplier(loadFactor_sym,loadFactor_full, reference_value )
-        
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
