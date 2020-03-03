@@ -347,6 +347,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     } else{
         KRATOS_ERROR << "TwoFluidNavierStokes is supposed to manage time integration." << std::endl;
     }
+
+    /* noalias(rLeftHandSideMatrix) = 1.0e8 * rLeftHandSideMatrix;
+    noalias(rRightHandSideVector) = 1.0e8 * rRightHandSideVector; */
 }
 
 template <class TElementData>
@@ -3616,7 +3619,8 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
         noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
 
-        const unsigned int NumDim = NumNodes - 1;
+        // Reproducing the enriched pressure for any possible use.
+        /* const unsigned int NumDim = NumNodes - 1;
         GeometryType::Pointer p_geom = this->pGetGeometry();
         Vector dU = ZeroVector(NumNodes*(NumDim + 1));
 
@@ -3650,7 +3654,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
             Penr = this->GetValue(ENRICHED_PRESSURE_1) + dPenr(3);
             //KRATOS_INFO("Condensation, Enriched Pressure 4") << Penr << std::endl;
             this->SetValue(ENRICHED_PRESSURE_4, Penr);
-        }
+        } */
     //}
 }
 
