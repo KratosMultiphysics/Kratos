@@ -193,10 +193,14 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         computing_model_part = self.GetComputingModelPart()
 
         # We create the arc-length loads subsubmodel parts
+        # Adding the nodes and conditions
         for i in range(self.loads_sub_sub_model_part_list.size()):
             computing_sub_model = computing_model_part.CreateSubModelPart("sub_" + self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
-            for node in self.main_model_part.GetSubModelPart(self.settings["arc_length_loads_sub_model_part_list"][i].GetString()).Nodes:
+            sub_model_part = self.main_model_part.GetSubModelPart(self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
+            for node in sub_model_part.Nodes:
                 computing_sub_model.AddNode(node, 0)
+            for cond in sub_model_part.Condition:
+                computing_sub_model.AddCondition(cond, 0)
 
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
