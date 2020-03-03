@@ -279,7 +279,7 @@ public:
 	bool SolveSolutionStep() override
 	{
         // Prediction phase
-        KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius / mRadius_0 << " X initial radius" << std::endl;
 
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
@@ -303,6 +303,7 @@ public:
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
         p_scheme->InitializeNonLinIteration(r_model_part, mA, mDx, mb);
+        mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, mA, mDx, mb);
         is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, mA, mDx, mb);
 
         TSparseSpace::SetToZero(mA);
@@ -315,7 +316,7 @@ public:
         mpBuilderAndSolver->SystemSolve(mA, mDxf, mb);
 
         // Update results
-        double DLambda = mRadius/TSparseSpace::TwoNorm(mDxf);
+        double DLambda = mRadius / TSparseSpace::TwoNorm(mDxf);
         mDLambdaStep = DLambda;
         mLambda += DLambda;
         noalias(mDxPred) = DLambda*mDxf;
@@ -323,7 +324,8 @@ public:
         this->Update(r_dof_set, mA, mDxPred, mb);
 
         // Move the mesh if needed
-        if(BaseType::MoveMeshFlag()) BaseType::MoveMesh();
+        if (BaseType::MoveMeshFlag())
+            BaseType::MoveMesh();
 
         // Correction phase
         if (is_converged) {
@@ -340,6 +342,7 @@ public:
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
             p_scheme->InitializeNonLinIteration(r_model_part, mA, mDx, mb);
+            mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, mA, mDx, mb);
 
             is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, mA, mDx, mb);
 
@@ -384,6 +387,7 @@ public:
                 BaseType::MoveMesh();
 
             p_scheme->FinalizeNonLinIteration(r_model_part, mA, mDx, mb);
+            mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, mA, mDx, mb);
 
             // Check convergence
             if (is_converged) {
