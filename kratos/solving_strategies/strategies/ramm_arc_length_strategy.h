@@ -281,8 +281,13 @@ public:
         // Prediction phase
         KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 
+        // Pointers needed in the solution
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
         // Initialize variables
-		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
@@ -295,10 +300,10 @@ public:
         // Initializing the parameters of the iteration loop
         double norm_dx;
         unsigned int iteration_number = 1;
-        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
-        mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        p_scheme->InitializeNonLinIteration(r_model_part, mA, mDx, mb);
+        is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, mA, mDx, mb);
 
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
@@ -315,28 +320,28 @@ public:
         mLambda += DLambda;
         noalias(mDxPred) = DLambda*mDxf;
         noalias(mDxStep) = mDxPred;
-        this->Update(rDofSet, mA, mDxPred, mb);
+        this->Update(r_dof_set, mA, mDxPred, mb);
 
         // Move the mesh if needed
         if(BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 
         // Correction phase
         if (is_converged) {
-            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDxf, mb);
+            mpConvergenceCriteria->InitializeSolutionStep(r_model_part, r_dof_set, mA, mDxf, mb);
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(mb);
-                mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
+                mpBuilderAndSolver->BuildRHS(p_scheme, r_model_part, mb);
             }
-            is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDxf, mb);
+            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, mA, mDxf, mb);
         }
 
         while (!is_converged && iteration_number++ < mMaxIterationNumber) {
             // Setting the number of iterations
-            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+            r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-            mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+            p_scheme->InitializeNonLinIteration(r_model_part, mA, mDx, mb);
 
-            is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, mA, mDx, mb);
 
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mb);
@@ -351,7 +356,7 @@ public:
             TSparseSpace::SetToZero(mb);
             TSparseSpace::SetToZero(mDxb);
 
-            mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDxb, mb);
+            mpBuilderAndSolver->BuildAndSolve(p_scheme, r_model_part, mA, mDxb, mb);
 
             DLambda = -TSparseSpace::Dot(mDxPred, mDxb) / TSparseSpace::Dot(mDxPred, mDxf);
 
@@ -372,21 +377,21 @@ public:
             mDLambdaStep += DLambda;
             mLambda += DLambda;
             noalias(mDxStep) += mDx;
-            this->Update(rDofSet, mA, mDx, mb);
+            this->Update(r_dof_set, mA, mDx, mb);
 
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag()) 
                 BaseType::MoveMesh();
 
-            mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+            p_scheme->FinalizeNonLinIteration(r_model_part, mA, mDx, mb);
 
             // Check convergence
             if (is_converged) {
                 if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(mb);
-                    mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
+                    mpBuilderAndSolver->BuildRHS(p_scheme, r_model_part, mb);
                 }
-                is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, mA, mDx, mb);
             }
 
         } // While loop
@@ -395,15 +400,15 @@ public:
         if (iteration_number >= mMaxIterationNumber) {
             is_converged = true;
             // Plots a warning if the maximum number of iterations is exceeded
-            if (BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            if (r_model_part.GetCommunicator().MyPID() == 0)
                 this->MaxIterationsExceeded();
         }
 
         //calculate reactions if required
         if (mCalculateReactionsFlag)
-            mpBuilderAndSolver->CalculateReactions(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            mpBuilderAndSolver->CalculateReactions(p_scheme, r_model_part, mA, mDx, mb);
 
-        BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED] = is_converged;
+        r_model_part.GetProcessInfo()[IS_CONVERGED] = is_converged;
 
 		return is_converged;
     }
@@ -422,7 +427,7 @@ public:
         // Update the radius
         mRadius = mRadius*sqrt(double(mDesiredIterations) / double(iteration_number));
 
-        DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
+        DofsArrayType& r_dof_set = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
@@ -435,7 +440,7 @@ public:
                 mRadius = mMinRadiusFactor*mRadius_0;
 
             // Update Norm of x
-            mNormxEquilibrium = this->CalculateReferenceDofsNorm(rDofSet);
+            mNormxEquilibrium = this->CalculateReferenceDofsNorm(r_dof_set);
         } else {
             KRATOS_INFO("Ramm's Arc Length Strategy") << "************ NO CONVERGENCE: restoring equilibrium path ************" << std::endl;
             TSystemVectorType& mDxStep = *mpDxStep;
@@ -443,7 +448,7 @@ public:
             // Update results
             mLambda -= mDLambdaStep;
             noalias(mDx) = -mDxStep;
-            this->Update(rDofSet, mA, mDx, mb);
+            this->Update(r_dof_set, mA, mDx, mb);
 
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag()) 
@@ -574,7 +579,7 @@ protected:
     {
         //  Prediction phase 
         // Initialize variables
-		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
+		DofsArrayType& r_dof_set = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
@@ -587,7 +592,7 @@ protected:
 
         mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
 
-        mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        mpScheme->Update(BaseType::GetModelPart(), r_dof_set, mA, mDx, mb);
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag()) 
@@ -615,7 +620,7 @@ protected:
 
             mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
 
-            mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            mpScheme->Update(BaseType::GetModelPart(), r_dof_set, mA, mDx, mb);
 
             // Move the mesh if needed
             if (BaseType::MoveMeshFlag()) 
@@ -624,7 +629,7 @@ protected:
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
             norm_dx = TSparseSpace::TwoNorm(mDx);
-            reference_dof_norm = this->CalculateReferenceDofsNorm(rDofSet);
+            reference_dof_norm = this->CalculateReferenceDofsNorm(r_dof_set);
             dofs_ratio = norm_dx / reference_dof_norm;
             KRATOS_INFO("Ramm's Arc Length Strategy") << "TEST ITERATION: "  << iteration_number << std::endl;
             KRATOS_INFO("Ramm's Arc Length Strategy") << "    Dofs Ratio = " << dofs_ratio       << std::endl;
@@ -638,20 +643,20 @@ protected:
     /**
      * @brief This method computes the norm of the reference DoFs
      */
-    double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
+    double CalculateReferenceDofsNorm(DofsArrayType& r_dof_set)
     {
         double reference_dof_norm = 0.0;
 
         int num_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector dof_set_partition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), num_threads, dof_set_partition);
+        OpenMPUtils::DivideInPartitions(r_dof_set.size(), num_threads, dof_set_partition);
 
         #pragma omp parallel reduction(+:reference_dof_norm)
         {
             int k = OpenMPUtils::ThisThread();
 
-            typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_set_partition[k];
-            typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_set_partition[k+1];
+            typename DofsArrayType::iterator dof_begin = r_dof_set.begin() + dof_set_partition[k];
+            typename DofsArrayType::iterator dof_end = r_dof_set.begin() + dof_set_partition[k+1];
 
             for (typename DofsArrayType::iterator it_dof = dof_begin; it_dof != dof_end; ++it_dof) {
                 if (it_dof->IsFree()) {
@@ -732,17 +737,17 @@ protected:
 
     /**
      * @brief Function to Update the database and the external loads
-     * @param rDofSet The degrees of freedom
+     * @param r_dof_set The degrees of freedom
      * @param mA The LHS matrix
      * @param mDx The displacement increment vector
      * @param mb The residual vector
      */
-    virtual void Update(DofsArrayType& rDofSet, TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
+    virtual void Update(DofsArrayType& r_dof_set, TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
     {
         KRATOS_TRY
 
         // Update scheme
-        mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        mpScheme->Update(BaseType::GetModelPart(), r_dof_set, mA, mDx, mb);
 
         // Update External Loads
         this->UpdateExternalLoads();
