@@ -454,30 +454,30 @@ void TwoStepUpdatedLagrangianVPImplicitSolidElement<3>::CalcElasticPlasticCauchy
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::UpdateCauchyStress(unsigned int g, ProcessInfo &rCurrentProcessInfo)
-{
+void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
+                                                                              ProcessInfo &rCurrentProcessInfo) {
+    double theta = this->GetThetaContinuity();
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
+    const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
+    // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+    bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+    const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
-  double theta = this->GetThetaContinuity();
-  ElementalVariables rElementalVariables;
-  this->InitializeElementalVariables(rElementalVariables);
-  ShapeFunctionDerivativesArrayType DN_DX;
-  Matrix NContainer;
-  VectorType GaussWeights;
-  this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
-  const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-  // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
-  const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-  double Density = 0;
-  double DeviatoricCoeff = 0;
-  double VolumetricCoeff = 0;
-  if (computeElement == true) {
-      this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density,
-                                             DeviatoricCoeff, VolumetricCoeff);
-  }
+    if (computeElement == true) {
+        double Density = 0;
+        double DeviatoricCoeff = 0;
+        double VolumetricCoeff = 0;
+        this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density,
+                                               DeviatoricCoeff, VolumetricCoeff);
+    }
 
-  this->mCurrentTotalCauchyStress[g] = this->mUpdatedTotalCauchyStress[g];
-  this->mCurrentDeviatoricCauchyStress[g] = this->mUpdatedDeviatoricCauchyStress[g];
+    this->mCurrentTotalCauchyStress[g] = this->mUpdatedTotalCauchyStress[g];
+    this->mCurrentDeviatoricCauchyStress[g] = this->mUpdatedDeviatoricCauchyStress[g];
 }
 
 template <unsigned int TDim>
