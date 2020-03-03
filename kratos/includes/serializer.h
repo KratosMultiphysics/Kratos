@@ -180,12 +180,6 @@ public:
     /// Note: If the same object is loaded twice before deleting it from memory all its pointers will be duplicated.
     void SetLoadState();
 
-    /// Sets the pointer of the stream buffer at the begnining
-    void SeekBegin();
-
-    /// Sets the pointer of the stream buffer at tht end 
-    void SeekEnd();
-
     ///@}
     ///@name Operations
     ///@{
@@ -1402,6 +1396,12 @@ private:
         const SizeType block_size = sizeof(BlockType);
         return static_cast<SizeType>(((block_size - 1) + rSize) / block_size);
     }
+
+    /// Sets the pointer of the stream buffer at the begnining
+    void SeekBegin();
+
+    /// Sets the pointer of the stream buffer at tht end 
+    void SeekEnd();
 
     ///@}
     ///@name Private  Access
