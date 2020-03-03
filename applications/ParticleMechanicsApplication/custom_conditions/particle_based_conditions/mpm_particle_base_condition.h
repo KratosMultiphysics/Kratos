@@ -297,6 +297,8 @@ protected:
     ///@{
 
     array_1d<double, 3> m_xg;
+    array_1d<double, 3> m_acceleration;
+    array_1d<double, 3> m_velocity;    
 
     ///@}
     ///@name Protected Operators
