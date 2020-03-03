@@ -7,13 +7,22 @@ import KratosMultiphysics.FemToDemApplication.MainCouplingFemDemSubstepping_for_
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
 import KratosMultiphysics.FemToDemApplication.MainCouplingPfemFemDem as MainCouplingPfemFemDem
 
+def Wait():
+    input("PFEM-FEMDEM -> Press Something")
+
+def KratosPrintInfo(message):
+    """This function prints info on screen
+    """
+    KM.Logger.Print("", message)
+    KM.Logger.Flush()
+    
 #============================================================================================================================
 class MainCouplingPfemFemDemSubstepping_Solution(MainCouplingPfemFemDem.MainCouplingPfemFemDem_Solution):
 #============================================================================================================================
 
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
-        self.FEMDEM_Solution = MainCouplingFemDemSubstepping_for_PFEM_coupling.MainCouplingFemDemSubstepping_for_PFEM_coupling_Solution(Model)
+        self.FEMDEM_Solution = MainCouplingFemDemSubstepping_for_PFEM_coupling.MainCoupledFemDemSubstepping_for_PFEM_coupling_Solution(Model)
         self.FEMDEM_Solution.Initialize()
 
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 

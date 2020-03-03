@@ -5,6 +5,7 @@ import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as MainFEM_fo
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.DemStructuresCouplingApplication as DEM_Structures
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 

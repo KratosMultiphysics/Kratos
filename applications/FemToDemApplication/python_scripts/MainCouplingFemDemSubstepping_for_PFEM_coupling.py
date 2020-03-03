@@ -6,7 +6,7 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_PFEM_coupling as FEM
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
-import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDemSubstepping
+import KratosMultiphysics.FemToDemApplication.MainCouplingFemDemSubstepping as MainCouplingFemDemSubstepping
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 import math
 import os
