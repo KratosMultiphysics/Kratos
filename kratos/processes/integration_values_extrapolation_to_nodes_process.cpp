@@ -67,7 +67,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
         } else if (KratosComponents<Variable<array_1d<double, 3> >>::Has(r_variable_name)) {
             mArrayVariable.push_back(&(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
-            mVectorVariable.push_back(&KratosComponents<Variable<Vector>>::Get(r_variable_name)));
+            mVectorVariable.push_back(&(KratosComponents<Variable<Vector>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) {
             mMatrixVariable.push_back(&(KratosComponents<Variable<Matrix>>::Get(r_variable_name)));
         } else {
