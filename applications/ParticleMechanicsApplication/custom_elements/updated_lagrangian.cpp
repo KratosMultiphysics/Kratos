@@ -1670,7 +1670,7 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<doub
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == MP_COORD) {
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
         rValues[0] = mMP.xg;
     }
     else if (rVariable == MP_DISPLACEMENT) {
