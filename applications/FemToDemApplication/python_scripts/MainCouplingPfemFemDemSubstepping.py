@@ -5,10 +5,10 @@ import KratosMultiphysics.FemToDemApplication as FEMDEM
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDemSubstepping_for_PFEM_coupling as MainCouplingFemDemSubstepping_for_PFEM_coupling
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
-import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
+import KratosMultiphysics.FemToDemApplication.MainCouplingPfemFemDem as MainCouplingPfemFemDem
 
 #============================================================================================================================
-class MainCouplingPfemFemDemSubstepping_Solution(MainCouplingFemDem.MainCouplingPfemFemDem_Solution):
+class MainCouplingPfemFemDemSubstepping_Solution(MainCouplingPfemFemDem.MainCouplingPfemFemDem_Solution):
 #============================================================================================================================
 
     def __init__(self, Model, PFEMparameters):
