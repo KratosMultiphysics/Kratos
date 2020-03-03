@@ -23,7 +23,7 @@
                 "input_filename": "mok_benchmark_Structural"
             },
             "material_import_settings": {
-                "materials_filename": "materials_Mok.json"
+                "materials_filename": "materials_mok_structure.json"
             },
             "time_stepping": {
                 "time_step": 0.1
@@ -46,6 +46,9 @@
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "mok_benchmark_Fluid"
+            },
+            "material_import_settings": {
+                "materials_filename": "materials_mok_fluid.json"
             },
             "echo_level": 0,
             "compute_reactions": true,
@@ -96,7 +99,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "AssignVectorVariableProcess",
             "Parameters": {
-                "model_part_name": "DISPLACEMENT_Displacement_BC",
+                "model_part_name": "Structure.DISPLACEMENT_Displacement_BC",
                 "variable_name": "DISPLACEMENT",
                 "interval": [0.0,"End"],
                 "value": [0.0,0.0,0.0],
@@ -108,7 +111,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "PythonProcess",
             "Parameters": {
-                "model_part_name": "Interface2D_Structure_interface"
+                "model_part_name": "Structure.Interface2D_Structure_interface"
             }
         }],
         "fluid_initial_conditions_process_list"  : [],
@@ -117,7 +120,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "AssignVectorByDirectionProcess",
             "Parameters": {
-                "model_part_name": "Inlet2D_Inlet",
+                "model_part_name": "FluidModelPart.Inlet2D_Inlet",
                 "variable_name": "VELOCITY",
                 "modulus": "2*0.06067*(1-cos(pi*t/10))*y*(1-y)",
                 "constrained": true,
@@ -129,7 +132,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "AssignVectorByDirectionProcess",
             "Parameters": {
-                "model_part_name": "Inlet2D_Inlet",
+                "model_part_name": "FluidModelPart.Inlet2D_Inlet",
                 "variable_name": "VELOCITY",
                 "modulus": "4*0.06067*y*(1-y)",
                 "constrained": true,
@@ -141,7 +144,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "AssignScalarVariableProcess",
             "Parameters": {
-                "model_part_name": "Outlet2D_Outlet",
+                "model_part_name": "FluidModelPart.Outlet2D_Outlet",
                 "variable_name": "PRESSURE",
                 "interval": [0.0,"End"],
                 "constrained": true,
@@ -152,21 +155,21 @@
             "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
             "process_name": "ApplySlipProcess",
             "Parameters": {
-                "model_part_name": "Slip2D_Slip"
+                "model_part_name": "FluidModelPart.Slip2D_Slip"
             }
         },{
             "python_module": "apply_noslip_process",
             "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
             "process_name": "ApplyNoSlipProcess",
             "Parameters": {
-                "model_part_name": "NoSlip2D_No_slip"
+                "model_part_name": "FluidModelPart.NoSlip2D_No_slip"
             }
         },{
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
             "process_name" : "AssignVectorVariableProcess",
             "Parameters": {
-                "model_part_name": "DISPLACEMENT_ALE_mesh_BC",
+                "model_part_name": "FluidModelPart.DISPLACEMENT_ALE_mesh_BC",
                 "variable_name": "MESH_DISPLACEMENT",
                 "interval": [0.0,"End"],
                 "value": [0.0,0.0,0.0],
@@ -177,7 +180,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name" : "PythonProcess",
             "Parameters": {
-                "model_part_name": "FluidNoSlipInterface2D_Interface"
+                "model_part_name": "FluidModelPart.FluidNoSlipInterface2D_Interface"
             }
         }],
         "fluid_gravity" : [{
@@ -185,7 +188,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name" : "AssignVectorByDirectionProcess",
             "Parameters": {
-                "model_part_name": "Parts_Fluid",
+                "model_part_name": "FluidModelPart.Parts_Fluid",
                 "variable_name": "BODY_FORCE",
                 "modulus": 0.0,
                 "constrained": false,
@@ -199,7 +202,7 @@
             "Parameters": {
                 "check_variables": ["MESH_DISPLACEMENT_X"],
                 "input_file_name": "mok_benchmark_results.json",
-                "model_part_name": "Control_Nodes",
+                "model_part_name": "FluidModelPart.Control_Nodes",
                 "tolerance": 1e-3,
                 "time_frequency": 0.1
             }
@@ -211,7 +214,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "GiDOutputProcess",
             "Parameters": {
-                "model_part_name": "Parts_Structure",
+                "model_part_name": "Structure.Parts_Structure",
                 "output_name": "mok_benchmark_Structural",
                 "postprocess_parameters": {
                     "result_file_configuration": {
@@ -239,7 +242,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "GiDOutputProcess",
             "Parameters": {
-                "model_part_name": "Parts_Fluid",
+                "model_part_name": "FluidModelPart.Parts_Fluid",
                 "output_name": "mok_benchmark_Fluid",
                 "postprocess_parameters": {
                     "result_file_configuration": {

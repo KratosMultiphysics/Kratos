@@ -2354,7 +2354,7 @@ namespace Kratos
     rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false); //friction needs an special treatment --> correct linearization is needed.
 
     //Stick contact contribution:
-    if(rVariables.Contact.Options.Is(NOT_SLIP))
+    if(rVariables.Contact.Options.IsNot(SLIP))
       {
 
 	//std::cout<<" + stick ";
