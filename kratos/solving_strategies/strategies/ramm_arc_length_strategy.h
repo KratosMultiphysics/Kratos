@@ -208,27 +208,6 @@ public:
                     mpBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
                 }
 
-                // Compute initial radius (mRadius_0)
-                mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
-                TSystemMatrixType& mA = *mpA;
-
-				TSystemVectorType& mDx = *mpDx;
-                TSystemVectorType& mb = *mpb;
-                TSparseSpace::SetToZero(mA);
-                TSparseSpace::SetToZero(mDx);
-                TSparseSpace::SetToZero(mb);
-
-                mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-                mRadius_0 = TSparseSpace::TwoNorm(mDx);
-                mRadius = mRadius_0;
-
-                // Compute vector of reference external force (mf)
-                this->InitializeSystemVector(mpf);
-                TSystemVectorType& mf = *mpf;
-                TSparseSpace::SetToZero(mf);
-
-                mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mf);
-
                 // Initialize the loading factor Lambda
                 mLambda = 0.0;
                 mLambda_old = 1.0;
@@ -245,12 +224,41 @@ public:
     }
 
     /**
+     * @brief Computes the initial force vector mf
+     */
+    void ComputeInitialForceVectorAndRadius()
+    {
+        // Compute initial radius (mRadius_0)
+        mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
+        TSystemMatrixType& mA = *mpA;
+
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+        TSparseSpace::SetToZero(mA);
+        TSparseSpace::SetToZero(mDx);
+        TSparseSpace::SetToZero(mb);
+
+        mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        mRadius_0 = TSparseSpace::TwoNorm(mDx);
+        mRadius = mRadius_0;
+
+        // Compute vector of reference external force (mf)
+        this->InitializeSystemVector(mpf);
+        TSystemVectorType& mf = *mpf;
+        TSparseSpace::SetToZero(mf);
+        
+        mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mf);
+    }
+
+    /**
      * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
     void InitializeSolutionStep() override
     {
         KRATOS_TRY
+        if (BaseType::GetModelPart().GetProcessInfo()[STEP] == 1)
+            this->ComputeInitialForceVectorAndRadius();
 
 		if (!mSolutionStepIsInitialized) {
             BaseType::InitializeSolutionStep();
@@ -779,11 +787,12 @@ protected:
             ModelPart& r_sub_model_part = *(mSubModelPartList[i]);
             const std::string& r_variable_name = mVariableNames[i];
 
-            if (KratosComponents< Variable<double> >::Has(r_variable_name)) {
+            if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
                 Variable<double> variable = KratosComponents<Variable<double>>::Get(r_variable_name);
 
                 #pragma omp parallel
                 {
+                    // Loop over the nodes
                     ModelPart::NodeIterator node_begin;
                     ModelPart::NodeIterator node_end;
                     OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),node_begin,node_end);
@@ -793,25 +802,54 @@ protected:
                         r_value *= (mLambda / mLambda_old);
                     }
                 }
+                #pragma omp parallel
+                {
+                    // Loop over the conditions
+                    ModelPart::ConditionIterator cond_begin;
+                    ModelPart::ConditionIterator cond_end;
+                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Conditions(), cond_begin, cond_end);
+
+                    for (ModelPart::ConditionIterator it_cond = cond_begin; it_cond != cond_end; ++it_cond) {
+                        double& r_value = it_cond->GetValue(variable);
+                        r_value *= (mLambda / mLambda_old);
+                    }
+                }
             } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {
                 typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> component_type;
-                component_type varx = KratosComponents<component_type>::Get(r_variable_name + std::string("_X"));
-                component_type vary = KratosComponents<component_type>::Get(r_variable_name + std::string("_Y"));
-                component_type varz = KratosComponents<component_type>::Get(r_variable_name + std::string("_Z"));
+                component_type var_x = KratosComponents<component_type>::Get(r_variable_name + std::string("_X"));
+                component_type var_y = KratosComponents<component_type>::Get(r_variable_name + std::string("_Y"));
+                component_type var_z = KratosComponents<component_type>::Get(r_variable_name + std::string("_Z"));
 
                 #pragma omp parallel
                 {
+                    // Loop over the nodes
                     ModelPart::NodeIterator node_begin;
                     ModelPart::NodeIterator node_end;
                     OpenMPUtils::PartitionedIterators(r_sub_model_part.Nodes(),node_begin,node_end);
 
                     for (ModelPart::NodeIterator it_node = node_begin; it_node != node_end; ++it_node) {
-                        double& rvaluex = it_node->FastGetSolutionStepValue(varx);
-                        rvaluex *= (mLambda / mLambda_old);
-                        double& rvaluey = it_node->FastGetSolutionStepValue(vary);
-                        rvaluey *= (mLambda / mLambda_old);
-                        double& rvaluez = it_node->FastGetSolutionStepValue(varz);
-                        rvaluez *= (mLambda / mLambda_old);
+                        double& r_value_x = it_node->FastGetSolutionStepValue(var_x);
+                        r_value_x *= (mLambda / mLambda_old);
+                        double& r_value_y = it_node->FastGetSolutionStepValue(var_y);
+                        r_value_y *= (mLambda / mLambda_old);
+                        double& r_value_z = it_node->FastGetSolutionStepValue(var_z);
+                        r_value_z *= (mLambda / mLambda_old);
+                    }
+                }
+                #pragma omp parallel
+                {
+                    // Loop over the conditions
+                    ModelPart::ConditionIterator cond_begin;
+                    ModelPart::ConditionIterator cond_end;
+                    OpenMPUtils::PartitionedIterators(r_sub_model_part.Conditions(), cond_begin, cond_end);
+
+                    for (ModelPart::ConditionIterator it_cond = cond_begin; it_cond != cond_end; ++it_cond) {
+                        double& r_value_x = it_cond->GetValue(var_x);
+                        r_value_x *= (mLambda / mLambda_old);
+                        double& r_value_y = it_cond->GetValue(var_y);
+                        r_value_y *= (mLambda / mLambda_old);
+                        double& r_value_z = it_cond->GetValue(var_z);
+                        r_value_z *= (mLambda / mLambda_old);
                     }
                 }
             } else {

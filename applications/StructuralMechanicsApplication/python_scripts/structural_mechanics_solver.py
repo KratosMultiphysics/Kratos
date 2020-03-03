@@ -458,9 +458,10 @@ class MechanicalSolver(PythonSolver):
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
             if (self.settings["line_search"].GetBool() == False):
-                mechanical_solution_strategy = self._create_newton_raphson_strategy()
-            elif (self.settings["arc_length"].GetBool()):
-                mechanical_solution_strategy = self._create_ramm_arc_length_strategy()
+                if (self.settings["arc_length"].GetBool()):
+                    mechanical_solution_strategy = self._create_ramm_arc_length_strategy()
+                else:
+                    mechanical_solution_strategy = self._create_newton_raphson_strategy()
             else:
                 mechanical_solution_strategy = self._create_line_search_strategy()
         else:
@@ -532,14 +533,13 @@ class MechanicalSolver(PythonSolver):
             sub_model_part = self.main_model_part.GetSubModelPart(self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
             for node in sub_model_part.Nodes:
                 computing_sub_model.AddNode(node, 0)
-            for cond in sub_model_part.Condition:
+            for cond in sub_model_part.Conditions:
                 computing_sub_model.AddCondition(cond, 0)
         
-
-        mechanical_scheme = self._get_solution_scheme()
-        linear_solver = self._get_linear_solver()
-        mechanical_convergence_criterion = self._get_convergence_criterion()
-        builder_and_solver = self._get_builder_and_solver()
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        mechanical_convergence_criterion = self.get_convergence_criterion()
+        builder_and_solver = self.get_builder_and_solver()
 
         # Arc-Length strategy
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.ARC_LENGTH_LAMBDA,1.0)
