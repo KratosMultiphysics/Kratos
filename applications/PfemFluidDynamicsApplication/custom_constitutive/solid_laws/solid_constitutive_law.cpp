@@ -136,7 +136,7 @@ double PfemSolidConstitutiveLaw::GetValueFromTable(const Variable<double>& rInde
     // Get material properties from constitutive law parameters
     const Properties& r_properties = rParameters.GetMaterialProperties();
 
-    double dependent_at_gauss;
+    double dependent_at_gauss = 0;
     if (r_properties.HasTable(rIndependentVariable, rDependentVariable)) {
         // Get geometry and Gauss points data
         const auto& r_geometry = rParameters.GetElementGeometry();
