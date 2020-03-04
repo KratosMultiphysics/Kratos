@@ -89,7 +89,7 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
 
-        set KRATOS_BUILD_TYPE=Debug
+        set KRATOS_BUILD_TYPE=Release
         set KRATOS_SOURCE=%cd%
         set KRATOS_BUILD=%cd%\build
         set KRATOS_APP_DIR=applications
@@ -97,7 +97,6 @@ jobs:
         set KRATOS_APPLICATIONS=
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
@@ -131,7 +130,7 @@ jobs:
     - name: Running small tests
       shell: cmd
       run: |
-        set KRATOS_BUILD_TYPE=Debug
+        set KRATOS_BUILD_TYPE=Release
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
