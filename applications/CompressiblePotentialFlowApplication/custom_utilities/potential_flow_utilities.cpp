@@ -23,6 +23,29 @@ array_1d<double, NumNodes> GetWakeDistances(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+void GetEquationIdVectorNormalElement(const Element& rElement, EquationIdVectorType& rElementalIdList)
+{
+    const auto r_geometry = rElement.GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; i++){
+        rElementalIdList[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+    }
+}
+
+template <int Dim, int NumNodes>
+void GetEquationIdVectorKuttaElement(const Element& rElement, EquationIdVectorType& rElementalIdList)
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    // Kutta elements have only negative part
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        if (!r_geometry[i].GetValue(TRAILING_EDGE))
+            rElementalIdList[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+        else
+            rElementalIdList[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+    }
+}
+
+template <int Dim, int NumNodes>
 void GetDofListNormalElement(const Element& rElement, DofsVectorType& rElementalDofList)
 {
     const auto r_geometry = rElement.GetGeometry();
@@ -516,6 +539,8 @@ bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const
 
 // 2D
 template array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
+template void GetEquationIdVectorNormalElement<2, 3>(const Element& rElement, EquationIdVectorType& rElementalDofList);
+template void GetEquationIdVectorKuttaElement<2, 3>(const Element& rElement, EquationIdVectorType& rElementalDofList);
 template void GetDofListNormalElement<2, 3>(const Element& rElement, DofsVectorType& rElementalDofList);
 template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
 template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
@@ -547,6 +572,8 @@ template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rT
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
+template void GetEquationIdVectorNormalElement<3, 4>(const Element& rElement, EquationIdVectorType& rElementalDofList);
+template void GetEquationIdVectorKuttaElement<3, 4>(const Element& rElement, EquationIdVectorType& rElementalDofList);
 template void GetDofListNormalElement<3, 4>(const Element& rElement, DofsVectorType& rElementalDofList);
 template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
 template BoundedVector<double, 2 * 4> GetPotentialOnWakeElement<3, 4>(

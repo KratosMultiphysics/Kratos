@@ -35,10 +35,17 @@ struct ElementalData{
     array_1d<double, TNumNodes> N;
 };
 
+typedef std::vector<std::size_t> EquationIdVectorType;
 typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
+
+template <int Dim, int NumNodes>
+void GetEquationIdVectorNormalElement(const Element& rElement, EquationIdVectorType& rElementalIdList);
+
+template <int Dim, int NumNodes>
+void GetEquationIdVectorKuttaElement(const Element& rElement, EquationIdVectorType& rElementalIdList);
 
 template <int Dim, int NumNodes>
 void GetDofListNormalElement(const Element& rElement, DofsVectorType& rElementalDofList);
