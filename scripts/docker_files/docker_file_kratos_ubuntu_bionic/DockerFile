@@ -9,7 +9,7 @@ RUN git clone --depth 1 https://github.com/KratosMultiphysics/Kratos.git /softwa
     export CXX=g++ && \
     export FC=gfortran-7 && \
     export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON" && \
-    export KRATOS_CMAKE_CXX_FLAGS="-Wno-deprecated-declarations"
+    export KRATOS_CMAKE_CXX_FLAGS="-Wno-deprecated-declarations" && \
     . /opt/intel/mkl/bin/mklvars.sh && \
     # using the configure file from the CI
     cp /software/Kratos/.github/workflows/configure.sh /software/Kratos/configure.sh && \
