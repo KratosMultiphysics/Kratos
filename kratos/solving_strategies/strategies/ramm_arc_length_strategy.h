@@ -283,8 +283,8 @@ public:
 
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
-        typename TSchemeType::Pointer p_scheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
         // Initialize variables
