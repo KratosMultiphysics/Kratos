@@ -43,7 +43,7 @@ namespace Kratos
         typedef LineSearchStrategy<SpaceType,  LocalSpaceType, LinearSolverType> LineSearchStrategyType;
         typedef ExplicitStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ExplicitStrategyType;
 
-        //NOTE: here we must create persisting objects for the builder and solvers
+        //NOTE: here we must create persisting objects for the strategies
         static auto ResidualBasedLinearStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ResidualBasedLinearStrategyType>();
         static auto ResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ResidualBasedNewtonRaphsonStrategyType>();
         static auto AdaptiveResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory< SolvingStrategyType, AdaptiveResidualBasedNewtonRaphsonStrategyType>();
@@ -58,4 +58,3 @@ namespace Kratos
         KRATOS_REGISTER_STRATEGY("explicit_strategy", ExplicitStrategyFactory);
     };
 } // Namespace Kratos
-
