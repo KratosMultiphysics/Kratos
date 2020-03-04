@@ -42,7 +42,7 @@ namespace Kratos
             
             CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
 
-            auto process = FindNodalNeighboursProcess(r_model_part);
+            FindNodalNeighboursProcess process(r_model_part);
             process.Execute();
             
             KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_NODES).size(), 3);
@@ -79,7 +79,7 @@ namespace Kratos
 
             CppTestsUtilities::Create3DGeometry(r_model_part, "Element3D4N");
             
-            auto process = FindNodalNeighboursProcess(r_model_part);
+            FindNodalNeighboursProcess process(r_model_part);
             process.Execute();
 
             KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_NODES).size(), 4);
