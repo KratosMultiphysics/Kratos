@@ -67,7 +67,7 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
 
-        set KRATOS_BUILD_TYPE=Release
+        set KRATOS_BUILD_TYPE=Debug
         set KRATOS_SOURCE=%cd%
         set KRATOS_BUILD=%cd%\build
         set KRATOS_APP_DIR=applications

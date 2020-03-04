@@ -89,7 +89,7 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
 
-        set KRATOS_BUILD_TYPE=Release
+        set KRATOS_BUILD_TYPE=Debug
         set KRATOS_SOURCE=%cd%
         set KRATOS_BUILD=%cd%\build
         set KRATOS_APP_DIR=applications
@@ -113,7 +113,6 @@ jobs:
           -G"Visual Studio 16 2019"                          ^
           -H"%KRATOS_SOURCE%"                                ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-          -DCMAKE_CXX_FLAGS="/F 4000000"                     ^
           -DBOOST_ROOT="%BOOST_ROOT%"                        ^
           -DINCLUDE_FEAST=OFF                                ^
           -DINSTALL_RUNKRATOS=OFF                            ^

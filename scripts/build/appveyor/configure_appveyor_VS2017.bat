@@ -11,7 +11,7 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_BUILD_TYPE=Release
+set KRATOS_BUILD_TYPE=Debug
 set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
