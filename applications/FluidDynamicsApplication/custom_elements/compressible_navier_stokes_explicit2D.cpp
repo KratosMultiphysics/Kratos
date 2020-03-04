@@ -44,7 +44,7 @@ void ShockCapturing(const double mu,
 {
     const int SpaceDimension = 2;
     
-   const double alpha = 2.0;                               // Algorithm constant
+   const double alpha = 0.8;                               // Algorithm constant
    const double tol = 1e-3;                               
 
     unsigned int i;
