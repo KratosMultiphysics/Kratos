@@ -1613,7 +1613,7 @@ void UpdatedLagrangian::DecimalCorrection(Vector& rVector)
 ///@name Access Get Values
 ///@{
 
-void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1625,11 +1625,11 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<int>& rVariab
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1659,11 +1659,11 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<double>& rVar
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1687,11 +1687,11 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<array_1d<doub
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1706,7 +1706,7 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVar
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 

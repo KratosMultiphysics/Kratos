@@ -374,7 +374,7 @@ Matrix& MPMParticleBaseCondition::CalculateCurrentDisp(Matrix & rCurrentDisp, co
     KRATOS_CATCH( "" )
 }
 
-void MPMParticleBaseCondition::GetValueOnIntegrationPoints(
+void MPMParticleBaseCondition::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -386,11 +386,11 @@ void MPMParticleBaseCondition::GetValueOnIntegrationPoints(
         rValues[0] = m_area;
     }
     else {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void MPMParticleBaseCondition::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+void MPMParticleBaseCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -401,7 +401,7 @@ void MPMParticleBaseCondition::GetValueOnIntegrationPoints(const Variable<array_
         rValues[0] = m_xg;
     }
     else {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in GetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 

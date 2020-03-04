@@ -58,7 +58,7 @@ public:
     // Counted pointer of MPMParticleBaseDirichletCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
 
-    using MPMParticleBaseCondition::GetValueOnIntegrationPoints;
+    using MPMParticleBaseCondition::CalculateOnIntegrationPoints;
     using MPMParticleBaseCondition::SetValueOnIntegrationPoints;
 
     ///@}
@@ -108,7 +108,7 @@ public:
     ///@name Access Get Values
     ///@{
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;

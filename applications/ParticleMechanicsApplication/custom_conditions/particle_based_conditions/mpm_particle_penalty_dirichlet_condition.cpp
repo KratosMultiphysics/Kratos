@@ -245,7 +245,7 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
     KRATOS_CATCH( "" )
 }
 
-void MPMParticlePenaltyDirichletCondition::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -256,12 +256,12 @@ void MPMParticlePenaltyDirichletCondition::GetValueOnIntegrationPoints(const Var
         rValues[0] = m_penalty;
     }
     else {
-        MPMParticleBaseDirichletCondition::GetValueOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -275,7 +275,7 @@ void MPMParticlePenaltyDirichletCondition::GetValueOnIntegrationPoints(const Var
         rValues[0] = m_unit_normal;
     }
     else {
-        MPMParticleBaseDirichletCondition::GetValueOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
@@ -292,7 +292,7 @@ void MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(const Var
         m_penalty = rValues[0];
     }
     else {
-        MPMParticleBaseDirichletCondition::GetValueOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }

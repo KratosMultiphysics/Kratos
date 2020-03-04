@@ -63,7 +63,7 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
     m_displacement += m_imposed_displacement;
 }
 
-void MPMParticleBaseDirichletCondition::GetValueOnIntegrationPoints(
+void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -84,7 +84,7 @@ void MPMParticleBaseDirichletCondition::GetValueOnIntegrationPoints(
         rValues[0] = m_displacement;
     }
     else {
-        MPMParticleBaseDirichletCondition::GetValueOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }

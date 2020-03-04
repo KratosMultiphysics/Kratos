@@ -77,7 +77,7 @@ namespace MPMSearchElementUtility
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
                 std::vector<array_1d<double, 3>> xg;
-                element_itr->GetValueOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
+                element_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
                 KRATOS_WATCH(xg)
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
@@ -111,7 +111,7 @@ namespace MPMSearchElementUtility
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 
                 std::vector<array_1d<double, 3>> xg;
-                condition_itr->GetValueOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
+                condition_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
