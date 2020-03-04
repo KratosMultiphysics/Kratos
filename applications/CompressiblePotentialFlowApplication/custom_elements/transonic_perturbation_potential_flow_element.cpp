@@ -94,15 +94,52 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
 
     if (wake == 0) // Normal element
     {
-        if (rResult.size() != NumNodes)
-            rResult.resize(NumNodes, false);
+        const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*this, CurrentProcessInfo);
 
-        const int kutta = r_this.GetValue(KUTTA);
+        // Subsonic flow (local_mach_number < mach_number_limit)
+        if(upwind_factor < 0.0){
+            if (rResult.size() != NumNodes)
+                rResult.resize(NumNodes, false);
 
-        if (kutta == 0)
-            GetEquationIdVectorNormalElement(rResult);
-        else
-            GetEquationIdVectorKuttaElement(rResult);
+            const int kutta = r_this.GetValue(KUTTA);
+
+            if (kutta == 0)
+                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, rResult);
+            else
+                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, rResult);
+        }
+        // Supersonic flow (local_mach_number > mach_number_limit)
+        else{
+            if (rResult.size() != NumNodes + 1)
+                rResult.resize(NumNodes + 1, false);
+            EquationIdVectorType element_ids(NumNodes, 0);
+            EquationIdVectorType upstream_element_ids(NumNodes, 0);
+            EquationIdVectorType example_ids(NumNodes + 1, 0);
+
+            const int kutta = r_this.GetValue(KUTTA);
+            if (kutta == 0){
+                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, rResult);
+                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, element_ids);
+            }
+            else{
+                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, rResult);
+            }
+
+            const int upstream_kutta = pGetUpstreamElement()->GetValue(KUTTA);
+            if (upstream_kutta == 0){
+                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*pGetUpstreamElement(), upstream_element_ids);
+            }
+            else{
+                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, upstream_element_ids);
+            }
+
+            for(unsigned int i = 0; i < element_ids.size(); i++){
+                example_ids[i] = element_ids[i];
+                if(std::find(element_ids.begin(), element_ids.end(), upstream_element_ids[i]) == element_ids.end()){
+                    example_ids[NumNodes] = upstream_element_ids[i];
+                }
+            }
+        }
     }
     else // Wake element
     {
@@ -110,6 +147,23 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
             rResult.resize(2 * NumNodes, false);
 
         GetEquationIdVectorWakeElement(rResult);
+    }
+    if(this->Id()==333){
+        EquationIdVectorType upstream_element_ids;
+        if (upstream_element_ids.size() != NumNodes)
+            upstream_element_ids.resize(NumNodes, false);
+        PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*pGetUpstreamElement(), upstream_element_ids);
+        KRATOS_WATCH(rResult)
+        KRATOS_WATCH(upstream_element_ids)
+
+        EquationIdVectorType example_ids(NumNodes + 1, 0);
+        for(unsigned int i = 0; i < rResult.size(); i++){
+            example_ids[i] = rResult[i];
+            if(std::find(rResult.begin(), rResult.end(), upstream_element_ids[i]) == rResult.end()){
+                example_ids[NumNodes] = upstream_element_ids[i];
+            }
+        }
+        KRATOS_WATCH(example_ids)
     }
 }
 
@@ -122,7 +176,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVe
 
     if (wake == 0) // Normal element
     {
-        if (rElementalDofList.size() != NumNodes)
+if (rElementalDofList.size() != NumNodes)
             rElementalDofList.resize(NumNodes);
 
         const int kutta = r_this.GetValue(KUTTA);
@@ -138,6 +192,9 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVe
             rElementalDofList.resize(2 * NumNodes);
 
         GetDofListWakeElement(rElementalDofList);
+    }
+    if(this->Id()==333){
+        KRATOS_WATCH(rElementalDofList)
     }
 }
 
@@ -340,12 +397,10 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVect
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        //r_geometry[i].SetLock();
         if (!r_geometry[i].GetValue(TRAILING_EDGE))
             rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
             rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-        //r_geometry[i].UnSetLock();
     }
 }
 
