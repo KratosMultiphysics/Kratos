@@ -547,7 +547,7 @@ namespace Kratos
                 typename RammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                 BaseSolvingStrategyType >
                 (m,"RammArcLengthStrategy")
-                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters, int, bool, bool, bool >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
