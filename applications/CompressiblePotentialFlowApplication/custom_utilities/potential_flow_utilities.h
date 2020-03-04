@@ -89,7 +89,7 @@ template <int Dim, int NumNodes>
 double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeDensity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+double ComputePerturbationDensity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputeDensityDerivative(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);

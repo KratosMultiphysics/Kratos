@@ -339,22 +339,15 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 }
 
 template <int Dim, int NumNodes>
-double ComputeDensity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+double ComputePerturbationDensity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
     // Reading free stream conditions
     const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
 
     // Computing local mach number
     double local_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rElement, rCurrentProcessInfo);
-
-    if (local_mach_number > mach_number_limit)
-    { // Clamping the mach number to mach_number_limit
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
-        local_mach_number = mach_number_limit;
-    }
 
     // Computing squares
     const double M_inf_2 = M_inf * M_inf;
@@ -393,8 +386,8 @@ template <int Dim, int NumNodes>
 double ComputeUpwindDensity(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
 {
     const double upwind_factor = ComputeSwitchingOperator<Dim, NumNodes>(rElement, rUpstreamElement, rCurrentProcessInfo);
-    const double density = ComputeDensity<Dim, NumNodes>(rElement, rCurrentProcessInfo);
-    const double upstream_density = ComputeDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double density = ComputePerturbationDensity<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double upstream_density = ComputePerturbationDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
 
     return density - upwind_factor * (density - upstream_density);
 }
@@ -533,7 +526,7 @@ template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const Pr
 template double ComputePerturbationLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDensity<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputePerturbationDensity<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivative<2, 3>(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindDensity<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeSwitchingOperator<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
@@ -563,7 +556,7 @@ template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const Pr
 template double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeDensity<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputePerturbationDensity<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivative<3, 4>(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindDensity<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeSwitchingOperator<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
