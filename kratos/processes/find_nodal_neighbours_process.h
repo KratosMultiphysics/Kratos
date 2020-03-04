@@ -94,9 +94,9 @@ public:
     FindNodalNeighboursProcess(ModelPart& rModelPart) 
         : mrModelPart(rModelPart)
     {
-         auto& r_comm = model_part.GetCommunicator().GetDataCommunicator();
-        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, model_part);
-        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, model_part);
+         auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, mrModelPart);
+        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, mrModelPart);
 
         KRATOS_INFO("FindNodalNeighboursProcess") << 
             R"(please call separetely FindGlobalNodalNeighboursProcess 
