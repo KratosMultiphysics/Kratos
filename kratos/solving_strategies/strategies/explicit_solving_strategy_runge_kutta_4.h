@@ -167,6 +167,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -191,17 +192,16 @@ protected:
         KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
 
         // Set the previous step solution in the current buffer position
-        // Note that we only do this for the DOFs that are not fixed
-        // Contrairiwise, we save in an auxiliary vector the value of the fixed DOFs
+        // Note that we set the 0 position of the buffer to be equal to the values in step n (not n+1)
+        // Additionally, we save in an auxiliary vector the value of the fixed DOFs
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
             auto it_dof = r_dof_set.begin() + i_dof;
             double& r_u = it_dof->GetSolutionStepValue(0);
-            if (!it_dof->IsFixed()) {
-                r_u = it_dof->GetSolutionStepValue(1);
-            } else {
+            if (it_dof->IsFixed()) {
                 u_n(i_dof) = r_u;
             }
+            r_u = it_dof->GetSolutionStepValue(1);
         }
 
         // Calculate the RK4 intermediate sub steps
@@ -238,48 +238,6 @@ protected:
      */
     virtual void FinalizeRungeKuttaSubStep() {};
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    const double mA21 = 0.5; // RK4 a_21 coefficient
-    const double mA32 = 0.5; // RK4 a_32 coefficient
-    const double mA43 = 1.0; // RK4 a_43 coefficient
-    const double mB1 = 1.0/6.0; // RK4 b_1 coefficient
-    const double mB2 = 1.0/3.0; // RK4 b_2 coefficient
-    const double mB3 = 1.0/3.0; // RK4 b_3 coefficient
-    const double mB4 = 1.0/6.0; // RK4 b_4 coefficient
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
     /**
      * @brief Performs an intermediate RK4 step
      * This functions performs all the operations required in an intermediate RK4 sub step
@@ -288,7 +246,7 @@ private:
      * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
      * @param rIntermediateStepResidualVector The vector to store the intermediate sub step residual
      */
-    void PerformRungeKuttaIntermediateSubStep(
+    virtual void PerformRungeKuttaIntermediateSubStep(
         const IndexType SubStepIndex,
         const double SubStepCoefficient,
         const LocalSystemVectorType& rFixedDofsValues,
@@ -339,7 +297,7 @@ private:
      * This functions performs all the operations required in the last RK4 sub step
      * @param rLastStepResidualVector The vector to store the last sub step residual
      */
-    void PerformRungeKuttaLastSubStep(LocalSystemVectorType& rLastStepResidualVector)
+    virtual void PerformRungeKuttaLastSubStep(LocalSystemVectorType& rLastStepResidualVector)
     {
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
@@ -367,6 +325,48 @@ private:
 
         FinalizeRungeKuttaSubStep();
     }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    const double mA21 = 0.5; // RK4 a_21 coefficient
+    const double mA32 = 0.5; // RK4 a_32 coefficient
+    const double mA43 = 1.0; // RK4 a_43 coefficient
+    const double mB1 = 1.0/6.0; // RK4 b_1 coefficient
+    const double mB2 = 1.0/3.0; // RK4 b_2 coefficient
+    const double mB3 = 1.0/3.0; // RK4 b_3 coefficient
+    const double mB4 = 1.0/6.0; // RK4 b_4 coefficient
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
     ///@}
