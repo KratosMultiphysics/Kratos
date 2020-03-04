@@ -5,7 +5,6 @@ import KratosMultiphysics as KM
 
 # Import applications
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
