@@ -6,6 +6,9 @@ on:
     - 'scripts/docker_files/docker_file_kratos_ubuntu_bionic/DockerFile'
     - '.github/workflows/build_docker_images_with_kratos.yml'
 
+  schedule:
+    - cron: '0 0 * * *' # update it every night
+
 jobs:
   build:
     runs-on: ubuntu-latest
