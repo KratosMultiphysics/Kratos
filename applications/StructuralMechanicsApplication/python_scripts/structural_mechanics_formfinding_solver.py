@@ -55,7 +55,8 @@ class FormfindingMechanicalSolver(MechanicalSolver):
 
     def Finalize(self):
         super(FormfindingMechanicalSolver, self).Finalize()
-        StructuralMechanicsApplication.FormfindingStrategy.WriteFormFoundMdpa(self.GetComputingModelPart())
+        if (self.settings["write_formfound_geometry_file"].GetBool()):
+            StructuralMechanicsApplication.FormfindingStrategy.WriteFormFoundMdpa(self.GetComputingModelPart())
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
