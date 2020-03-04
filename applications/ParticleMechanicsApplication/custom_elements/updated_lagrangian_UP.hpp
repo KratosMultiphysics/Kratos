@@ -188,7 +188,7 @@ public:
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
