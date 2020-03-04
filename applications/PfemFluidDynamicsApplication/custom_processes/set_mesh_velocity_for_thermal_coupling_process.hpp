@@ -35,7 +35,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SetMeshVelocityForThermalCouplingProcess);
 
     /// Constructor
-    SetMeshVelocityForThermalCouplingProcess(ModelPart& model_part) : rModelPart(model_part) {}
+    explicit SetMeshVelocityForThermalCouplingProcess(ModelPart& model_part) : rModelPart(model_part) {}
 
     /// Destructor.
     ~SetMeshVelocityForThermalCouplingProcess() override {}
