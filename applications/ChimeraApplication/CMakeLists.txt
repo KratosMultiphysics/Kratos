@@ -9,7 +9,6 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ChimeraApplication )
 
 ## ChimeraApplication Core sources
 file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_CORE

@@ -107,7 +107,18 @@ public:
     {}
 
     /// Destructor.
-    ~FractionalStepSettingsForChimera() override{}
+    ~FractionalStepSettingsForChimera() = default;
+
+
+    /// Default constructor.
+    FractionalStepSettingsForChimera() = delete;
+
+    /// Assignment operator.
+    FractionalStepSettingsForChimera& operator=(FractionalStepSettingsForChimera const& rOther) = delete;
+
+    /// Copy constructor.
+    FractionalStepSettingsForChimera(FractionalStepSettingsForChimera const& rOther) = delete;
+
 
     ///@}
     ///@name Operators
@@ -129,7 +140,7 @@ public:
     {
         KRATOS_TRY;
 
-        // pointer types for solution strategy construcion
+        // pointer types for solution strategy construction
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType;
 
@@ -184,7 +195,7 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettingsForChimera: Unknown strategy label.","");
+            KRATOS_ERROR << "Error in FractionalStepSettingsForChimera: Unknown strategy label."<<std::endl;
         }
 
         BaseType::mTolerances[rStrategyLabel] = Tolerance;
@@ -236,88 +247,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Default constructor.
-    FractionalStepSettingsForChimera(){}
-
-    /// Assignment operator.
-    FractionalStepSettingsForChimera& operator=(FractionalStepSettingsForChimera const& rOther){}
-
-    /// Copy constructor.
-    FractionalStepSettingsForChimera(FractionalStepSettingsForChimera const& rOther){}
-
-
-    ///@}
 
 }; // Class FractionalStepSettingsForChimera
 
