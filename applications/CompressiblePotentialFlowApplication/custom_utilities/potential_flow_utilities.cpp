@@ -23,6 +23,15 @@ array_1d<double, NumNodes> GetWakeDistances(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+void GetDofListNormalElement(const Element& rElement, DofsVectorType& rElementalDofList)
+{
+    const auto r_geometry = rElement.GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; i++){
+        rElementalDofList[i] = r_geometry[i].pGetDof(VELOCITY_POTENTIAL);
+    }
+}
+
+template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 {
     const int kutta = rElement.GetValue(KUTTA);
@@ -507,6 +516,7 @@ bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const
 
 // 2D
 template array_1d<double, 3> GetWakeDistances<2, 3>(const Element& rElement);
+template void GetDofListNormalElement<2, 3>(const Element& rElement, DofsVectorType& rElementalDofList);
 template BoundedVector<double, 3> GetPotentialOnNormalElement<2, 3>(const Element& rElement);
 template BoundedVector<double, 2 * 3> GetPotentialOnWakeElement<2, 3>(
     const Element& rElement, const array_1d<double, 3>& rDistances);
@@ -537,6 +547,7 @@ template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rT
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
+template void GetDofListNormalElement<3, 4>(const Element& rElement, DofsVectorType& rElementalDofList);
 template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
 template BoundedVector<double, 2 * 4> GetPotentialOnWakeElement<3, 4>(
     const Element& rElement, const array_1d<double, 4>& rDistances);

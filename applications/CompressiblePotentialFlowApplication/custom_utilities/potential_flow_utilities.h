@@ -16,6 +16,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "includes/dof.h"
 
 namespace Kratos
 {
@@ -34,8 +35,13 @@ struct ElementalData{
     array_1d<double, TNumNodes> N;
 };
 
+typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
+
+template <int Dim, int NumNodes>
+void GetDofListNormalElement(const Element& rElement, DofsVectorType& rElementalDofList);
 
 template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
