@@ -307,7 +307,7 @@ namespace Kratos
                typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
                BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
                .def(py::init<Parameters >() )
-               .def(py::init< const Variable<double> >() )
+               .def(py::init< const Variable<double>& >() )
                ;
 
             // Residual Based BDF displacement Scheme Type
