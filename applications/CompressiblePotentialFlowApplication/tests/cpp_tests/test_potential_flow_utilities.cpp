@@ -258,5 +258,84 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeSwitchingOperatorSupersonicDecelerating, Compre
     KRATOS_CHECK_NEAR(upwind_factor, 0.1248655818465636, 1e-16);
 }
 
+// Checks the function ComputePerturbationDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationDensity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    const double density = PotentialFlowUtilities::ComputePerturbationDensity<2, 3>(
+        *pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(density, 0.9646048979014981, 1e-16);
+}
+
+// Checks the function ComputeUpwindDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindDensitySubsonic, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    GenerateTestingUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 150.0, 51.0};
+    AssignPerturbationPotentialsToElement(*pUpstreamElement, upstream_potential);
+
+    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<2, 3>(
+        *pElement, *pUpstreamElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(upwind_density, 0.9646048979014981, 1e-16);
+}
+
+// Checks the function ComputeUpwindDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindDensitySupersonicAccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    GenerateTestingUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
+    AssignPerturbationPotentialsToElement(*pUpstreamElement, upstream_potential);
+
+    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<2, 3>(
+        *pElement, *pUpstreamElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(upwind_density, 0.9076084702345625, 1e-16);
+}
+
+// Checks the function ComputeUpwindDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindDensitySupersonicDecelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    GenerateTestingUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 51.0};
+    AssignPerturbationPotentialsToElement(*pUpstreamElement, upstream_potential);
+
+    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<2, 3>(
+        *pElement, *pUpstreamElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(upwind_density, 0.9003057182942017, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.
