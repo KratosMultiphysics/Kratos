@@ -683,6 +683,8 @@ private:
         // store eigenvalues in process info
         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
 
+        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
         for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
         {
             ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
@@ -697,12 +699,12 @@ private:
             for (std::size_t i = 0; i < NumEigenvalues; i++) {
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
-                    auto itDof = std::begin(NodeDofs) + j;
-                    if ((*itDof)->IsFree()) {
-                        rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
+                    const auto itDof = std::begin(NodeDofs) + j;
+                    if ((*itDof)->IsFree() && r_dof_set.count(**itDof) ) {
+                       rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
                     }
                     else {
-                        rNodeEigenvectors(i,j) = 0.0;
+                       rNodeEigenvectors(i,j) = 0.0;
                     }
                 }
             }
