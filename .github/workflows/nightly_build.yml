@@ -22,7 +22,7 @@ jobs:
       FC: gfortran-7
 
     container:
-      image: oberbichler/kratos-dev:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
 
     steps:
     - uses: actions/checkout@v2
