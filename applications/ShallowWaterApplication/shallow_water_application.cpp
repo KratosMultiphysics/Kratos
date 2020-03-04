@@ -54,6 +54,8 @@ namespace Kratos
         mConservedElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3     <Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mConservedElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
 
+        mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
 
     {}
@@ -132,6 +134,8 @@ namespace Kratos
 
         KRATOS_REGISTER_ELEMENT("ConservedElement2D3N", mConservedElement2D3N)
         KRATOS_REGISTER_ELEMENT("ConservedElement2D4N", mConservedElement2D4N)
+
+        KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }
