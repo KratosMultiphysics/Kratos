@@ -683,7 +683,7 @@ private:
         // store eigenvalues in process info
         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR] = rEigenvalues;
 
-        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+        auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
         for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
         {
