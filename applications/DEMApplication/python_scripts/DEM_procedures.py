@@ -478,9 +478,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_RATIO)
 
-        # For averaging forces when substepping
-        model_part.AddNodalSolutionStepVariable(CONTACT_IMPULSE)
-
         # ROTATION RELATED PROPERTIES
         if self.DEM_parameters["RotationOption"].GetBool():
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
