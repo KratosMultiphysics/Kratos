@@ -50,7 +50,7 @@ namespace Kratos
         static auto LineSearchStrategyFactory = StandardStrategyFactory< SolvingStrategyType, LineSearchStrategyType>();
         static auto ExplicitStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ExplicitStrategyType>();
 
-        // Registration of convergence solvers
+        // Registration of strategies
         KRATOS_REGISTER_STRATEGY("linear_strategy", ResidualBasedLinearStrategyFactory);
         KRATOS_REGISTER_STRATEGY("newton_raphson_strategy", ResidualBasedNewtonRaphsonStrategyFactory);
         KRATOS_REGISTER_STRATEGY("adaptative_newton_raphson_strategy", AdaptiveResidualBasedNewtonRaphsonStrategyFactory);
