@@ -1,0 +1,13 @@
+FROM kratosmultiphysics/kratos-image-ci-ubuntu-bionic
+
+ENV HOME /root
+
+RUN git clone -b 'v5.4.1' --depth 1 https://github.com/KratosMultiphysics/Kratos.git /software/Kratos && \
+    # using the configure file from the CI
+    cp /software/Kratos/.github/workflows/configure.sh /software/Kratos/scripts/configure.sh && \
+    cd /software/Kratos/scripts && \
+    sh configure.sh
+
+CMD [ "/bin/bash" ]
+
+WORKDIR $HOME
