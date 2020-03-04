@@ -7,7 +7,7 @@ RUN git clone --depth 1 https://github.com/KratosMultiphysics/Kratos.git /softwa
     export KRATOS_BUILD_TYPE=Release && \
     export CC=gcc && \
     export CXX=g++ && \
-    export FC=gfortran && \
+    export FC=gfortran-7 && \
     export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON" && \
     # using the configure file from the CI
     cp /software/Kratos/.github/workflows/configure.sh /software/Kratos/configure.sh && \
