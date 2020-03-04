@@ -51,7 +51,11 @@ class DamTemperaturebyDeviceProcess : public Process
                 "is_fixed"          : false,
                 "value"             : 0.0,
                 "table"             : 0,
-                "position"          : [0.0,0.0,0.0]
+                "position"          : [0.0,0.0,0.0],
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

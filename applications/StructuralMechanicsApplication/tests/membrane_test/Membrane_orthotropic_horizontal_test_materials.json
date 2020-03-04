@@ -13,7 +13,7 @@
                 "YOUNG_MODULUS_X"            : 1.05e+10,
                 "YOUNG_MODULUS_Y"            : 2.1e+11,
                 "SHEAR_MODULUS_XY"           : 7.894e+10,
-                "POISSON_RATIO"            : 0.0
+                "POISSON_RATIO_XY"            : 0.0
             },
             "Tables"           : {}
         }
