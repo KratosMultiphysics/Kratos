@@ -23,8 +23,8 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/model_part.h"
-#include "includes/global_pointer_variables.h"
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_elemental_neighbours_process.h"
 
 namespace Kratos
 {
@@ -89,21 +89,37 @@ public:
 
     /**
      * @brief Default constructor.
-     * @details The better the guess for the quantities above the less memory occupied and the fastest the algorithm
+     * @param rModelPart The modelpart to be processed
+    */
+    FindNodalNeighboursProcess(ModelPart& rModelPart) 
+        : mrModelPart(rModelPart)
+    {
+         auto& r_comm = model_part.GetCommunicator().GetDataCommunicator();
+        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, model_part);
+        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, model_part);
+
+        KRATOS_INFO("FindNodalNeighboursProcess") << 
+            R"(please call separetely FindGlobalNodalNeighboursProcess 
+            and FindGlobalNodalElementalNeighboursProcess. 
+            The two calculations are currently independent,
+             hence memory savings can be achieved)" << std::endl;
+    }
+    
+    /**
+     * @brief Default constructor (deprecated one)
      * @param rModelPart The modelpart to be processed
      * @param AverageElements Expected number of neighbour elements per node.
      * @param AverageNodes Expected number of neighbour Nodes
     */
     FindNodalNeighboursProcess(
-        ModelPart& rModelPart, 
-        SizeType AverageElements = 10, 
-        SizeType AverageNodes = 10
-        ) : mrModelPart(rModelPart),
-            mAverageElements(AverageElements),
-            mAverageNodes(AverageNodes)
+      ModelPart& rModelPart, 
+      const SizeType AverageElements, 
+      const SizeType AverageNodes
+      ) : FindNodalNeighboursProcess(rModelPart)
     {
+        KRATOS_WARNING("FindNodalNeighboursProcess") << "Parameters AverageElements and AverageNodes are currently ignored. This constructor will be removed on the 2 of April 2020" << std::endl;
     }
-
+    
     /// Destructor.
     ~FindNodalNeighboursProcess() override
     {
@@ -218,11 +234,10 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrModelPart;    /// The modelpart to be processed
-    SizeType mAverageElements; /// Expected number of neighbour elements per node.
-    SizeType mAverageNodes;    /// Expected number of neighbour nodes
-
-
+    ModelPart& mrModelPart;                                                                          /// The modelpart to be processed
+    std::unique_ptr<FindGlobalNodalElementalNeighboursProcess> mpElemNeighboursCalculator = nullptr; /// FindGlobalNodalElementalNeighboursProcess pointer 
+    std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;          /// FindGlobalNodalNeighboursProcess pointer 
+    
     ///@}
     ///@name Private Operators
     ///@{
