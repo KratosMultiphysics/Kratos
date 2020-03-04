@@ -128,9 +128,9 @@ jobs:
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
 
-      -name: Running small tests
-        shell: cmd
-        run: |
+    - name: Running small tests
+      shell: cmd
+      run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
