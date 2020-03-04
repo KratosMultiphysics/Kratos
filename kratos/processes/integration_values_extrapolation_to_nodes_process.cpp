@@ -47,6 +47,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
         "list_of_variables"          : [],
         "extrapolate_non_historical" : true
     })");
+
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mEchoLevel = ThisParameters["echo_level"].GetInt();
