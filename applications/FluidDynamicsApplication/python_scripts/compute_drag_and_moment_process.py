@@ -95,20 +95,20 @@ class ComputeDragAndMomentProcess(KratosMultiphysics.Process):
 
         if(((current_time >= self.interval[0]) and  (current_time < self.interval[1])) and (current_step + 1 >= self.model_part.GetBufferSize())):
             # Compute the drag force
-            drag_force_and_moment = self._GetCorrespondingDragForceAndMoment()
+            drag_force, drag_moment = self._GetCorrespondingDragForceAndMoment()
 
             # Write the drag force values
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
-                    result_msg = str(current_time) + " x-drag: " + format(drag_force_and_moment[0],self.format) + " y-drag: " + format(drag_force_and_moment[1],self.format) + " z-drag: " + format(drag_force_and_moment[2],self.format) + \
-                    " Mx: " + format(drag_force_and_moment[3],self.format) + " My: " + format(drag_force_and_moment[4],self.format) + " Mz: " + format(drag_force_and_moment[5],self.format)
+                    result_msg = str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format) + \
+                    " Mx: " + format(drag_moment[0],self.format) + " My: " + format(drag_moment[1],self.format) + " Mz: " + format(drag_moment[2],self.format)
                     self._PrintToScreen(result_msg)
 
                 # not formatting time in order to not lead to problems with time recognition
                 # in the file writer when restarting
                 if (self.write_drag_output_file):
-                    self.output_file.write(str(current_time)+" "+format(drag_force_and_moment[0],self.format)+" "+format(drag_force_and_moment[1],self.format)+" "+format(drag_force_and_moment[2],self.format)+" "+ \
-                    format(drag_force_and_moment[3],self.format)+" "+format(drag_force_and_moment[4],self.format)+" "+format(drag_force_and_moment[5],self.format)+"\n")
+                    self.output_file.write(str(current_time)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+" "+ \
+                    format(drag_moment[0],self.format)+" "+format(drag_moment[1],self.format)+" "+format(drag_moment[2],self.format)+"\n")
 
     def ExecuteFinalize(self):
         if (self.write_drag_output_file):
