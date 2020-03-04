@@ -96,16 +96,16 @@ namespace Testing
         const std::size_t element_id = 1;
 
         std::vector<double> r_MP_PotentialEnergy(1);
-        r_model_part.pGetElement(element_id)->GetValueOnIntegrationPoints(MP_POTENTIAL_ENERGY, r_MP_PotentialEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_POTENTIAL_ENERGY, r_MP_PotentialEnergy, r_model_part.GetProcessInfo());
         
         std::vector<double> r_MP_KineticEnergy(1);
-        r_model_part.pGetElement(element_id)->GetValueOnIntegrationPoints(MP_KINETIC_ENERGY, r_MP_KineticEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_KINETIC_ENERGY, r_MP_KineticEnergy, r_model_part.GetProcessInfo());
 
         std::vector<double> r_MP_StrainEnergy(1);
-        r_model_part.pGetElement(element_id)->GetValueOnIntegrationPoints(MP_STRAIN_ENERGY, r_MP_StrainEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_STRAIN_ENERGY, r_MP_StrainEnergy, r_model_part.GetProcessInfo());
 
         std::vector<double> r_MP_TotalEnergy(1);
-        r_model_part.pGetElement(element_id)->GetValueOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_model_part.GetProcessInfo());
 
         KRATOS_CHECK_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
         KRATOS_CHECK_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);
