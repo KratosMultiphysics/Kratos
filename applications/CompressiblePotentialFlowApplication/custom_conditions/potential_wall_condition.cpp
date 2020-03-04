@@ -115,7 +115,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& 
     double length;
     GeometryUtils::CalculateGeometryData(rGeom_condition, DN_DX_tmp, N, length);
 
-    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes+1>(*pGetElement(), rCurrentProcessInfo);
+    const double density = PotentialFlowUtilities::ComputePerturbationDensity<TDim, TNumNodes+1>(*pGetElement(), rCurrentProcessInfo);
     const BoundedVector<double, NumNodes> An_DN_DX = prod(An, trans(DN_DX));
     noalias(rLeftHandSideMatrix) = density * outer_prod(N, An_DN_DX);
 
