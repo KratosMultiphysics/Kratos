@@ -31,13 +31,13 @@ namespace MPMEnergyCalculationUtility
 
         double mp_potential_energy = 0.0;
         std::vector<double> mp_mass(1);
-        rElement.GetValueOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, process_info);
 
         std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
-        rElement.GetValueOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
 
         std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
-        rElement.GetValueOnIntegrationPoints(MP_COORD, mp_coord, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_COORD, mp_coord, process_info);
 
         for(unsigned int k = 0; k<3; k++)
             mp_potential_energy += mp_mass[0] * std::abs(mp_volume_acceleration[0][k]) * mp_coord[0][k];
@@ -63,10 +63,10 @@ namespace MPMEnergyCalculationUtility
 
         double MP_kinetic_energy = 0.0;
         std::vector<double> mp_mass(1);
-        rElement.GetValueOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, process_info);
 
         std::vector<array_1d<double, 3>> mp_velocity = { ZeroVector(3) };
-        rElement.GetValueOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
 
         for(SizeType k = 0; k<3; ++k)
             MP_kinetic_energy   += 0.5 * mp_mass[0] * mp_velocity[0][k] * mp_velocity[0][k];
@@ -92,13 +92,13 @@ namespace MPMEnergyCalculationUtility
 
         double mp_strain_energy = 0.0;
         std::vector<double> mp_volume(1);
-        rElement.GetValueOnIntegrationPoints(MP_VOLUME, mp_volume, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume, process_info);
 
         std::vector<Vector> mp_cauchy_stress(1);
-        rElement.GetValueOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress, process_info);
 
         std::vector<Vector> mp_almansi_strain(1);
-        rElement.GetValueOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain, process_info);
+        rElement.CalculateOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain, process_info);
 
         for(SizeType j = 0; j < mp_cauchy_stress[0].size(); ++j)
         {
