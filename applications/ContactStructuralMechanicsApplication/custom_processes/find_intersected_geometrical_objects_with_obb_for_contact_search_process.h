@@ -103,7 +103,13 @@ public:
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
-        const Flags Options = BaseProcessType::INTERSECTING_CONDITIONS|BaseProcessType::INTERSECTING_ELEMENTS|BaseProcessType::INTERSECTED_CONDITIONS|BaseProcessType::INTERSECTED_ELEMENTS|BaseType::NOT_DEBUG_OBB|BaseType::SEPARATING_AXIS_THEOREM|BaseType::BUILD_OBB_FROM_BB
+        const Flags Options = BaseProcessType::INTERSECTING_CONDITIONS|
+            BaseProcessType::INTERSECTING_ELEMENTS|
+            BaseProcessType::INTERSECTED_CONDITIONS|
+            BaseProcessType::INTERSECTED_ELEMENTS|
+            BaseType::DEBUG_OBB.AsFalse()|
+            BaseType::SEPARATING_AXIS_THEOREM|
+            BaseType::BUILD_OBB_FROM_BB
         );
 
     /**

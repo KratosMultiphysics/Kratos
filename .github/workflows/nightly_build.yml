@@ -1,6 +1,10 @@
 name: Nightly Build
 
 on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+
   schedule:
     - cron:  '0 1 * * *'
 
