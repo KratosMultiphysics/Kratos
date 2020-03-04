@@ -60,18 +60,6 @@ class KRATOS_API(KRATOS_CORE) FindNodalNeighboursProcess
 public:
     ///@name Type Definitions
     ///@{
-
-    /// The nodes container type
-    typedef ModelPart::NodesContainerType NodesContainerType;
-    
-    /// The elements container type
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
-    
-    /// The node definition
-    typedef Node<3> NodeType;
-    
-    /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
     
     /// The index type
     typedef std::size_t IndexType;
@@ -90,19 +78,7 @@ public:
      * @brief Default constructor.
      * @param rModelPart The modelpart to be processed
     */
-    FindNodalNeighboursProcess(ModelPart& rModelPart) 
-        : mrModelPart(rModelPart)
-    {
-         auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, mrModelPart);
-        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, mrModelPart);
-
-        KRATOS_INFO("FindNodalNeighboursProcess") << 
-            R"(please call separetely FindGlobalNodalNeighboursProcess 
-            and FindGlobalNodalElementalNeighboursProcess. 
-            The two calculations are currently independent,
-             hence memory savings can be achieved)" << std::endl;
-    }
+    FindNodalNeighboursProcess(ModelPart& rModelPart);
     
     /**
      * @brief Default constructor (deprecated one)
@@ -114,10 +90,7 @@ public:
       ModelPart& rModelPart, 
       const SizeType AverageElements, 
       const SizeType AverageNodes
-      ) : FindNodalNeighboursProcess(rModelPart)
-    {
-        KRATOS_WARNING("FindNodalNeighboursProcess") << "Parameters AverageElements and AverageNodes are currently ignored. This constructor will be removed on the 2 of April 2020" << std::endl;
-    }
+      );
     
     /// Destructor.
     ~FindNodalNeighboursProcess() override
@@ -240,28 +213,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * @brief This method allows to add an unique weak pointer to a vector of global pointers
-     * @param rVector The vector containing the global pointers 
-     * @param Candidate The candidate to add
-     */
-    template< class TDataType > 
-    void  AddUniqueWeakPointer(
-        GlobalPointersVector<TDataType>& rVector, 
-        const GlobalPointer<TDataType> Candidate
-        )
-    {
-        auto i = rVector.begin();
-        auto endit = rVector.end();
-        while ( i != endit && (i)->Id() != (Candidate)->Id()) {
-            i++;
-        }
-        if( i == endit ) {
-            rVector.push_back(Candidate);
-        }
-
-    }
 
     ///@}
     ///@name Private Operations
