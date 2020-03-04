@@ -44,7 +44,7 @@ void ShockCapturing(const double mu,
 {
     const int SpaceDimension = 2;
     
-   const double alpha = 0.8;                               // Algorithm constant
+   const double alpha = 2;                               // Algorithm constant
    const double tol = 1e-3;                               
 
     unsigned int i;
@@ -150,6 +150,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     array_1d<double,nNodalVariables*nScalarVariables>    Lstar;
     array_1d<double,nScalarVariables*SpaceDimension>     G;
     array_1d<double,nScalarVariables*nScalarVariables>   S;
+    array_1d<double,nScalarVariables*nScalarVariables>   B;
     array_1d<double,SpaceDimension*SpaceDimension>       tau;
     array_1d<double,SpaceDimension>                      q;
     array_1d<double,nScalarVariables*nNodalVariables>    NN;
@@ -236,14 +237,14 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     // This is convenient during the implementation but has to be removed 
     // after some modification of the remainding part of the file
-    for (j = 0; j < nodesElement; j++){
+    // for (j = 0; j < nodesElement; j++){
 
-        NN(0 * nNodalVariables + j*nScalarVariables    ) = N(j);
-        NN(1 * nNodalVariables + j*nScalarVariables + 1) = N(j);
-        NN(2 * nNodalVariables + j*nScalarVariables + 2) = N(j);
-        NN(3 * nNodalVariables + j*nScalarVariables + 3) = N(j);
+    //     NN(0 * nNodalVariables + j*nScalarVariables    ) = N(j);
+    //     NN(1 * nNodalVariables + j*nScalarVariables + 1) = N(j);
+    //     NN(2 * nNodalVariables + j*nScalarVariables + 2) = N(j);
+    //     NN(3 * nNodalVariables + j*nScalarVariables + 3) = N(j);
 
-    }
+    // }
 
     // This is convenient during the implementation but has to be removed 
     // after some modification of the remainding part of the file    
@@ -456,18 +457,39 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
 					Lstar[p] += (-A[t]*gradV[(SpaceDimension*i+j)*nNodalVariables + s]);
                     
-					for (m = 0; m < nScalarVariables; m++){
-
-						tt = cont(i,j,k,m,nScalarVariables,SpaceDimension,nScalarVariables,nScalarVariables);
-
-						Lstar[p] += (-NN[pp]*dAdU[tt]*gradU[m*SpaceDimension + j]);
-
-					}
+	
 				}
-
 			}
 		}
 	}
+
+    for (i = 0; i < nScalarVariables*nScalarVariables; i++) B[i] = 0.0;
+
+    for (i = 0; i < nScalarVariables; i++){
+        for (j = 0; j < SpaceDimension; j++){
+            for (k = 0; k < nScalarVariables; k++){
+                pp = i * nScalarVariables + k;
+                for (m = 0; m < nScalarVariables; m++){
+                    tt = cont(i,j,k,m,nScalarVariables,SpaceDimension,nScalarVariables,nScalarVariables);
+
+                    B[pp]  += dAdU[tt]*gradU[m*SpaceDimension + j];
+
+                }
+            }
+        }
+	}
+
+    for (j = 0; j < nodesElement; j++){
+        pp = j*nScalarVariables*nScalarVariables;
+        for (i = 0; i < nScalarVariables; i++){
+            p = i*nScalarVariables;
+            for (k = 0; k < nScalarVariables; k++){
+                Lstar[pp + p + k] -= N[j]*B[p + k];
+            }
+        }
+    }
+
+
 
 	invtauStab[0] =	stab_c2*(norm_u + SpeedSound)/h; 
 	invtauStab[1] =	stab_c1*mu/(ro_el*h*h) + invtauStab[0]; 
