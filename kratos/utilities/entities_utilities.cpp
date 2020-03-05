@@ -59,5 +59,12 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveC
     return rModelPart.MasterSlaveConstraints();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
+template PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
+template PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
+    
 } // namespace EntitiesUtilities
 } // namespace Kratos
