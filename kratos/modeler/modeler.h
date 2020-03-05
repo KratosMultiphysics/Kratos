@@ -16,20 +16,16 @@
 #define  KRATOS_MODELER_H_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-
 
 namespace Kratos
 {
@@ -40,7 +36,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Modeler
+class KRATOS_API(KRATOS_CORE) Modeler
 {
 public:
     ///@name Type Definitions
@@ -80,6 +76,12 @@ public:
     {
         KRATOS_ERROR << "This modeler CAN NOT be used for node generation." << std::endl;
     }
+
+    ///@}
+    ///@name Generate Elements and Conditions
+    ///@{
+
+
 
     ///@}
     ///@name Input and output
