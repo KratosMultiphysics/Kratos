@@ -138,6 +138,11 @@ double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& 
     Hsq = (hsq < Hsq) ? hsq : Hsq;
     return std::sqrt(Hsq);
 }
+// Prism3D4 version.
+template<>
+double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &fGeometry){
+    return 0.0; // TODO: complete this
+}
 
 // Hexahedra3D8 version. We use the distance between face centers to compute lengths.
 template<>
@@ -223,6 +228,12 @@ double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& 
     double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
     return pow(detJ/6.0,1./3.);
+}
+
+// Prism3D6 version
+template<>
+double ElementSizeCalculator<3,6>::AverageElementSize(const Geometry<Node<3> >& rGeometry){
+    return 0.0; // TODO: complete this
 }
 
 // Hexahedra3D8 version.
@@ -317,6 +328,13 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
     }
 
     return Hvel;
+}
+
+// Prism3D6 version
+template<>
+double ElementSizeCalculator<3,6>::ProjectedElementSize(const Geometry<Node<3> > &rGeometry,
+                                                        const array_1d<double,3>& rVelocity){
+    return 0.0; // TODO: complete this
 }
 
 // Hexahedra3D8 version.
@@ -439,6 +457,7 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const Bounded
 template class ElementSizeCalculator<2,3>;
 template class ElementSizeCalculator<2,4>;
 template class ElementSizeCalculator<3,4>;
+template class ElementSizeCalculator<3,6>;
 template class ElementSizeCalculator<3,8>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

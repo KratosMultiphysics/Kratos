@@ -21,6 +21,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/prism_3d_6.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "fluid_dynamics_application.h"
@@ -93,6 +94,12 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mHerschelBulkleyVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mStokes3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+
     mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     // Navier-Stokes symbolic elements
     mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -221,6 +228,11 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous2D3N",mEmbeddedQSVMSDiscontinuous2D3N);
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous3D4N",mEmbeddedQSVMSDiscontinuous3D4N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
+    KRATOS_REGISTER_ELEMENT("iStokes2D3N",mStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("iStokes2D4N",mStokes2D4N);
+    KRATOS_REGISTER_ELEMENT("iStokes3D4N",mStokes3D4N);// Just to avoid name conflict i is used, ll be removed
+    KRATOS_REGISTER_ELEMENT("iStokes3D6N",mStokes3D6N);
+    KRATOS_REGISTER_ELEMENT("NewStokes3D8N",mStokes3D8N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMSLinearizedDarcy3D",mTwoFluidVMSLinearizedDarcy3D);
 
 
