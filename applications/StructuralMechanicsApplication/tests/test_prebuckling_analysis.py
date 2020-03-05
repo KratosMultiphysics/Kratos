@@ -17,6 +17,7 @@ except ImportError:
 
 
 class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
+    @classmethod
     def _add_dofs(self,mp):
         # Adding dofs AND their corresponding reactions
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
@@ -89,7 +90,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "max_iteration"         : 1000,
-            "tolerance"             : 1e-6,
+            "tolerance"             : 1e-10,
             "number_of_eigenvalues" : 2,
             "echo_level"            : 0,
             "normalize_eigenvectors": true
@@ -98,7 +99,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
         eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
-        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-6,1e-11)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
@@ -242,10 +243,11 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
         return mp
 
+
     def _check_load_multiplier(self,load_multiplier1, load_multiplier2, reference):
         #Check if value stays the same in the first and last loadstep
-        #self.assertLess( abs(1-load_multiplier1[0]/load_multiplier1[8]), 1.0e-4)
-        self.assertAlmostEqual(load_multiplier1[0], load_multiplier1[8], 1)
+        #self.assertLess( abs(1-load_multiplier1[0]/load_multiplier1[7]), 1.0e-4)
+        self.assertAlmostEqual(load_multiplier1[0], load_multiplier1[7], 1)
         #Check if both models give same values
         self.assertAlmostEqual(load_multiplier1[0], load_multiplier2[0], 5)
         #Compare value against reference from abaqus
@@ -257,7 +259,7 @@ class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
         reference_value = 92.80
         #Construct model with symmetry conditions (quarter of the full plate 1x1)
         NumOfNodesPerSide = 5
-        LoadSteps = 18
+        LoadSteps = 16
         Length = 1
         current_model_sym = KratosMultiphysics.Model()
         mp_sym = self._set_up_system(current_model_sym,NumOfNodesPerSide,Length,True)
