@@ -173,12 +173,12 @@ class ConjugateHeatTransferSolver(PythonSolver):
             modeler.GenerateModelPart(self.fluid_solver.main_model_part,
                                       self.fluid_thermal_solver.main_model_part,
                                       "Element2D3N",
-                                      "Condition2D2N")
+                                      "LineCondition2D2N")
         else:
             modeler.GenerateModelPart(self.fluid_solver.main_model_part,
                                       self.fluid_thermal_solver.main_model_part,
                                       "Element3D4N",
-                                      "Condition3D3N")
+                                      "SurfaceCondition3D3N")
 
         # Set the saved convection diffusion settings to the new thermal model part
         self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
