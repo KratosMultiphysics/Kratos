@@ -382,6 +382,52 @@ public:
     {
         return typename BaseType::Pointer( new Quadrilateral2D9( NewGeometryName, ThisPoints ) );
     }
+    
+    /**
+     * @brief Creates a new geometry pointer
+     * @param pGeometry Pointer to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        typename BaseType::Pointer pGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Quadrilateral2D9( pGeometry->Points() ) );
+        p_geometry->SetData(pGeometry->GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param pGeometry Pointer to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        IndexType NewGeometryId,
+        typename BaseType::Pointer pGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Quadrilateral2D9( NewGeometryId, pGeometry->Points() ) );
+        p_geometry->SetData(pGeometry->GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param pGeometry Pointer to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
+        typename BaseType::Pointer pGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Quadrilateral2D9( NewGeometryName, pGeometry->Points() ) );
+        p_geometry->SetData(pGeometry->GetData());
+        return p_geometry;
+    }
 
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
