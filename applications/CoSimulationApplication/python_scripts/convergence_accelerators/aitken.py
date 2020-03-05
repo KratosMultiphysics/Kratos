@@ -34,10 +34,10 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         super(AitkenConvergenceAccelerator, self).__init__(settings)
         self.R = deque( maxlen = 2 )
 
-        self.alpha_old = self.settings["init_alpha"].GetDouble()
+        self.alpha_old      = self.settings["init_alpha"].GetDouble()
         self.init_alpha_max = self.settings["init_alpha_max"].GetDouble()
-        self.alpha_max = self.settings["alpha_max"].GetDouble()
-        self.alpha_min = self.settings["alpha_min"].GetDouble()
+        self.alpha_max      = self.settings["alpha_max"].GetDouble()
+        self.alpha_min      = self.settings["alpha_min"].GetDouble()
 
     def InitializeSolutionStep(self):
         self.initial_iteration = True
@@ -80,9 +80,9 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "init_alpha"     : 0.1,
-            "init_alpha_max" : 0.45,
-            "alpha_max"      : 2.0,
+            "init_alpha"     :  0.1,
+            "init_alpha_max" :  0.45,
+            "alpha_max"      :  2.0,
             "alpha_min"      : -2.0
         }""")
         this_defaults.AddMissingParameters(super(AitkenConvergenceAccelerator, cls)._GetDefaultSettings())
