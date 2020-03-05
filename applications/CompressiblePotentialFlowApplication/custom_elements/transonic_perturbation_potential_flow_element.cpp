@@ -484,8 +484,8 @@ template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideNormalElement(
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
-        rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
+    if (rLeftHandSideMatrix.size1() != NumNodes + 1 || rLeftHandSideMatrix.size2() != NumNodes + 1)
+        rLeftHandSideMatrix.resize(NumNodes + 1, NumNodes + 1, false);
     rLeftHandSideMatrix.clear();
 
     ElementalData<NumNodes, Dim> data;
@@ -498,20 +498,25 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
     array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
-    noalias(rLeftHandSideMatrix) +=
+    const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_laplacian =
         data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_nonlinear =
+        data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
-    const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
-        data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
+    for(unsigned int i = 0; i < NumNodes; i++){
+        for(unsigned int j = 0; j < NumNodes; j++){
+            rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
+            rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+        }
+    }
 }
 
 template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSideNormalElement(
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rRightHandSideVector.size() != NumNodes)
-        rRightHandSideVector.resize(NumNodes, false);
+    if (rRightHandSideVector.size() != NumNodes + 1)
+        rRightHandSideVector.resize(NumNodes + 1, false);
     rRightHandSideVector.clear();
 
     ElementalData<NumNodes, Dim> data;
@@ -522,7 +527,11 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHan
     const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
     array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
 
-    noalias(rRightHandSideVector) = - data.vol * upwind_density * prod(data.DN_DX, velocity);
+    const BoundedVector<double, NumNodes> rhs = - data.vol * upwind_density * prod(data.DN_DX, velocity);
+
+    for(unsigned int i = 0; i < NumNodes; i++){
+        rRightHandSideVector(i) = rhs(i);
+    }
 }
 
 template <int Dim, int NumNodes>
