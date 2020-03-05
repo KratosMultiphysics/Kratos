@@ -802,7 +802,14 @@ public:
 
         if (rNodes.size() != 0) {
             // checking the first node to avoid error being thrown in parallel region
-            KRATOS_ERROR_IF_NOT(rNodes.begin()->HasDofFor(rVar)) << "Trying to fix/free dof of variable " << rVar.Name() << " but this dof does not exist!" << std::endl;
+            KRATOS_ERROR_IF_NOT(rNodes.begin()->HasDofFor(rVar)) << "Trying to fix/free dof of variable " << rVar.Name() << " but this dof does not exist in node #" << rNodes.begin()->Id() << "!" << std::endl;
+
+#ifdef KRATOS_DEBUG
+            for (const auto& r_node : rNodes) {
+                KRATOS_ERROR_IF_NOT(r_node.HasDofFor(rVar)) << "Trying to fix/free dof of variable " << rVar.Name() << " but this dof does not exist in node #" << r_node.Id() << "!" << std::endl;
+            }
+#endif
+
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
