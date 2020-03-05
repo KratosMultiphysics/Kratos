@@ -85,7 +85,7 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         this_defaults = KM.Parameters("""{
             "init_alpha"     : 0.1,
             "init_alpha_max" : 0.45,
-            "alpha_max"      : 20.0,
+            "alpha_max"      : 2.0,
             "alpha_min"      : -2.0
         }""")
         this_defaults.AddMissingParameters(super(AitkenConvergenceAccelerator, cls)._GetDefaultSettings())
