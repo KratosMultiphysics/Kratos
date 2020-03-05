@@ -247,11 +247,13 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
     def _check_load_multiplier(self,load_multiplier1, load_multiplier2, reference):
         #Check if value stays the same in the first and last loadstep
         #self.assertLess( abs(1-load_multiplier1[0]/load_multiplier1[7]), 1.0e-4)
-        self.assertAlmostEqual(load_multiplier1[0], load_multiplier1[7], 1)
-        #Check if both models give same values
         self.assertAlmostEqual(load_multiplier1[0], load_multiplier2[0], 5)
-        #Compare value against reference from abaqus
+
+        self.assertAlmostEqual(load_multiplier1[0], load_multiplier1[1], 1)
+        #Check if both models give same values
         self.assertLess( abs(1-load_multiplier1[0]/reference), 1.0e-2)
+        #Compare value against reference from abaqus
+
 
 class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
     @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
