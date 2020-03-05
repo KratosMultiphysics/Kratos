@@ -308,8 +308,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
     # Dynamic Eigenvalue Analysis
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
-    # Buckling analysis test
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPrebucklingAnalysis]))
+    # Buckling analysis test (switched to small suite)
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPrebucklingAnalysis]))
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Dynamic basic tests
