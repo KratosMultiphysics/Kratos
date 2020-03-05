@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -34,22 +34,6 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -68,15 +52,6 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    //typedef ModelPart::GeometricalDataContainerType GeometricalDataContainerType;
-
-    //typedef GeometricalDataContainerType::GeometricalDataType GeometricalDataType;
-
-    //typedef ModelPart::GeometryType GeometryType;
-
-    //typedef ModelPart::GeometriesContainerType GeometriesContainerType;
-
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -87,66 +62,9 @@ public:
     /// Destructor.
     virtual ~Modeler() {}
 
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
     ///@}
     ///@name Operations
     ///@{
-
-
-    /*	  void CollapsePoints(ModelPart& rThisModelPart, double Tolerance)
-    {
-      double distance;
-      Point3D<Node<3> >::Pointer p_founded_point;
-
-      GeometriesContainerType& geometries = rThisModelPart.Geometries();
-      GeometriesContainerType::PointsArrayType& r_points_array = geometries.Points();
-
-      if(geometries.NumberOfGeometries() == 0)
-    	  return;
-
-      for(GeometriesContainerType::GeometryIterator i_geometry = geometries.GeometriesBegin() ;
-    	  i_geometry != geometries.GeometriesEnd() ; i_geometry++)
-      {
-      // At this moment a brute force search is used
-    	  for(GeometryType::iterator i_point = i_geometry->begin() ; i_point != i_geometry->end() ; i_point++)
-    	  {
-    		  bool founded = false;
-    		  for(GeometriesContainerType::PointIterator j_point = r_points_array.begin() ;
-    			  j_point != r_points_array.end() ; j_point++)
-    		  {
-    			distance = j_point->Distance(*i_point);
-    			if(distance < Tolerance)
-    			{
-    				founded = true;
-    				p_founded_point = *(j_point.base());
-    				break;
-    			}
-    		  }
-    		  if(founded)
-    		  {
-    			  *(i_point.base()) = p_founded_point->pGetPoint(0);
-    		  }
-    		  else
-    		  {
-    			  r_points_array.push_back(Point3D<Node<3> >(*(i_point.base())));
-    		  }
-    	  }
-      }
-
-    }
-    */
-
-
-//	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
-//	  {
-//		  KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
-//	  }
-//
 
     virtual void GenerateModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
@@ -162,16 +80,6 @@ public:
     {
         KRATOS_ERROR << "This modeler CAN NOT be used for node generation." << std::endl;
     }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -194,82 +102,9 @@ public:
     {
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -279,16 +114,9 @@ private:
     /// Copy constructor.
     Modeler(Modeler const& rOther);
 
-
     ///@}
 
 }; // Class Modeler
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output
@@ -310,7 +138,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
