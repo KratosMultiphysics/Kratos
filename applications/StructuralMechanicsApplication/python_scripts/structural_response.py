@@ -438,7 +438,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
             "adjoint_linear_strain_energy" : "StrainEnergy",
             "adjoint_local_stress" : "LocalStress",
             "adjoint_max_stress" : "MaxStress",
-            "adjoint_nodal_reaction" : "NodalReaction"
+            "adjoint_nodal_reaction" : "NodalReaction",
+            "adjoint_aggregated_stress" : "AggregatedStress"
         }
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type] + "Response"

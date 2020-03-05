@@ -28,6 +28,7 @@
 #include "response_functions/adjoint_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_max_stress_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_aggregated_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
@@ -73,6 +74,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointMaxStressResponseFunction, AdjointMaxStressResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointMaxStressResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<AdjointAggregatedStressResponseFunction, AdjointAggregatedStressResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointAggregatedStressResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointResponseFunction>
