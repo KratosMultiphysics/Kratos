@@ -39,19 +39,24 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.alpha_max = self.settings["alpha_max"].GetDouble()
         self.alpha_min = self.settings["alpha_min"].GetDouble()
 
+    def InitializeSolutionStep(self):
+        self.initial_iteration = True
+
     ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
     def UpdateSolution( self, r, x ):
         self.R.appendleft( deepcopy(r) )
-        k = len( self.R ) - 1
+
         ## For the first iteration, do relaxation only
-        if k == 0:
+        if self.initial_iteration:
+            self.initial_iteration = False
             alpha = min( self.alpha_old, self.init_alpha_max )
             if self.echo_level > 3:
                 cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with initial factor = {}".format(alpha))
             return alpha * r
+
         else:
             r_diff = self.R[0] - self.R[1]
             numerator = np.inner( self.R[1], r_diff )
@@ -71,14 +76,6 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         self.alpha_old = alpha
 
         return delta_x
-
-    # Finalizes the current time step and initializes the next time step.
-    def FinalizeSolutionStep( self ):
-        ## Clear the buffer
-        if self.R:
-            if self.echo_level > 3:
-                cs_tools.cs_print_info(self._ClassName(), "Cleaning")
-            self.R.clear()
 
     @classmethod
     def _GetDefaultSettings(cls):
