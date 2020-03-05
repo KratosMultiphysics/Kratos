@@ -3735,7 +3735,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     const auto it_elem_begin = r_elements_array.begin();
 
     if (r_conditions_array.size() > 0) {
-        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
+        const std::string type_name = (Dimension == 2) ? "LineCondition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "LineCondition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
     }

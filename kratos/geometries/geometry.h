@@ -29,7 +29,6 @@
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
 #include "containers/data_value_container.h"
-
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
 
