@@ -339,9 +339,9 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[1] = 2.2
         displacement[2] = 3.1
 
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.DISPLACEMENT, displacement, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.FORCE, displacement, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DISPLACEMENT, displacement, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.FORCE, displacement, model_part.Nodes)
 
         ##save the variable values
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY, model_part.Nodes)
