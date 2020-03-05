@@ -700,7 +700,7 @@ private:
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
                     const auto itDof = std::begin(NodeDofs) + j;
-                    bool is_active = !(*(r_dof_set.find(**itDof)) == *(r_dof_set.end()));
+                    bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
                     if ((*itDof)->IsFree() && is_active) {
                        rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
                     }
