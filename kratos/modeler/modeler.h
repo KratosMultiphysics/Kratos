@@ -48,6 +48,8 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
+    typedef typename ModelPart::GeometriesArrayType GeometriesArrayType;
+
     ///@}
     ///@name Life Cycle
     ///@{
