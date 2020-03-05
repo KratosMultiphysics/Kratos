@@ -102,8 +102,8 @@ class ULF_FSISolver:
 
         if(domain_size == 2):
             self.Mesher = TriGenPFEMModeler()
-            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part, 9, 18)
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part, 9, 18)
+            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part)
             # this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part, 2, 10)
 
@@ -111,8 +111,8 @@ class ULF_FSISolver:
             # self.Mesher = TetGenModeler()
             # improved mesher
             self.Mesher = TetGenPfemModeler()
-            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part, 20, 30)
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part, 20, 30)
+            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part)
             # this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part, 3, 20)
 
