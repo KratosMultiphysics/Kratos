@@ -275,7 +275,7 @@ protected:
             (*iExtraSteps)->Execute();
 
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera", BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
 
         return norm_dp;
     }
