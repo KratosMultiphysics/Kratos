@@ -158,7 +158,8 @@ public:
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
-            ModelPart &r_fs_velocity_model_part = r_model_part.CreateSubModelPart("fs_velocity_model_part");
+            std::string fs_vel_mp_name = r_model_part.Name()+"fs_velocity_model_part";
+            ModelPart &r_fs_velocity_model_part = r_model_part.CreateSubModelPart(fs_vel_mp_name);
             FastTransferBetweenModelPartsProcess(r_fs_velocity_model_part, r_model_part).Execute();
             // Velocity Builder and Solver
             ResidualBasedBlockBuilderAndSolverPointerType p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
@@ -168,30 +169,31 @@ public:
             if (use_slip)
             {
                 std::size_t domain_size = BaseType::GetDomainSize();
-                SchemePointerType p_temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (domain_size,domain_size));
+                SchemePointerType p_temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace>> (domain_size,domain_size);
                 p_scheme.swap(p_temp);
             }
             else
             {
-                SchemePointerType p_temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+                SchemePointerType p_temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace >>();
                 p_scheme.swap(p_temp);
             }
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (r_fs_velocity_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag));
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
+                                                                        (r_fs_velocity_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
-            ModelPart &r_fs_pressure_model_part = r_model_part.CreateSubModelPart("fs_pressure_model_part");
+            std::string fs_pressure_mp_name = r_model_part.Name()+"fs_pressure_model_part";
+            ModelPart &r_fs_pressure_model_part = r_model_part.CreateSubModelPart(fs_pressure_mp_name);
             FastTransferBetweenModelPartsProcess(r_fs_pressure_model_part, r_model_part).Execute();
             // Pressure Builder and Solver
             ResidualBasedBlockBuilderAndSolverPointerType p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
-            SchemePointerType p_scheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace >> ();
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (r_fs_pressure_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag));
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
+                                                                        (r_fs_pressure_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
         }
         else
         {
