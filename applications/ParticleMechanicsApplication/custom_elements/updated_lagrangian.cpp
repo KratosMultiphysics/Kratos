@@ -1751,7 +1751,7 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<doub
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
 
-    if (rVariable == MP_COORD) {
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
         mMP.xg = rValues[0];
     }
     else if (rVariable == MP_DISPLACEMENT) {
