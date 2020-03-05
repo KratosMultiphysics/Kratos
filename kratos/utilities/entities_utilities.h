@@ -41,7 +41,7 @@ namespace EntitiesUtilities
      * @param rModelPart The model of the problem to solve
      */
     template<class TEntityType>
-    PointerVectorSet<TEntityType, IndexedObject>& KRATOS_API(KRATOS_CORE) GetEntities(ModelPart& rModelPart);
+    KRATOS_API(KRATOS_CORE) PointerVectorSet<TEntityType, IndexedObject>& GetEntities(ModelPart& rModelPart);
 
     /**
      * @brief This method initializes all the conditions
