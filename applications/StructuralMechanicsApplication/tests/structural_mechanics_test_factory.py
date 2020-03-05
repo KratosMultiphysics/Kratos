@@ -388,5 +388,8 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanic
 class TensileTestStructuralTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/TensileTestStructural/TensileTestStructural"
 
+class Solid2p5DElementTest(StructuralMechanicsTestFactory):
+    file_name = "solid_2p5d_test/solid_2p5d"
+
 if __name__ == '__main__':
     KratosUnittest.main()
