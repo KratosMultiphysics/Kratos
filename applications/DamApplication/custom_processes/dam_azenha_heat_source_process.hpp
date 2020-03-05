@@ -56,7 +56,11 @@ class DamAzenhaHeatFluxProcess : public Process
                 "A"                                   : 0.0,
                 "B"                                   : 0.0,
                 "C"                                   : 0.0,
-                "D"                                   : 0.0
+                "D"                                   : 0.0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them

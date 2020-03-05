@@ -1,6 +1,10 @@
 name: Nightly Build
 
 on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+
   schedule:
     - cron:  '0 1 * * *'
 
@@ -18,7 +22,7 @@ jobs:
       FC: gfortran-7
 
     container:
-      image: oberbichler/kratos-dev:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
 
     steps:
     - uses: actions/checkout@v2
