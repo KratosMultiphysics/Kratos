@@ -28,7 +28,7 @@
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
-#include "custom_processes/impose_z_strain_process.hpp"
+#include "custom_processes/impose_z_strain_process.h"
 
 namespace Kratos {
 namespace Python {
