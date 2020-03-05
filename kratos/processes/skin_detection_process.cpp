@@ -181,6 +181,8 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     std::string pre_name = "";
     if (TDim == 3 && name_condition == "Condition") {
         pre_name = "Surface";
+    } else if (TDim == 2 && name_condition == "Condition") {
+        pre_name = "Line";
     }
     const std::string base_name = pre_name + name_condition;
 
