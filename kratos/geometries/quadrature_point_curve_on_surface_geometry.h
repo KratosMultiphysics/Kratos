@@ -77,37 +77,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with points and all shape function containers separately
-    QuadraturePointCurveOnSurfaceGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsContainerType& rIntegrationPoints,
-        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
-        double LocalTangentsU,
-        double LocalTangentsV)
-        : BaseType(ThisPoints, rIntegrationPoints,
-            rShapeFunctionValues, rShapeFunctionsDerivativesVector)
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-    {
-    }
-
-    /// Constructor with points and all shape function containers separately including the parent
-    QuadraturePointCurveOnSurfaceGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsContainerType& rIntegrationPoints,
-        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
-        double LocalTangentsU,
-        double LocalTangentsV,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, rIntegrationPoints,
-            rShapeFunctionValues, rShapeFunctionsDerivativesVector, pGeometryParent)
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-    {
-    }
-
     /// Constructor with points and geometry shape function container
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
