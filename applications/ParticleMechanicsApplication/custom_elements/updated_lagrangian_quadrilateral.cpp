@@ -1752,7 +1752,7 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == MP_COORD) {
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
         rValues[0] = mMP.xg;
     }
     else if (rVariable == MP_DISPLACEMENT) {

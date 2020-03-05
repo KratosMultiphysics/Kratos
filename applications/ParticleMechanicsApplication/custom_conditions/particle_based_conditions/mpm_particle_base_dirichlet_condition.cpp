@@ -84,7 +84,7 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
         rValues[0] = m_displacement;
     }
     else {
-        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
+        MPMParticleBaseCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
