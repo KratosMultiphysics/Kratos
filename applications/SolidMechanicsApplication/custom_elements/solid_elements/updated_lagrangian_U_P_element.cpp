@@ -139,7 +139,7 @@ UpdatedLagrangianUPElement::~UpdatedLagrangianUPElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -158,7 +158,7 @@ void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<dou
   }
   else{
 
-    LargeDisplacementUPElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementUPElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 

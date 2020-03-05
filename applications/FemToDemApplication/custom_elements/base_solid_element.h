@@ -465,7 +465,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<bool>& rVariable,
         std::vector<bool>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -477,7 +477,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<int>& rVariable,
         std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -489,7 +489,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -501,7 +501,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -513,7 +513,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -525,7 +525,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-     void SetValueOnIntegrationPoints(
+     void SetValuesOnIntegrationPoints(
          const Variable<ConstitutiveLaw::Pointer>& rVariable,
          std::vector<ConstitutiveLaw::Pointer>& rValues,
          const ProcessInfo& rCurrentProcessInfo
@@ -537,7 +537,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-     void SetValueOnIntegrationPoints(
+     void SetValuesOnIntegrationPoints(
          const Variable<array_1d<double, 3 > >& rVariable,
          std::vector<array_1d<double, 3 > > rValues,
          const ProcessInfo& rCurrentProcessInfo
@@ -549,7 +549,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-     void SetValueOnIntegrationPoints(
+     void SetValuesOnIntegrationPoints(
          const Variable<array_1d<double, 6 > >& rVariable,
          std::vector<array_1d<double, 6 > > rValues,
          const ProcessInfo& rCurrentProcessInfo
