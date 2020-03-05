@@ -55,6 +55,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
 
     steps:
     - uses: actions/checkout@v2
@@ -98,6 +100,7 @@ jobs:
           -DBOOST_ROOT="%BOOST_ROOT%"                        ^
           -DINCLUDE_FEAST=OFF                                ^
           -DINSTALL_RUNKRATOS=OFF                            ^
+          -DCMAKE_CXX_FLAGS="/Od"                            ^
           -DUSE_COTIRE=ON                                    || goto :error
 
         cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
