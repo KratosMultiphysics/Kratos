@@ -20,6 +20,9 @@ def KratosPrintInfo(message):
 class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingPfemFemDem_Solution):
 #============================================================================================================================
 
+    def __init__(self, Model, PFEMparameters):
+        super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters)
+        self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(0.825)
 #============================================================================================================================
     def SolveSolutionStep(self):
 

@@ -7,8 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velazquez
-//                   Rubén Zorrilla
+//  Main authors:    Alejandro Cornejo
+//                   Ruben Zorrilla
 //
 
 #if !defined(KRATOS_AITKEN_RELAXATION_UTILITY)
@@ -94,9 +94,9 @@ public:
      */
     void InitializeSolutionStep()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
         mConvergenceAcceleratorIteration = 1;
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH( "" )
     }
 
     /**
@@ -110,7 +110,25 @@ public:
         Vector& rIterationGuess
         )
     {
+        KRATOS_TRY
+        VectorPointerType pAux(new VectorType(rResidualVector));
+        std::swap(mpResidualVectorNew, pAux);
 
+        if (mConvergenceAcceleratorIteration == 1) {
+            TSpace::UnaliasedAdd(rIterationGuess, mOmegaOld, *mpResidualVectorNew);
+        } else {
+            VectorType Aux1minus0(*mpResidualVectorNew);                  // Auxiliar copy of mpResidualVectorNew
+            TSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVectorOld); // mpResidualVectorNew - mpResidualVectorOld
+
+            const double denominator = TSpace::Dot(Aux1minus0, Aux1minus0);
+            const double numerator   = TSpace::Dot(*mpResidualVectorOld, Aux1minus0);
+
+            mOmegaNew = -mOmegaOld * (numerator / denominator);
+
+            TSpace::UnaliasedAdd(rIterationGuess, mOmegaNew, *mpResidualVectorNew);
+            mOmegaOld = mOmegaNew;
+        }
+        KRATOS_CATCH("")
     }
 
     /**
@@ -118,10 +136,10 @@ public:
      */
     void FinalizeNonLinearIteration()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
         std::swap(mpResidualVectorOld, mpResidualVectorNew);
         mConvergenceAcceleratorIteration += 1;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -129,9 +147,9 @@ public:
      */
     void FinalizeSolutionStep()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
         mConvergenceAcceleratorIteration = 1;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///@}
