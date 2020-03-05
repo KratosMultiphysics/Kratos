@@ -723,7 +723,12 @@ void  AddMeshToPython(pybind11::module& m)
 
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
-
+    // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Condition>)
+    // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Condition>)
