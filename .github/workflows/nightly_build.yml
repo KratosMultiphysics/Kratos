@@ -73,7 +73,6 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
 
-        set KRATOS_BUILD_TYPE=Debug
         set KRATOS_SOURCE=%cd%
         set KRATOS_BUILD=%cd%\build
         set KRATOS_APP_DIR=applications
@@ -113,10 +112,9 @@ jobs:
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
 
-    - name: Running small tests
+    - name: Running nightly tests
       shell: cmd
       run: |
-        set KRATOS_BUILD_TYPE=Debug
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l nightly -c python
