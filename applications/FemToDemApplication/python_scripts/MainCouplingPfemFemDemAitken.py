@@ -22,4 +22,27 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
 #============================================================================================================================
     def SolveSolutionStep(self):
-        super(MainCouplingPfemFemDemAitken_Solution, self).SolveSolutionStep()
+
+
+        # It's necessary to Fix in order to maintain the FEMDEM Kinematics
+        self.FixNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+
+        KratosPrintInfo("==============================================" + "\n" +
+                        " ==== SOLVING PFEM PART OF THE CALCULATION ====" + "\n" +
+                        " ==============================================")
+
+        # Now we Free the nodes to be calculated by the FEMDEM
+        self.FreeNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+
+        # Transfer pressure forces
+        self.RegenerateAndUpdatePFEMPressureConditions()
+
+        KratosPrintInfo("================================================" + "\n" +
+                       " ==== SOLVING FEMDEM PART OF THE CALCULATION ====" + "\n" +
+                       " ================================================")
+        self.SolveSolutionStepFEMDEM()
+
+        self.PFEM_Solution.main_model_part.RemoveNodes(KM.TO_ERASE)
+
+        # We update the NO_MESH flag in the FEMDEM skin
+        self.UpdateFEMDEMBoundary()

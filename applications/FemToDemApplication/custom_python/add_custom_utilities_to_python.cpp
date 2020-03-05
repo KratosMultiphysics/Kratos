@@ -19,6 +19,7 @@
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FEMDEM_coupling_utilities.h"
+#include "custom_utilities/aitken_relaxation_utility.hpp"
 
 namespace Kratos
 {
@@ -36,6 +37,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AddExplicitImpulses",&FEMDEMCouplingUtilities::AddExplicitImpulses)
         .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
+        ;
+
+    py::class_<AitkenRelaxationUtility>(m,"AitkenRelaxationUtility")
+        .def(py::init<double>())
+        .def("InitializeSolutionStep", &AitkenRelaxationUtility::InitializeSolutionStep)
+        .def("UpdateSolution", &AitkenRelaxationUtility::UpdateSolution)
+        .def("FinalizeNonLinearIteration", &AitkenRelaxationUtility::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep", &AitkenRelaxationUtility::FinalizeSolutionStep);
         ;
 }
 
