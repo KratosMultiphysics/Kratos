@@ -83,11 +83,27 @@ public:
     ///@name Generate Elements and Conditions
     ///@{
 
+    /// Creates elements from model part geometries
+    static void CreateElements(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        std::string& rElementName,
+        int& rIdCounter,
+        int EchoLevel = 0);
+
     /// Creates elements from geometries
     static void CreateElements(
         GeometriesArrayType& rGeometries,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
+        int& rIdCounter,
+        int EchoLevel = 0);
+
+    /// Creates conditions from model part geometries
+    static void CreateConditions(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        std::string& rConditionName,
         int& rIdCounter,
         int EchoLevel = 0);
 

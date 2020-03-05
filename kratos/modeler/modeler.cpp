@@ -44,7 +44,20 @@ namespace Kratos
     ///@name Generate Elements and Conditions
     ///@{
 
-    void CadIntegrationDomain::CreateElements(
+    void Modeler::CreateElements(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        std::string& rElementName,
+        int& rIdCounter,
+        SizeType EchoLevel)
+    {
+        Modeler::CreateElements(
+            rOriginModelPart.Geometries(),
+            rDestinationModelPart,
+            rElementName, rIdCounter, EchoLevel);
+    }
+
+    void Modeler::CreateElements(
         GeometriesArrayType& rGeometries,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
@@ -70,7 +83,20 @@ namespace Kratos
         rDestinationModelPart.AddElements(new_element_list.begin(), new_element_list.end());
     }
 
-    void CadIntegrationDomain::CreateConditions(
+    void Modeler::CreateConditions(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        std::string& rConditionName,
+        int& rIdCounter,
+        SizeType EchoLevel)
+    {
+        Modeler::CreateConditions(
+            rOriginModelPart.Geometries(),
+            rDestinationModelPart,
+            rConditionName, rIdCounter, EchoLevel);
+    }
+
+    void Modeler::CreateConditions(
         GeometriesArrayType& rGeometries,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
