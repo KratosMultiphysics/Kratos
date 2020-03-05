@@ -14,17 +14,12 @@
 #if !defined(KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED )
 #define  KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED
 
-// System includes
-
-
-// External includes
-
 // Project includes
 #include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/element.h"
+
+// Application includes
 #include "custom_elements/small_displacement.h"
-#include "includes/variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -94,7 +89,7 @@ public:
     {};
 
     /// Destructor.
-    ~ZStrainDriven2p5DSmallDisplacement() override;
+    ~ZStrainDriven2p5DSmallDisplacement() override = default;
 
     ///@}
     ///@name Operators
@@ -107,7 +102,7 @@ public:
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Creates a new element
@@ -287,13 +282,6 @@ private:
 
     ///@name Private Inquiry
     ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    //ZStrainDriven2p5DSmallDisplacement& operator=(const ZStrainDriven2p5DSmallDisplacement& rOther);
-    /// Copy constructor.
-    //ZStrainDriven2p5DSmallDisplacement(const ZStrainDriven2p5DSmallDisplacement& rOther);
     ///@}
 
 }; // Class ZStrainDriven2p5DSmallDisplacement

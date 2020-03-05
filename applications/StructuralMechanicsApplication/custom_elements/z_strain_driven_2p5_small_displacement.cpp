@@ -10,18 +10,8 @@
 //                   Ignasi de Pouplana
 //
 
-// System includes
-
-// External includes
-
-
-// Project includes
-#include "utilities/math_utils.h"
-
 // Application includes
 #include "custom_elements/z_strain_driven_2p5_small_displacement.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -59,13 +49,6 @@ Element::Pointer ZStrainDriven2p5DSmallDisplacement::Create( IndexType NewId, Ge
 /***********************************************************************************/
 /***********************************************************************************/
 
-ZStrainDriven2p5DSmallDisplacement::~ZStrainDriven2p5DSmallDisplacement()
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 Element::Pointer ZStrainDriven2p5DSmallDisplacement::Clone (
     IndexType NewId,
     NodesArrayType const& rThisNodes
@@ -94,7 +77,7 @@ Element::Pointer ZStrainDriven2p5DSmallDisplacement::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ZStrainDriven2p5DSmallDisplacement::Initialize()
+void ZStrainDriven2p5DSmallDisplacement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
