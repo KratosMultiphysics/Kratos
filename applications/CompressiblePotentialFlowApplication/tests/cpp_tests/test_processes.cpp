@@ -109,7 +109,7 @@ namespace Kratos {
       Vector resultant_force(3);
       ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
 
-      std::array<double,3> reference({0.0, 0.5, 0.0});
+      std::array<double,3> reference{0.0, 0.5, 0.0};
       KRATOS_WATCH(resultant_force)
 
       for (unsigned int i = 0; i < 3; i++) {
@@ -189,18 +189,19 @@ namespace Kratos {
       std::vector<ModelPart::IndexType> cond3{4, 3};
       std::vector<ModelPart::IndexType> cond4{3, 1};
 
-      model_part.CreateNewCondition("Condition2D2N", 1, cond1, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 2, cond2, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 3, cond3, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 4, cond4, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 1, cond1, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 2, cond2, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 3, cond3, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 4, cond4, pProp);
 
 
       // Set initial potential
       const double initial_potential = 1.0;
       const bool initialize_flow_field = true;
+      const bool perturbation_field = false;
 
       // Construct the ApplyFarFieldProcess
-      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field);
+      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field, perturbation_field);
 
       // Execute the ApplyFarFieldProcess
       ApplyFarFieldProcess.Execute();
