@@ -23,6 +23,10 @@ class PotentialFlowFormulation(object):
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
             elif element_type == "embedded_compressible":
                 self._SetUpEmbeddedCompressibleElement(formulation_settings)
+            elif element_type == "perturbation_incompressible":
+                self._SetUpIncompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_compressible":
+                self._SetUpCompressiblePerturbationElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
@@ -46,6 +50,24 @@ class PotentialFlowFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "CompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpIncompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_incompressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "IncompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpCompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "CompressiblePerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):

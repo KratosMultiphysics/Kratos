@@ -20,6 +20,8 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "integration/integration_point_utilities.h"
+
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
@@ -28,6 +30,8 @@ class NurbsCurveGeometry : public Geometry<typename TContainerPointType::value_t
 public:
     ///@name Type Definitions
     ///@{
+
+    typedef typename TContainerPointType::value_type NodeType;
 
     /// Geometry as base class.
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
@@ -39,6 +43,11 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+
+    // Using GetPoint functions
+    using BaseType::pGetPoint;
+    using BaseType::GetPoint;
 
     /// Counted pointer of NurbsCurveGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveGeometry);
@@ -334,6 +343,53 @@ public:
     }
 
     ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+     * Creates integration points according to its the polynomial degrees.
+     * @return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_per_span = PolynomialDegree() + 1;
+
+        this->CreateIntegrationPoints(
+            rIntegrationPoints, KnotSpanIntervals(), points_per_span);
+    }
+
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<NurbsInterval>& rSpanIntervals,
+        SizeType IntegrationPointsPerSpan) const
+    {
+        const SizeType number_of_integration_points =
+            rSpanIntervals.size() * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            IntegrationPointsPerSpan);
+
+        IndexType counter = 0;
+        for (IndexType i = 0; i < rSpanIntervals.size(); ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_points_knot_span,
+                IntegrationPointsPerSpan,
+                rSpanIntervals[i].GetT0(), rSpanIntervals[i].GetT1());
+
+            for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
+            {
+                rIntegrationPoints[counter] = integration_points_knot_span[k];
+                counter++;
+            }
+        }
+    }
+
+    ///@}
     ///@name Operation within Global Space
     ///@{
 
@@ -526,7 +582,7 @@ private:
         SizeType num_control_points = this->size();
 
         if (mKnots.size() != NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, num_control_points)) {
-            if (mKnots.size() == NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, num_control_points - 2)) {
+            if ((mKnots.size() - 2) == NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, num_control_points)) {
                 Vector Knots = ZeroVector(mKnots.size() - 2);
                 for (SizeType i = 0; i < mKnots.size() - 2; ++i) {
                     Knots[i] = mKnots[i + 1];
@@ -534,8 +590,10 @@ private:
                 mKnots = Knots;
             } else {
                 KRATOS_ERROR
-                    << "Number of controls points, polynomial degree and number of knots do not match! "
-                    << " P: " << mPolynomialDegree << ", number of control points: " << num_control_points
+                    << "Number of controls points, polynomial degree and number of knots do not match! " << std::endl
+                    << " P: " << mPolynomialDegree << ", size of knot vector: " << mKnots.size()
+                    << ", number of control points: " << num_control_points << "." << std::endl
+                    << "Following condition must be achieved: Knots.size() = (ControlPoints.size() + PolynomialDegree - 1)."
                     << std::endl;
             }
         }

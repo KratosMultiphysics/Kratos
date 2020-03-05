@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "geometries/geometry.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/quadrature_point_curve_on_surface_geometry.h"
 
 namespace Kratos
 {
@@ -36,6 +37,7 @@ namespace Kratos
         ///@{
 
         typedef Geometry<TPointType> GeometryType;
+        typedef typename Geometry<TPointType>::Pointer GeometryPointerType;
 
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
@@ -46,7 +48,37 @@ namespace Kratos
         ///@name Operations
         ///@{
 
-        static typename GeometryType::Pointer CreateQuadraturePoint(
+        static GeometryPointerType CreateQuadraturePointCurveOnSurface(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            double LocalTangentU,
+            double LocalTangentV,
+            GeometryType* pGeometryParent)
+        {
+            return Kratos::make_shared<
+                QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentU,
+                    LocalTangentV,
+                    pGeometryParent);
+        }
+
+        static GeometryPointerType CreateQuadraturePointCurveOnSurface(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            double LocalTangentU,
+            double LocalTangentV)
+        {
+            return Kratos::make_shared<
+                QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentU,
+                    LocalTangentV);
+        }
+
+        static GeometryPointerType CreateQuadraturePoint(
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
@@ -85,7 +117,7 @@ namespace Kratos
             }
         }
 
-        static typename GeometryType::Pointer CreateQuadraturePoint(
+        static GeometryPointerType CreateQuadraturePoint(
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
@@ -119,15 +151,15 @@ namespace Kratos
             }
         }
 
-        static std::vector<typename GeometryType::Pointer> Create(
-            typename GeometryType::Pointer pGeometry) {
+        static std::vector<GeometryPointerType> Create(
+            GeometryPointerType pGeometry) {
             KRATOS_TRY;
 
             auto integration_points = pGeometry->IntegrationPoints();
             auto default_method = pGeometry->GetDefaultIntegrationMethod();
             auto r_N = pGeometry->ShapeFunctionsValues();
 
-            std::vector<typename GeometryType::Pointer> geometry_pointer_vector(integration_points.size());
+            std::vector<GeometryPointerType> geometry_pointer_vector(integration_points.size());
 
             for (IndexType i = 0; i < integration_points.size(); ++i)
             {
@@ -152,15 +184,15 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        static std::vector<typename GeometryType::Pointer> Create(
-            typename GeometryType::Pointer pGeometry,
+        static std::vector<GeometryPointerType> Create(
+            GeometryPointerType pGeometry,
             GeometryData::IntegrationMethod ThisIntegrationMethod) {
             KRATOS_TRY;
 
             auto integration_points = pGeometry->IntegrationPoints(ThisIntegrationMethod);
             auto r_N = pGeometry->ShapeFunctionsValues(ThisIntegrationMethod);
 
-            std::vector<typename GeometryType::Pointer> geometry_pointer_vector(integration_points.size());
+            std::vector<GeometryPointerType> geometry_pointer_vector(integration_points.size());
 
             for (IndexType i = 0; i < integration_points.size(); ++i)
             {

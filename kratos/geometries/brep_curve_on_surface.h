@@ -63,14 +63,13 @@ public:
 
     typedef typename NurbsCurveOnSurfaceType::Pointer NurbsCurveOnSurfacePointerType;
 
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -237,6 +236,45 @@ public:
     const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
     {
         return mpCurveOnSurface;
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /**
+     * @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of integration points.
+     * @param NumberOfShapeFunctionDerivatives the number provided
+     *        derivatives of shape functions in the system.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
+    {
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+     * Creates integration points according to its the polynomial degrees.
+     * @return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpCurveOnSurface->CreateIntegrationPoints(
+            rIntegrationPoints);
     }
 
     ///@}

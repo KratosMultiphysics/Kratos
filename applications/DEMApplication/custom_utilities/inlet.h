@@ -70,12 +70,13 @@ namespace Kratos {
         double GetTotalMassInjectedSoFar();
     protected:
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
+        virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
         void UpdateInjectedParticleVelocity(Element &particle, Element &injector_element);
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element, Element* p_injector_element);
-        virtual void RemoveInjectionConditions(Element &element);
+        virtual void RemoveInjectionConditions(Element &element, const int dimension);
         virtual void UpdateTotalThroughput(SphericParticle& r_spheric_particle);
         virtual void UpdateTotalThroughput(Cluster3D& r_cluster);
         virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
