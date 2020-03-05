@@ -62,9 +62,9 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
-template PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
-template PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
     
 } // namespace EntitiesUtilities
 } // namespace Kratos
