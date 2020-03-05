@@ -68,6 +68,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
 
     steps:
     - uses: actions/checkout@v2
@@ -89,7 +91,6 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
 
-        set KRATOS_BUILD_TYPE=Custom
         set KRATOS_SOURCE=%cd%
         set KRATOS_BUILD=%cd%\build
         set KRATOS_APP_DIR=applications
@@ -130,7 +131,6 @@ jobs:
     - name: Running small tests
       shell: cmd
       run: |
-        set KRATOS_BUILD_TYPE=Custom
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
