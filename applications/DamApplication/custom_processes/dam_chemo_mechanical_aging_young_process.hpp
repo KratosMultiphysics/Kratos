@@ -99,7 +99,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
@@ -132,7 +132,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     {
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
