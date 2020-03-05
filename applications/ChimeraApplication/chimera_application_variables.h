@@ -22,7 +22,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
+#include "containers/variable.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {

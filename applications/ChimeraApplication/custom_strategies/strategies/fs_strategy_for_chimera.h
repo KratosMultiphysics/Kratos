@@ -195,8 +195,6 @@ protected:
         r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
         bool converged = false;
-        int Rank = r_model_part.GetCommunicator().MyPID();
-
         // Activate Constraints for VELOCITY and deactivate PRESSURE
         SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
         SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, false);
@@ -213,7 +211,7 @@ protected:
 
             if (converged)
             {
-                KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+                KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
                     "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
                 break;
             }
@@ -223,7 +221,7 @@ protected:
         SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, false);
         SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0 && Rank == 0) && !converged)<<
+        KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0) && !converged)<<
             "Fractional velocity iterations did not converge "<< std::endl;
 
         // Compute projections (for stabilization)
@@ -246,7 +244,7 @@ protected:
             }
         }
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
             "Calculating Pressure."<< std::endl;
         //double norm_dp = 0;
         double norm_dp = BaseType::mpPressureStrategy->Solve();
@@ -263,7 +261,7 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<"Updating Velocity." << std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<"Updating Velocity." << std::endl;
         r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
         CalculateEndOfStepVelocity();
 
@@ -277,7 +275,7 @@ protected:
             (*iExtraSteps)->Execute();
 
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
 
         return norm_dp;
     }
@@ -339,15 +337,13 @@ protected:
                     it_node->FastGetSolutionStepValue(CONV_PROJ) /= nodal_area;
                     it_node->FastGetSolutionStepValue(PRESS_PROJ) /= nodal_area;
                     it_node->FastGetSolutionStepValue(DIVPROJ) /= nodal_area;
-                } else {
-                    KRATOS_WARNING_ONCE("Nodal area too small ! ")<<std::endl;
                 }
             }
         }
 
 
          //For correcting projections for chimera
-        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -429,7 +425,7 @@ protected:
 
     void ChimeraProjectionCorrection(ModelPart& rModelPart)
     {
-        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -494,15 +490,13 @@ protected:
                 it_node->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
                 it_node->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
                 it_node->GetValue(DIVPROJ) = 0.0;
-            } else {
-                KRATOS_WARNING_ONCE("Nodal area too small ! ")<<std::endl;
             }
         }
      }
 
     void ChimeraVelocityCorrection(ModelPart& rModelPart)
     {
-        auto &r_pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
@@ -617,14 +611,11 @@ private:
                             it_node->FastGetSolutionStepValue(VELOCITY_Z) +=
                                 it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
                 }
-                else {
-                    KRATOS_WARNING_ONCE("Nodal area too small ! ") << std::endl;
-                }
             }
         }
 
         auto& r_pre_modelpart =
-            rModelPart.GetSubModelPart("fs_pressure_model_part");
+            rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
         const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for (const auto& constraint : r_constraints_container) {
             const auto& slave_dofs = constraint.GetSlaveDofsVector();

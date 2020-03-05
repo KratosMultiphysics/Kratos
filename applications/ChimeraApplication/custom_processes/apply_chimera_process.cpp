@@ -60,11 +60,6 @@ ApplyChimera<TDim>::ApplyChimera(ModelPart& rMainModelPart, Parameters iParamete
 }
 
 template <int TDim>
-ApplyChimera<TDim>::~ApplyChimera()
-{
-}
-
-template <int TDim>
 void ApplyChimera<TDim>::SetEchoLevel(int EchoLevel)
 {
     mEchoLevel = EchoLevel;

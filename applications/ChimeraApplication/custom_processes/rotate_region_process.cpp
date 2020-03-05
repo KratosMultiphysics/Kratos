@@ -15,6 +15,9 @@
 
 
 #include "rotate_region_process.h"
+#include "utilities/math_utils.h"
+#include "utilities/quaternion.h"
+
 
 // Application includes
 

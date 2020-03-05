@@ -141,5 +141,5 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
 
     def FinalizeSolutionStep(self):
         super(NavierStokesSolverMonolithicChimera,self).FinalizeSolutionStep()
-        ## Depending on the setting this will clear the created constraits
+        ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()

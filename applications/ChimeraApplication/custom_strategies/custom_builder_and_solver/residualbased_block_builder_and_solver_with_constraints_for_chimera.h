@@ -22,7 +22,6 @@
 /* External includes */
 
 /* Project includes */
-#include "spaces/ublas_space.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "includes/master_slave_constraint.h"
 
@@ -208,7 +207,6 @@ protected:
             BuildMasterSlaveConstraints(rModelPart);
             // We compute the transposed matrix of the global relation matrix
             TSystemMatrixType L_transpose_matrix(mL.size2(), mL.size1());
-            // auto L_transpose_matrix =  boost::numeric::ublas::trans(mL);
             SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(L_transpose_matrix, mL, 1.0);
 
             TSystemVectorType b_modified(rb.size());
@@ -240,7 +238,7 @@ protected:
                 }
             }
             const double stop_constraints = OpenMPUtils::GetCurrentTime();
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Applying constraints time: " << stop_constraints - start_constraints << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera", this->GetEchoLevel() >= 1 )<< "Applying constraints time: " << stop_constraints - start_constraints << std::endl;
         }
 
         KRATOS_CATCH("")

@@ -276,11 +276,3 @@ def __MaterialsListsAreEqual(original_materials,
         mat.pop("new_properties_id")
 
     return copy_original_materials == other_materials
-
-
-
-if __name__ == "__main__":
-    mp_names = ["test_patch_mp.mdpa","test_bg_mp.mdpa"]
-    model = KratosMultiphysics.Model()
-    main_mp = model.CreateModelPart("MainModelpart")
-    ImportChimeraModelparts(main_mp, mp_names,parallel_type="MPI")

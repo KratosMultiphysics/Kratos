@@ -100,7 +100,7 @@ public:
     explicit ApplyChimera(ModelPart& rMainModelPart, Parameters iParameters);
 
     /// Destructor.
-    virtual ~ApplyChimera();
+    virtual ~ApplyChimera()=default;
 
     ///@}
     ///@name Operators

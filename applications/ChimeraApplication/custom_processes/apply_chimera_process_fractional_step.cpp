@@ -30,11 +30,11 @@ void ApplyChimeraProcessFractionalStep<TDim>::ExecuteFinalizeSolutionStep()
 {
     if (BaseType::mReformulateEveryStep) {
         auto& vel_modelpart =
-            BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
+            BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_velocity_model_part");
         vel_modelpart.MasterSlaveConstraints().clear();
 
         auto& pre_modelpart =
-            BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
+            BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_pressure_model_part");
         pre_modelpart.MasterSlaveConstraints().clear();
     }
 
@@ -86,7 +86,7 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart&
 
     BuiltinTimer mpc_add_time;
     auto& vel_modelpart =
-        BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
+        BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_velocity_model_part");
     BaseType::AddConstraintsToModelpart(vel_modelpart, velocity_ms_container_vector);
     VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, false,
                             vel_modelpart.MasterSlaveConstraints());
@@ -95,7 +95,7 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart&
     VariableUtils().SetFlag(ACTIVE, true, vel_modelpart.MasterSlaveConstraints());
 
     auto& pre_modelpart =
-        BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
+        BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_pressure_model_part");
     BaseType::AddConstraintsToModelpart(pre_modelpart, pressure_ms_container_vector);
     VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, true,
                             vel_modelpart.MasterSlaveConstraints());

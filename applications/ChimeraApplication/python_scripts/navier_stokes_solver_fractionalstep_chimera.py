@@ -109,5 +109,5 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
 
     def FinalizeSolutionStep(self):
         super(NavierStokesSolverFractionalStepForChimera,self).FinalizeSolutionStep()
-        ## Depending on the setting this will clear the created constraits
+        ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()
