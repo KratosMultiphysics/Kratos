@@ -73,9 +73,8 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 if self.echo_level > 0:
                     cs_tools.cs_print_warning(self._ClassName(), "dynamic relaxation factor reaches lower bound: {}".format(self.alpha_min))
             delta_x = alpha * self.R[0]
-        self.alpha_old = alpha
-
-        return delta_x
+            self.alpha_old = alpha
+            return delta_x
 
     @classmethod
     def _GetDefaultSettings(cls):
