@@ -152,6 +152,39 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Computes the norm of a vector -> Used for computing the norm of the
+     */
+    double ComputeNorm(const Vector& rVector)
+    {
+        return MathUtils<double>::Norm(rVector);
+    }
+
+    void CreateAndFillInterfaceSubModelPart(ModelPart &rSolidModelPart)
+    {
+        mVectorSize = 0;
+        if (rSolidModelPart.HasSubModelPart("fsi_interface_model_part")) {
+            auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+            r_interface_sub_model.Nodes().clear();
+        } else {
+            auto &r_interface_sub_model = rSolidModelPart.CreateSubModelPart("fsi_interface_model_part");
+        }
+
+        auto &r_interface_sub_model  = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+        auto &r_solid_skin_sub_model = rSolidModelPart.GetSubModelPart("SkinDEMModelPart");
+
+        const auto it_node_begin = r_solid_skin_sub_model.NodesBegin();
+        // #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_solid_skin_sub_model.Nodes().size()); i++) {
+            auto it_node = it_node_begin + i;
+            if (it_node->FastGetSolutionStepValue(PRESSURE) != 0.0) {
+                r_interface_sub_model.AddNode(*(it_node.base()));
+                mVectorSize++;
+            }
+        }
+        mVectorSize *= 3;
+    }
+
     ///@}
 
     ///@name Access
@@ -186,6 +219,8 @@ protected:
 
     VectorPointerType mpResidualVectorOld;
     VectorPointerType mpResidualVectorNew;
+
+    unsigned int mVectorSize;
 
     ///@}
 
