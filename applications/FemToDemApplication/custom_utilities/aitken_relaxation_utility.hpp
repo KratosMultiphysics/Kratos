@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
+//                   Rubén Zorrilla
 //
 
 #if !defined(KRATOS_AITKEN_RELAXATION_UTILITY)
@@ -94,9 +95,7 @@ public:
     void InitializeSolutionStep()
     {
         KRATOS_TRY;
-
         mConvergenceAcceleratorIteration = 1;
-
         KRATOS_CATCH( "" );
     }
 
@@ -120,7 +119,6 @@ public:
     void FinalizeNonLinearIteration()
     {
         KRATOS_TRY;
-        // mpResidualVector_0 = mpResidualVector_1;
         std::swap(mpResidualVectorOld, mpResidualVectorNew);
         mConvergenceAcceleratorIteration += 1;
         KRATOS_CATCH("");
