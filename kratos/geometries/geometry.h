@@ -686,6 +686,52 @@ public:
     {
         return Pointer(new Geometry( NewGeometryName, ThisPoints, mpGeometryData));
     }
+    
+    /**
+     * @brief Creates a new geometry pointer
+     * @param pGeometry Pointer to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        Pointer pGeometry
+    ) const
+    {
+        auto p_geometry = Pointer( new Geometry( pGeometry->Points(), mpGeometryData ) );
+        p_geometry->SetData(pGeometry->GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param  pGeometry Pointer to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewGeometryId,
+        Pointer pGeometry
+    ) const
+    {
+        auto p_geometry = Pointer( new Geometry( NewGeometryId, pGeometry->Points(), mpGeometryData));
+        p_geometry->SetData(pGeometry->GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param  pGeometry Pointer to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const std::string& NewGeometryName,
+        Pointer pGeometry
+    ) const
+    {
+        auto p_geometry = Pointer(new Geometry( NewGeometryName, pGeometry->Points(), mpGeometryData));
+        p_geometry->SetData(pGeometry->GetData());
+        return p_geometry;
+    }
 
     /** This methods will create a duplicate of all its points and
     substitute them with its points. */
