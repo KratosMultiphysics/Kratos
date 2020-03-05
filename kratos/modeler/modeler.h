@@ -81,7 +81,21 @@ public:
     ///@name Generate Elements and Conditions
     ///@{
 
+    /// Creates elements from geometries
+    static void CreateElements(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rCadSubModelPart,
+        std::string& rElementName,
+        int& rIdCounter,
+        int EchoLevel = 0);
 
+    /// Creates conditions from geometries
+    static void CreateConditions(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rCadSubModelPart,
+        std::string& rConditionName,
+        int& rIdCounter,
+        int EchoLevel = 0);
 
     ///@}
     ///@name Input and output
