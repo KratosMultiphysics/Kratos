@@ -286,31 +286,35 @@ template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
         const Variable<array_1d<double,3> >& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    pybind11::list values_list;
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
-    std::vector<array_1d<double,3> > values( integration_points.size() );
-    dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    for( unsigned int i=0; i<values.size(); i++ )
+    std::vector<array_1d<double, 3>> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rCurrentProcessInfo);
+    pybind11::list result;
+    for (unsigned int j = 0; j < Output.size(); j++)
     {
-        pybind11::list integration_point_value;
-        for( int j=0; j<3; j++ )
-            integration_point_value.append( values[i][j] );
-        values_list.append( integration_point_value );
+        result.append(Output[j]);
     }
-    return( values_list );
+    return result;
 }
 
 template< class TObject >
-void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, pybind11::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsArray1d(
+    TObject& dummy,
+    const Variable< array_1d<double,3> >& rVariable,
+    pybind11::list values_list,
+    const ProcessInfo& rCurrentProcessInfo )
 {
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
-    std::vector< array_1d<double,3> > values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
+    std::vector< array_1d<double,3> > values(values_list.size() );
+    for( unsigned int i=0; i< values_list.size(); i++ )
     {
-        if(py::isinstance<array_1d<double,3> >(values_list[i]))
-            values[i] = (values_list[i]).cast<array_1d<double,3> >();
+        if (py::isinstance<array_1d<double, 3>>(values_list[i]))
+            values[i] = (values_list[i]).cast<array_1d<double, 3> >();
+        else if (py::isinstance<pybind11::list>(values_list[i]) ||
+            py::isinstance<Vector>(values_list[i]))
+        {
+            Vector value = (values_list[i]).cast<Vector>();
+            KRATOS_ERROR_IF(value.size() != 3) << "expecting a list of array_1d<double,3> ";
+            values[i] = value;
+        }
         else
             KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
     }
@@ -719,10 +723,10 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
 
-    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Condition>)
-    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Condition>)
-    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Condition>)
-    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix<Condition>)
+    .def("CalculateOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Condition>)
+    .def("CalculateOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Condition>)
+    .def("CalculateOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Condition>)
+    .def("CalculateOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
