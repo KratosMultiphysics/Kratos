@@ -8,7 +8,7 @@ def Factory(settings, model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ElementSensitivityDomainIntegrationProcess(model, settings["Parameters"])
 
-def CheckAvailabilityOfSensitivities(variable, model_part):
+def CheckAvailabilityOfSensitivities(variable, model_part_components):
     """ Check if element sensitivities w.r.t. given variable are available.
     Keyword arguments:
     variable -- traced variable within sensitivity analysis.
@@ -16,9 +16,9 @@ def CheckAvailabilityOfSensitivities(variable, model_part):
     """
 
     if sys.version_info[0] >= 3: # python3 syntax
-        return model_part.Elements.__iter__().__next__().Has(variable)
+        return model_part_components.__iter__().__next__().Has(variable)
     else: # python2 syntax
-        return model_part.Elements.__iter__().next().Has(variable)
+        return model_part_components.__iter__().next().Has(variable)
 
 
 class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
@@ -42,6 +42,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""{
             "help"                             : "This class integrates element sensitivities within domains defined by sub model parts",
             "element_sensitivity_variables"    : [],
+            "condition_sensitivity_variables"    : [],
             "model_part_name"                  : "",
             "sensitivity_model_part_name"      : "",
             "sensitivity_sub_model_part_list"  : []
@@ -68,7 +69,8 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
             for mp_name in sensitivity_sub_model_part_names:
                 self.sensitivity_sub_model_parts.append(self.sensitivity_model_part.GetSubModelPart(mp_name))
 
-        self.element_sensitivity_variables = self.__GenerateVariableListFromInput(parameter["element_sensitivity_variables"])
+        self.element_variables_scalar, self.element_variables_array = self.__GenerateVariableListFromInput(parameter["element_sensitivity_variables"])
+        self.condition_variables_scalar, self.condition_variables_array  = self.__GenerateVariableListFromInput(parameter["condition_sensitivity_variables"])
 
 
     def Check(self):
@@ -90,12 +92,39 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         """
 
         # loop over sensitivty variables for which integration should performed
-        for variable_i in self.element_sensitivity_variables:
-            if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part):
+        for variable_i in self.element_variables_scalar:
+            if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part.Elements):
                 # loop over integration domains
                 for sub_mp_i in self.sensitivity_sub_model_parts:
                     domain_sensitivity = KratosMultiphysics.VariableUtils().SumElementScalarVariable(variable_i, sub_mp_i)
                     KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(variable_i, domain_sensitivity, sub_mp_i.Elements)
+            else:
+                raise Exception(variable_i.Name() + " is not available for domain integration!")
+
+        for variable_i in self.element_variables_array:
+            if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part.Elements):
+                # loop over integration domains
+                for sub_mp_i in self.sensitivity_sub_model_parts:
+                    domain_sensitivity = KratosMultiphysics.VariableUtils().SumElementVectorVariable(variable_i, sub_mp_i)
+                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(variable_i, domain_sensitivity, sub_mp_i.Elements)
+            else:
+                raise Exception(variable_i.Name() + " is not available for domain integration!")
+
+        for variable_i in self.condition_variables_scalar:
+            if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part.Conditions):
+                # loop over integration domains
+                for sub_mp_i in self.sensitivity_sub_model_parts:
+                    domain_sensitivity = KratosMultiphysics.VariableUtils().SumConditionScalarVariable(variable_i, sub_mp_i)
+                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(variable_i, domain_sensitivity, sub_mp_i.Conditions)
+            else:
+                raise Exception(variable_i.Name() + " is not available for domain integration!")
+
+        for variable_i in self.condition_variables_array:
+            if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part.Conditions):
+                # loop over integration domains
+                for sub_mp_i in self.sensitivity_sub_model_parts:
+                    domain_sensitivity = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(variable_i, sub_mp_i)
+                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(variable_i, domain_sensitivity, sub_mp_i.Conditions)
             else:
                 raise Exception(variable_i.Name() + " is not available for domain integration!")
 
@@ -110,15 +139,18 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         if not parameter.IsArray():
             raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
-        variable_list = []
+        variable_list_scalar = []
+        variable_list_array = []
         for i in range(0, parameter.size()):
             variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(parameter[i].GetString())
             if (variable_type == "Double"):
-                variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() ))
+                variable_list_scalar.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() ))
+            elif (variable_type == "Array"):
+                variable_list_array.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() ))
             else:
                 raise Exception("sensitivity domain integration is only available for variables of data type 'Double' but " + parameter[i].GetString() + " is of type '" + variable_type + "'.")
 
-        return variable_list
+        return variable_list_scalar, variable_list_array
 
 
 
