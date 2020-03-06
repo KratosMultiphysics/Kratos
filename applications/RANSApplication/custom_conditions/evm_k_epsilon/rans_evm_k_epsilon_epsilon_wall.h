@@ -84,21 +84,29 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmKEpsilonEpsilonWall(IndexType NewId = 0);
+    explicit RansEvmKEpsilonEpsilonWall(IndexType NewId = 0) : Condition(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmKEpsilonEpsilonWall(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonEpsilonWall(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Condition(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmKEpsilonEpsilonWall(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonEpsilonWall(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Condition(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
     /**
@@ -108,13 +116,19 @@ public:
      */
     RansEvmKEpsilonEpsilonWall(IndexType NewId,
                                GeometryType::Pointer pGeometry,
-                               PropertiesType::Pointer pProperties);
+                               PropertiesType::Pointer pProperties)
+        : Condition(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Copy constructor.
-    RansEvmKEpsilonEpsilonWall(RansEvmKEpsilonEpsilonWall const& rOther);
+    RansEvmKEpsilonEpsilonWall(RansEvmKEpsilonEpsilonWall const& rOther)
+        : Condition(rOther)
+    {
+    }
 
     /// Destructor.
-    ~RansEvmKEpsilonEpsilonWall() override;
+    ~RansEvmKEpsilonEpsilonWall() override = default;
 
     ///@}
     ///@name Operators

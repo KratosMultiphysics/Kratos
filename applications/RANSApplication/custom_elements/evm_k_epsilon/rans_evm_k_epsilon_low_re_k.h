@@ -97,34 +97,48 @@ public:
     /**
      * Constructor.
      */
-    explicit RansEvmKEpsilonLowReKElement(IndexType NewId = 0);
+    explicit RansEvmKEpsilonLowReKElement(IndexType NewId = 0) : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using an array of nodes
      */
-    RansEvmKEpsilonLowReKElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonLowReKElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId, ThisNodes)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmKEpsilonLowReKElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonLowReKElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     RansEvmKEpsilonLowReKElement(IndexType NewId,
                                  GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties);
+                                 PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Copy Constructor
      */
-    RansEvmKEpsilonLowReKElement(RansEvmKEpsilonLowReKElement const& rOther);
+    RansEvmKEpsilonLowReKElement(RansEvmKEpsilonLowReKElement const& rOther)
+        : BaseType(rOther)
+    {
+    }
 
     /**
      * Destructor
      */
-    ~RansEvmKEpsilonLowReKElement() override;
+    ~RansEvmKEpsilonLowReKElement() override = default;
 
     ///@}
     ///@name Operators

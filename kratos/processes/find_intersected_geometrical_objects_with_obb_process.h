@@ -105,7 +105,13 @@ public:
         ModelPart& rModelPartIntersected,
         ModelPart& rModelPartIntersecting,
         const double BoundingBoxFactor = -1.0,
-        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM|FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB
+        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|
+            FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|
+            FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|
+            FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|
+            FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB.AsFalse()|
+            FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM|
+            FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB
         );
 
     /**

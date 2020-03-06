@@ -25,11 +25,7 @@ namespace Kratos
 template<class TEntity>
 const Kratos::Flags EntitiesEraseProcess<TEntity>::REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0));
 template<class TEntity>
-const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0, false));
-template<class TEntity>
 const Kratos::Flags EntitiesEraseProcess<TEntity>::ERASE_ALL_ENTITIES(Kratos::Flags::Create(1));
-template<class TEntity>
-const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_ERASE_ALL_ENTITIES(Kratos::Flags::Create(1, false));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -177,7 +173,3 @@ template class EntitiesEraseProcess<Element>;
 template class EntitiesEraseProcess<Condition>;
 template class EntitiesEraseProcess<MasterSlaveConstraint>;
 }
-
-
-
-

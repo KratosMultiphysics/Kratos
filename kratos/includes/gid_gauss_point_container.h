@@ -126,7 +126,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -164,7 +164,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -200,7 +200,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -237,7 +237,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,3> >& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -276,7 +276,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,6> >& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -321,7 +321,7 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -369,7 +369,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {

@@ -79,21 +79,30 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmKEpsilonVmsMonolithicWall(IndexType NewId = 0);
+    explicit RansEvmKEpsilonVmsMonolithicWall(IndexType NewId = 0)
+        : BaseType(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
     /**
@@ -103,13 +112,19 @@ public:
      */
     RansEvmKEpsilonVmsMonolithicWall(IndexType NewId,
                                      GeometryType::Pointer pGeometry,
-                                     PropertiesType::Pointer pProperties);
+                                     PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Copy constructor.
-    RansEvmKEpsilonVmsMonolithicWall(RansEvmKEpsilonVmsMonolithicWall const& rOther);
+    RansEvmKEpsilonVmsMonolithicWall(RansEvmKEpsilonVmsMonolithicWall const& rOther)
+        : BaseType(rOther)
+    {
+    }
 
     /// Destructor.
-    ~RansEvmKEpsilonVmsMonolithicWall() override;
+    ~RansEvmKEpsilonVmsMonolithicWall() override = default;
 
     ///@}
     ///@name Operators

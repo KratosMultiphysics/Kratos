@@ -8,11 +8,11 @@
 #include <amgcl/adapter/block_matrix.hpp>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
-#include <amgcl/solver/runtime.hpp>
 
 #include <amgcl/mpi/util.hpp>
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/preconditioner.hpp>
+#include <amgcl/mpi/solver/runtime.hpp>
 
 #ifdef AMGCL_GPGPU
 #  include <amgcl/backend/vexcl.hpp>
@@ -54,7 +54,7 @@ void AMGCLScalarSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
@@ -79,7 +79,7 @@ void AMGCLScalarSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
@@ -128,7 +128,7 @@ void AMGCLBlockSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
@@ -158,7 +158,7 @@ void AMGCLBlockSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 

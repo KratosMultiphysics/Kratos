@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
+#include "utilities/variable_utils.h"
 #include "exaqute_sandbox_application_variables.h"
 
 // Application includes
@@ -55,7 +56,7 @@ namespace Kratos
     /**
      * This process computes the element average in time of the divergence and of the seminorm of the velocity field.
      * We define VELOCITY_H1_SEMINORM as: \left \| \nabla u_{h} \right \|_{L^2(K)}^2 ,
-     * and DIVERGENCE_WEIGHTED as \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
+     * and AVERAGED_DIVERGENCE as \left \| \nabla \cdot u_{h} \right \|_{L^2(K)}^2 ,
      * where u is the velocity field and K an element of the domain \Omega.
      * The time average does not consider the transient 20% first part of the simulation.
      */
@@ -98,9 +99,14 @@ namespace Kratos
         ///@{
 
         /**
-         * @brief Function executing the weighted time average of DIVERGENCE_WEIGHTED and VELOCITY_H1_SEMINORM
+         * @brief Function initializing the statistic utilities
          */
-        void Execute() override;
+        void ExecuteInitialize() override;
+
+        /**
+         * @brief Function updating statistics at each time step
+         */
+        void ExecuteFinalizeSolutionStep() override;
 
         ///@}
         ///@name Access

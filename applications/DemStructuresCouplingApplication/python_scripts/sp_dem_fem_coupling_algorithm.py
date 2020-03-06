@@ -107,7 +107,6 @@ class SPAlgorithm(Algorithm):
 
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
-
             if self.test_number == 1 or self.test_number == 2:
                 self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
                 #DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)

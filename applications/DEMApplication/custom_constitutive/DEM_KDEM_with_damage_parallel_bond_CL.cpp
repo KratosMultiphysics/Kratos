@@ -446,6 +446,10 @@ namespace Kratos {
         const double wall_tg_of_friction_angle  = element2->GetProperties()[FRICTION];
         const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
 
+        if(equiv_tg_of_fri_ang < 0.0) {
+            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+        }
+
         const double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_fri_ang;
 
         const double tangential_contact_force_0 = UnbondedLocalElasticContactForce[0] + mViscoDampingLocalContactForce[0];

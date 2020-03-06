@@ -68,7 +68,7 @@ public:
   ///@{
 
   explicit LoggerOutput(std::ostream& rOutputStream)
-    : mrStream(rOutputStream),
+    : mpStream(&rOutputStream),
       mMaxLevel(1),
       mSeverity(LoggerMessage::Severity::INFO),
       mCategory(LoggerMessage::Category::STATUS)
@@ -81,7 +81,7 @@ public:
   }
 
   LoggerOutput(LoggerOutput const& Other)
-    : mrStream(Other.mrStream), mMaxLevel(Other.mMaxLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
+    : mpStream(Other.mpStream), mMaxLevel(Other.mMaxLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
 
   /// Destructor.
   virtual ~LoggerOutput() {}
@@ -165,7 +165,7 @@ public:
     std::stringstream buffer;
     buffer << rValue;
 
-    mrStream << buffer.str();
+    GetStream() << buffer.str();
 
     return *this;
   }
@@ -181,7 +181,25 @@ public:
   ///@}
 protected:
 
-  std::ostream& GetStream() {return mrStream;}
+  LoggerOutput()
+    : mpStream(nullptr),
+      mMaxLevel(1),
+      mSeverity(LoggerMessage::Severity::INFO),
+      mCategory(LoggerMessage::Category::STATUS)
+  {
+    mOptions.Set(WARNING_PREFIX, true);
+    mOptions.Set(INFO_PREFIX, false);
+    mOptions.Set(DETAIL_PREFIX, false);
+    mOptions.Set(DEBUG_PREFIX, false);
+    mOptions.Set(TRACE_PREFIX, false);
+  }
+
+  std::ostream& GetStream() {return *mpStream;}
+  std::ostream* pGetStream() {return mpStream;}
+  void SetStream(std::ostream* pStream) {mpStream = pStream;}
+
+  virtual void SetMessageColor(LoggerMessage::Severity MessageSeverity);
+  virtual void ResetMessageColor(LoggerMessage::Severity MessageSeverity);
 
 private:
   ///@name Life Cycle
@@ -191,7 +209,7 @@ private:
   ///@name Member Variables
   ///@{
 
-  std::ostream& mrStream;
+  std::ostream* mpStream;
   std::size_t mMaxLevel;
   LoggerMessage::Severity mSeverity;
   LoggerMessage::Category mCategory;
