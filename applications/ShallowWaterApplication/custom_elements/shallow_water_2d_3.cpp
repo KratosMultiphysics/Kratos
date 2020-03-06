@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/cfd_variables.h"
-#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_2d_3.h"
@@ -39,8 +38,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
     KRATOS_CHECK_VARIABLE_KEY(HEIGHT)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
     KRATOS_CHECK_VARIABLE_KEY(BATHYMETRY)
     KRATOS_CHECK_VARIABLE_KEY(RAIN)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
@@ -55,8 +52,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
 
@@ -113,14 +108,15 @@ void ShallowWater2D3::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    // Resize of the Left and Right Hand side
+    // Resize and initialize the Left and Right Hand side
     if(rLeftHandSideMatrix.size1() != 9)
-        rLeftHandSideMatrix.resize(9, 9, false); // False says not to preserve existing storage!!
+        rLeftHandSideMatrix.resize(9, 9, false);
 
     if(rRightHandSideVector.size() != 9)
-        rRightHandSideVector.resize(9, false);  // False says not to preserve existing storage!!
+        rRightHandSideVector.resize(9, false);
+
+    rLeftHandSideMatrix = ZeroMatrix(9,9);
+    rRightHandSideVector = ZeroVector(9);
 
     // Struct to pass around the data
     ElementData data;
@@ -131,82 +127,77 @@ void ShallowWater2D3::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
 
-    double length = GetGeometry().Length();
+    data.GetNodalData(GetGeometry(), DN_DX);
 
-    // Mass matrix
-    BoundedMatrix<double,9,9> vel_mass_matrix = ZeroMatrix(9,9);
-    BoundedMatrix<double,9,9> h_mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrices(data, vel_mass_matrix, h_mass_matrix);
+    AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, data);
 
-    // main loop (one Gauss point)
+    AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
-    // Build shape functions and derivatives at the Gauss point
-    BoundedMatrix<double,2,9> N_vel = ZeroMatrix(2,9);        // Shape functions matrix (for velocity)
-    array_1d<double,9> N_height = ZeroVector(9);              // Shape functions vector (for height)
-    array_1d<double,9> DN_DX_vel = ZeroVector(9);             // Gradients vector (for velocity)
-    BoundedMatrix<double,2,9> DN_DX_height = ZeroMatrix(2,9); // Gradients matrix (for height)
-    for(unsigned int node = 0; node < 3; node++)
-    {
-        // Velocity divergence
-        DN_DX_vel[  node*3] = DN_DX(node,0);
-        DN_DX_vel[1+node*3] = DN_DX(node,1);
-        // Height gradient
-        DN_DX_height(0, 2+node*3) = DN_DX(node,0);
-        DN_DX_height(1, 2+node*3) = DN_DX(node,1);
-        // Height shape funtions
-        N_height[2+node*3] = N[node];
-        // Velocity shape functions
-        N_vel(0,   node*3) = N[node];
-        N_vel(1, 1+node*3) = N[node];
-    }
-
-    data.GetNodalData(GetGeometry());
-
-    // Build LHS
-    // Wave equation terms
-    BoundedMatrix<double,9,9> vel_wave = prod(trans(N_vel),DN_DX_height);
-    noalias(rLeftHandSideMatrix)  = data.gravity * vel_wave;           // Add <w*g*grad(h)> to Momentum Eq
-    noalias(rLeftHandSideMatrix) += data.height * outer_prod(N_height, DN_DX_vel); // Add <q*h*div(u)> to Mass Eq
-
-    // Inertia terms
-    noalias(rLeftHandSideMatrix) += data.dt_inv * vel_mass_matrix; // Velocity lumped mass matrix
-    noalias(rLeftHandSideMatrix) += data.dt_inv * h_mass_matrix;   // Height lumped mass matrix
-
-    // Friction term
-    const double abs_vel = norm_2(data.velocity);
-    const double height4_3 = std::pow(data.height, 1.33333333333) + data.irregularity;
-    noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
-
-    // Build RHS
-    // Source terms (bathymetry contribution)
-    noalias(rRightHandSideVector)  = data.gravity * prod(vel_wave, data.depth);
-
-    // Inertia terms
-    noalias(rRightHandSideVector) += data.dt_inv * prod(vel_mass_matrix, data.prev_unk);
-    noalias(rRightHandSideVector) += data.dt_inv * prod(h_mass_matrix, data.prev_unk);
-
-    // Computing stabilization terms
-    double art = length * data.stab_factor;
-
-    // Mass balance LHS stabilization terms
-    BoundedMatrix<double,9,9> diff_h = prod(trans(DN_DX_height), DN_DX_height);
-    noalias(rLeftHandSideMatrix) += art * diff_h; // Second order FIC shock capturing
-    noalias(rRightHandSideVector) += art * prod(diff_h, data.depth); // Substracting the bottom diffusion
-
-    // Momentum balance stabilization terms
-    BoundedMatrix<double,9,9> diff_v = outer_prod(DN_DX_vel, DN_DX_vel);
-    noalias(rLeftHandSideMatrix) += art * diff_v; // Second order FIC
+    AddSourceTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
 
     rRightHandSideVector *= area;
     rLeftHandSideMatrix *= area;
-
-    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------
+void ShallowWater2D3::AddInertiaTerms(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ElementData& rData)
+{
+    BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
+    ComputeMassMatrix(mass_matrix, rData);
+    rLHS += rData.dt_inv * (mass_matrix);
+    rRHS += rData.dt_inv * prod(mass_matrix, rData.prev_unk);
+}
+
+void ShallowWater2D3::AddGradientTerms(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    BoundedMatrix<double,9,9> gradient_matrix = ZeroMatrix(9,9);
+    ComputeGradientMatrix(gradient_matrix, rData, rN, rDN_DX);
+    rLHS += gradient_matrix;
+    rRHS += prod(gradient_matrix, rData.depth);
+}
+
+void ShallowWater2D3::AddSourceTerms(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
+    ComputeMassMatrix(mass_matrix, rData);
+
+    // Friction term
+    const double abs_vel = norm_2(rData.velocity);
+    const double height4_3 = std::pow(rData.effective_height, 1.33333333333) + rData.irregularity;
+    rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * mass_matrix;
+
+    // Advection term
+    rLHS += rData.velocity_div * mass_matrix;
+
+    // Rain
+    rRHS += prod(mass_matrix, rData.rain);
+}
+
+void ShallowWater2D3::AddShockCapturingTerm(
+    MatrixType& rLHS,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    BoundedMatrix<double,9,9> diff_matrix = ZeroMatrix(9,9);
+    ComputeDiffusionMatrix(diff_matrix, rData, rN, rDN_DX);
+    rLHS += diff_matrix;
+}
 
 void ShallowWater2D3::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
@@ -215,8 +206,6 @@ void ShallowWater2D3::CalculateLeftHandSide(
     KRATOS_ERROR << "ShallowWater2D3: CalculateLeftHandSide not implemented" << std::endl;
 }
 
-//----------------------------------------------------------------------
-
 void ShallowWater2D3::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
@@ -224,21 +213,13 @@ void ShallowWater2D3::CalculateRightHandSide(
     KRATOS_ERROR << "ShallowWater2D3: CalculateRightHandSide not implemented" << std::endl;
 }
 
-//----------------------------------------------------------------------
-
 void ShallowWater2D3::GetValueOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == VEL_ART_VISC ||
-        rVariable == PR_ART_VISC ||
-        rVariable == RESIDUAL_NORM ||
-        rVariable == MIU)
-    {
-        for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-            rValues[PointNumber] = double(this->GetValue(rVariable));
-    }
+    for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
+        rValues[PointNumber] = double(this->GetValue(rVariable));
 }
 
 void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentProcessInfo)
@@ -251,8 +232,12 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
     irregularity = 1e-2;
 }
 
-void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry)
+void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    height = 0.0;
+    flow_rate = ZeroVector(3);
+    velocity = ZeroVector(3);
+    velocity_div = 0.0;
     manning2 = 0.0;
     wet_fraction = 0.0;
     effective_height = 0.0;
@@ -270,6 +255,8 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry)
         height += h;
         flow_rate += f;
         velocity += v;
+        velocity_div += v[0] * rDN_DX(i,0);
+        velocity_div += v[1] * rDN_DX(i,1);
         manning2 += n;
 
         depth[j] = 0;
@@ -311,19 +298,96 @@ void ShallowWater2D3::ElementData::PhaseFunctions(double Height, double& rWetFra
     rEffectiveHeight = rWetFraction * Height + irregularity * std::exp(-4 * std::pow(unit_height, 2)) / 4 / std::sqrt(M_PI);
 }
 
-void ShallowWater2D3::ComputeMassMatrices(
-    const ElementData& rData,
-    BoundedMatrix<double,9,9>& rVelMatrix,
-    BoundedMatrix<double,9,9>& rHeightMatrix)
+void ShallowWater2D3::ComputeMassMatrix(
+    BoundedMatrix<double,9,9>& rMatrix,
+    const ElementData& rData)
 {
-    for (unsigned int i = 0; i < 3; i++)
+    for (size_t i = 0; i < 3; ++i)
     {
-        rVelMatrix(3*i  ,3*i  ) = 1;
-        rVelMatrix(3*i+1,3*i+1) = 1;
-        rHeightMatrix(3*i+2,3*i+2) = 1;
+        const size_t block = 3 * i;
+        rMatrix(block, block) += rData.lumping_factor;
+        rMatrix(block+1, block+1) += rData.lumping_factor;
+        rMatrix(block+2, block+2) += rData.lumping_factor * rData.wet_fraction;
+
+        // TODO: add stabilization
     }
-    rVelMatrix *= rData.lumping_factor;
-    rHeightMatrix *= rData.lumping_factor;
+}
+
+void ShallowWater2D3::ComputeGradientMatrix(
+    BoundedMatrix<double,9,9>& rMatrix,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++i)
+        {
+            const size_t j_block = 3 * j;
+            /* First component
+               A_1 = {{u_1   0   gh},
+                      { 0   u_1   0},
+                      { 1    0    0}}
+             */
+            const double g1 = rN[i] * rDN_DX(j,0);
+            rMatrix(i_block,     j_block)     += g1 * rData.velocity[0];
+            rMatrix(i_block,     j_block + 2) += g1 * rData.gravity * rData.effective_height;
+            rMatrix(i_block + 1, j_block + 1) += g1 * rData.velocity[0];
+            rMatrix(i_block + 2, j_block)     += g1;
+
+            /* Second component
+               A_2 = {{u_2   0    0},
+                      { 0   u_2  gh},
+                      { 0    1    0}}
+             */
+            const double g2 = rN[i] * rDN_DX(j,1);
+            rMatrix(i_block,     j_block)     += g2 * rData.velocity[1];
+            rMatrix(i_block + 1, j_block + 1) += g2 * rData.velocity[1];
+            rMatrix(i_block + 1, j_block + 2) += g2 * rData.gravity * rData.effective_height;
+            rMatrix(i_block + 2, j_block + 1) += g2;
+
+            // TODO: add stabilization
+        }
+    }
+}
+
+void ShallowWater2D3::ComputeDiffusionMatrix(
+    BoundedMatrix<double,9,9>& rMatrix,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    array_1d<double,2> f_residual;
+    double h_residual;
+    AlgebraicResidual(f_residual, h_residual, rData, rN, rDN_DX);
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++i)
+        {
+            const size_t j_block = 3 * j;
+
+            const double d11 = rDN_DX(i,0) * rDN_DX(j,0);
+            const double d12 = rDN_DX(i,0) * rDN_DX(j,1);
+            const double d21 = rDN_DX(i,1) * rDN_DX(j,0);
+            const double d22 = rDN_DX(i,1) * rDN_DX(j,1);
+
+            // TODO: do something
+            rMatrix(i_block,     j_block)     += d11;
+        }
+    }
+}
+
+void ShallowWater2D3::AlgebraicResidual(
+        array_1d<double,2>& rFlowResidual,
+        double& rHeightresidual,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    // TODO: compute the residual
 }
 
 } // namespace kratos

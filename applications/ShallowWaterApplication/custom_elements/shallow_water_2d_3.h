@@ -62,6 +62,7 @@ public:
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
+        double velocity_div;
         double manning2;
         double wet_fraction;
         double effective_height;
@@ -72,7 +73,7 @@ public:
         array_1d<double, 9> prev_unk;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
-        void GetNodalData(const GeometryType& rGeometry);
+        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
 
     protected:
         void PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight);
@@ -307,10 +308,53 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ComputeMassMatrices(
+    void AddInertiaTerms(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const ElementData& rData);
+
+    void AddGradientTerms(
+        MatrixType& rLHS,
+        VectorType& rRHS,
         const ElementData& rData,
-        BoundedMatrix<double,9,9>& rVelMatrix,
-        BoundedMatrix<double,9,9>& rHeightMatrix);
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void AddSourceTerms(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void AddShockCapturingTerm(
+        MatrixType& rLHS,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void ComputeMassMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const ElementData& rData);
+
+    void ComputeGradientMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+
+    void ComputeDiffusionMatrix(
+        BoundedMatrix<double,9,9>& rMatrix,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
+    
+    void AlgebraicResidual(
+        array_1d<double,2>& rFlowResidual,
+        double& rHeightresidual,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     ///@}
     ///@name Protected  Access
