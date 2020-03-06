@@ -389,9 +389,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
             number_of_avg_elems = 10
             number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart(),
-                                                                                               number_of_avg_elems,
-                                                                                               number_of_avg_nodes)
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart())
 
         # If required, intialize the FM-ALE utility
         if self.__fm_ale_is_active:
@@ -497,8 +495,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         else:
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 
     def _set_constitutive_law(self):
         ## Construct the constitutive law needed for the embedded element

@@ -33,8 +33,7 @@
         "residual_absolute_tolerance"        : 1e-7,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false
+            "solver_type" : "EigenSolversApplication.sparse_lu"
         },
         "use_computing_model_part" : false,
         "rotation_dofs"            : false

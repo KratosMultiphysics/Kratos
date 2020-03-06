@@ -1528,6 +1528,11 @@ public:
         return mSubModelParts;
     }
 
+    const SubModelPartsContainerType& SubModelParts() const
+    {
+        return mSubModelParts;
+    }
+
 
     ModelPart* GetParentModelPart() const
     {
@@ -1645,7 +1650,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This method returns the full name of the model part (including the parents model parts)
      * @details This is evaluated in a recursive way
@@ -1659,7 +1664,7 @@ public:
         }
         return full_name;
     }
-    
+
     /**
      * @brief This method returns the name list of submodelparts
      * @return A vector conrtaining the list of submodelparts contained

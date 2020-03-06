@@ -1,0 +1,109 @@
+name: Nightly Build
+
+on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+
+  schedule:
+    - cron:  '0 1 * * *'
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    env:
+      KRATOS_BUILD_TYPE: Release
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
+      FC: gfortran-7
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=gcc
+          export CXX=g++
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=clang-9
+          export CXX=clang++-9
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        . /opt/intel/mkl/bin/mklvars.sh
+        cp .github/workflows/configure.sh configure.sh # maybe use different configure script in the future
+        bash configure.sh
+
+    - name: Running tests
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
+
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.6'
+
+    - name: Build
+      shell: cmd
+      run: |
+        call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+
+        set CC=cl.exe
+        set CXX=cl.exe
+
+        set KRATOS_BUILD_TYPE=Release
+        set KRATOS_SOURCE=%cd%
+        set KRATOS_BUILD=%cd%\build
+        set KRATOS_APP_DIR=applications
+
+        set KRATOS_APPLICATIONS=
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CSharpWrapperApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
+
+        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+        cmake                                                ^
+          -G"Visual Studio 16 2019"                          ^
+          -H"%KRATOS_SOURCE%"                                ^
+          -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
+          -DBOOST_ROOT="%BOOST_ROOT%"                        ^
+          -DINCLUDE_FEAST=OFF                                ^
+          -DINSTALL_RUNKRATOS=OFF                            ^
+          -DUSE_COTIRE=ON                                    || goto :error
+
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity || goto :error
+
+        goto :EOF
+
+        :error
+        echo Failed with error #%errorlevel%.
+        exit /b %errorlevel%

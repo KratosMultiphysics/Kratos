@@ -1484,7 +1484,7 @@ private:
 			if (KratosComponents<Variable<double>>::Has(variable_name))
 			{
 				//std::cout<<"double"<<std::endl;
-				Variable<double> variable = KratosComponents<Variable<double>>::Get(variable_name);
+				const Variable<double>& variable = KratosComponents<Variable<double>>::Get(variable_name);
 				for (unsigned int step = 0; step < buffer_size; step++)
 				{
 					//getting the data of the solution step
@@ -1499,7 +1499,7 @@ private:
 			else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
 			{
 				//std::cout<<"array1d"<<std::endl;
-				Variable<array_1d<double, 3>> variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
+				const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
 				for (unsigned int step = 0; step < buffer_size; step++)
 				{
 					//getting the data of the solution step
@@ -1524,7 +1524,7 @@ private:
 			else if (KratosComponents<Variable<Matrix>>::Has(variable_name))
 			{
 				//std::cout<<"Matrix"<<std::endl;
-				Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get(variable_name);
+				const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>::Get(variable_name);
 				for (unsigned int step = 0; step < buffer_size; step++)
 				{
 					//getting the data of the solution step
@@ -1547,7 +1547,7 @@ private:
 			else if (KratosComponents<Variable<Vector>>::Has(variable_name))
 			{
 				//std::cout<<"Vector"<<std::endl;
-				Variable<Vector> variable = KratosComponents<Variable<Vector>>::Get(variable_name);
+				const Variable<Vector> & variable = KratosComponents<Variable<Vector>>::Get(variable_name);
 				for (unsigned int step = 0; step < buffer_size; step++)
 				{
 					//getting the data of the solution step

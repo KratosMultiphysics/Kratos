@@ -74,11 +74,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "SurfaceLoadCondition3D3N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D4N"
                 },
                 "ignore_conditions" : [
-                    "Condition3D",
-                    "Condition3D3N",
-                    "Condition3D4N",
                     "SurfaceCondition3D3N",
-                    "SurfaceCondition3D4N"
+                    "SurfaceCondition3D4N",
+                    "PointCondition3D1N"
                 ]
             }
         """) # TODO remove "Condition3D" after issue#4439 is resolved
