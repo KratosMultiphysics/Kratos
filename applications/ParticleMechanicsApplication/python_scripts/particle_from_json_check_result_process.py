@@ -41,7 +41,7 @@ class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnitt
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
-                        value = mp.GetValue(variable)
+                        value = mp.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
 
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Component"):
