@@ -273,10 +273,9 @@ public:
      * Computes and fills the Interface Residual Vector and computes its norm
      * r^{k+1} = \tilde{u}^{k+1} - u^{k}
      */
-    void ComputeInterfaceResidualVector(
+    double ComputeInterfaceResidualVector(
         ModelPart &rSolidModelPart,
-        Vector& rInterfaceResidualVector,
-        double& rInterfaceResdiaulVectorNorm
+        Vector& rInterfaceResidualVector
     )
     {
         if (rInterfaceResidualVector.size() != mVectorSize) {
@@ -303,7 +302,7 @@ public:
             for (unsigned int jj = 0; jj < Dimension; ++jj)
                 TSpace::SetValue(rInterfaceResidualVector, base_i + jj, r_interface_residual[jj]);
         }
-        rInterfaceResdiaulVectorNorm = MathUtils<double>::Norm(rInterfaceResidualVector);
+        return MathUtils<double>::Norm(rInterfaceResidualVector);
     }
 
     /**
@@ -320,11 +319,13 @@ public:
         #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
-            auto &r_value = it_node->FastGetSolutionStepValue(VELOCITY);
+            auto &r_value         = it_node->FastGetSolutionStepValue(VELOCITY);
+            auto &r_value_relaxed = it_node->FastGetSolutionStepValue(RELAXED_VELOCITY);
         
             const int base_i = i * Dimension;
             for (unsigned int jj = 0; jj < Dimension; ++jj) {
-                r_value[jj] =  TSpace::GetValue(rRelaxedValuesVector,base_i + jj);
+                r_value[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
+                r_value_relaxed[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
             }
         }
     }

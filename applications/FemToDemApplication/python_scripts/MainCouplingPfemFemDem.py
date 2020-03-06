@@ -114,6 +114,10 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def InitializeSolutionStep(self):
+        KratosPrintInfo("")
+        KratosPrintInfo("_____________________________________________________________________________________")
+        KratosPrintInfo("_____________________________________________________________________________________")
+        KratosPrintInfo("")
         self.UpdateDeltaTimeInSolutions()
         self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()
