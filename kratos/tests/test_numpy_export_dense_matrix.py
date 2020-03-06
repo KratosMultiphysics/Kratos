@@ -9,12 +9,37 @@ try:
 except ImportError as e:
     missing_numpy = True
 
-class TestNumpyExportDenseMatrixCopying(KratosUnittest.TestCase):
+class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_export_dense_matrix(self):
+        """NO COPYING"""
         # Create a Kratos matrix
         KratosMatrix = KratosMultiphysics.Matrix(3,3)
+        KratosMatrix.fill(1.0)
+
+        # Export it to numpy array (No copying is performed)
+        NumpyMatrix = np.array(KratosMatrix,copy=False)
+
+        # Test correct creation
+        for i in range(3):
+            for j in range(3):
+                self.assertEqual(KratosMatrix[i,j], NumpyMatrix[i,j])
+
+        # Change an entry in Kratos Matrix
+        KratosMatrix[0,0] = 123
+
+        # Test change in Numpy matrix
+        self.assertEqual(KratosMatrix[0,0], NumpyMatrix[0,0])
+
+        # Change an entry in Numpy matrix
+        NumpyMatrix[2,2] = 555
+
+        # Test change in Kratos matrix
+        self.assertEqual(KratosMatrix[2,2], NumpyMatrix[2,2])
+
+        """COPYING"""
+        # Reset values of KratosMatrix
         KratosMatrix.fill(1.0)
 
         # Export to numpy (Create a copy)
