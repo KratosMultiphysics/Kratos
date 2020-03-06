@@ -457,6 +457,18 @@ double ComputeUpwindFactor(const Element& rElement, const ProcessInfo& rCurrentP
 }
 
 template <int Dim, int NumNodes>
+double ComputeDerivativeUpwindFactorWRTMachNumberSquared(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
+    const double M_c_2 = mach_number_limit * mach_number_limit;
+
+    const double local_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double M_4 = local_mach_number * local_mach_number * local_mach_number * local_mach_number;
+
+    return M_c_2 / M_4;
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -566,6 +578,7 @@ template double ComputeDensityDerivative<2, 3>(const double& rDensity, const Pro
 template double ComputeUpwindDensity<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeSwitchingOperator<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindFactor<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -599,6 +612,7 @@ template double ComputeDensityDerivative<3, 4>(const double& rDensity, const Pro
 template double ComputeUpwindDensity<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeSwitchingOperator<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindFactor<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);

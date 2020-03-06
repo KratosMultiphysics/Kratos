@@ -337,5 +337,22 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindDensitySupersonicDecelerating, Compressib
     KRATOS_CHECK_NEAR(upwind_density, 0.9003057182942017, 1e-16);
 }
 
+// Checks the function ComputeDerivativeUpwindFactorWRTSquareMachNumber from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeUpwindFactorWRTSquareMachNumber, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    const double DUpwindFactor_DMachNumberSquared =
+        PotentialFlowUtilities::ComputeDerivativeUpwindFactorWRTMachNumberSquared<2, 3>(
+            *pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(DUpwindFactor_DMachNumberSquared, 0.8811763668622098, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.
