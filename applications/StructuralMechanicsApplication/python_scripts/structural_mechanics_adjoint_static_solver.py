@@ -73,7 +73,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 },
                 "ignore_conditions" : [
                     "SurfaceCondition3D3N",
-                    "SurfaceCondition3D4N"
+                    "SurfaceCondition3D4N",
+                    "PointCondition3D1N"
                 ]
             }
         """) # TODO remove "Condition3D" after issue#4439 is resolved
