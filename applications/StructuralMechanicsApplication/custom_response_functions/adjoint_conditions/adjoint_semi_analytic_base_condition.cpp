@@ -143,6 +143,35 @@ namespace Kratos
     }
 
     template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        if (this->Has(rVariable)) {
+            // Get result value for output
+            const auto& output_value = this->GetValue(rVariable);
+
+            // Resize Output
+            const SizeType gauss_points_number = this->GetGeometry()
+                .IntegrationPointsNumber(this->GetIntegrationMethod());
+            if (rOutput.size() != gauss_points_number) {
+                rOutput.resize(gauss_points_number);
+            }
+
+            // Write result value on all Gauss-Points
+            for(IndexType i = 0; i < gauss_points_number; ++i) {
+                rOutput[i] = output_value;
+            }
+
+        } else {
+            KRATOS_ERROR << "Unsupported output variable." << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalCondition>
     void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
