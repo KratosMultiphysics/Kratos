@@ -262,23 +262,74 @@ public:
             auto it_node = it_node_begin + i;
             const auto &r_value = it_node->FastGetSolutionStepValue(OLD_RELAXED_VELOCITY);
 
+            // Assemble the vector
             const unsigned int base_i = i * Dimension;
             for (unsigned int jj = 0; jj < Dimension; ++jj)
-                TSpace::SetValue(rIterationValueVector, base_i + jj, rIterationValueVector[jj]);
+                TSpace::SetValue(rIterationValueVector, base_i + jj, r_value[jj]);
         }
     }
 
     /**
-     * Computes and fills the Interface Residual Vector
+     * Computes and fills the Interface Residual Vector and computes its norm
      * r^{k+1} = \tilde{u}^{k+1} - u^{k}
      */
     void ComputeInterfaceResidualVector(
         ModelPart &rSolidModelPart,
-        Vector& rInterfaceResidualVector
+        Vector& rInterfaceResidualVector,
+        double& rInterfaceResdiaulVectorNorm
     )
     {
+        if (rInterfaceResidualVector.size() != mVectorSize) {
+            rInterfaceResidualVector.resize(mVectorSize);
+            noalias(rInterfaceResidualVector) = ZeroVector(mVectorSize);
+        }
 
+        auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+        const auto it_node_begin = r_interface_sub_model.NodesBegin();
+
+        TSpace::SetToZero(rInterfaceResidualVector);
+
+        #pragma omp parallel for firstprivate(it_node_begin)
+        for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
+            auto it_node = it_node_begin + i;
+
+            const auto &r_origin_value    = it_node->FastGetSolutionStepValue(VELOCITY);
+            const auto &r_modified_value  = it_node->FastGetSolutionStepValue(OLD_RELAXED_VELOCITY);
+            auto& r_interface_residual    = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
+            noalias(r_interface_residual) = r_origin_value - r_modified_value;
+
+            // Assemble the vector
+            const unsigned int base_i = i * Dimension;
+            for (unsigned int jj = 0; jj < Dimension; ++jj)
+                TSpace::SetValue(rInterfaceResidualVector, base_i + jj, r_interface_residual[jj]);
+        }
+        rInterfaceResdiaulVectorNorm = MathUtils<double>::Norm(rInterfaceResidualVector);
     }
+
+    /**
+     * Sets the values in the corrected guess vector inside the selected nodal array variable
+     */
+    void UpdateInterfaceValues(
+        ModelPart &rSolidModelPart,
+        const Vector& rRelaxedValuesVector
+    )
+    {
+        auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+        const auto it_node_begin = r_interface_sub_model.NodesBegin();
+
+        #pragma omp parallel for firstprivate(it_node_begin)
+        for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
+            auto it_node = it_node_begin + i;
+            auto &r_value = it_node->FastGetSolutionStepValue(VELOCITY);
+        
+            const int base_i = i * Dimension;
+            for (unsigned int jj = 0; jj < Dimension; ++jj) {
+                r_value[jj] =  TSpace::GetValue(rRelaxedValuesVector,base_i + jj);
+            }
+        }
+    }
+
+
 
 
 

@@ -46,9 +46,9 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_IMPULSE)
 
         # For the Aitken
-        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.RELAXED_DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.OLD_RELAXED_DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.FSI_INTERFACE_RESIDUAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.RELAXED_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.OLD_RELAXED_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.FSI_INTERFACE_RESIDUAL)
 
         # Adding PFEM Variables TODO put in another place
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)

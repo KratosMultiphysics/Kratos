@@ -39,12 +39,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
         ;
 
-    py::class_<AitkenRelaxationUtility>(m,"AitkenRelaxationUtility")
+    py::class_<AitkenRelaxationUtility>(m, "AitkenRelaxationUtility")
         .def(py::init<double>())
         .def("InitializeSolutionStep", &AitkenRelaxationUtility::InitializeSolutionStep)
         .def("UpdateSolution", &AitkenRelaxationUtility::UpdateSolution)
         .def("FinalizeNonLinearIteration", &AitkenRelaxationUtility::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &AitkenRelaxationUtility::FinalizeSolutionStep);
+        .def("FinalizeSolutionStep", &AitkenRelaxationUtility::FinalizeSolutionStep)
+        .def("ComputeNorm", &AitkenRelaxationUtility::ComputeNorm)
+        .def("InitializeInterfaceSubModelPart", &AitkenRelaxationUtility::InitializeInterfaceSubModelPart)
+        .def("ResetNodalValues", &AitkenRelaxationUtility::ResetNodalValues)
+        .def("SavePreviousRelaxedValues", &AitkenRelaxationUtility::SavePreviousRelaxedValues)
+        .def("GetVectorSize", &AitkenRelaxationUtility::GetVectorSize)
+        .def("FillOldRelaxedValuesVector", &AitkenRelaxationUtility::FillOldRelaxedValuesVector)
+        .def("ComputeInterfaceResidualVector", &AitkenRelaxationUtility::ComputeInterfaceResidualVector)
+        .def("UpdateInterfaceValues", &AitkenRelaxationUtility::UpdateInterfaceValues)
         ;
 }
 
