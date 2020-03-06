@@ -36,7 +36,8 @@ class TestNumpyExportDenseMatrix(KratosUnittest.TestCase):
 
         # Test change in Kratos matrix
         self.assertEqual(KratosMatrix[2,2], NumpyMatrix[2,2])
-        @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
+        
+    @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_numpy_export_dense_matrix_copying(self):
         # Create a Kratos matrix
         KratosMatrix = KratosMultiphysics.Matrix(3,3)
