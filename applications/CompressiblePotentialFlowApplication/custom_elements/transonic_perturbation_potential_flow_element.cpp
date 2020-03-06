@@ -497,21 +497,52 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
-        const double DrhoDu2 = ComputeDensityDerivative(upwind_density, rCurrentProcessInfo);
+        const double Drho_Dv2 = ComputeDensityDerivative(upwind_density, rCurrentProcessInfo);
         array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
         const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
+        const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*this, rCurrentProcessInfo);
+        const double upstream_upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*pGetUpstreamElement(), rCurrentProcessInfo);
+
         const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_laplacian =
             data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
-        const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_nonlinear =
-            data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
-        for(unsigned int i = 0; i < NumNodes; i++){
-            for(unsigned int j = 0; j < NumNodes; j++){
-                rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
-                rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+        // Subsonic flow (local_mach_number < mach_number_limit)
+        if(upwind_factor < 0.0){
+            const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_nonlinear =
+                data.vol * 2 * Drho_Dv2 * outer_prod(DNV, trans(DNV));
+
+            for(unsigned int i = 0; i < NumNodes; i++){
+                for(unsigned int j = 0; j < NumNodes; j++){
+                    rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
+                    rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+                }
             }
         }
+        // Supersonic flow and accelerating (local_mach_number > upstream_mach_number)
+        else if( upwind_factor > upstream_upwind_factor){
+            const double Dmu_DM2 =
+                PotentialFlowUtilities::ComputeDerivativeUpwindFactorWRTMachNumberSquared<Dim, NumNodes>(
+                    *this, rCurrentProcessInfo);
+
+            const double DM2_Dv2 =
+                PotentialFlowUtilities::ComputeDerivativeMachNumberSquaredWRTVelocitySquared<Dim, NumNodes>(
+                    *this, rCurrentProcessInfo);
+
+            const double factor = 2 * (Drho_Dv2 * (1 - upwind_factor) - Dmu_DM2 * DM2_Dv2);
+            const BoundedVector<double, NumNodes> Drho_DPhi_current = factor * DNV;
+            const BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
+            for(unsigned int i = 0; i < NumNodes; i++) {
+                Drho_DPhi(i) = Drho_DPhi_current(i);
+            }
+
+
+        }
+        // Supersonic flow and decelerating (local_mach_number < upstream_mach_number)
+        else{
+        }
+
+
     }
 }
 
