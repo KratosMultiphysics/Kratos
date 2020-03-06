@@ -53,8 +53,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AitkenRelaxationUtility);
 
     typedef UblasSpace<double, Matrix, Vector> TSpace;
+
     typedef typename TSpace::VectorType VectorType;
+
     typedef typename TSpace::VectorPointerType VectorPointerType;
+
+    static constexpr unsigned int Dimension = 3;
 
     ///@}
     ///@name Life Cycle
@@ -162,6 +166,9 @@ public:
         return MathUtils<double>::Norm(rVector);
     }
 
+    /**
+     * Creates or updates the interface SubModelPart
+     */
     void InitializeInterfaceSubModelPart(ModelPart &rSolidModelPart)
     {
         mVectorSize = 0;
@@ -184,13 +191,16 @@ public:
                 mVectorSize++;
             }
         }
-        mVectorSize *= 3;
+        mVectorSize *= Dimension;
     }
 
+    /**
+     * Reset the values in order to start the following step
+     */
     void ResetNodalValues(ModelPart &rSolidModelPart)
     {
         auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
-        const Vector& r_zero_vector = ZeroVector(3);
+        const Vector& r_zero_vector = ZeroVector(Dimension);
 
         const auto it_node_begin = r_interface_sub_model.NodesBegin();
         #pragma omp parallel for
@@ -205,19 +215,69 @@ public:
         }
     }
 
+    /**
+     * Storages the current relaxed values as the old ones
+     */
     void SavePreviousRelaxedValues(ModelPart &rSolidModelPart)
     {
         auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
-
         const auto it_node_begin = r_interface_sub_model.NodesBegin();
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
-            const auto &r_relaxed_velocity = it_node->FastGetSolutionStepValue(RELAXED_VELOCITY);
-            auto &r_old_relaxed_velocity   = it_node->GetSolutionStepValue(OLD_RELAXED_VELOCITY);
+            const auto &r_relaxed_velocity  = it_node->FastGetSolutionStepValue(RELAXED_VELOCITY);
+            auto &r_old_relaxed_velocity    = it_node->GetSolutionStepValue(OLD_RELAXED_VELOCITY);
             noalias(r_old_relaxed_velocity) = r_relaxed_velocity;
         }
+    }
+
+    /**
+     * Returns the Vector size of the problem --> Dim*NNodes
+     */
+    unsigned int GetVectorSize()
+    {
+        return mVectorSize;
+    }
+
+    /**
+     * Fills the old relaxed velocity vector
+     */
+    void FillOldRelaxedValuesVector(
+        ModelPart &rSolidModelPart,
+        Vector& rIterationValueVector
+    )
+    {
+        auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+        const auto it_node_begin = r_interface_sub_model.NodesBegin();
+
+        if (rIterationValueVector.size() != mVectorSize) {
+            rIterationValueVector.resize(mVectorSize);
+            noalias(rIterationValueVector) = ZeroVector(mVectorSize);
+        }
+
+        #pragma omp parallel for firstprivate(it_node_begin)
+        for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
+
+            auto it_node = it_node_begin + i;
+            const auto &r_value = it_node->FastGetSolutionStepValue(OLD_RELAXED_VELOCITY);
+
+            const unsigned int base_i = i * Dimension;
+            for (unsigned int jj = 0; jj < Dimension; ++jj)
+                TSpace::SetValue(rIterationValueVector, base_i + jj, rIterationValueVector[jj]);
+        }
+    }
+
+    /**
+     * Computes and fills the Interface Residual Vector
+     * r^{k+1} = \tilde{u}^{k+1} - u^{k}
+     */
+    void ComputeInterfaceResidualVector(
+        ModelPart &rSolidModelPart,
+        Vector& rInterfaceResidualVector
+    )
+    {
+
     }
 
 
