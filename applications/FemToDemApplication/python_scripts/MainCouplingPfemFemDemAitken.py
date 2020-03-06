@@ -23,12 +23,13 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
     def __init__(self, Model, PFEMparameters):
         super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters)
+
         self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(0.825)
 
         self.aitken_residual_ratio_tolerance = 1e-4
         self.aitken_residual_total_tolerance = 1e-9
-        self.aitken_max_iterations = 5
-        self.aitken_residual_dof_tolerance = 1e-5
+        self.aitken_max_iterations           = 5
+        self.aitken_residual_dof_tolerance   = 1e-5
 #============================================================================================================================
     def SolveSolutionStep(self):
 
@@ -42,7 +43,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         self.FSI_aitken_utility.InitializeInterfaceSubModelPart(solid_model_part)
         self.FSI_aitken_utility.ResetNodalValues(solid_model_part)
 
-        while (not is_converged or aitken_iteration > self.aitken_max_iterations):
+        while (not is_converged and aitken_iteration < self.aitken_max_iterations):
 
             KratosPrintInfo("")
             KratosPrintInfo(" ---> Aitken fsi iteration number: " + str(aitken_iteration))
@@ -69,18 +70,24 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                            " ================================================")
             self.SolveSolutionStepFEMDEM()
 
+            # If there are no interface nodes yet
             if (solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() < 1):
                 is_converged = True
+                self.FSI_aitken_utility.FinalizeNonLinearIteration()
                 break
             else:
                 aitken_iteration += 1
 
+            # We relax the obtained solid velocities "v" and give them to the fluid
             residual_norm = self.UpdateAndRelaxSolution(solid_model_part)
 
             self.FSI_aitken_utility.FinalizeNonLinearIteration()
 
             # Check convergence
             is_converged = self.CheckConvergence(residual_norm, residual_norm_old, aitken_iteration - 1)
+
+        if (aitken_iteration == self.aitken_max_iterations):
+            KratosPrintInfo(" Aitken reached max iterations, error reached : " + str(residual_norm) + "...")
 
         self.FSI_aitken_utility.FinalizeSolutionStep()
 
@@ -118,11 +125,13 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         #     is_conv = True
         #     return is_conv
 
-        if (residual_new / math.sqrt(self.FSI_aitken_utility.GetVectorSize()) < self.aitken_residual_dof_tolerance):
+        error = residual_new / math.sqrt(self.FSI_aitken_utility.GetVectorSize())
+        if (error < self.aitken_residual_dof_tolerance):
             is_conv = True
-            KratosPrintInfo(" Aitken converged with an error of " + str(residual_new) + " and " + str(iteration) + " iterations.")
-            Wait()
+            KratosPrintInfo(" Aitken converged with an error of " + str(error) + " and " + str(iteration) + " iterations.")
             return is_conv
+        else:
+            KratosPrintInfo(" Aitken error of " + str(error))
 
         return is_conv
 
