@@ -376,6 +376,18 @@ public:
                 Element::DofsVectorType dofs;
                 it_el->GetDofList(dofs, CurrentProcessInfo);
                 const auto &geom = it_el->GetGeometry();
+
+                // int i_geom = 0
+                // for(auto& dof: dofs)
+                // {
+                //     int counter = 0
+                //     if(dof.Id() == geom[i_geom].Id())
+                //         counter++
+
+                       
+                // }
+                //  here i have "counter" dofs which correspond to i_geom
+
                 int ThisNodalDofs = dofs.size()/geom.size(); // This will not work for mixed elements
                 Matrix PhiElemental(geom.size() * ThisNodalDofs, mRomDofs);
                 Matrix current_rom_nodal_basis;
@@ -583,7 +595,7 @@ protected:
     std::vector<std::string> mNodalVariablesNames;
     int mNodalDofs;
     int mRomDofs;
-    std::map<Kratos::VariableData::KeyType,int> MapPhi;
+    std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
 
     /*@} */
     /**@name Protected Operations*/
