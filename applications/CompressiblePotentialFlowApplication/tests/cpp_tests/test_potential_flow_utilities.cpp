@@ -354,5 +354,28 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeUpwindFactorWRTSquareMachNumber, Comp
     KRATOS_CHECK_NEAR(DUpwindFactor_DMachNumberSquared, 0.8811763668622098, 1e-16);
 }
 
+// Checks the function ComputeDerivativeMachNumberSquaredWRTVelocitySquared from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeMachNumberSquaredWRTVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    const array_1d<double, 3> free_stream_velocity = model_part.GetProcessInfo()[FREE_STREAM_VELOCITY];
+    array_1d<double, 2> velocity = PotentialFlowUtilities::ComputeVelocity<2,3>(*pElement);
+    for (unsigned int i = 0; i < 2; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    const double DMachNumberSquared_DVelocitySquared =
+        PotentialFlowUtilities::ComputeDerivativeMachNumberSquaredWRTVelocitySquared<2, 3>(
+            *pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(DMachNumberSquared_DVelocitySquared, 1.1832700207409171 * 1e-5, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.
