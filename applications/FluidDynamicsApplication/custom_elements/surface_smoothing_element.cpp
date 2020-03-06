@@ -227,7 +227,10 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
 
-    const double epsilon = 1.0e-6;
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+    const double epsilon = 1.0e-1*he*he;
+    //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
     array_1d<double,num_nodes> N; //dimension = number of nodes . Position of the gauss point 
@@ -273,7 +276,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             //tempRHS(i) += epsilon*DN_DX(j,2)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z)*area*N[i];
         }
     }
-    noalias(rLeftHandSideMatrix) = tempM + tempA;
+    noalias(rLeftHandSideMatrix) = (tempM + tempA);
     noalias(rRightHandSideVector) = prod(tempM,tempVold) /* + prod(tempA,tempVold) */ /* + tempRHS */ - prod(rLeftHandSideMatrix,tempVdof); //Phi_smooth + epsilon*laplacian(Phi_smooth) = Phi_old
 
     KRATOS_CATCH("");

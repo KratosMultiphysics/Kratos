@@ -23,6 +23,7 @@
 
 // Project includes
 #include "includes/element.h"
+#include "custom_utilities/element_size_calculator.h"
 
 // Include Base headers
 #include "includes/checks.h"
