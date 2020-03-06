@@ -97,11 +97,19 @@ namespace Kratos
             it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
             drag_x_red += elem_drag[0];
             drag_y_red += elem_drag[1];
-            drag_z_red += elem_drag[2];
+            drag_z_red += elem_drag[2];            
             auto x = elem_drag_center[0] - rReferencePoint[0];
-            // std::cout << x;
+            if (elem_drag[0] == 0.0) {
+               x = 0;
+            }
             auto y = elem_drag_center[1] - rReferencePoint[1];
+            if (elem_drag[1] == 0.0) {
+               y = 0;
+            }
             auto z = elem_drag_center[2] - rReferencePoint[2];
+            if (elem_drag[2] == 0.0) {
+               z = 0;
+            }
             moment_x_red += y * elem_drag[2] - z * elem_drag[1];
             moment_y_red += z * elem_drag[0] - x * elem_drag[2];
             moment_z_red += x * elem_drag[1] - y * elem_drag[0];
@@ -117,7 +125,7 @@ namespace Kratos
         // Perform MPI synchronization
         noalias(drag_moment) = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_moment);
         noalias(drag_force) = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_force);
-
+        
 
         return std::make_tuple<array_1d<double, 3>, array_1d<double,3>>(std::forward<array_1d<double,3>>(drag_force), std::forward<array_1d<double,3>>(drag_moment));
     }
