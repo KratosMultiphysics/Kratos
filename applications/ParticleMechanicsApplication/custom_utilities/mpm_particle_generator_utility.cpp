@@ -303,18 +303,16 @@ namespace MPMParticleGeneratorUtility
             if (submodelpart.NumberOfConditions() != 0){
 
                 std::string submodelpart_name = submodelpart.Name();
-                rMPMModelPart.CreateSubModelPart(submodelpart_name);
 
-                // For regular conditions: straight copy all conditions
+                // For regular conditions: straight copy all conditions (apply directly to background grid model part)
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
-                    rMPMModelPart.SetConditions(submodelpart.pConditions());
-                    rMPMModelPart.GetSubModelPart(submodelpart_name).SetConditions(submodelpart.pConditions());
+                    rBackgroundGridModelPart.SetConditions(submodelpart.pConditions());
                 }
                 // For boundary conditions: create particle conditions for all the necessary conditions
                 else{
-
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
+                    rMPMModelPart.CreateSubModelPart(submodelpart_name);
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
                     {
