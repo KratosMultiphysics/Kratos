@@ -256,7 +256,7 @@ public:
             noalias(rIterationValueVector) = ZeroVector(mVectorSize);
         }
 
-        #pragma omp parallel for firstprivate(it_node_begin)
+        // #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
 
             auto it_node = it_node_begin + i;
@@ -288,7 +288,7 @@ public:
 
         TSpace::SetToZero(rInterfaceResidualVector);
 
-        #pragma omp parallel for firstprivate(it_node_begin)
+        // #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
 
@@ -316,7 +316,7 @@ public:
         auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
         const auto it_node_begin = r_interface_sub_model.NodesBegin();
 
-        #pragma omp parallel for firstprivate(it_node_begin)
+        // #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
             auto &r_value         = it_node->FastGetSolutionStepValue(VELOCITY);

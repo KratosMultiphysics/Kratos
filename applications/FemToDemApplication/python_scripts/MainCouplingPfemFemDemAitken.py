@@ -43,6 +43,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         self.FSI_aitken_utility.InitializeInterfaceSubModelPart(solid_model_part)
         self.FSI_aitken_utility.ResetNodalValues(solid_model_part)
 
+        # We perform the Aitken iterative scheme...
         while (not is_converged and aitken_iteration < self.aitken_max_iterations):
 
             KratosPrintInfo("")
@@ -75,8 +76,6 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                 is_converged = True
                 self.FSI_aitken_utility.FinalizeNonLinearIteration()
                 break
-            else:
-                aitken_iteration += 1
 
             # We relax the obtained solid velocities "v" and give them to the fluid
             residual_norm = self.UpdateAndRelaxSolution(solid_model_part)
@@ -84,7 +83,11 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             self.FSI_aitken_utility.FinalizeNonLinearIteration()
 
             # Check convergence
-            is_converged = self.CheckConvergence(residual_norm, residual_norm_old, aitken_iteration - 1)
+            is_converged = self.CheckConvergence(residual_norm, residual_norm_old, aitken_iteration)
+            if (aitken_iteration == 1): # We want at least 2 iterations
+                is_converged = False
+
+            aitken_iteration += 1
 
         if (aitken_iteration == self.aitken_max_iterations):
             KratosPrintInfo(" Aitken reached max iterations, error reached : " + str(residual_norm) + "...")
@@ -128,7 +131,8 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         error = residual_new / math.sqrt(self.FSI_aitken_utility.GetVectorSize())
         if (error < self.aitken_residual_dof_tolerance):
             is_conv = True
-            KratosPrintInfo(" Aitken converged with an error of " + str(error) + " and " + str(iteration) + " iterations.")
+            if (iteration > 1):
+                KratosPrintInfo(" Aitken converged with an error of " + str(error) + " and " + str(iteration) + " iterations.")
             return is_conv
         else:
             KratosPrintInfo(" Aitken error of " + str(error))
