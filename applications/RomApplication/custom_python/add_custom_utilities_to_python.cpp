@@ -30,27 +30,6 @@ namespace Kratos {
 namespace Python {
 
 
-void convert_to_numpy(RomResidualsUtility& RomResidualsUtilityObject, const Matrix & KratosMatrix, pybind11::object NumpyMatrix)
-{
-    PyObject* pobj = NumpyMatrix.ptr();
-    Py_buffer pybuf;
-    PyObject_GetBuffer(pobj, &pybuf, PyBUF_SIMPLE);
-    void *buf = pybuf.buf;
-    double *p = (double*)buf;
-    Py_XDECREF(pobj);
-
-    unsigned int n_rows = KratosMatrix.size1();
-    unsigned int n_cols = KratosMatrix.size2();
-    for (unsigned int i = 0; i < n_rows; i++)
-    {
-        for (unsigned int j = 0; j < n_cols; j++)
-        {
-            p[i*n_cols+j] = KratosMatrix(i,j);
-        }
-    }
-}
-
-
 using namespace pybind11;
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
@@ -62,7 +41,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
-    .def("Kratos2Numpy",convert_to_numpy)
     ;     
 
 }
