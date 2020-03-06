@@ -1393,7 +1393,7 @@ Begin Elements Element2D3N
 894 0 341 317 370
 End Elements
 
-Begin Conditions Condition2D
+Begin Conditions LineCondition2D2N
 1 0 460 466
 2 0 466 471
 3 0 471 476
