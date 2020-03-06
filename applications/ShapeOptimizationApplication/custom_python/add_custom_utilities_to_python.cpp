@@ -106,6 +106,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Map", MapVector<MapperVertexMorphing>)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
+        .def("GetMatrix", &MapperVertexMorphing::GetMatrix)
         ;
     py::class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
@@ -124,6 +125,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Map", MapVector<MapperVertexMorphingImprovedIntegration>)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingImprovedIntegration>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphingImprovedIntegration>)
+        .def("GetMatrix", &MapperVertexMorphing::GetMatrix)
         ;
 
     // ================================================================

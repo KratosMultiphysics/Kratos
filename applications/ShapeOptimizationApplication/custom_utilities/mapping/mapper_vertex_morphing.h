@@ -321,6 +321,11 @@ public:
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
+    virtual SparseMatrixType& GetMatrix()
+    {
+        return mMappingMatrix;
+    }
+
     // --------------------------------------------------------------------------
 
     ///@}
