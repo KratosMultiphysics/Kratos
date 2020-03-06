@@ -90,14 +90,12 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    const Kratos::Element& r_upstream_element = *pGetUpstreamElement();
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element
     {
-        const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*this, CurrentProcessInfo);
-
-        // Subsonic flow (local_mach_number < mach_number_limit)
-        if(upwind_factor < 0.0){
+        if(r_this.Is(INLET)){
             if (rResult.size() != NumNodes)
                 rResult.resize(NumNodes, false);
 
@@ -106,40 +104,42 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
             if (kutta == 0)
                 PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, rResult);
             else
-                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, rResult);
+                KRATOS_ERROR << "Found kutta element at the inle with ID #" << r_this.Id() << std::endl;
         }
-        // Supersonic flow (local_mach_number > mach_number_limit)
         else{
             if (rResult.size() != NumNodes + 1)
                 rResult.resize(NumNodes + 1, false);
-            EquationIdVectorType element_ids(NumNodes, 0);
+            for(unsigned int i = 0; i < rResult.size(); i++){
+                rResult[i] = -1;
+            }
             EquationIdVectorType upstream_element_ids(NumNodes, 0);
-            EquationIdVectorType example_ids(NumNodes + 1, 0);
 
             const int kutta = r_this.GetValue(KUTTA);
             if (kutta == 0){
                 PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, rResult);
-                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, element_ids);
             }
             else{
                 PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, rResult);
             }
 
-            const int upstream_kutta = pGetUpstreamElement()->GetValue(KUTTA);
+            const int upstream_kutta = r_upstream_element.GetValue(KUTTA);
             if (upstream_kutta == 0){
                 PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*pGetUpstreamElement(), upstream_element_ids);
             }
             else{
-                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, upstream_element_ids);
+                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*pGetUpstreamElement(), upstream_element_ids);
             }
 
-            for(unsigned int i = 0; i < element_ids.size(); i++){
-                example_ids[i] = element_ids[i];
-                if(std::find(element_ids.begin(), element_ids.end(), upstream_element_ids[i]) == element_ids.end()){
-                    example_ids[NumNodes] = upstream_element_ids[i];
+            bool upstream_element_id_found = false;
+            for(unsigned int i = 0; i < upstream_element_ids.size(); i++){
+                if(std::find(rResult.begin(), rResult.end(), upstream_element_ids[i]) == rResult.end()){
+                    rResult[NumNodes] = upstream_element_ids[i];
+                    upstream_element_id_found = true;
                 }
             }
+            KRATOS_ERROR_IF(!upstream_element_id_found) << "No upstream element id found for element #" << this->Id() << std::endl;
         }
+
     }
     else // Wake element
     {
@@ -147,23 +147,6 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
             rResult.resize(2 * NumNodes, false);
 
         GetEquationIdVectorWakeElement(rResult);
-    }
-    if(this->Id()==333){
-        EquationIdVectorType upstream_element_ids;
-        if (upstream_element_ids.size() != NumNodes)
-            upstream_element_ids.resize(NumNodes, false);
-        PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*pGetUpstreamElement(), upstream_element_ids);
-        KRATOS_WATCH(rResult)
-        KRATOS_WATCH(upstream_element_ids)
-
-        EquationIdVectorType example_ids(NumNodes + 1, 0);
-        for(unsigned int i = 0; i < rResult.size(); i++){
-            example_ids[i] = rResult[i];
-            if(std::find(rResult.begin(), rResult.end(), upstream_element_ids[i]) == rResult.end()){
-                example_ids[NumNodes] = upstream_element_ids[i];
-            }
-        }
-        KRATOS_WATCH(example_ids)
     }
 }
 
@@ -176,7 +159,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVe
 
     if (wake == 0) // Normal element
     {
-if (rElementalDofList.size() != NumNodes)
+        if (rElementalDofList.size() != NumNodes)
             rElementalDofList.resize(NumNodes);
 
         const int kutta = r_this.GetValue(KUTTA);
@@ -484,29 +467,50 @@ template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideNormalElement(
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rLeftHandSideMatrix.size1() != NumNodes + 1 || rLeftHandSideMatrix.size2() != NumNodes + 1)
-        rLeftHandSideMatrix.resize(NumNodes + 1, NumNodes + 1, false);
-    rLeftHandSideMatrix.clear();
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    if(r_this.Is(INLET)){
+        if (rLeftHandSideMatrix.size1() != NumNodes|| rLeftHandSideMatrix.size2() != NumNodes)
+            rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
+        rLeftHandSideMatrix.clear();
 
-    ElementalData<NumNodes, Dim> data;
+        ElementalData<NumNodes, Dim> data;
 
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+        // Calculate shape functions
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(upwind_density, rCurrentProcessInfo);
-    array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
+        const double density = ComputeDensity(rCurrentProcessInfo);
+        const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
-    const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_laplacian =
-        data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
-    const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_nonlinear =
-        data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+        noalias(rLeftHandSideMatrix) += data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+        noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    }
+    else{
+        if (rLeftHandSideMatrix.size1() != NumNodes + 1 || rLeftHandSideMatrix.size2() != NumNodes + 1)
+            rLeftHandSideMatrix.resize(NumNodes + 1, NumNodes + 1, false);
+        rLeftHandSideMatrix.clear();
 
-    for(unsigned int i = 0; i < NumNodes; i++){
-        for(unsigned int j = 0; j < NumNodes; j++){
-            rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
-            rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+        ElementalData<NumNodes, Dim> data;
+
+        // Calculate shape functions
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+        const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
+        const double DrhoDu2 = ComputeDensityDerivative(upwind_density, rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
+
+        const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_laplacian =
+            data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
+        const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_nonlinear =
+            data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+
+        for(unsigned int i = 0; i < NumNodes; i++){
+            for(unsigned int j = 0; j < NumNodes; j++){
+                rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
+                rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+            }
         }
     }
 }
@@ -515,23 +519,42 @@ template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSideNormalElement(
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rRightHandSideVector.size() != NumNodes + 1)
-        rRightHandSideVector.resize(NumNodes + 1, false);
-    rRightHandSideVector.clear();
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    if(r_this.Is(INLET)){
+        if (rRightHandSideVector.size() != NumNodes)
+            rRightHandSideVector.resize(NumNodes, false);
+        rRightHandSideVector.clear();
 
-    ElementalData<NumNodes, Dim> data;
+        ElementalData<NumNodes, Dim> data;
 
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+        // Calculate shape functions
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
-    array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        const double density = ComputeDensity(rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
 
-    const BoundedVector<double, NumNodes> rhs = - data.vol * upwind_density * prod(data.DN_DX, velocity);
-
-    for(unsigned int i = 0; i < NumNodes; i++){
-        rRightHandSideVector(i) = rhs(i);
+        noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
     }
+    else{
+        if (rRightHandSideVector.size() != NumNodes + 1)
+            rRightHandSideVector.resize(NumNodes + 1, false);
+        rRightHandSideVector.clear();
+
+        ElementalData<NumNodes, Dim> data;
+
+        // Calculate shape functions
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+        const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+
+        const BoundedVector<double, NumNodes> rhs = - data.vol * upwind_density * prod(data.DN_DX, velocity);
+
+        for(unsigned int i = 0; i < NumNodes; i++){
+            rRightHandSideVector(i) = rhs(i);
+        }
+    }
+
 }
 
 template <int Dim, int NumNodes>
