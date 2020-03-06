@@ -172,17 +172,6 @@ public:
     {
     }
 
-    /// Constructor.
-    explicit QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
-
     /// Destructor.
     ~QuadraturePointGeometry() override = default;
 
@@ -217,7 +206,9 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new QuadraturePointGeometry( ThisPoints ) );
+        KRATOS_ERROR << "QuadraturePointGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+            << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
+            << std::endl;
     }
 
     ///@}

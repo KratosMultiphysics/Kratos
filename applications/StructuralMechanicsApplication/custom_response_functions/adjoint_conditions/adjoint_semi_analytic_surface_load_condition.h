@@ -110,35 +110,6 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
-
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
-                                            Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
-                                            Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                          std::vector< array_1d<double, 3 > >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo) override;
-
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-
     ///@}
     ///@name Access
     ///@{
