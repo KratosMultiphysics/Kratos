@@ -91,8 +91,6 @@ namespace Kratos
                     //compute the elemental reduction matrix PhiElemental
                     const auto& geom = it_el->GetGeometry();
                     Matrix PhiElemental(geom.size()*mNodalDofs, mRomDofs);
-                    Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes, one row per element
-
                     for(unsigned int i=0; i<geom.size(); ++i){
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k){
@@ -102,8 +100,7 @@ namespace Kratos
                                 row(PhiElemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
                         }
                     }
-                    ResidualReduced = prod(trans(PhiElemental), RHS_Contribution);
-                    row(MatrixResiduals, k) = ResidualReduced;
+                    noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per element
                     
                     // clean local elemental me overridemory
                     mpScheme->CleanMemory(*(it_el.base()));
@@ -113,8 +110,7 @@ namespace Kratos
 
             for (int k = 0; k < nconditions;  k++){
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-                //detect if the condition is active or not. If the user did not make any choice the condition
-                //is active by default
+                //detect if the condition is active or not. If the user did not make any choice the condition is active by default
                 bool condition_is_active = true;
                 if ((it)->IsDefined(ACTIVE))
                     condition_is_active = (it)->Is(ACTIVE);
@@ -127,7 +123,6 @@ namespace Kratos
                     //compute the elemental reduction matrix PhiElemental
                     const auto& r_geom = it->GetGeometry();
                     Matrix PhiElemental(r_geom.size()*mNodalDofs, mRomDofs);
-                    Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes, one row per condition
                     for(unsigned int i=0; i<r_geom.size(); ++i){
                         const Matrix& rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k){
@@ -137,8 +132,7 @@ namespace Kratos
                                 row(PhiElemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
                         }
                     }
-                    ResidualReduced = prod(trans(PhiElemental), RHS_Contribution);
-                    row(MatrixResiduals, k+nelements) = ResidualReduced;
+                    noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
 
                     // clean local elemental memory
                     mpScheme->CleanMemory(*(it.base()));
@@ -148,13 +142,11 @@ namespace Kratos
         }
 
         protected:
-
             std::vector< std::string > mNodalVariablesNames;
             int mNodalDofs;
             int mRomDofs;
             BaseSchemeType::Pointer mpScheme;
             ModelPart& mpModelPart;
-
         };
 
 
