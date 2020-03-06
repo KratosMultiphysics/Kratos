@@ -216,6 +216,21 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
+        elif strategy == "upwind_non_linear":
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
+
+            self.solver = KCPFApp.UpwindResidualBasedNewtonRaphsonStrategy(
+                self.GetComputingModelPart(),
+                time_scheme,
+                self.linear_solver,
+                conv_criteria,
+                max_iterations,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
         else:
             raise Exception("Element not implemented")
 
@@ -241,8 +256,10 @@ class PotentialFlowSolver(FluidSolver):
                 strategy = "linear"
             else:
                 strategy = "non_linear"
-        elif "compressible" in element_type or "transonic" in element_type:
+        elif "compressible" in element_type:
             strategy = "non_linear"
+        elif "transonic" in element_type:
+            strategy = "upwind_non_linear"
         else:
             strategy = ""
 
