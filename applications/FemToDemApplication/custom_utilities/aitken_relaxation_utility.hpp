@@ -19,6 +19,7 @@
 // External includes
 #include "utilities/math_utils.h"
 #include "spaces/ublas_space.h"
+#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {
@@ -149,6 +150,7 @@ public:
     {
         KRATOS_TRY
         mConvergenceAcceleratorIteration = 1;
+        mVectorSize = 0;
         KRATOS_CATCH("")
     }
 
@@ -160,7 +162,7 @@ public:
         return MathUtils<double>::Norm(rVector);
     }
 
-    void CreateAndFillInterfaceSubModelPart(ModelPart &rSolidModelPart)
+    void InitializeInterfaceSubModelPart(ModelPart &rSolidModelPart)
     {
         mVectorSize = 0;
         if (rSolidModelPart.HasSubModelPart("fsi_interface_model_part")) {
@@ -184,6 +186,41 @@ public:
         }
         mVectorSize *= 3;
     }
+
+    void ResetNodalValues(ModelPart &rSolidModelPart)
+    {
+        auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+        const Vector& r_zero_vector = ZeroVector(3);
+
+        const auto it_node_begin = r_interface_sub_model.NodesBegin();
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
+            auto it_node = it_node_begin + i;
+            auto &r_var_1 = it_node->FastGetSolutionStepValue(RELAXED_VELOCITY);
+            auto &r_var_2 = it_node->FastGetSolutionStepValue(OLD_RELAXED_VELOCITY);
+            auto &r_var_3 = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
+            r_var_1 = r_zero_vector;
+            r_var_2 = r_zero_vector;
+            r_var_3 = r_zero_vector;
+        }
+    }
+
+    void SavePreviousRelaxedValues(ModelPart &rSolidModelPart)
+    {
+        auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
+
+        const auto it_node_begin = r_interface_sub_model.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
+            auto it_node = it_node_begin + i;
+            const auto &r_relaxed_velocity = it_node->FastGetSolutionStepValue(RELAXED_VELOCITY);
+            auto &r_old_relaxed_velocity   = it_node->GetSolutionStepValue(OLD_RELAXED_VELOCITY);
+            noalias(r_old_relaxed_velocity) = r_relaxed_velocity;
+        }
+    }
+
+
 
     ///@}
 
