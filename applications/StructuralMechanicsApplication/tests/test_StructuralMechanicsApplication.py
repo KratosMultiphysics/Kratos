@@ -63,6 +63,7 @@ from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesT
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Prebuckling analysis test
 from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklingAnalysis
+from test_prebuckling_analysis02 import TestPrebucklingAnalysis as TTestPrebucklingAnalysis02
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
@@ -310,6 +311,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
     # Buckling analysis test (switched to small suite)
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPrebucklingAnalysis]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPrebucklingAnalysis02]))
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Dynamic basic tests

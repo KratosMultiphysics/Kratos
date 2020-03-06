@@ -90,16 +90,16 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "max_iteration"         : 1000,
-            "tolerance"             : 1e-10,
+            "tolerance"             : 1e-6,
             "number_of_eigenvalues" : 2,
             "echo_level"            : 0,
-            "normalize_eigenvectors": true
+            "normalize_eigenvectors": false
         }
         """)
 
         eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
-        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-6,1e-11)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
@@ -240,13 +240,14 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
             self._set_conditions(mp,[NumOfNodes,NumOfNodes**2],NumOfNodes,-1,1)
             #Loads on left edge
             self._set_conditions(mp,[1,NumOfNodes*(NumOfNodes-1)+1],NumOfNodes,1,NumOfNodes+1)
-
         return mp
 
 
     def _check_load_multiplier(self,load_multiplier1, load_multiplier2, reference):
         #Check if value stays the same in the first and last loadstep
         #self.assertLess( abs(1-load_multiplier1[0]/load_multiplier1[7]), 1.0e-4)
+        print("sym: ", load_multiplier1)
+        print("full: ", load_multiplier2)
         self.assertAlmostEqual(load_multiplier1[0], load_multiplier2[0], 5)
 
         self.assertAlmostEqual(load_multiplier1[0], load_multiplier1[1], 1)

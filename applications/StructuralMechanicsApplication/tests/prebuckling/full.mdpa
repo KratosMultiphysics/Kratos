@@ -1,0 +1,533 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   2.0000000000   2.0000000000   0.0000000000
+    2   2.0000000000   1.7500000000   0.0000000000
+    3   1.7500000000   2.0000000000   0.0000000000
+    4   1.7500000000   1.7500000000   0.0000000000
+    5   2.0000000000   1.5000000000   0.0000000000
+    6   1.5000000000   2.0000000000   0.0000000000
+    7   1.5000000000   1.7500000000   0.0000000000
+    8   1.7500000000   1.5000000000   0.0000000000
+    9   1.5000000000   1.5000000000   0.0000000000
+   10   2.0000000000   1.2500000000   0.0000000000
+   11   1.2500000000   2.0000000000   0.0000000000
+   12   1.7500000000   1.2500000000   0.0000000000
+   13   1.2500000000   1.7500000000   0.0000000000
+   14   1.5000000000   1.2500000000   0.0000000000
+   15   1.2500000000   1.5000000000   0.0000000000
+   16   2.0000000000   1.0000000000   0.0000000000
+   17   1.0000000000   2.0000000000   0.0000000000
+   18   1.7500000000   1.0000000000   0.0000000000
+   19   1.0000000000   1.7500000000   0.0000000000
+   20   1.2500000000   1.2500000000   0.0000000000
+   21   1.5000000000   1.0000000000   0.0000000000
+   22   1.0000000000   1.5000000000   0.0000000000
+   23   1.2500000000   1.0000000000   0.0000000000
+   24   1.0000000000   1.2500000000   0.0000000000
+   25   2.0000000000   0.7500000000   0.0000000000
+   26   0.7500000000   2.0000000000   0.0000000000
+   27   1.7500000000   0.7500000000   0.0000000000
+   28   0.7500000000   1.7500000000   0.0000000000
+   29   1.5000000000   0.7500000000   0.0000000000
+   30   0.7500000000   1.5000000000   0.0000000000
+   31   1.0000000000   1.0000000000   0.0000000000
+   32   1.2500000000   0.7500000000   0.0000000000
+   33   0.7500000000   1.2500000000   0.0000000000
+   34   2.0000000000   0.5000000000   0.0000000000
+   35   0.5000000000   2.0000000000   0.0000000000
+   36   1.7500000000   0.5000000000   0.0000000000
+   37   0.5000000000   1.7500000000   0.0000000000
+   38   1.5000000000   0.5000000000   0.0000000000
+   39   0.5000000000   1.5000000000   0.0000000000
+   40   1.0000000000   0.7500000000   0.0000000000
+   41   0.7500000000   1.0000000000   0.0000000000
+   42   1.2500000000   0.5000000000   0.0000000000
+   43   0.5000000000   1.2500000000   0.0000000000
+   44   2.0000000000   0.2500000000   0.0000000000
+   45   0.2500000000   2.0000000000   0.0000000000
+   46   0.7500000000   0.7500000000   0.0000000000
+   47   1.7500000000   0.2500000000   0.0000000000
+   48   0.2500000000   1.7500000000   0.0000000000
+   49   1.0000000000   0.5000000000   0.0000000000
+   50   0.5000000000   1.0000000000   0.0000000000
+   51   0.2500000000   1.5000000000   0.0000000000
+   52   1.5000000000   0.2500000000   0.0000000000
+   53   1.2500000000   0.2500000000   0.0000000000
+   54   0.2500000000   1.2500000000   0.0000000000
+   55   0.5000000000   0.7500000000   0.0000000000
+   56   0.7500000000   0.5000000000   0.0000000000
+   57   2.0000000000   0.0000000000   0.0000000000
+   58   0.0000000000   2.0000000000   0.0000000000
+   59   1.7500000000   0.0000000000   0.0000000000
+   60   0.0000000000   1.7500000000   0.0000000000
+   61   1.0000000000   0.2500000000   0.0000000000
+   62   0.2500000000   1.0000000000   0.0000000000
+   63   1.5000000000   0.0000000000   0.0000000000
+   64   0.0000000000   1.5000000000   0.0000000000
+   65   0.5000000000   0.5000000000   0.0000000000
+   66   1.2500000000   0.0000000000   0.0000000000
+   67   0.0000000000   1.2500000000   0.0000000000
+   68   0.7500000000   0.2500000000   0.0000000000
+   69   0.2500000000   0.7500000000   0.0000000000
+   70   1.0000000000   0.0000000000   0.0000000000
+   71   0.0000000000   1.0000000000   0.0000000000
+   72   0.5000000000   0.2500000000   0.0000000000
+   73   0.2500000000   0.5000000000   0.0000000000
+   74   0.7500000000   0.0000000000   0.0000000000
+   75   0.0000000000   0.7500000000   0.0000000000
+   76   0.2500000000   0.2500000000   0.0000000000
+   77   0.5000000000   0.0000000000   0.0000000000
+   78   0.0000000000   0.5000000000   0.0000000000
+   79   0.2500000000   0.0000000000   0.0000000000
+   80   0.0000000000   0.2500000000   0.0000000000
+   81   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: shell
+        1          0    79    76    80    81 
+        2          0    77    72    76    79 
+        3          0    74    68    72    77 
+        4          0    70    61    68    74 
+        5          0    66    53    61    70 
+        6          0    63    52    53    66 
+        7          0    59    47    52    63 
+        8          0    57    44    47    59 
+        9          0    76    73    78    80 
+       10          0    72    65    73    76 
+       11          0    68    56    65    72 
+       12          0    61    49    56    68 
+       13          0    53    42    49    61 
+       14          0    52    38    42    53 
+       15          0    47    36    38    52 
+       16          0    44    34    36    47 
+       17          0    73    69    75    78 
+       18          0    65    55    69    73 
+       19          0    56    46    55    65 
+       20          0    49    40    46    56 
+       21          0    42    32    40    49 
+       22          0    38    29    32    42 
+       23          0    36    27    29    38 
+       24          0    34    25    27    36 
+       25          0    69    62    71    75 
+       26          0    55    50    62    69 
+       27          0    46    41    50    55 
+       28          0    40    31    41    46 
+       29          0    32    23    31    40 
+       30          0    29    21    23    32 
+       31          0    27    18    21    29 
+       32          0    25    16    18    27 
+       33          0    62    54    67    71 
+       34          0    50    43    54    62 
+       35          0    41    33    43    50 
+       36          0    31    24    33    41 
+       37          0    23    20    24    31 
+       38          0    21    14    20    23 
+       39          0    18    12    14    21 
+       40          0    16    10    12    18 
+       41          0    54    51    64    67 
+       42          0    43    39    51    54 
+       43          0    33    30    39    43 
+       44          0    24    22    30    33 
+       45          0    20    15    22    24 
+       46          0    14     9    15    20 
+       47          0    12     8     9    14 
+       48          0    10     5     8    12 
+       49          0    51    48    60    64 
+       50          0    39    37    48    51 
+       51          0    30    28    37    39 
+       52          0    22    19    28    30 
+       53          0    15    13    19    22 
+       54          0     9     7    13    15 
+       55          0     8     4     7     9 
+       56          0     5     2     4     8 
+       57          0    48    45    58    60 
+       58          0    37    35    45    48 
+       59          0    28    26    35    37 
+       60          0    19    17    26    28 
+       61          0    13    11    17    19 
+       62          0     7     6    11    13 
+       63          0     4     3     6     7 
+       64          0     2     1     3     4 
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: center_right
+    1 0 2
+    2 0 5
+    3 0 10
+    4 0 16
+    5 0 25
+    6 0 34
+    7 0 44
+End Conditions
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: corner_right
+    8 0 1
+    9 0 57
+End Conditions
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: center_left
+    10 0 60
+    11 0 64
+    12 0 67
+    13 0 71
+    14 0 75
+    15 0 78
+    16 0 80
+End Conditions
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: corner_left
+    17 0 58
+    18 0 81
+End Conditions
+
+Begin SubModelPart Parts_shell // Group shell // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+           63
+           64
+           65
+           66
+           67
+           68
+           69
+           70
+           71
+           72
+           73
+           74
+           75
+           76
+           77
+           78
+           79
+           80
+           81
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+           63
+           64
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_vertical_disp // Group vertical_disp // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            5
+           10
+           16
+           25
+           34
+           44
+           57
+           58
+           60
+           64
+           67
+           71
+           75
+           78
+           80
+           81
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_horizontal_disp // Group horizontal_disp // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            3
+            6
+           11
+           17
+           26
+           35
+           45
+           57
+           58
+           59
+           63
+           66
+           70
+           74
+           77
+           79
+           81
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_center_line // Group center_line // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           17
+           31
+           70
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_center // Group center // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           31
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_vertical_rot // Group vertical_rot // Subtree ROTATION
+    Begin SubModelPartNodes
+            1
+            2
+            5
+           10
+           16
+           25
+           34
+           44
+           57
+           58
+           60
+           64
+           67
+           71
+           75
+           78
+           80
+           81
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_horizontal_rot // Group horizontal_rot // Subtree ROTATION
+    Begin SubModelPartNodes
+            1
+            3
+            6
+           11
+           17
+           26
+           35
+           45
+           57
+           58
+           59
+           63
+           66
+           70
+           74
+           77
+           79
+           81
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_center_right // Group center_right // Subtree PointLoad3D
+    Begin SubModelPartNodes
+            2
+            5
+           10
+           16
+           25
+           34
+           44
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_corner_right // Group corner_right // Subtree PointLoad3D
+    Begin SubModelPartNodes
+            1
+           57
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            8
+            9
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_center_left // Group center_left // Subtree PointLoad3D
+    Begin SubModelPartNodes
+           60
+           64
+           67
+           71
+           75
+           78
+           80
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_corner_left // Group corner_left // Subtree PointLoad3D
+    Begin SubModelPartNodes
+           58
+           81
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           17
+           18
+    End SubModelPartConditions
+End SubModelPart
