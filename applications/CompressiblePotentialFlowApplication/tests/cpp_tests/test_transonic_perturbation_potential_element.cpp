@@ -17,6 +17,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/transonic_perturbation_potential_flow_element.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos {
 namespace Testing {
@@ -49,12 +50,27 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("TransonicPerturbationPotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
+void GenerateTestingTransonicUpstreamElement(ModelPart& rModelPart) {
+    // Create extra node
+    rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
+    // Nodes Ids
+    std::vector<ModelPart::IndexType> upstream_elemNodes{1, 3, 4};
+    Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+    rModelPart.CreateNewElement("TransonicPerturbationPotentialFlowElement2D3N", 2, upstream_elemNodes, pElemProp);
+}
+
 void AssignPotentialsToNormalTransonicPerturbationElement(Element::Pointer pElement)
 {
     std::array<double, 3> potential{1.0, 100.0, 150.0};
 
     for (unsigned int i = 0; i < 3; i++)
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+}
+
+void AssignPerturbationPotentialsToTransonicElement(Element& rElement, const std::array<double, 3> rPotential) {
+    for (unsigned int i = 0; i < 3; i++){
+        rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+    }
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -243,6 +259,81 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
             KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
+}
+
+/** Checks the TransonicPotentialFlowElement element.
+* Checks the EquationIdVector.
+*/
+KRATOS_TEST_CASE_IN_SUITE(TransonicPotentialFlowElementEquationIdVector, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToTransonicElement(*pElement, potential);
+
+    GenerateTestingTransonicUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
+    AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
+
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
+    neighbour_finder.Execute();
+    pElement->Initialize(model_part.GetProcessInfo());
+
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType ElementalDofList, UpstreamElementalDofList;
+    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    pUpstreamElement->GetDofList(UpstreamElementalDofList, model_part.GetProcessInfo());
+
+    std::vector<int> ids{23, 74, 55};
+    std::vector<int> upstream_ids{23, 55, 67};
+    for (int i = 0; i < 3; i++){
+        ElementalDofList[i]->SetEquationId(ids[i]);
+        UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
+    }
+
+    Element::EquationIdVectorType EquationIdVector;
+    pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+
+    std::vector<double> reference{23, 74, 55, 67};
+    KRATOS_CHECK_VECTOR_NEAR(EquationIdVector, reference, 1e-16);
+}
+
+/** Checks the TransonicPotentialFlowElement element.
+* Checks the EquationIdVector for the Wake.
+*/
+KRATOS_TEST_CASE_IN_SUITE(TransonicPotentialFlowElementEquationIdVectorWake, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    pElement->SetValue(WAKE, true);
+
+    BoundedVector<double, 3> distances = AssignDistancesToPerturbationTransonicElement();
+    pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
+
+    for (unsigned int i = 0; i < 3; i++) {
+        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+        pElement->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType ElementalDofList;
+    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+
+    for (int i = 0; i < 6; i++)
+        ElementalDofList[i]->SetEquationId(i);
+
+    Element::EquationIdVectorType EquationIdVector;
+    pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+
+    std::vector<double> reference{0, 1, 2, 3, 4, 5};
+    KRATOS_CHECK_VECTOR_NEAR(EquationIdVector, reference, 1e-16);
 }
 
 } // namespace Testing
