@@ -60,7 +60,6 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/quadrature_point_geometry.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -398,13 +397,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
-    //QuadraturePointGeometry
-    const std::size_t num_nodes = 0;
-    const QuadraturePointGeometry<NodeType, 3, 3> mQuadraturePointGeometryVolume3dPrototype  = QuadraturePointGeometry<NodeType, 3, 3>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 3, 2> mQuadraturePointGeometrySurface3dPrototype = QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 2, 2> mQuadraturePointGeometrySurface2dPrototype = QuadraturePointGeometry<NodeType, 2, 2>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 3, 1> mQuadraturePointGeometryCurve3dPrototype   = QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 2, 1> mQuadraturePointGeometryCurve2dPrototype   = QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(num_nodes));
 
     // General conditions must be defined
 
