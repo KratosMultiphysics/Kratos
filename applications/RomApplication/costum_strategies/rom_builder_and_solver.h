@@ -478,7 +478,7 @@ public:
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
         //ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
 
-        const Matrix *current_rom_nodal_basis;       
+        const Matrix *current_rom_nodal_basis{nullptr};       
         for (int k = 0; k<BaseType::mDofSet.size(); k++){
             auto dof = BaseType::mDofSet.begin() + k;
             if(k==0)
