@@ -389,18 +389,18 @@ public:
                 }
                 Matrix PhiElemental(number_of_dofs, mRomDofs);
                 
-                Matrix current_rom_nodal_basis = geom[0].GetValue(ROM_BASIS);
+                auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
                 for(unsigned int k = 0; k < number_of_dofs; ++k){
                     auto variable_key = dofs[k]->GetVariable().Key();
                     if (k>0){
                         if (DofsToNodes[k] != DofsToNodes[k-1]){                        
-                            current_rom_nodal_basis = geom[DofsToNodes[k]].GetValue(ROM_BASIS);
+                            current_rom_nodal_basis = &(geom[DofsToNodes[k]].GetValue(ROM_BASIS));
                         }
                     }
                     if (dofs[k]->IsFixed())
                         row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
                     else
-                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi[variable_key]);
+                        row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
                 }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -438,18 +438,18 @@ public:
                     DofsToNodes.push_back(counter);
                 }
                 Matrix PhiElemental(number_of_dofs, mRomDofs);
-                Matrix current_rom_nodal_basis  = geom[0].GetValue(ROM_BASIS);
+                auto *current_rom_nodal_basis  = &(geom[0].GetValue(ROM_BASIS));
                 for(unsigned int k = 0; k < number_of_dofs; ++k){
                     auto variable_key = dofs[k]->GetVariable().Key();
                     if (k>0){
                         if (DofsToNodes[k] != DofsToNodes[k-1]){                        
-                            current_rom_nodal_basis = geom[DofsToNodes[k]].GetValue(ROM_BASIS);
+                            current_rom_nodal_basis = &(geom[DofsToNodes[k]].GetValue(ROM_BASIS));
                         }
                     }
                     if (dofs[k]->IsFixed())
                         row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
                     else
-                        row(PhiElemental, k) = row(current_rom_nodal_basis, MapPhi[variable_key]);
+                        row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
                 }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -478,16 +478,15 @@ public:
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
         //ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
 
-        Matrix current_rom_nodal_basis;
+        const Matrix *current_rom_nodal_basis;       
         for (int k = 0; k<BaseType::mDofSet.size(); k++){
             auto dof = BaseType::mDofSet.begin() + k;
             if(k==0)
-                current_rom_nodal_basis = rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS);
+                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
             else if(dof->Id() != (dof-1)->Id())
-                current_rom_nodal_basis = rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS);            
-            Dx[dof->EquationId()] = inner_prod(  row(  current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , dxrom);
+                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));            
+            Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , dxrom);
         }
-
 
         const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
