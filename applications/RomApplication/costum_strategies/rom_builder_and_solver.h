@@ -478,9 +478,14 @@ public:
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
         //ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
 
-
-        for (auto dof : BaseType::mDofSet ){
-            Dx[dof.EquationId()] = inner_prod(  row(  rModelPart.pGetNode(dof.Id())->GetValue(ROM_BASIS)    , MapPhi[dof.GetVariable().Key()]   )     , dxrom);  // Can be improved 
+        Matrix current_rom_nodal_basis;
+        for (int k = 0; k<BaseType::mDofSet.size(); k++){
+            auto dof = BaseType::mDofSet.begin() + k;
+            if(k==0)
+                current_rom_nodal_basis = rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS);
+            else if(dof->Id() != (dof-1)->Id())
+                current_rom_nodal_basis = rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS);            
+            Dx[dof->EquationId()] = inner_prod(  row(  current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , dxrom);
         }
 
 
