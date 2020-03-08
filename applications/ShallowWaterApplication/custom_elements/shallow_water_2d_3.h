@@ -56,6 +56,7 @@ public:
         double dt_inv;
         double lumping_factor;
         double stab_factor;
+        double cross_wind;
         double gravity;
         double irregularity;
 
@@ -330,11 +331,15 @@ protected:
     void AddShockCapturingTerm(
         MatrixType& rLHS,
         const ElementData& rData,
-        const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
+        const ElementData& rData);
+
+    void ComputeMassMatrix(
+        BoundedMatrix<double,9,9>& rFlowMatrix,
+        BoundedMatrix<double,9,9>& rHeightMatrix,
         const ElementData& rData);
 
     void ComputeGradientMatrix(
@@ -346,15 +351,29 @@ protected:
     void ComputeDiffusionMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
         const ElementData& rData,
-        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        const BoundedMatrix<double,2,2>& rK1,
+        const BoundedMatrix<double,2,2>& rK2,
+        const BoundedMatrix<double,2,2>& rKh);
+
+    void ComputeCrossWindDiffusivityTensors(
+        BoundedMatrix<double,2,2>& rK1,
+        BoundedMatrix<double,2,2>& rK2,
+        BoundedMatrix<double,2,2>& rKh,
+        const ElementData& rData,
         const BoundedMatrix<double,3,2>& rDN_DX);
-    
+
     void AlgebraicResidual(
-        array_1d<double,2>& rFlowResidual,
+        array_1d<double,3>& rFlowResidual,
         double& rHeightresidual,
         const ElementData& rData,
-        const array_1d<double,3>& rN,
-        const BoundedMatrix<double,3,2>& rDN_DX);
+        const double& rFlowDiv,
+        const array_1d<double,3> rHeightGrad,
+        const BoundedMatrix<double,3,3> rFlowGrad);
+
+    void CrossWindTensor(
+        BoundedMatrix<double,2,2>& rTensor,
+        const array_1d<double,3>& rVeector);
 
     ///@}
     ///@name Protected  Access

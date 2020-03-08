@@ -135,6 +135,8 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     AddSourceTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
+    AddShockCapturingTerm(rLeftHandSideMatrix, data, DN_DX);
+
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
 
@@ -173,29 +175,32 @@ void ShallowWater2D3::AddSourceTerms(
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
-    BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrix(mass_matrix, rData);
+    BoundedMatrix<double,9,9> flow_mass_matrix = ZeroMatrix(9,9);
+    BoundedMatrix<double,9,9> height_mass_matrix = ZeroMatrix(9,9);
+    ComputeMassMatrix(flow_mass_matrix, height_mass_matrix, rData);
 
     // Friction term
     const double abs_vel = norm_2(rData.velocity);
     const double height4_3 = std::pow(rData.effective_height, 1.33333333333) + rData.irregularity;
-    rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * mass_matrix;
+    rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
     // Advection term
-    rLHS += rData.velocity_div * mass_matrix;
+    rLHS += rData.velocity_div * flow_mass_matrix;
 
     // Rain
-    rRHS += prod(mass_matrix, rData.rain);
+    rRHS += prod(height_mass_matrix, rData.rain);
 }
 
 void ShallowWater2D3::AddShockCapturingTerm(
     MatrixType& rLHS,
     const ElementData& rData,
-    const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    BoundedMatrix<double,2,2> k1, k2, kh;
+    ComputeCrossWindDiffusivityTensors(k1, k2, kh, rData, rDN_DX);
+
     BoundedMatrix<double,9,9> diff_matrix = ZeroMatrix(9,9);
-    ComputeDiffusionMatrix(diff_matrix, rData, rN, rDN_DX);
+    ComputeDiffusionMatrix(diff_matrix, rData, rDN_DX, k1, k2, kh);
     rLHS += diff_matrix;
 }
 
@@ -312,6 +317,21 @@ void ShallowWater2D3::ComputeMassMatrix(
         // TODO: add stabilization
     }
 }
+void ShallowWater2D3::ComputeMassMatrix(
+    BoundedMatrix<double,9,9>& rFlowMatrix,
+    BoundedMatrix<double,9,9>& rHeightMatrix,
+    const ElementData& rData)
+{
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t block = 3 * i;
+        rFlowMatrix(block, block) += rData.lumping_factor;
+        rFlowMatrix(block+1, block+1) += rData.lumping_factor;
+        rHeightMatrix(block+2, block+2) += rData.lumping_factor * rData.wet_fraction;
+
+        // TODO: add stabilization
+    }
+}
 
 void ShallowWater2D3::ComputeGradientMatrix(
     BoundedMatrix<double,9,9>& rMatrix,
@@ -322,9 +342,10 @@ void ShallowWater2D3::ComputeGradientMatrix(
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t i_block = 3 * i;
-        for (size_t j = 0; j < 3; ++i)
+        for (size_t j = 0; j < 3; ++j)
         {
             const size_t j_block = 3 * j;
+
             /* First component
                A_1 = {{u_1   0   gh},
                       { 0   u_1   0},
@@ -355,39 +376,121 @@ void ShallowWater2D3::ComputeGradientMatrix(
 void ShallowWater2D3::ComputeDiffusionMatrix(
     BoundedMatrix<double,9,9>& rMatrix,
     const ElementData& rData,
-    const array_1d<double,3>& rN,
-    const BoundedMatrix<double,3,2>& rDN_DX)
+    const BoundedMatrix<double,3,2>& rDN_DX,
+    const BoundedMatrix<double,2,2>& rK1,
+    const BoundedMatrix<double,2,2>& rK2,
+    const BoundedMatrix<double,2,2>& rKh)
 {
-    array_1d<double,2> f_residual;
-    double h_residual;
-    AlgebraicResidual(f_residual, h_residual, rData, rN, rDN_DX);
-
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t i_block = 3 * i;
-        for (size_t j = 0; j < 3; ++i)
+        for (size_t j = 0; j < 3; ++j)
         {
+            array_1d<double,2> bi, bj;
+            bi[0] = rDN_DX(i,0); bi[1] = rDN_DX(i,1);
+            bj[0] = rDN_DX(j,0); bj[1] = rDN_DX(j,1);
+
             const size_t j_block = 3 * j;
 
-            const double d11 = rDN_DX(i,0) * rDN_DX(j,0);
-            const double d12 = rDN_DX(i,0) * rDN_DX(j,1);
-            const double d21 = rDN_DX(i,1) * rDN_DX(j,0);
-            const double d22 = rDN_DX(i,1) * rDN_DX(j,1);
-
-            // TODO: do something
-            rMatrix(i_block,     j_block)     += d11;
+            // TODO: chekc if the indices are correct or transposed
+            rMatrix(i_block,     j_block)     += inner_prod(bj, prod(rK1, bi));
+            rMatrix(i_block + 1, j_block + 1) += inner_prod(bj, prod(rK2, bi));
+            rMatrix(i_block + 2, j_block + 2) += inner_prod(bj, prod(rKh, bi));
         }
     }
 }
 
-void ShallowWater2D3::AlgebraicResidual(
-        array_1d<double,2>& rFlowResidual,
-        double& rHeightresidual,
-        const ElementData& rData,
-        const array_1d<double,3>& rN,
-        const BoundedMatrix<double,3,2>& rDN_DX)
+void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
+    BoundedMatrix<double,2,2>& rK1,
+    BoundedMatrix<double,2,2>& rK2,
+    BoundedMatrix<double,2,2>& rKh,
+    const ElementData& rData,
+    const BoundedMatrix<double,3,2>& rDN_DX)
 {
-    // TODO: compute the residual
+    // Small number to prevent division by zero
+    const double epsilon = 1e-6;
+
+    // Computation of the gradients
+    array_1d<double,3> height_grad = ZeroVector(3);
+    BoundedMatrix<double,3,3> flow_grad = ZeroMatrix(3,3);
+    double flow_div = 0.0;
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t block = 3 * i;
+
+        double f1 = rData.unknown[block];
+        double f2 = rData.unknown[block + 1];
+        double h = rData.unknown[block + 2];
+
+        flow_div += rDN_DX(i,0) * f1 + rDN_DX(i,1) * f2;
+        height_grad[0] += rDN_DX(i,0) * h;
+        height_grad[1] += rDN_DX(i,1) * h;
+        flow_grad(0,0) += rDN_DX(i,0) * f1;
+        flow_grad(0,1) += rDN_DX(i,0) * f2;
+        flow_grad(1,0) += rDN_DX(i,1) * f1;
+        flow_grad(1,1) += rDN_DX(i,1) * f2;
+    }
+
+    // Computation of the residuals
+    array_1d<double,3> flow_residual;
+    double height_residual;
+    AlgebraicResidual(flow_residual, height_residual, rData, flow_div, height_grad, flow_grad);
+
+    // Computation of the crosswind direction
+    BoundedMatrix<double,2,2> cross_wind;
+    CrossWindTensor(cross_wind, rData.flow_rate);
+
+    // Final assembly of the tensors
+    const double length = this->GetGeometry().Length();
+    double f1_grad = std::max(std::sqrt(std::pow(flow_grad(0,0),2)+std::pow(flow_grad(1,0),2))+epsilon, rData.dt_inv);
+    double f2_grad = std::max(std::sqrt(std::pow(flow_grad(0,1),2)+std::pow(flow_grad(1,1),2))+epsilon, rData.dt_inv);
+    double h_grad = std::max(norm_2(height_grad)+epsilon, 1.0);
+    rK1 = 0.5 * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
+    rK2 = 0.5 * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
+    rKh = 0.5 * length * std::abs(height_residual) / h_grad * cross_wind;
+}
+
+void ShallowWater2D3::AlgebraicResidual(
+    array_1d<double,3>& rFlowResidual,
+    double& rHeightresidual,
+    const ElementData& rData,
+    const double& rFlowDiv,
+    const array_1d<double,3> rHeightGrad,
+    const BoundedMatrix<double,3,3> rFlowGrad)
+{
+    array_1d<double,3> flow_acc = ZeroVector(3);
+    double height_acc = 0.0;
+    double rain = 0.0;
+
+    // auto& r_geom = GetGeometry();
+    for (size_t i = 0; i < 3; ++i)
+    {
+        // TODO: use accelerations from the scheme
+        // flow_acc += r_geom[i].FastGetSolutionStepValue(ACCELERATION);
+        // height_acc += r_geom[i].FastGetSolutionStepValue(VELOCITY_Z);
+
+        const size_t block = 3 * i;
+        flow_acc[0] += rData.unknown[block] - rData.prev_unk[block];
+        flow_acc[1] += rData.unknown[block + 1] - rData.prev_unk[block + 1];
+        height_acc += rData.unknown[block + 2] - rData.prev_unk[block + 2];
+        rain += rData.rain[block + 2];
+    }
+    flow_acc *= rData.dt_inv * rData.lumping_factor;
+    height_acc *= rData.dt_inv * rData.lumping_factor;
+    rain *= rData.lumping_factor;
+
+    const double c2 = rData.gravity * rData.height;
+    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / std::pow(rData.effective_height, 2.333333333333333);
+    const array_1d<double,3> adv = rData.velocity_div * rData.flow_rate;
+
+    rFlowResidual = flow_acc + prod(rData.velocity, trans(rFlowGrad)) + c2 * rHeightGrad + friction + adv;
+    rHeightresidual = height_acc + rFlowDiv + rain;
+}
+
+void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
+{
+    const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
+    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / inner_prod(rVector, rVector);
 }
 
 } // namespace kratos
