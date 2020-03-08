@@ -669,7 +669,6 @@ void  AddContainersToPython(pybind11::module& m)
     ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
-
 }
 } // namespace Python.
 } // Namespace Kratos

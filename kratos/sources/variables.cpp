@@ -881,6 +881,5 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
-
 }
 }  // namespace Kratos.
