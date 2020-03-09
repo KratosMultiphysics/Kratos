@@ -102,37 +102,6 @@ public:
     {
     }
 
-    /// Constructor with points, N, Vector<DN_De, ...>
-    QuadraturePointCurveOnSurfaceGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointType& ThisIntegrationPoint,
-        const Matrix& ThisShapeFunctionsValues,
-        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
-        double LocalTangentsU,
-        double LocalTangentsV)
-        : BaseType(ThisPoints, ThisIntegrationPoint,
-            ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives)
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-    {
-    }
-
-    /// Constructor with points, N, Vector<DN_De, ...>, parent
-    QuadraturePointCurveOnSurfaceGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointType& ThisIntegrationPoint,
-        const Matrix& ThisShapeFunctionsValues,
-        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
-        double LocalTangentsU,
-        double LocalTangentsV,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, ThisIntegrationPoint,
-            ThisShapeFunctionsValues, ThisShapeFunctionsDerivatives, pGeometryParent)
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-    {
-    }
-
     /// Destructor.
     ~QuadraturePointCurveOnSurfaceGeometry() override = default;
 
