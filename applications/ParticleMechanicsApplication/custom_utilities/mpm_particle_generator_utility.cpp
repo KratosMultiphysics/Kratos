@@ -593,16 +593,16 @@ namespace MPMParticleGeneratorUtility
                             p_condition->SetValueOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
                             p_condition->SetValueOnIntegrationPoints(MPC_AREA, std::vector<double>{ mpc_area }, process_info);
                             p_condition->SetValueOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
 
                             if (is_neumann_condition)
                                 p_condition->SetValueOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
                             else{
+                                p_condition->SetValueOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
                                 p_condition->SetValueOnIntegrationPoints(PENALTY_FACTOR, std::vector<double>{ mpc_penalty_factor }, process_info);
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -648,16 +648,16 @@ namespace MPMParticleGeneratorUtility
                             p_condition->SetValueOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
                             p_condition->SetValueOnIntegrationPoints(MPC_AREA, std::vector<double>{ mpc_nodal_area }, process_info);
                             p_condition->SetValueOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
-                            p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
 
                             if (is_neumann_condition)
                                 p_condition->SetValueOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
                             else{
+                                p_condition->SetValueOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                                p_condition->SetValueOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
                                 p_condition->SetValueOnIntegrationPoints(PENALTY_FACTOR, std::vector<double>{ mpc_penalty_factor }, process_info);
                                 if (is_slip)
                                     p_condition->Set(SLIP);

@@ -400,6 +400,15 @@ void MPMParticleBaseCondition::CalculateOnIntegrationPoints(const Variable<array
     if (rVariable == MP_COORD || rVariable == MPC_COORD) {
         rValues[0] = m_xg;
     }
+    else if (rVariable == MPC_VELOCITY) {
+        rValues[0] = m_velocity;
+    }
+    else if (rVariable == MPC_ACCELERATION) {
+        rValues[0] = m_acceleration;
+    }
+    else if (rVariable == MPC_NORMAL ) {
+        rValues[0] = m_normal;
+    }
     else {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
     }
@@ -437,6 +446,9 @@ void MPMParticleBaseCondition::SetValueOnIntegrationPoints(const Variable<array_
     }
     else if (rVariable == MPC_ACCELERATION) {
         m_acceleration = rValues[0];
+    }
+    else if (rVariable == MPC_NORMAL) {
+        m_normal = rValues[0];
     }
     else {
         KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
