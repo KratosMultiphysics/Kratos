@@ -133,7 +133,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
+        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part)
         (self.neighbour_search).Execute()
 
         self.accelerationLimitationUtility = KratosCFD.AccelerationLimitationUtilities( self.computing_model_part, 5.0 )

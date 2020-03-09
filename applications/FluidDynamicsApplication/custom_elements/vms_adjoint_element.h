@@ -45,7 +45,7 @@ namespace Kratos {
  * @see VMS monolithic fluid element
  */
 template< unsigned int TDim >
-class VMSAdjointElement: public Element {
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element {
 
     class ThisExtensions : public AdjointExtensions
     {
