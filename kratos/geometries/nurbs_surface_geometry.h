@@ -284,7 +284,7 @@ public:
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
-        if (DirectionIndex == 2) {
+        if (DirectionIndex == 1) {
             rSpans[0] = mKnotsU[0];
 
             IndexType counter = 1;
