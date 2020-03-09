@@ -98,23 +98,24 @@ namespace Testing {
         shock_detection.EdgeBasedShockDetection(DENSITY, DENSITY_GRADIENT);
 
         // Check values
-        // KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
+        const double tolerance = 1.0e-8;
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(SHOCK_SENSOR), 0.0, tolerance);
 
-        GidIO<> gid_io_abgrall(
-            "/home/rzorrilla/Desktop/abgrall_function_smooth_field",
-            GiD_PostAscii,
-            SingleFile,
-            WriteDeformed,
-            WriteConditions);
-		gid_io_abgrall.InitializeMesh(0.0);
-		gid_io_abgrall.WriteMesh(r_model_part.GetMesh());
-		gid_io_abgrall.FinalizeMesh();
-		gid_io_abgrall.InitializeResults(0, r_model_part.GetMesh());
-		gid_io_abgrall.WriteNodalResults(DENSITY, r_model_part.Nodes(), 0, 0);
-		gid_io_abgrall.WriteNodalResultsNonHistorical(NODAL_AREA, r_model_part.Nodes(), 0);
-		gid_io_abgrall.WriteNodalResultsNonHistorical(SHOCK_SENSOR, r_model_part.Nodes(), 0);
-		gid_io_abgrall.WriteNodalResultsNonHistorical(DENSITY_GRADIENT, r_model_part.Nodes(), 0);
-		gid_io_abgrall.FinalizeResults();
+        // GidIO<> gid_io_abgrall(
+        //     "/home/rzorrilla/Desktop/abgrall_function_smooth_field",
+        //     GiD_PostAscii,
+        //     SingleFile,
+        //     WriteDeformed,
+        //     WriteConditions);
+		// gid_io_abgrall.InitializeMesh(0.0);
+		// gid_io_abgrall.WriteMesh(r_model_part.GetMesh());
+		// gid_io_abgrall.FinalizeMesh();
+		// gid_io_abgrall.InitializeResults(0, r_model_part.GetMesh());
+		// gid_io_abgrall.WriteNodalResults(DENSITY, r_model_part.Nodes(), 0, 0);
+		// gid_io_abgrall.WriteNodalResultsNonHistorical(NODAL_AREA, r_model_part.Nodes(), 0);
+		// gid_io_abgrall.WriteNodalResultsNonHistorical(SHOCK_SENSOR, r_model_part.Nodes(), 0);
+		// gid_io_abgrall.WriteNodalResultsNonHistorical(DENSITY_GRADIENT, r_model_part.Nodes(), 0);
+		// gid_io_abgrall.FinalizeResults();
 
     }
 
@@ -135,23 +136,28 @@ namespace Testing {
         shock_detection.EdgeBasedShockDetection(DENSITY, DENSITY_GRADIENT);
 
         // Check values
-        // KRATOS_CHECK_NEAR(visualization_model_part.GetNode(1).FastGetSolutionStepValue(PRESSURE), -1.0, 1e-8);
+        const double tolerance = 1.0e-6;
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4223).GetValue(SHOCK_SENSOR), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4364).GetValue(SHOCK_SENSOR), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(7131).GetValue(SHOCK_SENSOR), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5309).GetValue(SHOCK_SENSOR), 0.501132, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4810).GetValue(SHOCK_SENSOR), 0.00168451, tolerance);
 
-        GidIO<> gid_io_abgrall(
-            "/home/rzorrilla/Desktop/abgrall_function_shock_detection",
-            GiD_PostAscii,
-            SingleFile,
-            WriteDeformed,
-            WriteConditions);
-		gid_io_abgrall.InitializeMesh(0.0);
-		gid_io_abgrall.WriteMesh(r_model_part.GetMesh());
-		gid_io_abgrall.FinalizeMesh();
-		gid_io_abgrall.InitializeResults(0, r_model_part.GetMesh());
-		gid_io_abgrall.WriteNodalResults(DENSITY, r_model_part.Nodes(), 0, 0);
-		gid_io_abgrall.WriteNodalResultsNonHistorical(NODAL_AREA, r_model_part.Nodes(), 0);
-		gid_io_abgrall.WriteNodalResultsNonHistorical(SHOCK_SENSOR, r_model_part.Nodes(), 0);
-		gid_io_abgrall.WriteNodalResultsNonHistorical(DENSITY_GRADIENT, r_model_part.Nodes(), 0);
-		gid_io_abgrall.FinalizeResults();
+        // GidIO<> gid_io_abgrall(
+        //     "/home/rzorrilla/Desktop/abgrall_function_shock_detection",
+        //     GiD_PostAscii,
+        //     SingleFile,
+        //     WriteDeformed,
+        //     WriteConditions);
+		// gid_io_abgrall.InitializeMesh(0.0);
+		// gid_io_abgrall.WriteMesh(r_model_part.GetMesh());
+		// gid_io_abgrall.FinalizeMesh();
+		// gid_io_abgrall.InitializeResults(0, r_model_part.GetMesh());
+		// gid_io_abgrall.WriteNodalResults(DENSITY, r_model_part.Nodes(), 0, 0);
+		// gid_io_abgrall.WriteNodalResultsNonHistorical(NODAL_AREA, r_model_part.Nodes(), 0);
+		// gid_io_abgrall.WriteNodalResultsNonHistorical(SHOCK_SENSOR, r_model_part.Nodes(), 0);
+		// gid_io_abgrall.WriteNodalResultsNonHistorical(DENSITY_GRADIENT, r_model_part.Nodes(), 0);
+		// gid_io_abgrall.FinalizeResults();
 
     }
 
