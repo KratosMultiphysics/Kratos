@@ -334,7 +334,9 @@ typedef Node<3> NodeType;
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
 
-        auto spans = curve_on_surface.Spans();
+        std::vector<double> spans;
+
+        curve_on_surface.Spans(spans);
 
         // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);

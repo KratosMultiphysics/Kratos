@@ -106,6 +106,7 @@ namespace Kratos
 
     public:
         static std::vector<double> ComputeAxisIntersection(
+            std::vector<double> rIntersectionParameters,
             const GeometryType& rGeometry,
             double Start,
             double End,
@@ -113,9 +114,8 @@ namespace Kratos
             const std::vector<double>& rAxis2,
             const double Tolerance)
         {
-            std::vector<double> intersection_parameters;
-
-            intersection_parameters.push_back(Start);
+            rIntersectionParameters.clear();
+            rIntersectionParameters.push_back(Start);
 
             // approximate curve with a polyline
 
@@ -140,14 +140,14 @@ namespace Kratos
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, min_1,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
-                    intersection_parameters.push_back(intersection_parameter);
+                    rIntersectionParameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
                 else if (std::get<1>(polygon[i])[0] > max_1) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, max_1,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
-                    intersection_parameters.push_back(intersection_parameter);
+                    rIntersectionParameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
 
@@ -155,31 +155,31 @@ namespace Kratos
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, min_2,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
-                    intersection_parameters.push_back(intersection_parameter);
+                    rIntersectionParameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1]);
                 }
                 else if (std::get<1>(polygon[i])[1] > max_2) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, max_2,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
-                    intersection_parameters.push_back(intersection_parameter);
+                    rIntersectionParameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1]);
                 }
             }
 
-            if (std::abs(intersection_parameters[intersection_parameters.size() - 1] - End) > Tolerance)
-                intersection_parameters.push_back(End);
+            if (std::abs(rIntersectionParameters[rIntersectionParameters.size() - 1] - End) > Tolerance)
+                rIntersectionParameters.push_back(End);
 
-            std::sort(std::begin(intersection_parameters), std::end(intersection_parameters));
+            std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
 
-            auto last = std::unique(std::begin(intersection_parameters), std::end(intersection_parameters),
+            auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
                 [=](double a, double b) { return b - a < Tolerance; });
 
-            auto nb_unique = std::distance(std::begin(intersection_parameters), last);
+            auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
 
-            intersection_parameters.resize(nb_unique);
+            rIntersectionParameters.resize(nb_unique);
 
-            return intersection_parameters;
+            return rIntersectionParameters;
         }
     };
 } // namespace Kratos.

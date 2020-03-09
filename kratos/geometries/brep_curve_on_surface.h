@@ -242,14 +242,15 @@ public:
     ///@name Curve Properties
     ///@{
 
-    /*
-     * @brief  Provides intersections of the nurbs curve with the knots of the surface,
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
-     * @return vector of span intervals.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 1.
      */
-    std::vector<double> Spans() const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 1) const
     {
-        return mpCurveOnSurface->Spans(mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
     ///@}

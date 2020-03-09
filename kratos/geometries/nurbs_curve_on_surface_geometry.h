@@ -150,27 +150,32 @@ public:
     ///@name Curve Properties
     ///@{
 
-    /*
-     * @brief  Provides intersections of the nurbs curve with the knots of the surface,
-     *         using the natural boundaries.
-     * @return vector of interval limitations.
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the interval of this curve.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 1.
      */
-    std::vector<double> Spans() const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 1) const
     {
         auto interval = mpNurbsCurve->DomainInterval();
-        return this->Spans(interval.GetT0(), interval.GetT1());
+        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
     }
 
-    /*
-     * @brief  Provides intersections of the nurbs curve with the knots of the surface.
+    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
      * @return vector of interval limitations.
      */
-    std::vector<double> Spans(
+    void Spans(std::vector<double>& rSpans,
         double Start, double End) const
     {
-        return CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+        std::vector<double> surface_spans_u;
+        std::vector<double> surface_spans_v;
+        mpNurbsSurface->Spans(surface_spans_u, 1);
+        mpNurbsSurface->Spans(surface_spans_v, 2);
+
+        CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+            rSpans,
             *this, Start, End,
-            mpNurbsSurface->SpansU(), mpNurbsSurface->SpansV(),
+            surface_spans_u, surface_spans_v,
             1e-6);
     }
 
