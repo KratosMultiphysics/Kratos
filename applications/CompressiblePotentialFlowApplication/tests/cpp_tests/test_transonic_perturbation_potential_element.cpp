@@ -250,9 +250,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    std::array<double, 16> reference{ 0.09112073112058305,-0.1584804160095197,0.06735968488893659, 0.0,
-                                     -0.1584804160095197,0.6672768821969779,-0.5087964661874582, 0.0,
-                                      0.06735968488893661,-0.5087964661874582,0.4414367812985217, 0.0,
+    std::array<double, 16> reference{ 0.09233249593977144,-0.1594672105670851,0.06713471462731366, 0.0,
+                                     -0.1594672105670851,0.6680804733587455,-0.5086132627916604, 0.0,
+                                      0.06713471462731366,-0.5086132627916604,0.4414785481643468, 0.0,
                                       0.0, 0.0, 0.0, 0.0};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
