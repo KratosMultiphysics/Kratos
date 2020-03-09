@@ -466,31 +466,32 @@ public:
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 const auto &geom = it->GetGeometry();
 
-                unsigned int number_of_dofs = dofs.size();
-                // Detect number of dofs that correspond to the respective node. WORKS FOR MIXED ELEMENTS
-                int counter = 0;
-                std::vector<int> DofsToNodes;
-                DofsToNodes.push_back(counter);
-                for(unsigned KKK = 1; KKK < number_of_dofs; KKK++){                   
-                    if(dofs[KKK]->Id() != dofs[KKK-1]->Id()){
-                        counter++;
-                    }
-                    DofsToNodes.push_back(counter);
-                }
-                Matrix PhiElemental(number_of_dofs, mRomDofs);
-                auto *current_rom_nodal_basis  = &(geom[0].GetValue(ROM_BASIS));
-                for(unsigned int k = 0; k < number_of_dofs; ++k){
-                    auto variable_key = dofs[k]->GetVariable().Key();
-                    if (k>0){
-                        if (DofsToNodes[k] != DofsToNodes[k-1]){                        
-                            current_rom_nodal_basis = &(geom[DofsToNodes[k]].GetValue(ROM_BASIS));
-                        }
-                    }
-                    if (dofs[k]->IsFixed())
-                        row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
-                    else
-                        row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
-                }
+                Matrix PhiElemental = GetPhiElemental(dofs, geom);
+                // unsigned int number_of_dofs = dofs.size();
+                // // Detect number of dofs that correspond to the respective node. WORKS FOR MIXED ELEMENTS
+                // int counter = 0;
+                // std::vector<int> DofsToNodes;
+                // DofsToNodes.push_back(counter);
+                // for(unsigned KKK = 1; KKK < number_of_dofs; KKK++){                   
+                //     if(dofs[KKK]->Id() != dofs[KKK-1]->Id()){
+                //         counter++;
+                //     }
+                //     DofsToNodes.push_back(counter);
+                // }
+                // Matrix PhiElemental(number_of_dofs, mRomDofs);
+                // auto *current_rom_nodal_basis  = &(geom[0].GetValue(ROM_BASIS));
+                // for(unsigned int k = 0; k < number_of_dofs; ++k){
+                //     auto variable_key = dofs[k]->GetVariable().Key();
+                //     if (k>0){
+                //         if (DofsToNodes[k] != DofsToNodes[k-1]){                        
+                //             current_rom_nodal_basis = &(geom[DofsToNodes[k]].GetValue(ROM_BASIS));
+                //         }
+                //     }
+                //     if (dofs[k]->IsFixed())
+                //         row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
+                //     else
+                //         row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
+                // }
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
