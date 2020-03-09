@@ -272,35 +272,52 @@ public:
         }
     }
 
-    void ProjectToReducedBasis(
-        const TSystemVectorType &rX,
-        ModelPart::NodesContainerType &rNodes,
-        Vector rom_unknowns)
-    {
-        for (const auto &node : rNodes){
-            unsigned int node_aux_id = node.GetValue(AUX_ID);
-            const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
-            for (int i = 0; i < mRomDofs; ++i){
-                for (int j = 0; j < mNodalDofs; ++j){
-                    rom_unknowns[i] += nodal_rom_basis(j, i) * rX(node_aux_id * mNodalDofs + j);
-                }
-            }
-        }
-    }
+    // void ProjectToReducedBasis(
+    //     const TSystemVectorType &rX,
+    //     ModelPart::NodesContainerType &rNodes,
+    //     Vector rom_unknowns)
+    // {
+    //     for (const auto &node : rNodes){
+    //         unsigned int node_aux_id = node.GetValue(AUX_ID);
+    //         const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
+    //         for (int i = 0; i < mRomDofs; ++i){
+    //             for (int j = 0; j < mNodalDofs; ++j){
+    //                 rom_unknowns[i] += nodal_rom_basis(j, i) * rX(node_aux_id * mNodalDofs + j);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // void ProjectToFineBasis(
+    //     const TSystemVectorType &rRomUnkowns,
+    //     ModelPart::NodesContainerType &rNodes,
+    //     TSystemVectorType &rX)
+    // {
+    //     TSparseSpace::SetToZero(rX);
+    //     for (const auto &node : rNodes){
+    //         unsigned int node_aux_id = node.GetValue(AUX_ID);
+    //         const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
+    //         Vector tmp = prod(nodal_rom_basis, rRomUnkowns);
+    //         for (unsigned int i = 0; i < tmp.size(); ++i){
+    //             rX[node_aux_id * mNodalDofs + i] = tmp[i];
+    //         }
+    //     }
+    // }
+
 
     void ProjectToFineBasis(
         const TSystemVectorType &rRomUnkowns,
-        ModelPart::NodesContainerType &rNodes,
-        TSystemVectorType &rX)
+        ModelPart &rModelPart,
+        TSystemVectorType &Dx)
     {
-        TSparseSpace::SetToZero(rX);
-        for (const auto &node : rNodes){
-            unsigned int node_aux_id = node.GetValue(AUX_ID);
-            const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
-            Vector tmp = prod(nodal_rom_basis, rRomUnkowns);
-            for (unsigned int i = 0; i < tmp.size(); ++i){
-                rX[node_aux_id * mNodalDofs + i] = tmp[i];
-            }
+        const Matrix *current_rom_nodal_basis{nullptr};       
+        for (unsigned int k = 0; k<BaseType::mDofSet.size(); k++){
+            auto dof = BaseType::mDofSet.begin() + k;
+            if(k==0)
+                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
+            else if(dof->Id() != (dof-1)->Id())
+                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));            
+            Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
         }
     }
 
@@ -465,15 +482,18 @@ public:
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
         //ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
 
-        const Matrix *current_rom_nodal_basis{nullptr};       
-        for (int k = 0; k<BaseType::mDofSet.size(); k++){
-            auto dof = BaseType::mDofSet.begin() + k;
-            if(k==0)
-                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-            else if(dof->Id() != (dof-1)->Id())
-                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));            
-            Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , dxrom);
-        }
+        ProjectToFineBasis(dxrom, rModelPart, Dx);
+
+
+        // const Matrix *current_rom_nodal_basis{nullptr};       
+        // for (int k = 0; k<BaseType::mDofSet.size(); k++){
+        //     auto dof = BaseType::mDofSet.begin() + k;
+        //     if(k==0)
+        //         current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
+        //     else if(dof->Id() != (dof-1)->Id())
+        //         current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));            
+        //     Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , dxrom);
+        // }
 
         const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
