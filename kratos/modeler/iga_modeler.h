@@ -112,6 +112,11 @@ public:
         rOStream << Info();
     }
 
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
     ///@}
 
 private:
