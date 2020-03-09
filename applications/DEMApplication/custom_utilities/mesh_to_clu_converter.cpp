@@ -10,21 +10,14 @@
 void Diagonalize(const double (&A)[3][3], double (&Q)[3][3], double (&D)[3][3]);
 
 int main() {
+
+    // Import the mesh (.msh) and spheres (.sph) files containing the cluster information
     std::ifstream infile("file_name.msh");
     std::ifstream infilesph("file_name.sph");
     std::string line, linesph;
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
 
-    // Hacer una primera pasada para saber NUM_OF_NODES y NUM_OF_ELEMENTS
-    // Pasar el nombre del caso como argumento de un script de python y crear el fichero clu
-    // Poner esto el PreUtilities?
-    // Salta un segmentation fault al reservar la memoria de los arrays para grandes tamanos
-    // Deberia poderse optimizar el uso de la memoria para evitar eso
-    // Primera aproximacion de Size: Longitud de la diagonal maxima del prisma contenedor
-    // Mover el centroide del objeto al origen si no lo esta ya
-    // Para el clu, se necesita la inercia por unidad de masa
-    // Entonces, mover el objeto al origen y girarlo tal que esta en sus ejes principales
-
+    // Check the number of nodes (NUM_OF_NODES) and the number of elements (NUM_OF_ELEMENTS)
     int node_counter = 0;
     while (std::getline(infile, line)) {
         std::istringstream iss(line);
@@ -150,7 +143,7 @@ int main() {
         total_volume += Volum[element_counter];
         Vmass[element_counter] = Volum[element_counter]*density;
 
-        //Calculo del baricentro de cada tetraedro
+        // Calculate the barycentre of each tetrahedron
         BARIC[element_counter * 3 + 0]= (tcoord[(NodeA-1) * 3 + 0]+tcoord[(NodeB-1) * 3 + 0]+tcoord[(NodeC-1) * 3 + 0]+tcoord[(NodeD-1) * 3 + 0])/4;
         BARIC[element_counter * 3 + 1]= (tcoord[(NodeA-1) * 3 + 1]+tcoord[(NodeB-1) * 3 + 1]+tcoord[(NodeC-1) * 3 + 1]+tcoord[(NodeD-1) * 3 + 1])/4;
         BARIC[element_counter * 3 + 2]= (tcoord[(NodeA-1) * 3 + 2]+tcoord[(NodeB-1) * 3 + 2]+tcoord[(NodeC-1) * 3 + 2]+tcoord[(NodeD-1) * 3 + 2])/4;
@@ -158,14 +151,14 @@ int main() {
 
     std::cout << "\nTotal volume: " << total_volume << '\n';
 
-    //Calculo de la masa total del cluster o piedra
+    // Calculate the total mass of the cluster
     double Vmaspiedra=0.0;
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
         Vmaspiedra+=Vmass[element_counter];
     }
     std::cout << "Total mass: " << Vmaspiedra << '\n';
 
-    //Calculo del centro de gravedad del cluster o piedra
+    // Calculate the cluster's centre of gravity
     double Valor1=0.0;
     double Valor2=0.0;
     double Valor3=0.0;
@@ -182,21 +175,21 @@ int main() {
     double Zcdgrav=Valor3/Vmaspiedra;
     std::cout << "Centroid: " << Xcdgrav << " " << Ycdgrav << " " << Zcdgrav << "\n\n";
 
-    // Movemos el objecto y lo dejamos colocado tal que su centroide coincida con el origen:
+    // Move the object so that its centre of gravity coincides with the origin
     for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
         tcoord[node_counter * 3 + 0] -= Xcdgrav;
         tcoord[node_counter * 3 + 1] -= Ycdgrav;
         tcoord[node_counter * 3 + 2] -= Zcdgrav;
     }
 
-    // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
+    // Move the spheres accordingly
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
         sphcoord[spheres_counter * 3 + 0] -= Xcdgrav;
         sphcoord[spheres_counter * 3 + 1] -= Ycdgrav;
         sphcoord[spheres_counter * 3 + 2] -= Zcdgrav;
     }
 
-    // Calculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
+    // Calculate the inertia tensor of each tetrahedron with resct to the centre of gravity of the cluster
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
 
         Local[element_counter * 3 + 0]= BARIC[element_counter * 3 + 0]-Xcdgrav;
@@ -215,7 +208,7 @@ int main() {
 
     for (int i = 0; i < 9; i++) VNERT[i]=0.0;
 
-    // Se calcula el tensor de Vnercias totales
+    // Calculate the whole inertia tensor
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
 
         VNERT[0]+=Vnerc[element_counter * 9 + 0];
@@ -229,7 +222,8 @@ int main() {
         VNERT[8]+=Vnerc[element_counter * 9 + 8];
     }
 
-    // Queremos las inercias por unidad de masa, así que dividimos las inercias por la masa total=total_volume*density (density = 1, no la ponemos en la fórmula)
+    // Calculate the inertias per unit of mass
+    Queremos las inercias por unidad de masa, así que dividimos las inercias por la masa total=total_volume*density (density = 1, no la ponemos en la fórmula)
     std::cout << "Inertias: " << VNERT[0]/total_volume << " " << VNERT[1]/total_volume << " " << VNERT[2]/total_volume << '\n';
     std::cout << "Inertias: " << VNERT[3]/total_volume << " " << VNERT[4]/total_volume << " " << VNERT[5]/total_volume << '\n';
     std::cout << "Inertias: " << VNERT[6]/total_volume << " " << VNERT[7]/total_volume << " " << VNERT[8]/total_volume << "\n\n";
@@ -254,8 +248,7 @@ int main() {
     std::cout << "Eigenvalues: " << D[1][0] << " " << D[1][1] << " " << D[1][2] << '\n';
     std::cout << "Eigenvalues: " << D[2][0] << " " << D[2][1] << " " << D[2][2] << "\n\n";
 
-    // Rotamos el objeto y lo colocamos paralelo a sus ejes principales de inercia
-
+    // Rotate the object and place it parallel to its principal axis of inertia
     for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
 
         double temporal_array[3][1];
@@ -267,8 +260,7 @@ int main() {
         tcoord[node_counter * 3 + 2] = temporal_array[2][0];
     }
 
-    // Rotamos las esferas y las colocamos paralelas a sus ejes principales de inercia
-
+    // Rotate the spheres accordingly
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
 
         double temporal_array_sph[3][1];
@@ -280,6 +272,7 @@ int main() {
         sphcoord[spheres_counter * 3 + 2] = temporal_array_sph[2][0];
     }
 
+    // Calculate the smallest sphere that circumscribe the cluster (necessary for the cluster mesher)
     double Distance, CenterX, CenterY, CenterZ, Radius = 0.0;
     int extreme_sphere_1, extreme_sphere_2;
     std::vector<int> extreme_sphere;
@@ -385,10 +378,11 @@ int main() {
 
     std::cout << "\nThe size ratio is: " << diameter/characteristic_size << "\n\n";
 
+    // Create the cluster (.clu) file
     std::ofstream outputfile("file_name.clu", std::ios_base::out);
     outputfile << "//\n//   Cluster Name: \"Cluster name\"\n";
-    outputfile << "//   Author: Joaquin Irazabal\n";
-    outputfile << "//   Date:   2019-09-30\n//\n\n";
+    outputfile << "//   Author: Author Name\n";
+    outputfile << "//   Date:   YYYY-MM-DD\n//\n\n";
 
     outputfile << "Name\nCluster name\n\nBegin centers_and_radii\n";
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
@@ -396,7 +390,6 @@ int main() {
     }
     outputfile << "End centers_and_radii\n\n";
     outputfile << "Particle_center_and_diameter\n" << CenterX << " " << CenterY << " " << CenterZ << " " << diameter << "\n\n";
-//     outputfile << "Size\n" << characteristic_size << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Size\n" << diameter << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Inertia per unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
 
