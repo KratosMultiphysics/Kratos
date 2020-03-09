@@ -63,7 +63,7 @@ public:
     Modeler() {}
 
     /// Destructor.
-    virtual ~Modeler() {}
+    virtual ~Modeler() = default;
 
     ///@}
     ///@name Operations
