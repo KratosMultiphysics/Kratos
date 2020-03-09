@@ -272,38 +272,25 @@ public:
         }
     }
 
-    // void ProjectToReducedBasis(
-    //     const TSystemVectorType &rX,
-    //     ModelPart::NodesContainerType &rNodes,
-    //     Vector rom_unknowns)
-    // {
-    //     for (const auto &node : rNodes){
-    //         unsigned int node_aux_id = node.GetValue(AUX_ID);
-    //         const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
-    //         for (int i = 0; i < mRomDofs; ++i){
-    //             for (int j = 0; j < mNodalDofs; ++j){
-    //                 rom_unknowns[i] += nodal_rom_basis(j, i) * rX(node_aux_id * mNodalDofs + j);
-    //             }
-    //         }
-    //     }
-    // }
 
-    // void ProjectToFineBasis(
-    //     const TSystemVectorType &rRomUnkowns,
-    //     ModelPart::NodesContainerType &rNodes,
-    //     TSystemVectorType &rX)
+    // Vector ProjectToReducedBasis(
+	// 	const TSystemVectorType& rX,
+	// 	ModelPart::NodesContainerType& rNodes
+	// )
     // {
-    //     TSparseSpace::SetToZero(rX);
-    //     for (const auto &node : rNodes){
+    //     Vector rom_unknowns = ZeroVector(mRomDofs);
+    //     for(const auto& node : rNodes)
+    //     {
     //         unsigned int node_aux_id = node.GetValue(AUX_ID);
-    //         const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
-    //         Vector tmp = prod(nodal_rom_basis, rRomUnkowns);
-    //         for (unsigned int i = 0; i < tmp.size(); ++i){
-    //             rX[node_aux_id * mNodalDofs + i] = tmp[i];
-    //         }
+    //         const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
+	// 			for (int i = 0; i < mRomDofs; ++i) {
+	// 				for (int j = 0; j < mNodalDofs; ++j) {
+	// 					rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mNodalDofs + j);
+	// 				}
+	// 			}
     //     }
-    // }
-
+    //     return rom_unknowns;
+	// }
 
     void ProjectToFineBasis(
         const TSystemVectorType &rRomUnkowns,
@@ -324,28 +311,18 @@ public:
     Matrix GetPhiElemental(
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
-    {
-        unsigned int number_of_dofs = dofs.size();
-        int counter = 0;
-        std::vector<int> DofsToNodes;
-
-        DofsToNodes.push_back(counter);
-        for(unsigned int KKK = 1; KKK < number_of_dofs; KKK++){                   
-            if(dofs[KKK]->Id() != dofs[KKK-1]->Id()){
-                counter++;
-            }
-            DofsToNodes.push_back(counter);
-        }
-        
-        Matrix PhiElemental(number_of_dofs, mRomDofs);
+    {  
+        Matrix PhiElemental(dofs.size(), mRomDofs);
         
         auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
-        for(unsigned int k = 0; k < number_of_dofs; ++k){
+        int counter = 0;
+        for(unsigned int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
-            if (k>0){
-                if (DofsToNodes[k] != DofsToNodes[k-1]){                        
-                    current_rom_nodal_basis = &(geom[DofsToNodes[k]].GetValue(ROM_BASIS));
-                }
+            if(k==0)
+                current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+            else if(dofs[k]->Id() != dofs[k-1]->Id()){
+                counter++;
+                current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
             }
             if (dofs[k]->IsFixed())
                 row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
@@ -356,13 +333,6 @@ public:
     }
 
 
-
-    void GetDofValues(const std::vector<DofPointerType> &rDofList, TSystemVectorType &rX)
-    {
-        unsigned int i = 0;
-        for (auto &dof : rDofList)
-            rX[i++] = dof->GetSolutionStepValue();
-    }
 
     /*@{ */
 
@@ -406,8 +376,7 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        //vector containing the localization in the system of the different
-        //terms
+        //vector containing the localization in the system of the different terms
         Element::EquationIdVectorType EquationId;
 
         // assemble all elements
@@ -428,7 +397,6 @@ public:
                 Element::DofsVectorType dofs;
                 it_el->GetDofList(dofs, CurrentProcessInfo);
                 const auto &geom = it_el->GetGeometry();
-                //std::string KKK = geom;
                 Matrix PhiElemental = GetPhiElemental(dofs, geom);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -453,11 +421,12 @@ public:
                 //calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 const auto &geom = it->GetGeometry();
-
                 Matrix PhiElemental = GetPhiElemental(dofs, geom);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
+
+                // clean local elemental me overridemory                
                 pScheme->CleanMemory(*(it.base()));
             }
         }
@@ -473,28 +442,14 @@ public:
         double start_solve = OpenMPUtils::GetCurrentTime();
         MathUtils<double>::Solve(Arom, dxrom, brom);
         const double stop_solve = OpenMPUtils::GetCurrentTime();
-
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve << std::endl;
 
-        //update database
-        noalias(xrom) += dxrom;
+        // //update database
+        // noalias(xrom) += dxrom;
 
+        // project reduced solution back to full order model
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
-        //ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
-
         ProjectToFineBasis(dxrom, rModelPart, Dx);
-
-
-        // const Matrix *current_rom_nodal_basis{nullptr};       
-        // for (int k = 0; k<BaseType::mDofSet.size(); k++){
-        //     auto dof = BaseType::mDofSet.begin() + k;
-        //     if(k==0)
-        //         current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-        //     else if(dof->Id() != (dof-1)->Id())
-        //         current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));            
-        //     Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , dxrom);
-        // }
-
         const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
     }
