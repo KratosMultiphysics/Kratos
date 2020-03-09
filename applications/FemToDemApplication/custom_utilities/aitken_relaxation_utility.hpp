@@ -68,9 +68,11 @@ public:
      * Constructor.
      * AitkenRelaxationUtility
      */
-    AitkenRelaxationUtility(const double OmegaOld = 0.825)
+    AitkenRelaxationUtility(const double OmegaOld = 0.825, const double MaximumOmega = 0.825, const double MinimumOmega = 0.825)
     {
         mOmegaOld = OmegaOld;
+        mOmegaMax = MaximumOmega;
+        mOmegaMin = MinimumOmega;
     }
 
     /**
@@ -101,6 +103,7 @@ public:
     {
         KRATOS_TRY
         mConvergenceAcceleratorIteration = 1;
+        mOmegaNew = 0.825;
         KRATOS_CATCH( "" )
     }
 
@@ -130,9 +133,16 @@ public:
 
             mOmegaNew = -mOmegaOld * (numerator / denominator);
 
+            KRATOS_WATCH(mOmegaNew)
+
+            mOmegaNew = (mOmegaNew > mOmegaMax) ? mOmegaMax : mOmegaNew;
+            mOmegaNew = (mOmegaNew < mOmegaMin) ? mOmegaMin : mOmegaNew;
+
             TSpace::UnaliasedAdd(rIterationGuess, mOmegaNew, *mpResidualVectorNew);
             mOmegaOld = mOmegaNew;
         }
+
+        // KRATOS_WATCH(rIterationGuess)
         KRATOS_CATCH("")
     }
 
@@ -213,6 +223,9 @@ public:
             r_var_2 = r_zero_vector;
             r_var_3 = r_zero_vector;
         }
+
+        mpResidualVectorOld.reset();
+        mpResidualVectorNew.reset();
     }
 
     /**
@@ -264,8 +277,10 @@ public:
 
             // Assemble the vector
             const unsigned int base_i = i * Dimension;
-            for (unsigned int jj = 0; jj < Dimension; ++jj)
-                TSpace::SetValue(rIterationValueVector, base_i + jj, r_value[jj]);
+            for (unsigned int jj = 0; jj < Dimension; ++jj) {
+                // TSpace::SetValue(rIterationValueVector, base_i + jj, r_value[jj]);
+                rIterationValueVector[base_i + jj] = r_value[jj];
+            }
         }
     }
 
@@ -300,7 +315,8 @@ public:
             // Assemble the vector
             const unsigned int base_i = i * Dimension;
             for (unsigned int jj = 0; jj < Dimension; ++jj)
-                TSpace::SetValue(rInterfaceResidualVector, base_i + jj, r_interface_residual[jj]);
+                rInterfaceResidualVector[base_i + jj] = r_interface_residual[jj];
+                // TSpace::SetValue(rInterfaceResidualVector, base_i + jj, r_interface_residual[jj]);
         }
         return MathUtils<double>::Norm(rInterfaceResidualVector);
     }
@@ -324,15 +340,48 @@ public:
         
             const int base_i = i * Dimension;
             for (unsigned int jj = 0; jj < Dimension; ++jj) {
-                r_value[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
-                r_value_relaxed[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
+                r_value[jj]         = rRelaxedValuesVector[base_i + jj];
+                r_value_relaxed[jj] = rRelaxedValuesVector[base_i + jj];
+
+                // r_value[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
+                // r_value_relaxed[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
             }
         }
     }
 
+    /**
+     * Reset the previous kinematic information of the PFEM nodes 
+     */
+    void ResetPFEMkinematicValues(ModelPart &rFluidModelPart)
+    {
+        const auto it_node_begin = rFluidModelPart.NodesBegin();
+        auto &r_process_info = rFluidModelPart.GetProcessInfo();
 
+        #pragma omp parallel for firstprivate(it_node_begin)
+        for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); i++) {
+            auto it_node = it_node_begin + i;
 
+            const auto &r_old_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            it_node->SetSolutionStepValue(DISPLACEMENT, 0, r_old_displ);
 
+            const auto &r_old_vel = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            it_node->SetSolutionStepValue(VELOCITY, 0, r_old_vel);    
+
+            const auto &r_old_acc = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            it_node->SetSolutionStepValue(ACCELERATION, 0, r_old_acc);    
+
+            if (r_process_info[STEP] >= 2) {
+                const auto &r_old_old_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
+                it_node->SetSolutionStepValue(DISPLACEMENT, 1, r_old_old_displ);
+
+                const auto &r_old_old_vel = it_node->FastGetSolutionStepValue(VELOCITY, 2);
+                it_node->SetSolutionStepValue(VELOCITY, 1, r_old_old_vel);    
+
+                const auto &r_old_old_acc = it_node->FastGetSolutionStepValue(ACCELERATION, 2);
+                it_node->SetSolutionStepValue(ACCELERATION, 1, r_old_old_acc); 
+            }     
+        }
+    }
 
     ///@}
 
@@ -365,6 +414,9 @@ protected:
 
     double mOmegaOld;
     double mOmegaNew;
+
+    double mOmegaMax;
+    double mOmegaMin;
 
     VectorPointerType mpResidualVectorOld;
     VectorPointerType mpResidualVectorNew;
