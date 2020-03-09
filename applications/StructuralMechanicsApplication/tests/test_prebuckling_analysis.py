@@ -89,8 +89,8 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
     def _solve_prebuckling_problem(self,mp,NumOfNodes,iterations,echo=0):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
-            "max_iteration"         : 1000,
-            "tolerance"             : 1e-6,
+            "max_iteration"         : 10000,
+            "tolerance"             : 1e-30,
             "number_of_eigenvalues" : 2,
             "echo_level"            : 0,
             "normalize_eigenvectors": false
@@ -99,7 +99,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
         eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
-        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-15)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
