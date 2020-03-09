@@ -106,6 +106,68 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Compress
 /** Checks the TransonicPerturbationPotentialFlowElement.
  * Checks the RHS computation.
  */
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHSSupersonicAccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToTransonicElement(*pElement, potential);
+
+    GenerateTestingTransonicUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
+    AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
+
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
+    neighbour_finder.Execute();
+    pElement->Initialize(model_part.GetProcessInfo());
+
+    // Compute RHS
+    Vector RHS = ZeroVector(3);
+
+    pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
+
+    std::vector<double> reference{146.7051200733924,-119.4685732437509,-27.23654682964152, 0.0};
+
+    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+}
+
+/** Checks the TransonicPerturbationPotentialFlowElement.
+ * Checks the RHS computation.
+ */
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHSSupersonicDecelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToTransonicElement(*pElement, potential);
+
+    GenerateTestingTransonicUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 51.0};
+    AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
+
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
+    neighbour_finder.Execute();
+    pElement->Initialize(model_part.GetProcessInfo());
+
+    // Compute RHS
+    Vector RHS = ZeroVector(3);
+
+    pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
+
+    std::vector<double> reference{145.5366000056261,-118.5169948309941,-27.01960517463199, 0.0};
+
+    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+}
+
+/** Checks the TransonicPerturbationPotentialFlowElement.
+ * Checks the RHS computation.
+ */
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementInlet, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
