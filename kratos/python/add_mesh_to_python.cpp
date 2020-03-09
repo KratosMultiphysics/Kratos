@@ -245,6 +245,7 @@ pybind11::list CalculateOnIntegrationPointsMatrix(
 ///@name Get Values on Integration Points
 ///@{
 
+template< class TObject >
 void GetValuesOnIntegrationPoints(
     TObject& dummy,
     const Variable<Vector>& rVariable,
@@ -523,7 +524,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Element>)
     // GetValuesOnIntegrationPoints
-    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints)
+    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
@@ -651,7 +652,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Condition>)
     // GetValuesOnIntegrationPoints
-    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints)
+    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
