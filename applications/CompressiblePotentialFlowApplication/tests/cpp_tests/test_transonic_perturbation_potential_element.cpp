@@ -165,6 +165,46 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
 /** Checks the TransonicPerturbationPotentialFlowElement.
  * Checks the LHS computation.
  */
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToTransonicElement(*pElement, potential);
+
+    GenerateTestingTransonicUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
+    AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
+
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
+    neighbour_finder.Execute();
+    pElement->Initialize(model_part.GetProcessInfo());
+
+    // Compute LHS
+    Matrix LHS = ZeroMatrix(3, 3);
+
+    pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
+    std::cout.precision(16);
+    KRATOS_WATCH(LHS)
+
+    std::array<double, 16> reference{ -1.063927294808496,0.782127107550153,0.2818001872583429, 0.0,
+                                     0.782127107550153,-0.09870210180709005,-0.6834250057430631, 0.0,
+                                      0.2818001872583429,-0.6834250057430631,0.4016248184847201, 0.0,
+                                      0.0, 0.0, 0.0, 0.0};
+
+    for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; j < LHS.size2(); j++) {
+            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
+        }
+    }
+}
+
+/** Checks the TransonicPerturbationPotentialFlowElement.
+ * Checks the LHS computation.
+ */
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSInlet, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
