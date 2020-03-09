@@ -99,7 +99,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
         eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
-        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-15)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
