@@ -16,16 +16,19 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
+#include "utilities/global_pointer_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -37,6 +40,72 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @brief Auxiliary neighbour data class
+ * Auxiliary class to retrieve the data from the neighbours when communicating the pointers
+ * @tparam TShockVariableType Shock variable type
+ * @tparam TShockGradientVariableType Shock gradient variable type
+ */
+template<class TShockVariableType, class TShockGradientVariableType>
+class NeighbourData
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of NeighbourData
+    KRATOS_CLASS_POINTER_DEFINITION(NeighbourData);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief Construct a new Neighbour Data object
+     * Default neighbour data container constructor
+     * Required to compile the class
+     */
+    NeighbourData() = default;
+
+    /**
+     * @brief Construct a new Neighbour Data object
+     * Constructes a new neighbour data container instance
+     * @param rShockVariableValue Neighbour shock variable value
+     * @param rShockGradientVariableValue Neighbour shock variable gradient value
+     * @param rCoordinates Neighbour node coordinates
+     */
+    NeighbourData(
+        const typename TShockVariableType::Type& rShockVariableValue,
+        const typename TShockGradientVariableType::Type& rShockGradientVariableValue,
+        const array_1d<double, 3>& rCoordinates)
+    {
+        mCoordinates = rCoordinates;
+        mShockVariableValue = rShockVariableValue;
+        mShockGradientVariableValue = rShockGradientVariableValue;
+    }
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    array_1d<double, 3> mCoordinates;
+    typename TShockVariableType::Type mShockVariableValue;
+    typename TShockGradientVariableType::Type mShockGradientVariableValue;
+
+    ///@}
+private:
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const {}
+
+    void load(Serializer& rSerializer) {}
+
+    ///@}
+};
 
 /// Main class for shock detection
 /** This class implements some utilities for the detection of sharp discontinuitites (shocks) in the FE solution
@@ -52,6 +121,9 @@ public:
 
     /// Variable component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > VariableComponentType;
+
+    /// Node pointer type
+    typedef typename Node<3>::Pointer NodePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -70,7 +142,7 @@ public:
     /// Constructor with custom shock sensor variable
     ShockDetectionProcess(
         ModelPart& rModelPart,
-        Variable<double>& rShockSensorVariable)
+        const Variable<double>& rShockSensorVariable)
     : Process()
     , mrModelPart(rModelPart)
     , mrShockSensorVariable(rShockSensorVariable)
@@ -150,10 +222,36 @@ public:
             rShockVariable,
             rShockGradientVariable).Execute();
 
+        auto& r_comm = mrModelPart.GetCommunicator();
+        auto& r_data_comm = r_comm.GetDataCommunicator();
+
+        // Create the global pointers list
+        GlobalPointersVector<Node<3>> global_pointers_list;
+        if (r_comm.IsDistributed()) {
+            for (auto &r_node : r_comm.LocalMesh().Nodes()) {
+                auto& r_gp_to_neighbours = r_node.GetValue(NEIGHBOUR_NODES).GetContainer();
+                for (auto &r_gp : r_gp_to_neighbours) {
+                    global_pointers_list.push_back(r_gp);
+                }
+            }
+            global_pointers_list.Unique();
+        }
+
+        // Now create the pointer communicator and shock values retrieve proxy
+        GlobalPointerCommunicator<Node<3>> pointer_communicator(r_data_comm, global_pointers_list);
+        auto shock_variables_proxy = pointer_communicator.Apply([&](const GlobalPointer<Node<3>>& rpNode)
+        {
+            NeighbourData<TShockVariableType, TShockGradientVariableType> neighbour_data(
+                rpNode->FastGetSolutionStepValue(rShockVariable),
+                rpNode->GetValue(rShockGradientVariable),
+                rpNode->Coordinates());
+            return neighbour_data;
+        });
+
         // Perform the shock detection
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node) {
-            auto it_node = mrModelPart.NodesBegin() + i_node;
+        for (int i_node = 0; i_node < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++i_node) {
+            auto it_node = r_comm.LocalMesh().NodesBegin() + i_node;
             double& r_shock_sens = it_node->GetValue(mrShockSensorVariable);
             const auto& r_var_i = it_node->FastGetSolutionStepValue(rShockVariable);
             const auto& r_grad_var_i = it_node->GetValue(rShockGradientVariable);
@@ -165,9 +263,10 @@ public:
             KRATOS_DEBUG_ERROR_IF(r_neighbours.size() == 0) << "Node " << i_node << " has no neighbours." << std::endl;
             for (auto& r_neigh : r_neighbours ) {
                 // Get the neighbour values
-                const double& r_var_j = r_neigh.FastGetSolutionStepValue(rShockVariable);
-                const auto& r_grad_var_j = r_neigh.GetValue(rShockGradientVariable);
-                const auto l_ji = r_neigh.Coordinates() - it_node->Coordinates();
+                const auto values_j = shock_variables_proxy.Get(&r_neigh);
+                const double& r_var_j = values_j.mShockVariableValue;
+                const auto& r_grad_var_j = values_j.mShockGradientVariableValue;
+                const auto l_ji = values_j.mCoordinates - it_node->Coordinates();
 
                 // Calculate the density sensor auxiliary values
                 const auto aux_1 = r_var_j - r_var_i;
