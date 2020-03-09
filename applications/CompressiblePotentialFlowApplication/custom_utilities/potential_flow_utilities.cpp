@@ -494,6 +494,34 @@ double ComputeDerivativeMachNumberSquaredWRTVelocitySquared(const Element& rElem
 }
 
 template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiSupersonicAccelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
+    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
+
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double density = ComputePerturbationDensity<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double upstream_density = ComputePerturbationDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double upwind_density = ComputeUpwindDensity<Dim, NumNodes>(rElement, rUpstreamElement, rCurrentProcessInfo);
+    const double Drho_Dv2 = ComputeDensityDerivative<Dim, NumNodes>(upwind_density, rCurrentProcessInfo);
+    const double Dmu_DM2 = ComputeDerivativeUpwindFactorWRTMachNumberSquared<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double DM2_Dv2 = ComputeDerivativeMachNumberSquaredWRTVelocitySquared<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+
+    const double factor = 2 * (Drho_Dv2 * (1 - upwind_factor) - Dmu_DM2 * DM2_Dv2 * (density - upstream_density));
+    const BoundedVector<double, NumNodes> Drho_DPhi = factor * DNV;
+
+    return Drho_DPhi;
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -605,6 +633,7 @@ template double ComputeSwitchingOperator<2, 3>(const Element& rElement, const El
 template double ComputeUpwindFactor<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeMachNumberSquaredWRTVelocitySquared<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 3> ComputeDrhoDphiSupersonicAccelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -640,6 +669,7 @@ template double ComputeSwitchingOperator<3, 4>(const Element& rElement, const El
 template double ComputeUpwindFactor<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeMachNumberSquaredWRTVelocitySquared<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 4> ComputeDrhoDphiSupersonicAccelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);

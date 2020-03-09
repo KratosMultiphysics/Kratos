@@ -123,6 +123,9 @@ template <int Dim, int NumNodes>
 double ComputeDerivativeMachNumberSquaredWRTVelocitySquared(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiSupersonicAccelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
 bool CheckIfElementIsTrailingEdge(const Element& rElement);
