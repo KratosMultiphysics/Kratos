@@ -306,7 +306,15 @@ namespace MPMParticleGeneratorUtility
 
                 // For regular conditions: straight copy all conditions (apply directly to background grid model part)
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
-                    rBackgroundGridModelPart.SetConditions(submodelpart.pConditions());
+                    if (submodelpart.NodesBegin()->Is(SLIP)) {
+                        // Do nothing, this is a slip condition applied directly 
+                        // to the background grid nodes.
+                        // Check 'apply_mpm_slip_boundary_process.py'
+                    }
+                    else {
+                        rMPMModelPart.CreateSubModelPart(submodelpart_name);
+                        rMPMModelPart.SetConditions(submodelpart.pConditions());
+                    }
                 }
                 // For boundary conditions: create particle conditions for all the necessary conditions
                 else{

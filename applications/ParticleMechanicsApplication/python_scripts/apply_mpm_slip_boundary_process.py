@@ -28,11 +28,6 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         # Mark the nodes and conditions with the appropriate slip flag
         #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
-        for condition in self.model_part.Conditions: #TODO: this may well not be needed!
-            condition.Set(KratosMultiphysics.SLIP, True)
-            condition.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
-
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
