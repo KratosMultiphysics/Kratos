@@ -377,5 +377,28 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeMachNumberSquaredWRTVelocitySquared, 
     KRATOS_CHECK_NEAR(DMachNumberSquared_DVelocitySquared, 1.1832700207409171 * 1e-5, 1e-16);
 }
 
+// Checks the function ComputeUpwindDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDrhoDphiSupersonicAccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    GenerateTestingUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
+    AssignPerturbationPotentialsToElement(*pUpstreamElement, upstream_potential);
+
+    const BoundedVector<double, 3> DrhoDphi = PotentialFlowUtilities::ComputeDrhoDphiSupersonicAccelerating<2, 3>(
+        *pElement, *pUpstreamElement, model_part.GetProcessInfo());
+
+    std::vector<double> reference{0.002245573605073479,-0.001828439189270356,-0.000417134415803123};
+
+    KRATOS_CHECK_VECTOR_NEAR(DrhoDphi, reference, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.
