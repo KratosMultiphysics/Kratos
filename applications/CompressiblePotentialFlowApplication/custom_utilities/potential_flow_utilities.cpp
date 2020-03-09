@@ -19,6 +19,9 @@ namespace PotentialFlowUtilities {
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement)
 {
+    const auto distances = rElement.GetValue(WAKE_ELEMENTAL_DISTANCES);
+    KRATOS_ERROR_IF(distances.size() < NumNodes)
+        << "Wake element with Id #" <<  rElement.Id() << " has no distances " << distances << std::endl;
     return rElement.GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
