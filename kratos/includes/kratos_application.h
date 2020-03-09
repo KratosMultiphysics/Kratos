@@ -31,6 +31,35 @@
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
 #include "includes/linear_master_slave_constraint.h"
+#include "includes/geometrical_object.h"
+
+/* Geometries definition */
+#include "geometries/register_kratos_components_for_geometry.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/line_3d_2.h"
+#include "geometries/line_3d_3.h"
+#include "geometries/point.h"
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
+#include "geometries/sphere_3d_1.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -49,6 +78,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+       
     /// Pointer definition of KratosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosApplication);
 
@@ -77,6 +109,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpArray1D4VariableComponents(rOther.mpArray1D4VariableComponents),
           mpArray1D6VariableComponents(rOther.mpArray1D6VariableComponents),
           mpArray1D9VariableComponents(rOther.mpArray1D9VariableComponents),
+          mpGeometries(rOther.mpGeometries),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
           mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
@@ -190,6 +223,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpVariableData;
     }
 
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
+        return *mpGeometries;
+    }
+    
     KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
@@ -214,6 +251,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         }
     }
 
+    void SetComponents(KratosComponents<Geometry<Node<3>>>::ComponentsContainerType const& GeometryComponents)
+    {
+        mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
+    }
+    
     void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
             ElementComponents)
 
@@ -285,6 +327,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
         rOStream << std::endl;
 
+        rOStream << "Geometries:" << std::endl;
+
+        KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+        
         rOStream << "Elements:" << std::endl;
 
         KratosComponents<Element>().PrintData(rOStream);
@@ -303,24 +349,54 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     ///@}
-
     ///@name Friends
-
     ///@{
 
     ///@}
-
    protected:
     ///@name Protected static Member Variables
-
     ///@{
 
     ///@}
-
     ///@name Protected member Variables
-
     ///@{
+       
     std::string mApplicationName;
+
+    // General geometries must be defined
+    //Points:
+    const Point mPointPrototype;
+    const Point2D<NodeType> mPoint2DPrototype = Point2D<NodeType>(GeometryType::PointsArrayType(1));
+    const Point3D<NodeType> mPoint3DPrototype = Point3D<NodeType>(GeometryType::PointsArrayType(1));
+    //Sphere
+    const Sphere3D1<NodeType> mSphere3D1Prototype = Sphere3D1<NodeType>(GeometryType::PointsArrayType(1));
+    //Lines:
+    const Line2D2<NodeType> mLine2D2Prototype = Line2D2<NodeType>(GeometryType::PointsArrayType(2));
+    const Line2D3<NodeType> mLine2D3Prototype = Line2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Line3D2<NodeType> mLine3D2Prototype = Line3D2<NodeType>(GeometryType::PointsArrayType(2));
+    const Line3D3<NodeType> mLine3D3Prototype = Line3D3<NodeType>(GeometryType::PointsArrayType(3));
+    //Triangles:
+    const Triangle2D3<NodeType> mTriangle2D3Prototype = Triangle2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Triangle2D6<NodeType> mTriangle2D6Prototype = Triangle2D6<NodeType>(GeometryType::PointsArrayType(6));
+    const Triangle3D3<NodeType> mTriangle3D3Prototype = Triangle3D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Triangle3D6<NodeType> mTriangle3D6Prototype = Triangle3D6<NodeType>( GeometryType::PointsArrayType(6));
+    //Quadrilaterals:
+    const Quadrilateral2D4<NodeType> mQuadrilateral2D4Prototype = Quadrilateral2D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Quadrilateral2D8<NodeType> mQuadrilateral2D8Prototype = Quadrilateral2D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Quadrilateral2D9<NodeType> mQuadrilateral2D9Prototype = Quadrilateral2D9<NodeType>( GeometryType::PointsArrayType(9));
+    const Quadrilateral3D4<NodeType> mQuadrilateral3D4Prototype = Quadrilateral3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Quadrilateral3D8<NodeType> mQuadrilateral3D8Prototype = Quadrilateral3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Quadrilateral3D9<NodeType> mQuadrilateral3D9Prototype = Quadrilateral3D9<NodeType>( GeometryType::PointsArrayType(9));
+    //Tetrahedra:
+    const Tetrahedra3D4<NodeType> mTetrahedra3D4Prototype = Tetrahedra3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Tetrahedra3D10<NodeType> mTetrahedra3D10Prototype = Tetrahedra3D10<NodeType>( GeometryType::PointsArrayType(10));
+    //Prisms:
+    const Prism3D6<NodeType> mPrism3D6Prototype = Prism3D6<NodeType>( GeometryType::PointsArrayType(6));
+    const Prism3D15<NodeType> mPrism3D15Prototype = Prism3D15<NodeType>( GeometryType::PointsArrayType(15));
+    //Hexahedra:
+    const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
+    const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
 
     // General conditions must be defined
 
@@ -342,20 +418,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
-
-    // BEGIN Deprecated conditions
-    const MeshCondition mCondition;
-    const MeshCondition mCondition2D;
-    const MeshCondition mCondition2D2N;
-    const MeshCondition mCondition2D3N;
-    const MeshCondition mCondition3D;
-    const MeshCondition mCondition3D2N;
-    const MeshCondition mCondition3D3N;
-    const MeshCondition mCondition3D6N;
-    const MeshCondition mCondition3D4N;
-    const MeshCondition mCondition3D8N;
-    const MeshCondition mCondition3D9N;
-    // END Deprecated conditions
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
@@ -421,6 +483,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
+    
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;

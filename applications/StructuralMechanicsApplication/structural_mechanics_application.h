@@ -47,7 +47,6 @@
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D4N.hpp"
@@ -100,6 +99,7 @@
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
+#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
 #include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_henky_1d.h"
@@ -349,8 +349,6 @@ private:
     const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element
-    const PrestressMembraneElement mPreStressMembraneElement3D3N;
-    const PrestressMembraneElement mPreStressMembraneElement3D4N;
     const MembraneElement mMembraneElement3D4N;
     const MembraneElement mMembraneElement3D3N;
 
@@ -524,6 +522,7 @@ private:
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
+    const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;

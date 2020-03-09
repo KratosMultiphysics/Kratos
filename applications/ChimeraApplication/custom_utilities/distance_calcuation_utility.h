@@ -9,17 +9,14 @@
 //
 //  Main authors:    Aditya Ghantasala
 
-#if !defined(DISTANCE_CALCULATION_UTILITY )
-#define  DISTANCE_CALCULATION_UTILITY
+#if !defined(CHIMERA_DISTANCE_CALCULATION_UTILITY )
+#define  CHIMERA_DISTANCE_CALCULATION_UTILITY
 
 
 
 // System includes
 
-
 // External includes
-#include "omp.h"
-
 
 // Project includes
 #include "includes/define.h"
@@ -37,25 +34,25 @@ namespace Kratos
 
 /// Utility for calculating the Distance on a given modelpart
 template <int TDim>
-class KRATOS_API(CHIMERA_APPLICATION) DistanceCalculationUtility
+class KRATOS_API(CHIMERA_APPLICATION) ChimeraDistanceCalculationUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DistanceCalculationUtility
-    KRATOS_CLASS_POINTER_DEFINITION(DistanceCalculationUtility);
+    /// Pointer definition of ChimeraDistanceCalculationUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ChimeraDistanceCalculationUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DistanceCalculationUtility() = delete;
+    ChimeraDistanceCalculationUtility() = delete;
 
     /// Destructor.
     /// Deleted copy constructor
-    DistanceCalculationUtility(const DistanceCalculationUtility& rOther) = delete;
+    ChimeraDistanceCalculationUtility(const ChimeraDistanceCalculationUtility& rOther) = delete;
 
 
     ///@}
@@ -74,12 +71,6 @@ public:
      */
     static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart)
     {
-
-        // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        //typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
-        //typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
-        //typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
         typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
         const int nnodes = static_cast<int>(rBackgroundModelPart.NumberOfNodes());
 
@@ -93,22 +84,6 @@ public:
         }
 
         CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
-
-
-        // Parameters amgcl_settings(R"(
-        //     {
-        //         "solver_type"                   : "amgcl",
-        //         "tolerance"                     : 0.001,
-        //         "max_iteration"                 : 200,
-        //         "krylov_type"                   : "gmres",
-        //         "smoother_type"                 : "ilu0",
-        //         "verbosity"                     : 0
-        //     }
-        //     )");
-        // const int max_iterations = 1;
-        // LinearSolverFactoryType const &linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
-        // auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
-        // VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver, max_iterations, VariationalDistanceCalculationProcessType::CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute();
 
         unsigned int max_level = 100;
 		double max_distance = 200;
@@ -139,21 +114,7 @@ public:
 
     ///@}
 
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
-}; // Class DistanceCalculationUtility
+}; // Class ChimeraDistanceCalculationUtility
 
 ///@}
 

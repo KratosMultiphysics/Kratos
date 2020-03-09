@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,7 +11,6 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 #if !defined(KRATOS_APPLY_CHIMERA_FRACTIONALSTEP_H_INCLUDED)
 #define KRATOS_APPLY_CHIMERA_FRACTIONALSTEP_H_INCLUDED
@@ -47,6 +44,16 @@ namespace Kratos {
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @class ApplyChimeraProcessFractionalStep
+ *
+ * @ingroup ChimeraApplication
+ *
+ * @brief This class extends ApplyChimera base class and overwrites the function ApplyContinuityWithMpcs to use different containers for storing pressure and velocity constraints.
+ *
+*/
+
 template <int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessFractionalStep
     : public ApplyChimera<TDim> {
@@ -71,7 +78,7 @@ public:
     ApplyChimeraProcessFractionalStep(ModelPart& rMainModelPart, Parameters iParameters);
 
     /// Destructor.
-    virtual ~ApplyChimeraProcessFractionalStep();
+    ~ApplyChimeraProcessFractionalStep() = default;
 
     virtual void ExecuteFinalizeSolutionStep() override;
 

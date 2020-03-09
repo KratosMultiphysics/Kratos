@@ -1,3 +1,18 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
+//
+
 #include "hole_cutting_utility.h"
 
 namespace Kratos {
@@ -29,16 +44,16 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
     vector_of_node_ids.reserve(rModelPart.NumberOfNodes());
     std::vector<IndexType> vector_of_elem_ids;
     vector_of_elem_ids.reserve(rModelPart.NumberOfElements());
+    auto elem_begin = rModelPart.Elements().ptr_begin();
+    auto elem_end = rModelPart.Elements().ptr_end();
 
-    for (auto& i_element : rModelPart.Elements()) {
-        const auto& p_elem = rModelPart.pGetElement(i_element.Id());
-        double nodal_distance = 0.0;
+    for (auto p_elem=elem_begin; p_elem != elem_end; ++p_elem){
         bool is_elem_outside = true;
-        Geometry<Node<3>>& geom = i_element.GetGeometry();
+        Geometry<Node<3>>& geom = (*p_elem)->GetGeometry();
         int num_nodes_outside = 0;
 
         for (auto& node : geom) {
-            nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
+            double nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
             nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance) {
@@ -57,14 +72,13 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
 
         /*
         * Any node goes out of the domain means the element need to be INACTIVE
-        * ,
-        *   otherwise the modified patch boundary wont find any nodes on
+        * ,otherwise the modified patch boundary wont find any nodes on
         * background
         */
         if (num_nodes_outside > 0) {
-            i_element.Set(ACTIVE, false);
+            (*p_elem)->Set(ACTIVE, false);
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
-                rRemovedModelPart.AddElement(p_elem);
+                rRemovedModelPart.AddElement(*p_elem);
             for (auto& node : geom) {
                 node.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
                 node.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
@@ -82,7 +96,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         }
         else {
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE) {
-                rRemovedModelPart.AddElement(p_elem);
+                rRemovedModelPart.AddElement(*p_elem);
                 for (auto& node : geom)
                     vector_of_node_ids.push_back(node.Id());
             }
@@ -220,11 +234,17 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
     // First assign to skin model part all nodes from original model_part,
     // unnecessary nodes will be removed later
     IndexType id_condition = 1;
+    Condition const& r_ref_triangle_condition =
+        KratosComponents<Condition>::Get("SurfaceCondition3D3N"); // Condition3D
+    Condition const& r_ref_line_condition =
+        KratosComponents<Condition>::Get("LineCondition2D2N"); // Condition2D
+    Properties::Pointer properties =
+        rExtractedBoundaryModelPart.rProperties()(0);
 
     // Add skin faces as triangles to skin-model-part (loop over all node sets)
     std::vector<IndexType> vector_of_node_ids;
     for (typename hashmap::const_iterator it = n_faces_map.begin();
-         it != n_faces_map.end(); it++) {
+         it != n_faces_map.end(); ++it) {
         // If given node set represents face that is not overlapping with a face
         // of
         // another element, add it as skin element
@@ -247,15 +267,10 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector_of_node_ids.push_back(original_nodes_order[0]);
                 vector_of_node_ids.push_back(original_nodes_order[1]);
 
-                Properties::Pointer properties =
-                    rExtractedBoundaryModelPart.rProperties()(0);
-                Condition const& rReferenceLineCondition =
-                    KratosComponents<Condition>::Get("LineCondition2D2N"); // Condition2D
-
                 // Skin edges are added as conditions
                 Line2D2<Node<3>> line1(pnode1, pnode2);
                 Condition::Pointer p_condition1 =
-                    rReferenceLineCondition.Create(id_condition++, line1, properties);
+                    r_ref_line_condition.Create(id_condition++, line1, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
             }
             // If skin face is a triangle store triangle in with its original
@@ -277,14 +292,10 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector_of_node_ids.push_back(original_nodes_order[0]);
                 vector_of_node_ids.push_back(original_nodes_order[1]);
                 vector_of_node_ids.push_back(original_nodes_order[2]);
-                Properties::Pointer properties =
-                    rExtractedBoundaryModelPart.rProperties()(0);
-                Condition const& rReferenceTriangleCondition =
-                    KratosComponents<Condition>::Get("SurfaceCondition3D3N"); // Condition3D
 
                 // Skin faces are added as conditions
                 Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
-                Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(
+                Condition::Pointer p_condition1 = r_ref_triangle_condition.Create(
                     id_condition++, triangle1, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
             }
@@ -311,20 +322,16 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector_of_node_ids.push_back(original_nodes_order[1]);
                 vector_of_node_ids.push_back(original_nodes_order[2]);
                 vector_of_node_ids.push_back(original_nodes_order[3]);
-                Properties::Pointer properties =
-                    rExtractedBoundaryModelPart.rProperties()(0);
-                Condition const& rReferenceTriangleCondition =
-                    KratosComponents<Condition>::Get("SurfaceCondition3D3N"); // Condition3D
 
                 // Add triangle one as condition
                 Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
-                Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(
+                Condition::Pointer p_condition1 = r_ref_triangle_condition.Create(
                     id_condition++, triangle1, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
 
                 // Add triangle two as condition
                 Triangle3D3<Node<3>> triangle2(pnode1, pnode3, pnode4);
-                Condition::Pointer p_condition2 = rReferenceTriangleCondition.Create(
+                Condition::Pointer p_condition2 = r_ref_triangle_condition.Create(
                     id_condition++, triangle2, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition2);
             }

@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,32 +11,23 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
+
+
 #if !defined(KRATOS_APPLY_CHIMERA_H_INCLUDED)
 #define KRATOS_APPLY_CHIMERA_H_INCLUDED
 
 // System includes
-#include "omp.h"
-#include <algorithm>
-#include <numeric>
 #include <unordered_map>
 
 // External includes
 
 // Project includes
-#include "containers/model.h"
-#include "factories/standard_linear_solver_factory.h"
 #include "includes/define.h"
 #include "includes/linear_master_slave_constraint.h"
 #include "includes/model_part.h"
-#include "includes/process_info.h"
-#include "includes/variables.h"
-#include "input_output/vtk_output.h"
 #include "processes/process.h"
 #include "utilities/binbased_fast_point_locator.h"
-#include "utilities/builtin_timer.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "chimera_application_variables.h"
@@ -66,6 +55,16 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class ApplyChimera
+ *
+ * @ingroup ChimeraApplication
+ *
+ * @brief This class contains methods applies the continuity between the patch and background using linear master-slave constraints.
+ * @details This serves as a base class for monolithic and fractional step processes which choose who and where the constraints created are stored. for example velocity and pressure constraints are to be saved seperately for fractional step. 
+ *
+*/
+
 template <int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) ApplyChimera : public Process {
 public:
@@ -74,9 +73,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    typedef ProcessInfo::Pointer ProcessInfoPointerType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
-    typedef std::size_t IndexType;
+    typedef ModelPart::IndexType IndexType;
     typedef ModelPart::NodeType NodeType;
     typedef Kratos::Variable<double> VariableType;
     typedef std::vector<IndexType> ConstraintIdsVectorType;
@@ -102,7 +100,7 @@ public:
     explicit ApplyChimera(ModelPart& rMainModelPart, Parameters iParameters);
 
     /// Destructor.
-    virtual ~ApplyChimera();
+    virtual ~ApplyChimera()=default;
 
     ///@}
     ///@name Operators
@@ -142,7 +140,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     ModelPart& mrMainModelPart;
-    IndexType mNumberOfLevels;
+    int mNumberOfLevels;
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
     int mEchoLevel;
@@ -151,9 +149,9 @@ protected:
     bool mIsFormulated;
 
     // Modelpart names which are generated here
-    std::string mModifiedName = "ChimeraModified";
-    std::string mBoundaryName = "ChimeraBoundary";
-    std::string mHoleName = "ChimeraHole";
+    const std::string mModifiedName = "ChimeraModified";
+    const std::string mBoundaryName = "ChimeraBoundary";
+    const std::string mHoleName = "ChimeraHole";
     ///@}
     ///@name Protected Operators
     ///@{
@@ -187,7 +185,7 @@ protected:
      * @param NumberOfConstraintsRequired The number of further constraints
      * required. used for calculation of unique ids.
      */
-    virtual void CreateConstraintIds(std::vector<int>& rIdVector,
+    void CreateConstraintIds(std::vector<int>& rIdVector,
                                      const IndexType NumberOfConstraintsRequired);
     /**
      * @brief Applies the continuity between the boundary modelpart and the

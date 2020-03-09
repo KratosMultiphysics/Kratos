@@ -401,9 +401,13 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
             if solver_settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
                 solver_settings["model_import_settings"]["input_type"].SetString("mdpa")
-                solver_settings["model_import_settings"].AddEmptyValue("input_filename")
-                model_part_name = solver_settings["model_part_name"].GetString()
-                solver_settings["model_import_settings"]["input_filename"].SetString(model_part_name)
+                if solver_settings["model_import_settings"].Has("input_filename"):
+                    file_name = solver_settings["model_import_settings"]["input_filename"].GetString()
+                else:
+                    Logger.PrintWarning(self._GetLabel(), "Automatic adjoint settings creator assumes the model_part_name as input_filename.")
+                    solver_settings["model_import_settings"].AddEmptyValue("input_filename")
+                    file_name = solver_settings["model_part_name"].GetString()
+                solver_settings["model_import_settings"]["input_filename"].SetString(file_name)
 
             # Dirichlet conditions: change variables
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):

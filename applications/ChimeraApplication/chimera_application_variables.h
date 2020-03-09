@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,7 +11,6 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 #if !defined(KRATOS_CHIMERA_APPLICATION_VARIABLES_H_INCLUDED)
@@ -25,7 +22,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
+#include "containers/variable.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {

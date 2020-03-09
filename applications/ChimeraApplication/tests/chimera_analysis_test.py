@@ -1,14 +1,10 @@
 import time
-import KratosMultiphysics.FluidDynamicsApplication as kfd
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-have_external_solvers = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
-from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 from chimera_analysis_base_test import ChimeraAnalysisBaseTest
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class FlowOverCylinderMonolithic(ChimeraAnalysisBaseTest):
     def test_MonolithicFlowOverCylinder(self):
         start = time.clock()

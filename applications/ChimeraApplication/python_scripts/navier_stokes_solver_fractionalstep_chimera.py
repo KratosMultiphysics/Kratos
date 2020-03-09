@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
+from KratosMultiphysics.ChimeraApplication import chimera_setup_utils
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -16,8 +17,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
 
 
     def __init__(self, model, custom_settings):
-        self.chimera_settings = custom_settings["chimera_settings"].Clone()
-        custom_settings.RemoveValue("chimera_settings")
+        [self.chimera_settings, self.chimera_internal_parts, custom_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
         super(NavierStokesSolverFractionalStepForChimera,self).__init__(model,custom_settings)
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Construction of NavierStokesSolverFractionalStepForChimera finished.")
 
@@ -50,7 +50,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
             super(NavierStokesSolverFractionalStepForChimera,self).ImportModelPart()
 
     def Initialize(self):
-        #self.computing_model_part = self.GetComputingModelPart()
+        self.chimera_process = chimera_setup_utils.GetApplyChimeraProcess(self.model, self.chimera_settings, self.settings)
         self.computing_model_part =self.main_model_part
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -99,3 +99,15 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         self.solver.Check()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Solver initialization finished.")
+
+        chimera_setup_utils.SetChimeraInternalPartsFlag(self.model, self.chimera_internal_parts)
+
+
+    def InitializeSolutionStep(self):
+        self.chimera_process.ExecuteInitializeSolutionStep()
+        super(NavierStokesSolverFractionalStepForChimera,self).InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super(NavierStokesSolverFractionalStepForChimera,self).FinalizeSolutionStep()
+        ## Depending on the setting this will clear the created constraints
+        self.chimera_process.ExecuteFinalizeSolutionStep()

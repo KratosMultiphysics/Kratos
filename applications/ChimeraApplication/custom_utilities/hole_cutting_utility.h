@@ -4,8 +4,6 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -13,24 +11,19 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 #if !defined(CHIMERA_HOLE_CUTTING_UTILITY_H_INCLUDED)
 #define CHIMERA_HOLE_CUTTING_UTILITY_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <string>
 #include <algorithm>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/process_info.h"
-#include "containers/model.h"
-#include "processes/node_erase_process.h"                 // To delete empty nodes
+#include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"                     // Skin face geometry template
 #include "geometries/line_2d_2.h"
 // Application includes
@@ -165,66 +158,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
     ///@{
 
     ///@}

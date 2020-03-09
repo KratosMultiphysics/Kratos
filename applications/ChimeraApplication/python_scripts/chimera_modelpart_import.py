@@ -1,9 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
 import numpy as np
-import math
 import os
-import time
 import json
 from copy import deepcopy
 
@@ -23,7 +21,6 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
         }
     '''
     if parallel_type == "OpenMP":
-        import KratosMultiphysics
         for mp_import_setting in chimera_mp_import_settings_list:
             mdpa_file_name = mp_import_setting["input_filename"].GetString()
             if mdpa_file_name.endswith('.mdpa'):
@@ -36,7 +33,6 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
             ReadModelPart(mdpa_file_name, model_part, material_file)
             AddModelPart(main_modelpart, model_part)
     elif(parallel_type == "MPI"):
-        import KratosMultiphysics
         input_settings = KratosMultiphysics.Parameters("""{
         "model_import_settings":{
             "input_type": "mdpa",
@@ -92,9 +88,9 @@ def AddModelPart(model_part_1,
     '''
     Adding the model_part_2 to model_part_1 (appending)
     '''
-    if (type(model_part_1) != KratosMultiphysics.ModelPart):
+    if ( not isinstance(model_part_1, KratosMultiphysics.ModelPart) ):
             raise Exception("input is expected to be provided as a Kratos ModelPart object")
-    if (type(model_part_2) != KratosMultiphysics.ModelPart):
+    if ( not isinstance(model_part_2, KratosMultiphysics.ModelPart) ):
             raise Exception("input is expected to be provided as a Kratos ModelPart object")
 
     comm = model_part_1.GetCommunicator().GetDataCommunicator()
@@ -280,11 +276,3 @@ def __MaterialsListsAreEqual(original_materials,
         mat.pop("new_properties_id")
 
     return copy_original_materials == other_materials
-
-
-
-if __name__ == "__main__":
-    mp_names = ["test_patch_mp.mdpa","test_bg_mp.mdpa"]
-    model = KratosMultiphysics.Model()
-    main_mp = model.CreateModelPart("MainModelpart")
-    ImportChimeraModelparts(main_mp, mp_names,parallel_type="MPI")
