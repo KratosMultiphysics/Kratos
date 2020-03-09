@@ -375,6 +375,10 @@ protected:
         BoundedMatrix<double,2,2>& rTensor,
         const array_1d<double,3>& rVeector);
 
+    void StabilizationParameter(
+        double& rTau,
+        const ElementData& rData);
+
     ///@}
     ///@name Protected  Access
     ///@{
