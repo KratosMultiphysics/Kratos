@@ -98,8 +98,8 @@ public:
     /// Creates elements from geometries
     template<class TContainerType>
     static void CreateElements(
-        typename TContainerType::iterator& rGeometriesBegin,
-        typename TContainerType::iterator& rGeometriesEnd,
+        typename TContainerType::iterator rGeometriesBegin,
+        typename TContainerType::iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
@@ -117,8 +117,8 @@ public:
     /// Creates conditions from geometries
     template<class TContainerType>
     static void CreateConditions(
-        typename TContainerType::iterator& rGeometriesBegin,
-        typename TContainerType::iterator& rGeometriesEnd,
+        typename TContainerType::iterator rGeometriesBegin,
+        typename TContainerType::iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,

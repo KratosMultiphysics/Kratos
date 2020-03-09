@@ -64,8 +64,8 @@ namespace Kratos
 
     template<class TContainerType>
     void Modeler::CreateElements(
-        typename TContainerType::iterator& rGeometriesBegin,
-        typename TContainerType::iterator& rGeometriesEnd,
+        typename TContainerType::iterator rGeometriesBegin,
+        typename TContainerType::iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
@@ -110,8 +110,8 @@ namespace Kratos
 
     template<class TContainerType>
     void Modeler::CreateConditions(
-        typename TContainerType::iterator& rGeometriesBegin,
-        typename TContainerType::iterator& rGeometriesEnd,
+        typename TContainerType::iterator rGeometriesBegin,
+        typename TContainerType::iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,
