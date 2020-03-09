@@ -183,6 +183,10 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
+///@}
+///@name Calculate on Integration Points
+///@{
+
 template< class TObject >
 pybind11::list CalculateOnIntegrationPointsDouble(
     TObject& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
@@ -236,6 +240,22 @@ pybind11::list CalculateOnIntegrationPointsMatrix(
         result.append( Output[j] );
     return result;
 }
+
+///@}
+///@name Get Values on Integration Points
+///@{
+
+void GetValuesOnIntegrationPoints(
+    TObject& dummy,
+    const Variable<Vector>& rVariable,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR << "GetValuesOnIntegrationPoints is deprecated. Use CalculateOnIntegrationPoints instead!" << std::endl;
+}
+
+///@}
+///@name Set Values on Integration Points
+///@{
 
 template< class TObject >
 void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
