@@ -35,51 +35,24 @@ namespace Kratos {
         rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{2,5}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{5,6}}, p_elem_prop);
 
-        std::vector<NodeType::Pointer> condition_nodes_0 (2);
-        condition_nodes_0[0] = rModelPart.pGetNode(1);
-        condition_nodes_0[1] = rModelPart.pGetNode(2);
-
-        std::vector<NodeType::Pointer> condition_nodes_1 (2);
-        condition_nodes_1[0] = rModelPart.pGetNode(1);
-        condition_nodes_1[1] = rModelPart.pGetNode(4);
-
-        std::vector<NodeType::Pointer> condition_nodes_2 (2);
-        condition_nodes_2[0] = rModelPart.pGetNode(2);
-        condition_nodes_2[1] = rModelPart.pGetNode(5);
-
         std::vector<NodeType::Pointer> condition_nodes_3 (2);
         condition_nodes_3[0] = rModelPart.pGetNode(5);
         condition_nodes_3[1] = rModelPart.pGetNode(6);
         
-        rModelPart.CreateNewGeometry("Line2D2", 1, PointerVector<NodeType>{condition_nodes_0});
-        rModelPart.CreateNewGeometry("Line2D2", 2, PointerVector<NodeType>{condition_nodes_1});
-        rModelPart.CreateNewGeometry("Line2D2", 3, PointerVector<NodeType>{condition_nodes_2});
+        rModelPart.CreateNewGeometry("Line2D2", 1, {{1,2}});
+        rModelPart.CreateNewGeometry("Line2D2", 2, rModelPart.pGetCondition(1)->pGetGeometry());
+        rModelPart.CreateNewGeometry("Line2D2", 3, rModelPart.pGetCondition(2)->pGetGeometry());
         rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<NodeType>{condition_nodes_3});
         
         std::vector<NodeType::Pointer> element_nodes_0 (3);
         element_nodes_0[0] = rModelPart.pGetNode(1);
         element_nodes_0[1] = rModelPart.pGetNode(2);
         element_nodes_0[2] = rModelPart.pGetNode(3);
-
-        std::vector<NodeType::Pointer> element_nodes_1 (3);
-        element_nodes_1[0] = rModelPart.pGetNode(1);
-        element_nodes_1[1] = rModelPart.pGetNode(3);
-        element_nodes_1[2] = rModelPart.pGetNode(4);
-
-        std::vector<NodeType::Pointer> element_nodes_2 (3);
-        element_nodes_2[0] = rModelPart.pGetNode(2);
-        element_nodes_2[1] = rModelPart.pGetNode(5);
-        element_nodes_2[2] = rModelPart.pGetNode(3);
-
-        std::vector<NodeType::Pointer> element_nodes_3 (3);
-        element_nodes_3[0] = rModelPart.pGetNode(5);
-        element_nodes_3[1] = rModelPart.pGetNode(6);
-        element_nodes_3[2] = rModelPart.pGetNode(3);
         
         rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_0});
-        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_1});
-        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_7", PointerVector<NodeType>{element_nodes_2});
-        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", PointerVector<NodeType>{element_nodes_3});
+        rModelPart.CreateNewGeometry("Triangle2D3", rModelPart.pGetElement(1)->pGetGeometry());
+        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_7", {{2,5,3}});
+        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", {{5,6,3}});
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
