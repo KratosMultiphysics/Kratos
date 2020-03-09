@@ -112,7 +112,7 @@ public:
             {
                 const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
                 MapPhi[var.Key()] = k;
-            }            
+            }
             else if(KratosComponents<ModelPart::VariableComponentType>::Has(mNodalVariablesNames[k]))
             {
                 const auto& var = KratosComponents<ModelPart::VariableComponentType>::Get(mNodalVariablesNames[k]);
@@ -120,7 +120,7 @@ public:
             }
             else
                 KRATOS_ERROR << "variable type not valid" << std::endl;
-            
+
         }
     }
 
@@ -297,13 +297,13 @@ public:
         ModelPart &rModelPart,
         TSystemVectorType &Dx)
     {
-        const Matrix *current_rom_nodal_basis{nullptr};       
+        const Matrix *current_rom_nodal_basis{nullptr};
         for (unsigned int k = 0; k<BaseType::mDofSet.size(); k++){
             auto dof = BaseType::mDofSet.begin() + k;
             if(k==0)
                 current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
             else if(dof->Id() != (dof-1)->Id())
-                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));            
+                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
             Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
         }
     }
@@ -312,7 +312,7 @@ public:
         Matrix &PhiElemental,
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
-    {         
+    {
         auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
         int counter = 0;
         for(unsigned int k = 0; k < dofs.size(); ++k){
@@ -324,10 +324,10 @@ public:
                 current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
             }
             if (dofs[k]->IsFixed())
-                row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
+                row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
             else
                 row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
-        }    
+        }
     }
 
 
@@ -426,7 +426,7 @@ public:
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
 
-                // clean local elemental me overridemory                
+                // clean local elemental me overridemory
                 pScheme->CleanMemory(*(it.base()));
             }
         }
