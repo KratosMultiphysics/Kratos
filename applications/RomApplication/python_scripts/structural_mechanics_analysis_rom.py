@@ -32,8 +32,8 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
             data=json.load(f)
             counter = 0
             rom_dofs=self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
-            Dimensions = len(data['1.0'])  #Checking for the number of DOFs (a vector or a matrix is imported to each node)
             for node in computing_model_part.Nodes:
+                Dimensions = len(data[str(float(node.Id))])
                 aux = KratosMultiphysics.Matrix(Dimensions, rom_dofs) 
                 for j in range(Dimensions):
                     Counter=str(1.0*node.Id)
