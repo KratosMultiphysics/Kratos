@@ -249,8 +249,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
     Matrix LHS = ZeroMatrix(3, 3);
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
-    std::cout.precision(16);
-    KRATOS_WATCH(LHS)
 
     std::array<double, 16> reference{ 0.09112073112058305,-0.1584804160095197,0.06735968488893659, 0.0,
                                      -0.1584804160095197,0.6672768821969779,-0.5087964661874582, 0.0,
