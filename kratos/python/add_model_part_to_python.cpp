@@ -127,6 +127,32 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodeList);
 }
 
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    ModelPart::GeometryType::Pointer pGeometry)
+{
+    return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometry);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    ModelPart::IndexType GeometryId,
+    ModelPart::GeometryType::Pointer pGeometry)
+{
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometry);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry6(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    const std::string& GeometryIdentifierName,
+    ModelPart::GeometryType::Pointer pGeometry)
+{
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometry);
+}
+
 Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
@@ -1060,6 +1086,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry1)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry2)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry3)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry4)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry5)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry6)
         .def("CreateNewElement", ModelPartCreateNewElement)
         .def("CreateNewCondition", ModelPartCreateNewCondition)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
