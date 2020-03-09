@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 #Import basic python Libraries
 import numpy as np
+import math
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -192,18 +193,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #self.mass_conservation_correction = self._set_mass_conservation_correction()
         #(self.mass_conservation_correction).Initialize();
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "HERE1")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Start re-distancing")
 
-        #self.parallel_distance_process = self._set_parallel_distance_process()
-        #(self.parallel_distance_process).CalculateDistances(
-        #            self.main_model_part, 
-        #            KratosMultiphysics.DISTANCE, 
-        #            KratosCFD.AREA_VARIABLE_AUX, 
-        #            2000, 
-        #            0.3,
-        #            (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
+        self.parallel_distance_process = self._set_parallel_distance_process()
+        layers = int(2000/100000*self.main_model_part.NumberOfElements())
+        (self.parallel_distance_process).CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    layers, 
+                    0.01,
+                    (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "HERE2")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -281,6 +283,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         with open("solver_iteration.log", "w") as iterLogFile:
             iterLogFile.write( "TimeStep" + "\t" + "iter_number" + "\n" )
 
+        with open("MaxVelocity.log", "w") as distLogFile:
+            distLogFile.write( "time_step" + "\t" + "VMax" + "\n" )
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -348,13 +353,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    (self.variational_distance_process).Execute()
 
             # Recompute the distance field according to the new level-set position
-            #if (TimeStep % 50 == 0):
-            #    (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-            #        self.main_model_part, 
-            #        KratosMultiphysics.DISTANCE, 
-            #        KratosCFD.AREA_VARIABLE_AUX, 
-            #        1000, 
-            #        0.3)#,
+            if (TimeStep % 50 == 0):
+                layers = int(1000/100000*self.main_model_part.NumberOfElements())
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    layers, 
+                    0.01)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Reinitialize distance according to time dependent Eikonal equation
@@ -374,10 +380,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
             # Smoothing the surface to filter oscillatory surface
-            #(self.surface_smoothing_process).Execute()
-            #for node in self.main_model_part.Nodes:
-            #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            (self.surface_smoothing_process).Execute()
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
             #it_number=self.linear_solver.GetIterationsNumber()
             #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 
@@ -412,6 +418,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()
 
+            DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
             YPlus = 1.0
             YMinus = 0.0
             DistPlus = 1.0e5
@@ -438,7 +446,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 YZero = YMinus
 
             with open("ZeroDistance.log", "a") as distLogFile:
-                distLogFile.write( str(TimeStep) + "\t" + str(YZero) + "\n" )
+                distLogFile.write( str(TimeStep*DT) + "\t" + str(YZero) + "\n" )
+
+            VMax = 0.0
+
+            for node in self.main_model_part.Nodes:
+                VX = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                VY = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+                VZ = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+                normv = math.sqrt(VX**2 + VY**2 + VZ**2)
+
+                if (normv > VMax):
+                    VMax = normv
+
+            with open("MaxVelocity.log", "a") as distLogFile:
+                distLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
 
     def FinalizeSolutionStep(self):
         #it_number=self.linear_solver.GetIterationsNumber()
