@@ -19,7 +19,7 @@ jobs:
       MKLVARS_INTERFACE: lp64
 
     container:
-      image: oberbichler/kratos-dev:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content

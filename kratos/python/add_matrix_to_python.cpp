@@ -35,7 +35,7 @@ namespace Python
 
     template< typename TMatrixType > py::class_< TMatrixType > CreateMatrixInterface(pybind11::module& m, std::string Name )
     {
-        py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str());
+        py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str(),py::buffer_protocol());
         binder.def(py::init<>());
 
         //binder.def(py::init<std::TMatrixType& >())
@@ -89,6 +89,17 @@ namespace Python
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
+        matrix_binder.def_buffer( [](DenseMatrix<double>& self)-> py::buffer_info{
+                                                                    return py::buffer_info(
+                                                                    self.data().begin(),
+                                                                    sizeof(double),
+                                                                    py::format_descriptor<double>::format(),
+                                                                    2,
+                                                                    {self.size1(),self.size2()},
+                                                                    {sizeof(double)*self.size2(),
+                                                                     sizeof(double) }
+                                                                    );
+                                                                    });
 
         ;
 
