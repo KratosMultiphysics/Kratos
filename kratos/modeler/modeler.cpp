@@ -83,7 +83,7 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_element_list.push_back(
-                rReferenceElement.Create(rIdCounter, *it, nullptr));
+                rReferenceElement.Create(rIdCounter, *it, pProperties));
             rIdCounter++;
         }
 
@@ -129,7 +129,7 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, *it, nullptr));
+                rReferenceCondition.Create(rIdCounter, *it, pProperties));
             rIdCounter++;
         }
 
