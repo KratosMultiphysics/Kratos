@@ -497,7 +497,8 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
-        const double Drho_Dv2 = ComputeDensityDerivative(upwind_density, rCurrentProcessInfo);
+        const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
+        const double Drho_Dv2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
         array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
         const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
