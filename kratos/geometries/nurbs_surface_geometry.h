@@ -258,7 +258,7 @@ public:
     SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
     {
         SizeType knot_span_counter = 0;
-        if (DirectionIndex == 2) {
+        if (DirectionIndex == 1) {
             for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
                 if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
                     knot_span_counter++;
@@ -271,6 +271,8 @@ public:
                     knot_span_counter++;
                 }
             }
+        } else {
+            KRATOS_ERROR << "DirectionIndex can either be 1 or 2. Selected DirectionIndex: " << DirectionIndex << std::endl;
         }
         return knot_span_counter;
     }
