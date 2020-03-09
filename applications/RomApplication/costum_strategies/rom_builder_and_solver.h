@@ -401,7 +401,7 @@ public:
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
 
-                // clean local elemental me overridemory
+                // clean local elemental memory
                 pScheme->CleanMemory(*(it_el.base()));
             }
         }
@@ -426,7 +426,7 @@ public:
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
 
-                // clean local elemental me overridemory
+                // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
             }
         }
