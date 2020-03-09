@@ -108,31 +108,35 @@ namespace MPMSearchElementUtility
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
 
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
-
                 std::vector<array_1d<double, 3>> xg;
                 condition_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
-                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-                Element::Pointer pelem;
+                if (xg.size() == 1) {
+                    // Only search for particle based BCs!
+                    // Grid BCs are still applied on MP_model_part but we don't want to search for them.
+                    typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-                // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                    Element::Pointer pelem;
 
-                if (is_found == true) {
-                    pelem->Set(ACTIVE);
-                    condition_itr->GetGeometry() = pelem->GetGeometry();
-                    auto& r_geometry = condition_itr->GetGeometry();
+                    // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
-                    for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
-                        r_geometry[j].Set(ACTIVE);
-                }
-                else {
-                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
-                        << " is failed. Geometry is cleared." << std::endl;
+                    if (is_found == true) {
+                        pelem->Set(ACTIVE);
+                        condition_itr->GetGeometry() = pelem->GetGeometry();
+                        auto& r_geometry = condition_itr->GetGeometry();
 
-                    condition_itr->GetGeometry().clear();
-                    condition_itr->Reset(ACTIVE);
-                    condition_itr->Set(TO_ERASE);
+                        for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
+                            r_geometry[j].Set(ACTIVE);
+                    }
+                    else {
+                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
+                            << " is failed. Geometry is cleared." << std::endl;
+
+                        condition_itr->GetGeometry().clear();
+                        condition_itr->Reset(ACTIVE);
+                        condition_itr->Set(TO_ERASE);
+                    }
                 }
             }
         }

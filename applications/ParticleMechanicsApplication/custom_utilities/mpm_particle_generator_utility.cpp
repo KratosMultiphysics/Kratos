@@ -314,7 +314,6 @@ namespace MPMParticleGeneratorUtility
                     else {
                         rMPMModelPart.CreateSubModelPart(submodelpart_name);
                         rMPMModelPart.SetConditions(submodelpart.pConditions());
-                        rMPMModelPart.GetSubModelPart(submodelpart_name).SetConditions(submodelpart.pConditions());
                     }
                 }
                 // For boundary conditions: create particle conditions for all the necessary conditions
