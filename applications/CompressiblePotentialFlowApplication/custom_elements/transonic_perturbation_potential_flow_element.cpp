@@ -521,24 +521,10 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         }
         // Supersonic flow and accelerating (local_mach_number > upstream_mach_number)
         else if( upwind_factor > upstream_upwind_factor){
-            const double density =
-                PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(
-                    *this, rCurrentProcessInfo);
+            BoundedVector<double, NumNodes> Drho_DPhi_current =
+                PotentialFlowUtilities::ComputeDrhoDphiSupersonicAccelerating<Dim, NumNodes>(
+                    *this, *pGetUpstreamElement(), rCurrentProcessInfo);
 
-            const double upstream_density =
-                PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(
-                    *pGetUpstreamElement(), rCurrentProcessInfo);
-
-            const double Dmu_DM2 =
-                PotentialFlowUtilities::ComputeDerivativeUpwindFactorWRTMachNumberSquared<Dim, NumNodes>(
-                    *this, rCurrentProcessInfo);
-
-            const double DM2_Dv2 =
-                PotentialFlowUtilities::ComputeDerivativeMachNumberSquaredWRTVelocitySquared<Dim, NumNodes>(
-                    *this, rCurrentProcessInfo);
-
-            const double factor = 2 * (Drho_Dv2 * (1 - upwind_factor) - Dmu_DM2 * DM2_Dv2 * (density - upstream_density));
-            BoundedVector<double, NumNodes> Drho_DPhi_current = factor * DNV;
             BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
             for(unsigned int i = 0; i < NumNodes; i++) {
                 Drho_DPhi(i) = Drho_DPhi_current(i);
