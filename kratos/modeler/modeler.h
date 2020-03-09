@@ -42,7 +42,7 @@ public:
     ///@{
 
     /// Pointer definition of Modeler
-    KRATOS_CLASS_POINTER_DEFINITION(Modeler);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Modeler);
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -64,6 +64,36 @@ public:
 
     /// Destructor.
     virtual ~Modeler() = default;
+
+    ///@}
+    ///@name Stages
+    ///@{
+
+    virtual void ImportGeometryModel(
+        ModelPart& rModelPart,
+        const std::string& rFileName,
+        IndexType EchoLevel = 0) const;
+
+    virtual void PrepareGeometryModel(
+        ModelPart& rModelPart,
+        const Parameters PrepareGeometryParameters,
+        IndexType EchoLevel = 0) const;
+
+    virtual void GenerateModelPart(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Parameters PrepareGeometryParameters,
+        IndexType EchoLevel = 0) const;
+
+    virtual void ImportModelPart(
+        ModelPart& rModelPart,
+        const std::string& rFileName,
+        IndexType EchoLevel = 0) const;
+
+    virtual void PrepareModelPart(
+        ModelPart& rModelPart,
+        const Parameters PrepareModelPartParameters,
+        IndexType EchoLevel = 0) const;
 
     ///@}
     ///@name Operations

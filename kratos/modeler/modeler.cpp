@@ -15,6 +15,51 @@
 
 namespace Kratos
 {
+    ///@name Stages
+    ///@{
+
+    void Modeler::ImportGeometryModel(
+        ModelPart& rModelPart,
+        const std::string& rFileName,
+        IndexType EchoLevel = 0) const
+    {
+        KRATOS_ERROR << "Calling ImportGeometryModel from the base modeler." << std::endl;
+    }
+
+    void Modeler::PrepareGeometryModel(
+        ModelPart& rModelPart,
+        const Parameters PrepareGeometryParameters,
+        IndexType EchoLevel = 0) const
+    {
+        KRATOS_ERROR << "Calling ImportGeometryModel from the base modeler." << std::endl;
+    }
+
+    void Modeler::GenerateModelPart(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Parameters PrepareGeometryParameters,
+        IndexType EchoLevel = 0) const
+    {
+        KRATOS_ERROR << "Calling GenerateModelPart from the base modeler." << std::endl;
+    }
+
+    void Modeler::ImportModelPart(
+        ModelPart& rModelPart,
+        const std::string& rFileName,
+        IndexType EchoLevel = 0) const
+    {
+        KRATOS_ERROR << "Calling ImportModelPart from the base modeler." << std::endl;
+    }
+
+    void Modeler::PrepareModelPart(
+        ModelPart& rModelPart,
+        const Parameters PrepareModelPartParameters,
+        IndexType EchoLevel = 0) const
+    {
+        KRATOS_ERROR << "Calling PrepareModelPart from the base modeler." << std::endl;
+    }
+
+    ///@}
     ///@name Operations
     ///@{
 
