@@ -204,7 +204,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_penalty = 1.0;
+    double m_penalty = 0.0;
 
     ///@}
     ///@name Private Operators
