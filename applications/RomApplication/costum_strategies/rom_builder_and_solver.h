@@ -308,12 +308,11 @@ public:
         }
     }
 
-    Matrix GetPhiElemental(
+    void GetPhiElemental(
+        Matrix &PhiElemental,
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
-    {  
-        Matrix PhiElemental(dofs.size(), mRomDofs);
-        
+    {         
         auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
         int counter = 0;
         for(unsigned int k = 0; k < dofs.size(); ++k){
@@ -328,8 +327,7 @@ public:
                 row(PhiElemental, k) = ZeroVector(PhiElemental.size2());                                
             else
                 row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
-        }
-        return PhiElemental;       
+        }    
     }
 
 
@@ -397,7 +395,8 @@ public:
                 Element::DofsVectorType dofs;
                 it_el->GetDofList(dofs, CurrentProcessInfo);
                 const auto &geom = it_el->GetGeometry();
-                Matrix PhiElemental = GetPhiElemental(dofs, geom);
+                Matrix PhiElemental(dofs.size(), mRomDofs);
+                GetPhiElemental(PhiElemental, dofs, geom);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
@@ -410,7 +409,7 @@ public:
         for (int k = 0; k < nconditions; k++){
             ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-            //detect if the element is active or not. If the user did not make any choice the element
+            //detect if the element is active or not. If the user did not make any choice the condition
             //is active by default
             bool condition_is_active = true;
             if ((it)->IsDefined(ACTIVE))
@@ -421,7 +420,8 @@ public:
                 //calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 const auto &geom = it->GetGeometry();
-                Matrix PhiElemental = GetPhiElemental(dofs, geom);
+                Matrix PhiElemental(dofs.size(), mRomDofs);
+                GetPhiElemental(PhiElemental, dofs, geom);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
                 noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
