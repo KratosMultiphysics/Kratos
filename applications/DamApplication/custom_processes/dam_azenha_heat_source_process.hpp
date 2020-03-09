@@ -109,7 +109,7 @@ class DamAzenhaHeatFluxProcess : public Process
         if (mAging == false)
         {
             const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-            Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+            const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
             if (nnodes != 0)
             {
@@ -148,7 +148,7 @@ class DamAzenhaHeatFluxProcess : public Process
         if (mAging == false)
         {
             const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-            Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+            const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
             double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
             if (nnodes != 0)
@@ -194,7 +194,7 @@ class DamAzenhaHeatFluxProcess : public Process
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         if (nnodes != 0)
         {
@@ -227,7 +227,7 @@ class DamAzenhaHeatFluxProcess : public Process
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
         if (nnodes != 0)
