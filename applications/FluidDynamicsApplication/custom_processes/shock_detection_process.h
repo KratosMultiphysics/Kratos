@@ -16,19 +16,17 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
-#include "utilities/global_pointer_utilities.h"
+#include "containers/global_pointers_vector.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -268,7 +266,7 @@ public:
                 const auto& r_grad_var_j = values_j.mShockGradientVariableValue;
                 const auto l_ji = values_j.mCoordinates - it_node->Coordinates();
 
-                // Calculate the density sensor auxiliary values
+                // Calculate the shock sensor auxiliary values
                 const auto aux_1 = r_var_j - r_var_i;
                 const auto aux_2 = 0.5 * inner_prod(l_ji, r_grad_var_i + r_grad_var_j);
                 const auto num = aux_1 - aux_2;
