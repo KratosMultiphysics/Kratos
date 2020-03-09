@@ -530,12 +530,25 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
                     *this, rCurrentProcessInfo);
 
             const double factor = 2 * (Drho_Dv2 * (1 - upwind_factor) - Dmu_DM2 * DM2_Dv2);
-            const BoundedVector<double, NumNodes> Drho_DPhi_current = factor * DNV;
-            const BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
+            BoundedVector<double, NumNodes> Drho_DPhi_current = factor * DNV;
+            BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
             for(unsigned int i = 0; i < NumNodes; i++) {
                 Drho_DPhi(i) = Drho_DPhi_current(i);
             }
+            const BoundedMatrix<double, NumNodes, NumNodes + 1> term_matrix_nonlinear =
+                data.vol * outer_prod(DNV, trans(Drho_DPhi));
 
+            for(unsigned int i = 0; i < NumNodes; i++){
+                for(unsigned int j = 0; j < NumNodes; j++){
+                    rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
+                }
+            }
+
+            for(unsigned int i = 0; i < NumNodes; i++){
+                for(unsigned int j = 0; j < NumNodes + 1; j++){
+                    rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+                }
+            }
 
         }
         // Supersonic flow and decelerating (local_mach_number < upstream_mach_number)
@@ -958,6 +971,7 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::ComputeVelocity(
     const ProcessInfo& rCurrentProcessInfo) const
 {
+
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
     for (unsigned int i = 0; i < Dim; i++){
@@ -984,6 +998,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamEleme
 template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamElementSharingFace(const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
     const GeometryType& rGeom = this->GetGeometry();
     GlobalPointersVector<Element> ElementsSharingFace;
     GetElementsSharingFace(ElementsSharingFace, rGeom);
@@ -995,6 +1010,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamEleme
         mpUpstreamElement = this;
         this->Set(INLET);
     }
+    KRATOS_CATCH("")
 }
 
 template <int Dim, int NumNodes>
@@ -1003,6 +1019,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamEleme
     GlobalPointersVector<Element>& rElementCandidates,
     const GeometryType& rGeom)
 {
+    KRATOS_TRY
     // Find the upstream element whose center has the minimum cross flow distance
     const array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
     const double velocity_norm = sqrt(inner_prod(velocity, velocity));
@@ -1026,12 +1043,14 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::FindUpstreamEleme
             }
         }
     }
+    KRATOS_CATCH("")
 }
 
 template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetElementsSharingFace(
     GlobalPointersVector<Element>& rElementsSharingFace, const GeometryType& rGeom) const
 {
+    KRATOS_TRY
     GlobalPointersVector<Element> ElementsSharingNode;
     GetElementsSharingNode(ElementsSharingNode, rGeom);
 
@@ -1051,6 +1070,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetElementsSharin
         }
     }
     rElementsSharingFace.Unique();
+    KRATOS_CATCH("")
 }
 
 template <int Dim, int NumNodes>
