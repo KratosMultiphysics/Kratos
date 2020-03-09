@@ -299,6 +299,8 @@ protected:
     array_1d<double, 3> m_xg;
     array_1d<double, 3> m_acceleration;
     array_1d<double, 3> m_velocity;    
+    array_1d<double, 3> m_normal;
+    double m_area;
 
     ///@}
     ///@name Protected Operators
@@ -361,7 +363,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_area;
 
     ///@}
     ///@name Private Operators
