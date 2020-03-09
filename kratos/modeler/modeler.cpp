@@ -48,20 +48,28 @@ namespace Kratos
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
-        int& rIdCounter,
+        PropertiesPointerType pProperties,
         SizeType EchoLevel)
     {
-        Modeler::CreateElements(
-            rOriginModelPart.Geometries(),
+        SizeType id = 1;
+        if (rDestinationModelPart.GetRootModelPart().Elements().size() > 0)
+            id = rDestinationModelPart.GetRootModelPart().Elements().back().Id() + 1;
+
+        Modeler::CreateElements<ModelPart::GeometriesMapType>(
+            rOriginModelPart.GeometriesBegin(),
+            rOriginModelPart.GeometriesEnd(),
             rDestinationModelPart,
-            rElementName, rIdCounter, EchoLevel);
+            rElementName, id, pProperties, EchoLevel);
     }
 
+    template<class TContainerType>
     void Modeler::CreateElements(
-        GeometriesArrayType& rGeometries,
+        typename TContainerType::iterator& rGeometriesBegin,
+        typename TContainerType::iterator& rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
-        int& rIdCounter,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
         SizeType EchoLevel)
     {
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
@@ -69,15 +77,14 @@ namespace Kratos
         ElementsContainerType new_element_list;
 
         KRATOS_INFO_IF("CreateElements", EchoLevel > 2)
-            << "Creating " << rGeometries.size()
-            << " elements of type " << rElementName
+            << "Creating elements of type " << rElementName
             << " in " << rDestinationModelPart.Name() << "-SubModelPart." << std::endl;
 
-        for (IndexType i = 0; i < rGeometries.size(); ++i)
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
-            auto p_element = rReferenceElement.Create(rIdCounter, rGeometries(i), nullptr);
+            new_element_list.push_back(
+                rReferenceElement.Create(rIdCounter, *it, nullptr));
             rIdCounter++;
-            new_element_list.push_back(p_element);
         }
 
         rDestinationModelPart.AddElements(new_element_list.begin(), new_element_list.end());
@@ -87,37 +94,43 @@ namespace Kratos
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
-        int& rIdCounter,
+        PropertiesPointerType pProperties,
         SizeType EchoLevel)
     {
-        Modeler::CreateConditions(
-            rOriginModelPart.Geometries(),
+        SizeType id = 1;
+        if (rDestinationModelPart.GetRootModelPart().Conditions().size() > 0)
+            id = rDestinationModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+
+        Modeler::CreateConditions<ModelPart::GeometriesMapType>(
+            rOriginModelPart.GeometriesBegin(),
+            rOriginModelPart.GeometriesEnd(),
             rDestinationModelPart,
-            rConditionName, rIdCounter, EchoLevel);
+            rConditionName, id, pProperties, EchoLevel);
     }
 
+    template<class TContainerType>
     void Modeler::CreateConditions(
-        GeometriesArrayType& rGeometries,
+        typename TContainerType::iterator& rGeometriesBegin,
+        typename TContainerType::iterator& rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
-        int& rIdCounter,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
         SizeType EchoLevel)
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
         ModelPart::ConditionsContainerType new_condition_list;
-        new_condition_list.reserve(rQuadraturePointGeometryList.size());
 
-        KRATOS_INFO_IF("CreateConditions", rGeometries > 2)
-            << "Creating " << rGeometries.size()
-            << " conditions of type " << rConditionName
+        KRATOS_INFO_IF("CreateConditions", EchoLevel > 2)
+            << "Creating conditions of type " << rConditionName
             << " in " << rDestinationModelPart.Name() << "-SubModelPart." << std::endl;
 
-        for (IndexType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
-            auto p_condition = rReferenceCondition.Create(rIdCounter, rGeometries(i), nullptr);
+            new_condition_list.push_back(
+                rReferenceCondition.Create(rIdCounter, *it, nullptr));
             rIdCounter++;
-            new_condition_list.push_back(p_condition);
         }
 
         rDestinationModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());

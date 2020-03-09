@@ -17,14 +17,13 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/properties.h"
 #include "spatial_containers/spatial_containers.h"
 
 namespace Kratos
@@ -48,7 +47,13 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef typename ModelPart::GeometriesArrayType GeometriesArrayType;
+    typedef typename Properties::Pointer PropertiesPointerType;
+
+    typedef Geometry<Node<3>> GeometryType;
+    typedef PointerVector<GeometryType> GeometriesArrayType;
+
+    typedef typename ModelPart::ElementsContainerType ElementsContainerType;
+    typedef typename ModelPart::ConditionsContainerType ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -64,20 +69,19 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void GenerateModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
-    {
-        KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;
-    }
+    virtual void GenerateModelPart(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        Element const& rReferenceElement,
+        Condition const& rReferenceBoundaryCondition);
 
-    virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
-    {
-        KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;
-    }
+    virtual void GenerateMesh(
+        ModelPart& ThisModelPart,
+        Element const& rReferenceElement,
+        Condition const& rReferenceBoundaryCondition);
 
-    virtual void GenerateNodes(ModelPart& ThisModelPart)
-    {
-        KRATOS_ERROR << "This modeler CAN NOT be used for node generation." << std::endl;
-    }
+    virtual void GenerateNodes(
+        ModelPart& ThisModelPart);
 
     ///@}
     ///@name Generate Elements and Conditions
@@ -88,32 +92,38 @@ public:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
-        int& rIdCounter,
-        int EchoLevel = 0);
+        PropertiesPointerType pProperties,
+        SizeType EchoLevel = 0);
 
     /// Creates elements from geometries
+    template<class TContainerType>
     static void CreateElements(
-        GeometriesArrayType& rGeometries,
+        typename TContainerType::iterator& rGeometriesBegin,
+        typename TContainerType::iterator& rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
-        int& rIdCounter,
-        int EchoLevel = 0);
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        SizeType EchoLevel = 0);
 
     /// Creates conditions from model part geometries
     static void CreateConditions(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
-        int& rIdCounter,
-        int EchoLevel = 0);
+        PropertiesPointerType pProperties,
+        SizeType EchoLevel = 0);
 
     /// Creates conditions from geometries
+    template<class TContainerType>
     static void CreateConditions(
-        GeometriesArrayType& rGeometries,
+        typename TContainerType::iterator& rGeometriesBegin,
+        typename TContainerType::iterator& rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
-        int& rIdCounter,
-        int EchoLevel = 0);
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        SizeType EchoLevel = 0);
 
     ///@}
     ///@name Input and output
