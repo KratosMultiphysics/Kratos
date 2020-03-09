@@ -42,7 +42,7 @@ public:
     ///@{
 
     /// Pointer definition of Modeler
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Modeler);
+    KRATOS_CLASS_POINTER_DEFINITION(Modeler);
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
