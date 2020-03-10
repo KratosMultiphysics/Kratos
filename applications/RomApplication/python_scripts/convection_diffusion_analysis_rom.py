@@ -39,7 +39,7 @@ class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
             for node in computing_model_part.Nodes:
                 aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
                 for j in range(nodal_dofs):
-                    Counter=str(1.0*node.Id)
+                    Counter=str(node.Id)
                     for i in range(rom_dofs):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
