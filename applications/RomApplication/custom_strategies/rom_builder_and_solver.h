@@ -381,57 +381,71 @@ public:
         double start_build = OpenMPUtils::GetCurrentTime();
 
         Matrix PhiElemental;
-        for (int k = 0; k < nelements; k++)
+        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PhiElemental)
         {
-            auto it_el = el_begin + k;
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool element_is_active = true;
-            if ((it_el)->IsDefined(ACTIVE))
-                element_is_active = (it_el)->Is(ACTIVE);
+            Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
+            Vector tempb = ZeroVector(mRomDofs);
 
-            if (element_is_active){
-                //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                Element::DofsVectorType dofs;
-                it_el->GetDofList(dofs, CurrentProcessInfo);
-                const auto &geom = it_el->GetGeometry();
-                if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
-                    PhiElemental.resize(dofs.size(), mRomDofs,false);
-                GetPhiElemental(PhiElemental, dofs, geom);
-                Matrix aux = prod(LHS_Contribution, PhiElemental);
-                noalias(Arom) += prod(trans(PhiElemental), aux);
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
+            #pragma omp for nowait
+            for (int k = 0; k < nelements; k++)
+            {
+                auto it_el = el_begin + k;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it_el)->IsDefined(ACTIVE))
+                    element_is_active = (it_el)->Is(ACTIVE);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it_el.base()));
+                if (element_is_active){
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    Element::DofsVectorType dofs;
+                    it_el->GetDofList(dofs, CurrentProcessInfo);
+                    const auto &geom = it_el->GetGeometry();
+                    if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
+                        PhiElemental.resize(dofs.size(), mRomDofs,false);
+                    GetPhiElemental(PhiElemental, dofs, geom);
+                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(tempA) += prod(trans(PhiElemental), aux);
+                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution);
+
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it_el.base()));
+                }
             }
-        }
 
-        for (int k = 0; k < nconditions; k++){
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            #pragma omp for nowait
+            for (int k = 0; k < nconditions; k++){
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-            //detect if the element is active or not. If the user did not make any choice the condition
-            //is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
-            if (condition_is_active){
-                Condition::DofsVectorType dofs;
-                it->GetDofList(dofs, CurrentProcessInfo);
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                const auto &geom = it->GetGeometry();
-                if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
-                    PhiElemental.resize(dofs.size(), mRomDofs,false);
-                GetPhiElemental(PhiElemental, dofs, geom);
-                Matrix aux = prod(LHS_Contribution, PhiElemental);
-                noalias(Arom) += prod(trans(PhiElemental), aux);
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
+                //detect if the element is active or not. If the user did not make any choice the condition
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
+                if (condition_is_active){
+                    Condition::DofsVectorType dofs;
+                    it->GetDofList(dofs, CurrentProcessInfo);
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    const auto &geom = it->GetGeometry();
+                    if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
+                        PhiElemental.resize(dofs.size(), mRomDofs,false);
+                    GetPhiElemental(PhiElemental, dofs, geom);
+                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(tempA) += prod(trans(PhiElemental), aux);
+                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
             }
+
+            #pragma omp critical
+            {
+                noalias(Arom) +=tempA;
+                noalias(brom) +=tempb;
+
         }
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
