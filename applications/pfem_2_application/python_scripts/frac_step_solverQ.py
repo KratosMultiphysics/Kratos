@@ -166,7 +166,7 @@ class FracStepSolver:
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(model_part)
 
         self.model_part = model_part
         self.p_model_part = p_model_part
@@ -200,7 +200,7 @@ class FracStepSolver:
 
         ##handling slip condition
         self.slip_conditions_initialized = False
-        self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        self.neigh_finder = FindNodalNeighboursProcess(model_part)
         self.compute_reactions=False
         self.timer=Timer()    
         #self.particle_utils = ParticleUtils2D()
@@ -221,7 +221,7 @@ class FracStepSolver:
             self.particle_utils = ParticleUtils2D()	
             self.Mesher = TriGenPFEMModeler()
             
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
             self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)	
@@ -232,7 +232,7 @@ class FracStepSolver:
             self.particle_utils = ParticleUtils3D()
             
             self.Mesher = TetGenPfemModeler()
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
             self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 20, 30)
