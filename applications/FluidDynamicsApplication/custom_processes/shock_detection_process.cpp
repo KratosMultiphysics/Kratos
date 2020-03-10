@@ -27,14 +27,46 @@ namespace Kratos
 
 void ShockDetectionProcess::ExecuteInitialize()
 {
+    // Initialize the non-historical database variables
+    // Note that this very first initialization hast to be done out of a parallel region
+    for (auto& r_node : mrModelPart.Nodes()) {
+        r_node.SetValue(NEIGHBOUR_NODES, NEIGHBOUR_NODES.Zero());
+        r_node.SetValue((*mpShockSensorVariable), (*mpShockSensorVariable).Zero());
+    }
+}
+
+void ShockDetectionProcess::ExecuteInitializeSolutionStep()
+{
     // Calculate the nodal area
-    CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>(
-        mrModelPart,
-        mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE)).Execute();
+    if (!mNodalAreaAlreadyComputed || mUpdateNodalAreaAtEachStep) {
+        CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>(
+            mrModelPart,
+            mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE)).Execute();
+        mNodalAreaAlreadyComputed = true;
+    }
 
     // Calculate the nodal neighbours for the edge-based shock capturing
-    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-    FindGlobalNodalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
+    if (!mNodalNeighboursAlreadyComputed || mUpdateNodalNeighboursAtEachStep) {
+        const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+        FindGlobalNodalNeighboursProcess(r_data_communicator, mrModelPart).Execute();
+        mNodalNeighboursAlreadyComputed = true;
+    }
+
+    // Perform the edge based shock detection
+    if (mShockVariableIsDouble) {
+        EdgeBasedShockDetectionSpecialization<>(*mpShockDoubleVariable, *mpShockGradientVariable);
+    } else {
+        EdgeBasedShockDetectionSpecialization<>(*mpShockComponentVariable, *mpShockGradientVariable);
+    }
+}
+
+void ShockDetectionProcess::Execute()
+{
+    // Initialize the shock sensor, nodal mass and neighbours
+    ExecuteInitialize();
+
+    // Perform the edge based shock detection
+    ExecuteInitializeSolutionStep();
 }
 
 void ShockDetectionProcess::EdgeBasedShockDetection(
@@ -70,7 +102,8 @@ void ShockDetectionProcess::PrintData(std::ostream &rOStream) const
     mrModelPart.PrintData(rOStream);
     rOStream << "Update nodal area at each step: " << mUpdateNodalAreaAtEachStep << std::endl;
     rOStream << "Update nodal neighbours at each step: " << mUpdateNodalNeighboursAtEachStep << std::endl;
-    rOStream << "Shock sensor variable: " << mrShockSensorVariable.Name() << std::endl;
+    const auto& r_shock_sensor_variable = KratosComponents<Variable<double>>::Get(mpShockSensorVariable->Name());
+    rOStream << "Shock sensor variable: " << r_shock_sensor_variable.Name() << std::endl;
 }
 
 /* Protected functions ****************************************************/

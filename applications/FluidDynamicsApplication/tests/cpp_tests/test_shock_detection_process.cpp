@@ -19,7 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 #include "processes/calculate_nodal_area_process.h"
@@ -93,9 +93,8 @@ namespace Testing {
         }
 
         // Perform the shock detection
-        ShockDetectionProcess shock_detection(r_model_part);
-        shock_detection.ExecuteInitialize();
-        shock_detection.EdgeBasedShockDetection(DENSITY, DENSITY_GRADIENT);
+        ShockDetectionProcess shock_detection(r_model_part, DENSITY, DENSITY_GRADIENT);
+        shock_detection.Execute();
 
         // Check values
         const double tolerance = 1.0e-8;
@@ -131,9 +130,8 @@ namespace Testing {
         SetAbgrallFunction(r_model_part);
 
         // Perform the shock detection
-        ShockDetectionProcess shock_detection(r_model_part);
-        shock_detection.ExecuteInitialize();
-        shock_detection.EdgeBasedShockDetection(DENSITY, DENSITY_GRADIENT);
+        ShockDetectionProcess shock_detection(r_model_part, DENSITY, DENSITY_GRADIENT);
+        shock_detection.Execute();
 
         // Check values
         const double tolerance = 1.0e-6;

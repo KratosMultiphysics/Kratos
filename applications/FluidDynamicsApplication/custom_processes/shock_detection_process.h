@@ -98,9 +98,19 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const {}
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("mCoordinates",mCoordinates);
+        rSerializer.save("mShockVariableValue",mShockVariableValue);
+        rSerializer.save("mShockGradientVariableValue",mShockGradientVariableValue);
+    }
 
-    void load(Serializer& rSerializer) {}
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("mCoordinates",mCoordinates);
+        rSerializer.load("mShockVariableValue",mShockVariableValue);
+        rSerializer.load("mShockGradientVariableValue",mShockGradientVariableValue);
+    }
 
     ///@}
 };
@@ -130,20 +140,74 @@ public:
     /// Default constructor.
     ShockDetectionProcess() = default;
 
-    /// Constructor with default shock sensor variable
-    ShockDetectionProcess(ModelPart& rModelPart)
-    : Process()
-    , mrModelPart(rModelPart)
-    , mrShockSensorVariable(SHOCK_SENSOR)
-    {}
-
-    /// Constructor with custom shock sensor variable
+    /// Constructor with default shock sensor variable for double shock variable
     ShockDetectionProcess(
         ModelPart& rModelPart,
-        const Variable<double>& rShockSensorVariable)
+        const Variable<double>& rShockDoubleVariable,
+        const Variable<array_1d<double,3>>& rShockGradientVariable,
+        const bool UpdateNodalAreaAtEachStep = false,
+        const bool UpdateNodalNeighboursAtEachStep = false)
     : Process()
     , mrModelPart(rModelPart)
-    , mrShockSensorVariable(rShockSensorVariable)
+    , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
+    , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
+    , mShockVariableIsDouble(true)
+    , mpShockDoubleVariable(&rShockDoubleVariable)
+    , mpShockGradientVariable(&rShockGradientVariable)
+    , mpShockSensorVariable(&SHOCK_SENSOR)
+    {}
+
+    /// Constructor with default shock sensor variable for component shock variable
+    ShockDetectionProcess(
+        ModelPart& rModelPart,
+        const VariableComponentType& rShockComponentVariable,
+        const Variable<array_1d<double,3>>& rShockGradientVariable,
+        const bool UpdateNodalAreaAtEachStep = false,
+        const bool UpdateNodalNeighboursAtEachStep = false)
+    : Process()
+    , mrModelPart(rModelPart)
+    , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
+    , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
+    , mShockVariableIsDouble(false)
+    , mpShockComponentVariable(&rShockComponentVariable)
+    , mpShockGradientVariable(&rShockGradientVariable)
+    , mpShockSensorVariable(&SHOCK_SENSOR)
+    {}
+
+    /// Constructor with custom shock sensor variable for double shock variable
+    ShockDetectionProcess(
+        ModelPart& rModelPart,
+        const Variable<double>& rShockDoubleVariable,
+        const Variable<array_1d<double,3>>& rShockGradientVariable,
+        const Variable<double>& rShockSensorVariable,
+        const bool UpdateNodalAreaAtEachStep = false,
+        const bool UpdateNodalNeighboursAtEachStep = false)
+    : Process()
+    , mrModelPart(rModelPart)
+    , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
+    , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
+    , mShockVariableIsDouble(true)
+    , mpShockDoubleVariable(&rShockDoubleVariable)
+    , mpShockGradientVariable(&rShockGradientVariable)
+    , mpShockSensorVariable(&rShockSensorVariable)
+    {}
+
+    /// Constructor with custom shock sensor variable for component shock variable
+    ShockDetectionProcess(
+        ModelPart& rModelPart,
+        const VariableComponentType& rShockComponentVariable,
+        const Variable<array_1d<double,3>>& rShockGradientVariable,
+        const Variable<double>& rShockSensorVariable,
+        const bool UpdateNodalAreaAtEachStep = false,
+        const bool UpdateNodalNeighboursAtEachStep = false)
+    : Process()
+    , mrModelPart(rModelPart)
+    , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
+    , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
+    , mShockVariableIsDouble(false)
+    , mpShockComponentVariable(&rShockComponentVariable)
+    , mpShockGradientVariable(&rShockGradientVariable)
+    , mpShockSensorVariable(&rShockSensorVariable)
     {}
 
     /// Destructor.
@@ -166,6 +230,18 @@ public:
      * It has to be executed once (in case there is no mesh deformation nor topology changes)
      */
     void ExecuteInitialize() override;
+
+    /**
+     * @brief Calculates the edge based shock detection
+     * This method performs the edge based shock detection
+     */
+    void ExecuteInitializeSolutionStep() override;
+
+    /**
+     * @brief This method performs all the operations
+     * This method perform all the operations that are required for the shock detection
+     */
+    void Execute() override;
 
     /**
      * @brief Perform edge based shock detection
@@ -250,7 +326,7 @@ public:
 #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++i_node) {
             auto it_node = r_comm.LocalMesh().NodesBegin() + i_node;
-            double& r_shock_sens = it_node->GetValue(mrShockSensorVariable);
+            double& r_shock_sens = it_node->GetValue(*mpShockSensorVariable);
             const auto& r_var_i = it_node->FastGetSolutionStepValue(rShockVariable);
             const auto& r_grad_var_i = it_node->GetValue(rShockGradientVariable);
 
@@ -271,15 +347,13 @@ public:
                 const auto aux_2 = 0.5 * inner_prod(l_ji, r_grad_var_i + r_grad_var_j);
                 const auto num = aux_1 - aux_2;
                 const auto den = std::abs(aux_1) + std::abs(aux_2);
-                double beta_ij = 0.0;
 
                 // Check if the solution is not constant (den close to 0.0)
+                double beta_ij = 0.0;
                 if (std::abs(den) > zero_tol) {
                     // Compute and bound the shock sensor
                     const double aux_beta_ij = std::abs(num / den);
                     beta_ij = aux_beta_ij < 1.0 ? aux_beta_ij : 1.0;
-                } else {
-                    beta_ij = 0.0;
                 }
 
                 // Check against the current value of shock sensor and keep the largest one
@@ -308,27 +382,40 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Reference to the model part in where the shock detection is to be performed
+    ModelPart& mrModelPart;
+
     /// Updates the NODAL_AREA at each time step (required in case the mesh deforms)
     const bool mUpdateNodalAreaAtEachStep = false;
 
     /// Updates the NODAL_NEIGHBOURS at each time step (required in case topology changes)
     const bool mUpdateNodalNeighboursAtEachStep = false;
 
-    /// Reference to the model part in where the shock detection is to be performed
-    ModelPart& mrModelPart;
+    /// Flag to indicate if the nodal area has been already computed
+    bool mNodalAreaAlreadyComputed = false;
 
-    /// Reference to the shock sensor variable
-    const Variable<double>& mrShockSensorVariable;
+    /// Flag to indicate if the nodal neighbours have been already computed
+    bool mNodalNeighboursAlreadyComputed = false;
+
+    /// Flag to indicate if the shock variable type is double or component one
+    const bool mShockVariableIsDouble;
+
+    /// Pointer to the shock detection double variable
+    const Variable<double>* mpShockDoubleVariable = nullptr;
+
+    /// Pointer to the shock detection component variable
+    const VariableComponentType* mpShockComponentVariable = nullptr;
+
+    /// Name of the shock detection gradient variable
+    const Variable<array_1d<double,3>>* mpShockGradientVariable = nullptr;
+
+    /// Name of the shock sensor variable
+    const Variable<double>* mpShockSensorVariable = nullptr;
 
     ///@}
     ///@name Serialization
     ///@{
 
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const override{}
-
-    void load(Serializer& rSerializer) override {}
 
     ///@}
 }; // Class ShockDetectionProcess

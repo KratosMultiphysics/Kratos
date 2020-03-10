@@ -141,11 +141,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ShockDetectionProcess, ShockDetectionProcess::Pointer, Process>
     (m, "ShockDetectionProcess")
-    .def(py::init < ModelPart& >())
-    .def(py::init < ModelPart&, const Variable<double>& >())
-    .def("Initialize", &ShockDetectionProcess::ExecuteInitialize)
-    .def("EdgeBasedShockDetection", [] (ShockDetectionProcess& rShockDetectionProcess, const Variable<double>& rShockVariable, const Variable<array_1d<double, 3>>& rShockGradientVariable) {rShockDetectionProcess.EdgeBasedShockDetection(rShockVariable, rShockGradientVariable);})
-    .def("EdgeBasedShockDetection", [] (ShockDetectionProcess& rShockDetectionProcess, const VariableComponentType& rShockVariable, const Variable<array_1d<double, 3>>& rShockGradientVariable) {rShockDetectionProcess.EdgeBasedShockDetection(rShockVariable, rShockGradientVariable);})
+    .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const bool, const bool >())
+    .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
+    .def(py::init < ModelPart&, const VariableComponentType&, const Variable<array_1d<double,3>>&, const bool, const bool >())
+    .def(py::init < ModelPart&, const VariableComponentType&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
+    .def("ExecuteInitialize", &ShockDetectionProcess::ExecuteInitialize)
+    .def("ExecuteInitializeSolutionStep", &ShockDetectionProcess::ExecuteInitialize)
+    .def("Execute", &ShockDetectionProcess::Execute)
     ;
 
     py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
