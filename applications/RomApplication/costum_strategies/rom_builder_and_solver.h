@@ -119,7 +119,7 @@ public:
                 MapPhi[var.Key()] = k;
             }
             else
-                KRATOS_ERROR << "variable type not valid" << std::endl;
+                KRATOS_ERROR << "variable \""<< mNodalVariablesNames[k] << "\" not valid" << std::endl;
 
         }
     }
