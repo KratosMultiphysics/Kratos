@@ -30,14 +30,14 @@ namespace Python {
  */
 namespace py = pybind11;
 
-double QuaternionGetX(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.x(); }
-double QuaternionGetY(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.y(); }
-double QuaternionGetZ(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.z(); }
-double QuaternionGetW(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.w(); }
-void QuaternionSetX(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Setx(Value); }
-void QuaternionSetY(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Sety(Value); }
-void QuaternionSetZ(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Setz(Value); }
-void QuaternionSetW(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.Setw(Value); }
+double QuaternionGetX(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.X(); }
+double QuaternionGetY(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.Y(); }
+double QuaternionGetZ(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.Z(); }
+double QuaternionGetW(Quaternion<double>& ThisQuaternion) { return ThisQuaternion.W(); }
+void QuaternionSetX(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetX(Value); }
+void QuaternionSetY(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetY(Value); }
+void QuaternionSetZ(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetZ(Value); }
+void QuaternionSetW(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetW(Value); }
 
 void  AddQuaternionToPython(pybind11::module& m) {
 

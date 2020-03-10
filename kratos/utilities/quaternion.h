@@ -157,29 +157,33 @@ namespace Kratos
 		Returns the X coefficient of this quaternion.
 		@return the X coefficient of this quaternion.
 		*/
-		inline const T x()const { return mX; }
-		inline void Setx(T& value) { mX = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T x()const { return mX; }
+		inline const T X()const { return mX; }
+		inline void SetX(T& value) { mX = value; }
 
 		/**
 		Returns the Y coefficient of this quaternion.
 		@return the Y coefficient of this quaternion.
 		*/
-		inline const T y()const { return mY; }
-		inline void Sety(T& value) { mY = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T y()const { return mY; }
+		inline const T Y()const { return mY; }
+		inline void SetY(T& value) { mY = value; }
 
 		/**
 		Returns the Z coefficient of this quaternion.
 		@return the Z coefficient of this quaternion.
 		*/
-		inline const T z()const { return mZ; }
-		inline void Setz(T& value) { mZ = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T z()const { return mZ; }
+		inline const T Z()const { return mZ; }
+		inline void SetZ(T& value) { mZ = value; }
 
 		/**
 		Returns the W coefficient of this quaternion.
 		@return the W coefficient of this quaternion.
 		*/
-		inline const T w()const { return mW; }
-		inline void Setw(T& value) { mW = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T w()const { return mW; }
+		inline const T W()const { return mW; }
+		inline void SetW(T& value) { mW = value; }
 
 		///@}
 
@@ -645,10 +649,10 @@ namespace Kratos
 	inline Quaternion<T> operator* (const Quaternion<T>& a, const Quaternion<T>& b)
 	{
 		return Quaternion<T>(
-			a.w() * b.w() - a.x() * b.x() - a.y() * b.y() - a.z() * b.z(),
-			a.w() * b.x() + a.x() * b.w() + a.y() * b.z() - a.z() * b.y(),
-			a.w() * b.y() + a.y() * b.w() + a.z() * b.x() - a.x() * b.z(),
-			a.w() * b.z() + a.z() * b.w() + a.x() * b.y() - a.y() * b.x()
+			a.W() * b.W() - a.X() * b.X() - a.Y() * b.Y() - a.Z() * b.Z(),
+			a.W() * b.X() + a.X() * b.W() + a.Y() * b.Z() - a.Z() * b.Y(),
+			a.W() * b.Y() + a.Y() * b.W() + a.Z() * b.X() - a.X() * b.Z(),
+			a.W() * b.Z() + a.Z() * b.W() + a.X() * b.Y() - a.Y() * b.X()
 		);
 	}
 
