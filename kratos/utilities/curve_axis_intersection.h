@@ -106,7 +106,7 @@ namespace Kratos
 
     public:
         static std::vector<double> ComputeAxisIntersection(
-            std::vector<double> rIntersectionParameters,
+            std::vector<double>& rIntersectionParameters,
             const GeometryType& rGeometry,
             double Start,
             double End,
