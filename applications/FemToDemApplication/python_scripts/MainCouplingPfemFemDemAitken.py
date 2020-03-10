@@ -50,7 +50,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             max_relaxation = 0.9
             min_relaxation = 0.2
             initial_relaxation = 0.825
-            self.aitken_max_iterations = 10
+            self.aitken_max_iterations = 15
             self.aitken_residual_dof_tolerance = 1e-7
 
         self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(initial_relaxation, max_relaxation, min_relaxation)
@@ -118,7 +118,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                 self.FSI_aitken_utility.ResetPFEMkinematicValues(self.PFEM_Solution.main_model_part)
 
         if (aitken_iteration == self.aitken_max_iterations):
-            KratosPrintInfo(" Aitken reached max iterations, error commited: " + str(residual_norm) + "...")
+            KratosPrintInfo(" Aitken reached max iterations!!!")
 
         self.FSI_aitken_utility.FinalizeSolutionStep()
 
