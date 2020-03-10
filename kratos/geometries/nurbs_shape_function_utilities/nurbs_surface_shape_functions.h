@@ -172,6 +172,27 @@ public:
         return indices;
     }
 
+    std::vector<int> ControlPointIndices(
+        SizeType NumberOfControlPointsU, SizeType NumberOfControlPointsV) const
+    {
+        std::vector<int> indices(NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < NumberOfNonzeroControlPointsU(); i++) {
+            for (IndexType j = 0; j < NumberOfNonzeroControlPointsV(); j++) {
+                IndexType poleIndex = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                    NumberOfNonzeroControlPointsU(), NumberOfNonzeroControlPointsV(), i, j);
+
+                IndexType cp_index_u = GetFirstNonzeroControlPointU() + i;
+                IndexType cp_index_v = GetFirstNonzeroControlPointV() + j;
+
+                indices[poleIndex] = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                    NumberOfControlPointsU, NumberOfControlPointsV, cp_index_u, cp_index_v);
+            }
+        }
+
+        return indices;
+    }
+
     double ShapeFunctionValue(
         const IndexType ControlPointIndexU,
         const IndexType ControlPointIndexV,
