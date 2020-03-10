@@ -31,7 +31,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             else:
                 self.aitken_residual_dof_tolerance = 1.0e-7
             if (project_parameters["Aitken_parameters"].Has("max_iterations")):
-                self.aitken_residual_dof_tolerance = project_parameters["Aitken_parameters"]["max_iterations"].GetInt()
+                self.aitken_max_iterations = project_parameters["Aitken_parameters"]["max_iterations"].GetInt()
             else:
                 self.aitken_max_iterations = 10
             if (project_parameters["Aitken_parameters"].Has("max_relaxation")):
@@ -51,6 +51,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             min_relaxation = 0.2
             initial_relaxation = 0.825
             self.aitken_max_iterations = 10
+            self.aitken_residual_dof_tolerance = 1e-7
 
         self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(initial_relaxation, max_relaxation, min_relaxation)
 
