@@ -380,6 +380,7 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
+        Matrix PhiElemental;
         for (int k = 0; k < nelements; k++)
         {
             auto it_el = el_begin + k;
@@ -395,7 +396,8 @@ public:
                 Element::DofsVectorType dofs;
                 it_el->GetDofList(dofs, CurrentProcessInfo);
                 const auto &geom = it_el->GetGeometry();
-                Matrix PhiElemental(dofs.size(), mRomDofs);
+                if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
+                    PhiElemental.resize(dofs.size(), mRomDofs,false);
                 GetPhiElemental(PhiElemental, dofs, geom);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -420,7 +422,8 @@ public:
                 //calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 const auto &geom = it->GetGeometry();
-                Matrix PhiElemental(dofs.size(), mRomDofs);
+                if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
+                    PhiElemental.resize(dofs.size(), mRomDofs,false);
                 GetPhiElemental(PhiElemental, dofs, geom);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
                 noalias(Arom) += prod(trans(PhiElemental), aux);
@@ -564,7 +567,7 @@ protected:
 
     std::vector<std::string> mNodalVariablesNames;
     int mNodalDofs;
-    int mRomDofs;
+    unsigned int mRomDofs;
     std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
 
     /*@} */
