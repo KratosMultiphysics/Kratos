@@ -18,6 +18,10 @@ from importlib import import_module
 class GeoDataProcessingSolver(PythonSolver):
     """The base class geo data processing solvers.
 
+    IMPORTANT : This solver is not going to run any simulation. This
+    will only output a .mdpa file and a JSON file which are to be input
+    for the FluidDynamicsApplication.
+
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
 
