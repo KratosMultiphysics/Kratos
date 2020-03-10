@@ -153,7 +153,7 @@ public:
         return NumberOfNonzeroControlPointsU() * NumberOfNonzeroControlPointsV();
     }
 
-    std::vector<std::pair<int, int>> NumberOfNonzeroControlPointIndices() const
+    std::vector<std::pair<int, int>> NonzeroControlPointIndices() const
     {
         std::vector<std::pair<int, int>> indices(NumberOfNonzeroControlPoints());
 
