@@ -272,7 +272,8 @@ public:
                 }
             }
         } else {
-            KRATOS_ERROR << "DirectionIndex can either be 1 or 2. Selected DirectionIndex: " << DirectionIndex << std::endl;
+            KRATOS_ERROR << "DirectionIndex in NurbsSurfaceGeometry can either be 1 or 2. "
+                << "Selected DirectionIndex: " << DirectionIndex << std::endl;
         }
         return knot_span_counter;
     }
