@@ -24,12 +24,36 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
     def __init__(self, Model, PFEMparameters):
         super(MainCouplingPfemFemDemAitken_Solution, self).__init__(Model, PFEMparameters)
 
-        self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(0.825)
+        project_parameters = self.FEMDEM_Solution.FEM_Solution.ProjectParameters
+        if (project_parameters.Has("Aitken_parameters")):
+            if (project_parameters["Aitken_parameters"].Has("tolerance")):
+                self.aitken_residual_dof_tolerance = project_parameters["Aitken_parameters"]["tolerance"].GetDouble()
+            else:
+                self.aitken_residual_dof_tolerance = 1.0e-7
+            if (project_parameters["Aitken_parameters"].Has("max_iterations")):
+                self.aitken_residual_dof_tolerance = project_parameters["Aitken_parameters"]["max_iterations"].GetInt()
+            else:
+                self.aitken_max_iterations = 10
+            if (project_parameters["Aitken_parameters"].Has("max_relaxation")):
+                max_relaxation = project_parameters["Aitken_parameters"]["max_relaxation"].GetDouble()
+            else:
+                max_relaxation = 0.9
+            if (project_parameters["Aitken_parameters"].Has("min_relaxation")):
+                min_relaxation = project_parameters["Aitken_parameters"]["min_iterations"].GetDouble()
+            else:
+                min_relaxation = 0.2
+            if (project_parameters["Aitken_parameters"].Has("initial_relaxation")):
+                initial_relaxation = project_parameters["Aitken_parameters"]["initial_relaxation"].GetDouble()
+            else:
+                initial_relaxation = 0.825
+        else:
+            max_relaxation = 0.9
+            min_relaxation = 0.2
+            initial_relaxation = 0.825
+            self.aitken_max_iterations = 10
 
-        self.aitken_residual_ratio_tolerance = 1e-4
-        self.aitken_residual_total_tolerance = 1e-9
-        self.aitken_max_iterations           = 5
-        self.aitken_residual_dof_tolerance   = 1e-5
+        self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(initial_relaxation, max_relaxation, min_relaxation)
+
 #============================================================================================================================
     def SolveSolutionStep(self):
 
@@ -89,7 +113,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
             aitken_iteration += 1
 
-            if (not is_converged): #We reset the kinematics of fluid
+            if (not is_converged): # We reset the kinematics of fluid
                 self.FSI_aitken_utility.ResetPFEMkinematicValues(self.PFEM_Solution.main_model_part)
 
         if (aitken_iteration == self.aitken_max_iterations):
@@ -129,7 +153,9 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             is_conv = True
             if (iteration > 1):
                 KratosPrintInfo(" Aitken converged with an error of " + str(error) + " and " + str(iteration) + " iterations.")
-                return is_conv
+            else:
+                KratosPrintInfo(" Aitken error of " + str(error))
+            return is_conv
         else:
             KratosPrintInfo(" Aitken error of " + str(error))
         return is_conv
