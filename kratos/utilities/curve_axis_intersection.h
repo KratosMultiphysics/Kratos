@@ -104,6 +104,10 @@ namespace Kratos
             }
         }
 
+        /* @brief sort a std::vector<double> and delete duplicated entries.
+         * @param resulting list to be sorted.
+         * @param Tolerance between duplicated entries.
+         */
         static void SortUnique(
             std::vector<double>& rIntersectionParameters,
             const double Tolerance)
