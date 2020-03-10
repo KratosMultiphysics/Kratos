@@ -73,7 +73,7 @@ class MainCoupledFemDem_Solution:
                                                                            self.DEMParameters)
 
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
 
         if self.DoRemeshing:
             self.InitializeMMGvariables()
@@ -330,7 +330,7 @@ class MainCoupledFemDem_Solution:
 
         if self.domain_size == 3:
             if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
-                self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+                self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
                 self.nodal_neighbour_finder.Execute()
                 # We reset the flag
                 self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
@@ -372,7 +372,7 @@ class MainCoupledFemDem_Solution:
                 if self.domain_size == 3:
                     self.RefineMappedVariables()
                     self.InitializeSolutionAfterRemeshing()
-                    self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+                    self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
                     self.nodal_neighbour_finder.Execute()
                     # We assign the flag to recompute neighbours inside the 3D elements
                     utils = KratosMultiphysics.VariableUtils()
