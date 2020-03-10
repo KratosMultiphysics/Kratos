@@ -94,6 +94,7 @@ namespace Kratos
                 KRATOS_DEBUG_ERROR_IF(i == rAxis.size() - 1)
                     << "Point of polygon not within the axis boundaries. Axis are: "
                     << rAxis << ". Searched parameter is: " << Parameter << std::endl;
+
                 rMin = std::min(rAxis[i], rAxis[i + 1]);
                 rMax = std::max(rAxis[i], rAxis[i + 1]);
 
@@ -141,10 +142,12 @@ namespace Kratos
                 rGeometry, 100, Start, End);
 
             KRATOS_ERROR_IF(rAxis1.size() < 2)
-                << "Size of axis vector 1 is: " << rAxis1.size() << ". It needs to be at least 2. It must contain the boundaries, too."
+                << "Size of axis vector 1 is: " << rAxis1.size() << ". It needs to be at least of size 2. "
+                << "It must contain the boundaries, too. Axis vector: " << rAxis1
                 << std::endl;
             KRATOS_ERROR_IF(rAxis2.size() < 2)
-                << "Size of axis vector 2 is: " << rAxis2.size() << ". It needs to be at least 2. It must contain the boundaries, too."
+                << "Size of axis vector 2 is: " << rAxis2.size() << ". It needs to be at least of size 2. "
+                << "It must contain the boundaries, too. Axis vector: " << rAxis1
                 << std::endl;
 
             // initialize axes
