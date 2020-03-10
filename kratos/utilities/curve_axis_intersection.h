@@ -124,7 +124,7 @@ namespace Kratos
         }
 
     public:
-        static std::vector<double> ComputeAxisIntersection(
+        static void ComputeAxisIntersection(
             std::vector<double>& rIntersectionParameters,
             const GeometryType& rGeometry,
             double Start,
@@ -194,8 +194,6 @@ namespace Kratos
 
             // sort and delete duplicated entries
             SortUnique(rIntersectionParameters, Tolerance);
-
-            return rIntersectionParameters;
         }
     };
 } // namespace Kratos.
