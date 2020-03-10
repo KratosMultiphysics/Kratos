@@ -91,7 +91,7 @@ namespace Kratos
             double Parameter)
         {
             for (IndexType i = 0; i < rAxis.size(); ++i) {
-                KRATOS_ERROR_IF(i == rAxis.size() - 1)
+                KRATOS_DEBUG_ERROR_IF(i == rAxis.size() - 1)
                     << "Point of polygon not within the axis boundaries. Axis are: "
                     << rAxis << ". Searched parameter is: " << Parameter << std::endl;
                 rMin = std::min(rAxis[i], rAxis[i + 1]);
