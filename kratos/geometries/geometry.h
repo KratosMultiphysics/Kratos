@@ -1954,6 +1954,27 @@ public:
             << *this << std::endl;
     }
 
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of integration points.
+     * @param NumberOfShapeFunctionDerivatives the number provided
+     *        derivatives of shape functions in the system.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints)
+    {
+        KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
     ///@}
     ///@name Operation within Global Space
     ///@{
