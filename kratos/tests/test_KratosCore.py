@@ -49,6 +49,7 @@ import test_file_logger
 import test_dofs
 import test_time_averaging
 import test_scipy_conversion_tools
+import test_numpy_export_dense_matrix
 import test_linear_constraints
 import test_cad_json_input
 import test_compare_elements_conditions
@@ -117,6 +118,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_dofs.TestDofs]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_averaging.TimeAveragingProcessTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_scipy_conversion_tools.TestScipyConversionTools]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_numpy_export_dense_matrix.TestNumpyExportDenseMatrix]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_constraints.TestLinearMultipointConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_constraints.TestLinearConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_json_input.TestCadJsonInput]))
