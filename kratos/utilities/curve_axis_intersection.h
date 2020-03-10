@@ -136,8 +136,7 @@ namespace Kratos
             rIntersectionParameters.clear();
             rIntersectionParameters.push_back(Start);
 
-            // approximate curve with a polyline
-
+            // linearise polygon
             const auto polygon = CurveTesselationType::ComputePolygon(
                 rGeometry, 100, Start, End);
 
@@ -156,6 +155,7 @@ namespace Kratos
             GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[0])[0]);
             GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[0])[1]);
 
+            // iterate through polygon and check for knot intersections
             for (IndexType i = 1; i < polygon.size(); ++i) {
                 if (std::get<1>(polygon[i])[0] < min_1) {
                     double intersection_parameter = BisectionToAxis(
@@ -192,6 +192,7 @@ namespace Kratos
             if (std::abs(rIntersectionParameters[rIntersectionParameters.size() - 1] - End) > Tolerance)
                 rIntersectionParameters.push_back(End);
 
+            // sort and delete duplicated entries
             SortUnique(rIntersectionParameters, Tolerance);
 
             return rIntersectionParameters;
