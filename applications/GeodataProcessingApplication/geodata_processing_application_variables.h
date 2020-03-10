@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:
 //
 
 #if !defined(KRATOS_GEODATA_PROCESSING_APPLICATION_VARIABLES_H_INCLUDED )
@@ -25,9 +25,6 @@
 namespace Kratos
 {
 KRATOS_DEFINE_VARIABLE( double, EXTRUSION_HEIGHT )
-KRATOS_DEFINE_VARIABLE( double, DOF_2 )
-KRATOS_DEFINE_VARIABLE( double, ScalarVariable )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( VectorVariable )
 
 }
 
