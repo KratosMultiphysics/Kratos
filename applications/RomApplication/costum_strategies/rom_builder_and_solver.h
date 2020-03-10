@@ -313,7 +313,7 @@ public:
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
     {
-        auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
+        const auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
         int counter = 0;
         for(unsigned int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
