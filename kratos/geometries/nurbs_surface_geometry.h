@@ -319,6 +319,64 @@ public:
     }
 
     ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points according to the polynomial degrees.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_in_u = PolynomialDegreeU() + 1;
+        const SizeType points_in_v = PolynomialDegreeV() + 1;
+
+        CreateIntegrationPoints(
+            rIntegrationPoints, points_in_u, points_in_v);
+    }
+
+    /* Creates integration points according to the input parameter.
+     * @param return integration points.
+     * @param points in u direction per span.
+     * @param points in v direction per span.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        SizeType NumPointsPerSpanU,
+        SizeType NumPointsPerSpanV) const
+    {
+        auto knot_span_intervals_u = KnotSpanIntervalsU();
+        auto knot_span_intervals_v = KnotSpanIntervalsV();
+
+        const SizeType number_of_integration_points =
+            knot_span_intervals_u.size() * knot_span_intervals_v.size()
+            * NumPointsPerSpanU * NumPointsPerSpanV;
+
+        if (rIntegrationPoints.size() != number_of_integration_points) {
+            rIntegrationPoints.resize(number_of_integration_points);
+        }
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            NumPointsPerSpanU * NumPointsPerSpanV);
+
+        IndexType counter = 0;
+        for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i) {
+            for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
+                IntegrationPointUtilities::IntegrationPoints2D(
+                    integration_points_knot_span,
+                    NumPointsPerSpanU, NumPointsPerSpanV,
+                    knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
+                    knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
+
+                for (IndexType k = 0; k < integration_points_knot_span.size(); ++k) {
+                    rIntegrationPoints[counter] = integration_points_knot_span[k];
+                    counter++;
+                }
+            }
+        }
+    }
+
+    ///@}
     ///@name Operations
     ///@{
 
