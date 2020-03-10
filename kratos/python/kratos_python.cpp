@@ -11,15 +11,10 @@
 //                   Riccardo Rossi
 //
 
-// #define KRATOS_CG_SOLVER_H_EXCLUDED
-
 // System includes
-
 
 // External includes
 #include <pybind11/pybind11.h>
-
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -35,7 +30,6 @@
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"
 #include "add_mat_variables_to_python.h"
-#include "add_legacy_structural_app_vars_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
 #include "add_points_to_python.h"
@@ -67,6 +61,7 @@
 #include "add_data_communicator_to_python.h"
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
+#include "add_dofs_to_python.h"
 
 namespace Kratos
 {
@@ -76,8 +71,8 @@ namespace Python
 
 char const* greet()
 {
-	std::stringstream header;
-	header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
+    std::stringstream header;
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
     return header.str().c_str();
 }
 
@@ -91,6 +86,7 @@ PYBIND11_MODULE(Kratos, m)
     AddKernelToPython(m);
     AddContainersToPython(m);
     AddModelPartToPython(m);
+    AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddMeshToPython(m);
@@ -100,58 +96,44 @@ PYBIND11_MODULE(Kratos, m)
     AddALEVariablesToPython(m);
     AddC2CVariablesToPython(m);
     AddFSIVariablesToPython(m);
-    AddLegacyStructuralAppVarsToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
+//     AddQuadraturesToPython();
+//     AddIntegrationPointsToPython();
 
-//     //  AddQuadraturesToPython();
-//     //  AddIntegrationPointsToPython();
+    AddProcessesToPython(m);
+    AddIOToPython(m);
+    AddModelToPython(m);
 
-     AddProcessesToPython(m);
-     AddIOToPython(m);
-     AddModelToPython(m);
+    AddModelerToPython(m);
 
-     AddModelerToPython(m);
-
-     AddKratosApplicationToPython(m);
-     AddLinearSolversToPython(m);
-     AddFactoriesToPython(m);
-     AddAMGCLSolverToPython(m);
-     AddStrategiesToPython(m);
-     AddUtilitiesToPython(m);
-     AddProcessInfoToPython(m);
-     AddConstitutiveLawToPython(m);
-     AddSerializerToPython(m);
-     AddTableToPython(m);
-     AddGeometriesToPython(m);
+    AddKratosApplicationToPython(m);
+    AddLinearSolversToPython(m);
+    AddFactoriesToPython(m);
+    AddAMGCLSolverToPython(m);
+    AddStrategiesToPython(m);
+    AddUtilitiesToPython(m);
+    AddProcessInfoToPython(m);
+    AddConstitutiveLawToPython(m);
+    AddSerializerToPython(m);
+    AddTableToPython(m);
+    AddGeometriesToPython(m);
 
     AddMatrixMarketInterfaceToPython(m);
     AddKratosParametersToPython(m);
-//
+
     AddSearchStrategiesToPython(m);
-     AddTestingToPython(m);
-     AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
-     AddConstraintToPython(m);
-     AddResponseFunctionsToPython(m);
-     AddDataCommunicatorToPython(m);
-     AddParallelEnvironmentToPython(m);
+    AddTestingToPython(m);
+    AddLoggerToPython(m);
+    AddConstraintToPython(m);
+    AddResponseFunctionsToPython(m);
+    AddDataCommunicatorToPython(m);
+    AddParallelEnvironmentToPython(m);
 
-     //     AddBandedMatrixToPython();
-     //     AddTriangularMatrixToPython();
-     //     AddSymmetricMatrixToPython();
-     //     AddIdentityMatrixToPython();
-     //     AddZeroMatrixToPython();
-     //     AddScalarMatrixToPython();
-     //     AddSparseMatrixToPython();
-     //     AddCompressedMatrixToPython();
-     // #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-     //     AddCoordinateMatrixToPython();
-     // #endif
-
-     m.def("Hello", greet);
+    m.def("Hello", greet);
 }
 
 

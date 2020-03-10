@@ -1,5 +1,5 @@
 from KratosMultiphysics import Parameters
-import ethier_benchmark_analysis
+import KratosMultiphysics.SwimmingDEMApplication.cellular_flow.ethier_benchmark_analysis as ethier_benchmark_analysis
 BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
 
 class EthierBenchmarkMakeMeshAnalysis(BaseAnalysis):

@@ -1,27 +1,24 @@
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Import Kratos core and apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
 
 # Additional imports
+from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
+from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
 
 # Read parameters
 with open("parameters.json",'r') as parameter_file:
-    parameters = Parameters(parameter_file.read())
+    parameters = KM.Parameters(parameter_file.read())
 
-model = Model()
+model = KM.Model()
 
 # =======================================================================================================
 # Define external analyzer
 # =======================================================================================================
 
 # The external analyzer provides a response to constrain the distance of a specific node to a given target
-from analyzer_base import AnalyzerBaseClass
 class CustomAnalyzer(AnalyzerBaseClass):
     # --------------------------------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
@@ -76,7 +73,6 @@ class CustomAnalyzer(AnalyzerBaseClass):
 # =======================================================================================================
 
 # Create optimizer and perform optimization
-import optimizer_factory
 optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
 optimizer.Optimize()
 

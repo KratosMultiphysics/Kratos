@@ -1,0 +1,70 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "structure",
+            "model_import_settings" : {
+                "input_type"        : "mdpa",
+                "input_filename"    : "structure"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "max_stress",
+            "type"       : "minimization",
+            "analyzer"   : "kratos",
+            "response_settings":{
+                "response_type"        : "adjoint_max_stress",
+                "gradient_mode"        : "semi_analytic",
+                "step_size"            : 1.0e-6,
+                "critical_part_name"   : "stress_region",
+                "stress_type"          : "VON_MISES_STRESS",
+                "stress_treatment"     : "mean",
+                "echo_level"           : 1,
+                "primal_settings"      : "primal_parameters.json",
+                "adjoint_settings"     : "auto",
+                "sensitivity_settings" : {
+                    "sensitivity_model_part_name"                : "Parts_structure",
+                    "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                    "element_data_value_sensitivity_variables"   : [],
+                    "condition_data_value_sensitivity_variables" : [],
+                    "build_mode": "static"
+                }
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"  : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.3,
+                "max_nodes_in_filter_radius" : 1000,
+                "matrix_free_filtering"      : true
+            }
+        },
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 3,
+            "relative_tolerance" : 5e-0,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.1
+            }
+        },
+        "output" : {
+            "design_output_mode" : "WriteOptimizationModelPart",
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name": "gid"
+            }
+        }
+    }
+}

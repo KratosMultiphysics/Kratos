@@ -50,7 +50,6 @@
     }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "mpi.h"
     // Macro to register the mapper WITH MPI
     #define KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)                                            \
         {                                                                                                 \

@@ -12,23 +12,23 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from algorithm_base import OptimizationAlgorithm
-import mapper_factory
-import data_logger_factory
-from custom_math import *
-from custom_timer import Timer
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
+from .algorithm_base import OptimizationAlgorithm
+from . import mapper_factory
+from . import data_logger_factory
+from . import custom_math as cm
+from .custom_timer import Timer
+from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
 import copy
 
 # ==============================================================================
 class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
-        default_algorithm_settings = Parameters("""
+        default_algorithm_settings = KM.Parameters("""
         {
             "name"                          : "trust_region",
             "max_step_length"               : 1.0,
@@ -40,6 +40,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "subopt_tolerance"              : 1e-10,
             "bisectioning_max_itr"          : 30,
             "bisectioning_tolerance"        : 1e-2,
+            "relative_tolerance"            : 1e-12,
             "obj_share_during_correction"   : 1
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -81,7 +82,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -89,9 +90,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.opt_iteration in range(1,self.algorithm_settings["max_iterations"].GetInt()+1):
-            print("\n>===================================================================")
-            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.opt_iteration)
-            print(">===================================================================\n")
+            KM.Logger.Print("")
+            KM.Logger.Print("===============================================================================")
+            KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ",self.opt_iteration)
+            KM.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
 
@@ -120,12 +122,16 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             values_to_be_logged["bi_err"] = process_details["bi_err"]
             values_to_be_logged["adj_len_bar_obj"] = process_details["adj_len_obj"]
             values_to_be_logged["adj_len_bar_cons"] = self.__CombineConstraintDataToOrderedList(process_details["adj_len_eqs"], process_details["adj_len_ineqs"])
-            values_to_be_logged["norm_dX"] = NormInf3D(dX)
+            values_to_be_logged["norm_dX"] = cm.NormInf3D(dX)
 
             self.__LogCurrentOptimizationStep(values_to_be_logged)
 
-            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+
+            if self.__isAlgorithmConverged():
+                break
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
@@ -133,9 +139,26 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.data_logger.FinalizeDataLogging()
 
     # --------------------------------------------------------------------------
+    def __isAlgorithmConverged(self):
+
+        if self.opt_iteration > 1 :
+            # Check if maximum iterations were reached
+            if self.opt_iteration == self.algorithm_settings["max_iterations"].GetInt():
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
+                return True
+
+            # Check for relative tolerance
+            relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.opt_iteration]
+            if abs(relative_change_of_objective_value) < self.algorithm_settings["relative_tolerance"].GetDouble():
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.algorithm_settings["relative_tolerance"].GetDouble(),"%.")
+                return True
+
+    # --------------------------------------------------------------------------
     def __InitializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.opt_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
@@ -151,7 +174,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 self.communicator.requestValueOf(con_id)
                 self.communicator.requestGradientOf(con_id)
 
-            self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.opt_iteration, self.communicator)
+            self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.opt_iteration, self.communicator)
 
     # --------------------------------------------------------------------------
     def __PostProcessGradientsObtainedFromAnalysis(self):
@@ -169,7 +192,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         obj_gradients_dict = self.communicator.getStandardizedGradient(obj_id)
 
-        nodal_variable = KratosGlobals.GetVariable("DF1DX")
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX")
         WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
         # Projection on surface normals
@@ -180,7 +203,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
         # Mapping
-        nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
+        nodal_variable_mapped = KM.KratosGlobals.GetVariable("DF1DX_MAPPED")
         self.mapper.Update()
         self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
         self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
@@ -195,7 +218,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             eq_gradients_dict = self.communicator.getStandardizedGradient(con_id)
 
-            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
+            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
             WriteDictionaryDataOnNodalVariable(eq_gradients_dict, self.optimization_model_part, nodal_variable)
 
             # Projection on surface normals
@@ -206,7 +229,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
             # Mapping
-            nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+            nodal_variable_mapped = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
             self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
             self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
@@ -219,8 +242,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         obj = self.objectives[0]
         obj_id = obj["identifier"].GetString()
 
-        nodal_variable = KratosGlobals.GetVariable("DF1DX")
-        nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX")
+        nodal_variable_mapped = KM.KratosGlobals.GetVariable("DF1DX_MAPPED")
 
         obj_value = self.communicator.getStandardizedValue(obj_id)
         obj_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
@@ -239,8 +262,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             con = self.constraints[itr]
             con_id = con["identifier"].GetString()
 
-            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
-            nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
+            nodal_variable_mapped = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
 
             value = self.communicator.getStandardizedValue(con_id)
             gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
@@ -260,12 +283,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     @staticmethod
     def __ConvertToLengthDirectionFormat(value, gradient, modified_gradient):
-        norm_inf = NormInf3D(modified_gradient)
+        norm_inf = cm.NormInf3D(modified_gradient)
         if norm_inf > 1e-12:
-            direction = ScalarVectorProduct(-1/norm_inf,modified_gradient)
-            length = -value/Dot(gradient, direction)
+            direction = cm.ScalarVectorProduct(-1/norm_inf,modified_gradient)
+            length = -value/cm.Dot(gradient, direction)
         else:
-            print("\nWarning! Vanishing norm-infinity for gradient detected!")
+            KM.Logger.PrintWarning("ShapeOpt::AlgorithmTrustRegion", "Vanishing norm-infinity for gradient detected!")
             direction = modified_gradient
             length = 0.0
 
@@ -299,13 +322,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     @staticmethod
     def __ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length):
         len_bar_obj = 1/step_length * len_obj
-        len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
-        len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
+        len_bar_eqs = cm.ScalarVectorProduct(1/step_length, len_eqs)
+        len_bar_ineqs = cm.ScalarVectorProduct(1/step_length, len_ineqs)
         return len_bar_obj, len_bar_eqs, len_bar_ineqs
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
-        print("\n> Starting determination of step...")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting determination of step...")
 
         timer = Timer()
         timer.StartTimer()
@@ -319,12 +343,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         inactive_threshold = 100
         test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold)
 
-        print("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
             if test_norm_dX < 1: # Minimizing mode
-                print ("\n> Computing projection case 1...")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Computing projection case 1...")
 
                 func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold)
 
@@ -333,12 +358,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 bi_target = 1
                 bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
                 bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
-                len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
+                len_obj_result, bi_itrs, bi_err = cm.PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
                 projection_results = projector.GetDetailedResultsOfLatestProjection()
 
             else: # Correction mode
-                print ("\n> Computing projection case 2...")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Computing projection case 2...")
 
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
                 func = lambda threshold: projector.RunProjection(len_obj, threshold)
@@ -348,13 +374,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 bi_target = 1
                 bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
                 bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
-                l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
+                l_threshold_result, bi_itrs, bi_err = cm.PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
                 projection_results = projector.GetDetailedResultsOfLatestProjection()
         else:
             raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
-        print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for determining step = ", timer.GetTotalTime(), "s")
 
         process_details = { "test_norm_dX": test_norm_dX,
                             "bi_itrs":bi_itrs,
@@ -368,10 +395,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __ComputeShapeUpdate(self, dX_bar, step_length):
         # Compute update in regular units
-        dX = ScalarVectorProduct(step_length,dX_bar)
+        dX = cm.ScalarVectorProduct(step_length,dX_bar)
 
-        WriteListToNodalVariable(dX, self.design_surface, SHAPE_UPDATE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
+        WriteListToNodalVariable(dX, self.design_surface, KSO.SHAPE_UPDATE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
         return dX
 
@@ -431,19 +458,19 @@ class Projector():
         # Create orthogonal basis
         vector_space = [dir_obj]
         for itr in range(len(dir_eqs)):
-            vector_space = HorzCat(vector_space, dir_eqs[itr])
+            vector_space = cm.HorzCat(vector_space, dir_eqs[itr])
         for itr in range(len(dir_ineqs)):
-            vector_space = HorzCat(vector_space, dir_ineqs[itr])
-        self.ortho_basis = PerformGramSchmidtOrthogonalization(vector_space)
+            vector_space = cm.HorzCat(vector_space, dir_ineqs[itr])
+        self.ortho_basis = cm.PerformGramSchmidtOrthogonalization(vector_space)
 
         # Transform directions to orthogonal space since they don't change with different projections
-        self.dir_obj_o = TranslateToNewBasis(dir_obj, self.ortho_basis)
-        self.dir_eqs_o = TranslateToNewBasis(dir_eqs, self.ortho_basis)
-        self.dir_ineqs_o = TranslateToNewBasis(dir_ineqs, self.ortho_basis)
+        self.dir_obj_o = cm.TranslateToNewBasis(dir_obj, self.ortho_basis)
+        self.dir_eqs_o = cm.TranslateToNewBasis(dir_eqs, self.ortho_basis)
+        self.dir_ineqs_o = cm.TranslateToNewBasis(dir_ineqs, self.ortho_basis)
 
         # Make sure directions of constraints are stored as matrix
-        self.dir_eqs_o = SafeConvertVectorToMatrix(self.dir_eqs_o)
-        self.dir_ineqs_o = SafeConvertVectorToMatrix(self.dir_ineqs_o)
+        self.dir_eqs_o = cm.SafeConvertVectorToMatrix(self.dir_eqs_o)
+        self.dir_ineqs_o = cm.SafeConvertVectorToMatrix(self.dir_ineqs_o)
 
     # --------------------------------------------------------------------------
     def RunProjection(self, len_obj, threshold):
@@ -455,34 +482,34 @@ class Projector():
         pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(adj_len_obj, adj_len_eqs, adj_len_ineqs)
 
         # Project current position onto intersection of
-        current_position = ZeroVector(self.num_unknowns)
+        current_position = cm.ZeroVector(self.num_unknowns)
         dlambda_hp = self.__ProjectToHyperplanes(current_position, self.dir_eqs_o, pos_eqs_o)
 
         # Project position and direction of halfspaces onto intersection of hyperplanes
-        zero_position_eqs_o = ZeroMatrix(self.num_unknowns,self.num_eqs)
+        zero_position_eqs_o = cm.ZeroMatrix(self.num_unknowns,self.num_eqs)
 
-        pos_obj_hp = self.__ProjectToHyperplanes(pos_obj_o, HorzCat(self.dir_eqs_o, self.dir_obj_o), HorzCat(pos_eqs_o, pos_obj_o))
+        pos_obj_hp = self.__ProjectToHyperplanes(pos_obj_o, cm.HorzCat(self.dir_eqs_o, self.dir_obj_o), cm.HorzCat(pos_eqs_o, pos_obj_o))
         dir_obj_hp = self.__ProjectToHyperplanes(self.dir_obj_o, self.dir_eqs_o, zero_position_eqs_o)
 
         pos_ineqs_hp = []
         dir_ineqs_hp = []
         for itr in range(self.num_ineqs):
-            pos_ineqs_hp_i = self.__ProjectToHyperplanes(pos_ineqs_o[itr], HorzCat(self.dir_eqs_o, self.dir_ineqs_o[itr]), HorzCat(pos_eqs_o, pos_ineqs_o[itr]))
+            pos_ineqs_hp_i = self.__ProjectToHyperplanes(pos_ineqs_o[itr], cm.HorzCat(self.dir_eqs_o, self.dir_ineqs_o[itr]), cm.HorzCat(pos_eqs_o, pos_ineqs_o[itr]))
             dir_ineqs_hp_i = self.__ProjectToHyperplanes(self.dir_ineqs_o[itr], self.dir_eqs_o, zero_position_eqs_o)
 
             pos_ineqs_hp.append(pos_ineqs_hp_i)
             dir_ineqs_hp.append(dir_ineqs_hp_i)
 
         # Project onto adjusted halfspaces along the intersection of hyperplanes
-        dX_o, _, _, exit_code = self.__ProjectToHalfSpaces(dlambda_hp, HorzCat(pos_ineqs_hp, pos_obj_hp), HorzCat(dir_ineqs_hp, dir_obj_hp))
+        dX_o, _, _, exit_code = self.__ProjectToHalfSpaces(dlambda_hp, cm.HorzCat(pos_ineqs_hp, pos_obj_hp), cm.HorzCat(dir_ineqs_hp, dir_obj_hp))
 
         # Determine return values
         if exit_code == 0:
             is_projection_sucessfull = True
 
             # Backtransformation and multiplication with -1 because the direction vectors are chosen opposite to the gradients such that the lengths are positive if violated
-            dX = ScalarVectorProduct(-1, TranslateToOriginalBasis(dX_o, self.ortho_basis))
-            norm_dX = NormInf3D(dX)
+            dX = cm.ScalarVectorProduct(-1, cm.TranslateToOriginalBasis(dX_o, self.ortho_basis))
+            norm_dX = cm.NormInf3D(dX)
         else:
             is_projection_sucessfull = False
 
@@ -512,7 +539,7 @@ class Projector():
             len_i = len_eqs[itr]
             dir_i = dir_eqs[itr]
 
-            is_no_gradient_info_available = NormInf3D(dir_i) < 1e-13
+            is_no_gradient_info_available = cm.NormInf3D(dir_i) < 1e-13
 
             if is_no_gradient_info_available:
                 pass
@@ -533,7 +560,7 @@ class Projector():
             len_i = len_ineqs[itr]
             dir_i = dir_ineqs[itr]
 
-            is_no_gradient_info_available = NormInf3D(dir_i) < 1e-13
+            is_no_gradient_info_available = cm.NormInf3D(dir_i) < 1e-13
             is_constraint_inactive_and_far_away = len_i < -self.far_away_length
 
             if is_no_gradient_info_available or is_constraint_inactive_and_far_away:
@@ -563,42 +590,42 @@ class Projector():
 
     # --------------------------------------------------------------------------
     def __DetermineConstraintBorders(self, len_obj, len_eqs, len_ineqs):
-        pos_obj = ScalarVectorProduct(-len_obj,self.dir_obj_o)
+        pos_obj = cm.ScalarVectorProduct(-len_obj,self.dir_obj_o)
 
         pos_eqs = []
         pos_ineqs = []
         for i in range(self.num_eqs):
-            pos_eqs.append(ScalarVectorProduct(-len_eqs[i],self.dir_eqs_o[i]))
+            pos_eqs.append(cm.ScalarVectorProduct(-len_eqs[i],self.dir_eqs_o[i]))
 
         for i in range(self.num_ineqs):
-            pos_ineqs.append(ScalarVectorProduct(-len_ineqs[i],self.dir_ineqs_o[i]))
+            pos_ineqs.append(cm.ScalarVectorProduct(-len_ineqs[i],self.dir_ineqs_o[i]))
 
         return pos_obj, pos_eqs, pos_ineqs
 
     # --------------------------------------------------------------------------
     @staticmethod
     def __ProjectToHyperplanes(vector, dir_hps, pos_hps):
-        if IsEmpty(dir_hps):
+        if cm.IsEmpty(dir_hps):
             return vector
 
         num_hps = len(dir_hps)
 
-        tmp_mat = Prod(Trans(dir_hps),dir_hps)
-        tmp_vec = [ Dot(dir_hps[j],Minus(pos_hps[j],vector)) for j in range(num_hps) ]
+        tmp_mat = cm.Prod(cm.Trans(dir_hps),dir_hps)
+        tmp_vec = [ cm.Dot(dir_hps[j],cm.Minus(pos_hps[j],vector)) for j in range(num_hps) ]
 
-        tmp_solution = SolveLinearSystem(tmp_mat,tmp_vec)
+        tmp_solution = cm.SolveLinearSystem(tmp_mat,tmp_vec)
 
-        return Plus(Prod(dir_hps,tmp_solution),vector)
+        return cm.Plus(cm.Prod(dir_hps,tmp_solution),vector)
 
     # --------------------------------------------------------------------------
     def __ProjectToHalfSpaces(self, dX0, pos_hss, dir_hss):
-        A = Trans(dir_hss)
-        b = [ Dot(pos_hss[i],dir_hss[i]) for i in range(RowSize(A)) ]
+        A = cm.Trans(dir_hss)
+        b = [ cm.Dot(pos_hss[i],dir_hss[i]) for i in range(cm.RowSize(A)) ]
 
-        dX_o, subopt_itr, error, exit_code = QuadProg(A, b, self.subopt_max_itr, self.subopt_tolerance)
+        dX_o, subopt_itr, error, exit_code = cm.QuadProg(A, b, self.subopt_max_itr, self.subopt_tolerance)
 
         # Consider initial delta
-        dX_o = Plus(dX_o,dX0)
+        dX_o = cm.Plus(dX_o,dX0)
 
         return dX_o, subopt_itr, error, exit_code
 

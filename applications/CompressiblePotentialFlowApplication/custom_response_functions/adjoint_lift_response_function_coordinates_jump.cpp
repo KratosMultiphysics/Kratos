@@ -35,11 +35,14 @@ namespace Kratos
         KRATOS_ERROR_IF(mReferenceChord < eps)
             << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
 
-        // Get pointer to element that contains the traced node
-        this->GetNeighboringElementPointer();
     }
 
     AdjointLiftJumpCoordinatesResponseFunction::~AdjointLiftJumpCoordinatesResponseFunction(){}
+
+    void AdjointLiftJumpCoordinatesResponseFunction::InitializeSolutionStep() {
+        // Get pointer to element that contains the traced node
+        this->GetNeighboringElementPointer();
+    }
 
     double AdjointLiftJumpCoordinatesResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
@@ -89,6 +92,7 @@ namespace Kratos
                 {
                     rResponseGradient[i] = derivative;
                     rResponseGradient[i+NumNodes] = -derivative;
+                    return;
                 }
             }
         }

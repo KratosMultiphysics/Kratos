@@ -7,8 +7,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-    "model_part_name" : "Structure",
-        "domain_size"     : 2,
+    "model_part_name"                        : "Structure",
+        "domain_size"                        : 2,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -26,22 +26,8 @@
         "time_stepping"                      : {
             "time_step" : 0.5
         },
-        "block_builder"                      : true,
-        "line_search"                        : false,
-        "clear_storage"                      : true,
-        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
-        "displacement_relative_tolerance"    : 0.00001,
-        "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.00001,
-        "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 20,
-        "linear_solver_settings"             : {
-            "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_body_lower","Parts_body_upper"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_friction","LinePressure2D_bc_pressure","Parts_body_lower","Parts_body_upper"],
-        "rotation_dofs"                      : false
+        "max_iteration"                      : 20
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -51,7 +37,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_bc_fix",
+                "model_part_name" : "Structure.DISPLACEMENT_bc_fix",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -64,7 +50,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LinePressure2D_bc_pressure",
+                "model_part_name" : "Structure.LinePressure2D_bc_pressure",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,null,0.0]
@@ -85,7 +71,7 @@
             "process_name"          : "ApplyScalarOnConditionsProcess",
             "Parameters"            : {
                 "mesh_id"           : 0,
-                "model_part_name"   : "LinePressure2D_bc_pressure",
+                "model_part_name"   : "Structure.LinePressure2D_bc_pressure",
                 "variable_name"     : "LINE_LOAD",
                 "direction"         : [0.0, -1.0, 0.0],
                 "modulus"           : "5.0e-1*t/1.1"
@@ -114,7 +100,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hertz_complete_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 0.5
             }
         }
@@ -127,7 +113,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -159,7 +145,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_complete_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 0.5
         }
     }

@@ -28,10 +28,11 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"   : "bossak",
-            "damp_factor_m" :-0.3,
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
+            "time_integration_method" : "implicit",
+            "scheme_type"             : "bossak",
+            "damp_factor_m"           :-0.3,
+            "rayleigh_alpha"          : 0.0,
+            "rayleigh_beta"           : 0.0
         }""")
         this_defaults.AddMissingParameters(super(TrilinosImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults

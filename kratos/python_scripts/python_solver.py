@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+from KratosMultiphysics.restart_utility import RestartUtility
 
 # Other imports
 import os
@@ -35,7 +37,6 @@ class PythonSolver(object):
         if hasattr(self, '_validate_settings_in_baseclass'):
             self.ValidateSettings()
         else:
-            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
             IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
 
         self.echo_level = self.settings["echo_level"].GetInt()
@@ -143,7 +144,7 @@ class PythonSolver(object):
         warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
         warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
         warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
-        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
+        IssueDeprecationWarning('PythonSolver', warning_msg)
         self.Initialize()
         self.InitializeSolutionStep()
         self.Predict()
@@ -188,7 +189,6 @@ class PythonSolver(object):
 
         elif (input_type == "rest"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
-            from restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
@@ -214,19 +214,16 @@ class PythonSolver(object):
     #### Auxiliar functions ####
 
     def print_on_rank_zero(self, *args):
-        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
         IssueDeprecationWarning('PythonSolver', '"print_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     def print_warning_on_rank_zero(self, *args):
-        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
         IssueDeprecationWarning('PythonSolver', '"print_warning_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
-        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
         IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
 
         """Transfer matching settings from origin to destination.

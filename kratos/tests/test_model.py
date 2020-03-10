@@ -10,7 +10,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 # Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
 pickle_message = ""
 try:
-    import cickle as pickle
+    import cPickle as pickle
     have_pickle_module = True
 except ImportError:
     if sys.version_info > (3, 0):
@@ -36,7 +36,8 @@ class TestModel(KratosUnittest.TestCase):
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
 
-        self.assertEqual(aaa, current_model["aaa"]) #search by flat name - should be eventually deprecated
+        with self.assertRaisesRegex(RuntimeError, "Error: DEPRECATION: The ModelPart \"aaa\" is retrieved from the Model by using the flat-map!"):
+            self.assertEqual(aaa, current_model["aaa"]) #search by flat name was removed
 
         #check that a meaningful error is thrown
         with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found either as root-ModelPart or as a flat name. The total input string was \"abc\""):

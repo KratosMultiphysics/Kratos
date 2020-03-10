@@ -7,9 +7,9 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-import main_script
-import plot_variables                # Related to benchmarks in Chung, Ooi
-import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
+import KratosMultiphysics.DEMApplication.main_script as main_script
+import KratosMultiphysics.DEMApplication.plot_variables as plot_variables # Related to benchmarks in Chung, Ooi
+import KratosMultiphysics.DEMApplication.DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
 
 Logger.PrintInfo("DEM", "WARNING: DEM_benchmarks.py is is deprecated since 20/03/2019")
 Logger.PrintInfo("DEM", "WARNING: Please use DEM_benchmarks_analysis.py")
@@ -76,17 +76,17 @@ class Solution(main_script.Solution):
         # Strategy object
         element_type = self.DEM_parameters["ElementType"].GetString()
         if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
-            import sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
         elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
-            import continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
         elif (element_type == "ThermalSphericContPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif (element_type == "ThermalSphericPartDEMElement3D"):
-            import thermal_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_sphere_strategy as SolverStrategy
         elif (element_type == "SinteringSphericConPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif (element_type == "IceContPartDEMElement3D"):
-            import ice_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
@@ -141,9 +141,9 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def _BeforeSolveOperations(self, time):
-        super(Solution, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
+    def InitializeSolutionStep(self):
+        super(Solution, self).InitializeSolutionStep()
+        benchmark.ApplyNodalRotation(self.time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super(Solution, self).BeforePrintingOperations(time)

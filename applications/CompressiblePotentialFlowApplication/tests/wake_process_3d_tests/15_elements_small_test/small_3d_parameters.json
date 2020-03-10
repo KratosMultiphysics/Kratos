@@ -14,9 +14,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "small_3d"
         },
-        "maximum_iterations"     : 10,
+        "maximum_iterations"     : 0,
         "echo_level"             : 0,
-        "volume_model_part_name" : "MainModelPart",
+        "volume_model_part_name" : "FluidModelPart",
         "skin_parts"             : ["PotentialWallCondition3D_Far_field_Auto1","Body3D_Body_Auto1"],
         "no_skin_parts"          : ["Wake3D_Wake_Auto1","Tip3D_Wing_Tips_Auto1"],
         "auxiliary_variables_list" : ["DISTANCE"]
@@ -26,7 +26,7 @@
             "python_module" : "apply_far_field_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name" : "PotentialWallCondition3D_Far_field_Auto1",
+                "model_part_name" : "FluidModelPart.PotentialWallCondition3D_Far_field_Auto1",
                 "angle_of_attack" : 0.0,
                 "mach_infinity"   : 0.03,
                 "speed_of_sound"  : 340.0
@@ -35,8 +35,8 @@
             "python_module" : "define_wake_process_3d",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name" : "Wake3D_Wake_Auto1",
-                "body_model_part_name": "Body3D_Body_Auto1",
+                "model_part_name" : "FluidModelPart.Wake3D_Wake_Auto1",
+                "body_model_part_name": "FluidModelPart.Body3D_Body_Auto1",
                 "wake_stl_file_name" : "wake_stl.stl",
                 "output_wake": false,
                 "epsilon"         : 1e-6

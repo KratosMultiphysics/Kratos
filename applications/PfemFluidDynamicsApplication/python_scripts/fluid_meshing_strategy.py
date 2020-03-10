@@ -5,7 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-import meshing_strategy
+from KratosMultiphysics.DelaunayMeshingApplication import meshing_strategy
+
+from importlib import import_module
 
 def CreateMeshingStrategy(main_model_part, custom_settings):
     return FluidMeshingStrategy(main_model_part, custom_settings)
@@ -18,15 +20,16 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         meshers_list = []
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            meshers_list.append("fluid_pre_refining_mesher")
+            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.fluid_pre_refining_mesher")
             #mesher_list.append("fluid_post_refining_mesher")
         elif( self.settings["remesh"].GetBool() ):
-            meshers_list.append("reconnect_mesher")
+            meshers_list.append("KratosMultiphysics.DelaunayMeshingApplication.reconnect_mesher")
         elif( self.settings["transfer"].GetBool() ):
-            meshers_list.append("transfer_mesher")
+            meshers_list.append("KratosMultiphysics.DelaunayMeshingApplication.transfer_mesher")
 
         for mesher in meshers_list:
-            meshing_module =__import__(mesher)
+            full_module_name = mesher
+            meshing_module = import_module(full_module_name)
             new_mesher = meshing_module.CreateMesher(self.main_model_part,self.MeshingParameters)
             self.meshers.append(new_mesher)
 

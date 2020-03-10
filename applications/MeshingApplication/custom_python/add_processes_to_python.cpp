@@ -73,13 +73,13 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // LEVEL SET
     py::class_<ComputeLevelSetSolMetricProcess<2>, ComputeLevelSetSolMetricProcess<2>::Pointer, Process>(m, "ComputeLevelSetSolMetricProcess2D")
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>>())
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& , Parameters>())
     ;
 
     py::class_<ComputeLevelSetSolMetricProcess<3>, ComputeLevelSetSolMetricProcess<3>::Pointer, Process>(m, "ComputeLevelSetSolMetricProcess3D")
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>>())
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>&, Parameters>())
     ;
 
     // HESSIAN PROCESS

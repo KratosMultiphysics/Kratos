@@ -46,6 +46,8 @@ PYBIND11_MODULE(KratosCableNetApplication,m)
 
     //registering variables in python
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL )
+
 
 }
 

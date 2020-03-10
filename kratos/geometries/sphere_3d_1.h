@@ -681,6 +681,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -833,13 +835,17 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData Sphere3D1<TPointType>::msGeometryData( 3,
-        3,
-        1,
+const GeometryData Sphere3D1<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_1,
         Sphere3D1<TPointType>::AllIntegrationPoints(),
         Sphere3D1<TPointType>::AllShapeFunctionsValues(),
-        AllShapeFunctionsLocalGradients() );
+        AllShapeFunctionsLocalGradients()
+);
+
+template<class TPointType>
+const GeometryDimension Sphere3D1<TPointType>::msGeometryDimension(
+    3, 3, 1);
 
 }  // namespace Kratos.
 

@@ -1,0 +1,212 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "rectangle_sdof_fluid",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 3
+    },
+    "_output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "FluidModelPart.Parts_Fluid",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "binary",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "fsi_sdof/vtk_output_fsi_sdof",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : []
+            }
+        }]
+    },
+    "solver_settings"                  : {
+        "solver_type" : "ale_fluid",
+        "ale_boundary_parts" : ["NoSlip2D_FSI_Interface"],
+        "mesh_motion_solver_settings"               :   {
+            "solver_type" : "structural_similarity"
+        },
+        "fluid_solver_settings" : {
+            "solver_type"                 : "FractionalStep",
+            "domain_size"                  : 2,
+            "model_part_name"              : "FluidModelPart",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "fsi_sdof/rectangle_sdof_fluid"
+            },
+            "echo_level"                      : 0,
+            "compute_reactions"               : true,
+            "dynamic_tau"                     : 1.0,
+            "predictor_corrector"             : false,
+            "pressure_tolerance"              : 0.001,
+            "maximum_pressure_iterations"     : 10,
+            "velocity_tolerance"              : 1e-6,
+            "maximum_velocity_iterations"     : 20,
+            "velocity_linear_solver_settings" : {
+                "solver_type"         : "amgcl",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "provide_coordinates" : false,
+                "smoother_type"       : "ilu0",
+                "krylov_type"         : "gmres",
+                "coarsening_type"     : "aggregation",
+                "scaling"             : false
+            },
+            "pressure_linear_solver_settings" : {
+                "solver_type"         : "amgcl",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "provide_coordinates" : false,
+                "smoother_type"       : "ilu0",
+                "krylov_type"         : "cg",
+                "coarsening_type"     : "aggregation",
+                "scaling"             : false
+            },
+            "volume_model_part_name"      : "Parts_Fluid",
+            "skin_parts"                  : ["AutomaticInlet2D_Inlet",
+                                             "Outlet2D_Outlet",
+                                             "Slip2D",
+                                             "NoSlip2D_FSI_Interface"],
+            "no_skin_parts"               : [],
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.01
+            }
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_inlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.AutomaticInlet2D_Inlet",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 51.3,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet2D_Outlet",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface"
+            }
+        },{
+            "python_module" : "apply_slip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplySlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Slip2D"
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Parts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 0.0,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "ale_boundary_conditions" : [{
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "FixVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.AutomaticInlet2D_Inlet",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+
+        },
+        {
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "FixVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Outlet2D_Outlet",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+
+        },
+        {
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "FixVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+
+        },
+        {
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "FixVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Slip2D",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+
+        }],
+        "auxiliar_process_list"            : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "point_output_process",
+            "help"            : "",
+            "process_name"    : "PointOutputProcess",
+            "Parameters" : {
+            "position"         : [4.50, 6.547809, 0.0],
+            "entity_type"      : "element",
+            "search_tolerance"  : 1e-3,
+                "model_part_name"  : "FluidModelPart",
+                "output_file_settings": {
+                    "file_name"  : "fsi_sdof_cfd_results_disp.dat",
+                    "folder_name": "fsi_sdof"
+                },
+                "output_variables" : ["MESH_DISPLACEMENT_Y"]
+            }
+            },{
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "help"            : "",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "fsi_sdof/fsi_sdof_cfd_results_disp.dat",
+                    "reference_file_name" : "fsi_sdof/fsi_sdof_cfd_results_disp_ref.dat",
+                    "comparison_type"     : "dat_file_variables_time_history",
+                    "tolerance" : 1e-3
+                }
+            }]
+    }
+}

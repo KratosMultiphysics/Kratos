@@ -258,6 +258,8 @@ public:
      */
     BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,

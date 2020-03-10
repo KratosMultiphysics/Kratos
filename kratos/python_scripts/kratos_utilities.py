@@ -42,9 +42,9 @@ def GetListOfAvailableApplications():
     """
     kratos_path = GetKratosMultiphysicsPath()
 
-    apps = [
+    apps = sorted([
         f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
-    ]
+    ])
 
     return apps
 
@@ -83,11 +83,9 @@ def CheckIfApplicationsAvailable(*application_names):
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
     """
-    from KratosMultiphysics import KratosGlobals
-    return [ KratosGlobals.GetVariable( var_name ) for var_name in param.GetStringArray() ]
+    return [ KM.KratosGlobals.GetVariable( var_name ) for var_name in param.GetStringArray() ]
 
 def GenerateFlagsListFromInput(param):
     """ Retrieve flag name from input (a string) and request the corresponding C++ object to the kernel
     """
-    from KratosMultiphysics import KratosGlobals
-    return [ KratosGlobals.GetFlag( flag_name ) for flag_name in param.GetStringArray() ]
+    return [ KM.KratosGlobals.GetFlag( flag_name ) for flag_name in param.GetStringArray() ]

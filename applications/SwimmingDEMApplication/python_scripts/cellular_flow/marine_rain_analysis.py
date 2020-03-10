@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
-import swimming_DEM_analysis
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis as swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
 class MarineRainAnalysis(BaseAnalysis):

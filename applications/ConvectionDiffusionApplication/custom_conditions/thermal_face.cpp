@@ -312,10 +312,9 @@ void ThermalFace::AddIntegrationPointRHSContribution(
     VectorType& rRightHandSideVector,
     const ConditionDataStruct &rData)
 {
-    const double stefen_boltzmann = 5.67e-8;
     const double gauss_pt_unknown = rData.GaussPointUnknown();
     const double gauss_pt_flux = rData.GaussPointFaceHeatFlux();
-    const double aux_rad_rhs = rData.Emissivity * stefen_boltzmann * (std::pow(gauss_pt_unknown, 4) - pow(rData.AmbientTemperature, 4));
+    const double aux_rad_rhs = rData.Emissivity * StefanBoltzmann * (std::pow(gauss_pt_unknown, 4) - pow(rData.AmbientTemperature, 4));
     const double aux_conv_rhs = rData.ConvectionCoefficient * (gauss_pt_unknown - rData.AmbientTemperature);
     for (unsigned int i = 0; i < (this->GetGeometry()).PointsNumber(); ++i) {
         // Add external face heat flux contribution
@@ -331,9 +330,8 @@ void ThermalFace::AddIntegrationPointLHSContribution(
     MatrixType& rLeftHandSideMatrix,
     const ConditionDataStruct &rData)
 {
-    const double stefen_boltzmann = 5.67e-8;
     const unsigned int n_nodes = (this->GetGeometry()).PointsNumber();
-    const double aux_rad_lhs = rData.Emissivity * stefen_boltzmann * 4.0 * std::pow(rData.GaussPointUnknown(), 3);
+    const double aux_rad_lhs = rData.Emissivity * StefanBoltzmann * 4.0 * std::pow(rData.GaussPointUnknown(), 3);
     for (unsigned int i = 0; i < n_nodes; ++i) {
         for (unsigned int j = 0; j < n_nodes; ++j) {
             // Add ambient radiation contribution

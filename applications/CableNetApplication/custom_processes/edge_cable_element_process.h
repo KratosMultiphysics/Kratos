@@ -61,8 +61,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
         KRATOS_TRY;
         Parameters default_parameters = Parameters(R"(
         {
-            "model_part_name"           : "example_part",
-            "computing_model_part_name" : "computing_domain",
+            "edge_sub_model_part_name"  : "Structure.example_part",
             "element_type"              : "cable",
             "node_id_order"             : [1,2,3],
             "element_id"                : 1,
@@ -112,7 +111,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
 
 
         // get new element id
-        const ModelPart::IndexType new_element_id = mParameters["element_id"].GetInt();
+        const std::size_t new_element_id = mParameters["element_id"].GetInt();
 
         // create geometric entitity
         std::vector<NodeType::Pointer> element_nodes (number_nodes);
@@ -147,6 +146,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
     }
 
   protected:
+
 
   private:
 

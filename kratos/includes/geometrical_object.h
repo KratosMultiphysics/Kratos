@@ -129,6 +129,15 @@ public:
     ///@{
 
     /**
+     * @brief Sets the pointer to the geometry
+     * @param pGeometry The pointer of the geometry
+     */
+    virtual void SetGeometry(GeometryType::Pointer pGeometry)
+    {
+        mpGeometry = pGeometry;
+    }
+
+    /**
      * @brief Returns the pointer to the geometry
      * @return The pointer of the geometry
      */
@@ -189,6 +198,67 @@ public:
     void SetFlags(Flags const& rThisFlags)
     {
         Flags::operator=(rThisFlags);
+    }
+
+    ///@}
+    ///@name Data
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& Data()
+    {
+        return pGetGeometry()->GetData();
+    }
+
+    DataValueContainer const& GetData() const
+    {
+        return GetGeometry().GetData();
+    }
+
+    void SetData(DataValueContainer const& rThisData)
+    {
+        return GetGeometry().SetData(rThisData);
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return GetData().Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(
+        const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return GetData().Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        Data().SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return Data().GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return GetData().GetValue(rThisVariable);
     }
 
     ///@}
@@ -333,7 +403,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     //*********************************************
     //this block is needed for refcounting
     mutable std::atomic<int> mReferenceCounter;

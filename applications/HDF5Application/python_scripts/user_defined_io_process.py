@@ -12,6 +12,7 @@ __all__ = ["Factory"]
 
 import KratosMultiphysics
 from KratosMultiphysics.HDF5Application import core
+from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
 
 
 def Factory(settings, Model):
@@ -129,4 +130,4 @@ def Factory(settings, Model):
     algorithm, frequencies and IO operations can be configured by appending
     additional parameters to the json array.
     """
-    return core.Factory(settings["Parameters"], Model)
+    return core.Factory(ParametersWrapper(settings["Parameters"]), Model)

@@ -474,20 +474,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     if (rStrainVector.size() != VoigtSize)
         rStrainVector.resize(VoigtSize, false);
 
-    // Declare the different matrix
-    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
-
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (IndexType i = 0; i < Dimension; ++i) {
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-    }
-
-    // Calculate E matrix
+    // Compute square root matrix
     BoundedMatrixType E_matrix;
-    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils<double>::MatrixSquareRoot(rCauchyTensor, E_matrix, 1.0e-16, 20);
 
     // Biot Strain Calculation
     rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
@@ -813,6 +802,80 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGr
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
+    const MatrixType& rElasticTrial,
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe
+    )
+{
+    // Define elastic deformation gradient
+    MatrixType elastic_deformation_gradient(Dimension, Dimension);
+
+    // Define plastic flow
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+
+    // Declare the different eigen decomposition matrices
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // We compute the exponential matrix
+    // Decompose matrix
+    MathUtils<double>::GaussSeidelEigenSystem(plastic_flow, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+
+    // Calculate the eigenvalues of the E matrix
+    for (std::size_t i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = std::exp(-eigen_values_matrix(i, i));
+    }
+
+    // Calculate exponential matrix
+    MathUtils<double>::BDBtProductOperation(elastic_deformation_gradient, eigen_values_matrix, eigen_vectors_matrix);
+
+    // Pre and post multiply by Re
+    elastic_deformation_gradient = prod(elastic_deformation_gradient, rRe);
+    elastic_deformation_gradient = prod(trans(rRe), elastic_deformation_gradient);
+    elastic_deformation_gradient = prod(rElasticTrial, elastic_deformation_gradient);
+
+    return elastic_deformation_gradient;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDeformationGradient(
+    const MatrixType& rElasticTrial,
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe
+    )
+{
+    // Define elastic deformation gradient
+    MatrixType elastic_deformation_gradient(Dimension, Dimension);
+    MatrixType auxiliar_deformation_gradient_increment(Dimension, Dimension);
+    MatrixType inverse_plastic_deformation_gradient_increment(Dimension, Dimension);
+
+    // Define plastic flow
+    const BoundedMatrixType inverse_plastic_flow = - PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+
+    // Pre and post multiply by Re
+    noalias(auxiliar_deformation_gradient_increment) = prod(inverse_plastic_flow, rRe);
+    noalias(auxiliar_deformation_gradient_increment) = prod(trans(rRe), inverse_plastic_flow);
+
+    auxiliar_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliar_deformation_gradient_increment;
+
+    double aux_det;
+    MathUtils<double>::InvertMatrix(auxiliar_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment, aux_det);
+
+    // Pre and post multiply by Re
+    noalias(elastic_deformation_gradient) = prod(rElasticTrial, inverse_plastic_deformation_gradient_increment);
+
+    return elastic_deformation_gradient;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
@@ -823,7 +886,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
     MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
 
     // Define plastic flow
-    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     // Declare the different eigen decomposition matrices
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
@@ -843,6 +906,35 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
     // Pre and post multiply by Re
     plastic_deformation_gradient_increment = prod(plastic_deformation_gradient_increment, rRe);
     plastic_deformation_gradient_increment = prod(trans(rRe), plastic_deformation_gradient_increment);
+
+    return plastic_deformation_gradient_increment;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGradientIncrement(
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe
+    )
+{
+    // Define DeltaFp
+    MatrixType auxiliar_deformation_gradient_increment(Dimension, Dimension);
+    MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
+
+    // Define plastic flow
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+
+    // Pre and post multiply by Re
+    auxiliar_deformation_gradient_increment = prod(plastic_flow, rRe);
+    auxiliar_deformation_gradient_increment = prod(trans(rRe), plastic_flow);
+
+    auxiliar_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliar_deformation_gradient_increment;
+
+    double aux_det;
+    MathUtils<double>::InvertMatrix(auxiliar_deformation_gradient_increment, plastic_deformation_gradient_increment, aux_det);
 
     return plastic_deformation_gradient_increment;
 }

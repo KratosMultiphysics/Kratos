@@ -20,6 +20,7 @@
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -89,6 +90,9 @@ public:
 
     /// The key type definition
     typedef std::size_t                                       KeyType;
+
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -209,40 +213,47 @@ public:
             std::size_t dof_id = 0;
             TDataType dof_value = 0.0, dof_incr = 0.0;
 
+            // The number of active dofs
+            const std::size_t number_active_dofs = rb.size();
+
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num,dof_id,dof_value,dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, lm_solution_norm, disp_increase_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
-                    dof_value = it_dof->GetSolutionStepValue(0);
-                    dof_incr = rDx[dof_id];
+                dof_id = it_dof->EquationId();
 
-                    const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                        lm_solution_norm += dof_value * dof_value;
-                        lm_increase_norm += dof_incr * dof_incr;
-                        lm_dof_num++;
-                    } else {
-                        disp_solution_norm += dof_value * dof_value;
-                        disp_increase_norm += dof_incr * dof_incr;
-                        disp_dof_num++;
+                // Check dof id is solved
+                if (dof_id < number_active_dofs) {
+                    if (mActiveDofs[dof_id] == 1) {
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = rDx[dof_id];
+
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                            lm_solution_norm += dof_value * dof_value;
+                            lm_increase_norm += dof_incr * dof_incr;
+                            lm_dof_num++;
+                        } else {
+                            disp_solution_norm += dof_value * dof_value;
+                            disp_increase_norm += dof_incr * dof_incr;
+                            disp_dof_num++;
+                        }
                     }
                 }
             }
 
-            if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
-            if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
-            if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
+            if(disp_increase_norm < Tolerance) disp_increase_norm = 1.0;
+            if(lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
+            if(disp_solution_norm < Tolerance) disp_solution_norm = 1.0;
 
-            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
-            const TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
+            const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
 
-            const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
-            const TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType disp_abs = std::sqrt(disp_increase_norm)/static_cast<TDataType>(disp_dof_num);
+            const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -270,7 +281,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
 
             if (disp_converged && lm_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -337,6 +348,26 @@ public:
         }
     }
 
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -399,6 +430,8 @@ private:
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
 
+    std::vector<int> mActiveDofs; /// This vector contains the dofs that are active
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -432,16 +465,9 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::ENSURE_CONTACT(Kratos::Flags::Create(0));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::NOT_ENSURE_CONTACT(Kratos::Flags::Create(0, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(1, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_CONTACT_CRITERIA_H */
-

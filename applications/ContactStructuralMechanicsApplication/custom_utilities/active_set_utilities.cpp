@@ -28,7 +28,7 @@ std::size_t ComputePenaltyFrictionlessActiveSet(ModelPart& rModelPart)
     IndexType is_converged = 0;
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -85,7 +85,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
     std::size_t& is_converged_1 = is_converged[1];
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -186,7 +186,7 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
     IndexType is_converged = 0;
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -233,7 +233,7 @@ std::size_t ComputeALMFrictionlessComponentsActiveSet(ModelPart& rModelPart)
     IndexType is_converged = 0;
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -297,7 +297,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
     std::size_t& is_converged_1 = is_converged[1];
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -305,9 +305,9 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
         const double scale_factor = r_process_info[SCALE_FACTOR];
         const double tangent_factor = r_process_info[TANGENT_FACTOR];
 
-        // Slip convergence enhancers NOTE: https://www.youtube.com/watch?v=KmAuQ1mHWrQ
-        const double slip_convergence_coefficient = r_process_info.Has(SLIP_CONVERGENCE_COEFFICIENT) ? r_process_info[SLIP_CONVERGENCE_COEFFICIENT] : 1.0;
-        const double slip_augmentation_coefficient = r_process_info.Has(SLIP_AUGMENTATION_COEFFICIENT) ? r_process_info[SLIP_AUGMENTATION_COEFFICIENT] : 1.0;
+        // Slip convergence enhancers
+        const double slip_threshold = r_process_info.Has(SLIP_THRESHOLD) ? r_process_info[SLIP_THRESHOLD] : 0.0;
+        const double slip_augmentation_coefficient = r_process_info.Has(SLIP_AUGMENTATION_COEFFICIENT) ? r_process_info[SLIP_AUGMENTATION_COEFFICIENT] : 0.0;
 
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const auto it_node_begin = r_nodes_array.begin();
@@ -336,7 +336,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
                     // Computing the augmented tangent pressure
                     const array_1d<double, 3> tangent_lagrange_multiplier = r_lagrange_multiplier - normal_lagrange_multiplier * r_nodal_normal;
-                    const array_1d<double, 3> augmented_tangent_pressure_components = is_slip ? slip_convergence_coefficient * scale_factor * tangent_lagrange_multiplier + slip_augmentation_coefficient * tangent_factor * epsilon * r_gt : scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * r_gt;
+                    const array_1d<double, 3> augmented_tangent_pressure_components = is_slip ? scale_factor * tangent_lagrange_multiplier + slip_augmentation_coefficient * tangent_factor * epsilon * r_gt : scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * r_gt;
 
                     // Finally we assign and compute the norm
                     it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure_components);
@@ -344,14 +344,17 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
                     // We activate the deactivated nodes and add the contribution
                     if (it_node->IsNot(ACTIVE)) {
-                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor + augmented_tangent_pressure_components/scale_factor;
+                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor + (mu < std::numeric_limits<double>::epsilon() ? zero_array : augmented_tangent_pressure_components/scale_factor);
                         it_node->Set(ACTIVE, true);
                         #pragma omp atomic
                         is_converged_0 += 1;
                     }
 
                     // Check for the slip/stick state
-                    if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE // TODO: Check the <=
+                    const double threshold_value = is_slip ? 1.0 - slip_threshold : 1.0;
+                    const bool slip_check = augmented_tangent_pressure/(- mu * augmented_normal_pressure) > threshold_value ? true : false;
+                    if (!slip_check) { // STICK CASE
+//                     if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE // TODO: Check the <=
 //                             KRATOS_WARNING_IF("ComputeALMFrictionalActiveSet", norm_2(r_gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
 //                             noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                         KRATOS_WARNING_IF("ComputeALMFrictionalActiveSet", PureSlip && EchoLevel > 0) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff.: " << mu * std::abs(augmented_normal_pressure)  << std::endl;

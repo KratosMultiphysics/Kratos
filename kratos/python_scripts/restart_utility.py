@@ -85,6 +85,7 @@ class RestartUtility(object):
         if restart_file_name == "": # Using the default restart file name
             # Get file name
             restart_path = self.__GetFileNameLoad()
+
         else: # Using a custom restart file name
             if restart_file_name.endswith('.rest'):
                 restart_file_name = restart_file_name[:-5] # removing ".rest" from the file name

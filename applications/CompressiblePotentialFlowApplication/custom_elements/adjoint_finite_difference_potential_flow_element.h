@@ -95,6 +95,10 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+
     std::string Info() const override;
 
     void PrintInfo(std::ostream& rOStream) const override;

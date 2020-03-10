@@ -13,6 +13,8 @@
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -148,7 +150,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
 
     if (wake != 0 && active == true)
     {
-        CheckWakeCondition();
         ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
@@ -199,6 +200,16 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     {
         rValues[0] = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     }
+    else if (rVariable == MACH)
+    {
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        const double velocity_module = sqrt(inner_prod(velocity, velocity));
+        rValues[0] = velocity_module / rCurrentProcessInfo[SOUND_VELOCITY];
+    }
+    else if (rVariable == SOUND_VELOCITY)
+    {
+        rValues[0] = rCurrentProcessInfo[SOUND_VELOCITY];
+    }
     else if (rVariable == WAKE)
     {
         const IncompressiblePotentialFlowElement& r_this = *this;
@@ -240,6 +251,15 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        const array_1d<double, Dim>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k] - free_stream_velocity[k];
         rValues[0] = v;
     }
 }
@@ -551,20 +571,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
     else if (data.distances[row] > 0.0)
         for (unsigned int column = 0; column < NumNodes; ++column)
             rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
-{
-    array_1d<double, Dim> upper_wake_velocity;
-    upper_wake_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
-
-    array_1d<double, Dim> lower_wake_velocity;
-    lower_wake_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-    const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
-
-    KRATOS_WARNING_IF("IncompressibleElement", std::abs(vupnorm - vlownorm) > 0.1) << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
 }
 
 template <int Dim, int NumNodes>

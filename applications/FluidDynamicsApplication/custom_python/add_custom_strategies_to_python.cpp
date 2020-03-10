@@ -84,6 +84,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
     .def(py::init<double, double, unsigned int, Process::Pointer>())
+    .def(py::init<double, double, unsigned int, double, Process::Pointer>())
     .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
     .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
     ;

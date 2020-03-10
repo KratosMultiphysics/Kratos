@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics as KM
+
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -11,12 +13,13 @@ import os
 has_eigen_app =  kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
 has_csm_app = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 has_mesh_moving_app = kratos_utilities.CheckIfApplicationsAvailable("MeshMovingApplication")
+has_mapping_app = kratos_utilities.CheckIfApplicationsAvailable("MappingApplication")
 
 # ==============================================================================
 class ShapeOptimizationTestFactory(kratos_unittest.TestCase):
     # --------------------------------------------------------------------------
     def setUp(self):
-        pass
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
     # --------------------------------------------------------------------------
     def test_execution(self):
@@ -90,5 +93,39 @@ class opt_process_step_adaption_test(ShapeOptimizationTestFactory):
 class opt_process_multiobjective_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_multiobjective_test"
     execution_file = "run_test"
+
+@kratos_unittest.skipUnless(has_csm_app,"Missing required application: StructuralMechanicsApplication")
+class opt_process_stress_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_stress_test"
+    execution_file = "run_test"
+
+@kratos_unittest.skipUnless(has_csm_app,"Missing required application: StructuralMechanicsApplication")
+class sensitivity_verification_semi_analytic_process_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_verification_process_test"
+    execution_file = "run_semi_analytic_step_size_verification"
+
+@kratos_unittest.skipUnless(has_csm_app,"Missing required application: StructuralMechanicsApplication")
+class sensitivity_verification_in_design_space_process_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_verification_process_test"
+    execution_file = "run_sensitivity_verification_in_design_space"
+
+@kratos_unittest.skipUnless(has_csm_app,"Missing required application: StructuralMechanicsApplication")
+class sensitivity_verification_in_geometry_space_process_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_verification_process_test"
+    execution_file = "run_sensitivity_verification_in_geometry_space"
+
+@kratos_unittest.skipUnless(has_mapping_app,"Missing required application: MappingApplication")
+class in_plane_opt_test(ShapeOptimizationTestFactory):
+    execution_directory = "in_plane_opt_test"
+    execution_file = "run_test"
+
+class packaging_mesh_based_test(ShapeOptimizationTestFactory):
+    execution_directory = "packaging_mesh_based_test"
+    execution_file = "run_test"
+
+class packaging_plane_based_test(ShapeOptimizationTestFactory):
+    execution_directory = "packaging_plane_based_test"
+    execution_file = "run_test"
+
 
 # ==============================================================================

@@ -18,7 +18,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "epsilon": 1e-9
+            "epsilon": 1e-9,
+            "echo_level": 1
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -30,6 +31,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.body_model_part = Model[body_model_part_name]
 
         self.epsilon = settings["epsilon"].GetDouble()
+        self.echo_level = settings["echo_level"].GetInt()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
 
@@ -43,15 +45,24 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         #self.__FindWakeElements()
 
+    def ExecuteFinalizeSolutionStep(self):
+        if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
+            raise Exception("Fluid model part does not have a wake_sub_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
+
+        absolute_tolerance = 1e-9
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
+
+
     def __FindWakeElements(self):
 
         if not self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
 
-        if not self.fluid_model_part.HasSubModelPart("wake__elements"):
-            self.wake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake__elements")
-        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake__elements")
+        if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
+            self.wake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake_sub_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
         #List to store trailing edge elements id and wake elements id
         self.trailing_edge_element_id_list = []
         self.wake_element_id_list = []
@@ -239,6 +250,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
+                    self.wake_sub_model_part.RemoveElement(elem)
 
     def _CleanMarking(self):
         # This function removes all the markers set by _FindWakeElements()

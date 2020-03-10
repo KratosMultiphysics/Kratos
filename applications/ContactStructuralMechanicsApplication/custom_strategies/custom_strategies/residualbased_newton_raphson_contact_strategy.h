@@ -30,7 +30,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/process_factory_utility.h"
+#include "custom_python/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
 
 namespace Kratos {
@@ -223,9 +223,9 @@ public:
 
         // We predict contact pressure in case of contact problem
         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
             if (frictional) {
-                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
             }
 
             // Compute the current gap
@@ -260,7 +260,7 @@ public:
 //
 //         // We predict contact pressure in case of contact problem
 //         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-//             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+//             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
 //
 //             // Compute the current gap
 //             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));

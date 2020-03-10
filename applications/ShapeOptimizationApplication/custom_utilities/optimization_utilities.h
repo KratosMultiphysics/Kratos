@@ -116,7 +116,7 @@ public:
                     search_dir/=max_norm_search_dir;
                 }
             else
-                std::cout << "> WARNING: Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
+                KRATOS_WARNING("ShapeOpt::ComputeControlPointUpdate") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
         }
 
         // Compute update
@@ -193,7 +193,8 @@ public:
         KRATOS_TRY;
 
         // Some output for information
-        std::cout << "\n> No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
 
         // search direction is negative of filtered gradient
         for (auto & node_i : mrDesignSurface.Nodes())
@@ -212,7 +213,8 @@ public:
         KRATOS_TRY;
 
         // Some output for information
-        std::cout << "\n> Constraint is active. Modified search direction on the constraint hyperplane is computed..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Constraint is active. Modified search direction on the constraint hyperplane is computed..." << std::endl;
 
         // Compute norm of constraint gradient
         double norm_2_dCds_i = 0.0;
@@ -297,17 +299,15 @@ public:
             if(mConstraintValue*mPreviousConstraintValue<0.0)
             {
                 mCorrectionScaling *= 0.5;
-                std::cout << "Correction scaling needs to decrease...." << std::endl;
+                KRATOS_INFO("ShapeOpt") << "Correction scaling needs to decrease...." << std::endl;
             }
             // 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
             if(std::abs(mConstraintValue)>std::abs(mPreviousConstraintValue) && mConstraintValue*mPreviousConstraintValue>0)
             {
-                std::cout << "Correction scaling needs to increase...." << std::endl;
+                KRATOS_INFO("ShapeOpt") << "Correction scaling needs to increase...." << std::endl;
                 mCorrectionScaling = std::min(mCorrectionScaling*2,1.0);
             }
         }
-
-        KRATOS_WATCH(mCorrectionScaling)
 
     	return mCorrectionScaling * norm_search_direction / norm_correction_term;
     }

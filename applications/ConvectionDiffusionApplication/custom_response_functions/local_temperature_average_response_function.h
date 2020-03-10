@@ -38,7 +38,6 @@ public:
 
     /// Constructor.
     LocalTemperatureAverageResponseFunction(Parameters Settings, ModelPart& rModelPart)
-    : mrModelPart(rModelPart)
     {
         KRATOS_TRY;
 
@@ -186,7 +185,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
 	int mNumNodes = 0;
 
     ///@}

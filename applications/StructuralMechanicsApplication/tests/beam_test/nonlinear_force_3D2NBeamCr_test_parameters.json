@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 1e-7,
         "residual_absolute_tolerance"        : 1e-7,
         "max_iteration"                      : 100,
-        "problem_domain_sub_model_part_list" : ["Parts_beam"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet","ROTATION_dirichlet","PointLoad3D_neumann", "Structure"],
         "rotation_dofs"                      : true
     },
     "processes"        : {
