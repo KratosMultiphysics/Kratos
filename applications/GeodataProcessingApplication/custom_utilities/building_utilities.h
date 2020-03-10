@@ -220,4 +220,4 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CLEANING_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_BUILDING_UTILITIES_H_INCLUDED  defined

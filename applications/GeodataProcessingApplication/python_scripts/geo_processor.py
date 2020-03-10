@@ -96,10 +96,6 @@ class GeoProcessor:
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
-# GiD_PostBinary
-# GiD_PostAscii
-# "node_output"         : true
-
 
     def WriteMdpaOutput( self, mdpa_file_name="model_part"):
 

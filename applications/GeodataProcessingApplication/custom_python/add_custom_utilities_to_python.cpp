@@ -71,7 +71,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init< ModelPart& >())
         .def("CheckOverlapElement", &BuildingUtilities::CheckOverlapElement)
         .def("DeleteNotValidElements", &BuildingUtilities::DeleteNotValidElements)
-        // .def("SplitBuilding", &BuildingUtilities::SplitBuilding)
         ;
 }
 
