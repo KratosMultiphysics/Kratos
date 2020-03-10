@@ -26,6 +26,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
+#include "utilities/quadrature_points_utility.h"
 
 
 namespace Kratos {
