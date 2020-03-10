@@ -104,6 +104,20 @@ namespace Kratos
             }
         }
 
+        static void SortUnique(
+            std::vector<double>& rIntersectionParameters,
+            const double Tolerance)
+        {
+            std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
+
+            auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
+                [=](double a, double b) { return b - a < Tolerance; });
+
+            auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
+
+            rIntersectionParameters.resize(nb_unique);
+        }
+
     public:
         static std::vector<double> ComputeAxisIntersection(
             std::vector<double>& rIntersectionParameters,
@@ -167,17 +181,11 @@ namespace Kratos
                 }
             }
 
+            // Add last element if different from knot intersection.
             if (std::abs(rIntersectionParameters[rIntersectionParameters.size() - 1] - End) > Tolerance)
                 rIntersectionParameters.push_back(End);
 
-            std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
-
-            auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
-                [=](double a, double b) { return b - a < Tolerance; });
-
-            auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
-
-            rIntersectionParameters.resize(nb_unique);
+            SortUnique(rIntersectionParameters, Tolerance);
 
             return rIntersectionParameters;
         }
