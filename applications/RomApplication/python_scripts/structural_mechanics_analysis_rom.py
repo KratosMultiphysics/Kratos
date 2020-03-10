@@ -28,20 +28,19 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
         super(StructuralMechanicsAnalysisROM,self).ModifyInitialGeometry()
-
         computing_model_part = self._solver.GetComputingModelPart()
-
         with open('RomParameters.json') as f:
-            data=(json.load(f))["nodal_modes"]
+            data = json.load(f)
+            nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
+            nodal_modes = data["nodal_modes"]
             counter = 0
-            rom_dofs=self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
+            rom_dofs= self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
             for node in computing_model_part.Nodes:
-                Dimensions = len(data[str(float(node.Id))])
-                aux = KratosMultiphysics.Matrix(Dimensions, rom_dofs)
-                for j in range(Dimensions):
+                aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
+                for j in range(nodal_dofs):
                     Counter=str(1.0*node.Id)
                     for i in range(rom_dofs):
-                        aux[j,i] = data[Counter][j][i]
+                        aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 node.SetValue(romapp.AUX_ID, counter) # Aux ID
                 counter+=1
