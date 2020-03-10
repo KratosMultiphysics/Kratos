@@ -59,7 +59,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                            " ==== SOLVING PFEM PART OF THE CALCULATION ====" + "\n" +
                            " ==============================================")
             self.SolveSolutionStepPFEM()
-
+            
             # Now we Free the nodes to be calculated by the FEMDEM
             self.FreeNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
 
@@ -72,7 +72,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             self.SolveSolutionStepFEMDEM()
 
             # If there are no interface nodes yet
-            if (solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() < 1):
+            if (solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() < 2):
                 is_converged = True
                 self.FSI_aitken_utility.FinalizeNonLinearIteration()
                 break
@@ -89,8 +89,11 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
             aitken_iteration += 1
 
+            if (not is_converged): #We reset the kinematics of fluid
+                self.FSI_aitken_utility.ResetPFEMkinematicValues(self.PFEM_Solution.main_model_part)
+
         if (aitken_iteration == self.aitken_max_iterations):
-            KratosPrintInfo(" Aitken reached max iterations, error reached : " + str(residual_norm) + "...")
+            KratosPrintInfo(" Aitken reached max iterations, error commited: " + str(residual_norm) + "...")
 
         self.FSI_aitken_utility.FinalizeSolutionStep()
 
@@ -115,29 +118,20 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
         self.FSI_aitken_utility.UpdateSolution(residual_value_vector, iteration_value_vector)
         self.FSI_aitken_utility.UpdateInterfaceValues(solid_model_part, iteration_value_vector)
+
         return residual_vector_norm
 
 #============================================================================================================================
     def CheckConvergence(self, residual_new, residual_old, iteration):
         is_conv = False
-
-        # if (residual_new <= self.aitken_residual_total_tolerance):
-        #     is_conv = True
-        #     return is_conv
-        # elif ((residual_new - residual_old) / residual_old <= self.aitken_residual_ratio_tolerance):
-        #     is_conv = True
-        #     return is_conv
-
         error = residual_new / math.sqrt(self.FSI_aitken_utility.GetVectorSize())
         if (error < self.aitken_residual_dof_tolerance):
             is_conv = True
             if (iteration > 1):
                 KratosPrintInfo(" Aitken converged with an error of " + str(error) + " and " + str(iteration) + " iterations.")
-            return is_conv
+                return is_conv
         else:
             KratosPrintInfo(" Aitken error of " + str(error))
-
         return is_conv
-
 
 

@@ -133,16 +133,12 @@ public:
 
             mOmegaNew = -mOmegaOld * (numerator / denominator);
 
-            KRATOS_WATCH(mOmegaNew)
-
             mOmegaNew = (mOmegaNew > mOmegaMax) ? mOmegaMax : mOmegaNew;
             mOmegaNew = (mOmegaNew < mOmegaMin) ? mOmegaMin : mOmegaNew;
 
             TSpace::UnaliasedAdd(rIterationGuess, mOmegaNew, *mpResidualVectorNew);
             mOmegaOld = mOmegaNew;
         }
-
-        // KRATOS_WATCH(rIterationGuess)
         KRATOS_CATCH("")
     }
 
@@ -352,34 +348,41 @@ public:
     /**
      * Reset the previous kinematic information of the PFEM nodes 
      */
-    void ResetPFEMkinematicValues(ModelPart &rFluidModelPart)
+    void ResetPFEMkinematicValues(
+        ModelPart &rFluidModelPart
+        )
     {
-        const auto it_node_begin = rFluidModelPart.NodesBegin();
-        auto &r_process_info = rFluidModelPart.GetProcessInfo();
+        const auto& it_node_begin = rFluidModelPart.NodesBegin();
+        auto &r_process_info      = rFluidModelPart.GetProcessInfo();
 
-        #pragma omp parallel for firstprivate(it_node_begin)
-        for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); i++) {
-            auto it_node = it_node_begin + i;
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); ++i) {
+            auto& it_node = it_node_begin + i;
 
-            const auto &r_old_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            it_node->SetSolutionStepValue(DISPLACEMENT, 0, r_old_displ);
+            if (it_node->IsNot(SOLID)) { // We update only the fluid part
+                auto &r_current_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
+                auto &r_current_vel   = it_node->FastGetSolutionStepValue(VELOCITY, 0);
+                auto &r_current_acc   = it_node->FastGetSolutionStepValue(ACCELERATION, 0);
 
-            const auto &r_old_vel = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-            it_node->SetSolutionStepValue(VELOCITY, 0, r_old_vel);    
+                auto &r_old_displ     = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+                auto &r_old_vel       = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+                auto &r_old_acc       = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
 
-            const auto &r_old_acc = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            it_node->SetSolutionStepValue(ACCELERATION, 0, r_old_acc);    
+                auto copy_old_displ   = r_old_displ;
+                auto copy_old_vel     = r_old_vel;
+                auto copy_old_acc     = r_old_acc;
 
-            if (r_process_info[STEP] >= 2) {
-                const auto &r_old_old_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
-                it_node->SetSolutionStepValue(DISPLACEMENT, 1, r_old_old_displ);
+                double &r_coord_x = it_node->X();
+                double &r_coord_y = it_node->Y();
+                double &r_coord_z = it_node->Z();
+                r_coord_x         = it_node->X0() + copy_old_displ[0];
+                r_coord_y         = it_node->Y0() + copy_old_displ[1];
+                r_coord_z         = it_node->Z0() + copy_old_displ[2];
 
-                const auto &r_old_old_vel = it_node->FastGetSolutionStepValue(VELOCITY, 2);
-                it_node->SetSolutionStepValue(VELOCITY, 1, r_old_old_vel);    
-
-                const auto &r_old_old_acc = it_node->FastGetSolutionStepValue(ACCELERATION, 2);
-                it_node->SetSolutionStepValue(ACCELERATION, 1, r_old_old_acc); 
-            }     
+                noalias(r_current_displ) = copy_old_displ;
+                noalias(r_current_vel)   = copy_old_vel;
+                noalias(r_current_acc)   = copy_old_acc;
+            }
         }
     }
 

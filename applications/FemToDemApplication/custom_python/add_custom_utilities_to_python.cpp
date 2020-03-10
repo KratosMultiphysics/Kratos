@@ -41,6 +41,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<AitkenRelaxationUtility>(m, "AitkenRelaxationUtility")
         .def(py::init<double>())
+        .def(py::init<>())
+        .def(py::init<double,double,double>())
         .def("InitializeSolutionStep", &AitkenRelaxationUtility::InitializeSolutionStep)
         .def("UpdateSolution", &AitkenRelaxationUtility::UpdateSolution)
         .def("FinalizeNonLinearIteration", &AitkenRelaxationUtility::FinalizeNonLinearIteration)
@@ -53,6 +55,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("FillOldRelaxedValuesVector", &AitkenRelaxationUtility::FillOldRelaxedValuesVector)
         .def("ComputeInterfaceResidualVector", &AitkenRelaxationUtility::ComputeInterfaceResidualVector)
         .def("UpdateInterfaceValues", &AitkenRelaxationUtility::UpdateInterfaceValues)
+        .def("ResetPFEMkinematicValues", &AitkenRelaxationUtility::ResetPFEMkinematicValues)
         ;
 }
 
