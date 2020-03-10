@@ -55,6 +55,12 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
         self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(initial_relaxation, max_relaxation, min_relaxation)
 
+        self.developer_mode = True
+        if self.developer_mode:
+            self.pressure_plot = open("pressure_plot.txt", "w")
+            self.pressure_plot.write("This File prints the pressures at the interface nodes!\n\n")
+            self.pressure_plot.close()
+
 #============================================================================================================================
     def SolveSolutionStep(self):
 
@@ -84,6 +90,9 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                            " ==== SOLVING PFEM PART OF THE CALCULATION ====" + "\n" +
                            " ==============================================")
             self.SolveSolutionStepPFEM()
+
+            if self.developer_mode:
+                self.PrintPressures()
             
             # Now we Free the nodes to be calculated by the FEMDEM
             self.FreeNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
@@ -160,5 +169,19 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
         else:
             KratosPrintInfo(" Aitken error of " + str(error))
         return is_conv
+
+#============================================================================================================================
+    # Just for developers
+    def PrintPressures(self):
+        self.pressure_plot = open("pressure_plot.txt","a")
+        self.pressure_plot.write("STEP:" + str(self.FEMDEM_Solution.FEM_Solution.step) + "\n")
+
+        for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("fsi_interface_model_part").Nodes:
+            pressure = node.GetSolutionStepValue(KM.PRESSURE)
+            text =  "   " + str(node.Id) + "   " + str(pressure) + "\n"
+            self.pressure_plot.write(text)
+
+        self.pressure_plot.close()
+
 
 
