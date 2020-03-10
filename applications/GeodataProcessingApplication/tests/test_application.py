@@ -47,7 +47,7 @@ if import_terrain_mdpa:
 	importer._InitializeModelPart("test_model")
 	terrain_model_part = importer.ModelPart
 	model_part_in = "data/mdpa_file/domain_25_sept_2019/01_Mesh_cylinder"
-
+	
 	KratosMultiphysics.ModelPartIO(model_part_in).ReadModelPart(terrain_model_part)
 
 	mesher.SetGeoModelPart(terrain_model_part)
@@ -68,7 +68,7 @@ if import_terrain_mdpa:
 		for cond in sub_model_center.Conditions:
 			nodes = cond.GetNodes()
 			center_model_part.CreateNewElement("Element2D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id], prop)	# we need this to shift the buildings on terrain
-
+	
 	# we clear the model part to import the domain after the MMG process
 	importer._InitializeModelPart("test_model_after_MMG")
 	terrain_model_part = importer.ModelPart
@@ -111,10 +111,10 @@ else:
 	# we cut a circular portion of the terrain, we perform smoothing procedure and we compute the volume mesh
 	height = 100.0		# height = 80.0
 	# elem_list = mesher.MeshCircleWithTerrainPoints(height, 40, True)	# if the value is True we can save a list with the elements that are inside r_buildings
-
+	
 	# print("MeshCircleWithTerrainPoints")
 	# mesher.MeshCircleWithTerrainPoints(height, 40, extract_center)	# if extract_center = True we create a sub model part with conditions that are inside r_buildings
-
+	
 	print("MeshCircleWithTerrainPoints_old")
 	mesher.MeshCircleWithTerrainPoints_old(height, 40, extract_center)	# if extract_center = True we create a sub model part with conditions that are inside r_buildings
 
@@ -131,7 +131,7 @@ else:
 		else:
 			outlet_nodes.extend([nodes[0].Id, nodes[1].Id, nodes[2].Id])
 			outlet_cond.append(cond.Id)
-
+	
 	inlet_model_part = model_part.CreateSubModelPart("Inlet")
 	inlet_model_part.AddNodes(inlet_nodes)
 	inlet_model_part.AddConditions(inlet_cond)
@@ -147,7 +147,7 @@ else:
 	# writing GiD file
 	mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/01_Mesh_cylinder".format(num_test), "GiD_PostAscii")
 	mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/01_Mesh_cylinder".format(num_test), "GiD_PostBinary")
-
+	
 	# writing file mdpa
 	mdpa_out_name = "cfd_data/test_{}/mdpa_file/01_Mesh_cylinder".format(num_test)
 	mesher.WriteMdpaOutput(mdpa_out_name)
@@ -163,7 +163,7 @@ else:
 		for cond in sub_model_center.Conditions:
 			nodes = cond.GetNodes()
 			center_model_part.CreateNewElement("Element2D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id], prop)
-
+		
 	# we need to remove this sub model part to avoid problems in MMG process
 	mesher.GetGeoModelPart().RemoveSubModelPart("CenterCondition")
 
