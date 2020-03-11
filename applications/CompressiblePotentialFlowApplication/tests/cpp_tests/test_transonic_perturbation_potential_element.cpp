@@ -241,6 +241,22 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
     std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
+    std::cout.precision(16);
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType ElementalDofList, UpstreamElementalDofList;
+    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    pUpstreamElement->GetDofList(UpstreamElementalDofList, model_part.GetProcessInfo());
+
+    std::vector<int> ids{23, 74, 55};
+    std::vector<int> upstream_ids{23, 55, 67};
+    for (int i = 0; i < 3; i++){
+        ElementalDofList[i]->SetEquationId(ids[i]);
+        UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
+    }
+
     FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
     neighbour_finder.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
@@ -249,10 +265,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
     Matrix LHS = ZeroMatrix(3, 3);
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
+    KRATOS_WATCH(LHS)
 
-    std::array<double, 16> reference{ 0.09233249593977144,-0.1594672105670851,0.06713471462731366, 0.0,
-                                     -0.1594672105670851,0.6680804733587455,-0.5086132627916604, 0.0,
-                                      0.06713471462731366,-0.5086132627916604,0.4414785481643468, 0.0,
+    std::array<double, 16> reference{ 0.08311820046089136,-0.1594672105670851, 0.09759158478435792,-0.02124257467816418,
+                                     -0.1519635956028805,  0.6680804733587455,-0.5334156611081742,  0.01729878335230908,
+                                      0.06884539514198909,-0.5086132627916604,0.4358240763238163,0.003943791325855098,
                                       0.0, 0.0, 0.0, 0.0};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
