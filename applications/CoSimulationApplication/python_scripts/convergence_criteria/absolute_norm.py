@@ -31,7 +31,7 @@ class ConvergenceCriterionAbsoluteNorm(CoSimulationComponent):
         self.is_updated = True
 
     def IsSatisfied(self):
-        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
+        # cs_tools.PrintInfo("Norm: " + str(self.last_norm))
         if not self.is_updated:
             return False
         else:

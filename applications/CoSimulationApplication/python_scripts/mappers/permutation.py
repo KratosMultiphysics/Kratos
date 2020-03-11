@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
@@ -10,7 +11,7 @@ def Create(parameters):
 
 
 # Class MapperPermutation: Permutation of coordinates.
-class MapperPermutation(object):
+class MapperPermutation(CoSimulationComponent):
     def __init__(self, parameters):
         """
         This is not an interpolator, but a transformer.
@@ -46,6 +47,8 @@ class MapperPermutation(object):
             self.permutation.append(par.GetInt())
 
     def Initialize(self, model_part_in, forward):
+        super().Initialize()
+
         permutation = self.permutation
         if not forward:
             permutation = np.argsort(permutation)
@@ -58,9 +61,6 @@ class MapperPermutation(object):
             model_part_out.CreateNewNode(node.Id, *tuple(coords[permutation]))
 
         return model_part_out
-
-    def Finalize(self):
-        pass
 
     def __call__(self, args_from, args_to):
         model_part_from, var_from = args_from

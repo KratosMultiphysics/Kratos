@@ -2,32 +2,16 @@ from scipy.spatial import cKDTree
 
 import numpy as np
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
-
-import time
-from contextlib import contextmanager
-@contextmanager
-def timer(name=None, t=0, n=0, ms=False):
-    startTime = time.time()
-    yield
-    elapsedTime = time.time() - startTime
-    if ms:
-        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
-        s.replace(',', ' ')
-    else:
-        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
-    if name is not None:
-        s += f' - {name}'
-    s += '\n' * n
-    print(s)
 
 def Create(parameters):
     return MapperCombined(parameters)
 
 
 # Class MapperCombined
-class MapperCombined(object):
+class MapperCombined(CoSimulationComponent):
     def __init__(self, parameters):
         """
         This mapper combines 1 interpolator mapper
@@ -47,6 +31,9 @@ class MapperCombined(object):
         for par in self.settings['mappers'].list():
             self.mappers.append(cs_tools.CreateInstance(par))
 
+        # initialization
+        self.model_parts = None
+
         # check that exactly one mapper is an interpolator
         counter = 0
         for i, mapper in enumerate(self.mappers):
@@ -59,6 +46,8 @@ class MapperCombined(object):
         # TODO: combined mapper which has 0 interpolators? not possible now
 
     def Initialize(self, model_part_from, model_part_to):
+        super().Initialize()
+
         # initialize upstream transformers
         mps_from = [model_part_from]
         for i in range(self.index):
@@ -76,9 +65,6 @@ class MapperCombined(object):
         mps_to.reverse()
         self.model_parts = mps_from[1:] + mps_to[:-1]
 
-    def Finalize(self):
-        pass
-
     def __call__(self, args_from, args_to):
         mps_from = [args_from[0]] + self.model_parts
         mps_to = self.model_parts + [args_to[0]]
@@ -91,3 +77,12 @@ class MapperCombined(object):
             if i < self.index:
                 var_to = args_from[1]
             mapper((mps_from[i], var_from), (mps_to[i], var_to))
+
+    def OutputSolutionStep(self):
+        for mapper in self.mappers:
+            mapper.OutputSolutionStep()
+
+    def PrintInfo(self, indent):
+        cs_tools.Print('\t' * indent, "The component ", self.__class__.__name__, " combining the following mappers:")
+        for mapper in self.mappers:
+            mapper.PrintInfo(indent + 1)

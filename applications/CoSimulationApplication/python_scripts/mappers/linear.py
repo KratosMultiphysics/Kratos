@@ -47,22 +47,22 @@ class MapperLinear(MapperInterpolator):
             get_coeffs = get_coeffs_1d_2d
 
         # calculate coefficients
-        with cs_tools.quicktimer('coeffs', ms=True):
-            iterable = []
-            for i_to in range(self.n_to):
-                nearest = self.nearest[i_to, :]
-                iterable.append((self.coords_from[nearest, :], self.coords_to[i_to, :]))
+        # with cs_tools.quicktimer('coeffs', ms=True):
+        iterable = []
+        for i_to in range(self.n_to):
+            nearest = self.nearest[i_to, :]
+            iterable.append((self.coords_from[nearest, :], self.coords_to[i_to, :]))
 
-            if self.parallel:
-                processes = cpu_count()
-                with Pool(processes=processes) as pool:
-                    # optimal chunksize automatically calculated
-                    out = pool.starmap(get_coeffs, iterable)
-                self.coeffs = np.vstack(tuple(out))
-            else:
-                self.coeffs = np.zeros(self.nearest.shape)
-                for i_to, tup in enumerate(iterable):
-                    self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
+        if self.parallel:
+            processes = cpu_count()
+            with Pool(processes=processes) as pool:
+                # optimal chunksize automatically calculated
+                out = pool.starmap(get_coeffs, iterable)
+            self.coeffs = np.vstack(tuple(out))
+        else:
+            self.coeffs = np.zeros(self.nearest.shape)
+            for i_to, tup in enumerate(iterable):
+                self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
 
 
 def get_coeffs_1d_2d(coords_from, coord_to):

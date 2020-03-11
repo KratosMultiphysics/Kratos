@@ -75,7 +75,7 @@ def CalculateNorm(list):
 
 # Class contains definition of colors. This is to be used as a struct.
 #
-# Example usage: print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
+# Example usage: print(bcolors.HEADER + "This is a header in header color" + bcolors.ENDC)
 # IMPORTANT: The end of the print statement should always contain bcolor.ENDC
 class bcolors:
     HEADER    = '\033[95m'
@@ -87,6 +87,36 @@ class bcolors:
     ENDC      = '\033[0m'
     BOLD      = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+class LayoutStyles:
+    styles = {'header':    '\033[95m',
+              'blue':      '\033[94m',
+              'green':     '\033[92m',
+              'red':       '\033[96m',
+              'warning':   '\033[1;33;41m',
+              'fail':      '\033[91m',
+              'bold':      '\033[1m',
+              'underline': '\033[4m',
+              'plain':     '\033[0m'
+              }
+
+    def get(self, layout):
+        self.check(layout)
+        return self.styles[layout]
+
+    def check(self, layout):
+        if layout not in self.styles:
+            raise ValueError("Layout style is not implemented, correct layout styles are:"
+                             "header, blue, green, red, warning, fail, bold, underline and plain.")
+
+layoutstyle = LayoutStyles()
+# Print: Printing with color
+#
+#  @param args          The arguments to be printed
+#  @param layout        The layout to be used: header, blue, green, red, warning, fail, bold, underline or plain
+def Print(*args, layout='plain'):
+    print(layoutstyle.get(layout), "".join(map(str, args)), layoutstyle.get('plain'))
 
 
 # PrintInfo: Printing information with a label
@@ -137,4 +167,4 @@ def quicktimer(name=None, t=0, n=0, ms=False):
     if name is not None:
         s += f' - {name}'
     s += '\n' * n
-    print(s)
+    Print(s)

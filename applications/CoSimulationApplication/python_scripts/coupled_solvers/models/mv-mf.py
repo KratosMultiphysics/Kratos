@@ -45,7 +45,7 @@ class ModelMV(CoSimulationComponent):
             m = min(abs(diag))
             if m < self.min_significant:
                 i = np.argmin(abs(diag))
-                print("Removing column " + str(i) + ": " + str(m) + " < minsignificant")
+                cs_tools.Print("Removing column " + str(i) + ": " + str(m) + " < minsignificant", layout='warning')
                 self.v = np.delete(self.v, i, 1)
                 self.w = np.delete(self.w, i, 1)
             else:
@@ -57,7 +57,7 @@ class ModelMV(CoSimulationComponent):
 
     def Predict(self, r_in):
         r = r_in.GetNumpyArray().reshape(-1, 1)
-        if not self.v.shape[1] and len(self.wprev) == 0:
+        if self.v.shape[1] + len(self.wprev) == 0:
             raise RuntimeError("No information to predict")
         # Approximation for the inverse of the Jacobian from a multiple vector model
         dr = -r
@@ -69,21 +69,22 @@ class ModelMV(CoSimulationComponent):
         else:
             dxt = np.zeros((self.size, 1))
             qq = np.zeros((self.size, 1))
+        dr = dr - qq @ (qq.T @ dr)
         i = 0
         while np.linalg.norm(dr) > self.min_significant and i < len(self.wprev):
-            dr = dr - qq @ (qq.T @ dr)
-            print(str(i) + '   dr = ' + str(np.linalg.norm(dr)))
             b = self.qqprev[i].T @ dr
-            c = solve_triangular(self.rrprev[i], b)
-            dxt += self.wprev[i] @ c
-            qq = self.qqprev[i]
+            if self.wprev[i].shape[1]:
+                c = solve_triangular(self.rrprev[i], b)
+                dxt += self.wprev[i] @ c
+                qq = self.qqprev[i]
+                dr = dr - qq @ (qq.T @ dr)
             i += 1
-        # Remove insignificant information
-        while i < len(self.wprev):
-            self.wprev.pop(i)
-            self.rrprev.pop(i)
-            self.qqprev.pop(i)
-            i += 1
+        # # Remove insignificant information
+        # while i < len(self.wprev):
+        #     self.wprev.pop(i)
+        #     self.rrprev.pop(i)
+        #     self.qqprev.pop(i)
+        #     i += 1
         dxt_out = r_in.deepcopy()
         dxt_out.SetNumpyArray(dxt.flatten())
         return dxt_out
@@ -104,7 +105,7 @@ class ModelMV(CoSimulationComponent):
         self.xtref = xt
 
     def IsReady(self):
-        return self.v.shape[1] or len(self.wprev) != 0
+        return self.v.shape[1] + len(self.wprev)
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()

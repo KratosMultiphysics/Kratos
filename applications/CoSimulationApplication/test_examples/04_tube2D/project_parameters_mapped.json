@@ -1,0 +1,123 @@
+{
+    "settings" :
+    {
+        "number_of_timesteps": 100,
+        "data_structure" : "pyKratos"
+    },
+    "coupled_solver" :
+    {
+        "type" : "coupled_solvers.iqni",
+        "settings" :
+        {
+            "timestep_start": 0,
+            "delta_t": 0.01,
+            "omega" : 0.05,
+            "model" :
+            {
+                "type": "coupled_solvers.models.ls",
+                "settings":
+                {
+                    "min_significant": 1e-12,
+                    "q": 10
+                }
+            }
+        },
+        "predictor" :
+        {
+            "type" : "predictors.linear"
+        },
+        "convergence_criterion" :
+        {
+            "type" : "convergence_criteria.or",
+            "settings" :
+            {
+                "convergence_criterion0" :
+                {
+                    "type": "convergence_criteria.iteration_limit",
+                    "settings":
+                    {
+                        "maximum": 10
+                    }
+                },
+                "convergence_criterion1" :
+                {
+                    "type" : "convergence_criteria.relative_norm",
+                    "settings" :
+                    {
+                        "tolerance" : 1e-6,
+                        "order" : 2
+                    }
+                }
+            }
+        },
+        "solver_wrappers" :
+        [
+            {
+                "type" : "solver_wrappers.pipe2D.flow_solver",
+                "settings" :
+                {
+                    "working_directory" : "CFD",
+                    "input_file"  : "solver_parameters.json",
+                    "interface_input" :
+                    {
+                        "wall": "DISPLACEMENT"
+                    },
+                    "interface_output" :
+                    {
+                        "wall" : ["PRESSURE","TRACTION"]
+                    }
+                }
+            },
+            {
+                "type": "solver_wrappers.mapped",
+                "settings": {
+                    "solver_wrapper" :
+                    {
+                        "type" : "solver_wrappers.pipe2D.structure_solver",
+                        "settings" :
+                        {
+                            "working_directory" : "CSM",
+                            "input_file"  : "solver_parameters.json",
+                            "interface_input" :
+                            {
+                                "wall" : ["PRESSURE","TRACTION"]
+                            },
+                            "interface_output" :
+                            {
+                                "wall": "DISPLACEMENT"
+                            }
+                        }
+                    },
+                    "mapper_interface_input":
+                    {
+						"type" : "mappers.interface",
+						"settings" :
+						{
+                            "type": "mappers.linear",
+                            "settings":
+                            {
+                                "directions" : ["Y","Z"],
+                                "balanced_tree" : false,
+                                "parallel": true
+                            }
+						}
+                    },
+                    "mapper_interface_output":
+                    {
+						"type" : "mappers.interface",
+						"settings" :
+						{
+                            "type": "mappers.linear",
+                            "settings":
+                            {
+                                "directions" : ["Y","Z"],
+                                "balanced_tree" : false,
+                                "parallel": true
+                            }
+						}
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -46,5 +46,5 @@ class CoSimulationComponent(object):
     def Check(self):
         pass
 
-    def PrintInfo(self):
-        cs_tools.PrintInfo("The component ", self.__class__.__name__)
+    def PrintInfo(self, indent):
+        cs_tools.Print('\t' * indent, "The component ", self.__class__.__name__)

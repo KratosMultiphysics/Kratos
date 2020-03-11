@@ -9,6 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import C
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
+
 def Create(parameters):
     return SolverWrapperPipeFlow(parameters)
 
@@ -23,9 +24,9 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         # Reading
         self.parameters = parameters
         self.settings = parameters["settings"]
-        working_directory = self.settings["working_directory"].GetString()
+        self.working_directory = self.settings["working_directory"].GetString()
         input_file = self.settings["input_file"].GetString()
-        settings_file_name = path.join(working_directory, input_file)
+        settings_file_name = path.join(self.working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
             self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
@@ -47,8 +48,8 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.dz = l / self.m  # Segment length
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
-        self.n = 0  # Time step
-        self.dt = self.settings["dt"].GetDouble()  # Time step size
+        self.n = 0  # Time step (no restart implemented)
+        self.dt = self.settings["delta_t"].GetDouble()  # Time step size
         self.alpha = 0.0  # Numerical damping parameter due to central discretization of pressure in momentum equation
 
         self.newtonmax = self.settings["newtonmax"].GetInt()  # Maximal number of Newton iterations
@@ -79,6 +80,10 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         # Interfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
         self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
+
+        # Debug
+        self.debug = True  # Set on true to save solution of each time step
+        self.OutputSolutionStep()
 
     def Initialize(self):
         super().Initialize()
@@ -130,6 +135,16 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
 
     def Finalize(self):
         super().Finalize()
+
+    def OutputSolutionStep(self):
+        if self.debug:
+            p = self.p[1:self.m + 1] * self.rhof
+            u = self.u[1:self.m + 1]
+            file_name = self.working_directory + f"/Pressure_Velocity_TS{self.n}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'pressure':<22}\t{'velocity':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f"{self.z[i]:<22}\t{p[i]:<22}\t{u[i]:<22}\n")
 
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()

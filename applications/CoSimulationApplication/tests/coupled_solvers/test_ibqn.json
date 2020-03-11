@@ -2,10 +2,21 @@
     "type" : "coupled_solvers.ibqn",
     "settings" :
     {
-        "echo_level": 1,
+        "timestep_start": 0,
+        "delta_t": 0.01,
         "omega": 0.05,
         "relative_tolerance_gmres": 1e-12,
-        "model":
+        "absolute_tolerance_gmres": 1e-18,
+        "model_f":
+        {
+            "type": "coupled_solvers.models.ls",
+            "settings":
+            {
+                "min_significant": 1e-12,
+                "q": 10
+            }
+        },
+        "model_s":
         {
             "type": "coupled_solvers.models.ls",
             "settings":

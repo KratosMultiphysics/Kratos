@@ -47,6 +47,13 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.mapper_interface_input.Finalize()
         self.mapper_interface_output.Finalize()
 
+    def OutputSolutionStep(self):
+        super().OutputSolutionStep()
+
+        self.solver_wrapper.OutputSolutionStep()
+        self.mapper_interface_input.OutputSolutionStep()
+        self.mapper_interface_output.OutputSolutionStep()
+
     def GetInterfaceInput(self):
         # Does not contain most recent data
         return self.interface_input_from.deepcopy()
@@ -72,3 +79,11 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.mapper_interface_output = cs_tools.CreateInstance(self.settings["mapper_interface_output"])
         self.mapper_interface_output.Initialize(self.interface_output_from, self.interface_output_to)
 
+    def PrintInfo(self, indent):
+        cs_tools.Print('\t' * indent, "The component ", self.__class__.__name__, "  maps the following solver wrapper:")
+        self.solver_wrapper.PrintInfo(indent + 1)
+        indent += 1
+        cs_tools.Print('\t' * indent, "With input mapper:")
+        self.mapper_interface_input.PrintInfo(indent + 1)
+        cs_tools.Print('\t' * indent, "And output mapper:")
+        self.mapper_interface_output.PrintInfo(indent + 1)

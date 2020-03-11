@@ -37,7 +37,7 @@ class ConvergenceCriterionRelativeNorm(CoSimulationComponent):
                 raise Exception("Initial norm is too small")
 
     def IsSatisfied(self):
-        cs_tools.PrintInfo("Norm: " + str(self.last_norm))
+        # cs_tools.PrintInfo("Norm: " + str(self.last_norm))
         if not self.is_initial_norm_set:
             return False
         else:

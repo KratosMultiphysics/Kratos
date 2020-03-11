@@ -2,7 +2,8 @@
     "type" : "coupled_solvers.iqni",
     "settings" :
     {
-        "echo_level" : 1,
+        "timestep_start": 0,
+        "delta_t": 0.01,
         "omega" : 0.05,
         "model" :
         {

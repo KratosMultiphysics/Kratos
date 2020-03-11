@@ -1,0 +1,48 @@
+/TUBE 3D
+    /PARAMETERS
+$length = 0.050
+$radius = 0.005
+$topintervalsfluid = 48
+$arcintervalsfluid = 8
+$boxintervalsfluid = 8
+    /CODE
+save name "mesh_tube3d.dbs"
+solver select "FLUENT 5/6"
+vertex create "vertex.1" coordinates (-$length/2) ($radius/2) 0
+vertex create "vertex.2" coordinates (-$length/2) 0 ($radius/2)
+vertex create "vertex.3" coordinates (-$length/2) (-$radius/2) 0
+vertex create "vertex.4" coordinates (-$length/2) 0 (-$radius/2)
+vertex create "vertex.5" coordinates (-$length/2) $radius 0
+vertex create "vertex.6" coordinates (-$length/2) 0 $radius
+vertex create "vertex.7" coordinates (-$length/2) -$radius 0
+vertex create "vertex.8" coordinates (-$length/2) 0 -$radius
+vertex create "vertex.9" coordinates (-$length/2) 0 0
+edge create "edge.1" straight "vertex.1" "vertex.2"
+edge create "edge.2" straight "vertex.2" "vertex.3"
+edge create "edge.3" straight "vertex.3" "vertex.4"
+edge create "edge.4" straight "vertex.4" "vertex.1"
+edge create "edge.5" straight "vertex.1" "vertex.5"
+edge create "edge.6" straight "vertex.2" "vertex.6"
+edge create "edge.7" straight "vertex.3" "vertex.7"
+edge create "edge.8" straight "vertex.4" "vertex.8"
+edge create "edge.9" center2points "vertex.9" "vertex.5" "vertex.6" minarc arc 
+edge create "edge.10" center2points "vertex.9" "vertex.6" "vertex.7" minarc arc 
+edge create "edge.11" center2points "vertex.9" "vertex.7" "vertex.8" minarc arc 
+edge create "edge.12" center2points "vertex.9" "vertex.8" "vertex.5" minarc arc 
+face create "face.1" wireframe "edge.1" "edge.5" "edge.9" "edge.6"
+face create "face.2" wireframe "edge.2" "edge.6" "edge.10" "edge.7"
+face create "face.3" wireframe "edge.3" "edge.7" "edge.11" "edge.8"
+face create "face.4" wireframe "edge.4" "edge.8" "edge.12" "edge.5"
+face create "face.5" wireframe "edge.1" "edge.2" "edge.3" "edge.4"
+volume create "volume.1" translate "face.1" "face.2" "face.3" "face.4" "face.5" vector $length 0 0
+edge mesh "edge.13" "edge.15" "edge.17" "edge.20" "edge.21" "edge.23" "edge.27" "edge.30" intervals $topintervalsfluid
+edge mesh "edge.1" "edge.2" "edge.3" "edge.4" "edge.9" "edge.10" "edge.11" "edge.12" "edge.16" "edge.18" "edge.24" "edge.26" "edge.29" "edge.31" "edge.34" "edge.36" intervals $arcintervalsfluid
+edge mesh "edge.5" "edge.6" "edge.7" "edge.8" "edge.14" "edge.19" "edge.22" "edge.28" intervals $boxintervalsfluid
+volume mesh "volume.1" "volume.2" "volume.3" "volume.4" "volume.5" map
+physics create "In" btype "PRESSURE_OUTLET" face "face.1" "face.2" "face.3" "face.4" "face.5"
+physics create "Out" btype "PRESSURE_OUTLET" face "face.8" "face.13" "face.17" "face.21" "face.25"
+physics create "Wall" btype "WALL" face "face.9" "face.14" "face.16" "face.20"
+physics create "Fluid" ctype "FLUID" volume "volume.1" "volume.2" "volume.3" "volume.4" "volume.5"
+export fluent5 "mesh_tube3d.msh"
+save
+end

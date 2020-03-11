@@ -9,11 +9,7 @@ class CoSimulationAnalysis(object):
         self.parameters = parameters
         self.settings = parameters["settings"]
 
-        self.echo_level = self.settings["echo_level"].GetInt()
-
-        self.start_step = self.settings["start_step"].GetInt()
-        self.stop_step = self.settings["stop_step"].GetInt()
-        self.step = self.start_step
+        self.number_of_timesteps = self.settings["number_of_timesteps"].GetInt()
 
         self.coupled_solver = cs_tools.CreateInstance(self.parameters["coupled_solver"])
 
@@ -25,10 +21,10 @@ class CoSimulationAnalysis(object):
     def Initialize(self):
         self.coupled_solver.Initialize()
         self.coupled_solver.Check()
-        self.coupled_solver.PrintInfo()
+        self.coupled_solver.PrintInfo(0)
 
     def RunSolutionLoop(self):
-        for self.step in range(self.start_step, self.stop_step):
+        for _ in range(self.number_of_timesteps):
             self.coupled_solver.InitializeSolutionStep()
             self.coupled_solver.SolveSolutionStep()
             self.coupled_solver.FinalizeSolutionStep()

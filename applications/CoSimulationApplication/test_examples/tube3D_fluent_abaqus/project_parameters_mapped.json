@@ -1,0 +1,138 @@
+{
+    "settings" :
+    {
+        "number_of_timesteps": 100,
+        "data_structure" : "pyKratos"
+    },
+    "coupled_solver" :
+    {
+        "type" : "coupled_solvers.iqni",
+        "settings" :
+        {
+            "timestep_start": 0,
+            "delta_t": 0.0001,
+            "omega" : 0.01,
+            "model" :
+            {
+                "type": "coupled_solvers.models.ls",
+                "settings":
+                {
+                    "min_significant": 1e-09,
+                    "q": 10
+                }
+            }
+        },
+        "predictor" :
+        {
+            "type" : "predictors.linear"
+        },
+        "convergence_criterion" :
+        {
+            "type" : "convergence_criteria.or",
+            "settings" :
+            {
+                "convergence_criterion0" :
+                {
+                    "type": "convergence_criteria.iteration_limit",
+                    "settings":
+                    {
+                        "maximum": 20
+                    }
+                },
+                "convergence_criterion1" :
+                {
+                    "type" : "convergence_criteria.relative_norm",
+                    "settings" :
+                    {
+                        "tolerance" : 1e-3,
+                        "order" : 2
+                    }
+                }
+            }
+        },
+        "solver_wrappers" :
+        [
+            {
+                "type": "solver_wrappers.fluent.2019R1",
+                "settings": {
+                    "working_directory" : "CFD",
+                    "case_file": "case_tube3d.cas",
+                    "dimensions": 3,
+                    "unsteady": true,
+                    "thread_names": ["wall"],
+                    "interface_input":
+                    {
+                        "wall_nodes": "DISPLACEMENT"
+                    },
+                    "interface_output":
+                    {
+                        "wall_faces": ["PRESSURE", "TRACTION"]
+                    },
+                    "cores": 6,
+                    "fluent_gui": false,
+                    "max_nodes_per_face": 4,
+                    "hybrid_initialization": false,
+                    "flow_iterations": 200,
+                    "save_iterations": 1
+                }
+            },
+            {
+                "type": "solver_wrappers.mapped",
+                "settings": {
+                    "solver_wrapper" :
+                    {
+                        "type": "solver_wrappers.abaqus.614",
+                        "settings": {
+                            "working_directory" : "CSM",
+                            "cores": 1,
+                            "dimensions": 3,
+                            "arraysize": 10e5,
+                            "surfaces": 1,
+                            "ramp": 0,
+                            "surfaceIDs": ["WALLOUTSIDE"],
+                            "interface_input":
+                            {
+                                "WALLOUTSIDE_load_points": ["PRESSURE", "TRACTION"]
+                            },
+                            "interface_output":
+                            {
+                                "WALLOUTSIDE_nodes": "DISPLACEMENT"
+                            },
+                            "mp_mode": "THREADS",
+                            "input_file": "Base.inp",
+                            "save_iterations": 1
+                        }
+                    },
+                    "mapper_interface_input":
+                    {
+						"type" : "mappers.interface",
+						"settings" :
+						{
+                            "type" : "mappers.radial_basis",
+                            "settings" :
+                            {
+                                "balanced_tree" : false,
+                                "directions" : ["X", "Y", "Z"],
+                                "parallel" : true
+                            }
+						}
+                    },
+                    "mapper_interface_output":
+                    {
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type" : "mappers.radial_basis",
+                            "settings" :
+                            {
+                                "balanced_tree" : false,
+                                "directions" : ["X", "Y", "Z"],
+                                "parallel" : true
+                            }
+						}
+                    }
+                }
+            }
+        ]
+    }
+}

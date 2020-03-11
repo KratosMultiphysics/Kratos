@@ -47,7 +47,7 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
         if True:
             print_box('setup Fluent case')
             dir_tmp = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'test_2019R1_tube2d')
-            p = subprocess.Popen(os.path.join(dir_tmp, 'setup_case.sh'), cwd=dir_tmp, shell=True)
+            p = subprocess.Popen(os.path.join(dir_tmp, 'setup_fluent.sh'), cwd=dir_tmp, shell=True)
             p.wait()
 
         # test if nodes are moved to the correct position
@@ -246,7 +246,7 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
             print_box('setup Fluent case')
 
             dir_tmp = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'test_2019R1_tube3d')
-            p = subprocess.Popen(os.path.join(dir_tmp, 'setup_case.sh'), cwd=dir_tmp, shell=True)
+            p = subprocess.Popen(os.path.join(dir_tmp, 'setup_fluent.sh'), cwd=dir_tmp, shell=True)
             p.wait()
 
         # test if nodes are moved to the correct position

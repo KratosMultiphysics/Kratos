@@ -1,9 +1,7 @@
 {
     "settings" :
     {
-        "echo_level" : 1,
-        "start_step" : 1,
-        "stop_step" : 101,
+        "number_of_timesteps": 100,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :
@@ -11,9 +9,9 @@
         "type" : "coupled_solvers.iqni",
         "settings" :
         {
-            "echo_level" : 1,
+            "timestep_start": 0,
+            "delta_t": 0.01,
             "omega" : 0.05,
-            "relative_tolerance_gmres": 1e-15,
             "model" :
             {
                 "type": "coupled_solvers.models.ls",
@@ -74,7 +72,7 @@
                 "type" : "solver_wrappers.pipe.structure_solver",
                 "settings" :
                 {
-                    "working_directory" : "CSD",
+                    "working_directory" : "CSM",
                     "input_file"  : "solver_parameters.json",
                     "interface_input" :
                     {

@@ -31,23 +31,23 @@ class MapperRadialBasis(MapperInterpolator):
         super().Initialize(model_part_from, model_part_to)
 
         # calculate coefficients
-        with cs_tools.quicktimer('coeffs', ms=True):
-            iterable = []
-            for i_to in range(self.n_to):
-                nearest = self.nearest[i_to, :]
-                iterable.append((self.distances[i_to, :],
-                                 self.coords_from[nearest, :]))
+        # with cs_tools.quicktimer('coeffs', ms=True):
+        iterable = []
+        for i_to in range(self.n_to):
+            nearest = self.nearest[i_to, :]
+            iterable.append((self.distances[i_to, :],
+                             self.coords_from[nearest, :]))
 
-            if self.parallel:
-                processes = cpu_count()
-                with Pool(processes=processes) as pool:
-                    # optimal chunksize automatically calculated
-                    out = pool.starmap(get_coeffs, iterable)
-                self.coeffs = np.vstack(tuple(out))
-            else:
-                self.coeffs = np.zeros(self.nearest.shape)
-                for i_to, tup in enumerate(iterable):
-                    self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
+        if self.parallel:
+            processes = cpu_count()
+            with Pool(processes=processes) as pool:
+                # optimal chunksize automatically calculated
+                out = pool.starmap(get_coeffs, iterable)
+            self.coeffs = np.vstack(tuple(out))
+        else:
+            self.coeffs = np.zeros(self.nearest.shape)
+            for i_to, tup in enumerate(iterable):
+                self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
 
 def get_coeffs(distances, coords_from):
     def phi(r):
