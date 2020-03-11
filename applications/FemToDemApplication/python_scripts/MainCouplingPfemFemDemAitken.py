@@ -47,15 +47,15 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             else:
                 initial_relaxation = 0.825
         else:
-            max_relaxation = 0.9
-            min_relaxation = 0.2
+            max_relaxation = 0.95
+            min_relaxation = 0.1
             initial_relaxation = 0.825
-            self.aitken_max_iterations = 15
+            self.aitken_max_iterations = 20
             self.aitken_residual_dof_tolerance = 1e-7
 
         self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(initial_relaxation, max_relaxation, min_relaxation)
 
-        self.developer_mode = True
+        self.developer_mode = False
         if self.developer_mode:
             self.pressure_plot = open("pressure_plot.txt", "w")
             self.pressure_plot.write("This File prints the pressures at the interface nodes!\n\n")
