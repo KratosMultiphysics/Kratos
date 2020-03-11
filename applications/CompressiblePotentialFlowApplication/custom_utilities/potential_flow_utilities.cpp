@@ -544,6 +544,63 @@ BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicAccelerating(const El
 }
 
 template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphi(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    BoundedVector<double, NumNodes> Drho_DPhi_current =
+        ComputeDrhoDphiSupersonicAccelerating<Dim, NumNodes>(
+            rElement, rUpstreamElement, rCurrentProcessInfo);
+
+    // Vector containing this and upstream element contributions
+    BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
+    // Assembling contributions from this element
+    for(unsigned int i = 0; i < NumNodes; i++) {
+        Drho_DPhi(i) = Drho_DPhi_current(i);
+    }
+
+    // Computing upstream contributions
+    BoundedVector<double, NumNodes> Drho_DPhi_upstream =
+        ComputeDrhoDphiUpSupersonicAccelerating<Dim, NumNodes>(
+            rElement, rUpstreamElement, rCurrentProcessInfo);
+
+    EquationIdVectorType equation_id_vector(NumNodes, 0);
+    EquationIdVectorType upstream_equation_id_vector(NumNodes, 0);
+
+    const int kutta = rElement.GetValue(KUTTA);
+    if (kutta == 0){
+        GetEquationIdVectorNormalElement<Dim,NumNodes>(rElement, equation_id_vector);
+    }
+    else{
+        GetEquationIdVectorKuttaElement<Dim,NumNodes>(rElement, equation_id_vector);
+    }
+
+    const int upstream_kutta = rUpstreamElement.GetValue(KUTTA);
+    if (upstream_kutta == 0){
+        GetEquationIdVectorNormalElement<Dim,NumNodes>(rUpstreamElement, upstream_equation_id_vector);
+    }
+    else{
+        GetEquationIdVectorKuttaElement<Dim,NumNodes>(rUpstreamElement, upstream_equation_id_vector);
+    }
+
+    // Loop over upstream_equation_id_vector
+    for(unsigned int i = 0; i < upstream_equation_id_vector.size(); i++){
+        bool position_found = false;
+        // Loop over equation_id_vector
+        for(unsigned int j = 0; j < equation_id_vector.size(); j++){
+            if (abs(upstream_equation_id_vector[i] - equation_id_vector[j]) < 1e-3) {
+                Drho_DPhi(j) += Drho_DPhi_upstream(i);
+                position_found = true;
+                break;
+            }
+        }
+        if(!position_found){
+            Drho_DPhi(NumNodes) = Drho_DPhi_upstream(i);
+        }
+    }
+
+    return Drho_DPhi;
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -657,6 +714,7 @@ template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<2, 3>(const El
 template double ComputeDerivativeMachNumberSquaredWRTVelocitySquared<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 3> ComputeDrhoDphiSupersonicAccelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 3> ComputeDrhoDphiUpSupersonicAccelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 4> ComputeAndAssembleDrhoDphi<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -694,6 +752,7 @@ template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<3, 4>(const El
 template double ComputeDerivativeMachNumberSquaredWRTVelocitySquared<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 4> ComputeDrhoDphiSupersonicAccelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 4> ComputeDrhoDphiUpSupersonicAccelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 5> ComputeAndAssembleDrhoDphi<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
