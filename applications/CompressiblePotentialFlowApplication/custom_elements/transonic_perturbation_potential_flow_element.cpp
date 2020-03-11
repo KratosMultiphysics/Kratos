@@ -496,14 +496,15 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         // Calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
+        const Kratos::Element& r_upstream_element = *pGetUpstreamElement();
+        const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, r_upstream_element, rCurrentProcessInfo);
         const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
         const double Drho_Dv2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
         array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
         const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
         const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*this, rCurrentProcessInfo);
-        const double upstream_upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*pGetUpstreamElement(), rCurrentProcessInfo);
+        const double upstream_upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(r_upstream_element, rCurrentProcessInfo);
 
         const BoundedMatrix<double, NumNodes, NumNodes> term_matrix_laplacian =
             data.vol * upwind_density * prod(data.DN_DX, trans(data.DN_DX));
@@ -521,15 +522,58 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
             }
         }
         // Supersonic flow and accelerating (local_mach_number > upstream_mach_number)
-        else if( upwind_factor > upstream_upwind_factor){
+        else if( upwind_factor >= upstream_upwind_factor){
             BoundedVector<double, NumNodes> Drho_DPhi_current =
                 PotentialFlowUtilities::ComputeDrhoDphiSupersonicAccelerating<Dim, NumNodes>(
-                    *this, *pGetUpstreamElement(), rCurrentProcessInfo);
+                    *this, r_upstream_element, rCurrentProcessInfo);
 
+            // Vector containing this and upstream element contributions
             BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
+            // Assembling contributions from this element
             for(unsigned int i = 0; i < NumNodes; i++) {
                 Drho_DPhi(i) = Drho_DPhi_current(i);
             }
+
+            // Computing upstream contributions
+            BoundedVector<double, NumNodes> Drho_DPhi_upstream =
+                PotentialFlowUtilities::ComputeDrhoDphiUpSupersonicAccelerating<Dim, NumNodes>(
+                    *this, r_upstream_element, rCurrentProcessInfo);
+
+            EquationIdVectorType equation_id_vector(NumNodes, 0);
+            EquationIdVectorType upstream_equation_id_vector(NumNodes, 0);
+
+            const int kutta = r_this.GetValue(KUTTA);
+            if (kutta == 0){
+                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(*this, equation_id_vector);
+            }
+            else{
+                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(*this, equation_id_vector);
+            }
+
+            const int upstream_kutta = r_upstream_element.GetValue(KUTTA);
+            if (upstream_kutta == 0){
+                PotentialFlowUtilities::GetEquationIdVectorNormalElement<Dim,NumNodes>(r_upstream_element, upstream_equation_id_vector);
+            }
+            else{
+                PotentialFlowUtilities::GetEquationIdVectorKuttaElement<Dim,NumNodes>(r_upstream_element, upstream_equation_id_vector);
+            }
+
+            // Loop over upstream_equation_id_vector
+            for(unsigned int i = 0; i < upstream_equation_id_vector.size(); i++){
+                bool position_found = false;
+                // Loop over equation_id_vector
+                for(unsigned int j = 0; j < equation_id_vector.size(); j++){
+                    if (abs(upstream_equation_id_vector[i] - equation_id_vector[j]) < 1e-3) {
+                        Drho_DPhi(j) += Drho_DPhi_upstream(i);
+                        position_found = true;
+                        break;
+                    }
+                }
+                if(!position_found){
+                    Drho_DPhi(NumNodes) = Drho_DPhi_upstream(i);
+                }
+            }
+
             const BoundedMatrix<double, NumNodes, NumNodes + 1> term_matrix_nonlinear =
                 data.vol * outer_prod(DNV, trans(Drho_DPhi));
 
