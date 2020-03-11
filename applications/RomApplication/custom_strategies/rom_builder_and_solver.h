@@ -297,14 +297,26 @@ public:
         ModelPart &rModelPart,
         TSystemVectorType &Dx)
     {
-        const Matrix *current_rom_nodal_basis{nullptr};
-        for (unsigned int k = 0; k<BaseType::mDofSet.size(); k++){
-            auto dof = BaseType::mDofSet.begin() + k;
-            if(k==0)
-                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-            else if(dof->Id() != (dof-1)->Id())
-                current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-            Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
+        const auto dofs_begin = BaseType::mDofSet.begin();
+        const auto dofs_number = BaseType::mDofSet.size();
+
+        #pragma omp parallel firstprivate(dofs_begin, dofs_number)
+        {
+            const Matrix *current_rom_nodal_basis{nullptr};
+            unsigned int old_dof_id{};
+            #pragma omp for nowait
+            for (unsigned int k = 0; k<dofs_number; k++){
+                auto dof = dofs_begin + k;
+                if(current_rom_nodal_basis == nullptr){
+                    current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
+                    old_dof_id = dof->Id();
+                }
+                else if(dof->Id() != old_dof_id ){
+                    current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
+                    old_dof_id = dof->Id();
+                }
+                Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
+            }
         }
     }
 
@@ -367,8 +379,8 @@ public:
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
+        const auto el_begin = rModelPart.ElementsBegin();
+        const auto cond_begin = rModelPart.ConditionsBegin();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -381,7 +393,7 @@ public:
         double start_build = OpenMPUtils::GetCurrentTime();
 
         Matrix PhiElemental;
-        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PhiElemental)
+        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PhiElemental, el_begin, cond_begin)
         {
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
@@ -445,6 +457,7 @@ public:
             {
                 noalias(Arom) +=tempA;
                 noalias(brom) +=tempb;
+            }
 
         }
 
