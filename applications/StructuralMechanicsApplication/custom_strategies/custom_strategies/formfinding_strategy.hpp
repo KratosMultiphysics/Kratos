@@ -113,9 +113,11 @@ private:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
-        const bool MoveMesh) override
+        const bool MoveMesh,
+        const bool complete_update
+    ) override
     {
-        BaseType::UpdateDatabase(A,Dx, b, MoveMesh);
+        BaseType::UpdateDatabase(A, Dx, b, MoveMesh, complete_update);
         for(auto& r_node : mrFormFindingModelPart.Nodes()){
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);

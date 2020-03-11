@@ -779,11 +779,11 @@ class ResidualBasedNewtonRaphsonStrategy
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-        bool is_converged = false;
+        //bool is_converged = false;
         bool residual_is_updated = false;
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -814,7 +814,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 }
 
                 // TODO: Use UpdateDatabase. Beware it requires -Dx_pred
-                //UpdateDatabase(rA, -dx_prediction, rb, BaseType::MoveMeshFlag());
+                //UpdateDatabase(rA, -dx_prediction, rb, BaseType::MoveMeshFlag(), true);
                 // TODO: this needs to be protected by an if. Remove when implemented updatedatabase
                 if (BaseType::MoveMeshFlag()) {
                     BaseType::MoveMesh();
@@ -1185,11 +1185,14 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param MoveMesh The flag that allows to move the mesh
      */
 
-    virtual void UpdateDatabase(
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb,
-        const bool MoveMesh)
+    virtual void
+    UpdateDatabase(
+            TSystemMatrixType &rA,
+            TSystemVectorType &rDx,
+            TSystemVectorType &rb,
+            const bool MoveMesh,
+            const bool complete_update = false
+            )
     {
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
