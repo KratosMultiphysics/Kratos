@@ -806,7 +806,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 // The goal is that the stiffness is computed with the
                 // converged configuration at the end of the previous step.
 
-                //TODO: do in parallel
+                #pragma omp parallel for
                 for (auto &dof : r_dof_set) {
                     dx_prediction[dof.EquationId()] = dof.GetSolutionStepValue() - dof.GetSolutionStepValue(1);
                     // Bring back the database
@@ -837,6 +837,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 //TSparseSpace::UnaliasedAdd(rDx,dx_prediction); //dx += dx_prediction;
 
                 // Here we apply back the prediction
+                #pragma omp parallel for
                 for (auto &dof : r_dof_set) {
                     // Bring back the database
                     dof.GetSolutionStepValue() += dx_prediction[dof.EquationId()];
@@ -1139,7 +1140,7 @@ class ResidualBasedNewtonRaphsonStrategy
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria; /// The pointer to the convergence criteria employed
 
-    TSystemVectorPointerType mpDx; /// The incremement in the solution
+    TSystemVectorPointerType mpDx; /// The increment in the solution
     TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
     TSystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
 
