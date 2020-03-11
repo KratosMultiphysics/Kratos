@@ -352,12 +352,12 @@ public:
         ModelPart &rFluidModelPart
         )
     {
-        const auto& it_node_begin = rFluidModelPart.NodesBegin();
+        const auto it_node_begin = rFluidModelPart.NodesBegin();
         auto &r_process_info      = rFluidModelPart.GetProcessInfo();
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); ++i) {
-            auto& it_node = it_node_begin + i;
+            auto it_node = it_node_begin + i;
 
             if (it_node->IsNot(SOLID)) { // We update only the fluid part
                 auto &r_current_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
