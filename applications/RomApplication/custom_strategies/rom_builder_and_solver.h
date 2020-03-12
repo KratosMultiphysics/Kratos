@@ -336,9 +336,9 @@ public:
                 current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
             }
             if (dofs[k]->IsFixed())
-                row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
+                noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
-                row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
+                noalias(row(PhiElemental, k)) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
         }
     }
 
