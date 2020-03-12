@@ -97,6 +97,7 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",CreateConvergenceCriteria)
      .def("Has",&ConvergenceCriteriaFactoryType::Has)
+     .def("__str__", PrintObject<ConvergenceCriteriaFactoryType>)
     ;
 
     //////////////////////////////////////////////////////////////7
@@ -105,6 +106,7 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",CreateScheme)
      .def("Has",&SchemeFactoryType::Has)
+     .def("__str__", PrintObject<SchemeFactoryType>)
     ;
 
     //////////////////////////////////////////////////////////////7
@@ -113,6 +115,7 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",CreateBuilderAndSolver)
      .def("Has",&BuilderAndSolverFactoryType::Has)
+//      .def("__str__", PrintObject<BuilderAndSolverFactoryType>)
     ;
 
     //////////////////////////////////////////////////////////////7
@@ -121,6 +124,7 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",CreateSolvingStrategy)
      .def("Has",&StrategyFactoryType::Has)
+     .def("__str__", PrintObject<StrategyFactoryType>)
     ;
 
 }
