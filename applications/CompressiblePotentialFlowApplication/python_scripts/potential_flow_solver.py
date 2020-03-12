@@ -140,6 +140,12 @@ class PotentialFlowSolver(FluidSolver):
             "no_skin_parts": [""],
             "move_mesh_flag": false,
             "reference_chord": 1.0,
+            "time_stepping"                : {
+                "automatic_time_step" : false,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 1.0,
+                "time_step":            0.1
+            },
             "auxiliary_variables_list" : []
         }''')
 
@@ -237,8 +243,8 @@ class PotentialFlowSolver(FluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Initialize()
 
-    def AdvanceInTime(self, current_time):
-        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+    # def AdvanceInTime(self, current_time):
+    #     raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
     def _ComputeNodalNeighbours(self):
         # Find nodal neigbours util call
