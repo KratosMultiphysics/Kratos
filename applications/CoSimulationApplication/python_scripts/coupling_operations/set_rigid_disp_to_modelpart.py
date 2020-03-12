@@ -56,20 +56,20 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
             master_node = node
             break
 
-        master_node_x_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_X)
-        master_node_y_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Y)
-        master_node_z_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Z)
+        master_node_x_disp = master_node.GetSolutionStepValue(KM.MESH_DISPLACEMENT_X)
+        master_node_y_disp = master_node.GetSolutionStepValue(KM.MESH_DISPLACEMENT_Y)
+        master_node_z_disp = master_node.GetSolutionStepValue(KM.MESH_DISPLACEMENT_Z)
         for node in self.modelpart.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_X, 0, master_node_x_disp)
-            node.SetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Y, 0, master_node_y_disp)
-            node.SetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Z, 0, master_node_z_disp)
+            node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_X, 0, master_node_x_disp)
+            node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_Y, 0, master_node_y_disp)
+            node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_Z, 0, master_node_z_disp)
 
             node.X = node.X0 + master_node_x_disp
             node.Y = node.Y0 + master_node_y_disp
             node.Z = node.Z0 + master_node_z_disp
 
-            node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0, master_node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY))
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, master_node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY))
+            node.SetSolutionStepValue(KM.MESH_VELOCITY, 0, master_node.GetSolutionStepValue(KM.MESH_VELOCITY))
+            node.SetSolutionStepValue(KM.VELOCITY, 0, master_node.GetSolutionStepValue(KM.MESH_VELOCITY))
 
     def PrintInfo(self):
         pass
