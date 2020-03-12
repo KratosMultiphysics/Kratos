@@ -545,9 +545,25 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         }
         // Supersonic flow and decelerating (local_mach_number < upstream_mach_number)
         else{
+            BoundedVector<double, NumNodes + 1> Drho_DPhi =
+                PotentialFlowUtilities::ComputeAndAssembleDrhoDphiSupersonicDecelerating<Dim, NumNodes>(
+                    r_this, r_upstream_element, rCurrentProcessInfo);
+
+            const BoundedMatrix<double, NumNodes, NumNodes + 1> term_matrix_nonlinear =
+                data.vol * outer_prod(DNV, trans(Drho_DPhi));
+
+            for(unsigned int i = 0; i < NumNodes; i++){
+                for(unsigned int j = 0; j < NumNodes; j++){
+                    rLeftHandSideMatrix(i,j)  = term_matrix_laplacian(i,j);
+                }
+            }
+
+            for(unsigned int i = 0; i < NumNodes; i++){
+                for(unsigned int j = 0; j < NumNodes + 1; j++){
+                    rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
+                }
+            }
         }
-
-
     }
 }
 

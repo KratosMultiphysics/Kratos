@@ -423,5 +423,51 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDrhoDphiUpSupersonicAccelerating, CompressibleP
     KRATOS_CHECK_VECTOR_NEAR(DrhoDphiUp, reference, 1e-16);
 }
 
+// Checks the function ComputeUpwindDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDrhoDphiSupersonicDecelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    GenerateTestingUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 51.0};
+    AssignPerturbationPotentialsToElement(*pUpstreamElement, upstream_potential);
+
+    const BoundedVector<double, 3> DrhoDphi = PotentialFlowUtilities::ComputeDrhoDphiSupersonicDecelerating<2, 3>(
+        *pElement, *pUpstreamElement, model_part.GetProcessInfo());
+
+    std::vector<double> reference{0.002494998902346807,-0.002031531613985171,-0.0004634672883616359};
+
+    KRATOS_CHECK_VECTOR_NEAR(DrhoDphi, reference, 1e-16);
+}
+
+// Checks the function ComputeUpwindDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDrhoDphiUpSupersonicDecelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    GenerateTestingUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 51.0};
+    AssignPerturbationPotentialsToElement(*pUpstreamElement, upstream_potential);
+
+    const BoundedVector<double, 3> DrhoDphiUp = PotentialFlowUtilities::ComputeDrhoDphiUpSupersonicDecelerating<2, 3>(
+        *pElement, *pUpstreamElement, model_part.GetProcessInfo());
+
+    std::vector<double> reference{7.680874010502327e-05,-0.0005115462090994551,0.0004347374689944318};
+
+    KRATOS_CHECK_VECTOR_NEAR(DrhoDphiUp, reference, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.

@@ -241,7 +241,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
     std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    std::cout.precision(16);
     for (auto& r_node : model_part.Nodes()){
         r_node.AddDof(VELOCITY_POTENTIAL);
     }
@@ -265,11 +264,63 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
     Matrix LHS = ZeroMatrix(3, 3);
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
-    KRATOS_WATCH(LHS)
 
     std::array<double, 16> reference{ 0.08311820046089136,-0.1594672105670851, 0.09759158478435792,-0.02124257467816418,
                                      -0.1519635956028805,  0.6680804733587455,-0.5334156611081742,  0.01729878335230908,
                                       0.06884539514198909,-0.5086132627916604,0.4358240763238163,0.003943791325855098,
+                                      0.0, 0.0, 0.0, 0.0};
+
+    for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; j < LHS.size2(); j++) {
+            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
+        }
+    }
+}
+
+/** Checks the TransonicPerturbationPotentialFlowElement.
+ * Checks the LHS computation.
+ */
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonicDecelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    std::array<double, 3> potential{1.0, 120.0, 180.0};
+    AssignPerturbationPotentialsToTransonicElement(*pElement, potential);
+
+    GenerateTestingTransonicUpstreamElement(model_part);
+    Element::Pointer pUpstreamElement = model_part.pGetElement(2);
+    std::array<double, 3> upstream_potential{1.0, 180.0, 51.0};
+    AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
+
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType ElementalDofList, UpstreamElementalDofList;
+    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    pUpstreamElement->GetDofList(UpstreamElementalDofList, model_part.GetProcessInfo());
+
+    std::vector<int> ids{23, 74, 55};
+    std::vector<int> upstream_ids{23, 55, 67};
+    for (int i = 0; i < 3; i++){
+        ElementalDofList[i]->SetEquationId(ids[i]);
+        UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
+    }
+
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
+    neighbour_finder.Execute();
+    pElement->Initialize(model_part.GetProcessInfo());
+
+    // Compute LHS
+    Matrix LHS = ZeroMatrix(3, 3);
+
+    pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
+
+    std::array<double, 16> reference{ 0.03486940937962629,-0.1220506719403047, 0.1570735000967481,-0.06989223753606974,
+                                     -0.112001164475407,0.6333235380330079,-0.5782387640357952,0.0569163904781943,
+                                      0.07713175509578073,-0.5112728660927033,0.4211652639390471,0.01297584705787544,
                                       0.0, 0.0, 0.0, 0.0};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {

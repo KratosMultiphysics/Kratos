@@ -524,23 +524,73 @@ template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicAccelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    ElementalData<NumNodes, Dim> upstream_data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(rUpstreamElement.GetGeometry(), upstream_data.DN_DX, upstream_data.N, upstream_data.vol);
+    array_1d<double, Dim> upstream_velocity = ComputeVelocity<Dim,NumNodes>(rUpstreamElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        upstream_velocity[i] += free_stream_velocity[i];
+    }
+    const BoundedVector<double, NumNodes> upstream_DNV = prod(upstream_data.DN_DX, upstream_velocity);
+
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double upstream_density = ComputePerturbationDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double upstream_Drho_Dv2 = ComputeDensityDerivative<Dim, NumNodes>(upstream_density, rCurrentProcessInfo);
+
+    const BoundedVector<double, NumNodes> Drho_DUpstreamPhi = 2 * upstream_Drho_Dv2 * upwind_factor * upstream_DNV;
+
+    return Drho_DUpstreamPhi;
+}
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rUpstreamElement.GetGeometry(), data.DN_DX, data.N, data.vol);
-    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rUpstreamElement);
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
     for (unsigned int i = 0; i < Dim; i++){
         velocity[i] += free_stream_velocity[i];
     }
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
-    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(rElement, rCurrentProcessInfo);
-    const double density_up = ComputePerturbationDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
-    const double Drho_Dv2_up = ComputeDensityDerivative<Dim, NumNodes>(density_up, rCurrentProcessInfo);
+    const double upstream_upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double density = ComputePerturbationDensity<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double Drho_Dv2 = ComputeDensityDerivative<Dim, NumNodes>(density, rCurrentProcessInfo);
 
-    const BoundedVector<double, NumNodes> Drho_DPhiUp = 2 * Drho_Dv2_up * upwind_factor * DNV;
+    const BoundedVector<double, NumNodes> Drho_DPhi = 2 * Drho_Dv2 * (1 - upstream_upwind_factor) * DNV;
 
-    return Drho_DPhiUp;
+    return Drho_DPhi;
+}
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    ElementalData<NumNodes, Dim> upstream_data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(rUpstreamElement.GetGeometry(), upstream_data.DN_DX, upstream_data.N, upstream_data.vol);
+    array_1d<double, Dim> upstream_velocity = ComputeVelocity<Dim,NumNodes>(rUpstreamElement);
+    for (unsigned int i = 0; i < Dim; i++){
+        upstream_velocity[i] += free_stream_velocity[i];
+    }
+    const BoundedVector<double, NumNodes> upstream_DNV = prod(upstream_data.DN_DX, upstream_velocity);
+
+    const double upstream_upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double density = ComputePerturbationDensity<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+    const double upstream_density = ComputePerturbationDensity<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double upstream_Drho_Dv2 = ComputeDensityDerivative<Dim, NumNodes>(upstream_density, rCurrentProcessInfo);
+    const double upstream_Dmu_DM2 = ComputeDerivativeUpwindFactorWRTMachNumberSquared<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+    const double upstream_DM2_Dv2 = ComputeDerivativeMachNumberSquaredWRTVelocitySquared<Dim, NumNodes>(rUpstreamElement, rCurrentProcessInfo);
+
+    const double factor = 2 * (upstream_Drho_Dv2 * upstream_upwind_factor - upstream_Dmu_DM2 * upstream_DM2_Dv2 * (density - upstream_density));
+    const BoundedVector<double, NumNodes> Drho_DUpstreamPhi = factor * upstream_DNV;
+
+    return Drho_DUpstreamPhi;
 }
 
 template <int Dim, int NumNodes>
@@ -550,17 +600,38 @@ BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphi(const Element& rE
         ComputeDrhoDphiSupersonicAccelerating<Dim, NumNodes>(
             rElement, rUpstreamElement, rCurrentProcessInfo);
 
-    // Vector containing this and upstream element contributions
-    BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
-    // Assembling contributions from this element
-    for(unsigned int i = 0; i < NumNodes; i++) {
-        Drho_DPhi(i) = Drho_DPhi_current(i);
-    }
-
-    // Computing upstream contributions
     BoundedVector<double, NumNodes> Drho_DPhi_upstream =
         ComputeDrhoDphiUpSupersonicAccelerating<Dim, NumNodes>(
             rElement, rUpstreamElement, rCurrentProcessInfo);
+
+    return AssembleDrhoDphi<Dim, NumNodes>(rElement, Drho_DPhi_current, rUpstreamElement, Drho_DPhi_upstream, rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphiSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    BoundedVector<double, NumNodes> Drho_DPhi_current =
+        ComputeDrhoDphiSupersonicDecelerating<Dim, NumNodes>(
+            rElement, rUpstreamElement, rCurrentProcessInfo);
+
+    BoundedVector<double, NumNodes> Drho_DPhi_upstream =
+        ComputeDrhoDphiUpSupersonicDecelerating<Dim, NumNodes>(
+            rElement, rUpstreamElement, rCurrentProcessInfo);
+
+    return AssembleDrhoDphi<Dim, NumNodes>(rElement, Drho_DPhi_current, rUpstreamElement, Drho_DPhi_upstream, rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> AssembleDrhoDphi(const Element& rElement, const BoundedVector<double, NumNodes>& rDrhoDPhiCurrent, const Element& rUpstreamElement, const BoundedVector<double, NumNodes>& rDrhoDPhiUpstream, const ProcessInfo& rCurrentProcessInfo)
+{
+
+    // Vector containing current and upstream element contributions
+    BoundedVector<double, NumNodes + 1> Drho_DPhi = ZeroVector(NumNodes + 1);
+
+    // Assembling contributions from current element
+    for(unsigned int i = 0; i < NumNodes; i++) {
+        Drho_DPhi(i) = rDrhoDPhiCurrent(i);
+    }
 
     EquationIdVectorType equation_id_vector(NumNodes, 0);
     EquationIdVectorType upstream_equation_id_vector(NumNodes, 0);
@@ -587,13 +658,13 @@ BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphi(const Element& rE
         // Loop over equation_id_vector
         for(unsigned int j = 0; j < equation_id_vector.size(); j++){
             if (abs(upstream_equation_id_vector[i] - equation_id_vector[j]) < 1e-3) {
-                Drho_DPhi(j) += Drho_DPhi_upstream(i);
+                Drho_DPhi(j) += rDrhoDPhiUpstream(i);
                 position_found = true;
                 break;
             }
         }
         if(!position_found){
-            Drho_DPhi(NumNodes) = Drho_DPhi_upstream(i);
+            Drho_DPhi(NumNodes) = rDrhoDPhiUpstream(i);
         }
     }
 
@@ -714,7 +785,11 @@ template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<2, 3>(const El
 template double ComputeDerivativeMachNumberSquaredWRTVelocitySquared<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 3> ComputeDrhoDphiSupersonicAccelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 3> ComputeDrhoDphiUpSupersonicAccelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 3> ComputeDrhoDphiSupersonicDecelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 3> ComputeDrhoDphiUpSupersonicDecelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 4> ComputeAndAssembleDrhoDphi<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 4> ComputeAndAssembleDrhoDphiSupersonicDecelerating<2, 3>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 4> AssembleDrhoDphi<2, 3>(const Element& rElement, const BoundedVector<double, 3>& rDrhoDPhiCurrent, const Element& rUpstreamElement, const BoundedVector<double, 3>& rDrhoDPhiUpstream, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -752,7 +827,11 @@ template double ComputeDerivativeUpwindFactorWRTMachNumberSquared<3, 4>(const El
 template double ComputeDerivativeMachNumberSquaredWRTVelocitySquared<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 4> ComputeDrhoDphiSupersonicAccelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 4> ComputeDrhoDphiUpSupersonicAccelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 4> ComputeDrhoDphiSupersonicDecelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 4> ComputeDrhoDphiUpSupersonicDecelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 template BoundedVector<double, 5> ComputeAndAssembleDrhoDphi<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 5> ComputeAndAssembleDrhoDphiSupersonicDecelerating<3, 4>(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+template BoundedVector<double, 5> AssembleDrhoDphi<3, 4>(const Element& rElement, const BoundedVector<double, 4>& rDrhoDPhiCurrent,const Element& rUpstreamElement,  const BoundedVector<double, 4>& rDrhoDPhiUpstream, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);

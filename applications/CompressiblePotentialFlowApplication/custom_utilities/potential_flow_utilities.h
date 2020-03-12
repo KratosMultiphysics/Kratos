@@ -129,7 +129,19 @@ template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicAccelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphi(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphiSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> AssembleDrhoDphi(const Element& rElement, const BoundedVector<double, NumNodes>& rDrhoDPhiCurrent, const Element& rUpstreamElement,  const BoundedVector<double, NumNodes>& rDrhoDPhiUpstream, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
