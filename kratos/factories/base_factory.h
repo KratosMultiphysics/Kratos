@@ -259,9 +259,9 @@ protected:
 ///@{
 
 /// output stream function
-template<class TClass>
+template<class TClass, typename TAuxiliarClass>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const BaseFactory<TClass>& rThis)
+                                  const BaseFactory<TClass, TAuxiliarClass>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

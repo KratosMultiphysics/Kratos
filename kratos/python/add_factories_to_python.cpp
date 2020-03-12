@@ -115,7 +115,7 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",CreateBuilderAndSolver)
      .def("Has",&BuilderAndSolverFactoryType::Has)
-//      .def("__str__", PrintObject<BuilderAndSolverFactoryType>)
+     .def("__str__", PrintObject<BuilderAndSolverFactoryType>)
     ;
 
     //////////////////////////////////////////////////////////////7
