@@ -176,9 +176,6 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVe
 
         GetDofListWakeElement(rElementalDofList);
     }
-    if(this->Id()==333){
-        KRATOS_WATCH(rElementalDofList)
-    }
 }
 
 template <int Dim, int NumNodes>
@@ -254,7 +251,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegra
     }
     else if (rVariable == DENSITY)
     {
-        rValues[0] = ComputeDensity(rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     else if (rVariable == MACH)
     {
@@ -564,6 +561,11 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
                 }
             }
         }
+    }
+    for(unsigned int i = 0; i < NumNodes; i++){
+        KRATOS_WARNING_IF("CalculateLeftHandSideNormalElement",rLeftHandSideMatrix(i,i) < 0.0)
+        << " Negative diagonal entry in element # " << this->Id()
+        << "                            at node # " << GetGeometry()[i].Id()  << std::endl;
     }
 }
 
@@ -937,7 +939,7 @@ double TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensity(
 
     if (local_mach_number > mach_number_limit)
     { // Clamping the mach number to mach_number_limit
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
+        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << " in element #" << this->Id() << std::endl;
         local_mach_number = mach_number_limit;
     }
 

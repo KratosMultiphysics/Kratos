@@ -278,6 +278,15 @@ double ComputePerturbationCompressiblePressureCoefficient(const Element& rElemen
     const double M_inf_2 = M_inf * M_inf;
     double v_2 = inner_prod(velocity, velocity);
 
+    const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+
+    if(v_2 > v_max_2){
+        // KRATOS_WARNING("ComputePerturbationLocalSpeedOfSound")
+        //     << "Clamping the speed of sound squared to " << v_max_2 << " from "
+        //     << v_2 << " in element #" << rElement.Id() << std::endl;
+        v_2 = v_max_2;
+    }
+
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
@@ -334,13 +343,47 @@ double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const Proce
     // Computing squares
     const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = M_inf * M_inf;
-    const double v_2 = inner_prod(velocity, velocity);
+    double v_2 = inner_prod(velocity, velocity);
+
+    const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+
+    if(v_2 > v_max_2){
+        // KRATOS_WARNING("ComputePerturbationLocalSpeedOfSound")
+        //     << "Clamping the speed of sound squared to " << v_max_2 << " from "
+        //     << v_2 << " in element #" << rElement.Id() << std::endl;
+        v_2 = v_max_2;
+    }
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
+    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    KRATOS_WARNING_IF("ComputePerturbationLocalSpeedOfSound", base < std::numeric_limits<double>::epsilon())
+    << "Using density correction in element # " << rElement.Id()
+    << "                               with base = "  << base  << std::endl;
     return a_inf * sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+}
+
+template <int Dim, int NumNodes>
+double ComputeMaximumVelocitySquared(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Reading free stream conditions
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+
+    // Maximum local mach number squared allowed
+    const double M_max_2 = 3.0;
+
+    // Computing squares
+    const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
+    const double M_inf_2 = M_inf * M_inf;
+
+    const double numerator = M_max_2 * (1.0 + (heat_capacity_ratio - 1) / 2.0 * M_inf_2 );
+    const double denominator = M_inf_2 * (1.0 + (heat_capacity_ratio - 1) / 2.0 * M_max_2 );
+
+    return v_inf_2 * numerator / denominator;
 }
 
 template <int Dim, int NumNodes>
@@ -403,6 +446,36 @@ double ComputePerturbationDensity(const Element& rElement, const ProcessInfo& rC
         KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
         return rho_inf * 0.00001;
     }
+
+    // // Reading free stream conditions
+    // const array_1d<double, 3>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    // const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    // const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
+    // const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+
+    // // Computing local velocity
+    // array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    // for (unsigned int i = 0; i < Dim; i++){
+    //     velocity[i] += free_stream_velocity[i];
+    // }
+
+    // // Computing squares
+    // const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
+    // const double M_inf_2 = M_inf * M_inf;
+    // double v_2 = inner_prod(velocity, velocity);
+
+    // const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+
+    // if (base > 0.0)
+    // {
+    //     return rho_inf * pow(base, 1 / (heat_capacity_ratio - 1));
+    // }
+    // else
+    // {
+    //     KRATOS_WARNING("ComputePerturbationDensity") << "Using density correction in element # " << rElement.Id()
+    //     << "                                          with base = "  << base  << std::endl;
+    //     return rho_inf * 0.00001;
+    // }
 }
 
 template <int Dim, int NumNodes>
@@ -774,6 +847,7 @@ template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rEle
 template double ComputePerturbationCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeMaximumVelocitySquared<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationDensity<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
@@ -816,6 +890,7 @@ template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rEle
 template double ComputePerturbationCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeMaximumVelocitySquared<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationDensity<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);

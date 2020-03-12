@@ -160,6 +160,25 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalSpeedOfSound, CompressiblePote
     KRATOS_CHECK_NEAR(local_speed_of_sound, 324.1317633309022, 1e-13);
 }
 
+// Checks the function ComputePerturbationLocalSpeedOfSound from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
+    AssignPerturbationPotentialsToElement(*pElement, potential);
+
+    std::cout.precision(16);
+    const double maximum_velocity_squared =
+        PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(
+            *pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(maximum_velocity_squared, 232356.00000000003, 1e-13);
+}
+
 // Checks the function ComputePerturbationLocalMachNumber from the utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
