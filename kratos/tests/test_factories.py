@@ -132,6 +132,113 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFCustomScheme")
+        
+    def _auxiliary_test_function_Strategy(self, settings, name):
+        this_model = KM.Model()
+        model_part = this_model.CreateModelPart("Main")
+        strategy = KM.StrategyFactory().Create(model_part, settings)
+        self.assertTrue(KM.StrategyFactory().Has(settings["name"].GetString()))
+        self.assertEqual(strategy.Info(), name)
+        
+    def test_ResidualBasedLinearStrategy(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "linear_strategy",
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
+            },
+            "scheme_settings" : {
+                "name" : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name" : "displacement_criteria"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "elimination_builder_and_solver"
+            }
+        }
+        """)
+        self._auxiliary_test_function_Strategy(settings, "ResidualBasedLinearStrategy")
+
+    def test_ResidualBasedNewtonRaphsonStrategy(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "newton_raphson_strategy",
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
+            },
+            "scheme_settings" : {
+                "name" : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name" : "displacement_criteria"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "elimination_builder_and_solver"
+            }
+        }
+        """)
+        self._auxiliary_test_function_Strategy(settings, "ResidualBasedNewtonRaphsonStrategy")
+        
+    def test_AdaptiveResidualBasedNewtonRaphsonStrategy(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "adaptative_newton_raphson_strategy",
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
+            },
+            "scheme_settings" : {
+                "name" : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name" : "displacement_criteria"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "elimination_builder_and_solver"
+            }
+        }
+        """)
+        self._auxiliary_test_function_Strategy(settings, "AdaptiveResidualBasedNewtonRaphsonStrategy")
+        
+    def test_LineSearchStrategy(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "line_search_strategy",
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
+            },
+            "scheme_settings" : {
+                "name" : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name" : "displacement_criteria"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "elimination_builder_and_solver"
+            }
+        }
+        """)
+        self._auxiliary_test_function_Strategy(settings, "LineSearchStrategy")
+        
+    def test_ExplicitStrategy(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "explicit_strategy",
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl"
+            },
+            "scheme_settings" : {
+                "name" : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name" : "displacement_criteria"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "elimination_builder_and_solver"
+            }
+        }
+        """)
+        self._auxiliary_test_function_Strategy(settings, "ExplicitStrategy")
 
 if __name__ == '__main__':
     KratosUnittest.main()
