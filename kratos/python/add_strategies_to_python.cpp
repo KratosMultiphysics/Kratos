@@ -264,6 +264,7 @@ namespace Kratos
                     .def("Clear",&BaseSchemeType::Clear)
                     .def("MoveMesh", MoveMesh)
                     .def("Check", &BaseSchemeType::Check)
+                    .def("Info", &BaseSchemeType::Info)
                     ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -370,6 +371,7 @@ namespace Kratos
                     .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
                     .def("Check", &ConvergenceCriteriaType::Check)
                     .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
+                    .def("Info", &ConvergenceCriteriaType::Info)
                     ;
 
             py::class_< DisplacementCriteria<SparseSpaceType, LocalSpaceType >,
@@ -443,6 +445,7 @@ namespace Kratos
                 .def("Check", &BuilderAndSolverType::Check)
                 .def("SetEchoLevel", &BuilderAndSolverType::SetEchoLevel)
                 .def("GetEchoLevel", &BuilderAndSolverType::GetEchoLevel)
+                .def("Info", &BuilderAndSolverType::Info)
                 ;
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
@@ -508,6 +511,7 @@ namespace Kratos
                     .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
                     .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
+                    .def("Info", &BaseSolvingStrategyType::Info)
                     ;
 
 
