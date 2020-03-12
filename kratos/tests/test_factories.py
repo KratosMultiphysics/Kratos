@@ -36,9 +36,9 @@ class TestFactories(KratosUnittest.TestCase):
         self._auxiliary_test_function_BuilderAndSolver(settings, "ResidualBasedBlockBuilderAndSolver")
         
     def _auxiliary_test_function_ConvergenceCriteria(self, settings, name):
-        builder_and_solver = KM.ConvergenceCriteriaFactory().Create(settings)
+        conv_crit = KM.ConvergenceCriteriaFactory().Create(settings)
         self.assertTrue(KM.ConvergenceCriteriaFactory().Has(settings["name"].GetString()))
-        self.assertEqual(builder_and_solver.Info(), name)
+        self.assertEqual(conv_crit.Info(), name)
         
     def test_DisplacementCriteria(self):
         settings = KM.Parameters("""
@@ -71,6 +71,67 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_ConvergenceCriteria(settings, "Or_Criteria")
+        
+    def _auxiliary_test_function_Scheme(self, settings, name):
+        scheme = KM.SchemeFactory().Create(settings)
+        self.assertTrue(KM.SchemeFactory().Has(settings["name"].GetString()))
+        self.assertEqual(scheme.Info(), name)
+        
+    def test_ResidualBasedIncrementalUpdateStaticScheme(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "static"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedIncrementalUpdateStaticScheme")
+
+    def test_ResidualBasedIncrementalUpdateStaticSchemeSlip(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "static_slip"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedIncrementalUpdateStaticSchemeSlip")
+        
+    def test_ResidualBasedBossakDisplacementScheme(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "bossak"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedBossakDisplacementScheme")
+        
+    def test_ResidualBasedNewmarkDisplacementScheme(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "newmark"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedNewmarkDisplacementScheme")
+        
+    def test_ResidualBasedPseudoStaticDisplacementScheme(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "pseudo_static", "rayleigh_beta_variable" : "PRESSURE"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedPseudoStaticDisplacementScheme")
+        
+    def test_ResidualBasedBDFDisplacementScheme(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "bdf_displacement"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFDisplacementScheme")
+        
+    def test_ResidualBasedBDFCustomScheme(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "bdf"
+        }
+        """)
+        self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFCustomScheme")
 
 if __name__ == '__main__':
     KratosUnittest.main()
