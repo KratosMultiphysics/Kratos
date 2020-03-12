@@ -299,7 +299,7 @@ public:
 
         TSpace::SetToZero(rInterfaceResidualVector);
 
-        // #pragma omp parallel for firstprivate(it_node_begin)
+        #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
 
@@ -312,7 +312,6 @@ public:
             const unsigned int base_i = i * Dimension;
             for (unsigned int jj = 0; jj < Dimension; ++jj)
                 rInterfaceResidualVector[base_i + jj] = r_interface_residual[jj];
-                // TSpace::SetValue(rInterfaceResidualVector, base_i + jj, r_interface_residual[jj]);
         }
         return MathUtils<double>::Norm(rInterfaceResidualVector);
     }
@@ -328,7 +327,7 @@ public:
         auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
         const auto it_node_begin = r_interface_sub_model.NodesBegin();
 
-        // #pragma omp parallel for firstprivate(it_node_begin)
+        #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
             auto &r_value         = it_node->FastGetSolutionStepValue(VELOCITY);
@@ -338,9 +337,6 @@ public:
             for (unsigned int jj = 0; jj < Dimension; ++jj) {
                 r_value[jj]         = rRelaxedValuesVector[base_i + jj];
                 r_value_relaxed[jj] = rRelaxedValuesVector[base_i + jj];
-
-                // r_value[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
-                // r_value_relaxed[jj] = TSpace::GetValue(rRelaxedValuesVector, base_i + jj);
             }
         }
     }
