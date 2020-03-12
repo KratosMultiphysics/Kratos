@@ -78,6 +78,22 @@ protected:
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "StandardSchemeFactory";
+    }
 };
 
 ///@}
@@ -94,7 +110,10 @@ template <typename TSchemeType, typename TCustomSchemeType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const StandardSchemeFactory<TSchemeType, TCustomSchemeType>& rThis)
 {
-    rOStream << "StandardSchemeFactory" << std::endl;
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+    
     return rOStream;
 }
 

@@ -162,10 +162,6 @@ public:
         const auto& aux = KratosComponents< FactoryType >::Get( r_name );
         return aux.CreateClass(pAuxiliarClass, Settings);
     }
-    
-    ///@}
-    ///@name Operations
-    ///@{
 
     ///@}
     ///@name Access
@@ -198,11 +194,11 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << Info() << std::endl;
-        const auto factory_components = KratosComponents<FactoryType>::GetComponents();
-        for (const auto& r_comp : factory_components) {
-            rOStream << "\t" << r_comp.first << std::endl;
-        }
+//         rOStream << Info() << std::endl;
+//         const auto factory_components = KratosComponents<FactoryType>::GetComponents();
+//         for (const auto& r_comp : factory_components) {
+//             rOStream << "\t" << r_comp.first << std::endl;
+//         }
     }
 
     ///@}
@@ -267,7 +263,9 @@ template<class TClass>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const BaseFactory<TClass>& rThis)
 {
-    rOStream << "Factory" << std::endl;
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
     return rOStream;
 }

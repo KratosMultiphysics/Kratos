@@ -82,6 +82,22 @@ protected:
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "StandardBuilderAndSolverFactory";
+    }
 };
 
 ///@}
@@ -98,7 +114,10 @@ template <typename TBuilderAndSolverType, typename TLinearSolver, typename TCust
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const StandardBuilderAndSolverFactory<TBuilderAndSolverType, TLinearSolver, TCustomBuilderAndSolverType>& rThis)
 {
-    rOStream << "StandardBuilderAndSolverFactory" << std::endl;
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+    
     return rOStream;
 }
 

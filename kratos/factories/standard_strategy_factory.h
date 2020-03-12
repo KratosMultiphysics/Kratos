@@ -78,6 +78,22 @@ protected:
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "StandardStrategyFactory";
+    }
 };
 
 ///@}
@@ -94,7 +110,10 @@ template <typename TStrategyType, typename TCustomStrategyType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const StandardStrategyFactory<TStrategyType, TCustomStrategyType>& rThis)
 {
-    rOStream << "StandardStrategyFactory" << std::endl;
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+    
     return rOStream;
 }
 
