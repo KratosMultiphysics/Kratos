@@ -16,9 +16,3 @@ class AleChimeraFluidSolver(NavierStokesAleFluidSolver):
 
     def _CreateFluidSolver(self, solver_settings, parallelism="OpenMP"):
         return solver_factory.CreateSolverByParameters(self.model, solver_settings, parallelism)
-
-    def AddVariables(self):
-        super(AleChimeraFluidSolver,self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-
