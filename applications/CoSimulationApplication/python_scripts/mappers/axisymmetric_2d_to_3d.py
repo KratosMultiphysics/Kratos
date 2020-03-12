@@ -14,15 +14,8 @@ def Create(parameters):
 class MapperAxisymmetric2DTo3D(CoSimulationComponent):
     def __init__(self, parameters):
         """
-        TODO
-
-        - should there be both forward and backward initializations? NO
-        - make 3d_to_2d mapper
-        - should there be a check to see whether geometry is
-            axisymmetrical wrt given directions?
-        - take swirl into account? that would really be a
-            3D axisymmetrical simulation (only geometry is 2D)...
-        - add documentation
+        - TODO: documentation
+        - TODO: create tests
         """
         super().__init__()
 
@@ -34,6 +27,11 @@ class MapperAxisymmetric2DTo3D(CoSimulationComponent):
         self.dir_a = dirs.index(self.settings['direction_axial'].GetString())
         self.dir_r = dirs.index(self.settings['direction_radial'].GetString())
         self.dir_3d = (set([0, 1 ,2]) - set([self.dir_a, self.dir_r])).pop()
+
+        # get number of nodes in tangential direction
+        self.n_t = self.settings['n_tangential'].GetInt()  # int parameter
+        if self.n_t < 6:  # hardcode minimum value?
+            raise ValueError('minimum value for n_tangential is 6')
 
     def Initialize(self, model_part_in, forward):
         super().Initialize()
