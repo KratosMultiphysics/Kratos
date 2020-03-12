@@ -162,6 +162,48 @@ public:
         const auto& aux = KratosComponents< FactoryType >::Get( r_name );
         return aux.CreateClass(pAuxiliarClass, Settings);
     }
+    
+    ///@}
+    ///@name Operations
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "BaseFactory";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << std::endl;
+        const auto factory_components = KratosComponents<FactoryType>::GetComponents();
+        for (const auto& r_comp : factory_components) {
+            rOStream << "\t" << r_comp.first << std::endl;
+        }
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info() << std::endl;
+        const auto factory_components = KratosComponents<FactoryType>::GetComponents();
+        for (const auto& r_comp : factory_components) {
+            rOStream << "\t" << r_comp.first << std::endl;
+        }
+    }
 
     ///@}
 protected:
