@@ -15,7 +15,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 
 def Create(settings, solver_wrappers):
     cs_tools.SettingsTypeCheck(settings)
-    return RotateStructDispOperation(settings, solver_wrappers)
+    return SetRigidDisplacementOperation(settings, solver_wrappers)
 
 class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
     """This operation sets the Mesh displacement of a given master node
@@ -24,7 +24,7 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
         and sets velocity of master node on to the modelpart
     """
     def __init__(self, settings, solver_wrappers):
-        super(RotateStructDispOperation, self).__init__(settings)
+        super(SetRigidDisplacementOperation, self).__init__(settings)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -78,5 +78,5 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
             "data_name" : "UNSPECIFIED",
             "master_node_id" : 0
         }""")
-        this_defaults.AddMissingParameters(super(RotateStructDispOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(SetRigidDisplacementOperation, cls)._GetDefaultSettings())
         return this_defaults
