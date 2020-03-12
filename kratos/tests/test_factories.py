@@ -6,9 +6,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestFactories(KratosUnittest.TestCase):
 
     def _auxiliary_test_function_BuilderAndSolver(self, settings, name):
-        #builder_and_solver = KM.BuilderAndSolverFactory().Create(settings)
+        linear_solver = None
+        builder_and_solver = KM.BuilderAndSolverFactory().Create(linear_solver, settings)
         self.assertTrue(KM.BuilderAndSolverFactory().Has(settings["name"].GetString()))
-        #self.assertEqual(builder_and_solver.Info(), name)
+        self.assertEqual(builder_and_solver.Info(), name)
         
     def test_ResidualBasedEliminationBuilderAndSolver(self):
         settings = KM.Parameters("""
