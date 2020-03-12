@@ -49,7 +49,7 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
 
     def Execute(self):
         self.modelpart = self.interface_data.GetModelPart()
-        master_node_id = self.settings["master_node_id"].GetInteger()
+        master_node_id = self.settings["master_node_id"].GetInt()
         master_node = self.modelpart.Nodes[master_node_id]
         master_node_x_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_X)
         master_node_y_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Y)
