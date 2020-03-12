@@ -51,7 +51,7 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
         self.modelpart = self.interface_data.GetModelPart()
         model = self.modelpart.GetModel()
         rigid_mp_name = self.settings["rigid_sub_modelpart_name"].GetString()
-        rigid_mp = mode.GetModelPart(rigid_mp_name)
+        rigid_mp = model.GetModelPart(rigid_mp_name)
         for node in rigid_mp.Nodes:
             master_node = node
             break
