@@ -7,7 +7,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Sergio Jimenez/Alejandro Cornejo/Lucia Barbu
-//  Collaborator:
+//  Collaborator:    
 //
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED)
@@ -30,7 +30,7 @@ namespace Kratos
 
 // The size type definition
 typedef std::size_t SizeType;
-
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -63,16 +63,16 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-
+    
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainHighCycleFatigueLaw);
 
     /// The node definition
     typedef Node<3> NodeType;
-
+    
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-
+    
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -90,7 +90,7 @@ public:
     {
     }
 
-    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor,
+    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor, 
                                             const double PreviousStress0,
                                             const double PreviousStress1,
                                             const double MaxStress,
@@ -122,15 +122,15 @@ public:
     GenericSmallStrainHighCycleFatigueLaw(const GenericSmallStrainHighCycleFatigueLaw &rOther)
         : GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>(rOther),
             mFatigueReductionFactor(rOther.mFatigueReductionFactor),
-            mPreviousStresses(rOther.mPreviousStresses),
-            mMaxStress(rOther.mMaxStress),
-            mMinStress(rOther.mMinStress),
-            mPreviousMaxStress(rOther.mPreviousMaxStress),
-            mPreviousMinStress(rOther.mPreviousMinStress),
-            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal),
-            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal),
-            mFatigueReductionParameter(rOther.mFatigueReductionParameter),
-            mStressVector(rOther.mStressVector),
+            mPreviousStresses(rOther.mPreviousStresses), 
+            mMaxStress(rOther.mMaxStress), 
+            mMinStress(rOther.mMinStress),  
+            mPreviousMaxStress(rOther.mPreviousMaxStress),  
+            mPreviousMinStress(rOther.mPreviousMinStress),  
+            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal), 
+            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal), 
+            mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
+            mStressVector(rOther.mStressVector), 
             mMaxDetected(rOther.mMaxDetected),
             mMinDetected(rOther.mMinDetected),
             mWohlerStress(rOther.mWohlerStress)
@@ -159,6 +159,13 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * returns whether this constitutive Law has specified variable
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -173,34 +180,47 @@ public:
     bool Has(const Variable<int>& rThisVariable) override;
 
     /**
-     * @brief Sets the value of a specified variable (double)
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
+     * @brief Sets the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<double>& rThisVariable,
-        const double& rValue,
+        const Variable<bool>& rThisVariable, 
+        const bool& Value, 
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Sets the value of a specified variable (integer)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<int>& rThisVariable,
-        const int& rValue);
+        const Variable<int>& rThisVariable, 
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Returns the value of a specified variable (double)
+     * @brief Sets the value of a specified variable (double)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<double>& rThisVariable, 
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * returns the value of a specified variable
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
+     * @param rValue output: the value of the specified variable
      */
-    double& GetValue(
-        const Variable<double>& rThisVariable,
-        double& rValue) override;
+    bool& GetValue(
+        const Variable<bool>& rThisVariable, 
+        bool& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (integer)
@@ -209,16 +229,18 @@ public:
      * @return rValue output: the value of the specified variable
      */
     int& GetValue(
-        const Variable<int>& rThisVariable,
+        const Variable<int>& rThisVariable, 
         int& rValue) override;
 
     /**
-     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
      */
-    bool RequiresFinalizeMaterialResponse() override
-    {
-        return true;
-    }
+    double& GetValue(
+        const Variable<double>& rThisVariable, 
+        double& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (matrix)
@@ -276,7 +298,7 @@ protected:
     ///@{
 
     ///@}
-
+    
     ///@name Protected member Variables
     ///@{
 
@@ -306,48 +328,11 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    ///@}
+    ///@}    
     ///@name Access
     ///@{
-    double GetFatigueReductionFactor() {return mFatigueReductionFactor;}
-    void SetFatigueReductionFactor(const double toFred) {mFatigueReductionFactor = toFred;}
-
-    Vector GetPreviousStresses() {return mPreviousStresses;}
-    void SetPreviousStresses(const Vector toPreviousStresses) {mPreviousStresses = toPreviousStresses;}
-
-    double GetMaxStress() {return mMaxStress;}
-    void SetMaxStress(const double toMaxStress) {mMaxStress = toMaxStress;}
-
-    double GetMinStress() {return mMinStress;}
-    void SetMinStress(const double toMinStress) {mMinStress = toMinStress;}
-
-    double GetPreviousMaxStress() {return mPreviousMaxStress;}
-    void SetPreviousMaxStress(const double toPreviousMaxStress) {mPreviousMaxStress = toPreviousMaxStress;}
-
-    double GetPreviousMinStress() {return mPreviousMinStress;}
-    void SetPreviousMinStress(const double toPreviousMinStress) {mPreviousMinStress = toPreviousMinStress;}
-
-    unsigned int GetNumberOfCyclesGlobal() {return mNumberOfCyclesGlobal;}
-    void SetNumberOfCyclesGlobal(const unsigned int toCyclesGlobal) {mNumberOfCyclesGlobal = toCyclesGlobal;}
-
-    unsigned int GetNumberOfCyclesLocal() {return mNumberOfCyclesLocal;}
-    void SetNumberOfCyclesLocal(const unsigned int toCyclesLocal) {mNumberOfCyclesLocal = toCyclesLocal;}
-
-    double GetFatigueReductionParameter() {return mFatigueReductionParameter;}
-    void SetFatigueReductionParameter(const double toFatigueReductionParameter) {mFatigueReductionParameter = toFatigueReductionParameter;}
-
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector toStressVector) {mStressVector = toStressVector;}
-
-    bool GetMaxDetected() {return mMaxDetected;}
-    void SetMaxDetected(const bool toMaxDetected){mMaxDetected = toMaxDetected;}
-
-    bool GetMinDetected() {return mMinDetected;}
-    void SetMinDetected(const bool toMinDetected){mMinDetected = toMinDetected;}
-
-    double GetWohlerStress() {return mWohlerStress;}
-    void SetWohlerStress(const double toWohlerStress) {mWohlerStress = toWohlerStress;}
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -364,6 +349,14 @@ private:
     bool mMaxDetected = false; // Maximum's indicator in the current cycle
     bool mMinDetected = false; // Minimum's indicator in the current cycle
     double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
+    double mReversionFactorRelativeError = 0.0; 
+    double mMaxStressRelativeError = 0.0; 
+    bool mNewCycleIndicator = 0; 
+    double mCyclesToFailure = 0.0;
+    double mPreviousCycleTime = 0.0;
+    double mPeriod = 0.0;
+    double mThresholdStress = 0.0;
+    unsigned int mCyclesAfterAdvanceStrategy = 0;
 
     ///@}
     ///@name Private Operators
@@ -397,6 +390,8 @@ private:
         rSerializer.save("MaxDetected", mMaxDetected);
         rSerializer.save("MinDetected", mMinDetected);
         rSerializer.save("WohlerStress", mWohlerStress);
+        rSerializer.save("ThresholdStress", mThresholdStress);
+        rSerializer.save("CyclesAfterAdvanceStrategy", mCyclesAfterAdvanceStrategy);
     }
 
     void load(Serializer &rSerializer) override
@@ -415,6 +410,8 @@ private:
         rSerializer.load("MaxDetected", mMaxDetected);
         rSerializer.load("MinDetected", mMinDetected);
         rSerializer.load("WohlerStress", mWohlerStress);
+        rSerializer.load("ThresholdStress", mThresholdStress);
+        rSerializer.load("CyclesAfterAdvanceStrategy", mCyclesAfterAdvanceStrategy);
     }
     ///@}
 

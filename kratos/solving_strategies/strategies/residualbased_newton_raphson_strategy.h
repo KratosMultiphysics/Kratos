@@ -773,7 +773,46 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            // Original
+            //p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+
+            // BEGINNING OF MODIFICATION
+            TSystemVectorType dx_prediction(r_dof_set.size());
+            dx_prediction.clear();
+            TSystemVectorType rhs_addition(r_dof_set.size());
+            rhs_addition.clear();
+
+            //here we bring back the database to before the prediction
+            //but we store the prediction increment in dx_prediction
+            //the goal is that the stiffness is computed with the converged configuration at the end of the
+            //previous step
+            for(auto& dof : r_dof_set)
+            {
+                dx_prediction[dof.EquationId()] = dof.GetSolutionStepValue() - dof.GetSolutionStepValue(1);
+                dof.GetSolutionStepValue() = dof.GetSolutionStepValue(1); //bring back the database
+            }
+            BaseType::MoveMesh(); //this needs to be protected by an if, or even better needs to use updatedatabase
+
+            p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
+
+            TSparseSpace::Mult(rA,dx_prediction, rhs_addition);
+            noalias(rb) -= rhs_addition;
+
+            if(r_model_part.MasterSlaveConstraints().size() != 0) {
+                p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
+            }
+
+            p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+
+            p_builder_and_solver->SystemSolve(rA, rDx, rb);   //TODO: here we should use SystemSolveWithPhysics
+
+            //here we apply back the prediction
+            for(auto& dof : r_dof_set)
+            {
+                dof.GetSolutionStepValue() += dx_prediction[dof.EquationId()]; //bring back the database
+            }
+            BaseType::MoveMesh(); //this needs to be protected by an if, or even better needs to use updatedatabase
+            // END OF MODIFICATION
         } else {
             TSparseSpace::SetToZero(rDx); //Dx=0.00;
             TSparseSpace::SetToZero(rb);

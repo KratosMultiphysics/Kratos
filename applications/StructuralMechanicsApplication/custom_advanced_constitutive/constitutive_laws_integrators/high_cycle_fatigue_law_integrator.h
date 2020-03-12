@@ -109,11 +109,18 @@ public:
         const double stress_2 = PreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
+        // KRATOS_WATCH(CurrentStress)
+        // KRATOS_WATCH(stress_1)
+        // KRATOS_WATCH(stress_2)
+        // KRATOS_WATCH(stress_increment_1)
+        // KRATOS_WATCH(stress_increment_2)
 
-        if (stress_increment_1 >= 1.0e-3 && stress_increment_2 <= 0.0) {
+        // if (stress_increment_1 >= 1.0e-3 && stress_increment_2 <= 0.0) {
+        if (stress_increment_1 > 1.0e-3 && stress_increment_2 < -1.0e-3) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
-        } else if (stress_increment_1 <= -1.0e-3 && stress_increment_2 >= 0.0) {
+        // } else if (stress_increment_1 <= -1.0e-3 && stress_increment_2 >= 0.0) {
+        } else if (stress_increment_1 < -1.0e-3 && stress_increment_2 > 1.0e-3) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
         }
@@ -168,7 +175,8 @@ public:
                                             const Properties& rMaterialParameters,
                                             double& rB0,
                                             double& rSth,
-                                            double& rAlphat)
+                                            double& rAlphat,
+                                            double& rN_f)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
@@ -192,8 +200,8 @@ public:
 
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > rSth && MaxStress <= yield_stress) {
-            const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (yield_stress - rSth))/rAlphat,(1.0/BETAF)));
-            rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(N_F)), square_betaf));
+            rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (yield_stress - rSth))/rAlphat,(1.0/BETAF)));
+            rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(rN_f)), square_betaf));
         }
     }
 
