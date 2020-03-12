@@ -325,7 +325,7 @@ public:
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
     {
-        const auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
+        const Matrix *current_rom_nodal_basis = nullptr;
         int counter = 0;
         for(unsigned int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
@@ -392,9 +392,10 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        Matrix PhiElemental;
-        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PhiElemental, el_begin, cond_begin)
+
+        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
         {
+            Matrix PhiElemental;
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
 
