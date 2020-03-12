@@ -49,8 +49,13 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
 
     def Execute(self):
         self.modelpart = self.interface_data.GetModelPart()
-        master_node_id = self.settings["master_node_id"].GetInt()
-        master_node = self.modelpart.Nodes[master_node_id]
+        model = self.modelpart.GetModel()
+        rigid_mp_name = self.settings["rigid_sub_modelpart_name"].GetString()
+        rigid_mp = mode.GetModelPart(rigid_mp_name)
+        for node in rigid_mp.Nodes:
+            master_node = node
+            break
+
         master_node_x_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_X)
         master_node_y_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Y)
         master_node_z_disp = master_node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT_Z)
@@ -64,6 +69,7 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
             node.Z = node.Z0 + master_node_z_disp
 
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0, master_node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY))
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, master_node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY))
 
     def PrintInfo(self):
         pass
@@ -76,7 +82,7 @@ class SetRigidDisplacementOperation(CoSimulationCouplingOperation):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
-            "master_node_id" : 0
+            "rigid_sub_modelpart_name" : "UNSPECIFIED"
         }""")
         this_defaults.AddMissingParameters(super(SetRigidDisplacementOperation, cls)._GetDefaultSettings())
         return this_defaults
