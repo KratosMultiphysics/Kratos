@@ -174,7 +174,9 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
                 }
             }
         }
-        nodal_gradient = nodal_gradient/neighbour_elements_total_area;
+        if (neighbour_elements_total_area > std::numeric_limits<double>::epsilon()) {
+            nodal_gradient = nodal_gradient/neighbour_elements_total_area;
+        }
     }
 
     array_1d<double,Dim> averaged_nodal_gradient;
