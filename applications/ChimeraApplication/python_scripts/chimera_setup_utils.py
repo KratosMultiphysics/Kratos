@@ -17,21 +17,15 @@ def SeparateAndValidateChimeraSettings(parameters):
 
     # Seperating the fluid solver settings.
     if solver_parameters.Has("fluid_solver_settings"):
-        fluid_parameters = solver_parameters["fluid_solver_settings"].Clone()
+        fluid_parameters = solver_parameters["fluid_solver_settings"]
     else:
-        fluid_parameters = solver_parameters.Clone()
+        fluid_parameters = solver_parameters
 
     # Extracting the chimera_parts. this is required for ApplyChimera process.
     if chimera_parameters.Has("chimera_parts"):
         chimera_levels = chimera_parameters["chimera_parts"].Clone()
     else:
         raise Exception("The \"solver_settings\" should have the entry \"chimera_parts\" ")
-
-    chimera_echo_lvl = 0
-    if chimera_parameters.Has("chimera_echo_level"):
-        chimera_echo_lvl = chimera_parameters["chimera_echo_level"].GetInt()
-    else:
-        chimera_echo_lvl = fluid_parameters["echo_level"].GetInt()
 
     chimera_internal_parts = []
     for level in chimera_levels:
