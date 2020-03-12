@@ -34,6 +34,43 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_BuilderAndSolver(settings, "ResidualBasedBlockBuilderAndSolver")
+        
+    def _auxiliary_test_function_ConvergenceCriteria(self, settings, name):
+        builder_and_solver = KM.ConvergenceCriteriaFactory().Create(settings)
+        self.assertTrue(KM.ConvergenceCriteriaFactory().Has(settings["name"].GetString()))
+        self.assertEqual(builder_and_solver.Info(), name)
+        
+    def test_DisplacementCriteria(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "displacement_criteria"
+        }
+        """)
+        self._auxiliary_test_function_ConvergenceCriteria(settings, "DisplacementCriteria")
+
+    def test_ResidualCriteria(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "residual_criteria"
+        }
+        """)
+        self._auxiliary_test_function_ConvergenceCriteria(settings, "ResidualCriteria")
+        
+    def test_And_Criteria(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "and_criteria"
+        }
+        """)
+        self._auxiliary_test_function_ConvergenceCriteria(settings, "And_Criteria")
+        
+    def test_Or_Criteria(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "or_criteria"
+        }
+        """)
+        self._auxiliary_test_function_ConvergenceCriteria(settings, "Or_Criteria")
 
 if __name__ == '__main__':
     KratosUnittest.main()
