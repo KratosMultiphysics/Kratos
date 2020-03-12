@@ -120,7 +120,7 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     }
     mTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
     mVelocity = rParameters["initial_velocity"].GetDouble();
-    Variable<double> DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
+    const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
     mrDemModelPart[DemVelocityVar] = mVelocity;
     mLimitVelocity = rParameters["limit_velocity"].GetDouble();
     mVelocityFactor = rParameters["velocity_factor"].GetDouble();
@@ -263,7 +263,7 @@ void ExecuteFinalizeSolutionStep()
             }
         }
 
-        Variable<double> DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
+        const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
         mrDemModelPart[DemVelocityVar] = mVelocity;
 
         // Output of TARGET_STRESS and REACTION_STRESS (only printed at the FEM nodes).
