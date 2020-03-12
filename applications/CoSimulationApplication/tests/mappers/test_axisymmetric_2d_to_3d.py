@@ -10,8 +10,8 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
 
-class TestMapperPermutation(KratosUnittest.TestCase):
-    def test_mapper_permutation(self):
+class TestMapperAxisymmetric2DTo3D(KratosUnittest.TestCase):
+    def test_mapper_axisymmetric_2d_to_3d(self):
         parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_axisymmetric_2d_to_3d.json')
         cs_data_structure = ImportDataStructure(parameter_file_name)
         with open(parameter_file_name, 'r') as parameter_file:
@@ -19,48 +19,68 @@ class TestMapperPermutation(KratosUnittest.TestCase):
 
         # check if method Initialize works
         if True:
-            var = vars(KM)["TEMPERATURE"]
+            var_s = vars(KM)["TEMPERATURE"]
+            var_v = vars(KM)["VELOCITY"]
             model = cs_data_structure.Model()
             model_part_from = model.CreateModelPart('wall_from')
-            model_part_from.AddNodalSolutionStepVariable(var)
+            model_part_from.AddNodalSolutionStepVariable(var_s)
+            model_part_from.AddNodalSolutionStepVariable(var_v)
 
             n_from = 10
             x_from = np.linspace(0, 2 * np.pi, n_from)
             y_from = 1. + 0.2 * np.sin(x_from)
             z_from = np.zeros(n_from)
-            v_from = x_from * y_from
+            v_s_from = x_from * y_from / 10
+            v_v_from = np.zeros((n_from, 3))
+            v_v_from[:, 0] = v_s_from * 0.1
+            v_v_from[:, 0] = v_s_from * 0.5
             for i in range(n_from):
                 node = model_part_from.CreateNewNode(i, x_from[i], y_from[i], z_from[i])
-                node.SetSolutionStepValue(var, 0, v_from[i])
+                node.SetSolutionStepValue(var_s, 0, v_s_from[i])
+                node.SetSolutionStepValue(var_v, 0, tuple(v_v_from[i, :]))
 
             # model_part_from given (forward initialization)
             mapper = cs_tools.CreateInstance(parameters['mapper'])
             model_part_to = mapper.Initialize(model_part_from, forward=True)
-            mapper((model_part_from, var), (model_part_to, var))
+            mapper((model_part_from, var_s), (model_part_to, var_s))
 
             n_to = model_part_to.NumberOfNodes()
             x_to = np.zeros(n_to)
             y_to = np.zeros(n_to)
             z_to = np.zeros(n_to)
-            v_to = np.zeros(n_to)
+            v_s_to = np.zeros(n_to)
+            v_v_to = np.zeros((n_to, 3))
 
             for i, node in enumerate(model_part_to.Nodes):
                 x_to[i], y_to[i], z_to[i] = node.X0, node.Y0, node.Z0
-                v_to[i] = node.GetSolutionStepValue(var)
+                v_s_to[i] = node.GetSolutionStepValue(var_s)
+                v_v_to[i, :] = np.array(node.GetSolutionStepValue(var_v))
 
             # plot results
-            c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
-            c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
+            c_from = cm.jet((v_s_from - v_s_from.min()) / (v_s_from.max() - v_s_from.min()))
+            c_to = cm.jet((v_s_to - v_s_from.min()) / (v_s_from.max() - v_s_from.min()))
 
             fig = plt.figure()
 
-            ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(x_from, y_from, z_from, s=50, c=c_from, depthshade=True, marker='s')
-            ax.scatter(x_to, y_to, z_to, s=20, c=c_to, depthshade=True)
+            ax_s = fig.add_subplot(121, projection='3d')
+            ax_s.scatter(x_from, y_from, z_from, s=50, c=c_from, depthshade=True, marker='s')
+            ax_s.scatter(x_to, y_to, z_to, s=20, c=c_to, depthshade=True)
 
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
-            ax.set_zlabel('z')
+            ax_v = fig.add_subplot(122, projection='3d')
+            ax_v.scatter(x_from, y_from, z_from, s=50, c=c_from, depthshade=True, marker='s')
+            ax_v.scatter(x_to, y_to, z_to, s=20, c=c_to, depthshade=True)
+
+            ax_v.quiver(x_from, y_from, z_from, x_from + v_v_from[:, 0],
+                        y_from + v_v_from[:, 1], z_from + v_v_from[:, 2],
+                        pivot='tail', arrow_length_ratio=0.1, normalize=False, length=0.2)
+            ax_v.quiver(x_to, y_to, z_to, x_to + v_v_to[:, 0],
+                        y_to + v_v_to[:, 1], z_to + v_v_to[:, 2],
+                        pivot='tail', arrow_length_ratio=0.1, normalize=False, length=0.2)
+
+            for ax in [ax_s, ax_v]:
+                ax.set_xlabel('x')
+                ax.set_ylabel('y')
+                ax.set_zlabel('z')
             plt.show()
             plt.close()
 

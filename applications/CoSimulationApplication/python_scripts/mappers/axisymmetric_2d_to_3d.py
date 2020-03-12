@@ -7,17 +7,16 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return MapperPermutation(parameters)
+    return MapperAxisymmetric2DTo3D(parameters)
 
 
-# Class MapperPermutation: Permutation of coordinates.
-class MapperPermutation(CoSimulationComponent):
+# Class MapperAxisymmetric2DTo3D: map 2D axisymmetric to 3D.
+class MapperAxisymmetric2DTo3D(CoSimulationComponent):
     def __init__(self, parameters):
         """
         TODO
 
-        - check if vector variable interpolation is correct
-        - should there be both forward and backward initializations?
+        - should there be both forward and backward initializations? NO
         - make 3d_to_2d mapper
         - should there be a check to see whether geometry is
             axisymmetrical wrt given directions?
@@ -29,9 +28,8 @@ class MapperPermutation(CoSimulationComponent):
         self.settings = parameters['settings']
         self.interpolator = False
 
+        # get axial and radial directions
         dirs = ['X', 'Y', 'Z']
-
-        # these are indices
         self.dir_a = dirs.index(self.settings['direction_axial'].GetString())
         self.dir_r = dirs.index(self.settings['direction_radial'].GetString())
         self.dir_3d = (set([0, 1 ,2]) - set([self.dir_a, self.dir_r])).pop()
@@ -40,7 +38,6 @@ class MapperPermutation(CoSimulationComponent):
         super().Initialize()
 
         if forward:
-
             self.n_from = model_part_in.NumberOfNodes()
 
             n_t = self.settings['n_tangential'].GetInt()  # int parameter
@@ -52,7 +49,6 @@ class MapperPermutation(CoSimulationComponent):
             model_part_out = model.CreateModelPart('no_name')
             model_part_out._ModelPart__hist_variables = model_part_in._ModelPart__hist_variables
 
-
             self.nearest = np.zeros((self.n_to, 1)).astype(int)
             self.theta = np.zeros((self.n_to, 1))
 
@@ -60,9 +56,7 @@ class MapperPermutation(CoSimulationComponent):
             i_to = 0
             for node in model_part_in.Nodes:
                 coords = np.array([node.X0, node.Y0, node.Z0])
-
                 r = coords[self.dir_r]
-
                 for i in range(n_t):
                     self.nearest[i_to, 0] = i_from
                     self.theta[i_to] = i * 2 * np.pi / n_t
@@ -71,15 +65,13 @@ class MapperPermutation(CoSimulationComponent):
                     coords[self.dir_3d] = r * np.sin(self.theta[i_to])
 
                     model_part_out.CreateNewNode(i_to, *tuple(coords))
-
                     i_to += 1
-
                 i_from += 1
 
             return model_part_out
 
         else:
-            raise NotImplementedError('backward initialization not implemented')
+            raise NotImplementedError('Backward Initialization not implemented for MapperAxisymmetric2DTo3D.')
 
 
     def __call__(self, args_from, args_to):
