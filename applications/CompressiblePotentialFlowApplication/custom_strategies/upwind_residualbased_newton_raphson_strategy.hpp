@@ -94,6 +94,12 @@ public:
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
+            //setting up the Vectors involved to the correct size
+            BuiltinTimer system_matrix_resize_time;
+            p_builder_and_solver->ResizeAndInitializeVectors(
+                p_scheme, BaseType::mpA, BaseType::mpDx, BaseType::mpb, r_model_part);
+            KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0)
+                << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
