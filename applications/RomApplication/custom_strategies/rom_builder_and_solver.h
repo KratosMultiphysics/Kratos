@@ -302,8 +302,8 @@ public:
 
         #pragma omp parallel firstprivate(dofs_begin, dofs_number)
         {
-            const Matrix *current_rom_nodal_basis{nullptr};
-            unsigned int old_dof_id{};
+            const Matrix *current_rom_nodal_basis = nullptr;
+            unsigned int old_dof_id;
             #pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
