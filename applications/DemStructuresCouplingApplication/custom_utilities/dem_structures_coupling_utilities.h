@@ -70,9 +70,9 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
         Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
         Condition::Pointer cond;
         if (dimension == 2) {
-            cond = Condition::Pointer(new RigidEdge3D(id, p_geometry, props));            
+            cond = Condition::Pointer(new RigidEdge3D(id, p_geometry, props));
         } else {
-            cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));  
+            cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
         }
 
         cond->Set(DEMFlags::STICKY, true);

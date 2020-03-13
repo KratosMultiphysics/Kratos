@@ -10,14 +10,16 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined(KRATOS_DEM_SURFACE_LOAD_FROM_DEM_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_DEM_SURFACE_LOAD_FROM_DEM_CONDITION_3D_H_INCLUDED
+// System includes
+#if !defined(KRATOS_LINE_LOAD_FROM_DEM_CONDITION_2D_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_FROM_DEM_CONDITION_2D_H_INCLUDED
 
 // Project includes
+#include "includes/serializer.h"
 #include "includes/define.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
-#include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/line_load_condition.h"
 
 // Application includes
 #include "dem_structures_coupling_application_variables.h"
@@ -45,41 +47,49 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION)  SurfaceLoadFromDEMCondition3D
-    : public SurfaceLoadCondition3D
+/**
+ * @class LineLoadFromDEMCondition2D
+ */
+template<std::size_t TDim>
+class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) LineLoadFromDEMCondition2D
+    : public LineLoadCondition<TDim>
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
-    typedef SurfaceLoadCondition3D BaseType;
+    /// We define the base class LineLoadCondition
+    typedef LineLoadCondition<TDim> BaseType;
 
-    // Counted pointer of SurfaceLoadFromDEMCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadFromDEMCondition3D );
+    typedef std::size_t IndexType;
+	typedef Properties PropertiesType;
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef Vector VectorType;
+    typedef Matrix MatrixType;
+
+    /// Counted pointer of LineLoadFromDEMCondition2D
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadFromDEMCondition2D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    SurfaceLoadFromDEMCondition3D();
+    LineLoadFromDEMCondition2D()
+        : LineLoadCondition<TDim>() {}
 
     // Constructor using an array of nodes
-    SurfaceLoadFromDEMCondition3D(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        );
+    LineLoadFromDEMCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
+        : LineLoadCondition<TDim>( NewId, pGeometry ) {}
 
     // Constructor using an array of nodes with properties
-    SurfaceLoadFromDEMCondition3D(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties
-        );
+    LineLoadFromDEMCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+        : LineLoadCondition<TDim>( NewId, pGeometry, pProperties ) {}
 
     // Destructor
-    ~SurfaceLoadFromDEMCondition3D() override;
+    ~LineLoadFromDEMCondition2D() override {}
 
     ///@}
     ///@name Operators
@@ -90,16 +100,29 @@ public:
     ///@name Operations
     ///@{
 
-    // Name Operations
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
 
@@ -133,29 +156,35 @@ public:
     ///@name Input and output
     ///@{
 
+
     ///@}
     ///@name Friends
     ///@{
 
-protected:
 
+    ///@}
+
+protected:
     ///@name Protected static Member Variables
     ///@{
+
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
+
     ///@}
     ///@name Protected Operators
     ///@{
+
 
     ///@}
     ///@name Protected Operations
     ///@{
 
     /**
-     * This functions calculates both the RHS and the LHS
+     * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
      * @param rCurrentProcessInfo: The current process info instance
@@ -170,7 +199,7 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
-    virtual void InterpolateSurfaceLoad(array_1d<double,3>& r_surface_load,
+    virtual void InterpolateLineLoad(array_1d<double,3>& r_surface_load,
                                         const Matrix& n_container,
                                         const unsigned int& number_of_nodes,
                                         const unsigned int& g_point);
@@ -179,20 +208,25 @@ protected:
     ///@name Protected  Access
     ///@{
 
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
+
+    ///@}
+
 private:
-    ///@name Private static Member Variables
+    ///@name Static Member Variables
     ///@{
 
     ///@}
-    ///@name Private member Variables
+    ///@name Member Variables
     ///@{
 
     ///@}
@@ -203,20 +237,14 @@ private:
     ///@name Private Operations
     ///@{
 
+
     ///@}
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Private LifeCycle
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
     ///@{
 
     ///@}
@@ -227,24 +255,43 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SurfaceLoadCondition3D );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition<TDim> );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SurfaceLoadCondition3D );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition<TDim> );
     }
 
 
-}; // class SurfaceLoadFromDEMCondition3D.
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
+    /// Assignment operator.
+    //LineLoadFromDEMCondition2D& operator=(const LineLoadFromDEMCondition2D& rOther);
+
+    /// Copy constructor.
+    //LineLoadFromDEMCondition2D(const LineLoadFromDEMCondition2D& rOther);
+
+
+    ///@}
+
+}; // Class LineLoadFromDEMCondition2D
+
+///@}
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
 ///@{
 
-} // namespace Kratos.
+///@}
 
-#endif // KRATOS_SURFACE_LOAD_FROM_DEM_CONDITION_3D_H_INCLUDED  defined
+}  // namespace Kratos.
+
+#endif // KRATOS_LINE_LOAD_FROM_DEM_CONDITION_2D_H_INCLUDED  defined
+
+
