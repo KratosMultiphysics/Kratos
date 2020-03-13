@@ -1,14 +1,23 @@
 {
   "l": 0.05,
-  "d": 0.005,
+  "d": 0.01,
   "rhof": 1000.0,
   "ureference": 1.0,
-  "uamplitude": 0.1,
-  "uperiod": 1.0,
-  "utype": 1,
+  "inlet_boundary":
+  {
+    "variable": "pressure",
+    "type": 2,
+    "reference": 0.0,
+    "amplitude": 1333.2,
+    "period": 0.003
+  },
+  "outlet_boundary":
+  {
+    "type": 0
+  },
   "e": 300000.0,
   "h": 0.001,
   "m": 100,
-  "newtonmax": 10,
+  "newtonmax": 20,
   "newtontol": 1e-12
 }

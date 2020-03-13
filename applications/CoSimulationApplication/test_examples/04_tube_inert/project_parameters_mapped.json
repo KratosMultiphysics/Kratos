@@ -10,7 +10,7 @@
         "settings" :
         {
             "timestep_start": 0,
-            "delta_t": 0.01,
+            "delta_t": 0.0001,
             "omega" : 0.05,
             "model" :
             {
