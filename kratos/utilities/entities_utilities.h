@@ -31,20 +31,20 @@ namespace Kratos
 namespace EntitiesUtilities
 {
     /**
-     * @brief This method initializes all the entities (conditions, elements, constraints)
+     * @brief This method initializes all the active entities (conditions, elements, constraints)
      * @param rModelPart The model part of the problem to solve
      */
     void KRATOS_API(KRATOS_CORE) InitializeAllEntities(ModelPart& rModelPart);
 
     /**
-     * @brief This method initializes all the entities
+     * @brief This method initializes all the active entities
      * @param rModelPart The model part of the problem to solve
      */
     template<class TEntityType>
     KRATOS_API(KRATOS_CORE) PointerVectorSet<TEntityType, IndexedObject>& GetEntities(ModelPart& rModelPart);
 
     /**
-     * @brief This method initializes all the entities
+     * @brief This method initializes all the active entities
      * @param rModelPart The model part of the problem to solve
      */
     template<class TEntityType>
