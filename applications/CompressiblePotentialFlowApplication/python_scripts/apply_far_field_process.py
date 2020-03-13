@@ -40,6 +40,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         self.angle_of_attack = settings["angle_of_attack"].GetDouble()
         self.free_stream_mach = settings["mach_infinity"].GetDouble()
+        self.free_stream_mach_final = settings["mach_infinity"].GetDouble()
         self.density_inf = settings["free_stream_density"].GetDouble()
         self.free_stream_speed_of_sound = settings["speed_of_sound"].GetDouble()
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
@@ -65,6 +66,17 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
 
     def ExecuteInitializeSolutionStep(self):
+        self.step = self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        self.free_stream_mach = self.step / 1.0 * self.free_stream_mach_final
+        self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
+        self.free_stream_velocity = KratosMultiphysics.Vector(3)
+        self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+        self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
+        self.free_stream_velocity[2] = 0.0
+        KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' free_stream_mach = ', self.free_stream_mach)
+        KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' step = ', self.step)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)
         far_field_process.Execute()
 
