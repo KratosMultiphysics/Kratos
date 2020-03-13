@@ -226,6 +226,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.traction = vars(KM)['TRACTION']
         self.displacement = vars(KM)['DISPLACEMENT']
 
+        # debug
+        self.debug = False  # set true to save txt file for each time step
+        self.OutputSolutionStep()
+
     def Initialize(self):
         super().Initialize()
         # self.timestep = self.timestep_start
@@ -310,6 +314,19 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.wait_message('stop_ready')
         self.fluent_process.wait()
 
+    def OutputSolutionStep(self):
+        if self.debug:
+            for key in self.settings['interface_input'].keys():
+                mp = self.model[key]
+                file_name = join(self.dir_cfd, f"/Coordinates_thread{mp.thread_id}_TS{self.n}")
+                with open(file_name, 'w') as file:
+                    file.write(f"{'x-coordinate':<22}\t{'y-coordinate':<22}\t{'z-coordinate':<22}\n")
+                    for node in mp.Nodes:
+                        if self.dimensions == 2:
+                            file.write(f'{node.X:<22}\t{node.Y:<22}\n')
+                        else:
+                            file.write(f'{node.X:<22}\t{node.Y:<22}\t{node.Z:<22}\n')
+
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()
 
@@ -370,9 +387,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 file.write(f'{mp.NumberOfNodes()}\n')
                 for node in mp.Nodes:
                     if self.dimensions == 2:
-                        file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Id:>27}\n')
+                        file.write(f'{node.X:27.17e}{node.Y:27.17e}{node.Id:>27}\n')
                     else:
-                        file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')
+                        file.write(f'{node.X:27.17e}{node.Y:27.17e}{node.Z:27.17e}{node.Id:>27}\n')
 
     def update_coordinates(self):
         # make Fluent store coordinates and ids
