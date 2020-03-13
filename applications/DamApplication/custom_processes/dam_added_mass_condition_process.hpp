@@ -88,7 +88,7 @@ class DamAddedMassConditionProcess : public Process
     {
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
         double added_mass;
@@ -142,7 +142,7 @@ class DamAddedMassConditionProcess : public Process
     {
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
         double added_mass;
