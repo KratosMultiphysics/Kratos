@@ -14,13 +14,11 @@ def Create(parameters):
 class MapperAxisymmetric3DTo2D(CoSimulationComponent):
     def __init__(self, parameters):
         """
-        - should there be both forward and backward initializations? NO
+        - should there be both forward and backward initializations? no...
         - should there be a check to see whether input geometry is
             axisymmetrical wrt given directions?
         - take swirl into account? that would really be a
             3D axisymmetrical simulation (only geometry is 2D)...
-        - TODO: documentation
-        - TODO: create tests
         """
         super().__init__()
 

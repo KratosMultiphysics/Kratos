@@ -13,10 +13,6 @@ def Create(parameters):
 # Class MapperAxisymmetric2DTo3D: map 2D axisymmetric to 3D.
 class MapperAxisymmetric2DTo3D(CoSimulationComponent):
     def __init__(self, parameters):
-        """
-        - TODO: documentation
-        - TODO: create tests
-        """
         super().__init__()
 
         self.settings = parameters['settings']

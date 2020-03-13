@@ -28,12 +28,12 @@ There are two types of `ModelPart`-level mappers: interpolators and transformers
 
 For interpolators, `Initialize` gets two `ModelPart` objects (_from_ and _to_), and returns nothing. These mappers do the real interpolation. Currently `MapperNearest`, `MapperLinear` and `MapperRadialBasis` are available.
 
-For transformers, `Initialize` gets only one `ModelPart` (from either the _from_ or _to_ side, depending on the transformation), and returns the other `ModelPart`. An example is the `MapperPermutation` transformer, which exchanges the coordinates as specified. 
+For transformers, `Initialize` gets only one `ModelPart` (from either the _from_ or _to_ side, depending on the transformation), and returns the other `ModelPart`. Currently `MapperPermutation`, `MapperAxisymmetric2DTo3D` and `MapperAxisymmetric3DTo2D` are available.
 
 A transformer can never be used by itself, it must always be combined with an interpolator: the reason is that interpolators use information coming from two sides, which is exactly what the `SolverWrapperMapped` and `MapperInterface` objects want. To chain together multiple mappers, the `MapperCombined` is used: it contains always 1 interpolator and 0 or more transformers, on either side of the interpolator.
 
 
-## Overview of available mappers
+## Overview of special mappers
 
 
 #### MapperInterface
@@ -49,7 +49,56 @@ JSON setting|type|description
 `type`|str|`ModelPart` mapper to be used
 `settings`|dict|all the settings for the `ModelPart` mapper specified in `type`
 
+#### MapperCombined
 
+The `MapperCombined` is used to chain together multiple mappers. It contains always 1 interpolator and 0 or more transformers, on either side of the interpolator. If transformers are present, _intermediate_ `ModelPart` objects are created during initialization. This is done by working _inwards_ towards the interpolator. This means that transformers upstream of the interpolator, are initialized based on the _from_ `ModelPart` (input), while downstream transformers are initialized based on the _to_ `ModelPart` (output). 
+Some transformers can only be initialized in one direction, e.g. for `MapperAxisymmetric3DTo2D`, the 2D _to_ `ModelPart` must be supplied, therefore it must be downstream of the interpolator. 
+
+JSON setting|type|description
+------:|:----:|-----------
+`mappers`|list|an ordered list of all the `ModelPart` mappers to be used
+
+
+
+## Overview of transformers
+
+#### MapperPermutation
+
+Permutates the coordinates and the vector variables according to the given `permutation`. 
+This transformer can be initialized in both directions. 
+
+JSON setting|type|description
+------:|:----:|-----------
+`permutation`|list|a permutation of the list [0, 1, 2]
+
+#### MapperAxisymmetric2DTo3D
+
+Transforms from a 2D axisymmetric geometry to a 3D geometry. This transformer can only be initialized in the _forward_ direction, i.e. based on the 2D axisymmetric `ModelPart`. Therefore, it should be _upstream_ of the interpolator in a `MapperCombined`.
+
+The 3D `ModelPart` is returned by the initialization. `n_tangential` specifies the number of `Node` objects in the tangential (circumferential) direction. For each `Node` in the 2D `ModelPart`, `n_tangential` ones are created in the 3D `ModelPart`. The code knows which directions are axial, radial and tangential thanks to the input parameters `direction_axial` and `direction_radial`. 
+
+It is not possible to change the axial direction between 2D and 3D: a separate `MapperPermutation` should be added for that purpose. 
+
+Scalar variables are simply mapped from the 2D `Node` to all corresponding 3D ones. For vector variables, the axial component is simply mapped, the radial component is rotated. The tangential component (e.g. swirl) cannot be taken into account.
+
+
+JSON setting|type|description
+------:|:----:|-----------
+`direction_axial`|string|must be `"X"`, `"Y"` or `"Z"`, specifies the symmetry axis
+`direction_radial`|string|must be `"X"`, `"Y"` or `"Z"`, specifies the second (radial) axis in 2D
+`n_tangential`|int|must be ≥ 6
+
+#### MapperAxisymmetric3DTo2D
+
+Transforms from a 3D geometry to a 2D axisymmetric geometry. This transformer can only be initialized in the _backward_ direction, i.e. based on the 2D axisymmetric `ModelPart`. Therefore, it should be _downstream_ of the `MapperInterpolator` in a `MapperCombined`.
+
+For scalar variables, the circumferential average is taken for each 2D `Node`. For vector variables too, taking into account the correct radial direction in each 3D `Node`.  Again, swirl cannot be taken into account: if a tangential component is present in 3D, it is not mapped to 2D. 
+
+For more information and JSON settings, see `MapperAxisymmetric2DTo3D` which is very similar.
+
+
+
+## Overview of interpolators
 
 #### MapperInterpolator
 
