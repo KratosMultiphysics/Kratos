@@ -89,13 +89,21 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 
     **Linux:**
 
-    ```batch
+    ```bash
     source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
 
 2. Add the following flag to CMake to your configure script:
 
+    **Windows:**
+    
     ```batch
+    -DUSE_EIGEN_MKL=ON ^
+    ```
+    
+    **Linux:**
+    
+    ```bash
     -DUSE_EIGEN_MKL=ON \
     ```
 
@@ -120,7 +128,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
     **Linux:**
 
     Set the environment before using MKL
-    ```batch
+    ```bash
     source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
 
