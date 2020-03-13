@@ -92,7 +92,7 @@ class TestMapperAxisymmetric2DTo3D(KratosUnittest.TestCase):
                 node.SetSolutionStepValue(var_s, 0, fun_s(node.X0))
                 node.SetSolutionStepValue(var_v, 0, fun_v(node.X0, node.Y0, node.Z0))
 
-            # initialize mapper to get model_part_out
+            # initialize mapper to get model_part_to (3D)
             mapper = cs_tools.CreateInstance(parameters['mapper'])
             model_part_to = mapper.Initialize(model_part_from, forward=True)
 

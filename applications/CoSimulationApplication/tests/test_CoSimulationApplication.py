@@ -16,6 +16,8 @@ from mappers.test_nearest import TestMapperNearest
 from mappers.test_linear import TestMapperLinear
 from mappers.test_radial_basis import TestMapperRadialBasis
 from mappers.test_permutation import TestMapperPermutation
+from mappers.test_axisymmetric_2d_to_3d import TestMapperAxisymmetric2DTo3D
+from mappers.test_axisymmetric_3d_to_2d import TestMapperAxisymmetric3DTo2D
 from mappers.test_combined import TestMapperCombined
 from predictors.test_predictor import TestPredictor
 from predictors.test_linear import TestPredictorLinear
@@ -60,7 +62,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestMapperNearest("test_mapper_nearest"))
     smallSuite.addTest(TestMapperLinear("test_mapper_linear"))
     smallSuite.addTest(TestMapperRadialBasis("test_mapper_radial_basis"))
-    smallSuite.addTest(TestMapperPermutation("test_mapper_permutation"))    
+    smallSuite.addTest(TestMapperPermutation("test_mapper_permutation"))
+    smallSuite.addTest(TestMapperAxisymmetric2DTo3D("test_mapper_axisymmetric_2d_to_3d"))
+    smallSuite.addTest(TestMapperAxisymmetric3DTo2D("test_mapper_axisymmetric_3d_to_2d"))
     smallSuite.addTest(TestMapperCombined("test_mapper_combined"))
     smallSuite.addTest(TestPredictor("test_predictor"))
     smallSuite.addTest(TestPredictorLinear("test_predictor_linear"))
