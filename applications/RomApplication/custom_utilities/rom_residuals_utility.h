@@ -80,20 +80,20 @@ namespace Kratos
             const Element::DofsVectorType &dofs,
             const Element::GeometryType &geom)
         {
-            const auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
+            const auto *pcurrent_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
             int counter = 0;
             for(unsigned int k = 0; k < dofs.size(); ++k){
                 auto variable_key = dofs[k]->GetVariable().Key();
                 if(k==0)
-                    current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
                 else if(dofs[k]->Id() != dofs[k-1]->Id()){
                     counter++;
-                    current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
                 }
                 if (dofs[k]->IsFixed())
                     noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
                 else
-                    noalias(row(PhiElemental, k)) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
+                    noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
             }
         }
 

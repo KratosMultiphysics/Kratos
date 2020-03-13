@@ -302,20 +302,20 @@ public:
 
         #pragma omp parallel firstprivate(dofs_begin, dofs_number)
         {
-            const Matrix *current_rom_nodal_basis = nullptr;
+            const Matrix *pcurrent_rom_nodal_basis = nullptr;
             unsigned int old_dof_id;
             #pragma omp for nowait
             for (unsigned int k = 0; k<dofs_number; k++){
                 auto dof = dofs_begin + k;
-                if(current_rom_nodal_basis == nullptr){
-                    current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
+                if(pcurrent_rom_nodal_basis == nullptr){
+                    pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
                     old_dof_id = dof->Id();
                 }
                 else if(dof->Id() != old_dof_id ){
-                    current_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
+                    pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
                     old_dof_id = dof->Id();
                 }
-                Dx[dof->EquationId()] = inner_prod(  row(  *current_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
+                Dx[dof->EquationId()] = inner_prod(  row(  *pcurrent_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
             }
         }
     }
@@ -325,20 +325,20 @@ public:
         const Element::DofsVectorType &dofs,
         const Element::GeometryType &geom)
     {
-        const Matrix *current_rom_nodal_basis = nullptr;
+        const Matrix *pcurrent_rom_nodal_basis = nullptr;
         int counter = 0;
         for(unsigned int k = 0; k < dofs.size(); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
             if(k==0)
-                current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
             else if(dofs[k]->Id() != dofs[k-1]->Id()){
                 counter++;
-                current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
             }
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
-                noalias(row(PhiElemental, k)) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
+                noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
         }
     }
 
