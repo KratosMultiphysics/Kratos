@@ -237,13 +237,13 @@ void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
         // IntegrationMethod ThisIntegrationMethod
         // ) const
 
-        std::cout << "calculate left hand side\n";
+
         const GeometryType& geom = GetGeometry();
         IntegrationMethod ThisIntegrationMethod = geom.GetDefaultIntegrationMethod();
         const SizeType number_of_nodes = geom.PointsNumber();
         // const SizeType dimension = geom.WorkingSpaceDimension();
         const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(ThisIntegrationMethod);
-        std::cout << "calculate left hand side2\n";
+
 
         if( rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes )
         {
@@ -253,11 +253,11 @@ void AcousticElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 
         ShapeFunctionDerivativesArrayType DN_DX;
         Vector DetJ;
-        std::cout << "calculate left hand side3\n";
+
 
         DN_DX = geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ, ThisIntegrationMethod);
-        KRATOS_WATCH(DN_DX)
-        std::cout << "calculate left hand side4\n";
+
+
         KRATOS_WATCH(integration_points)
         KRATOS_WATCH(integration_points.size())
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
@@ -299,14 +299,19 @@ void AcousticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(ThisIntegrationMethod);
     IndexType NumGauss = integration_points.size();
     const Matrix& NContainer = geom.ShapeFunctionsValues(ThisIntegrationMethod);
-    
-    
+    double Vol = geom.Volume();
     if( rMassMatrix.size1() != number_of_nodes || rMassMatrix.size2() != number_of_nodes )
     {
         rMassMatrix.resize(number_of_nodes, number_of_nodes, false);
         noalias(rMassMatrix) = ZeroMatrix( number_of_nodes, number_of_nodes );
     }
 
+    // KRATOS_WATCH(BULK_MODULUS)
+    
+    const double p = GetProperties()[DENSITY];
+    const double G = GetProperties()[BULK_MODULUS];
+
+    KRATOS_WATCH(NContainer)
 
     for (IndexType i = 0; i < number_of_nodes; i++)
     {
@@ -316,10 +321,11 @@ void AcousticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
                 {
                     double DetJ = geom.DeterminantOfJacobian(g, ThisIntegrationMethod);
                     double GaussWeight = DetJ * integration_points[g].Weight();
-                    rMassMatrix(i,j) += NContainer(g, i) * NContainer(g, j) * GaussWeight * (DENSITY/BULK_MODULUS);
+                    rMassMatrix(i,j) += NContainer(g, i) * NContainer(g, j) * GaussWeight * (p/G);
                 }
         }        
     }
+    KRATOS_WATCH(rMassMatrix)
 }
 
 
