@@ -21,77 +21,13 @@ namespace Kratos
 {
 namespace EntitiesUtilities
 {
-
-void InitializeEntities(ModelPart& rModelPart)
+void InitializeAllEntities(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    // The number of conditions
-    auto& r_conditions_array = rModelPart.Conditions();
-    const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-    const auto it_cond_begin = r_conditions_array.begin();
-
-    // The number of elements
-    auto& r_elements_array = rModelPart.Elements();
-    const int number_of_elements = static_cast<int>(r_elements_array.size());
-    const auto it_elem_begin = r_elements_array.begin();
-
-    // The number of constraints
-    auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-    const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-    const auto it_const_begin = r_constraints_array.begin();
-
-    // The current process info
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-    // Setting to zero the slave dofs
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-            auto it_cond = it_cond_begin + i_cond;
-
-            // Detect if the condition is active or not. If the user did not make any choice the condition
-            // It is active by default
-            bool condition_is_active = true;
-            if (it_cond->IsDefined(ACTIVE))
-                condition_is_active = it_cond->Is(ACTIVE);
-
-            if (condition_is_active) {
-                it_cond->Initialize(r_current_process_info);
-            }
-        }
-
-        #pragma omp for schedule(guided, 512)
-        for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
-            auto it_elem = it_elem_begin + i_elem;
-
-            // Detect if the element is active or not. If the user did not make any choice the element
-            // It is active by default
-            bool element_is_active = true;
-            if (it_elem->IsDefined(ACTIVE))
-                element_is_active = it_elem->Is(ACTIVE);
-
-            if (element_is_active) {
-                it_elem->Initialize(r_current_process_info);
-            }
-        }
-
-        #pragma omp for schedule(guided, 512)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = it_const_begin + i_const;
-
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
-
-            if (constraint_is_active) {
-                it_const->Initialize(r_current_process_info);
-            }
-        }
-    }
+    InitializeEntities<Condition>(rModelPart);
+    InitializeEntities<Element>(rModelPart);
+    InitializeEntities<MasterSlaveConstraint>(rModelPart);
 
     KRATOS_CATCH("")
 }
@@ -99,113 +35,36 @@ void InitializeEntities(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InitializeConditions(ModelPart& rModelPart)
+template<>
+PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart)
 {
-    KRATOS_TRY
-
-    // The number of conditions
-    auto& r_conditions_array = rModelPart.Conditions();
-    const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-    const auto it_cond_begin = r_conditions_array.begin();
-
-    // The current process info
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-    // Initialize
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-            auto it_cond = it_cond_begin + i_cond;
-
-            // Detect if the condition is active or not. If the user did not make any choice the condition
-            // It is active by default
-            bool condition_is_active = true;
-            if (it_cond->IsDefined(ACTIVE))
-                condition_is_active = it_cond->Is(ACTIVE);
-
-            if (condition_is_active) {
-                it_cond->Initialize(r_current_process_info);
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
+    return rModelPart.Elements();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InitializeElements(ModelPart& rModelPart)
+template<>
+PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart)
 {
-    KRATOS_TRY
-
-    // The number of elements
-    auto& r_elements_array = rModelPart.Elements();
-    const int number_of_elements = static_cast<int>(r_elements_array.size());
-    const auto it_elem_begin = r_elements_array.begin();
-
-    // The current process info
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-    // Initialize
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
-            auto it_elem = it_elem_begin + i_elem;
-
-            // Detect if the element is active or not. If the user did not make any choice the element
-            // It is active by default
-            bool element_is_active = true;
-            if (it_elem->IsDefined(ACTIVE))
-                element_is_active = it_elem->Is(ACTIVE);
-
-            if (element_is_active) {
-                it_elem->Initialize(r_current_process_info);
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
+    return rModelPart.Conditions();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InitializeMasterSlaveConstraints(ModelPart& rModelPart)
+template<>
+PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart)
 {
-    KRATOS_TRY
-
-    // The number of constraints
-    auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-    const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-    const auto it_const_begin = r_constraints_array.begin();
-
-    // The current process info
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-    // Initialize
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = it_const_begin + i_const;
-
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
-
-            if (constraint_is_active) {
-                it_const->Initialize(r_current_process_info);
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
+    return rModelPart.MasterSlaveConstraints();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template KRATOS_API(KRATOS_CORE) PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
+    
 } // namespace EntitiesUtilities
 } // namespace Kratos

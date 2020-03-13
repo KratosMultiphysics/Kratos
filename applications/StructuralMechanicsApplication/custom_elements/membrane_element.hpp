@@ -51,12 +51,6 @@ namespace Kratos
       Reference
     };
 
-    enum class WrinklingType {
-      Taut,
-      Slack,
-      Wrinkle
-    };
-
     // Name Operations
 
     /**
@@ -253,21 +247,6 @@ namespace Kratos
     void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
        const Matrix& rTransformationMatrix);
 
-
-      /**
-     * @brief Calculates the material tangent modulus
-     * @param rTangentModulus The modulus
-     * @param rReferenceContraVariantMetric reference contra variant metric
-     * @param rReferenceCoVariantMetric reference covariant metric
-     * @param rCurrentCoVariantMetric current covariant metric
-     * @param rTransformationMatrix local coordinate system transformation
-     * @param rIntegrationPointNumber current integration point number
-     */
-    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
-      const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
-      const SizeType& rIntegrationPointNumber);
-
-
       /**
      * @brief Calculates the piola-kirchhoff-2 stress
      * @param rStress The stress
@@ -278,9 +257,10 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      * @param rIntegrationPointNumber current integration point number
      */
-    void StressPk2(Vector& rStress,
+    void MaterialResponse(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber);
+      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
+      Matrix& rTangentModulus);
 
 
       /**
@@ -386,14 +366,6 @@ namespace Kratos
      */
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
-
-      /**
-     * @brief Checks for taunt/slack/wrinkles
-     * @param rWrinklingState the current wrinkling state
-     * @param rStress the stress
-     * @param rStrain the strain
-     */
-    void CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain);
 
     void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;

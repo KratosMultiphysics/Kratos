@@ -56,7 +56,7 @@ class AutomaticDirichletConditionsProcess(KM.Process):
             skin_to_exclude = model_part_name + '.' + name
             self.model[skin_to_exclude].RemoveConditionsFromAllLevels(KM.INTERFACE)
             KM.VariableUtils().SetFlag(KM.INTERFACE, False, self.model[skin_to_exclude].Nodes)
-        skin_model_part.RemoveNodes(KM.NOT_INTERFACE)
+        skin_model_part.RemoveNodes((KM.INTERFACE).AsFalse())
 
         # Here we exclude the interface which will has an outward flow
         if self.settings["allow_outwards_flow_on_land"].GetBool():
@@ -64,8 +64,8 @@ class AutomaticDirichletConditionsProcess(KM.Process):
             KM.NormalCalculationUtils().CalculateOnSimplex(skin_model_part, dimension)
             KM.ComputeNodalGradientProcess(model_part, SW.TOPOGRAPHY, SW.TOPOGRAPHY_GRADIENT, KM.NODAL_AREA).Execute()
             SW.ShallowWaterUtilities().IdentifySolidBoundary(skin_model_part, self.settings["sea_water_level"].GetDouble(), KM.SOLID)
-            skin_model_part.RemoveNodes(KM.NOT_SOLID)
-            skin_model_part.RemoveConditionsFromAllLevels(KM.NOT_SOLID)
+            skin_model_part.RemoveNodes((KM.SOLID).AsFalse())
+            skin_model_part.RemoveConditionsFromAllLevels((KM.SOLID).AsFalse())
         else:
             KM.VariableUtils().SetFlag(KM.SOLID, True, skin_model_part.Nodes)
             KM.VariableUtils().SetFlag(KM.SOLID, True, skin_model_part.Conditions)
