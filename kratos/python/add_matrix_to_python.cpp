@@ -80,7 +80,7 @@ namespace Python
           py::buffer_info info = b.request();
           KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Incompatible buffer dimension\n";
-          m = DenseMatrix<double>(info.shape[0], info.shape[1]); //, static_cast<double*>(info.ptr)
+          m = DenseMatrix<double>(info.shape[0], info.shape[1]);
 
           size_t count = 0;
           for( size_t i=0; i<static_cast<size_t>(info.shape[0]); ++i )
@@ -142,6 +142,39 @@ namespace Python
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");
         cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type>());
+        cplx_matrix_binder.def("__init__", [](ComplexMatrix &m, py::buffer b){
+          py::buffer_info info = b.request();
+          KRATOS_ERROR_IF( info.format != py::format_descriptor<std::complex<double>>::value &&
+            info.format != py::format_descriptor<double>::value ) << "Expected a double or complex array\n";
+          KRATOS_ERROR_IF( info.ndim != 2 ) << "Incompatible buffer dimension\n";
+          m = ComplexMatrix(info.shape[0], info.shape[1]);
+
+          size_t count = 0;
+          //if the python data is complex, copy the values
+          if( info.format == py::format_descriptor<std::complex<double>>::value )
+          {
+            for( size_t i=0; i<static_cast<size_t>(info.shape[0]); ++i )
+            {
+              for( size_t j=0; j<static_cast<size_t>(info.shape[1]); ++j )
+              {
+                m(i,j) = static_cast<std::complex<double> *>(info.ptr)[count];
+                count++;
+              }
+            }
+          }
+          //if the python data is real, copy the values to the real part and initialize the imaginary part
+          else if( info.format == py::format_descriptor<double>::value )
+          {
+            for( size_t i=0; i<static_cast<size_t>(info.shape[0]); ++i )
+            {
+              for( size_t j=0; j<static_cast<size_t>(info.shape[1]); ++j )
+              {
+                m(i,j) = std::complex<double>(static_cast<double *>(info.ptr)[count], 0.0);
+                count++;
+              }
+            }
+          }
+        });
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
@@ -154,6 +187,17 @@ namespace Python
       #endif // KRATOS_USE_AMATRIX
         cplx_matrix_binder.def(py::init<const ComplexMatrix& >());
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
+        cplx_matrix_binder.def_buffer( [](ComplexMatrix& self)-> py::buffer_info{
+                                                                    return py::buffer_info(
+                                                                    self.data().begin(),
+                                                                    sizeof(std::complex<double>),
+                                                                    py::format_descriptor<std::complex<double>>::format(),
+                                                                    2,
+                                                                    {self.size1(),self.size2()},
+                                                                    {sizeof(std::complex<double>)*self.size2(),
+                                                                     sizeof(std::complex<double>) }
+                                                                    );
+                                                                    });
 
         ;
         //here we add the complex sparse matrix
