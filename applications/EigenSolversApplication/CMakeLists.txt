@@ -24,13 +24,13 @@ include_directories(
 )
 
 if( USE_EIGEN_MKL MATCHES ON )
-    if( DEFINED ENV{MKL_ROOT} )
+    if( DEFINED ENV{MKLROOT} )
         message( "-- MKLROOT = $ENV{MKLROOT}" )
 
-        include_directories( SYSTEM $ENV{MKL_ROOT}/include )
+        include_directories( SYSTEM $ENV{MKLROOT}/include )
 
-        link_directories("$ENV{MKL_ROOT}/lib")
-        
+        link_directories("$ENV{MKLROOT}/lib")
+
         if( NOT MSVC )
             set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
         endif()
