@@ -65,13 +65,49 @@ class TestMapperAxisymmetric2DTo3D(KratosUnittest.TestCase):
             self.assertListEqual(list(y_out), list(y_out_ref))
             self.assertListEqual(list(z_out), list(z_out_ref))
 
-        # check if method __call__ works for Double Variable
+        # check if method __call__ works
         if True:
-            pass  # TODO
+            def fun_s(x):
+                return 1. + 2.5 * x
 
-        # check if method __call__ works for Array Variable
-        if True:
-            pass  # TODO
+            def fun_v(x, y, z):
+                theta = np.arctan2(z, y)
+                f_x = 1. + 2.5 * x
+                f_y = f_x * 0.5 * np.cos(theta)
+                f_z = f_x * 0.5 * np.sin(theta)
+                return [f_x, f_y, f_z]
+
+            # create model_part_from (2D)
+            var_s = vars(KM)["TEMPERATURE"]
+            var_v = vars(KM)["VELOCITY"]
+            model = cs_data_structure.Model()
+            model_part_from = model.CreateModelPart('wall_from')
+            model_part_from.AddNodalSolutionStepVariable(var_s)
+            model_part_from.AddNodalSolutionStepVariable(var_v)
+
+            n = 10
+            for i in range(n):
+                x = .3 * i
+                node = model_part_from.CreateNewNode(i, x, 1. + 0.2 * np.sin(x), 0.)
+                node.SetSolutionStepValue(var_s, 0, fun_s(node.X0))
+                node.SetSolutionStepValue(var_v, 0, fun_v(node.X0, node.Y0, node.Z0))
+
+            # initialize mapper to get model_part_out
+            mapper = cs_tools.CreateInstance(parameters['mapper'])
+            model_part_to = mapper.Initialize(model_part_from, forward=True)
+
+            # check mapped values for Double Variable
+            mapper((model_part_from, var_s), (model_part_to, var_s))
+            for node in model_part_to.Nodes:
+                self.assertAlmostEqual(node.GetSolutionStepValue(var_s),
+                                       fun_s(node.X0), delta=1e-8)
+
+            # check mapped values for Array Variable
+            mapper((model_part_from, var_v), (model_part_to, var_v))
+            for node in model_part_to.Nodes:
+                for v1, v2 in zip(list(node.GetSolutionStepValue(var_v)),
+                                  fun_v(node.X0, node.Y0, node.Z0)):
+                    self.assertAlmostEqual(v1, v2, delta=1e-8)
 
         # extra: visual check of whole method
         if True:
@@ -152,51 +188,6 @@ class TestMapperAxisymmetric2DTo3D(KratosUnittest.TestCase):
                 plt.get_current_fig_manager().window.showMaximized()
                 plt.show()
                 plt.close()
-
-
-
-        # *** old stuff, remove
-
-        # check if method __call__ works for Double Variable
-        if False:
-            var = vars(KM)["TEMPERATURE"]
-            model = cs_data_structure.Model()
-            model_part_from = model.CreateModelPart('wall_from')
-            model_part_from.AddNodalSolutionStepVariable(var)
-
-            for i in range(10):
-                node = model_part_from.CreateNewNode(i, i * 1., i * 2., i * 3.)
-                node.SetSolutionStepValue(var, 0, np.random.rand())
-
-            mapper = cs_tools.CreateInstance(parameters['mapper'])
-            model_part_out = mapper.Initialize(model_part_from, forward=True)
-            mapper((model_part_from, var), (model_part_out, var))
-
-            # for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
-            #     val_from = node_from.GetSolutionStepValue(var)
-            #     val_to = node_to.GetSolutionStepValue(var)
-            #     self.assertEqual(val_from, val_to)
-
-        # check if method __call__ works for Array Variable
-        if False:
-            var = vars(KM)["DISPLACEMENT"]
-            model = cs_data_structure.Model()
-            model_part_from = model.CreateModelPart('wall_from')
-            model_part_from.AddNodalSolutionStepVariable(var)
-
-            for i in range(10):
-                node = model_part_from.CreateNewNode(i, i * 1., i * 2., i * 3.)
-                node.SetSolutionStepValue(var, 0, list(np.random.rand(3)))
-
-            mapper = cs_tools.CreateInstance(parameters['mapper'])
-            model_part_out = mapper.Initialize(model_part_from, forward=True)
-            mapper((model_part_from, var), (model_part_out, var))
-
-            for node_from, node_to in zip(model_part_from.Nodes, model_part_out.Nodes):
-                val_from = node_from.GetSolutionStepValue(var)
-                val_from = list(np.array(val_from)[mapper.permutation])
-                val_to = node_to.GetSolutionStepValue(var)
-                self.assertListEqual(val_from, val_to)
 
 
 if __name__ == '__main__':
