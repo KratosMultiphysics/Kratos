@@ -1,5 +1,4 @@
 import numpy as np
-import math as m
 import os.path as path
 
 import KratosMultiphysics as KM
@@ -20,9 +19,9 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         # Reading
         self.parameters = parameters
         self.settings = parameters["settings"]
-        working_directory = self.settings["working_directory"].GetString()
+        self.working_directory = self.settings["working_directory"].GetString()
         input_file = self.settings["input_file"].GetString()
-        settings_file_name = path.join(working_directory, input_file)
+        settings_file_name = path.join(self.working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
             self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
@@ -31,24 +30,25 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.d = self.settings["d"].GetDouble()  # Diameter
         self.rhof = self.settings["rhof"].GetDouble()  # Fluid density
 
+        self.preference = self.settings["preference"].GetDouble() if self.settings.Has("preference") else 0.0  # Reference pressure
+
         e = self.settings["e"].GetDouble()  # Young's modulus of structure
         h = self.settings["h"].GetDouble()  # Thickness of structure
         self.cmk2 = (e * h) / (self.rhof * self.d)  # Wave speed squared
 
         self.m = self.settings["m"].GetInt()  # Number of segments
         self.dz = l / self.m  # Segment length
-        self.axial_offset = self.settings["axial_offset"].GetDouble()  # Start position along axis
-        self.z = self.axial_offset + np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
+        axial_offset = self.settings["axial_offset"].GetDouble() if self.settings.Has("axial_offset") else 0.0  # Start position along axis
+        self.z = axial_offset + np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
-        # self.iter = 0 # Iteration
+        self.k = 0  # Iteration
         self.n = 0  # Time step (no restart implemented)
 
         # Initialization
-        self.p0 = 0.0  # Reference pressure
-        self.a0 = m.pi * self.d ** 2 / 4  # Reference area of cross section
-        self.p = np.ones(self.m) * self.p0  # Kinematic pressure
-        self.a = np.ones(self.m) * self.a0  # Area of cross section
-        self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
+        self.areference = np.pi * self.d ** 2 / 4  # Reference area of cross section
+        self.p = np.ones(self.m) * self.preference  # Kinematic pressure
+        self.a = np.ones(self.m) * self.areference  # Area of cross section
+        self.c02 = self.cmk2 - self.preference / 2.0  # Wave speed squared with reference pressure
 
         self.disp = np.zeros((self.m, 3))  # Displacement
         self.trac = np.zeros((self.m, 3))  # Traction (always zero)
@@ -67,8 +67,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         step = 0
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
-            node.SetSolutionStepValue(self.variable_disp, step, self.disp[0,:].tolist())
-            node.SetSolutionStepValue(self.variable_trac, step, self.trac[0,:].tolist())
+            node.SetSolutionStepValue(self.variable_disp, step, self.disp[0, :].tolist())
+            node.SetSolutionStepValue(self.variable_trac, step, self.trac[0, :].tolist())
 
         # Interfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
@@ -84,12 +84,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        # self.iter = 0
+        self.k = 0
         self.n += 1
 
     def SolveSolutionStep(self, interface_input):
-        # self.iter += 1
-
         # Input
         input = interface_input.GetNumpyArray()
         self.p = input[:self.m] / self.rhof  # Kinematic pressure
@@ -98,9 +96,17 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         # Independent rings model
         for i in range(len(self.p)):
-            if self.p[i] > 2.0 * self.c02 + self.p0:
+            if self.p[i] > 2.0 * self.c02 + self.preference:
                 raise ValueError("Unphysical pressure")
-        self.a = self.a0 * (2.0 / (2.0 + (self.p0 - self.p) / self.c02)) ** 2
+        self.a = self.areference * (2.0 / (2.0 + (self.preference - self.p) / self.c02)) ** 2
+
+        self.k += 1
+        if self.debug:
+            file_name = self.working_directory + f"/Area_TS{self.n}_IT{self.k}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'area':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f'{self.z[i]:<22}\t{self.a[i]:<22}\n')
 
         # Output
         self.disp[:, 1] = np.sqrt(self.a / np.pi) - self.d / 2

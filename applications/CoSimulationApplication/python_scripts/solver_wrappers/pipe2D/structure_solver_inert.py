@@ -1,5 +1,4 @@
 import numpy as np
-import math as m
 import os.path as path
 from scipy.linalg import solve_banded
 
@@ -24,9 +23,9 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         # Reading
         self.parameters = parameters
         self.settings = parameters["settings"]
-        working_directory = self.settings["working_directory"].GetString()
+        self.working_directory = self.settings["working_directory"].GetString()
         input_file = self.settings["input_file"].GetString()
-        settings_file_name = path.join(working_directory, input_file)
+        settings_file_name = path.join(self.working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
             self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
@@ -35,6 +34,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         d = self.settings["d"].GetDouble()  # Diameter
         self.r0 = d / 2.0  # Reference radius of cross section
         self.rhof = self.settings["rhof"].GetDouble()  # Fluid density
+
+        self.preference = self.settings["preference"].GetDouble() if self.settings.Has("preference") else 0.0  # Reference pressure
 
         e = self.settings["e"].GetDouble()  # Young's modulus of structure
         nu = self.settings["nu"].GetDouble()  # Poisson's ratio
@@ -47,10 +48,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         self.m = self.settings["m"].GetInt()  # Number of segments
         self.dz = l / self.m  # Segment length
-        self.axial_offset = self.settings["axial_offset"].GetDouble()  # Start position along axis
-        self.z = self.axial_offset + np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
+        axial_offset = self.settings["axial_offset"].GetDouble() if self.settings.Has("axial_offset") else 0.0  # Start position along axis
+        self.z = axial_offset + np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
-        # self.iter = 0 # Iteration
+        self.k = 0  # Iteration
         self.n = 0  # Time step (no restart implemented)
         self.dt = self.settings["delta_t"].GetDouble()  # Time step size
 
@@ -59,14 +60,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         if not self.gamma >= 0.5 or not self.beta >= 0.25 * (0.5 + self.gamma) ** 2:
             raise Exception("Inadequate Newmark parameteres")
 
-        self.newtonmax = self.settings["newtonmax"].GetInt()  # Maximal number of Newton iterations
-        self.newtontol = self.settings["newtontol"].GetDouble()  # Tolerance of Newton iterations
-
         # Initialization
-        self.p0 = 0.0  # Reference pressure
-        self.a0 = m.pi * self.r0 ** 2  # Reference area of cross section
-        self.p = np.ones(self.m) * self.p0  # Pressure
-        self.a = np.ones(self.m) * self.a0  # Area of cross section
+        self.areference = np.pi * self.r0 ** 2  # Reference area of cross section
+        self.p = np.ones(self.m) * self.preference  # Pressure
+        self.a = np.ones(self.m) * self.areference  # Area of cross section
         self.r = np.ones(self.m + 4) * self.r0  # Radius of cross section
         self.rn = np.array(self.r)  # Previous radius of cross section
 
@@ -92,8 +89,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         step = 0
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
-            node.SetSolutionStepValue(self.variable_disp, step, self.disp[0,:].tolist())
-            node.SetSolutionStepValue(self.variable_trac, step, self.trac[0,:].tolist())
+            node.SetSolutionStepValue(self.variable_disp, step, self.disp[0, :].tolist())
+            node.SetSolutionStepValue(self.variable_trac, step, self.trac[0, :].tolist())
 
         # Interfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
@@ -109,54 +106,39 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        # self.iter = 0
+        self.k = 0
         self.n += 1
         self.rn = np.array(self.r)
         self.rndot = np.array(self.rdot)
         self.rnddot = np.array(self.rddot)
 
     def SolveSolutionStep(self, interface_input):
-        # self.iter += 1
-
         # Input
         input = interface_input.GetNumpyArray()
         self.p = input[:self.m]
         self.trac = input[self.m:].reshape(-1, 3)
         self.interface_input.SetNumpyArray(input)
 
-        # Newton iterations
-        converged = False
+        # Solve system
         f = self.GetResidual()
         residual0 = np.linalg.norm(f)
         if residual0:
-            for s in range(self.newtonmax):
-                j = self.GetJacobian()
-                b = -f
-                x = solve_banded((self.Al, self.Au), j, b)
-                self.r += x
-                f = self.GetResidual()
-                residual = np.linalg.norm(f)
-                if residual / residual0 < self.newtontol:
-                    converged = True
-                    break
-                #  print(f"struc{s}: res {residual} and r0 {residual0} and ratio {residual / residual0}")
-            if not converged:
-                Exception("Newton failed to converge")
+            j = self.GetJacobian()
+            b = -f
+            x = solve_banded((self.Al, self.Au), j, b)
+            self.r += x
+
+        self.k += 1
+        if self.debug:
+            file_name = self.working_directory + f"/Area_TS{self.n}_IT{self.k}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'area':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f'{self.z[i]:<22}\t{self.a[i]:<22}\n')
 
         # Output does not contain boundary conditions
-        self.a = self.r[2:self.m + 2] ** 2 * m.pi
+        self.a = self.r[2:self.m + 2] ** 2 * np.pi
         self.disp[:, 1] = self.r[2:self.m + 2] - self.r0
-
-        # file_name = f"CSD/Area_TS{self.n}_iter{self.iter}"
-        # with open(file_name, 'w') as file:
-        #     for i in range(len(self.a)):
-        #         file.write(f'{self.z[i]}\t{self.a[i]}\n')
-        # file_name = f"CSM/CSM_Time{self.n}Surface0Output_Iter{self.iter}.dat"
-        # with open(file_name, 'w') as file:
-        #     file.write("x-coordinate\ty-coordinate\n")
-        #     for i in range(len(self.a)):
-        #         file.write(f'{self.z[i]:27.17e} {self.r[i + 2]:27.17e} \n')
-
         self.interface_output.SetNumpyArray(self.disp.flatten())
         return self.interface_output.deepcopy()
 
@@ -201,7 +183,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
                            - self.b2 / self.dz ** 2 * (self.r[3:self.m + 3] - 2.0 * self.r[2:self.m + 2]
                                                        + self.r[1:self.m + 1])
                            + self.b3 * (self.r[2:self.m + 2] - self.r0)
-                           - (self.p - self.p0)
+                           - (self.p - self.preference)
                            - self.rhos * self.h * (self.rn[2:self.m + 2] / (self.beta * self.dt ** 2)
                                                    + self.rndot / (self.beta * self.dt)
                                                    + self.rnddot * (1.0 / (2.0 * self.beta) - 1.0)))
