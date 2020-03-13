@@ -1,0 +1,16 @@
+{
+    "settings":
+    {
+        "data_structure" : "pyKratos"
+    },
+    "mapper" :
+    {
+        "type": "mappers.axisymmetric_3d_to_2d",
+        "settings":
+        {
+            "direction_axial": "X",
+            "direction_radial": "Y",
+            "n_tangential": 13
+        }
+    }
+}
