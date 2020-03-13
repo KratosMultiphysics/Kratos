@@ -3,6 +3,7 @@
   "axial_offset": -0.025,
   "d": 0.01,
   "rhof": 1000.0,
+  "ureference": 1.0,
   "inlet_boundary":
   {
     "variable": "pressure",

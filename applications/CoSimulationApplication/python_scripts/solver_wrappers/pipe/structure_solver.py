@@ -28,11 +28,11 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         # Settings
         l = self.settings["l"].GetDouble()  # Length
         self.d = self.settings["d"].GetDouble()  # Diameter
-        self.rhof = self.settings["rhof"].GetDouble()  # Density
+        self.rhof = self.settings["rhof"].GetDouble()  # Fluid density
 
         self.preference = self.settings["preference"].GetDouble() if self.settings.Has("preference") else 0.0  # Reference pressure
 
-        e = self.settings["e"].GetDouble()  # Young"s modulus of structure
+        e = self.settings["e"].GetDouble()  # Young's modulus of structure
         h = self.settings["h"].GetDouble()  # Thickness of structure
         self.cmk2 = (e * h) / (self.rhof * self.d)  # Wave speed squared
 
@@ -41,7 +41,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
         self.k = 0  # Iteration
-        self.n = 0  # Time step
+        self.n = 0  # Time step (no restart implemented)
 
         # Initialization
         self.areference = np.pi * self.d ** 2 / 4  # Reference area of cross section
@@ -119,10 +119,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         return self.interface_input.deepcopy()
 
     def SetInterfaceInput(self):
-        Exception("This solver wrapper provides no mapping.")
+        raise Exception("This solver wrapper provides no mapping.")
 
     def GetInterfaceOutput(self):
         return self.interface_output.deepcopy()
 
     def SetInterfaceOutput(self):
-        Exception("This solver wrapper provides no mapping.")
+        raise Exception("This solver wrapper provides no mapping.")

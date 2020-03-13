@@ -38,23 +38,23 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.preference = self.settings["preference"].GetDouble() if self.settings.Has("preference") else 0.0  # Reference pressure
         self.inlet_boundary = self.settings["inlet_boundary"]
         self.inlet_variable = self.inlet_boundary["variable"].GetString()  # Variable upon which boundary condition is specified
-        if self.inlet_variable not in ["velocity", "pressure"]:
-            raise ValueError(f"The inlet_variable \'{self.inlet_variable}\' is not implemented,"
-                             f" chose between \'pressure\' and \'velocity\'")
-        self.inlet_type = self.inlet_boundary["type"].GetInt()  # Type of inlet boundary condition
         if self.inlet_variable == "velocity":
             self.inlet_reference = self.inlet_boundary["reference"].GetDouble() if self.inlet_boundary.Has(
                 "reference") else self.ureference  # Reference of velocity inlet boundary condition
         elif self.inlet_variable == "pressure":
             self.inlet_reference = self.inlet_boundary["reference"].GetDouble() if self.inlet_boundary.Has(
                 "reference") else self.preference  # Reference of pressure inlet boundary condition
+        else:
+            raise ValueError(f"The inlet_variable \'{self.inlet_variable}\' is not implemented,"
+                             f" chose between \'pressure\' and \'velocity\'")
+        self.inlet_type = self.inlet_boundary["type"].GetInt()  # Type of inlet boundary condition
         self.inlet_amplitude = self.inlet_boundary["amplitude"].GetDouble()  # Amplitude of inlet boundary condition
         self.inlet_period = self.inlet_boundary["period"].GetDouble()  # Period of inlet boundary condition
+        # Adjust to kinematic pressure
         if self.inlet_variable == "pressure":
-            # Adjust to kinematic pressure
-            self.preference = self.preference / self.rhof
             self.inlet_reference = self.inlet_reference / self.rhof
             self.inlet_amplitude = self.inlet_amplitude / self.rhof
+        self.preference = self.preference / self.rhof
 
         self.outlet_boundary = self.settings["outlet_boundary"]
         self.outlet_type = self.outlet_boundary["type"].GetInt()  # Type of outlet boundary condition
@@ -199,11 +199,13 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
 
     def GetInletBoundary(self):
         if self.inlet_type == 1:
-            x = self.inlet_reference + self.inlet_amplitude * np.sin(2.0 * np.pi * (self.n * self.dt) / self.inlet_period)
+            x = self.inlet_reference \
+                + self.inlet_amplitude * np.sin(2.0 * np.pi * (self.n * self.dt) / self.inlet_period)
         elif self.inlet_type == 2:
             x = self.inlet_reference + (self.inlet_amplitude if self.n <= self.inlet_period / self.dt else 0.0)
         elif self.inlet_type == 3:
-            x = self.inlet_reference + self.inlet_amplitude * (np.sin(np.pi * (self.n * self.dt) / self.inlet_period)) ** 2
+            x = self.inlet_reference \
+                + self.inlet_amplitude * (np.sin(np.pi * (self.n * self.dt) / self.inlet_period)) ** 2
         else:
             x = self.inlet_reference + self.inlet_amplitude * (self.n * self.dt) / self.inlet_period
         return x
