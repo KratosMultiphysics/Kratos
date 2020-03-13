@@ -141,7 +141,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         super().FinalizeSolutionStep()
 
         if self.save_iterations:
-            self.n += 1
             timestep_solution = self.x.GetNumpyArray().reshape(-1, 1)
             y = self.solver_wrappers[0].SolveSolutionStep(self.x)
             timestep_solution_y = y.GetNumpyArray().reshape(-1, 1)
@@ -151,7 +150,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             else:
                 self.complete_solution = np.hstack((self.complete_solution, timestep_solution))
                 self.complete_solution_y = np.hstack((self.complete_solution_y, timestep_solution_y))
-            self.iterations = self.iterations + [self.iteration]
+            self.iterations.append(self.iteration)
 
         self.predictor.Update(self.x)
         for component in self.components:
@@ -189,7 +188,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             output_name = 'result.' + type + model + q + sur
             output = {"solution": self.complete_solution, "solution_y": self.complete_solution_y,
                       "iterations": self.iterations, "time": self.stop_time - self.start_time,
-                      "residual": np.array(self.residual)}
+                      "residual": self.residual}
             np.save(output_name, output)
 
     def Check(self):

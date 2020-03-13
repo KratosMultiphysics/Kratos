@@ -1,5 +1,4 @@
 import numpy as np
-import math as m
 import os.path as path
 from scipy.linalg import solve_banded
 
@@ -33,8 +32,10 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         # Settings
         l = self.settings["l"].GetDouble()  # Length
         d = self.settings["d"].GetDouble()  # Diameter
-        self.r0 = d / 2.0  # Reference radius of cross section
+        self.rreference = d / 2.0  # Reference radius of cross section
         self.rhof = self.settings["rhof"].GetDouble()  # Fluid density
+
+        self.preference = self.settings["preference"].GetDouble() if self.settings.Has("preference") else 0.0  # Reference pressure
 
         e = self.settings["e"].GetDouble()  # Young's modulus of structure
         nu = self.settings["nu"].GetDouble()  # Poisson's ratio
@@ -42,13 +43,14 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.rhos = self.settings["rhos"].GetDouble()  # Structure density
         self.cmk2 = (e * self.h) / (self.rhof * d)  # Wave speed squared
         self.b1 = (self.h * e) / (1 - nu ** 2) * (self.h ** 2) / 12
-        self.b2 = self.b1 * (2 * nu) / self.r0 ** 2
-        self.b3 = (self.h * e) / (1 - nu ** 2) * 1 / self.r0 ** 2
+        self.b2 = self.b1 * (2 * nu) / self.rreference ** 2
+        self.b3 = (self.h * e) / (1 - nu ** 2) * 1 / self.rreference ** 2
 
         self.m = self.settings["m"].GetInt()  # Number of segments
         self.dz = l / self.m  # Segment length
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
+        self.k = 0  # Iteration
         self.n = 0  # Time step (no restart implemented)
         self.dt = self.settings["delta_t"].GetDouble()  # Time step size
 
@@ -57,16 +59,12 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         if not self.gamma >= 0.5 or not self.beta >= 0.25 * (0.5 + self.gamma) ** 2:
             raise Exception("Inadequate Newmark parameteres")
 
-        self.newtonmax = self.settings["newtonmax"].GetInt()  # Maximal number of Newton iterations
-        self.newtontol = self.settings["newtontol"].GetDouble()  # Tolerance of Newton iterations
-
         # Initialization
-        self.p0 = 0.0  # Reference pressure
-        self.a0 = m.pi * self.r0 ** 2  # Reference area of cross section
-        self.p = np.ones(self.m) * self.p0  # Pressure
-        self.a = np.ones(self.m) * self.a0  # Area of cross section
-        self.r = np.ones(self.m + 4) * self.r0  # Radius of cross section
-        self.rn = np.ones(self.m + 4) * self.r0  # Previous radius of cross section
+        self.areference = np.pi * self.rreference ** 2  # Reference area of cross section
+        self.p = np.ones(self.m) * self.preference  # Pressure
+        self.a = np.ones(self.m) * self.areference  # Area of cross section
+        self.r = np.ones(self.m + 4) * self.rreference  # Radius of cross section
+        self.rn = np.ones(self.m + 4) * self.rreference  # Previous radius of cross section
 
         self.rdot = np.zeros(self.m)
         self.rddot = np.zeros(self.m)
@@ -101,6 +99,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
+        self.k = 0
         self.n += 1
         self.rn = np.array(self.r)
         self.rndot = np.array(self.rdot)
@@ -112,26 +111,25 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.interface_input.SetNumpyArray(p)
         self.p = np.array(p)
 
-        # Newton iterations
-        converged = False
+        # Solve system
         f = self.GetResidual()
         residual0 = np.linalg.norm(f)
         if residual0:
-            for s in range(self.newtonmax):
-                j = self.GetJacobian()
-                b = -f
-                x = solve_banded((self.Al, self.Au), j, b)
-                self.r += x
-                f = self.GetResidual()
-                residual = np.linalg.norm(f)
-                if residual / residual0 < self.newtontol:
-                    converged = True
-                    break
-            if not converged:
-                Exception("Newton failed to converge")
+            j = self.GetJacobian()
+            b = -f
+            x = solve_banded((self.Al, self.Au), j, b)
+            self.r += x
+
+        self.k += 1
+        if self.debug:
+            file_name = self.working_directory + f"/Area_TS{self.n}_IT{self.k}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'area':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f'{self.z[i]:<22}\t{self.a[i]:<22}\n')
 
         # Output does not contain boundary conditions
-        self.a = self.r[2:self.m + 2] ** 2 * m.pi
+        self.a = self.r[2:self.m + 2] ** 2 * np.pi
         self.interface_output.SetNumpyArray(self.a)
         return self.interface_output.deepcopy()
 
@@ -167,21 +165,21 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
     def GetResidual(self):
         f = np.zeros(self.m + 4)
-        f[0] = self.r[0] - self.r0
-        f[1] = self.r[1] - self.r0
+        f[0] = self.r[0] - self.rreference
+        f[1] = self.r[1] - self.rreference
         f[2:self.m + 2] = ((self.rhos * self.h) / (self.beta * self.dt ** 2) * self.r[2: self.m + 2]
                            + self.b1 / self.dz ** 4 * (self.r[4:self.m + 4] - 4.0 * self.r[3:self.m + 3]
                                                        + 6.0 * self.r[2:self.m + 2] - 4.0 * self.r[1:self.m + 1]
                                                        + self.r[0:self.m])
                            - self.b2 / self.dz ** 2 * (self.r[3:self.m + 3] - 2.0 * self.r[2:self.m + 2]
                                                        + self.r[1:self.m + 1])
-                           + self.b3 * (self.r[2:self.m + 2] - self.r0)
-                           - (self.p - self.p0)
+                           + self.b3 * (self.r[2:self.m + 2] - self.rreference)
+                           - (self.p - self.preference)
                            - self.rhos * self.h * (self.rn[2:self.m + 2] / (self.beta * self.dt ** 2)
                                                    + self.rndot / (self.beta * self.dt)
                                                    + self.rnddot * (1.0 / (2.0 * self.beta) - 1.0)))
-        f[self.m + 2] = self.r[self.m + 2] - self.r0
-        f[self.m + 3] = self.r[self.m + 3] - self.r0
+        f[self.m + 2] = self.r[self.m + 2] - self.rreference
+        f[self.m + 3] = self.r[self.m + 3] - self.rreference
         return f
 
     def GetJacobian(self):

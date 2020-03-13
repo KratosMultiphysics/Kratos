@@ -50,7 +50,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestCoupledSolverGAUSSSEIDEL("test_coupled_solver_gauss_seidel"))
     smallSuite.addTest(TestCoupledSolverAITKEN("test_coupled_solver_aitken"))
     smallSuite.addTest(TestCoupledSolverIQNI("test_coupled_solver_iqni"))
-    # smallSuite.addTest(TestCoupledSolverIBQN("test_coupled_solver_ibqn"))
+    smallSuite.addTest(TestCoupledSolverIBQN("test_coupled_solver_ibqn"))
     smallSuite.addTest(TestModelLS("test_model_ls"))
     smallSuite.addTest(TestModelMV("test_model_mv"))
     smallSuite.addTest(TestConvergenceCriterionAbsoluteNorm("test_convergence_criterion_absolute_norm"))

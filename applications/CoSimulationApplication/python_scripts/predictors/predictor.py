@@ -55,6 +55,17 @@ class Predictor(CoSimulationComponent):
         else:
             raise Exception("Already updated")
 
+    def Legacy(self, x_in):
+        x = x_in.deepcopy()
+        if not self.updated:
+            if len(self.dataprev) < 3:
+                raise Exception("Not sufficient information for quadratic extrapolation")
+            y = 2.5 * self.dataprev[0] - 2.0 * self.dataprev[1] + 0.5 * self.dataprev[2]
+            x.SetNumpyArray(y)
+            return x
+        else:
+            raise Exception("Already updated")
+
     def Cubic(self, x_in):
         x = x_in.deepcopy()
         if not self.updated:

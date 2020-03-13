@@ -1,5 +1,4 @@
 import numpy as np
-import math as m
 import os.path as path
 from scipy.linalg import solve_banded
 
@@ -35,10 +34,30 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.d = self.settings["d"].GetDouble()  # Diameter
         self.rhof = self.settings["rhof"].GetDouble()  # Density
 
-        self.ureference = self.settings["ureference"].GetDouble()  # Reference of inlet boundary condition
-        self.uamplitude = self.settings["uamplitude"].GetDouble()  # Amplitude of inlet boundary condition
-        self.uperiod = self.settings["uperiod"].GetDouble()  # Period of inlet boundary condition
-        self.utype = self.settings["utype"].GetInt()  # Type of inlet boundary condition
+        self.ureference = self.settings["ureference"].GetDouble()  # Reference velocity
+        self.preference = self.settings["preference"].GetDouble() if self.settings.Has("preference") else 0.0  # Reference pressure
+        self.inlet_boundary = self.settings["inlet_boundary"]
+        self.inlet_variable = self.inlet_boundary["variable"].GetString()  # Variable upon which boundary condition is specified
+        if self.inlet_variable == "velocity":
+            self.inlet_reference = self.inlet_boundary["reference"].GetDouble() if self.inlet_boundary.Has(
+                "reference") else self.ureference  # Reference of velocity inlet boundary condition
+        elif self.inlet_variable == "pressure":
+            self.inlet_reference = self.inlet_boundary["reference"].GetDouble() if self.inlet_boundary.Has(
+                "reference") else self.preference  # Reference of pressure inlet boundary condition
+        else:
+            raise ValueError(f"The inlet_variable \'{self.inlet_variable}\' is not implemented,"
+                             f" chose between \'pressure\' and \'velocity\'")
+        self.inlet_type = self.inlet_boundary["type"].GetInt()  # Type of inlet boundary condition
+        self.inlet_amplitude = self.inlet_boundary["amplitude"].GetDouble()  # Amplitude of inlet boundary condition
+        self.inlet_period = self.inlet_boundary["period"].GetDouble()  # Period of inlet boundary condition
+        # Adjust to kinematic pressure
+        if self.inlet_variable == "pressure":
+            self.inlet_reference = self.inlet_reference / self.rhof
+            self.inlet_amplitude = self.inlet_amplitude / self.rhof
+        self.preference = self.preference / self.rhof
+
+        self.outlet_boundary = self.settings["outlet_boundary"]
+        self.outlet_type = self.outlet_boundary["type"].GetInt()  # Type of outlet boundary condition
 
         e = self.settings["e"].GetDouble()  # Young"s modulus of structure
         h = self.settings["h"].GetDouble()  # Thickness of structure
@@ -48,6 +67,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.dz = l / self.m  # Segment length
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
+        self.k = 0  # Iteration
         self.n = 0  # Time step (no restart implemented)
         self.dt = self.settings["delta_t"].GetDouble()  # Time step size
         self.alpha = 0.0  # Numerical damping parameter due to central discretization of pressure in momentum equation
@@ -60,8 +80,8 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.un = np.ones(self.m + 2) * self.ureference  # Previous velocity
         self.p = np.zeros(self.m + 2)  # Pressure
         self.pn = np.zeros(self.m + 2)  # Previous pressure (only value at outlet is used)
-        self.a = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Area of cross section
-        self.an = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Previous area of cross section
+        self.a = np.ones(self.m + 2) * np.pi * self.d ** 2 / 4.0  # Area of cross section
+        self.an = np.ones(self.m + 2) * np.pi * self.d ** 2 / 4.0  # Previous area of cross section
 
         # ModelParts
         self.variable_area = vars(KM)["AREA"]
@@ -116,7 +136,10 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                 x = solve_banded((self.Al, self.Au), j, b)
                 self.u += x[0::2]
                 self.p += x[1::2]
-                self.u[0] = self.GetBoundary()
+                if self.inlet_variable == "velocity":
+                    self.u[0] = self.GetInletBoundary()
+                elif self.inlet_variable == "pressure":
+                    self.p[0] = self.GetInletBoundary()
                 f = self.GetResidual()
                 residual = np.linalg.norm(f)
                 if residual / residual0 < self.newtontol:
@@ -124,6 +147,22 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                     break
             if not converged:
                 Exception("Newton failed to converge")
+
+        self.k += 1
+        if self.debug:
+            p = self.p[1:self.m + 1] * self.rhof
+            u = self.u[1:self.m + 1]
+            file_name = self.working_directory + f"/Pressure_Velocity_TS{self.n}_IT{self.k}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'pressure':<22}\t{'velocity':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f"{self.z[i]:<22}\t{p[i]:<22}\t{u[i]:<22}\n")
+            a = self.a[1:self.m + 1]
+            file_name = self.working_directory + f"/Area_TS{self.n}_IT{self.k}"
+            with open(file_name, 'w') as file:
+                file.write(f"{'z-coordinate':<22}\t{'area':<22}\n")
+                for i in range(len(self.z)):
+                    file.write(f'{self.z[i]:<22}\t{a[i]:<22}\n')
 
         # Output does not contain boundary conditions
         p = self.p[1:self.m + 1] * self.rhof
@@ -158,26 +197,32 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
     def SetInterfaceOutput(self):
         raise Exception("This solver interface provides no mapping.")
 
-    def GetBoundary(self):
-        if self.utype == 1:
-            u = self.ureference + self.uamplitude * m.sin(2.0 * m.pi * (self.n * self.dt) / self.uperiod)
-        elif self.utype == 2:
-            u = self.ureference + self.uamplitude
-        elif self.utype == 3:
-            u = self.ureference + self.uamplitude * (m.sin(m.pi * (self.n * self.dt) / self.uperiod)) ** 2
+    def GetInletBoundary(self):
+        if self.inlet_type == 1:
+            x = self.inlet_reference \
+                + self.inlet_amplitude * np.sin(2.0 * np.pi * (self.n * self.dt) / self.inlet_period)
+        elif self.inlet_type == 2:
+            x = self.inlet_reference + (self.inlet_amplitude if self.n <= self.inlet_period / self.dt else 0.0)
+        elif self.inlet_type == 3:
+            x = self.inlet_reference \
+                + self.inlet_amplitude * (np.sin(np.pi * (self.n * self.dt) / self.inlet_period)) ** 2
         else:
-            u = self.ureference + self.uamplitude * (self.n * self.dt) / self.uperiod
-        return u
+            x = self.inlet_reference + self.inlet_amplitude * (self.n * self.dt) / self.inlet_period
+        return x
 
     def GetResidual(self):
         usign = self.u[1:self.m + 1] > 0
         ur = self.u[1:self.m + 1] * usign + self.u[2:self.m + 2] * (1.0 - usign)
         ul = self.u[0:self.m] * usign + self.u[1:self.m + 1] * (1.0 - usign)
-        self.alpha = m.pi * self.d ** 2 / 4.0 / (self.ureference + self.dz / self.dt)
+        self.alpha = np.pi * self.d ** 2 / 4.0 / (self.ureference + self.dz / self.dt)
 
         f = np.zeros(2 * self.m + 4)
-        f[0] = self.u[0] - self.GetBoundary()
-        f[1] = self.p[0] - (2.0 * self.p[1] - self.p[2])
+        if self.inlet_variable == "velocity":
+            f[0] = self.u[0] - self.GetInletBoundary()
+            f[1] = self.p[0] - (2.0 * self.p[1] - self.p[2])
+        elif self.inlet_variable == "pressure":
+            f[0] = self.u[0] - (2.0 * self.u[1] - self.u[2])
+            f[1] = self.p[0] - self.GetInletBoundary()
         f[2:2 * self.m + 2:2] = (self.dz / self.dt * (self.a[1:self.m + 1] - self.an[1:self.m + 1])
                                  + (self.u[1:self.m + 1] + self.u[2:self.m + 2])
                                  * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
@@ -195,17 +240,26 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                                  + (self.p[1:self.m + 1] - self.p[0:self.m])
                                  * (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0)
         f[2 * self.m + 2] = self.u[self.m + 1] - (2.0 * self.u[self.m] - self.u[self.m - 1])
-        f[2 * self.m + 3] = self.p[self.m + 1] - (2.0 * (self.cmk2 - (m.sqrt(self.cmk2 - self.pn[self.m + 1] / 2.0)
-                                                         - (self.u[self.m + 1] - self.un[self.m + 1]) / 4.0) ** 2))
+        if self.outlet_type == 1:
+            f[2 * self.m + 3] = self.p[self.m + 1] - (2.0 * (self.cmk2 - (np.sqrt(self.cmk2 - self.pn[self.m + 1] / 2.0)
+                                                             - (self.u[self.m + 1] - self.un[self.m + 1]) / 4.0) ** 2))
+        else:
+            f[2 * self.m + 3] = self.p[self.m + 1] - self.preference
         return f
 
     def GetJacobian(self):
         usign = self.u[1:self.m + 1] > 0
         j = np.zeros((self.Al + self.Au + 1, 2 * self.m + 4))
-        j[self.Au + 0 - 0, 0] = 1.0  # [0,0]
-        j[self.Au + 1 - 1, 1] = 1.0  # [1,1]
-        j[self.Au + 1 - 3, 3] = -2.0  # [1,3]
-        j[self.Au + 1 - 5, 5] = 1.0  # [1,5]
+        if self.inlet_variable == "velocity":
+            j[self.Au + 0 - 0, 0] = 1.0  # [0,0]
+            j[self.Au + 1 - 1, 1] = 1.0  # [1,1]
+            j[self.Au + 1 - 3, 3] = -2.0  # [1,3]
+            j[self.Au + 1 - 5, 5] = 1.0  # [1,5]
+        elif self.inlet_variable == "pressure":
+            j[self.Au + 0 - 0, 0] = 1.0  # [0,0]
+            j[self.Au + 0 - 2, 2] = -2.0  # [0,2]
+            j[self.Au + 0 - 4, 4] = 1.0  # [0,4]
+            j[self.Au + 1 - 1, 1] = 1.0  # [1,1]
 
         j[self.Au + 2, 0:2 * self.m + 0:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i, 2*(i-1)]
         j[self.Au + 3, 0:2 * self.m + 0:2] = (-((self.u[1:self.m + 1] + 2.0 * self.u[0:self.m]) * usign
@@ -218,12 +272,12 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
                                               - (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i, 2*i]
 
         j[self.Au + 1, 2:2 * self.m + 2:2] = (self.dz / self.dt * self.a[1:self.m + 1]
-                                                  + ((2.0 * self.u[1:self.m + 1] + self.u[2:self.m + 2]) * usign
-                                                     + self.u[2:self.m + 2] * (1.0 - usign))
-                                                  * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
-                                                  - (self.u[0:self.m] * usign
-                                                     + (2.0 * self.u[1:self.m + 1] + self.u[0:self.m]) * (1.0 - usign))
-                                                  * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*i]
+                                              + ((2.0 * self.u[1:self.m + 1] + self.u[2:self.m + 2]) * usign
+                                                 + self.u[2:self.m + 2] * (1.0 - usign))
+                                              * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
+                                              - (self.u[0:self.m] * usign
+                                                 + (2.0 * self.u[1:self.m + 1] + self.u[0:self.m]) * (1.0 - usign))
+                                              * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*i]
         j[self.Au - 1, 3:2 * self.m + 3:2] = 2.0 * self.alpha  # [2*i, 2*i+1]
         j[self.Au + 0, 3:2 * self.m + 3:2] = (-(self.a[1:self.m + 1] + self.a[2:self.m + 2])
                                               + (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0  # [2*i+1, 2*i+1]
@@ -240,11 +294,11 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         j[self.Au + (2 * self.m + 2) - (2 * self.m + 2), 2 * self.m + 2] = 1.0  # [2*m+2, 2*m+2]
         j[self.Au + (2 * self.m + 2) - (2 * self.m), 2 * self.m] = -2.0  # [2*m+2, 2*m]
         j[self.Au + (2 * self.m + 2) - (2 * self.m - 2), 2 * self.m - 2] = 1.0  # [2*m+2, 2*m-2]
-        j[self.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(m.sqrt(self.cmk2
-                                                                                     - self.pn[self.m + 1] / 2.0)
-                                                                              - (self.u[self.m + 1]
-                                                                                 - self.un[self.m + 1])
-                                                                              / 4.0))  # [2*m+3, 2*m+2]
+        if self.outlet_type == 1:
+            j[self.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(np.sqrt(self.cmk2
+                                                                                          - self.pn[self.m + 1] / 2.0)
+                                                                                  - (self.u[self.m + 1]
+                                                                                     - self.un[self.m + 1])
+                                                                                  / 4.0))  # [2*m+3, 2*m+2]
         j[self.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
-
         return j
