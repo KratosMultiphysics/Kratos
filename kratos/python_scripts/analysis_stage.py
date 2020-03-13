@@ -250,7 +250,7 @@ class AnalysisStage(object):
             # Initilize elements and conditions
             model_part_names = self.model.GetModelPartNames()
             for model_part_name in model_part_names:
-                KratosMultiphysics.EntitiesUtilities.InitializeEntities(self.model.GetModelPart(model_part_name))
+                KratosMultiphysics.EntitiesUtilities.InitializeAllEntities(self.model.GetModelPart(model_part_name))
         else:
             raise Exception("The following option is not implemented for the ReInitializeSolver: " + reinitialize_requirement)
 
