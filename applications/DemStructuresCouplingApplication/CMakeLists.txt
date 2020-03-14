@@ -19,6 +19,7 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/dem_structures_coupling_application.cpp
 
     ## CONDITIONS
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_from_DEM_condition_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_from_DEM_condition_3d.cpp
 )
 

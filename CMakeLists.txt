@@ -436,6 +436,8 @@ message("")
 message("List of upcoming api-breaking changes:")
 message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
 message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kratos/pull/6233")
+message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
+message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

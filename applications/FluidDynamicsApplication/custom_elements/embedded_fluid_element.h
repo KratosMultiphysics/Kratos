@@ -467,6 +467,27 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates the drag force
+     * For an intersected element, this method calculates the drag force.
+     * Note that the drag force includes both the shear and the pressure contributions.
+     * @param rData reference to the embedded elemental data
+     * @param rDragForce reference to the computed drag force
+     */
+    void CalculateDragForce(
+        EmbeddedElementData& rData,
+        array_1d<double,3>& rDragForce) const;
+
+    /**
+     * @brief Calculates the location of the drag force
+     * For an intersected element, this method calculates the drag force location.
+     * Note that the drag force includes both the shear and the pressure contributions.
+     * @param rData reference to the embedded elemental data
+     * @param rDragForce reference to the computed drag force
+     */
+    void CalculateDragForceCenter(
+        EmbeddedElementData& rData,
+        array_1d<double,3>& rDragForceLocation) const;
 
     ///@}
     ///@name Private  Access
