@@ -357,7 +357,7 @@ protected:
         // Skip LINE SEARCH if initialized with previous stiffness
         if (complete_update)
         {
-            BaseType::UpdateDatabase(A, Dx, b, MoveMesh, complete_update);
+            BaseType::UpdateDatabase(A, Dx, b, MoveMesh, true);
         } else {
 
             typename TSchemeType::Pointer pScheme = this->GetScheme();
@@ -377,7 +377,7 @@ protected:
             //solution of x1*Dx
             TSparseSpace::Assign(aux,x1-xprevious, Dx);
             xprevious = x1;
-            BaseType::UpdateDatabase(A, aux, b, MoveMesh, complete_update);
+            BaseType::UpdateDatabase(A, aux, b, MoveMesh);
             TSparseSpace::SetToZero(b);
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
             double r1 = TSparseSpace::Dot(aux,b);
@@ -390,7 +390,7 @@ protected:
                 //we need to apply ONLY THE INCREMENT, that is (x2-xprevious)*Dx
                 TSparseSpace::Assign(aux,x2-xprevious, Dx);
                 xprevious = x2;
-                BaseType::UpdateDatabase(A, aux, b, MoveMesh, complete_update);
+                BaseType::UpdateDatabase(A, aux, b, MoveMesh);
                 TSparseSpace::SetToZero(b);
                 pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
                 double r2 = TSparseSpace::Dot(aux,b);
@@ -414,7 +414,7 @@ protected:
                 //Perform final update
                 TSparseSpace::Assign(aux,x-xprevious, Dx);
                 xprevious = x;
-                BaseType::UpdateDatabase(A, aux, b, MoveMesh, complete_update);
+                BaseType::UpdateDatabase(A, aux, b, MoveMesh);
                 if(rmin < mLineSearchTolerance*rmax) {
                     KRATOS_INFO("LineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x <<      " r1 = " << r1 << " r2 = " << r2 << std::endl;
                     converged = true;

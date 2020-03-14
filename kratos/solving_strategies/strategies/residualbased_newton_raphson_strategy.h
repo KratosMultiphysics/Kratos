@@ -797,35 +797,33 @@ class ResidualBasedNewtonRaphsonStrategy
                 << "Using previous stiffness in first iteration" << std::endl;
 
                 TSystemVectorType dx_prediction(r_dof_set.size());
-                dx_prediction.clear();
                 TSystemVectorType rhs_addition(r_dof_set.size());
-                rhs_addition.clear();
+                TSparseSpace::SetToZero(rhs_addition);
 
                 // Here we bring back the database to before the prediction,
                 // but we store the prediction increment in dx_prediction.
                 // The goal is that the stiffness is computed with the
                 // converged configuration at the end of the previous step.
-
                 #pragma omp parallel for
-                for (auto &dof : r_dof_set) {
-                    dx_prediction[dof.EquationId()] = dof.GetSolutionStepValue() - dof.GetSolutionStepValue(1);
-                    // Bring back the database
-                    dof.GetSolutionStepValue() = dof.GetSolutionStepValue(1); //
+                for(int i=0; i<static_cast<int>(r_dof_set.size()); ++i)
+                {
+                    auto it_dof = r_dof_set.begin() +i;
+                    //NOTE: this is initialzed to - the value of dx prediction
+                    dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
                 }
 
-                // TODO: Use UpdateDatabase. Beware it requires -Dx_pred
-                //UpdateDatabase(rA, -dx_prediction, rb, BaseType::MoveMeshFlag(), true);
-                // TODO: this needs to be protected by an if. Remove when implemented updatedatabase
-                if (BaseType::MoveMeshFlag()) {
-                    BaseType::MoveMesh();
-                }
+                //Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
+                UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
 
                 p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
 
+                //change sign to dx_prediction
+                TSparseSpace::InplaceMult(dx_prediction, -1.0);
+
+                //apply res -= A*dx_prediction
                 TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
                 noalias(rb) -= rhs_addition;
 
-                //if(r_model_part.MasterSlaveConstraints().size() != 0) {
                 if (!r_model_part.MasterSlaveConstraints().empty()) {
                     p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
                 }
@@ -833,19 +831,9 @@ class ResidualBasedNewtonRaphsonStrategy
                 // TODO: here we should use SystemSolveWithPhysics
                 p_builder_and_solver->SystemSolve(rA, rDx, rb);
 
-                // TODO: Prepare it for Trilinos
-                //TSparseSpace::UnaliasedAdd(rDx,dx_prediction); //dx += dx_prediction;
+                //put back the prediction into the database
+                UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
 
-                // Here we apply back the prediction
-                #pragma omp parallel for
-                for (auto &dof : r_dof_set) {
-                    // Bring back the database
-                    dof.GetSolutionStepValue() += dx_prediction[dof.EquationId()];
-                }
-                // TODO: this needs to be protected by an if, or even better needs to use updatedatabase
-                if (BaseType::MoveMeshFlag()){
-                    BaseType::MoveMesh();
-                }
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
             }
