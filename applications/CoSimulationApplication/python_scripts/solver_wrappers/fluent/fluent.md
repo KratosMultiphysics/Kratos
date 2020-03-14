@@ -35,9 +35,9 @@ If different parameters are used with different Fluent versions, this should be 
 ## Overview of operation
 
 The solver wrapper consists of 3 files (with X the Fluent version, e.g. 2019R1):
-- X.py: defines the SolverWrapperFluentX class
-- X.jou: Fluent journal file to interactively run the FSI simulation, written in Scheme
-- X.c: Fluent UDF file that implements additional functionality used in Fluent, written in C
+-   X.py: defines the SolverWrapperFluentX class
+-   X.jou: Fluent journal file to interactively run the FSI simulation, written in Scheme
+-   X.c: Fluent UDF file that implements additional functionality used in Fluent, written in C
 
 #### The `__init__` method
 
@@ -47,28 +47,30 @@ During initialization, the journal and UDF files are adapted (parameter values a
 
 In the file conventions, `A` is the timestep number and `B` the Fluent thread ID.
 
-- Fluent case and data files are saved as files of the form `case_timestepA.cas` and `case_timestepA.dat`.
-- Current node and face coordinates are passed from Fluent to Python with files of the form `nodes_timestepA_threadB.dat` and `faces_timestepA_threadB.dat`. 
-- The new node coordinates are passed from Python to Fluent with files of the form `nodes_update_timestepA_threadB`.
-- Pressure and tractions are passed from Fluent to Python with files of the form `pressure_traction_timestepA_threadB.dat`.
-- Files with extension `.coco` are used to pass messages between Python and Fluent (via the journal). 
+-   Fluent case and data files are saved as files of the form `case_timestepA.cas` and `case_timestepA.dat`.
+-   Current node and face coordinates are passed from Fluent to Python with files of the form `nodes_timestepA_threadB.dat` and `faces_timestepA_threadB.dat`. 
+-   The new node coordinates are passed from Python to Fluent with files of the form `nodes_update_timestepA_threadB`.
+-   Pressure and tractions are passed from Fluent to Python with files of the form `pressure_traction_timestepA_threadB.dat`.
+-   Files with extension `.coco` are used to pass messages between Python and Fluent (via the journal). 
 
 
 
 ## Setting up a new case
 
 Following items should be set up and saved in the `case_file` (this list may be non-exhaustive):
-- additional UDFs must be configured
-- steady/unsteady (should match with the `unsteady` parameter)
-- 2D, 3D or axisymmetric (should match with the `dimensions` parameter)
-- dynamic mesh for all zones, except the FSI interfaces
-- boundary conditions, material properties, numerical models, discretization schemes, operating conditions, turbulence modeling, convergence criteria
-- if `hybrid_initialization` is `false`, then default should be set for standard initialization
+
+-   additional UDFs must be configured
+-   steady/unsteady (should match with the `unsteady` parameter)
+-   2D, 3D or axisymmetric (should match with the `dimensions` parameter)
+-   dynamic mesh for all zones, except the FSI interfaces
+-   boundary conditions, material properties, numerical models, discretization schemes, operating conditions, turbulence modeling, convergence criteria
+-   if `hybrid_initialization` is `false`, then default should be set for standard initialization
 
 Following items are done after starting the FSI simulation, and must therefore not be included in the `case_file`:
-- dynamic mesh for the FSI interfaces (which are defined in `thread_names`)
-- the timestep (`delta_t`) 
-- initialization
+
+-   dynamic mesh for the FSI interfaces (which are defined in `thread_names`)
+-   the timestep (`delta_t`) 
+-   initialization
 
 
 

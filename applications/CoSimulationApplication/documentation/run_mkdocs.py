@@ -1,0 +1,62 @@
+import glob
+import os
+import shutil
+
+# execute from this directory to update documentation
+
+
+# clean docs folder
+shutil.rmtree('docs')
+os.mkdir('docs')
+
+# find all MarkDown files in CoCoNuT
+files = glob.glob('../**/*.md', recursive=True)
+
+# check for duplicate filenames
+filenames = []
+for file in files:
+    filenames.append(file.split('/')[-1])
+
+for i, filename in enumerate(filenames):
+    if filenames.count(filename) > 1:
+        print(f'WARNING - duplicate file "{files[i]}"')
+
+# copy all MarkDown files to docs folder
+shutil.copy('index.md', 'docs/')
+for file in files:
+    shutil.copy(file, 'docs/')
+
+# check if all files are mentioned in nav
+unused = []
+used = False
+for filename in filenames:
+    with open('mkdocs.yml', 'r') as file:
+        for line in file:
+            if filename in line:
+                used = True
+                break
+    if not used:
+        unused.append(filename)
+    used = False
+for file in unused:
+    print(f'WARNING - file "{file}" is not used in mkdocs.yml')
+
+# build static website
+print('\n')
+os.system('mkdocs build --clean')
+# os.system('mkdocs gh-deploy')
+
+# works only for me now due to admin rights --> copy site to personal repository
+src = os.path.join(os.getcwd(), 'site')
+dst = os.path.join(os.getcwd(), '../../../../cocodoc')
+
+for item in os.listdir('site'):
+    src_item = os.path.join(src, item)
+    dst_item = os.path.join(dst, item)
+
+    if os.path.isfile(src_item):
+        os.remove(dst_item)
+        shutil.copy(src_item, dst_item)
+    if os.path.isdir(src_item):
+        shutil.rmtree(dst_item)
+        shutil.copytree(src_item, dst_item)

@@ -1,0 +1,12 @@
+site_name: CoCoNuT
+theme:
+    name: 'material'
+nav:
+    - index.md
+    - SolverWrappers:
+        - fluent.md
+    - Mappers:
+        - mappers.md
+    - TestExamples:
+        - test_examples.md
+        - Title: readme.md
