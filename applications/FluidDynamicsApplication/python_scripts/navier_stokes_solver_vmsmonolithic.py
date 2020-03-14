@@ -275,8 +275,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
             msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
             raise Exception(msg)
 
-        ## Construct the linear solver
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        # ## Construct the linear solver
+        # self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Construct the turbulence model solver
         if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
@@ -314,6 +314,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self._turbulence_model_solver.fluid_model_part = self.main_model_part
             self._turbulence_model_solver.AddVariables()
 
+        # Adding variables required for the periodic conditions
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
@@ -334,110 +335,34 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
-
-        self.computing_model_part = self.GetComputingModelPart()
-
         # If needed, create the estimate time step utility
+        # TODO: THIS SHOULD BE DONE IN THE BASE SOLVER
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
-        # Creating the solution strategy
+        # Construct and set the solution strategy
+        solution_strategy = self.get_solution_strategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        if self.settings["time_scheme"].GetString() == "steady":
-            self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                                     self.settings["absolute_velocity_tolerance"].GetDouble())
+        # Initialize the solution strategy
+        if not self.is_restarted():
+            # If the solver requires an instance of the stabilized formulation class, set the process info variables
+            if hasattr(self, 'formulation'):
+                self.formulation.SetProcessInfo(self.GetComputingModelPart())
+            # Initialize the solution strategy
+            solution_strategy.Initialize()
         else:
-            self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                         self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                         self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                         self.settings["absolute_pressure_tolerance"].GetDouble())
+            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
+            try:
+                solution_strategy.SetInitializePerformedFlag(True)
+            except AttributeError:
+                pass
 
-        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Creating the time integration scheme
-        if (self.element_integrates_in_time):
-            # "Fake" scheme for those cases in where the element manages the time integration
-            # It is required to perform the nodal update once the current time step is solved
-            self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
-                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1)
-            # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
-            if (self.settings["time_scheme"].GetString() == "bdf2"):
-                time_order = 2
-                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-            else:
-                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
-                err_msg += "Available options are: \"bdf2\""
-                raise Exception(err_msg)
-        else:
-            if not hasattr(self, "_turbulence_model_solver"):
-                # Bossak time integration scheme
-                if self.settings["time_scheme"].GetString() == "bossak":
-                    if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                            KratosCFD.PATCH_INDEX)
-                    else:
-                        self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.settings["move_mesh_strategy"].GetInt(),
-                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-                # BDF2 time integration scheme
-                elif self.settings["time_scheme"].GetString() == "bdf2":
-                    self.time_scheme = KratosCFD.GearScheme()
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-                else:
-                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
-                    err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
-                    raise Exception(err_msg)
-            else:
-                self._turbulence_model_solver.Initialize()
-                if self.settings["time_scheme"].GetString() == "bossak":
-                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                self.settings["alpha"].GetDouble(),
-                                self.settings["move_mesh_strategy"].GetInt(),
-                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
-                                self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                            self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-        if self.settings["consider_periodic_conditions"].GetBool():
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
-                                                                                KratosCFD.PATCH_INDEX)
-        else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
-                                                                            self.time_scheme,
-                                                                            self.linear_solver,
-                                                                            self.conv_criteria,
-                                                                            builder_and_solver,
-                                                                            self.settings["maximum_iterations"].GetInt(),
-                                                                            self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool())
-
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        self.formulation.SetProcessInfo(self.computing_model_part)
-
-        (self.solver).Initialize()
-
+        # If there is turbulence modelling, set the new solution strategy as parent strategy
         if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.SetParentSolvingStrategy(self.solver)
+            self._turbulence_model_solver.SetParentSolvingStrategy(solution_strategy)
 
+        # KratosMultiphysics.Logger.PrintInfo("::[FluidSolver]:: ", "Finished initialization.")
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -446,7 +371,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             if hasattr(self, 'time_discretization'):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
-            (self.solver).InitializeSolutionStep()
+            self.get_solution_strategy().InitializeSolutionStep()
             # Perform the turbulence modelling InitializeSolutionStep
             if hasattr(self, "_turbulence_model_solver"):
                 self._turbulence_model_solver.InitializeSolutionStep()

@@ -101,15 +101,9 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
         self.min_buffer_size = 3
         self.element_has_nodal_properties = True
-
-        ## Construct the linear solvers
-        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
-
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Construction of NavierStokesSolverFractionalStep solver finished.")
-
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -140,57 +134,17 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
-
         # If needed, create the estimate time step utility
+        # TODO: THIS SHOULD BE DONE IN THE BASE SOLVER
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
-        #TODO: next part would be much cleaner if we passed directly the parameters to the c++
-        if self.settings["consider_periodic_conditions"] == True:
-            self.solver_settings = KratosCFD.FractionalStepSettingsPeriodic(self.computing_model_part,
-                                                                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                            self.settings.GetInt(),
-                                                                            self.settings["use_slip_conditions"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            KratosCFD.PATCH_INDEX)
-
-        else:
-            self.solver_settings = KratosCFD.FractionalStepSettings(self.computing_model_part,
-                                                                    self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                    self.settings["time_order"].GetInt(),
-                                                                    self.settings["use_slip_conditions"].GetBool(),
-                                                                    self.settings["move_mesh_flag"].GetBool(),
-                                                                    self.settings["reform_dofs_at_each_step"].GetBool())
-
-        self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
-                                         self.velocity_linear_solver,
-                                         self.settings["velocity_tolerance"].GetDouble(),
-                                         self.settings["maximum_velocity_iterations"].GetInt())
-
-        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
-                                         self.pressure_linear_solver,
-                                         self.settings["pressure_tolerance"].GetDouble(),
-                                         self.settings["maximum_pressure_iterations"].GetInt())
-
-
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
-            self.solver = KratosCFD.FSStrategy(self.computing_model_part,
-                                               self.solver_settings,
-                                               self.settings["predictor_corrector"].GetBool(),
-                                               KratosCFD.PATCH_INDEX)
-        else:
-            self.solver = KratosCFD.FSStrategy(self.computing_model_part,
-                                               self.solver_settings,
-                                               self.settings["predictor_corrector"].GetBool())
-
+        # TODO: MOVE THIS TO THE CREATION OF THE MODELPART
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
-        (self.solver).Initialize()
+        solution_strategy = self.get_solution_strategy()
+        solution_strategy.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Solver initialization finished.")
 
@@ -198,8 +152,84 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         if self._TimeBufferIsInitialized():
             is_converged = super(NavierStokesSolverFractionalStep,self).SolveSolutionStep()
             if self.compute_reactions:
-                self.solver.CalculateReactions()
+                self.get_solution_strategy().CalculateReactions()
 
             return is_converged
         else:
             return True
+
+    def _create_solution_scheme(self):
+        pass
+
+    def _create_linear_solver(self):
+        # Create the pressure linear solver
+        pressure_linear_solver_configuration = self.settings["pressure_linear_solver_settings"]
+        pressure_linear_solver = linear_solver_factory.ConstructSolver(pressure_linear_solver_configuration)
+        # Create the velocity linear solver
+        velocity_linear_solver_configuration = self.settings["velocity_linear_solver_settings"]
+        velocity_linear_solver = linear_solver_factory.ConstructSolver(velocity_linear_solver_configuration)
+        # Return a tuple containing both linear solvers
+        return (pressure_linear_solver, velocity_linear_solver)
+
+    def _create_convergence_criterion(self):
+        pass
+
+    def _create_builder_and_solver(self):
+        pass
+
+    def _create_solution_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        # Create the pressure and velocity linear solvers
+        # Note that linear_solvers is a tuple. The first item is the pressure
+        # linear solver. The second item is the velocity linear solver.
+        linear_solvers = self.get_linear_solver()
+
+        # Create the fractional step settings instance
+        if self.settings["consider_periodic_conditions"] == True:
+            fractional_step_settings = KratosCFD.FractionalStepSettingsPeriodic(
+                computing_model_part,
+                domain_size,
+                self.settings["time_order"].GetInt(),
+                self.settings["use_slip_conditions"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                KratosCFD.PATCH_INDEX)
+        else:
+            fractional_step_settings = KratosCFD.FractionalStepSettings(
+                computing_model_part,
+                domain_size,
+                self.settings["time_order"].GetInt(),
+                self.settings["use_slip_conditions"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool())
+
+        # Set the strategy echo level
+        fractional_step_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        # Set the velocity and pressure fractional step strategy settings
+        fractional_step_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
+            linear_solvers[0],
+            self.settings["pressure_tolerance"].GetDouble(),
+            self.settings["maximum_pressure_iterations"].GetInt())
+
+        fractional_step_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
+            linear_solvers[1],
+            self.settings["velocity_tolerance"].GetDouble(),
+            self.settings["maximum_velocity_iterations"].GetInt())
+
+        # Create the fractional step strategy
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            solution_strategy = KratosCFD.FSStrategy(
+                computing_model_part,
+                fractional_step_settings,
+                self.settings["predictor_corrector"].GetBool(),
+                KratosCFD.PATCH_INDEX)
+        else:
+            solution_strategy = KratosCFD.FSStrategy(
+                computing_model_part,
+                fractional_step_settings,
+                self.settings["predictor_corrector"].GetBool())
+
+        return solution_strategy
