@@ -342,7 +342,7 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         ModelPart& rModelPart
-    )
+    ) override
     {
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             TSystemVectorType Dxmodified(b.size());

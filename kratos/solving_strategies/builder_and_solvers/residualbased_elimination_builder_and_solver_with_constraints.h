@@ -742,7 +742,7 @@ protected:
         TSystemVectorType& rDx,
         TSystemVectorType& rb,
         ModelPart& rModelPart
-        )
+        ) override
     {
         KRATOS_TRY
 

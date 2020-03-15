@@ -412,6 +412,23 @@ public:
     }
 
     /**
+     * @brief This is a call to the linear system solver
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     * @param ModelPart which may be queried for additional data
+     */
+    virtual void SystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        ModelPart& rModelPart
+    )
+    {
+        SystemSolve(rA,rDx,rb);
+    }
+
+    /**
      * @brief Function to perform the building and solving phase at the same time.
      * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
      * @param pScheme The pointer to the integration scheme
