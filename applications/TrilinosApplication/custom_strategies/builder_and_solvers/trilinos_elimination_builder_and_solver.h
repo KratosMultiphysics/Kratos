@@ -322,7 +322,7 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         ModelPart& rModelPart
-    )
+    ) override
     {
         KRATOS_TRY
 
