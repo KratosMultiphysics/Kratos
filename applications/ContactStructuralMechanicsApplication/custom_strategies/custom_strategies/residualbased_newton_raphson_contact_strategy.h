@@ -785,7 +785,8 @@ protected:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
-        const bool MoveMesh
+        const bool MoveMesh,
+        const bool complete_update = false
         ) override
     {
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
