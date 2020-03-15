@@ -820,9 +820,9 @@ class ResidualBasedNewtonRaphsonStrategy
                 //change sign to dx_prediction
                 TSparseSpace::InplaceMult(dx_prediction, -1.0);
 
-                //apply res -= A*dx_prediction
+                //apply rb -= A*dx_prediction
                 TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
-                noalias(rb) -= rhs_addition;
+                TSparseSpace::UnaliasedAdd(rb, -1.00, rhs_addition);
 
                 if (!r_model_part.MasterSlaveConstraints().empty()) {
                     p_builder_and_solver->ApplyConstraints(p_scheme, r_model_part, rA, rb);
