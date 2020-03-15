@@ -317,7 +317,7 @@ public:
     void SystemSolveWithPhysics(TSystemMatrixType& rA,
                                 TSystemVectorType& rDx,
                                 TSystemVectorType& rb,
-                                ModelPart& rModelPart)
+                                ModelPart& rModelPart) override
     {
         KRATOS_TRY
 

@@ -273,6 +273,15 @@ public:
         rY.Update(A, rX, B);
     }
 
+    static void SetLocalValue(VectorType& rX, IndexType global_i, double value)
+    {
+        auto local_i = rX.Map().LID(int(global_i));
+        if(local_i >= 0){
+            *(rX[local_i]) = value;
+        }
+        //NOTE THAT NONLOCAL VALUES ARE SIMPLY DISCARDED
+    }
+
 
     /// rA[i] * rX
     //       static double RowDot(unsigned int i, MatrixType& rA, VectorType& rX)

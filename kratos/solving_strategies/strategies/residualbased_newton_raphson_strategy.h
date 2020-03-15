@@ -796,9 +796,10 @@ class ResidualBasedNewtonRaphsonStrategy
                 KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
                 << "Using previous stiffness in first iteration" << std::endl;
 
-                TSystemVectorType dx_prediction(r_dof_set.size());
-                TSystemVectorType rhs_addition(r_dof_set.size());
-                TSparseSpace::SetToZero(rhs_addition);
+                //TODO: here we need to take the vector from other ones because
+                //we cannot create a trilinos vector without a communicator. To be improved!
+                TSystemVectorType dx_prediction(rDx);
+                TSystemVectorType rhs_addition(rb); //we know it is zero here, so we do not need to set it
 
                 // Here we bring back the database to before the prediction,
                 // but we store the prediction increment in dx_prediction.
@@ -809,7 +810,8 @@ class ResidualBasedNewtonRaphsonStrategy
                 {
                     auto it_dof = r_dof_set.begin() +i;
                     //NOTE: this is initialzed to - the value of dx prediction
-                    dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
+                    double dx_value = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
+                    TSparseSpace::SetLocalValue(dx_prediction, it_dof->EquationId(), dx_value);
                 }
 
                 //Use UpdateDatabase to bring back the solution to how it was at the end of the previous step

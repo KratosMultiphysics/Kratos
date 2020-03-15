@@ -538,6 +538,10 @@ public:
         return inner_prod(row(rA, i), rX);
     }
 
+    static void SetLocalValue(VectorType& rX, IndexType i, double value)
+    {
+        rX[i] = value;
+    }
 
     static void SetValue(VectorType& rX, IndexType i, TDataType value)
     {
