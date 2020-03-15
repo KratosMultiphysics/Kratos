@@ -99,9 +99,14 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         self.element_name = custom_settings["formulation"]["element_type"].GetString()
         self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
-        self.min_buffer_size = 3
         self.element_has_nodal_properties = True
+
+        self.min_buffer_size = 3
+
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
+
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Construction of NavierStokesSolverFractionalStep solver finished.")
 
@@ -134,15 +139,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
     def Initialize(self):
-        # If needed, create the estimate time step utility
-        # TODO: THIS SHOULD BE DONE IN THE BASE SOLVER
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
-
-        # TODO: MOVE THIS TO THE CREATION OF THE MODELPART
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-
         solution_strategy = self.get_solution_strategy()
         solution_strategy.Initialize()
 

@@ -262,22 +262,22 @@ class FluidSolver(PythonSolver):
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
+            delta_time = self.get_estimate_dt_utility().EstimateDt()
         # User-defined delta time
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
         return delta_time
 
-    def _GetAutomaticTimeSteppingUtility(self):
-        if (self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.GetComputingModelPart(),
-                                                                     self.settings["time_stepping"])
-        else:
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.GetComputingModelPart(),
-                                                                     self.settings["time_stepping"])
+    # def _GetAutomaticTimeSteppingUtility(self):
+    #     if (self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+    #         EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.GetComputingModelPart(),
+    #                                                                  self.settings["time_stepping"])
+    #     else:
+    #         EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.GetComputingModelPart(),
+    #                                                                  self.settings["time_stepping"])
 
-        return EstimateDeltaTimeUtility
+    #     return EstimateDeltaTimeUtility
 
     def _SetPhysicalProperties(self):
         # Check if the fluid properties are provided using a .json file
@@ -320,6 +320,11 @@ class FluidSolver(PythonSolver):
         # in case the detection of a restart is changed later
         return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
+    def get_estimate_dt_utility(self):
+        if not hasattr(self, '_estimate_dt_utility'):
+            self._estimate_dt_utility = self._create_estimate_dt_utility()
+        return self._estimate_dt_utility
+
     def get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
@@ -344,6 +349,19 @@ class FluidSolver(PythonSolver):
         if not hasattr(self, '_solution_strategy'):
             self._solution_strategy = self._create_solution_strategy()
         return self._solution_strategy
+
+    def _create_estimate_dt_utility(self):
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size == 2:
+            estimate_dt_utility = KratosCFD.EstimateDtUtility2D(
+                self.GetComputingModelPart(),
+                self.settings["time_stepping"])
+        else:
+            estimate_dt_utility = KratosCFD.EstimateDtUtility3D(
+                self.GetComputingModelPart(),
+                self.settings["time_stepping"])
+
+        return estimate_dt_utility
 
     def _create_solution_scheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

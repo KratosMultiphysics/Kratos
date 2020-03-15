@@ -335,11 +335,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
-        # If needed, create the estimate time step utility
-        # TODO: THIS SHOULD BE DONE IN THE BASE SOLVER
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
-
         # Construct and set the solution strategy
         solution_strategy = self.get_solution_strategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -362,7 +357,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.SetParentSolvingStrategy(solution_strategy)
 
-        # KratosMultiphysics.Logger.PrintInfo("::[FluidSolver]:: ", "Finished initialization.")
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
