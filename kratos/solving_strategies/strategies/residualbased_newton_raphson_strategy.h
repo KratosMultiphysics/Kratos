@@ -829,7 +829,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 }
                 p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
                 // TODO: here we should use SystemSolveWithPhysics
-                p_builder_and_solver->SystemSolve(rA, rDx, rb);
+                p_builder_and_solver->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
                 //put back the prediction into the database
                 UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
