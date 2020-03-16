@@ -140,6 +140,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
     def Initialize(self):
         solution_strategy = self.get_solution_strategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Solver initialization finished.")
@@ -183,7 +184,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         linear_solvers = self.get_linear_solver()
 
         # Create the fractional step settings instance
-        if self.settings["consider_periodic_conditions"] == True:
+        # TODO: next part would be much cleaner if we passed directly the parameters to the c++
+        if self.settings["consider_periodic_conditions"].GetBool():
             fractional_step_settings = KratosCFD.FractionalStepSettingsPeriodic(
                 computing_model_part,
                 domain_size,

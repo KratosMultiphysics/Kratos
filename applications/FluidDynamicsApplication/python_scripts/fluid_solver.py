@@ -109,36 +109,6 @@ class FluidSolver(PythonSolver):
     def Initialize(self):
         raise Exception("Calling FluidSolver.Initialize() base method. Please implement a custom Initialize() method for your solver.")
 
-        # """Perform initialization after adding nodal variables and dofs to the main model part. """
-        # KratosMultiphysics.Logger.PrintInfo("::[FluidSolver]:: ", "Initializing ...")
-
-        # # The mechanical solution strategy is created here if it does not already exist.
-        # if self.settings["clear_storage"].GetBool():
-        #     self.Clear()
-
-        # # Construct and set the solution strategy
-        # solution_strategy = self.get_solution_strategy()
-        # solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # # Initialize the solution strategy
-        # if not self.is_restarted():
-        #     solution_strategy.Initialize()
-        # else:
-        #     # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-        #     try:
-        #         solution_strategy.SetInitializePerformedFlag(True)
-        #     except AttributeError:
-        #         pass
-
-        # KratosMultiphysics.Logger.PrintInfo("::[FluidSolver]:: ", "Finished initialization.")
-
-        # ##TODO: FROM HERE ABOVE IT HAS TO BE DONE IN THE BASE SOLVER
-
-        # if hasattr(self, "_turbulence_model_solver"):
-        #     self._turbulence_model_solver.SetParentSolvingStrategy(self.get_solution_strategy())
-
-        # KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
-
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
@@ -268,16 +238,6 @@ class FluidSolver(PythonSolver):
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
         return delta_time
-
-    # def _GetAutomaticTimeSteppingUtility(self):
-    #     if (self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-    #         EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.GetComputingModelPart(),
-    #                                                                  self.settings["time_stepping"])
-    #     else:
-    #         EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.GetComputingModelPart(),
-    #                                                                  self.settings["time_stepping"])
-
-    #     return EstimateDeltaTimeUtility
 
     def _SetPhysicalProperties(self):
         # Check if the fluid properties are provided using a .json file

@@ -275,9 +275,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
             raise Exception(msg)
 
-        # ## Construct the linear solver
-        # self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
         ## Construct the turbulence model solver
         if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
             self._turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"])
@@ -285,7 +282,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
-
 
     def AddVariables(self):
         ## Add base class variables
