@@ -24,6 +24,7 @@
 #include "mor_application_variables.h"
 
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "geometries/point_3d.h"
 
 
@@ -34,6 +35,7 @@ namespace Kratos {
 KratosMORApplication::KratosMORApplication():
     KratosApplication("MORApplication"),
       mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAcousticElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       
       // conditions
       mDisplacementOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
@@ -57,6 +59,8 @@ void KratosMORApplication::Register()
   KRATOS_REGISTER_VARIABLE( IMAG_PRESSURE )
 
   KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
+  KRATOS_REGISTER_ELEMENT("AcousticElement3D8N", mAcousticElement3D8N)
+
 
   KRATOS_REGISTER_CONDITION("DisplacementOutputCondition3D1N", mDisplacementOutputCondition3D1N)
 

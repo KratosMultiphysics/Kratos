@@ -178,6 +178,8 @@ private:
     ///@{
 
     const AcousticElement mAcousticElement3D4N;
+    const AcousticElement mAcousticElement3D8N;
+
     // const Elem3D   mElem3D;
     // typedef DISPLACEMENT dt;
     const DisplacementOutputCondition mDisplacementOutputCondition3D1N;

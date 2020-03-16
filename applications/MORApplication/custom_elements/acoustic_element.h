@@ -61,6 +61,15 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    
+    /// Type for shape function values container
+    typedef Kratos::Vector ShapeFunctionsType;
+
+    /// Type for a matrix containing the shape function gradients
+    typedef Kratos::Matrix ShapeFunctionDerivativesType;
+
+    /// Type for an array of shape function gradient matrices
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
     /// The base element type
     typedef Element BaseType;
@@ -169,24 +178,62 @@ public:
         rOStream << "Acoustic Element #" << Id() << "\n";
     }
 
+    
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
         pGetGeometry()->PrintData(rOStream);
     }
 
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
+    void EquationIdVector(
+            EquationIdVectorType& rResult,
+            ProcessInfo& rCurrentProcessInfo) override;
 
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo) override;
+
+    void Initialize() override;
+
+    
 protected:
     ///@name Protected static Member Variables
     ///@{
+    struct KinematicVariables
+    {
+        Vector  N;
+        Matrix  B;
+        double  detF;
+        Matrix  F;
+        double  detJ0;
+        Matrix  J0;
+        Matrix  InvJ0;
+        Matrix  DN_DX;
+        Vector Displacements;
+
+        /**
+         * The default constructor
+         * @param NumberOfNodes The number of nodes in the element
+         */
+        KinematicVariables(const SizeType NumberOfNodes, const SizeType Dimension)
+        {
+            detF = 1.0;
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(Dimension * NumberOfNodes);
+            F = IdentityMatrix(Dimension);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+            Displacements = ZeroVector(Dimension * NumberOfNodes);
+        }
+    };
     ///@}
     ///@name Protected member Variables
     ///@{
 
+    IntegrationMethod mThisIntegrationMethod;
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -198,6 +245,44 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalSystem(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    
+    void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
+    {
+         mThisIntegrationMethod = ThisIntegrationMethod;
+    }
+
+    // double CalculateDerivativesOnReferenceConfiguration(
+    //     Matrix& rJ0,
+    //     Matrix& rInvJ0,
+    //     Matrix& rDN_DX,
+    //     const IndexType PointNumber,
+    //     IntegrationMethod ThisIntegrationMethod) const;
+    
+    // void CalculateKinematicVariables(
+    //     KinematicVariables& rThisKinematicVariables,
+    //     const IndexType PointNumber,
+    //     const GeometryType::IntegrationMethod& rIntegrationMethod
+    //     );
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -228,10 +313,7 @@ private:
 
 
     ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
+    ///@name Private  AcSizeType
     ///@}
     ///@name Serialization
     ///@{
