@@ -47,8 +47,10 @@ public:
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
 
-    typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -177,6 +179,26 @@ public:
             *this, Start, End,
             surface_spans_u, surface_spans_v,
             1e-6);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points according to the knot intersections
+     * of the underlying nurbs surface.
+     * @param result integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->PolynomialDegreeU()
+
+        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
+            + mpNurbsSurface->PolynomialDegreeV() + 1;
+
+        mpNurbsCurve->CreateIntegrationPoints(
+            rIntegrationPoints, Spans(), points_per_span);
     }
 
     ///@}
