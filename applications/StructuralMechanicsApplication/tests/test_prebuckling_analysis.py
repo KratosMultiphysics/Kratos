@@ -259,6 +259,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
     @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
     def test_prebuckling_analysis(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DEBUG)
         reference_value = 92.80
         #Construct model with symmetry conditions (quarter of the full plate 1x1)
         NumOfNodesPerSide = 5
@@ -278,6 +279,7 @@ class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
         #print(loadFactor_sym)
         #print(loadFactor_full)
         self._check_load_multiplier(loadFactor_sym,loadFactor_full, reference_value )
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
 
 if __name__ == '__main__':
