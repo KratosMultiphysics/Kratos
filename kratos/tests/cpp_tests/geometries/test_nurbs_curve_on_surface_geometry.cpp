@@ -369,7 +369,7 @@ typedef Node<3> NodeType;
     }
 
     // test quadrature points of curve on surface
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
     {
         // Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
