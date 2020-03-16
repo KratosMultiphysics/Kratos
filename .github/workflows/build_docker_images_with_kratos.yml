@@ -29,8 +29,6 @@ jobs:
   run-nightly-test-ubuntu--docker:
     needs: build-ubuntu-docker
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
 
     container:
       image: kratosmultiphysics/kratos-image-ubuntu-bionic:latest
