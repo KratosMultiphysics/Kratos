@@ -16,7 +16,7 @@ It compares the results between the scipy solver and the standard eigen solver.
 @KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: EigenSolversApplication")
 class TestPrebucklingAnalysis(KratosUnittest.TestCase):
     # muting the output
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    #KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     def test_prebuckling_analsis(self):
         reference = 92.80
         with open("prebuckling/ProjectParameters_Symmetric.json",'r') as parameter_file:

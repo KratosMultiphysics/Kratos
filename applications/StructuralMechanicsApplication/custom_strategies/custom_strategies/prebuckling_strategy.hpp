@@ -551,13 +551,14 @@ public:
             // This implementation of the eigenvalue problem relies on the difference of the stiffness matrix
             // between the current and previous step
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
-
+            KRATOS_WATCH( TSparseSpace::TwoNorm(rStiffnessMatrixPrevious) )
+            KRATOS_WATCH( TSparseSpace::TwoNorm(rStiffnessMatrix) )
             this->pGetEigenSolver()->GetLinearSystemSolver()->Solve(
                 rStiffnessMatrixPrevious,
                 rStiffnessMatrix,
                 Eigenvalues,
                 Eigenvectors);
-
+            KRATOS_WATCH( Eigenvalues )
             // Update eigenvalues to loadfactors (Instead of dividing matrix by delta_load_multiplier, here eigenvalues are multiplied)
             mLambda = Eigenvalues(0)*delta_load_multiplier;
             for(unsigned int i = 0; i < Eigenvalues.size(); i++ )
