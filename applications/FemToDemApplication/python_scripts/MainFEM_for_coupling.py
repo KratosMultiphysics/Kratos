@@ -30,6 +30,8 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
+
+        # For the DE-FE contact model
         self.main_model_part.AddNodalSolutionStepVariable(DEM.DEM_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_FORCES)
         self.main_model_part.AddNodalSolutionStepVariable(DEM.DELTA_DISPLACEMENT)
