@@ -410,7 +410,9 @@ public:
         // else{
         //     // Only selected conditions are considered for the calculation on an H-ROM simualtion.
             const auto cond_begin = mSelectedConditions.begin();
+            std::sting WantToKnowYourType = cond_begin;
             const auto nconditions = mSelectedConditions.size();        
+            std::sting WantToKnowYourTypeToo = nconditions;            
         //}
 
         //contributions to the system
