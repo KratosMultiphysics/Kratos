@@ -174,9 +174,8 @@ public:
                 if ((it_elem)->Has(HROM_WEIGHT)){
                     h_rom_simulation = true;
                 }                
-                else{
+                else
                     it_elem->SetValue(HROM_WEIGHT, 1.0);
-                }
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -196,10 +195,8 @@ public:
                     mSelectedConditions_private.push_back(*it_cond);
                     h_rom_simulation = true;
                 }
-                else{
-                    (*it_cond)->SetValue(HROM_WEIGHT, 1.0);
+                else
                     mSelectedConditions_private.push_back(*it_cond);
-                }
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -399,21 +396,23 @@ public:
 
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
+        const ModelPart::ConditionsContainerType::iterator *pcond_begin = nullptr;
+        const int *pnconditions = nullptr;     
 
-        h_rom_simulation = true;
+        if (h_rom_simulation == false){
+            // Getting the array of the conditions
+            const auto pcond_begin = &(rModelPart.ConditionsBegin());            
+            const int pnconditions = &(static_cast<int>(rModelPart.Conditions().size()));
+        }
+        else{
+            // Only selected conditions are considered for the calculation on an H-ROM simualtion.
+            const auto pcond_begin = &(mSelectedConditions.begin());
+            const auto pnconditions = &(mSelectedConditions.size());        
+        }
 
-        // if (h_rom_simulation == false){
-        //     // Getting the array of the conditions
-        //     const auto cond_begin = rModelPart.ConditionsBegin();            
-        //     const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-        // }
-        // else{
-        //     // Only selected conditions are considered for the calculation on an H-ROM simualtion.
-            const auto cond_begin = mSelectedConditions.begin();
-            double WantToKnowYourType = cond_begin;
-            const auto nconditions = mSelectedConditions.size();        
-            double WantToKnowYourTypeToo = nconditions;            
-        //}
+        const auto cond_begin = *pcond_begin;
+        const auto nconditions = *pnconditions;
+
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -463,7 +462,7 @@ public:
 
             #pragma omp for nowait
             for (int k = 0; k < nconditions; k++){
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+                auto it = cond_begin + k;
 
                 //detect if the element is active or not. If the user did not make any choice the condition
                 //is active by default
