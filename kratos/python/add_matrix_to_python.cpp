@@ -82,10 +82,10 @@ namespace Python
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Incompatible buffer dimension\n";
           m = DenseMatrix<double>(info.shape[0], info.shape[1]);
 
-          size_t count = 0;
-          for( size_t i=0; i<static_cast<size_t>(info.shape[0]); ++i )
+          std::size_t count = 0;
+          for( int i=0; i<info.shape[0]; ++i )
           {
-            for( size_t j=0; j<static_cast<size_t>(info.shape[1]); ++j )
+            for( int j=0; j<info.shape[1]; ++j )
             {
               m(i,j) = static_cast<double *>(info.ptr)[count];
               count++;
@@ -149,13 +149,13 @@ namespace Python
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Incompatible buffer dimension\n";
           m = ComplexMatrix(info.shape[0], info.shape[1]);
 
-          size_t count = 0;
+          std::size_t count = 0;
           //if the python data is complex, copy the values
           if( info.format == py::format_descriptor<std::complex<double>>::value )
           {
-            for( size_t i=0; i<static_cast<size_t>(info.shape[0]); ++i )
+            for( int i=0; i<info.shape[0]; ++i )
             {
-              for( size_t j=0; j<static_cast<size_t>(info.shape[1]); ++j )
+              for( int j=0; j<info.shape[1]; ++j )
               {
                 m(i,j) = static_cast<std::complex<double> *>(info.ptr)[count];
                 count++;
@@ -165,9 +165,9 @@ namespace Python
           //if the python data is real, copy the values to the real part and initialize the imaginary part
           else if( info.format == py::format_descriptor<double>::value )
           {
-            for( size_t i=0; i<static_cast<size_t>(info.shape[0]); ++i )
+            for( int i=0; i<info.shape[0]; ++i )
             {
-              for( size_t j=0; j<static_cast<size_t>(info.shape[1]); ++j )
+              for( int j=0; j<info.shape[1]; ++j )
               {
                 m(i,j) = std::complex<double>(static_cast<double *>(info.ptr)[count], 0.0);
                 count++;
