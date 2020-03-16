@@ -514,9 +514,9 @@ public:
             //Copy matrices after path following step and initial step
             //rStiffnessMatrixPrevious = rStiffnessMatrix;
             norm_before =  TSparseSpace::TwoNorm(rStiffnessMatrix);
-            for( int i = 0; i < rStiffnessMatrix.size1(); i++)
+            for( unsigned int i = 0; i < rStiffnessMatrix.size1(); i++)
             {
-                for( int j = 0; j < rStiffnessMatrix.size1(); j++ )
+                for( unsigned int j = 0; j < rStiffnessMatrix.size1(); j++ )
                 {
                     rStiffnessMatrixPrevious(i,j) = rStiffnessMatrix(i,j);
                 }
@@ -562,9 +562,9 @@ public:
             // between the current and previous step
 
             //rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
-            for( int i = 0; i < rStiffnessMatrix.size1(); i++)
+            for( unsigned int i = 0; i < rStiffnessMatrix.size1(); i++)
             {
-                for( int j = 0; j < rStiffnessMatrix.size1(); j++ )
+                for( unsigned int j = 0; j < rStiffnessMatrix.size1(); j++ )
                 {
                     rStiffnessMatrix(i,j) = rStiffnessMatrixPrevious(i,j) - rStiffnessMatrix(i,j);
                 }
