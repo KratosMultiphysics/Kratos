@@ -280,7 +280,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         ## Construct the turbulence model solver
         if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            self._turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"])
+            self._turbulence_model_solver = CreateTurbulenceModel(model, self.main_model_part, self.settings["turbulence_model_solver_settings"])
             self.condition_name = self._turbulence_model_solver.GetFluidVelocityPressureConditionName()
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
 
@@ -311,7 +311,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         # Adding variables required for the turbulence modelling
         if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.fluid_model_part = self.main_model_part
             self._turbulence_model_solver.AddVariables()
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
