@@ -36,7 +36,7 @@
                     "type": "convergence_criteria.iteration_limit",
                     "settings":
                     {
-                        "maximum": 20
+                        "maximum": 15
                     }
                 },
                 "convergence_criterion1" :
@@ -53,48 +53,47 @@
         "solver_wrappers" :
         [
             {
-                "type" : "solver_wrappers.pipe2D.flow_solver",
-                "settings" :
-                {
+                "type": "solver_wrappers.fluent.2019R1",
+                "settings": {
                     "working_directory" : "CFD",
-                    "input_file"  : "solver_parameters.json",
-                    "interface_input" :
+                    "case_file": "case_tube2d.cas",
+                    "dimensions": 2,
+                    "unsteady": true,
+                    "thread_names": ["beamoutside"],
+                    "interface_input":
                     {
-                        "wall": "DISPLACEMENT"
+                        "beamoutside_nodes": "DISPLACEMENT"
                     },
-                    "interface_output" :
+                    "interface_output":
                     {
-                        "wall" : ["PRESSURE","TRACTION"]
-                    }
+                        "beamoutside_faces": ["PRESSURE", "TRACTION"]
+                    },
+                    "cores": 4,
+                    "fluent_gui": false,
+                    "max_nodes_per_face": 4,
+                    "hybrid_initialization": false,
+                    "flow_iterations": 200,
+                    "save_iterations": 1
                 }
             },
             {
                 "type": "solver_wrappers.mapped",
                 "settings": {
-                    "solver_wrapper" : {
-                        "type": "solver_wrappers.abaqus.614",
-                        "settings": {
-                            "working_directory": "CSM",
-                            "cores": 1,
-                            "dimensions": 2,
-                            "arraysize": 10e5,
-                            "surfaces": 1,
-                            "ramp": 0,
-                            "surfaceIDs": [
-                                "BEAMINSIDEMOVING"
-                            ],
-                            "interface_input": {
-                                "BEAMINSIDEMOVING_load_points": [
-                                    "PRESSURE",
-                                    "TRACTION"
-                                ]
+                    "solver_wrapper" :
+                    {
+                        "type" : "solver_wrappers.python.tube_structure_solver_inert",
+                        "settings" :
+                        {
+                            "working_directory" : "CSM",
+                            "input_file"  : "solver_parameters.json",
+                            "interface_input" :
+                            {
+                                "wall" : ["PRESSURE","TRACTION"]
                             },
-                            "interface_output": {
-                                "BEAMINSIDEMOVING_nodes": "DISPLACEMENT"
-                            },
-                            "mp_mode": "THREADS",
-                            "input_file": "Base.inp",
-                            "save_iterations": 1
+                            "interface_output" :
+                            {
+                                "wall": "DISPLACEMENT"
+                            }
                         }
                     },
                     "mapper_interface_input":
@@ -111,14 +110,14 @@
                                         "type" :   "mappers.permutation",
                                         "settings" :
                                         {
-                                            "permutation" : [1, 2, 0]
+                                            "permutation" : [2, 1, 0]
                                         }
                                     },
                                     {
                                         "type": "mappers.linear",
                                         "settings" :
                                         {
-                                            "directions": ["X","Y"],
+                                            "directions": ["Y","Z"],
                                             "balanced_tree": false,
                                             "parallel": true
                                         }
@@ -141,7 +140,7 @@
                                         "type": "mappers.linear",
                                         "settings" :
                                         {
-                                            "directions": ["X","Y"],
+                                            "directions": ["Y","Z"],
                                             "balanced_tree": false,
                                             "parallel": true
                                         }
@@ -150,7 +149,7 @@
                                         "type" :   "mappers.permutation",
                                         "settings" :
                                         {
-                                            "permutation" : [2, 0, 1]
+                                            "permutation" : [2, 1, 0]
                                         }
                                     }
                                 ]

@@ -21,10 +21,10 @@ class TestCoupledSolverAITKEN(KratosUnittest.TestCase):
         xt3 = 10.7
         xt4 = 9.9
 
-        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
+        interface_settings = cs_data_structure.Parameters('{"wall": "DISPLACEMENT"}')
 
         # Create interface
-        variable = vars(KM)["AREA"]
+        variable = vars(KM)["DISPLACEMENT"]
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)
