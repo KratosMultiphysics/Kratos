@@ -198,10 +198,7 @@ namespace Kratos {
 
             if (is_time_to_search_neighbours) {
 
-                CalculateMaxSearchDistance(); //Modifies r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] // Must be called before the bounding box or it uses non-existent elements
-
-	        if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
-
+                if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
                     BoundingBoxUtility();
                 } else {
                     GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
@@ -237,14 +234,10 @@ namespace Kratos {
                 r_process_info[SEARCH_CONTROL] = 1;
             }
 
-            //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-
             if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
             }
-            //}
-
         }
         //Synch this var.
         r_process_info[SEARCH_CONTROL] = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
@@ -576,9 +569,8 @@ namespace Kratos {
             KRATOS_WARNING("DEM") <<"because the ratio is limited to that value ("<<max_ratio<<" times as introduced by "<<std::endl;
             KRATOS_WARNING("DEM") <<"the input variable 'MaxAmplificationRatioOfSearchRadius')"<<std::endl;
             KRATOS_WARNING("DEM") <<"************************************************************************"<<std::endl;
+            ratio = max_ratio;
         }
-
-        ratio = max_ratio;
 
         ++counter;
 
