@@ -5,6 +5,9 @@ import shutil
 # execute from this directory to update documentation
 
 
+# check if necessary software is available: mkdocs and the style
+# TODO
+
 # clean docs folder
 shutil.rmtree('docs')
 os.mkdir('docs')
@@ -22,7 +25,6 @@ for i, filename in enumerate(filenames):
         print(f'WARNING - duplicate file "{files[i]}"')
 
 # copy all MarkDown files to docs folder
-shutil.copy('index.md', 'docs/')
 for file in files:
     shutil.copy(file, 'docs/')
 
@@ -44,19 +46,20 @@ for file in unused:
 # build static website
 print('\n')
 os.system('mkdocs build --clean')
-# os.system('mkdocs gh-deploy')
+# os.system('mkdocs gh-deploy')  # doesn't work, need admin rights on GitHub
 
-# works only for me now due to admin rights --> copy site to personal repository
-src = os.path.join(os.getcwd(), 'site')
-dst = os.path.join(os.getcwd(), '../../../../cocodoc')
+# copy site to other repository in folder cocodoc
+if True:
+    src = os.path.join(os.getcwd(), 'site')
+    dst = os.path.join(os.getcwd(), '../../../../cocodoc')
 
-for item in os.listdir('site'):
-    src_item = os.path.join(src, item)
-    dst_item = os.path.join(dst, item)
+    for item in os.listdir('site'):
+        src_item = os.path.join(src, item)
+        dst_item = os.path.join(dst, item)
 
-    if os.path.isfile(src_item):
-        os.remove(dst_item)
-        shutil.copy(src_item, dst_item)
-    if os.path.isdir(src_item):
-        shutil.rmtree(dst_item)
-        shutil.copytree(src_item, dst_item)
+        if os.path.isfile(src_item):
+            os.remove(dst_item)
+            shutil.copy(src_item, dst_item)
+        if os.path.isdir(src_item):
+            shutil.rmtree(dst_item)
+            shutil.copytree(src_item, dst_item)
