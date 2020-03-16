@@ -361,11 +361,11 @@ typedef Node<3> NodeType;
         curve_on_surface.CreateIntegrationPoints(integration_points);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 20);
-        double area = 0;
+        double length = 0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
-            area += integration_points[i].Weight();
+            length += integration_points[i].Weight();
         }
-        KRATOS_CHECK_NEAR(area, 23.313708498984759, TOLERANCE);
+        KRATOS_CHECK_NEAR(length, 23.313708498984759, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.
