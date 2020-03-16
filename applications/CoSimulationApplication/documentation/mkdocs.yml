@@ -5,8 +5,16 @@ nav:
     - index.md
     - SolverWrappers:
         - fluent.md
-    - Mappers:
-        - mappers.md
+        - python_solvers.md
     - TestExamples:
         - test_examples.md
-        - Title: tube_fluent2D_abaqus2D.md
+        - Tube:
+            - Fluent 2D - Abaqus 2D: tube_fluent2D_abaqus2D.md
+            - Fluent 2D - Python: tube_fluent2D_tube_structure.md
+            - Fluent 3D - Abaqus 3D: tube_fluent3D_abaqus3D.md
+            - Python - Abaqus 2D: tube_tube_flow_abaqus2D.md
+            - Python - Python: tube_tube_flow_tube_structure.md
+            - Python - Python inert: tube_tube_flow_tube_structure_inert.md
+    - Varia:
+        - mappers.md
+        - pykratos.md

@@ -65,5 +65,5 @@ if True:
             os.remove(dst_item)
             shutil.copy(src_item, dst_item)
         if os.path.isdir(src_item):
-            shutil.rmtree(dst_item)
+            shutil.rmtree(dst_item, ignore_errors=True)
             shutil.copytree(src_item, dst_item)
