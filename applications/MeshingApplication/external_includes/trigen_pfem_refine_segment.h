@@ -648,7 +648,7 @@ public:
         //list_of_nodes.reserve(ThisModelPart.Nodes().size());
              seg_num = 0;
         //int row = 0;
-        //	FindNodalNeighboursProcess(ThisModelPart,10,10).Execute();
+        //	FindNodalNeighboursProcess(ThisModelPart).Execute();
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
              in != ThisModelPart.NodesEnd(); in++)
         	{
