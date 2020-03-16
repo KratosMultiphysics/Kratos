@@ -53,6 +53,30 @@ typedef Node<3> NodeType;
         return curve;
     }
 
+    NurbsCurveGeometry<2, PointerVector<NodeType>> GenerateReferenceCurve2dNodes()
+    {
+        PointerVector<NodeType> points;
+
+        points.push_back(NodeType::Pointer(new NodeType(1, 0, 0, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(2, 3.3333333333333335, 1.6666666666666667, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(3, 6.6666666666666661, 3.333333333333333, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(4, 10, 5, 0)));
+
+        Vector knot_vector = ZeroVector(6);
+        knot_vector[0] = 0.0;
+        knot_vector[1] = 0.0;
+        knot_vector[2] = 0.0;
+        knot_vector[3] = 11.180339887498949;
+        knot_vector[4] = 11.180339887498949;
+        knot_vector[5] = 11.180339887498949;
+
+        int p = 3;
+
+        auto curve = NurbsCurveGeometry<2, PointerVector<NodeType>>(points, p, knot_vector);
+
+        return curve;
+    }
+
     NurbsCurveGeometry<3, PointerVector<NodeType>> GenerateReferenceCurve3d()
     {
         PointerVector<NodeType> points;
@@ -317,5 +341,45 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(area, 11.180339887498949, TOLERANCE);
     }
 
+
+    // test quadrature points of curve on surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Nurbs curve on a Nurbs surface
+        auto curve = GenerateReferenceCurve2dNodes();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        curve.CreateQuadraturePointGeometries(quadrature_points, 3);
+
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
+        double area = 0;
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
+                area += quadrature_points[i].IntegrationPoints()[j].Weight();
+            }
+        }
+        KRATOS_CHECK_NEAR(area, 23.313708498984759, TOLERANCE);
+
+        auto element = Element(0, quadrature_points(2));
+
+        // Check shape functions
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.pGetGeometry()->ShapeFunctionsValues(),
+            quadrature_points(2)->ShapeFunctionsValues(),
+            TOLERANCE);
+
+        // Check first derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(1, 0),
+            quadrature_points(2)->ShapeFunctionLocalGradient(0),
+            TOLERANCE);
+
+        // Check second derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(2, 0),
+            quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
+            TOLERANCE);
+    }
 } // namespace Testing.
 } // namespace Kratos.
