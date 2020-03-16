@@ -993,7 +993,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
     mMP.xg = mMP.xg + delta_xg ;
 
     // Update the MP Acceleration
-    mMP.acceleration;
+    mMP.acceleration = MP_acceleration;
 
     // Update the MP total displacement
     mMP.displacement += delta_xg;
