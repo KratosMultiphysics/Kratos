@@ -25,6 +25,8 @@ namespace Kratos {
 
         void SetDebugPrintingOptionValue(Properties::Pointer pProp);
 
+        void Initialize(SphericContinuumParticle* element) override;
+
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double bonded_equiv_young,
