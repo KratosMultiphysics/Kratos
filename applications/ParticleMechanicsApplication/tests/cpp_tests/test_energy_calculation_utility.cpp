@@ -49,7 +49,8 @@ namespace Testing
         volume_acceleration[1] = -9.8;
         volume_acceleration[2] = 0.0;
         pElement->SetValueOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
-        pElement->SetValueOnIntegrationPoints(MP_MASS, std::vector<double>{ 1.5 }, rModelPart.GetProcessInfo());
+        std::vector<double> mp_mass_vector = { 1.5 };
+        pElement->SetValueOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
         pElement->SetValueOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
 
         // For kinetic energy
@@ -77,9 +78,9 @@ namespace Testing
         mp_strain[5] = 0.6;
         std::vector<double> mp_volume_vector = { 2.5 };
         pElement->SetValueOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
-        std::vector<double> mp_cauchy_stress_vector = { mp_cauchy_stress };
+        std::vector<Vector> mp_cauchy_stress_vector = { mp_cauchy_stress };
         pElement->SetValueOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
-        std::vector<double> mp_almansi_strain_vector = { mp_strain };
+        std::vector<Vector> mp_almansi_strain_vector = { mp_strain };
         pElement->SetValueOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
     }
 
