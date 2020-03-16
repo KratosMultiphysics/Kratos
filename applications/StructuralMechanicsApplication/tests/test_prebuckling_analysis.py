@@ -121,6 +121,9 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
             eig_strategy.Solve()
             if( i%2 == 1):
                 LoadFactor.append( mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR][0] )
+                print("Norm1: ",eig_strategy.GetNorm1())
+                print("Norm2: ",eig_strategy.GetNorm2())
+                print("Eigenvalue: ",eig_strategy.GetEigenvalue())
             self._updateConditions(mp,NumOfNodes)
         return LoadFactor
 
@@ -268,7 +271,6 @@ class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
         current_model_sym = KratosMultiphysics.Model()
         mp_sym = self._set_up_system(current_model_sym,NumOfNodesPerSide,Length,True)
         loadFactor_sym = self._solve_prebuckling_problem(mp_sym,NumOfNodesPerSide,LoadSteps)
-
         #Construct full model (whole plate 2x2)
         NumOfNodesPerSide = 9
         LoadSteps = 2
