@@ -300,8 +300,11 @@ public:
     {
         const SizeType points_per_span = PolynomialDegree() + 1;
 
+        std::vector<double> spans;
+        Spans(spans);
+
         this->CreateIntegrationPoints(
-            rIntegrationPoints, Spans(), points_per_span);
+            rIntegrationPoints, spans, points_per_span);
     }
 
     void CreateIntegrationPoints(

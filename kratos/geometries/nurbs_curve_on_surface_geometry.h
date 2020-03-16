@@ -200,8 +200,11 @@ public:
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
+        std::vector<double> spans;
+        Spans(spans);
+
         mpNurbsCurve->CreateIntegrationPoints(
-            rIntegrationPoints, Spans(), points_per_span);
+            rIntegrationPoints, spans, points_per_span);
     }
 
     ///@}
