@@ -35,7 +35,7 @@ namespace Python
 
     template< typename TMatrixType > py::class_< TMatrixType > CreateMatrixInterface(pybind11::module& m, std::string Name )
     {
-        py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str());
+        py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str(),py::buffer_protocol());
         binder.def(py::init<>());
 
         //binder.def(py::init<std::TMatrixType& >())
@@ -94,23 +94,35 @@ namespace Python
                                                 rA.data().begin(),
                                                 rA.data().end()
                                                 ) ;});
+        matrix_binder.def_buffer( [](DenseMatrix<double>& self)-> py::buffer_info{
+                                                                    return py::buffer_info(
+                                                                    self.data().begin(),
+                                                                    sizeof(double),
+                                                                    py::format_descriptor<double>::format(),
+                                                                    2,
+                                                                    {self.size1(),self.size2()},
+                                                                    {sizeof(double)*self.size2(),
+                                                                     sizeof(double) }
+                                                                    );
+                                                                    });
+
         ;
 
         //here we add the sparse matrix
         auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
         compressed_matrix_binder.def(py::init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
-        compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double> 
+        compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double>
                                                     {return std::vector<double>(
                                                         rA.value_data().begin(),
                                                         rA.value_data().end()
                                                         ) ;});
-        compressed_matrix_binder.def("index1_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t> 
+        compressed_matrix_binder.def("index1_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index1_data().begin(),
                                                         rA.index1_data().end()
                                                         ) ;});
-        compressed_matrix_binder.def("index2_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t> 
+        compressed_matrix_binder.def("index2_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index2_data().begin(),
                                                         rA.index2_data().end()
@@ -148,12 +160,12 @@ namespace Python
                                                         rA.value_data().begin(),
                                                         rA.value_data().end()
                                                         ) ;});
-        cplx_compressed_matrix_binder.def("index1_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t> 
+        cplx_compressed_matrix_binder.def("index1_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index1_data().begin(),
                                                         rA.index1_data().end()
                                                         ) ;});
-        cplx_compressed_matrix_binder.def("index2_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t> 
+        cplx_compressed_matrix_binder.def("index2_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index2_data().begin(),
                                                         rA.index2_data().end()

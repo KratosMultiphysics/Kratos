@@ -1,11 +1,15 @@
 name: Nightly Build
 
 on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+
   schedule:
     - cron:  '0 1 * * *'
 
 jobs:
-  ubuntu:
+  ubuntu-nightly:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -18,7 +22,7 @@ jobs:
       FC: gfortran-7
 
     container:
-      image: oberbichler/kratos-dev:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
 
     steps:
     - uses: actions/checkout@v2
@@ -49,7 +53,7 @@ jobs:
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
 
-  windows:
+  windows-nightly:
     runs-on: windows-latest
 
     steps:
