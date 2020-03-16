@@ -132,7 +132,7 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 
@@ -235,7 +235,7 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         BoundedMatrix<double, 3, 3> RotationMatrix;
 

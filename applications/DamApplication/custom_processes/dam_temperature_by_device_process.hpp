@@ -101,7 +101,7 @@ class DamTemperaturebyDeviceProcess : public Process
         KRATOS_TRY;
 
         const int nelements = mrModelPart.GetMesh(0).Elements().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         bool IsInside = false;
         array_1d<double, 3> LocalCoordinates;
         Element::Pointer pSelectedElement;

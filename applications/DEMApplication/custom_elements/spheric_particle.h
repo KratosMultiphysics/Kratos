@@ -18,7 +18,6 @@
 #include "../custom_conditions/dem_wall.h"
 #include "../custom_strategies/schemes/dem_integration_scheme.h"
 #include "includes/kratos_export_api.h"
-//#include "../kratos_DEMApplication_export_dll.h"
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
