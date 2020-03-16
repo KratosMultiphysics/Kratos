@@ -262,6 +262,61 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
+    /// Returns the number of spans in DirectionIndex=1:U and DirectionIndex=2:V (which are larger than 0).
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
+    {
+        SizeType knot_span_counter = 0;
+        if (DirectionIndex == 1) {
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 2) {
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "DirectionIndex in NurbsSurfaceGeometry can either be 1 or 2. "
+                << "Selected DirectionIndex: " << DirectionIndex << std::endl;
+        }
+        return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @return vector of domain intervals.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        if (DirectionIndex == 1) {
+            rSpans[0] = mKnotsU[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsU[i + 1];
+                    counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 2) {
+            rSpans[0] = mKnotsV[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsV[i + 1];
+                    counter++;
+                }
+            }
+        }
+    }
+
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
