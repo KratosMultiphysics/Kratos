@@ -39,11 +39,11 @@ The solver wrapper consists of 3 files (with X the Fluent version, e.g. 2019R1):
 -   X.jou: Fluent journal file to interactively run the FSI simulation, written in Scheme
 -   X.c: Fluent UDF file that implements additional functionality used in Fluent, written in C
 
-#### The `__init__` method
+### The `__init__` method
 
 During initialization, the journal and UDF files are adapted (parameter values are filled in) and copied to the `working_directory`. Fluent is then started in that directory using the parameters `cores`, `dimensions` and `fluent_gui`. Fluent then writes a case summery, so that SolverWrapperFluentX can link the interface thread names (specified in `thread_names`) to thread IDs, for use in the UDFs. Then the `Model` and `ModelPart` objects are created, based on data written by Fluent in timestep 0. After a restart, this same data must be found, i.e. if that file is removed from the `working_directory`, the simulation cannot be restarted. If the simulation was restarted, the coordinates `X`, `Y`, `Z` in the `Node` objects are updated to the current values. Finally, the `CoSimulationInteface` objects are made.
 
-#### Files created during simulation
+### Files created during simulation
 
 In the file conventions, `A` is the timestep number and `B` the Fluent thread ID.
 
@@ -76,7 +76,7 @@ Following items are done after starting the FSI simulation, and must therefore n
 
 ## Version specific documentation
 
-#### 2019R1 (19.3)
+### 2019R1 (19.3)
 
 This is currently the only version, so this section is still empty.
 
