@@ -76,18 +76,16 @@ namespace Python
         //here we add the dense matrix
         auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
-        matrix_binder.def("__init__", [](DenseMatrix<double> &m, py::buffer b){
+        matrix_binder.def("__init__", [](DenseMatrix<double> &matrix, py::buffer b){
           py::buffer_info info = b.request();
           KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
-          KRATOS_ERROR_IF( info.ndim != 2 ) << "Incompatible buffer dimension\n";
-          m = DenseMatrix<double>(info.shape[0], info.shape[1]);
+          KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
+          matrix = DenseMatrix<double>(info.shape[0], info.shape[1]);
 
           std::size_t count = 0;
-          for( int i=0; i<info.shape[0]; ++i )
-          {
-            for( int j=0; j<info.shape[1]; ++j )
-            {
-              m(i,j) = static_cast<double *>(info.ptr)[count];
+          for( int i=0; i<info.shape[0]; ++i ) {
+            for( int j=0; j<info.shape[1]; ++j ) {
+              matrix(i,j) = static_cast<double *>(info.ptr)[count];
               count++;
             }
           }
@@ -142,22 +140,20 @@ namespace Python
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");
         cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type>());
-        cplx_matrix_binder.def("__init__", [](ComplexMatrix &m, py::buffer b){
+        cplx_matrix_binder.def("__init__", [](ComplexMatrix &matrix, py::buffer b){
           py::buffer_info info = b.request();
           KRATOS_ERROR_IF( info.format != py::format_descriptor<std::complex<double>>::value &&
-            info.format != py::format_descriptor<double>::value ) << "Expected a double or complex array\n";
-          KRATOS_ERROR_IF( info.ndim != 2 ) << "Incompatible buffer dimension\n";
-          m = ComplexMatrix(info.shape[0], info.shape[1]);
+            info.format != py::format_descriptor<double>::value ) << "Expected a double or complex array" << std::endl;
+          KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
+          matrix = ComplexMatrix(info.shape[0], info.shape[1]);
 
           std::size_t count = 0;
           //if the python data is complex, copy the values
           if( info.format == py::format_descriptor<std::complex<double>>::value )
           {
-            for( int i=0; i<info.shape[0]; ++i )
-            {
-              for( int j=0; j<info.shape[1]; ++j )
-              {
-                m(i,j) = static_cast<std::complex<double> *>(info.ptr)[count];
+            for( int i=0; i<info.shape[0]; ++i ) {
+              for( int j=0; j<info.shape[1]; ++j ) {
+                matrix(i,j) = static_cast<std::complex<double> *>(info.ptr)[count];
                 count++;
               }
             }
@@ -165,11 +161,9 @@ namespace Python
           //if the python data is real, copy the values to the real part and initialize the imaginary part
           else if( info.format == py::format_descriptor<double>::value )
           {
-            for( int i=0; i<info.shape[0]; ++i )
-            {
-              for( int j=0; j<info.shape[1]; ++j )
-              {
-                m(i,j) = std::complex<double>(static_cast<double *>(info.ptr)[count], 0.0);
+            for( int i=0; i<info.shape[0]; ++i ) {
+              for( int j=0; j<info.shape[1]; ++j ) {
+                matrix(i,j) = std::complex<double>(static_cast<double *>(info.ptr)[count], 0.0);
                 count++;
               }
             }
