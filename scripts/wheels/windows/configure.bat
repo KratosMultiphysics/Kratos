@@ -4,7 +4,7 @@ set CC=cl.exe
 set CXX=cl.exe
 
 
-set KRATOS_SOURCE=%2
+set KRATOS_SOURCE=.
 set KRATOS_BUILD=%KRATOS_SOURCE%/build
 set KRATOS_APP_DIR=applications
 
@@ -12,7 +12,7 @@ set KRATOS_BUILD_TYPE=Release
 set BOOST_ROOT=%BOOST%
 set PYTHON_EXECUTABLE=%1
 
-set USE_COTIRE=%3
+set USE_COTIRE=%2
 
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
