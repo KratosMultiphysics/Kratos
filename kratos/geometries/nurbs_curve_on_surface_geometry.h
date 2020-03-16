@@ -53,6 +53,8 @@ public:
 
     // using base class functionalities.
     using BaseType::CreateQuadraturePointGeometries;
+    using BaseType::pGetPoint;
+    using BaseType::GetPoint;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
