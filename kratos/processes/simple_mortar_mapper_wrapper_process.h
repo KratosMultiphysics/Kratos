@@ -90,7 +90,7 @@ public:
         )
     {
         // The default parameters
-        Parameters default_parameters = GetDefaultParameters();
+        const Parameters default_parameters = GetDefaultParameters();
         const bool origin_are_conditions_is_defined = ThisParameters.Has("origin_are_conditions");
         const bool destination_are_conditions_is_defined = ThisParameters.Has("destination_are_conditions");
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -230,9 +230,9 @@ public:
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    Parameters GetDefaultParameters() override
+    const Parameters GetDefaultParameters() const override
     {
-        Parameters default_parameters = Parameters(R"(
+        const Parameters default_parameters = Parameters(R"(
         {
             "echo_level"                       : 0,
             "using_average_nodal_normal"       : true,
