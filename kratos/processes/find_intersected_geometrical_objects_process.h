@@ -471,7 +471,7 @@ public:
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    Parameters GetDefaultParameters() override;
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
