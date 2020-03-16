@@ -582,8 +582,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
     def Finalize(self):
-
         self.KratosPrintInfo("Finalizing execution...")
+        super(DEMAnalysisStage, self).Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()

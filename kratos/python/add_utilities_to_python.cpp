@@ -57,6 +57,8 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/entities_utilities.h"
+#include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos {
@@ -809,7 +811,6 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 2 > ::FindMaximumEdgeSize)
         .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::class_<ParallelDistanceCalculator < 3 > >(m,"ParallelDistanceCalculator3D")
@@ -820,7 +821,6 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 3 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
         .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::class_<BruteForcePointLocator> (m, "BruteForcePointLocator")
@@ -1230,6 +1230,18 @@ void AddUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+
+    // ConstraintUtilities
+    auto constraint_utilities = m.def_submodule("ConstraintUtilities");
+    constraint_utilities.def("ResetSlaveDofs", &ConstraintUtilities::ResetSlaveDofs );
+    constraint_utilities.def("ApplyConstraints", &ConstraintUtilities::ApplyConstraints );
+
+    // EntitiesUtilities
+    auto entities_utilities = m.def_submodule("EntitiesUtilities");
+    entities_utilities.def("InitializeAllEntities", &EntitiesUtilities::InitializeAllEntities );
+    entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeEntities<Condition> );
+    entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeEntities<Element> );
+    entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeEntities<MasterSlaveConstraint> );
 
     // GeometricalTransformationUtilities
     auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
