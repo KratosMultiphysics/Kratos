@@ -60,15 +60,11 @@ RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(Model& rModel, Parame
     KRATOS_CATCH("");
 }
 
-RansCheckVectorBoundsProcess::~RansCheckVectorBoundsProcess()
-{
-}
-
 int RansCheckVectorBoundsProcess::Check()
 {
     KRATOS_TRY
 
-    const Variable<array_1d<double, 3>> vector_variable =
+    const Variable<array_1d<double, 3>>& vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
@@ -83,7 +79,7 @@ int RansCheckVectorBoundsProcess::Check()
 void RansCheckVectorBoundsProcess::Execute()
 {
     KRATOS_TRY
-    const Variable<array_1d<double, 3>> vector_variable =
+    const Variable<array_1d<double, 3>>& vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);

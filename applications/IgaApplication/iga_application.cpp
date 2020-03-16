@@ -1,12 +1,8 @@
-/*
 //  KRATOS  _____________
 //         /  _/ ____/   |
 //         / // / __/ /| |
 //       _/ // /_/ / ___ |
 //      /___/\____/_/  |_| Application
-//
-//  Main authors:   Thomas Oberbichler
-*/
 
 // System includes
 
@@ -20,6 +16,8 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
+    , mShell3pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaTrussElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
@@ -36,6 +34,7 @@ void KratosIgaApplication::Register() {
     KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
 
     // ELEMENTS
+    KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 

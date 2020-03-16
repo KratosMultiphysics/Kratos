@@ -1253,8 +1253,8 @@ public:
         GiD_fBeginElements( mMeshFile );
 
         // DEM variables
-        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+        const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        const Variable<double>& radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
@@ -1301,8 +1301,8 @@ public:
         double nz = 1.0;
 
         // DEM variables
-        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+        const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        const Variable<double>& radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
@@ -1344,8 +1344,7 @@ public:
         GiD_fBeginElements( mMeshFile );
 
         // DEM variables
-        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+        const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();

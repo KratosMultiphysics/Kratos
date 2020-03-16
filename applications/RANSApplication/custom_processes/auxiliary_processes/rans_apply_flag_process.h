@@ -72,7 +72,7 @@ public:
     RansApplyFlagProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansApplyFlagProcess() override;
+    ~RansApplyFlagProcess() override = default;
 
     ///@}
     ///@name Operators

@@ -41,7 +41,7 @@ class WrlIO:
         node_multiplicity = {}
 
         nodes_shift = 0
-        triangles_shift = 0
+        faces_shift = 0
         for i, shape in enumerate(shapes):
             _rename_to_valid_name(model_part, shape)
             sub_model_part = model_part.CreateSubModelPart(shape.name)
@@ -55,18 +55,19 @@ class WrlIO:
                 sub_model_part.AddNode(new_node, 0)
                 node_multiplicity[node_id] = 0
 
-            for i, triangle in enumerate(shape.triangles):
-                triangle_id = i + triangles_shift
-                node_ids = [x + nodes_shift for x in triangle]
+            for i, face in enumerate(shape.faces):
+                face_id = i + faces_shift
+                node_ids = [x + nodes_shift for x in face]
 
                 for node_id in node_ids:
                     node_multiplicity[node_id] += 1
 
-                new_condition = model_part.CreateNewCondition("SurfaceCondition3D3N", triangle_id, node_ids, new_property)
+                condition_type = "SurfaceCondition3D{}N".format(len(node_ids))
+                new_condition = model_part.CreateNewCondition(condition_type, face_id, node_ids, new_property)
                 sub_model_part.AddCondition(new_condition)
 
             nodes_shift += len(shape.nodes)
-            triangles_shift += len(shape.triangles)
+            faces_shift += len(shape.faces)
 
         # remove flying nodes
         counter = 0

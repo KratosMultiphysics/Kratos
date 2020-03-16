@@ -37,6 +37,7 @@
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/move_rotor_process.h"
+#include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "spaces/ublas_space.h"
 
@@ -59,6 +60,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > VariableComponentType;
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"SpalartAllmarasTurbulenceModel")
@@ -134,6 +137,17 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
     .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
+    ;
+
+    py::class_<ShockDetectionProcess, ShockDetectionProcess::Pointer, Process>
+    (m, "ShockDetectionProcess")
+    .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const bool, const bool >())
+    .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
+    .def(py::init < ModelPart&, const VariableComponentType&, const Variable<array_1d<double,3>>&, const bool, const bool >())
+    .def(py::init < ModelPart&, const VariableComponentType&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
+    .def("ExecuteInitialize", &ShockDetectionProcess::ExecuteInitialize)
+    .def("ExecuteInitializeSolutionStep", &ShockDetectionProcess::ExecuteInitialize)
+    .def("Execute", &ShockDetectionProcess::Execute)
     ;
 
     py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>

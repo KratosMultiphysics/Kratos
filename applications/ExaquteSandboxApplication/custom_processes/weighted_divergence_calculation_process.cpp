@@ -63,8 +63,18 @@ namespace Kratos
         this->PrintInfo(rOStream);
     }
 
-    // Execution
-    void WeightedDivergenceCalculationProcess::Execute()
+    void WeightedDivergenceCalculationProcess::ExecuteInitialize()
+    {
+        KRATOS_TRY;
+
+        auto& r_nodes_array = mrModelPart.Nodes();
+        // Initialize variable
+        VariableUtils().SetNonHistoricalVariableToZero(AVERAGED_DIVERGENCE, r_nodes_array);
+
+        KRATOS_CATCH("");
+    }
+
+    void WeightedDivergenceCalculationProcess::ExecuteFinalizeSolutionStep()
     {
         KRATOS_TRY;
 
@@ -141,12 +151,12 @@ namespace Kratos
                 }
 
                 // Retrieve divergence from previous time step
-                const double divergence_old = it_elem->GetValue(DIVERGENCE_WEIGHTED);
+                const double divergence_old = it_elem->GetValue(AVERAGED_DIVERGENCE);
                 const double velocity_seminorm_old = it_elem->GetValue(VELOCITY_H1_SEMINORM);
 
                 // Compute divergence weighted time average
                 auto divergence_current_avg = ComputeWeightedTimeAverage(divergence_old, divergence_current);
-                it_elem->SetValue(DIVERGENCE_WEIGHTED,divergence_current_avg);
+                it_elem->SetValue(AVERAGED_DIVERGENCE,divergence_current_avg);
 
                 // Compute divergence_norm weighted time average
                 auto velocity_seminorm_current_avg = ComputeWeightedTimeAverage(velocity_seminorm_old, velocity_seminorm_current);

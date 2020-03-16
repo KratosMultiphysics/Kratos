@@ -17,7 +17,6 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
-#include "custom_utilities/formfinding_io_utility.h"
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "custom_utilities/rve_periodicity_utility.h"
@@ -29,13 +28,6 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-    py::class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
-        .def(py::init<ModelPart&, const Parameters>())
-        .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
-        .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
-        .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
-        ;
 
     // RayleighDampingCoefficientsUtilities
     m.def("ComputeDampingCoefficients",&RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
@@ -51,7 +43,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
-        .def("Execute",&ProjectVectorOnSurfaceUtility::Execute);
+        .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
 }
 
 }  // namespace Python.

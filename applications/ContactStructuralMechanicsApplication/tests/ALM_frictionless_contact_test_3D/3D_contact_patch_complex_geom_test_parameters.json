@@ -76,6 +76,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,0.0,-1.0],
                 "interval"        : [0.0,"End"]
@@ -89,7 +90,6 @@
             "Parameters"    : {
                 "mesh_id"                   : 0,
                 "contact_model_part"        : { "0" : ["CONTACT_Contact_Auto1"]},
-                "computing_model_part_name" : "computing_domain",
                 "model_part_name"           : "Structure",
                 "assume_master_slave"       : { "0" : ["Parts_Parts_Auto1"]},
                 "contact_type"              : "Frictionless",
@@ -162,7 +162,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

@@ -293,9 +293,16 @@ Enables or Disables(default) the use of [cotire](https://github.com/sakra/cotire
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
 In order to install and compile with this switch please use:
+
+On Linux
 ```shell
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1 
+```
+On Windows
+```shell
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
@@ -304,6 +311,11 @@ Instead of the regular install target.
 `-DUSE_MPI=ON/OFF`
 
 Enables or Disables(default) the modules and code for mpi. This option is needed if you want to compile Trilinos, Metis, etc...
+
+### Logging
+`-DKRATOS_COLORED_OUTPUT=ON/OFF`
+
+Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### External libraries
 #### Feast
