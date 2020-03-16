@@ -38,8 +38,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Geometry as base class.
-    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef typename TContainerPointType::value_type NodeType;
+
+    typedef Geometry<NodeType> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
