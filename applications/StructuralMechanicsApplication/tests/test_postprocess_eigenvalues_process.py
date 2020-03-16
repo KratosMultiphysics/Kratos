@@ -100,12 +100,13 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
 
         settings_check_process = KratosMultiphysics.Parameters("""
         {
-            "reference_file_name"   : "%s",
-            "output_file_name"      : "%s",
+            "reference_file_name"   : "",
+            "output_file_name"      : "EigenResults/Structure_EigenResults_15_0.post.res",
             "remove_output_file"    : true,
             "comparison_type"       : "post_res_file"
         }
-        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref").replace("\\", "\\\\"), "EigenResults/Structure_EigenResults_15_0.post.res"))
+        """)
+        settings_check_process["reference_file_name"].SetString(GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"))
 
         test_model = KratosMultiphysics.Model()
         ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
