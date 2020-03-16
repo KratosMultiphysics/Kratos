@@ -401,13 +401,13 @@ public:
 
         if (h_rom_simulation == false){
             // Getting the array of the conditions
-            const auto pcond_begin = &(rModelPart.ConditionsBegin());            
-            const int pnconditions = &(static_cast<int>(rModelPart.Conditions().size()));
+            pcond_begin = &(rModelPart.ConditionsBegin());            
+            pnconditions = &(static_cast<int>(rModelPart.Conditions().size()));
         }
         else{
             // Only selected conditions are considered for the calculation on an H-ROM simualtion.
-            const auto pcond_begin = &(mSelectedConditions.begin());
-            const auto pnconditions = &(mSelectedConditions.size());        
+            pcond_begin = &(mSelectedConditions.begin());
+            pnconditions = &(mSelectedConditions.size());        
         }
 
         const auto cond_begin = *pcond_begin;
