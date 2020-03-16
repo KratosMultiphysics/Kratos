@@ -366,8 +366,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if ( mpPrimalCondition->GetProperties().Has(rDesignVariable) ) {
-            const double variable_value = mpPrimalCondition->GetProperties()[rDesignVariable];
+        if ( mpPrimalCondition->Has(rDesignVariable) ) {
+            const double variable_value = mpPrimalCondition->GetValue(rDesignVariable);
             return variable_value;
         }
         else {
