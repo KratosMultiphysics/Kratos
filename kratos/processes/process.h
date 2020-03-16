@@ -171,10 +171,10 @@ public:
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    virtual Parameters GetDefaultParameters()
+    virtual const Parameters GetDefaultParameters() const
     {
         KRATOS_WARNING("Process") << "GetDefaultParameters not implemented. Returning empty parameters" << std::endl;
-        Parameters default_parameters = Parameters(R"({})" );
+        const Parameters default_parameters = Parameters(R"({})" );
 
         return default_parameters;
     }
