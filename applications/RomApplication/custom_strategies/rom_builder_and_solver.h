@@ -440,7 +440,7 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
                     Matrix aux = prod(LHS_Contribution, PhiElemental);
-                    double h_rom_weight = it->GetValue(HROM_WEIGHT);
+                    double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
