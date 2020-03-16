@@ -185,7 +185,6 @@ public:
             // Gets the array of conditions from the modeler
             ConditionsArrayType &r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            //std::vector<int> mSelectedConditions_private;
             
             ModelPart::ConditionsContainerType mSelectedConditions_private;
             #pragma omp for schedule(guided, 512) nowait            
@@ -199,6 +198,7 @@ public:
                 }
                 else{
                     (*it_cond)->SetValue(HROM_WEIGHT, 1.0);
+                    mSelectedConditions_private.push_back(*it_cond);
                 }
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
@@ -395,13 +395,23 @@ public:
 
         // Getting the elements from the model
         const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        const auto el_begin = rModelPart.ElementsBegin();
 
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
-        const auto el_begin = rModelPart.ElementsBegin();
-        const auto cond_begin = rModelPart.ConditionsBegin();
+
+
+        h_rom_simulation == true;
+
+        if (h_rom_simulation == false){
+            // Getting the array of the conditions
+            const auto cond_begin = rModelPart.ConditionsBegin();            
+            const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        }
+        else{
+            // Only selected conditions are considered for the calculation on an H-ROM simualtion.
+            const auto cond_begin = mSelectedConditions.begin();
+            const auto nconditions = mSelectedConditions.size();        
+        }
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
