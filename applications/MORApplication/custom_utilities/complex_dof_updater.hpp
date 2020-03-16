@@ -7,6 +7,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -27,9 +28,9 @@ namespace ComplexDofUpdater
     }
 
     void AssignComplexDofValue(
-        Variable<double> var,
-        Variable<double> var_real,
-        Variable<double> var_imag,
+        Variable<double>& var,
+        Variable<double>& var_real,
+        Variable<double>& var_imag,
         Node<3>& node,
         const std::complex<double>& Z)
     {
@@ -47,7 +48,7 @@ namespace ComplexDofUpdater
     { \
         const size_t eq_id = it_node->GetDof(name).EquationId(); \
         AssignComplexDofValue(name, REAL_##name, IMAG_##name, (*it_node), rX(eq_id)); \
-    } 
+    }
 
     /** @brief Assign new values for the problem's degrees of freedom using the complex vector rX.
      *  @details value = std::abs(rX[dof.EquationId()])
