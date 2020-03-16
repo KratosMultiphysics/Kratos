@@ -343,7 +343,7 @@ typedef Node<3> NodeType;
 
 
     // test quadrature points of curve on surface
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
     {
         // Nurbs curve on a Nurbs surface
         auto curve = GenerateReferenceCurve2dNodes();
