@@ -2,11 +2,15 @@ import glob
 import os
 import shutil
 
-# execute from this directory to update documentation
+"""
+README
+------
 
-
-# check if necessary software is available: mkdocs and the style
-# TODO
+- execute from this directory to update documentation
+- required software:
+    - mkdocs --> install with: pip install mkdocs
+    - material theme --> install with: pip install mkdocs-material
+"""
 
 # clean docs folder
 shutil.rmtree('docs')

@@ -110,10 +110,10 @@ JSON setting|type|description
 `balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build; set to `true` if the tree is giving problems (which I don't expect)
 
 The `Initialize`-method should be called in all child-classes. It does the following:
-- read and store the coordinates from the _from_ and _to_ `ModelPart` objects
-- check if the bounding boxes of the _from_ and _to_ `ModelPart` objects are more or less overlapping
-- do an efficient nearest neighbour search using `scipy.spatial.cKDTree`
-- check if the _from_ `ModelPart` does not contain duplicate nodes (i.e. same coordinates)
+-   read and store the coordinates from the _from_ and _to_ `ModelPart` objects
+-   check if the bounding boxes of the _from_ and _to_ `ModelPart` objects are more or less overlapping
+-   do an efficient nearest neighbour search using `scipy.spatial.cKDTree`
+-   check if the _from_ `ModelPart` does not contain duplicate nodes (i.e. same coordinates)
 
 The `__call__`-method should not be overridden in the child-classes. It maps historical variables based on neighbours and coefficients determined in `Initialize`. Historical variables of type `Double` and type `Array` can be mapped (the latter is just the application of the former for each vector component).
 
@@ -189,16 +189,3 @@ As every to-point has different nearest neighbours in the _from_-points, the coe
 
 
 
-[//]: # (SOME HANDY MARKDOW URLS:)
-
-[//]: # (MarkDown cheat sheet: https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables)
-
-[//]: # (render LaTeX eqn as image: https://alexanderrodin.com/github-latex-markdown/)
-
-[//]: # (Greek lower: αβγδεζηϑθικλμνξοπρστυφϕχψω)
-[//]: # (Greek upper: ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ)
-[//]: # (super, sub: <sup></sup>, <sub></sub> )
-[//]: # (operators: + - − · / × √ ∘ ∗)
-[//]: # (other: ∂ Δ	∑ ≤ ≥ ∈ )
-[//]: # (more HTML math: http://www.unics.uni-hannover.de/nhtcapri/mathematics.html)
-[//]: # (and even more: http://www.alanflavell.org.uk/unicode/unidata22.html)
