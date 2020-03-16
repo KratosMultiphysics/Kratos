@@ -1,6 +1,16 @@
 site_name: CoCoNuT
+repo_url: https://github.com/pyfsi/Kratos/tree/CoCoNuT/applications/CoSimulationApplication
+edit_uri: ''
+site_description: site_description
 theme:
     name: 'material'
+    logo: 'images/logo.png'
+    feature:
+        tabs: true
+    favicon: 'assets/images/favicon.ico'
+    palette:
+        primary: 'green'
+        accent: 'green'
 nav:
     - index.md
     - SolverWrappers:

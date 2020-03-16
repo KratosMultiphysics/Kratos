@@ -15,6 +15,12 @@ README
 # clean docs folder
 shutil.rmtree('docs')
 os.mkdir('docs')
+shutil.copy('logo.png', 'site/assets/images/favicon.ico')
+
+os.mkdir('docs/images')
+shutil.copy('logo.png', 'docs/images/logo.png')
+
+# shutil.copy('favicon.ico', 'docs/img/favicon.ico')
 
 # find all MarkDown files in CoCoNuT
 files = glob.glob('../**/*.md', recursive=True)
@@ -50,7 +56,13 @@ for file in unused:
 # build static website
 print('\n')
 os.system('mkdocs build --clean')
-# os.system('mkdocs gh-deploy')  # doesn't work, need admin rights on GitHub
+
+# add favicon
+shutil.copy('favicon.ico', 'site/assets/images/favicon.ico')
+
+# deploy website
+if False:
+    os.system('mkdocs gh-deploy')  # doesn't work, need admin rights on GitHub
 
 # copy site to other repository in folder cocodoc
 if True:
