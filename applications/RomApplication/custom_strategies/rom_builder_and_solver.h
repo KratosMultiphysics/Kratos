@@ -402,16 +402,16 @@ public:
 
         h_rom_simulation = true;
 
-        if (h_rom_simulation == false){
-            // Getting the array of the conditions
-            const auto cond_begin = rModelPart.ConditionsBegin();            
-            const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-        }
-        else{
-            // Only selected conditions are considered for the calculation on an H-ROM simualtion.
+        // if (h_rom_simulation == false){
+        //     // Getting the array of the conditions
+        //     const auto cond_begin = rModelPart.ConditionsBegin();            
+        //     const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        // }
+        // else{
+        //     // Only selected conditions are considered for the calculation on an H-ROM simualtion.
             const auto cond_begin = mSelectedConditions.begin();
             const auto nconditions = mSelectedConditions.size();        
-        }
+        //}
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
