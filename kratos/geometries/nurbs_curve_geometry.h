@@ -43,6 +43,9 @@ public:
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+    // using base class functionalities.
+    using BaseType::CreateQuadraturePointGeometries;
+
     /// Counted pointer of NurbsCurveGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveGeometry);
 
