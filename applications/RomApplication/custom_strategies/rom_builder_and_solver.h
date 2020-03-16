@@ -400,7 +400,7 @@ public:
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 
-        h_rom_simulation == true;
+        h_rom_simulation = true;
 
         if (h_rom_simulation == false){
             // Getting the array of the conditions
