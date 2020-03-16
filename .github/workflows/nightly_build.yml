@@ -57,6 +57,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+    env:
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
 
     container:
       image: kratosmultiphysics/kratos-image-ubuntu-bionic:latest
