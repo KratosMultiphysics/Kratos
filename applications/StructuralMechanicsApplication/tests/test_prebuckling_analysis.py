@@ -90,7 +90,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "max_iteration"         : 10000,
-            "tolerance"             : 1e-20,
+            "tolerance"             : 1e-15,
             "number_of_eigenvalues" : 1,
             "echo_level"            : 0,
             "normalize_eigenvectors": false
