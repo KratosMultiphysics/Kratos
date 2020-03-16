@@ -323,7 +323,6 @@ namespace MPMParticleGeneratorUtility
                             i != submodelpart.ConditionsEnd(); i++)
                     {
                         Properties::Pointer properties = i->pGetProperties();
-                        const int mpc_condition_id = i->GetProperties().Id();
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
