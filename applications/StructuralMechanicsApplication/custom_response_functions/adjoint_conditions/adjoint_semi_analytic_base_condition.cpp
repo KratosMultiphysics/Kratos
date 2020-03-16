@@ -21,6 +21,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 
 namespace Kratos
 {
@@ -401,6 +402,9 @@ namespace Kratos
     // TODO find out what to do with KRATOS_API
     template class AdjointSemiAnalyticBaseCondition<PointLoadCondition>;
     template class AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D>;
+    template class AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D>;
+
+
 
 } // Namespace Kratos
 

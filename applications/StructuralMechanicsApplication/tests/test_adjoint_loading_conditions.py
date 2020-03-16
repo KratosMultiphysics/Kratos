@@ -32,27 +32,26 @@ class TestAdjointLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition(prefix + "AdjointSemiAnalyticSurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition("AdjointSemiAnalytic" + prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
 
-        #first we apply a constant SURFACE_LOAD to theh condition
+        # first we apply a constant SURFACE_LOAD to the condition
         load_on_cond = KratosMultiphysics.Vector(3)
         load_on_cond[0] =  0.0
         load_on_cond[1] =  0.0
         load_on_cond[2] =  1.0
         cond.SetValue(StructuralMechanicsApplication.SURFACE_LOAD,load_on_cond)
         sen_matrix = KratosMultiphysics.Matrix(0,0)
-        #lhs = KratosMultiphysics.Matrix(0,0)
-        #rhs = KratosMultiphysics.Vector(0)
-        #cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
-        #print(rhs)
 
+        # settings for finite differencing
         mp.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
         mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-5
 
+        # check w.r.t. to design variable SURFACE_LOAD
         reference_res_1 = [[0.25,0,0,0.25,0,0,0.25,0,0,0.25,0,0],[0,0.25,0,0,0.25,0,0,0.25,0,0,0.25,0],[0,0,0.25,0,0,0.25,0,0,0.25,0,0,0.25]]
         cond.CalculateSensitivityMatrix(StructuralMechanicsApplication.SURFACE_LOAD, sen_matrix, mp.ProcessInfo)
         self.__CheckSensitivityMatrix(sen_matrix, reference_res_1)
 
+        # check w.r.t. to design variable SHAPE_SENSITIVITY
         reference_res_2 = ((0,0,-0.166667,0,0,-0.166667,0,0,-0.0833333,0,0,-0.0833333),(0,0,-0.166667,0,0,-0.0833333,0,0,-0.0833333,0,0,-0.166667),
         (0,0,1.25e-06,0,0,8.33328e-07,0,0,4.16669e-07,0,0,8.33336e-07),(0,0,0.166667,0,0,0.166667,0,0,0.0833333,0,0,0.0833333),
         (0,0,-0.0833333,0,0,-0.166667,0,0,-0.166667,0,0,-0.0833333),(0,0,8.33336e-07,0,0,1.25e-06,0,0,8.33336e-07,0,0,4.16664e-07),
@@ -61,9 +60,18 @@ class TestAdjointLoadingConditionsSurface(KratosUnittest.TestCase):
         cond.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, sen_matrix, mp.ProcessInfo)
         self.__CheckSensitivityMatrix(sen_matrix, reference_res_2)
 
+        # change loading
+        load_on_cond[2] =  0.0
+        cond.SetValue(StructuralMechanicsApplication.SURFACE_LOAD,load_on_cond)
+        cond.SetValue(KratosMultiphysics.PRESSURE, 1.0)
 
-    #def test_SDSimplestSurfaceLoadCondition3D4N(self):
-    #    self._SimplestSurfaceLoadCondition3D4N("SmallDisplacement")
+        # check w.r.t. to design variable PRESSURE
+        reference_res_3 = ((0,0,0.25,0,0,0.25,0,0,0.25,0,0,0.25),())
+        cond.CalculateSensitivityMatrix(KratosMultiphysics.PRESSURE, sen_matrix, mp.ProcessInfo)
+        self.__CheckSensitivityMatrix(sen_matrix, reference_res_3)
+
+    def test_SDSimplestSurfaceLoadCondition3D4N(self):
+        self._SimplestSurfaceLoadCondition3D4N("SmallDisplacement")
 
     def test_SimplesAdjointtSurfaceLoadCondition3D4N(self):
         self._SimplestSurfaceLoadCondition3D4N()
