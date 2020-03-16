@@ -16,32 +16,36 @@ include_directories(
         SYSTEM ${EIGEN_ROOT} # Including as System to suppress compile-warnings from it
 )
 
-# generate variables with the sources
-set( KRATOS_MOR_APPLICATION_SOURCES
-    ## MAIN FILES
+## MOR core sources
+file(GLOB_RECURSE KRATOS_MOR_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/acoustic_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/displacement_output_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/generalized_eigenvalue_utility.cpp
-
-    ## PYTHON
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mor_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
+## MOR python interface sources
+file(GLOB_RECURSE KRATOS_MOR_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+# testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_MOR_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+add_library(KratosMORCore SHARED ${KRATOS_MOR_APPLICATION_CORE} ${KRATOS_MOR_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMORCore PUBLIC KratosCore)
+set_target_properties(KratosMORCore PROPERTIES COMPILE_DEFINITIONS "MOR_APPLICATION=EXPORT,API")
+
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMORApplication MODULE THIN_LTO ${KRATOS_MOR_APPLICATION_SOURCES})
-target_link_libraries(KratosMORApplication PRIVATE KratosCore )
+pybind11_add_module(KratosMORApplication MODULE THIN_LTO ${KRATOS_MOR_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosMORApplication PUBLIC KratosMORCore )
 set_target_properties(KratosMORApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
     cotire(KratosMORApplication)
 endif(USE_COTIRE MATCHES ON)
 
-install(TARGETS KratosMORApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -52,6 +56,9 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosMORApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MORApplication.py KratosMultiphysics/MORApplication/__init__.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -70,4 +77,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MORApplication.py" DESTINATION "KratosMultiphysics/MORApplication" RENAME "__init__.py")
+install(TARGETS KratosMORCore DESTINATION libs )
+install(TARGETS KratosMORApplication DESTINATION libs )
