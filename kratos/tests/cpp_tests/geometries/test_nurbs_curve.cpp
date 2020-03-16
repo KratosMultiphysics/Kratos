@@ -301,5 +301,21 @@ typedef Node<3> NodeType;
         }
     }
 
+    ///// Test integration points of nurbs curve
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dIntegration, KratosCoreNurbsGeometriesFastSuite) {
+        auto curve = GenerateReferenceCurve2d();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve.CreateIntegrationPoints(integration_points);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 4);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 11.180339887498949, TOLERANCE);
+    }
+
 } // namespace Testing.
 } // namespace Kratos.
