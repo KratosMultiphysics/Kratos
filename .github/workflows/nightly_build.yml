@@ -6,7 +6,7 @@ on:
     - '.github/workflows/nightly_build.yml'
 
   schedule:
-    - cron:  '0 1 * * *'
+    - cron:  '0 3 * * *' # docker image is build at midnight
 
 jobs:
   ubuntu-nightly:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [clang]
+        compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: Release
       MKLVARS_ARCHITECTURE: intel64

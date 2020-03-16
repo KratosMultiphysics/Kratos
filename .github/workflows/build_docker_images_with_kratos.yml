@@ -7,7 +7,7 @@ on:
     - '.github/workflows/build_docker_images_with_kratos.yml'
 
   schedule:
-    - cron: '0 0 * * *' # update it every night
+    - cron: '0 0 * * *' # update it every night at midnight
 
 jobs:
   build:
