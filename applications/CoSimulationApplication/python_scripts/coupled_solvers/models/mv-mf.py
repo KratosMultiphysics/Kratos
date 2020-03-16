@@ -18,7 +18,9 @@ class ModelMV(CoSimulationComponent):
         self.min_significant = self.settings["min_significant"].GetDouble()
         self.q = self.settings["q"].GetDouble()
 
-        self.size = None
+        self.size_in = None
+        self.size_out = None
+        self.out = None  # CoSimulationInterface of output
         self.added = False
         self.rref = None
         self.xtref = None
@@ -31,8 +33,8 @@ class ModelMV(CoSimulationComponent):
     def Initialize(self):
         super().Initialize()
 
-        self.v = np.empty((self.size, 0))
-        self.w = np.empty((self.size, 0))
+        self.v = np.empty((self.size_in, 0))
+        self.w = np.empty((self.size_out, 0))
 
     def Filter(self):
         if self.v.shape[1] == 0:
@@ -67,8 +69,8 @@ class ModelMV(CoSimulationComponent):
             c = solve_triangular(rr, b)
             dxt = self.w @ c
         else:
-            dxt = np.zeros((self.size, 1))
-            qq = np.zeros((self.size, 1))
+            dxt = np.zeros((self.size_in, 1))
+            qq = np.zeros((self.size_out, 1))
         dr = dr - qq @ (qq.T @ dr)
         i = 0
         while np.linalg.norm(dr) > self.min_significant and i < len(self.wprev):
@@ -85,7 +87,7 @@ class ModelMV(CoSimulationComponent):
         #     self.rrprev.pop(i)
         #     self.qqprev.pop(i)
         #     i += 1
-        dxt_out = r_in.deepcopy()
+        dxt_out = self.out.deepcopy()
         dxt_out.SetNumpyArray(dxt.flatten())
         return dxt_out
 
@@ -112,8 +114,8 @@ class ModelMV(CoSimulationComponent):
 
         self.rref = None
         self.xtref = None
-        self.v = np.empty((self.size, 0))
-        self.w = np.empty((self.size, 0))
+        self.v = np.empty((self.size_in, 0))
+        self.w = np.empty((self.size_out, 0))
         self.added = False
 
     def FinalizeSolutionStep(self):

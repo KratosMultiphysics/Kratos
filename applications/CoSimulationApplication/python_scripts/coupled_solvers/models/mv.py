@@ -16,7 +16,9 @@ class ModelMV(CoSimulationComponent):
         self.settings = parameters["settings"]
         self.min_significant = self.settings["min_significant"].GetDouble()
 
-        self.size = None
+        self.size_in = None
+        self.size_out = None
+        self.out = None  # CoSimulationInterface of output
         self.added = False
         self.rref = None
         self.xtref = None
@@ -28,9 +30,9 @@ class ModelMV(CoSimulationComponent):
     def Initialize(self):
         super().Initialize()
 
-        self.v = np.empty((self.size, 0))
-        self.w = np.empty((self.size, 0))
-        self.nprev = np.zeros((self.size, self.size))
+        self.v = np.empty((self.size_in, 0))
+        self.w = np.empty((self.size_out, 0))
+        self.nprev = np.zeros((self.size_in, self.size_out))
 
     def Filter(self):
         if self.v.shape[1] == 0:
@@ -60,7 +62,7 @@ class ModelMV(CoSimulationComponent):
         # Approximation for the inverse of the Jacobian from a multiple vector model
         dr = -r
         dxt = self.ncurr @ dr
-        dxt_out = r_in.deepcopy()
+        dxt_out = self.out.deepcopy()
         dxt_out.SetNumpyArray(dxt.flatten())
         return dxt_out
 
@@ -89,8 +91,8 @@ class ModelMV(CoSimulationComponent):
 
         self.rref = None
         self.xtref = None
-        self.v = np.empty((self.size, 0))
-        self.w = np.empty((self.size, 0))
+        self.v = np.empty((self.size_in, 0))
+        self.w = np.empty((self.size_out, 0))
         self.added = False
 
     def FinalizeSolutionStep(self):

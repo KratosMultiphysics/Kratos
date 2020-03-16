@@ -18,7 +18,9 @@ class ModelLS(CoSimulationComponent):
         self.min_significant = self.settings["min_significant"].GetDouble()
         self.q = self.settings["q"].GetDouble()
 
-        self.size = None
+        self.size_in = None
+        self.size_out = None
+        self.out = None  # CoSimulationInterface of output
         self.added = False
         self.rref = None
         self.xtref = None
@@ -30,10 +32,10 @@ class ModelLS(CoSimulationComponent):
     def Initialize(self):
         super().Initialize()
 
-        self.vcurr = np.empty((self.size, 0))
-        self.wcurr = np.empty((self.size, 0))
-        self.vprev = [np.empty((self.size, 0))]
-        self.wprev = [np.empty((self.size, 0))]
+        self.vcurr = np.empty((self.size_in, 0))
+        self.wcurr = np.empty((self.size_out, 0))
+        self.vprev = [np.empty((self.size_in, 0))]
+        self.wprev = [np.empty((self.size_out, 0))]
 
     def Filter(self):
         v = np.hstack((self.vcurr, np.hstack(self.vprev)))
@@ -88,7 +90,7 @@ class ModelLS(CoSimulationComponent):
         b = qq.T @ dr
         c = solve_triangular(rr, b)
         dxt = w @ c
-        dxt_out = r_in.deepcopy()
+        dxt_out = self.out.deepcopy()
         dxt_out.SetNumpyArray(dxt.flatten())
         return dxt_out
 
@@ -116,8 +118,8 @@ class ModelLS(CoSimulationComponent):
 
         self.rref = None
         self.xtref = None
-        self.vcurr = np.empty((self.size, 0))
-        self.wcurr = np.empty((self.size, 0))
+        self.vcurr = np.empty((self.size_in, 0))
+        self.wcurr = np.empty((self.size_out, 0))
         self.added = False
 
     def FinalizeSolutionStep(self):
