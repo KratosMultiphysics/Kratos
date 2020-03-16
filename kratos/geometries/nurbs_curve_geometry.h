@@ -257,11 +257,11 @@ public:
     }
 
     /// Returns the number of spans.
-    SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex = 1) const
     {
         SizeType knot_span_counter = 0;
-        for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
-            if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+        for (IndexType i = 0; i < mKnots.size() - 1; i++) {
+            if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
                 knot_span_counter++;
             }
         }
@@ -276,12 +276,12 @@ public:
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
-        rSpans[0] = mKnotsU[0];
+        rSpans[0] = mKnots[0];
 
         IndexType counter = 1;
-        for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
-            if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
-                rSpans[counter] = mKnotsU[i + 1];
+        for (IndexType i = 0; i < mKnots.size() - 1; i++) {
+            if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
+                rSpans[counter] = mKnots[i + 1];
                 counter++;
             }
         }
@@ -308,7 +308,7 @@ public:
         const std::vector<double>& rSpanIntervals,
         SizeType IntegrationPointsPerSpan) const
     {
-        const SizeType num_spans = rSpanIntervals.size() - 1
+        const SizeType num_spans = rSpanIntervals.size() - 1;
         const SizeType number_of_integration_points =
             num_spans * IntegrationPointsPerSpan;
 
