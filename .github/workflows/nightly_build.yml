@@ -6,7 +6,7 @@ on:
     - '.github/workflows/nightly_build.yml'
 
   schedule:
-    - cron:  '0 3 * * *' # docker image is build at midnight
+    - cron:  '0 1 * * *'
 
 jobs:
   ubuntu-nightly:
@@ -51,28 +51,6 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
-
-
-  ubuntu-with-docker-nightly:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-
-    container:
-      image: kratosmultiphysics/kratos-image-ubuntu-bionic:latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Running tests
-      run: |
-        # TODO those variables should be set automatically in the container!
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
-        . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:/software/Kratos/bin/Release
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/software/Kratos/bin/Release/libs
-        python3 /software/Kratos/kratos/python_scripts/run_tests.py -l nightly -c python3
 
 
   windows-nightly:
