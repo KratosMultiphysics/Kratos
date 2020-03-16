@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [gcc, clang]
+        compiler: [clang]
     env:
       KRATOS_BUILD_TYPE: Release
       MKLVARS_ARCHITECTURE: intel64
@@ -58,8 +58,6 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      MKLVARS_ARCHITECTURE: intel64
-      MKLVARS_INTERFACE: lp64
 
     container:
       image: kratosmultiphysics/kratos-image-ubuntu-bionic:latest
@@ -69,8 +67,9 @@ jobs:
 
     - name: Running tests
       run: |
-        echo $PYTHONPATH
-        echo $LD_LIBRARY_PATH
+        # TODO those variables should be set automatically in the container!
+        export MKLVARS_ARCHITECTURE=intel64
+        export MKLVARS_INTERFACE=lp64
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:/software/Kratos/bin/Release
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/software/Kratos/bin/Release/libs
