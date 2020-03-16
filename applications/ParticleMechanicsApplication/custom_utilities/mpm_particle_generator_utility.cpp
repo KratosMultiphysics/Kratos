@@ -510,7 +510,6 @@ namespace MPMParticleGeneratorUtility
                         // Evaluation of geometric length/area
                         const double area = r_geometry.Area();
                         mpc_area = area / (1 + integration_point_per_conditions);
-                        const double mpc_nodal_area = mpc_area / r_geometry.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
