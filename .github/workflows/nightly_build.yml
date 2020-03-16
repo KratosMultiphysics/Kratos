@@ -61,9 +61,6 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-image-ubuntu-bionic:latest
 
-    steps:
-    - uses: actions/checkout@v2
-
     - name: Running tests
       run: |
         # TODO those variables should be set automatically in the container!
