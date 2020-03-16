@@ -195,8 +195,10 @@ public:
                     mSelectedConditions_private.push_back(*it_cond);
                     h_rom_simulation = true;
                 }
-                else
-                    mSelectedConditions_private.push_back(*it_cond);
+                else{
+                    mSelectedConditions_private.push_back(*it_cond); // for testing. Should be erased...
+                    (*it_cond)->SetValue(HROM_WEIGHT, 1.0); 
+                }
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -396,18 +398,18 @@ public:
 
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        // Getting the array of the conditions
-        const ModelPart::ConditionsContainerType::iterator &rcond_begin = rModelPart.ConditionsBegin();
-        const int rnconditions = static_cast<int>(rModelPart.Conditions().size());
+        auto help_cond_begin = rModelPart.ConditionsBegin();
+        auto help_nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         if (h_rom_simulation == true){
             // Only selected conditions are considered for the calculation on an H-ROM simualtion.
-            rcond_begin = mSelectedConditions.begin();
-            rnconditions = mSelectedConditions.size();
+            help_cond_begin = mSelectedConditions.begin();
+            help_nconditions = static_cast<int>(mSelectedConditions.size());
         }
 
-        const auto cond_begin = rcond_begin;
-        const auto nconditions = rnconditions;
+        // Getting the array of the conditions
+        const auto cond_begin = help_cond_begin;
+        const auto nconditions = help_nconditions;
 
 
         //contributions to the system
