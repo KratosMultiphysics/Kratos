@@ -38,8 +38,7 @@ public:
 
     typedef typename TSurfaceContainerPointType::value_type NodeType;
 
-    /// Geometry as base class.
-    typedef Geometry<typename TSurfaceContainerPointType::value_type> BaseType;
+    typedef Geometry<NodeType> BaseType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
