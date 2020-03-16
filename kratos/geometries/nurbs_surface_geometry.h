@@ -28,6 +28,7 @@
 
 #include "utilities/quadrature_points_utility.h"
 
+#include "integration/integration_point_utilities.h"
 
 namespace Kratos {
 
