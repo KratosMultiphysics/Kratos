@@ -493,6 +493,14 @@ void ElementGetSecondDerivativesVector2(Element& dummy,
     dummy.GetSecondDerivativesVector(rOutput,step);
 }
 
+template<class TDataType>
+void ConditionCalculateSensitivityMatrix(Condition& dummy,
+        const Variable<TDataType>& rDesignVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
+}
 
 void  AddMeshToPython(pybind11::module& m)
 {
@@ -740,6 +748,8 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
     .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
     .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
+    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<double>)
+    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<array_1d<double,3> >)
 
 //     .def(VariableIndexingPython<Condition, Variable<int> >())
 //     .def(VariableIndexingPython<Condition, Variable<double> >())
