@@ -165,13 +165,18 @@ public:
             // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set;
             dofs_tmp_set.reserve(20000);
-
             // Gets the array of elements from the modeler
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_elements; ++i)
             {
                 auto it_elem = r_elements_array.begin() + i;
-
+                //detect whether the element has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
+                if ((it_elem)->Has(HROM_WEIGHT)){
+                    h_rom_simulation = true;
+                }                
+                else{
+                    it_elem->SetValue(HROM_WEIGHT, 1.0);
+                }
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -180,14 +185,30 @@ public:
             // Gets the array of conditions from the modeler
             ConditionsArrayType &r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            #pragma omp for schedule(guided, 512) nowait
+            //std::vector<int> mSelectedConditions_private;
+            
+            ModelPart::ConditionsContainerType mSelectedConditions_private;
+            #pragma omp for schedule(guided, 512) nowait            
             for (int i = 0; i < number_of_conditions; ++i)
             {
-                auto it_cond = r_conditions_array.begin() + i;
-
+                auto it_cond = r_conditions_array.ptr_begin() + i;                
+                // Gather the H-reduced conditions that are to be considered for assembling. Ignoring those for displaying results only
+                if ((*it_cond)->Has(HROM_WEIGHT)){
+                    mSelectedConditions_private.push_back(*it_cond);
+                    h_rom_simulation = true;
+                }
+                else{
+                    (*it_cond)->SetValue(HROM_WEIGHT, 1.0);
+                }
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+            #pragma omp critical
+            {
+                for (auto &cond : mSelectedConditions_private){
+                    mSelectedConditions.push_back(&cond);
+                }
             }
 
             // Gets the array of constraints from the modeler
@@ -419,8 +440,9 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
                     Matrix aux = prod(LHS_Contribution, PhiElemental);
-                    noalias(tempA) += prod(trans(PhiElemental), aux);
-                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution);
+                    double h_rom_weight = it->GetValue(HROM_WEIGHT);
+                    noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it_el.base()));
@@ -446,8 +468,9 @@ public:
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
                     Matrix aux = prod(LHS_Contribution, PhiElemental);
-                    noalias(tempA) += prod(trans(PhiElemental), aux);
-                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution);
+                    double h_rom_weight = it->GetValue(HROM_WEIGHT);
+                    noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
@@ -597,6 +620,8 @@ protected:
     int mNodalDofs;
     unsigned int mRomDofs;
     std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
+    ModelPart::ConditionsContainerType mSelectedConditions;
+    bool h_rom_simulation = false;    
 
     /*@} */
     /**@name Protected Operations*/
