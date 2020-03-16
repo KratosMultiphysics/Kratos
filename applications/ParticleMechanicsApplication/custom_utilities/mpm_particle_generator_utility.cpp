@@ -68,7 +68,6 @@ namespace MPMParticleGeneratorUtility
                 if(i->IsDefined(ACTIVE))
                 {
                     Properties::Pointer properties = i->pGetProperties();
-                    const int material_id = i->GetProperties().Id();
                     const double density  = i->GetProperties()[DENSITY];
 
                     // Check number of particles per element to be created
