@@ -53,6 +53,22 @@ jobs:
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
 
+  ubuntu-with-docker-nightly:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    container:
+      image: kratosmultiphysics/kratos-image-ubuntu-bionic:latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Running tests
+      run: |
+        python3 /software/Kratos/kratos/python_scripts/run_tests.py -l nightly -c python3
+
+
   windows-nightly:
     runs-on: windows-latest
 
