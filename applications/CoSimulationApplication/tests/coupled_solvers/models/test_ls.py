@@ -52,7 +52,8 @@ class TestModelLS(KratosUnittest.TestCase):
         q = settings["setting1"]["settings"]["q"].GetDouble()
 
         ls = cs_tools.CreateInstance(settings["setting1"])
-        ls.size = m
+        ls.size_in = ls.size_out = m
+        ls.out = interface.deepcopy()
         ls.Initialize()
         ls.InitializeSolutionStep()
 
@@ -272,7 +273,8 @@ class TestModelLS(KratosUnittest.TestCase):
         q = settings["setting2"]["settings"]["q"].GetDouble()
 
         ls = cs_tools.CreateInstance(settings["setting2"])
-        ls.size = m
+        ls.size_in = ls.size_out = m
+        ls.out = interface.deepcopy()
         ls.Initialize()
         ls.InitializeSolutionStep()
 

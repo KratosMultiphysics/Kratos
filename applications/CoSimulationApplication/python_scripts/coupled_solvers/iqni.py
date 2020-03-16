@@ -21,7 +21,8 @@ class CoupledSolverIQNI(CoupledSolverGaussSeidel):
     def Initialize(self):
         super().Initialize()
 
-        self.model.size = self.x.GetNumpyArray().shape[0]
+        self.model.size_in = self.model.size_out = self.x.GetNumpyArray().shape[0]
+        self.model.out = self.x.deepcopy()
         self.model.Initialize()
         self.components += [self.model]
 

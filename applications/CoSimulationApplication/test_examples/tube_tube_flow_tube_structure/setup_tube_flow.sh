@@ -10,4 +10,4 @@ fi
 mkdir ./CFD
 
 # copy setup files
-cp setup_pipe_flow/solver_parameters.json CFD/
+cp setup_tube_flow/solver_parameters.json CFD/

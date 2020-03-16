@@ -48,7 +48,8 @@ class TestModelMV(KratosUnittest.TestCase):
         min_significant = settings["settings"]["min_significant"].GetDouble()
 
         mv = cs_tools.CreateInstance(settings)
-        mv.size = m
+        mv.size_in = mv.size_out = m
+        mv.out = interface.deepcopy()
         mv.Initialize()
         mv.InitializeSolutionStep()
 

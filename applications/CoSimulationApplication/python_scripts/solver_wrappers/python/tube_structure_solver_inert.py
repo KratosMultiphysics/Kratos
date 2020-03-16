@@ -10,10 +10,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverWrapperPipeStructure(parameters)
+    return SolverWrapperTubeStructure(parameters)
 
 
-class SolverWrapperPipeStructure(CoSimulationComponent):
+class SolverWrapperTubeStructure(CoSimulationComponent):
     Al = 2  # Number of terms below diagonal in matrix
     Au = 2  # Number of terms above diagonal in matrix
 
@@ -48,7 +48,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         self.m = self.settings["m"].GetInt()  # Number of segments
         self.dz = l / self.m  # Segment length
-        self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
+        axial_offset = self.settings["axial_offset"].GetDouble() if self.settings.Has("axial_offset") else 0.0  # Start position along axis
+        self.z = axial_offset + np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
         self.k = 0  # Iteration
         self.n = 0  # Time step (no restart implemented)
@@ -64,33 +65,39 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.p = np.ones(self.m) * self.preference  # Pressure
         self.a = np.ones(self.m) * self.areference  # Area of cross section
         self.r = np.ones(self.m + 4) * self.rreference  # Radius of cross section
-        self.rn = np.ones(self.m + 4) * self.rreference  # Previous radius of cross section
+        self.rn = np.array(self.r)  # Previous radius of cross section
 
-        self.rdot = np.zeros(self.m)
-        self.rddot = np.zeros(self.m)
-        self.rndot = np.zeros(self.m)
-        self.rnddot = np.zeros(self.m)
+        self.rdot = np.zeros(self.m)  # First derivative of the radius with respect to time in current timestep
+        self.rddot = np.zeros(self.m)  # Second derivative of the radius with respect to time in current timestep
+        self.rndot = np.zeros(self.m)  # First derivative of the radius with respect to time in previous timestep
+        self.rnddot = np.zeros(self.m)  # Second derivative of the radius with respect to time in previous timestep
+
+        self.disp = np.zeros((self.m, 3))  # Displacement
+        self.trac = np.zeros((self.m, 3))  # Traction (always zero)
 
         # ModelParts
         self.variable_pres = vars(KM)["PRESSURE"]
-        self.variable_area = vars(KM)["AREA"]
+        self.variable_trac = vars(KM)["TRACTION"]
+        self.variable_disp = vars(KM)["DISPLACEMENT"]
         self.model = cs_data_structure.Model()
         self.model_part = self.model.CreateModelPart("wall")
         self.model_part.AddNodalSolutionStepVariable(self.variable_pres)
-        self.model_part.AddNodalSolutionStepVariable(self.variable_area)
+        self.model_part.AddNodalSolutionStepVariable(self.variable_disp)
+        self.model_part.AddNodalSolutionStepVariable(self.variable_trac)
         for i in range(len(self.z)):
-            self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
+            self.model_part.CreateNewNode(i, 0.0, self.rreference, self.z[i])
         step = 0
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(self.variable_pres, step, self.p[0])
-            node.SetSolutionStepValue(self.variable_area, step, self.a[0])
+            node.SetSolutionStepValue(self.variable_disp, step, self.disp[0, :].tolist())
+            node.SetSolutionStepValue(self.variable_trac, step, self.trac[0, :].tolist())
 
         # Interfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
         self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
 
         # Debug
-        self.debug = True  # Set on true to save solution of each time step
+        self.debug = False  # Set on true to save solution of each time step
         self.OutputSolutionStep()
 
     def Initialize(self):
@@ -106,10 +113,11 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.rnddot = np.array(self.rddot)
 
     def SolveSolutionStep(self, interface_input):
-        # Input does not contain boundary conditions
-        p = interface_input.GetNumpyArray()
-        self.interface_input.SetNumpyArray(p)
-        self.p = np.array(p)
+        # Input
+        input = interface_input.GetNumpyArray()
+        self.p = input[:self.m]
+        self.trac = input[self.m:].reshape(-1, 3)
+        self.interface_input.SetNumpyArray(input)
 
         # Solve system
         f = self.GetResidual()
@@ -130,7 +138,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         # Output does not contain boundary conditions
         self.a = self.r[2:self.m + 2] ** 2 * np.pi
-        self.interface_output.SetNumpyArray(self.a)
+        self.disp[:, 1] = self.r[2:self.m + 2] - self.rreference
+        self.interface_output.SetNumpyArray(self.disp.flatten())
         return self.interface_output.deepcopy()
 
     def FinalizeSolutionStep(self):

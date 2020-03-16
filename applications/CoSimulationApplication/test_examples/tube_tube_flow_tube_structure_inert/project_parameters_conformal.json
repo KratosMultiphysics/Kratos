@@ -36,7 +36,7 @@
                     "type": "convergence_criteria.iteration_limit",
                     "settings":
                     {
-                        "maximum": 10
+                        "maximum": 15
                     }
                 },
                 "convergence_criterion1" :
@@ -53,7 +53,7 @@
         "solver_wrappers" :
         [
             {
-                "type" : "solver_wrappers.pipe2D.flow_solver",
+                "type" : "solver_wrappers.python.tube_flow_solver",
                 "settings" :
                 {
                     "working_directory" : "CFD",
@@ -69,7 +69,7 @@
                 }
             },
             {
-                "type" : "solver_wrappers.pipe2D.structure_solver",
+                "type" : "solver_wrappers.python.tube_structure_solver_inert",
                 "settings" :
                 {
                     "working_directory" : "CSM",
