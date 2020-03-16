@@ -8,13 +8,13 @@ $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
-function execBuild($python, $pythonPath) {
-    cmd.exe /c "call configure.bat $($pythonPath) OFF"
+function exec_build($python, $pythonPath) {
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) OFF"
     cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
-function execBuildCotire($python, $pythonPath) {
-    cmd.exe /c "call configure.bat $($pythonPath) ON"
+function exec_build_cotire($python, $pythonPath) {
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) ON"
     cmake --build "$($kratosRoot)/build/Release" --target all_unity -- /property:configuration=Release /p:Platform=x64
     cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
@@ -24,9 +24,9 @@ function build ($python, $pythonPath) {
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
 
     if($cotire -eq "ON"){
-        execBuildCotire($python, $pythonPath)
+        exec_build_cotire $python $pythonPath
     }else {
-        execBuild($python, $pythonPath)
+        exec_build $python $pythonPath
     }
 }
 
