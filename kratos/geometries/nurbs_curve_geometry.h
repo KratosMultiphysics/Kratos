@@ -256,6 +256,84 @@ public:
         return result;
     }
 
+    /// Returns the number of spans.
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
+    {
+        SizeType knot_span_counter = 0;
+        for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+            if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                knot_span_counter++;
+            }
+        }
+        return knot_span_counter;
+    }
+
+    /* @brief Provides knot spans of this nurbs curve.
+     * @param resulting vector of span intervals.
+     * @param index of chosen direction, for curves always 1.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 1) const
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        rSpans[0] = mKnotsU[0];
+
+        IndexType counter = 1;
+        for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+            if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                rSpans[counter] = mKnotsU[i + 1];
+                counter++;
+            }
+        }
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points according to its the polynomial degrees.
+     * @param result integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_per_span = PolynomialDegree() + 1;
+
+        this->CreateIntegrationPoints(
+            rIntegrationPoints, Spans(), points_per_span);
+    }
+
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpanIntervals,
+        SizeType IntegrationPointsPerSpan) const
+    {
+        const SizeType num_spans = rSpanIntervals.size() - 1
+        const SizeType number_of_integration_points =
+            num_spans * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            IntegrationPointsPerSpan);
+
+        IndexType counter = 0;
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_points_knot_span,
+                IntegrationPointsPerSpan,
+                rSpanIntervals[i], rSpanIntervals[i + 1]);
+
+            for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
+            {
+                rIntegrationPoints[counter] = integration_points_knot_span[k];
+                counter++;
+            }
+        }
+    }
+
     ///@}
     ///@name Operation within Global Space
     ///@{
