@@ -75,9 +75,12 @@ namespace Testing
         mp_strain[3] = 0.4;
         mp_strain[4] = 0.5;
         mp_strain[5] = 0.6;
-        pElement->SetValueOnIntegrationPoints(MP_VOLUME, std::vector<double>({ 2.5 }), rModelPart.GetProcessInfo());
-        pElement->SetValueOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, std::vector<Vector>({mp_cauchy_stress}), rModelPart.GetProcessInfo());
-        pElement->SetValueOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, std::vector<Vector>({ mp_strain }), rModelPart.GetProcessInfo());
+        std::vector<double> mp_volume_vector = { 2.5 };
+        pElement->SetValueOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
+        std::vector<double> mp_cauchy_stress_vector = { mp_cauchy_stress };
+        pElement->SetValueOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
+        std::vector<double> mp_almansi_strain_vector = { mp_strain };
+        pElement->SetValueOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
     }
 
     /**
