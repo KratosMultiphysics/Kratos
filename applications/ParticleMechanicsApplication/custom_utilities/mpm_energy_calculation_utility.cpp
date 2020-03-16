@@ -137,7 +137,7 @@ namespace MPMEnergyCalculationUtility
     double CalculateTotalEnergy(ModelPart& rModelPart)
     {
         double model_part_total_energy = 0.0;
-        for(int i = 0; i < rModelPart.Elements().size(); ++i){
+        for(SizeType i = 0; i < rModelPart.Elements().size(); ++i){
 
             auto element_itr = rModelPart.Elements().begin() + i;
             model_part_total_energy += CalculateTotalEnergy(**(element_itr.base()));
