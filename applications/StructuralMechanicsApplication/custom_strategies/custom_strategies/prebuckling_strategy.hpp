@@ -512,7 +512,17 @@ public:
 
         if( mLoadStepIteration % 2 == 0 ){
             //Copy matrices after path following step and initial step
-            rStiffnessMatrixPrevious = rStiffnessMatrix;
+            //rStiffnessMatrixPrevious = rStiffnessMatrix;
+            norm_before =  TSparseSpace::TwoNorm(rStiffnessMatrix);
+            for( int i = 0; i < rStiffnessMatrix.size1(); i++)
+            {
+                for( int j = 0; j < rStiffnessMatrix.size1(); j++ )
+                {
+                    rStiffnessMatrixPrevious(i,j) = rStiffnessMatrix(i,j);
+                }
+            }
+
+            KRATOS_WATCH( TSparseSpace::TwoNorm(rStiffnessMatrixPrevious) );
 
             if( mLoadStepIteration > 0){
                 // Update mLambdaPrev
@@ -550,7 +560,15 @@ public:
 
             // This implementation of the eigenvalue problem relies on the difference of the stiffness matrix
             // between the current and previous step
-            rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
+
+            //rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
+            for( int i = 0; i < rStiffnessMatrix.size1(); i++)
+            {
+                for( int j = 0; j < rStiffnessMatrix.size1(); j++ )
+                {
+                    rStiffnessMatrix(i,j) = rStiffnessMatrixPrevious(i,j) - rStiffnessMatrix(i,j);
+                }
+            }
             norm1 =  TSparseSpace::TwoNorm(rStiffnessMatrixPrevious);
             norm2 =  TSparseSpace::TwoNorm(rStiffnessMatrix);
             this->pGetEigenSolver()->GetLinearSystemSolver()->Solve(
@@ -660,6 +678,11 @@ public:
         return norm1;
     }
 
+    double GetNormBefore()
+    {
+        return norm_before;
+    }
+
 
     double GetNorm2()
     {
@@ -764,6 +787,7 @@ private:
     double norm1 = 0.0;
     double norm2 = 0.0;
     double eigenv = 0.0;
+    double norm_before = 0.0;
 
     ///@}
     ///@name Private Operators

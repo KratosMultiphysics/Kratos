@@ -60,7 +60,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
     def _apply_material_properties(self,mp):
         # Define properties
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1e8)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1.0e8)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,0.01)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,1.0)
@@ -121,6 +121,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
             eig_strategy.Solve()
             if( i%2 == 1):
                 LoadFactor.append( mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR][0] )
+                print("Norm-Before: ",eig_strategy.GetNormBefore())
                 print("Norm1: ",eig_strategy.GetNorm1())
                 print("Norm2: ",eig_strategy.GetNorm2())
                 print("Eigenvalue: ",eig_strategy.GetEigenvalue())
@@ -263,6 +264,7 @@ class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
     @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
     def test_prebuckling_analysis(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DEBUG)
+
         reference_value = 92.80
         #Construct model with symmetry conditions (quarter of the full plate 1x1)
         NumOfNodesPerSide = 5

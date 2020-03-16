@@ -103,6 +103,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetNorm1", &PrebucklingStrategyType::GetNorm1)
         .def("GetNorm2", &PrebucklingStrategyType::GetNorm2)
         .def("GetEigenvalue", &PrebucklingStrategyType::GetEigenvalue)
+        .def("GetNormBefore", &PrebucklingStrategyType::GetNormBefore)
         ;
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
