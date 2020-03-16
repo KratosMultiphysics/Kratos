@@ -66,6 +66,8 @@ jobs:
 
     - name: Running tests
       run: |
+        export PYTHONPATH=${PYTHONPATH}:/software/Kratos/bin/Release
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/software/Kratos/bin/Release/libs
         python3 /software/Kratos/kratos/python_scripts/run_tests.py -l nightly -c python3
 
 
