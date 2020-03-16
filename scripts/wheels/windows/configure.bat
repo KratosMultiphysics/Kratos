@@ -12,6 +12,8 @@ set KRATOS_BUILD_TYPE=Release
 set BOOST_ROOT=%BOOST%
 set PYTHON_EXECUTABLE=%1
 
+set USE_COTIRE=%3
+
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
@@ -36,7 +38,8 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 -DLAPACK_LIBRARIES=%LAPACK%                                                                         ^
 -DBLAS_LIBRARIES=%BLAS%                                                                             ^
 -DEIGEN_ROOT=%EIGEN%                                                                                ^
--DINSTALL_RUNKRATOS=OFF
+-DINSTALL_RUNKRATOS=OFF                                                                             ^
+-DUSE_COTIRE=%USE_COTIRE%
 
 :add_app
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;

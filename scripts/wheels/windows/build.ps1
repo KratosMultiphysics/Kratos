@@ -1,16 +1,32 @@
 $pythons = "38","37","36","35"
 $env:kratos_version = "7.0.3"
 
+param([System.String]$cotire="OFF")
 $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
+function execBuild($python, $pythonPath) {
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) OFF"
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+}
+
+function execBuildCotire($python, $pythonPath) {
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) ON"
+    cmake --build "$($kratosRoot)/build/Release" --target all_unity -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+}
+
 function build ($python, $pythonPath) {
     cd $kratosRoot
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
-    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot)"
-    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+
+    if($cotire -eq "ON"){
+        execBuildCotire($python, $pythonPath)
+    }else {
+        execBuild($python, $pythonPath)
+    }
 }
 
 function  setup_wheel_dir {
