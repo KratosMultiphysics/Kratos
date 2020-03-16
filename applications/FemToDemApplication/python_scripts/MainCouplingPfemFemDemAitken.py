@@ -39,7 +39,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             else:
                 max_relaxation = 0.9
             if (project_parameters["Aitken_parameters"].Has("min_relaxation")):
-                min_relaxation = project_parameters["Aitken_parameters"]["min_iterations"].GetDouble()
+                min_relaxation = project_parameters["Aitken_parameters"]["min_relaxation"].GetDouble()
             else:
                 min_relaxation = 0.2
             if (project_parameters["Aitken_parameters"].Has("initial_relaxation")):

@@ -265,16 +265,14 @@ public:
             noalias(rIterationValueVector) = ZeroVector(mVectorSize);
         }
 
-        // #pragma omp parallel for firstprivate(it_node_begin)
+        #pragma omp parallel for firstprivate(it_node_begin)
         for (int i = 0; i < static_cast<int>(r_interface_sub_model.Nodes().size()); i++) {
-
             auto it_node = it_node_begin + i;
             const auto &r_value = it_node->FastGetSolutionStepValue(OLD_RELAXED_VELOCITY);
 
             // Assemble the vector
             const unsigned int base_i = i * Dimension;
             for (unsigned int jj = 0; jj < Dimension; ++jj) {
-                // TSpace::SetValue(rIterationValueVector, base_i + jj, r_value[jj]);
                 rIterationValueVector[base_i + jj] = r_value[jj];
             }
         }
@@ -349,7 +347,6 @@ public:
         )
     {
         const auto it_node_begin = rFluidModelPart.NodesBegin();
-        auto &r_process_info      = rFluidModelPart.GetProcessInfo();
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); ++i) {
@@ -368,12 +365,9 @@ public:
                 auto copy_old_vel     = r_old_vel;
                 auto copy_old_acc     = r_old_acc;
 
-                double &r_coord_x = it_node->X();
-                double &r_coord_y = it_node->Y();
-                double &r_coord_z = it_node->Z();
-                r_coord_x         = it_node->X0() + copy_old_displ[0];
-                r_coord_y         = it_node->Y0() + copy_old_displ[1];
-                r_coord_z         = it_node->Z0() + copy_old_displ[2];
+                auto& r_coordinates = it_node->Coordinates();
+                const auto& r_initial_coordinates = it_node->GetInitialPosition();
+                noalias(r_coordinates) = r_initial_coordinates + copy_old_displ;
 
                 noalias(r_current_displ) = copy_old_displ;
                 noalias(r_current_vel)   = copy_old_vel;
