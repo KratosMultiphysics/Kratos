@@ -480,7 +480,9 @@ public:
             TSparseSpace::SetToZero(rRHS);
             // Build and solve system
             pBuilderAndSolver->BuildAndSolve(pScheme, rModelPart, rStiffnessMatrix,rDx, rRHS);
-
+            if( mLoadStepIteration == 0 ){
+                norm_before =  TSparseSpace::TwoNorm(rStiffnessMatrix);
+            }
             // Update internal variables
             this->pGetScheme()->Update(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
             BaseType::MoveMesh();
@@ -513,7 +515,6 @@ public:
         if( mLoadStepIteration % 2 == 0 ){
             //Copy matrices after path following step and initial step
             //rStiffnessMatrixPrevious = rStiffnessMatrix;
-            norm_before =  TSparseSpace::TwoNorm(rStiffnessMatrix);
             for( unsigned int i = 0; i < rStiffnessMatrix.size1(); i++)
             {
                 for( unsigned int j = 0; j < rStiffnessMatrix.size1(); j++ )
