@@ -396,20 +396,16 @@ public:
 
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        ModelPart::ConditionsContainerType::iterator &rcond_begin;
-        int &rnconditions;     
+        // Getting the array of the conditions
+        ModelPart::ConditionsContainerType::iterator &rcond_begin = rModelPart.ConditionsBegin();
+        int &rnconditions = static_cast<int>(rModelPart.Conditions().size())
 
-        if (h_rom_simulation == false){
-            // Getting the array of the conditions
-            rcond_begin = rModelPart.ConditionsBegin();            
-            rnconditions = static_cast<int>(rModelPart.Conditions().size());
-        }
-        else{
+        if (h_rom_simulation == true){
             // Only selected conditions are considered for the calculation on an H-ROM simualtion.
             rcond_begin = mSelectedConditions.begin();
-            rnconditions = mSelectedConditions.size();        
+            rnconditions = mSelectedConditions.size();
         }
-
+        
         const auto cond_begin = rcond_begin;
         const auto nconditions = rnconditions;
 
