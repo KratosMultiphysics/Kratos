@@ -293,7 +293,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         new_coordinate = [1.72951, 0.491803, 0.1]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,3,5,4])
-        
+
         new_coordinate = [3.00001, 3.00001, 1.0]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
