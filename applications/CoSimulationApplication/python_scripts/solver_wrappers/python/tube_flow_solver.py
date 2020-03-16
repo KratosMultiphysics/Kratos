@@ -10,10 +10,10 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return SolverWrapperPipeFlow(parameters)
+    return SolverWrapperTubeFlow(parameters)
 
 
-class SolverWrapperPipeFlow(CoSimulationComponent):
+class SolverWrapperTubeFlow(CoSimulationComponent):
     Al = 4  # Number of terms below diagonal in matrix
     Au = 4  # Number of terms above diagonal in matrix
 

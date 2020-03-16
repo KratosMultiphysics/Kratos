@@ -3,11 +3,11 @@
 # README: run this script to setup case
 
 # clean working directory
-if [ -d ./CSM ]
+if [ -d ./CFD ]
 then
-    rm -rf ./CSM
+    rm -rf ./CFD
 fi
-mkdir ./CSM
+mkdir ./CFD
 
 # copy setup files
-cp setup_pipe_structure/solver_parameters.json CSM/
+cp setup_tube_flow/solver_parameters.json CFD/

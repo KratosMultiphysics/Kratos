@@ -46,34 +46,34 @@
     "solver_wrappers" :
     [
         {
-            "type" : "solver_wrappers.pipe.flow_solver",
+            "type" : "solver_wrappers.python.tube_flow_solver",
             "settings" :
             {
                 "working_directory" : "coupled_solvers/CFD",
                 "input_file"  : "solver_parameters.json",
                 "interface_input" :
                 {
-                    "wall": "AREA"
+                    "wall": "DISPLACEMENT"
                 },
                 "interface_output" :
                 {
-                    "wall" : "PRESSURE"
+                    "wall" : ["PRESSURE","TRACTION"]
                 }
             }
         },
         {
-            "type" : "solver_wrappers.pipe.structure_solver",
+            "type" : "solver_wrappers.python.tube_structure_solver",
             "settings" :
             {
                 "working_directory" : "coupled_solvers/CSD",
                 "input_file"  : "solver_parameters.json",
                 "interface_input" :
                 {
-                    "wall" : "PRESSURE"
+                    "wall" : ["PRESSURE","TRACTION"]
                 },
                 "interface_output" :
                 {
-                    "wall": "AREA"
+                    "wall": "DISPLACEMENT"
                 }
             }
         }

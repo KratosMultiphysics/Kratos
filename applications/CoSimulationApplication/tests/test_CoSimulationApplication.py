@@ -23,8 +23,9 @@ from predictors.test_predictor import TestPredictor
 from predictors.test_linear import TestPredictorLinear
 from predictors.test_quadratic import TestPredictorQuadratic
 from predictors.test_cubic import TestPredictorCubic
-from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
-from solver_wrappers.pipe.test_structure_solver import TestSolverWrapperPipeStructureSolver
+from solver_wrappers.python.test_tube_flow_solver import TestSolverWrapperTubeFlowSolver
+from solver_wrappers.python.test_tube_structure_solver import TestSolverWrapperTubeStructureSolver
+from solver_wrappers.python.test_tube_structure_solver_inert import TestSolverWrapperTubeStructureSolverInert
 from solver_wrappers.fluent.test_2019R1 import TestSolverWrapperFluent2019R1
 from pykratos.test_parameters import TestPyKratosParameters
 from pykratos.test_variables import TestPyKratosVariables
@@ -70,8 +71,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestPredictorLinear("test_predictor_linear"))
     smallSuite.addTest(TestPredictorQuadratic("test_predictor_quadratic"))
     smallSuite.addTest(TestPredictorCubic("test_predictor_cubic"))
-    smallSuite.addTest(TestSolverWrapperPipeFlowSolver("test_solver_wrapper_pipe_flow_solver"))
-    smallSuite.addTest(TestSolverWrapperPipeStructureSolver("test_solver_wrapper_pipe_structure_solver"))
+    smallSuite.addTest(TestSolverWrapperTubeFlowSolver("test_solver_wrapper_tube_flow_solver"))
+    smallSuite.addTest(TestSolverWrapperTubeStructureSolver("test_solver_wrapper_tube_structure_solver"))
+    smallSuite.addTest(TestSolverWrapperTubeStructureSolverInert("test_solver_wrapper_tube_structure_solver_inert"))
     # smallSuite.addTest(TestSolverWrapperFluent2019R1("test_solver_wrapper_fluent_2019R1"))  # duration ~500s
     smallSuite.addTest(TestPyKratosParameters("test_pykratos_parameters"))
     smallSuite.addTest(TestPyKratosVariables("test_pykratos_variables"))

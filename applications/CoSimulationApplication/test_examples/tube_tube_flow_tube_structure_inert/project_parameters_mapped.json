@@ -10,7 +10,7 @@
         "settings" :
         {
             "timestep_start": 0,
-            "delta_t": 0.01,
+            "delta_t": 0.0001,
             "omega" : 0.05,
             "model" :
             {
@@ -53,34 +53,68 @@
         "solver_wrappers" :
         [
             {
-                "type" : "solver_wrappers.pipe.flow_solver",
+                "type" : "solver_wrappers.python.tube_flow_solver",
                 "settings" :
                 {
                     "working_directory" : "CFD",
                     "input_file"  : "solver_parameters.json",
                     "interface_input" :
                     {
-                        "wall": "AREA"
+                        "wall": "DISPLACEMENT"
                     },
                     "interface_output" :
                     {
-                        "wall" : "PRESSURE"
+                        "wall" : ["PRESSURE","TRACTION"]
                     }
                 }
             },
             {
-                "type" : "solver_wrappers.pipe.structure_solver_inert",
-                "settings" :
-                {
-                    "working_directory" : "CSM",
-                    "input_file"  : "solver_parameters.json",
-                    "interface_input" :
+                "type": "solver_wrappers.mapped",
+                "settings": {
+                    "solver_wrapper" :
                     {
-                        "wall" : "PRESSURE"
+                        "type" : "solver_wrappers.python.tube_structure_solver_inert",
+                        "settings" :
+                        {
+                            "working_directory" : "CSM",
+                            "input_file"  : "solver_parameters.json",
+                            "interface_input" :
+                            {
+                                "wall" : ["PRESSURE","TRACTION"]
+                            },
+                            "interface_output" :
+                            {
+                                "wall": "DISPLACEMENT"
+                            }
+                        }
                     },
-                    "interface_output" :
+                    "mapper_interface_input":
                     {
-                        "wall": "AREA"
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type": "mappers.linear",
+                            "settings":
+                            {
+                                "directions" : ["Z"],
+                                "balanced_tree" : false,
+                                "parallel" : true
+                            }
+						}
+                    },
+                    "mapper_interface_output":
+                    {
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type": "mappers.linear",
+                            "settings":
+                            {
+                                "directions" : ["Z"],
+                                "balanced_tree" : false,
+                                "parallel" : true
+                            }
+						}
                     }
                 }
             }

@@ -10,4 +10,4 @@ fi
 mkdir ./CSM
 
 # copy setup files
-cp setup_pipe_structure/solver_parameters.json CSM/
+cp setup_tube_structure/solver_parameters.json CSM/

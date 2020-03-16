@@ -36,8 +36,10 @@ class CoupledSolverIBQN(CoupledSolverGaussSeidel):
         self.u = self.x.GetNumpyArray().shape[0]
         self.w = self.y.GetNumpyArray().shape[0]
         self.ready = False
-        self.model_f.size = self.u
-        self.model_s.size = self.w
+        self.model_f.size_in = self.model_s.size_out = self.u
+        self.model_f.size_out = self.model_s.size_in = self.w
+        self.model_f.out = self.y.deepcopy()
+        self.model_s.out = self.x.deepcopy()
         models = [self.model_f, self.model_s]
         for model in models:
             model.Initialize()
