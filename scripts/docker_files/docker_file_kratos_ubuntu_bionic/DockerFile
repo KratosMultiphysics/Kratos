@@ -1,8 +1,12 @@
 FROM kratosmultiphysics/kratos-image-ci-ubuntu-bionic
 
 ENV HOME /root
-ENV PYTHONPATH ${PYTHONPATH}:/software/Kratos/bin/Release
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/software/Kratos/bin/Release/libs
+# maybe add to paths and not override, but can give problems if paths are empty
+ENV PYTHONPATH /software/Kratos/bin/Release
+ENV LD_LIBRARY_PATH /software/Kratos/bin/Release/libs
+# MKL paths
+ENV MKLVARS_ARCHITECTURE intel64
+ENV MKLVARS_INTERFACE lp64
 
 RUN git clone --depth 1 https://github.com/KratosMultiphysics/Kratos.git /software/Kratos && \
     # setting some environment variables for the build
@@ -20,6 +24,7 @@ RUN git clone --depth 1 https://github.com/KratosMultiphysics/Kratos.git /softwa
     # cleanup after build
     rm configure.sh
 
+ENTRYPOINT ["/opt/intel/mkl/bin/mklvars.sh"]
 CMD [ "/bin/bash" ]
 
 WORKDIR $HOME
