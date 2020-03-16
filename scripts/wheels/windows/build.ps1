@@ -1,7 +1,8 @@
+param([System.String]$cotire="OFF")
+
 $pythons = "38","37","36","35"
 $env:kratos_version = "7.0.3"
 
-param([System.String]$cotire="OFF")
 $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
