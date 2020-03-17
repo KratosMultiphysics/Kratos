@@ -55,36 +55,34 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         }
         noalias(rOutput) = ZeroMatrix(dimension*number_of_nodes, local_size);
     }
-    else if ( this->Has(rDesignVariable) ) {
-        if (rDesignVariable == NODAL_ROTATIONAL_STIFFNESS || rDesignVariable == NODAL_DISPLACEMENT_STIFFNESS) {
-            if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
-                    rOutput.resize(dimension, local_size, false);
-            }
-
-            // save original stiffness parameters
-            const auto variable_value = this->pGetPrimalElement()->GetValue(rDesignVariable);
-
-            // reset original stiffness parameters before computing the derivatives
-            this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
-
-            ProcessInfo process_info = rCurrentProcessInfo;
-            Vector RHS;
-            for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
-                // The following approach assumes a linear dependency between RHS and spring stiffness
-                array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
-                perturbed_nodal_stiffness[dir_i] = 1.0;
-                this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
-                this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
-
-                KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
-                for(IndexType i = 0; i < RHS.size(); ++i) {
-                    rOutput(dir_i, i) = RHS[i];
-                }
-            }
-
-            // give original stiffness parameters back
-            this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
+    else if (this->Has(rDesignVariable) && (rDesignVariable == NODAL_ROTATIONAL_STIFFNESS || rDesignVariable == NODAL_DISPLACEMENT_STIFFNESS)) {
+        if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
+                rOutput.resize(dimension, local_size, false);
         }
+
+        // save original stiffness parameters
+        const auto variable_value = this->pGetPrimalElement()->GetValue(rDesignVariable);
+
+        // reset original stiffness parameters before computing the derivatives
+        this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
+
+        ProcessInfo process_info = rCurrentProcessInfo;
+        Vector RHS;
+        for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
+            // The following approach assumes a linear dependency between RHS and spring stiffness
+            array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
+            perturbed_nodal_stiffness[dir_i] = 1.0;
+            this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
+            this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+
+            KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+            for(IndexType i = 0; i < RHS.size(); ++i) {
+                rOutput(dir_i, i) = RHS[i];
+            }
+        }
+
+        // give original stiffness parameters back
+        this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
     }
     else {
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
