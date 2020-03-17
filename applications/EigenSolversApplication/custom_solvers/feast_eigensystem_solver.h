@@ -96,6 +96,10 @@ class FEASTEigensystemSolver
 
     /**
      * Solve the generalized eigenvalue problem using FEAST
+     * @param rK (complex) symmetric matrix
+     * @param rM symmetric positive-definite matrix
+     * @param rEigenvalues eigenvalues
+     * @param rEigenvectors row-aligned eigenvectors [n_evs,n_dofs]
      */
     void Solve(
         SparseMatrixType& rK,
@@ -204,6 +208,9 @@ class FEASTEigensystemSolver
         // truncate the results to the converged eigenvalues
         rEigenvectors.resize(system_size, M, true);
         rEigenvalues.resize(M, true);
+
+        // the eigensolver strategy expects an eigenvector matrix of shape [n_eigenvalues, n_dofs]
+        rEigenvectors = trans(rEigenvectors);
     }
 
     /**
@@ -277,7 +284,7 @@ class FEASTEigensystemSolver
             mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
             "Manually defined e_min, e_max are not used for complex symmetric matrices\n";
 
-        KRATOS_INFO_IF( "FEASTEigensystemSolver", 
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
             "Search for extremal eigenvalues is only available for Hermitian problems\n";
 
