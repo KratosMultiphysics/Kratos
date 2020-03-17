@@ -86,8 +86,6 @@ public:
 
     void Finalize() override
     {
-        mpGidEigenIO->FinalizeResults();
-        mpGidEigenIO->Flush();
     }
 
     ~GidEigenOutputWrapper()
@@ -108,6 +106,8 @@ public:
         for (const auto& r_variable : rRequestedVectorResults) {
             mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
         }
+        // mpGidEigenIO->Flush();
+        mpGidEigenIO->FinalizeResults();
     }
 
 private:
