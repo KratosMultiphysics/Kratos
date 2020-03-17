@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2017 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_TRILINOS_NEWMARK_QUASISTATIC_U_PW_SCHEME )
 #define  KRATOS_TRILINOS_NEWMARK_QUASISTATIC_U_PW_SCHEME
@@ -119,7 +125,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool DofImporterIsInitialized() override
+    bool DofImporterIsInitialized()
     {
         return mImporterIsInitialized;
     }

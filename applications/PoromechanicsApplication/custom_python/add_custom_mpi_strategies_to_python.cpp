@@ -1,22 +1,30 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:              March 2017 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
 //
 
+#if defined(KRATOS_PYTHON)
 // External includes
-#include "spaces/ublas_space.h"
 
 // Project includes
-#include "custom_python/add_custom_mpi_strategies_to_python.h"
-#include "includes/kratos_parameters.h"
+#include "includes/define_python.h"
 
-//Trilinos includes
-#include "mpi.h"
-#include "Epetra_FECrsMatrix.h"
+#include "custom_python/add_custom_mpi_strategies_to_python.h"
+
+// Trilinos includes
 #include "Epetra_FEVector.h"
+
+// Project includes
 #include "trilinos_space.h"
+#include "spaces/ublas_space.h"
+#include "includes/kratos_parameters.h"
 
 //linear solvers
 
@@ -42,7 +50,6 @@ void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
 
     typedef TrilinosNewmarkQuasistaticUPwScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosNewmarkQuasistaticUPwSchemeType;
@@ -66,3 +73,5 @@ void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 
 }  // namespace Python.
 } // Namespace Kratos
+
+#endif // KRATOS_PYTHON defined
