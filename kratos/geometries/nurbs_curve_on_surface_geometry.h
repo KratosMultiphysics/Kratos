@@ -270,7 +270,7 @@ public:
             auto cp_indices = shape_function_container.ControlPointIndices(
                 mpNurbsSurface->NumberOfControlPointsU(), mpNurbsSurface->NumberOfControlPointsV());
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                nonzero_control_points(j) = pGetPoint(cp_indices[j]);
+                nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
             if (NumberOfShapeFunctionDerivatives >= 0) {
