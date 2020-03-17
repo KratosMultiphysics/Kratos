@@ -295,7 +295,7 @@ namespace Testing {
         surface.GlobalCoordinates(result, parameter);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCylinderSurface, KratosCoreNurbsGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceCylinder, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferencePieceOfCylinderNurbsSurface();
 
         // Check general information, input to ouput
@@ -463,7 +463,7 @@ namespace Testing {
             TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceQuarterSphere, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceQuarterSphereGeometry();
 
         // Check general information, input to ouput
