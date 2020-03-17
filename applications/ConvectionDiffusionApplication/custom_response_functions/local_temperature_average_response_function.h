@@ -160,8 +160,26 @@ public:
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "PointTemperature::CalculateValue(ModelPart& rModelPart) is not implemented!!!\n";
+
+        const Communicator& r_communicator = rModelPart.GetCommunicator();
+        const int number_of_nodes = r_communicator.LocalMesh().NumberOfNodes();
+        
+	double domain_aggregated_temperature = 0.0;
+
+#pragma omp parallel for reduction(+ : domain_aggregated_temperature)
+        for (int i = 0; i < number_of_nodes; ++i)
+        {
+            const ModelPart::NodeType& r_node =
+                *(r_communicator.LocalMesh().NodesBegin() + i);
+            domain_aggregated_temperature += r_node.FastGetSolutionStepValue(TEMPERATURE);
+        }
+
+        domain_aggregated_temperature =
+            r_communicator.GetDataCommunicator().SumAll(domain_aggregated_temperature);
+        const int total_nodes = r_communicator.GetDataCommunicator().SumAll(number_of_nodes);
+
+        return domain_aggregated_temperature / static_cast<double>(total_nodes);
+
         KRATOS_CATCH("");
     }
 
