@@ -376,16 +376,16 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
-        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3);
+        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 1);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
-        double area = 0;
+        double length = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
-                area += quadrature_points[i].IntegrationPoints()[j].Weight();
+                length += quadrature_points[i].IntegrationPoints()[j].Weight();
             }
         }
-        KRATOS_CHECK_NEAR(area, 23.313708498984759, TOLERANCE);
+        KRATOS_CHECK_NEAR(length, 23.313708498984759, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.
