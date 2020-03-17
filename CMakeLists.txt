@@ -103,6 +103,10 @@ set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 if(USE_COTIRE MATCHES ON)
   include(cotire)
   set(CMAKE_SKIP_RPATH ON)
+
+  if(${MSVC})
+    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+  endif(${MSVC})
 endif(USE_COTIRE MATCHES ON)
 
 # Get subversion data. This is done automagically by the cmakes
