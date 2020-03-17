@@ -326,7 +326,7 @@ typedef Node<3> NodeType;
     }
 
     ///// Test integration points of nurbs curve
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dIntegration, KratosCoreNurbsGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateIntegrationPoints, KratosCoreNurbsGeometriesFastSuite) {
         auto curve = GenerateReferenceCurve2d();
 
         // Check general information, input to ouput

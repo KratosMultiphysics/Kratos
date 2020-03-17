@@ -410,7 +410,7 @@ namespace Testing {
     }
 
     /// Check creation of integration of nurbs surface.
-    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNodeIntegrationDomain, KratosCoreNurbsGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceCreateIntegrationPoints, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
