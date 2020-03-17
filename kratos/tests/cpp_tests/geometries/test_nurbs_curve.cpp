@@ -343,7 +343,7 @@ typedef Node<3> NodeType;
 
 
     // test quadrature points of curve on surface
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
     {
         // Nurbs curve on a Nurbs surface
         auto curve = GenerateReferenceCurve2dNodes();
@@ -352,18 +352,18 @@ typedef Node<3> NodeType;
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
         curve.CreateQuadraturePointGeometries(quadrature_points, 3);
 
-        KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
         double area = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
                 area += quadrature_points[i].IntegrationPoints()[j].Weight();
             }
         }
-        KRATOS_CHECK_NEAR(area, 23.313708498984759, TOLERANCE);
+        KRATOS_CHECK_NEAR(area, 11.18033988749894, TOLERANCE);
 
         auto element = Element(0, quadrature_points(2));
 
-        // Check shape functions
+        // Check shape functions. This is to guarantee that the information does not get lost.
         KRATOS_CHECK_MATRIX_NEAR(
             element.pGetGeometry()->ShapeFunctionsValues(),
             quadrature_points(2)->ShapeFunctionsValues(),
