@@ -4,7 +4,7 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication   
+import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTEigensystemSolver'),"FEAST not found, skipping.")
@@ -55,7 +55,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         for i in range(eigenvalues.Size()):
             eigenvector = KratosMultiphysics.Vector(n)
             for j in range(n):
-                eigenvector[j] = eigenvectors[j,i]
+                eigenvector[j] = eigenvectors[i,j]
 
             _aux_1 = KratosMultiphysics.Vector(n,0)
             _aux_2 = KratosMultiphysics.Vector(n,0)
@@ -114,7 +114,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         for i in range(eigenvalues.Size()):
             eigenvector = KratosMultiphysics.ComplexVector(n)
             for j in range(n):
-                eigenvector[j] = eigenvectors[j,i]
+                eigenvector[j] = eigenvectors[i,j]
 
             _aux_1 = KratosMultiphysics.ComplexVector(n,0)
             _aux_2 = KratosMultiphysics.ComplexVector(n,0)
