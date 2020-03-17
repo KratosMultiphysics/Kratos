@@ -36,6 +36,8 @@ struct BaseEigenOutputWrapper
         const int AnimationStep,
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) = 0;
+
+    virtual void Finalize() {}
 };
 
 struct GidEigenOutputWrapper : public BaseEigenOutputWrapper
@@ -82,9 +84,14 @@ public:
         mpGidEigenIO->InitializeResults(0.0, mrModelPart.GetMesh());
     }
 
-    ~GidEigenOutputWrapper()
+    void Finalize() override
     {
         mpGidEigenIO->FinalizeResults();
+    }
+
+    ~GidEigenOutputWrapper()
+    {
+        std::cout << "\n\n DESTRUCTOR IS CALLED!!!\n\n" << std::endl;
     }
 
     void PrintOutput(
@@ -216,6 +223,8 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
         }
     }
+
+    p_eigen_io_wrapper->Finalize();
 }
 
 void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
