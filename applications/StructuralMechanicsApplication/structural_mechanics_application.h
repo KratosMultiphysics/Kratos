@@ -63,6 +63,7 @@
 /* Adding solid elements */
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/axisym_small_displacement.h"
+#include "custom_elements/z_strain_driven_2p5_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/updated_lagrangian.h"
@@ -99,6 +100,7 @@
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
+#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
 #include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_henky_1d.h"
@@ -388,6 +390,12 @@ private:
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
 
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D3N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D4N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D6N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D8N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D9N;
+
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
     const TotalLagrangian mTotalLagrangian2D4N;
@@ -521,6 +529,7 @@ private:
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
+    const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;

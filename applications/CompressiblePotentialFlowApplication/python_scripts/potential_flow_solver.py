@@ -216,10 +216,7 @@ class PotentialFlowSolver(FluidSolver):
 
     def _ComputeNodalNeighbours(self):
         # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.main_model_part, avg_elem_num, avg_node_num).Execute()
+        KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part).Execute()
 
     def _GetStrategyType(self):
         element_type = self.settings["formulation"]["element_type"].GetString()
