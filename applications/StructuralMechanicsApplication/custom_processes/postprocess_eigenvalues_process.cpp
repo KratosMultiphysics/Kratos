@@ -86,6 +86,7 @@ public:
 
     void Finalize() override
     {
+        mpGidEigenIO->FinalizeResults();
     }
 
     ~GidEigenOutputWrapper()
@@ -99,6 +100,8 @@ public:
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
     {
+
+        // mpGidEigenIO->InitializeResults(0.0, mrModelPart.GetMesh());
         for (const auto& r_variable : rRequestedDoubleResults) {
             mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
         }
@@ -106,8 +109,8 @@ public:
         for (const auto& r_variable : rRequestedVectorResults) {
             mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
         }
-        // mpGidEigenIO->Flush();
-        mpGidEigenIO->FinalizeResults();
+        mpGidEigenIO->Flush();
+        // mpGidEigenIO->FinalizeResults();
     }
 
 private:
