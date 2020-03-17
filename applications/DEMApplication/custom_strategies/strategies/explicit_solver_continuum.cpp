@@ -425,8 +425,10 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
                 break;
             }
+
             double old_amplification = amplification;
-            amplification *= in_coordination_number / out_coordination_number;
+            amplification *= std::sqrt(in_coordination_number / out_coordination_number);
+
             const double max_factor_between_iterations = 1.1;
             if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
             if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
