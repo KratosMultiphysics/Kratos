@@ -25,7 +25,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ComplexDofUpdaterTest, KratosMORFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ComplexDofUpdate, KratosMORFastSuite)
 {
     using complex = std::complex<double>;
 
