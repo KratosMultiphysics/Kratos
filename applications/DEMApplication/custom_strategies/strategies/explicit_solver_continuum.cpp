@@ -551,9 +551,12 @@ namespace Kratos {
             if (thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
         }
 
-        r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = maximum_across_threads;
-
         double& ratio = r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR];
+
+        if (maximum_across_threads > ratio) {
+            ratio = maximum_across_threads;
+        }
+
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
 
         static unsigned int counter = 0;
