@@ -1,5 +1,6 @@
 import scipy.sparse
 import numpy as np
+from time import time
 # for direct
 import scipy.sparse.linalg as sla
 # for iterative
@@ -9,6 +10,20 @@ from .progress_bar import printProgressBar
 
 
 def MakeConsistent(matrix):
+    from KratosMultiphysics.EigenSolversApplication import MakeConsistent as MakeConsistentCpp
+    from KratosMultiphysics import Vector
+
+    x = Vector()
+    a = time()
+    MakeConsistentCpp(matrix, x)
+    print(time()-a)
+
+    return matrix, x
+
+
+def MakeConsistentScipy(matrix):
+    # TODO precalculate col sum
+    # TODO iterate non zeros only
     m = matrix.tocsc(copy=True)
     LHS = matrix.copy()
     for i in range(matrix.shape[0]):
@@ -26,7 +41,7 @@ def MakeConsistent(matrix):
     x = np.sqrt(x)
 
     _m = matrix.copy()
-    return _m.dot(scipy.sparse.diags(x))
+    return _m.dot(scipy.sparse.diags(x)), x
 
 
 def MakeConsistentIterative(matrix):
@@ -43,4 +58,4 @@ def MakeConsistentIterative(matrix):
         return v
 
     result = minimize(f, x)
-    return ModifyMatrix(x)
+    return ModifyMatrix(x), x

@@ -25,6 +25,8 @@ class ConsistentVertexMorphingMapper():
         self.origin_model_part = origin_model_part
         self.destination_model_part = destination_model_part
 
+        self.use_scipy = False
+
         extracted_vm_settings = settings.Clone()
         extracted_vm_settings["consistent_aat"].SetBool(False)
         self.vm_mapper = mapper_factory.CreateMapper(origin_model_part, destination_model_part, extracted_vm_settings)
@@ -33,13 +35,25 @@ class ConsistentVertexMorphingMapper():
 
     def Initialize(self):
         self.vm_mapper.Initialize()
-        self.matrix = self._GetScipyMatrix(self.vm_mapper)
-        self.matrix = MakeConsistent(self.matrix)
+        if self.use_scipy:
+            scipy_matrix = self._GetScipyMatrix(self.vm_mapper.GetMatrix())
+            self.matrix, x = MakeConsistent(scipy_matrix)
+        else:
+            cpp_matrix, x = MakeConsistent(self.vm_mapper.GetMatrix())
+            self.matrix = self._GetScipyMatrix(cpp_matrix)
+        for node, v in zip(self.origin_model_part.Nodes, x):
+            node.SetSolutionStepValue(KM.TEMPERATURE, v)
 
     def Update(self):
         self.vm_mapper.Update()
-        self.matrix = self._GetScipyMatrix(self.vm_mapper)
-        self.matrix = MakeConsistent(self.matrix)
+        if self.use_scipy:
+            scipy_matrix = self._GetScipyMatrix(self.vm_mapper.GetMatrix())
+            self.matrix, x = MakeConsistent(scipy_matrix)
+        else:
+            cpp_matrix, x = MakeConsistent(self.vm_mapper.GetMatrix())
+            self.matrix = self._GetScipyMatrix(cpp_matrix)
+        for node, v in zip(self.origin_model_part.Nodes, x):
+            node.SetSolutionStepValue(KM.TEMPERATURE, v)
 
     def Map(self, origin_variable, destination_variable):
         for i in range(3):
@@ -87,8 +101,7 @@ class ConsistentVertexMorphingMapper():
             node.SetSolutionStepValue(variable, v)
 
     @staticmethod
-    def _GetScipyMatrix(mapper):
-        cpp_matrix = mapper.GetMatrix()
+    def _GetScipyMatrix(cpp_matrix):
         return scipy_conversion_tools.to_csr(cpp_matrix)
 
 
