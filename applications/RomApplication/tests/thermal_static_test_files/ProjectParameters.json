@@ -41,12 +41,6 @@
         "time_stepping": {
             "time_step": 1.0
         },
-        "rom_settings": {
-            "nodal_unknowns": [
-                "TEMPERATURE"
-            ],
-            "number_of_rom_dofs": 14
-        },
         "element_replace_settings": {
             "element_name": "LaplacianElement",
             "condition_name": "ThermalFace"
