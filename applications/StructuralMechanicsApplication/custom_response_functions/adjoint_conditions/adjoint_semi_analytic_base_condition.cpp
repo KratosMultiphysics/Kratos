@@ -33,24 +33,21 @@ namespace Kratos
 
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dim = this->GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim * number_of_nodes)
+        if (rResult.size() != dim * number_of_nodes) {
             rResult.resize(dim*number_of_nodes,false);
+        }
 
         const IndexType pos = this->GetGeometry()[0].GetDofPosition(ADJOINT_DISPLACEMENT_X);
 
-        if(dim == 2)
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        if(dim == 2) {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 2;
                 rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
             }
         }
-        else
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        else {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 3;
                 rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
@@ -69,22 +66,19 @@ namespace Kratos
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
-        if (rElementalDofList.size() != num_dofs)
+        if (rElementalDofList.size() != num_dofs) {
             rElementalDofList.resize(num_dofs);
+        }
 
-        if(dimension == 2)
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        if(dimension == 2) {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 2;
                 rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
                 rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
             }
         }
-        else
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        else {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 3;
                 rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
                 rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
@@ -102,15 +96,16 @@ namespace Kratos
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
-        if (rValues.size() != num_dofs)
+        if (rValues.size() != num_dofs) {
             rValues.resize(num_dofs, false);
+        }
 
-        for (IndexType i = 0; i < number_of_nodes; ++i)
-        {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
             const array_1d<double, 3 > & Displacement = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
             IndexType index = i * dimension;
-            for(IndexType k = 0; k < dimension; ++k)
+            for(IndexType k = 0; k < dimension; ++k) {
                 rValues[index + k] = Displacement[k];
+            }
         }
     }
 
@@ -136,7 +131,8 @@ namespace Kratos
                 rOutput[i] = output_value;
             }
 
-        } else {
+        }
+        else {
             KRATOS_ERROR << "Unsupported output variable." << std::endl;
         }
 
@@ -165,7 +161,8 @@ namespace Kratos
                 rOutput[i] = output_value;
             }
 
-        } else {
+        }
+        else {
             KRATOS_ERROR << "Unsupported output variable." << std::endl;
         }
 
@@ -321,8 +318,7 @@ namespace Kratos
 
         // Check dofs
         const GeometryType& r_geom = this->GetGeometry();
-        for (IndexType i = 0; i < r_geom.size(); ++i)
-        {
+        for (IndexType i = 0; i < r_geom.size(); ++i) {
             const auto& r_node = r_geom[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);

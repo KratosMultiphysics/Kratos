@@ -1,10 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
-
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import math
-
 
 class TestAdjointLoadingConditionsSurface(KratosUnittest.TestCase):
 
@@ -75,8 +72,6 @@ class TestAdjointLoadingConditionsSurface(KratosUnittest.TestCase):
 
     def test_SimplesAdjointtSurfaceLoadCondition3D4N(self):
         self._SimplestSurfaceLoadCondition3D4N()
-
-
 
 if __name__ == '__main__':
     KratosUnittest.main()
