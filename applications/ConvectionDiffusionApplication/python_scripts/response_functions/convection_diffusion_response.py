@@ -8,21 +8,6 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionA
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
 
-def _GetModelPart(model, solver_settings):
-    #TODO can be removed once model is fully available
-    model_part_name = solver_settings["model_part_name"].GetString()
-    if not model.HasModelPart(model_part_name):
-        model_part = model.CreateModelPart(model_part_name, 2)
-        domain_size = solver_settings["domain_size"].GetInt()
-        if domain_size < 0:
-            raise Exception('Please specify a "domain_size" >= 0!')
-        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
-    else:
-        model_part = model.GetModelPart(model_part_name)
-
-    return model_part
-
-
 class ResponseFunctionBase(object):
     """The base class for response functions. This is a copy from StructuralMechanicsApplication - move to core?
     """
@@ -81,17 +66,14 @@ class AdjointResponseFunction(ResponseFunctionBase):
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
 
-        self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
-
         self.primal_analysis = ConvectionDiffusionAnalysis(model, primal_parameters)
+        self.primal_model_part = model.GetModelPart(primal_parameters["solver_settings"]["model_part_name"].GetString())
 
         # Create the adjoint solver
         adjoint_parameters = self._GetAdjointParameters()
-        # TODO adjoint_model = KM.Model()
 
-        # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = ConvectionDiffusionAnalysis(model, adjoint_parameters)
-        self.adjoint_model_part = _GetModelPart(model, adjoint_parameters["solver_settings"])
+        self.adjoint_model_part = model.GetModelPart(adjoint_parameters["solver_settings"]["model_part_name"].GetString())
 
         self.primal_state_variables = [
             KM.CONDUCTIVITY,
@@ -115,8 +97,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         startTime = timer.time()
-        # TODO value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        value = 1.0 / self.primal_analysis.time
+        value = 1.0 / self.primal_analysis.time#self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
