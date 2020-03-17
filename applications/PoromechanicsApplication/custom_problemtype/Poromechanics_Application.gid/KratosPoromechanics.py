@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
-# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+# import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication
