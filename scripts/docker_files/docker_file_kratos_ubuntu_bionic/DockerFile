@@ -22,9 +22,9 @@ RUN git clone --depth 1 https://github.com/KratosMultiphysics/Kratos.git /softwa
     cd /software/Kratos && \
     sh configure.sh && \
     # cleanup after build
-    rm configure.sh
+    rm configure.sh && \
+    echo ". /opt/intel/mkl/bin/mklvars.sh" >> .bashrc
 
-ENTRYPOINT ["/opt/intel/mkl/bin/mklvars.sh", "verbose"]
 CMD [ "/bin/bash" ]
 
 WORKDIR $HOME
