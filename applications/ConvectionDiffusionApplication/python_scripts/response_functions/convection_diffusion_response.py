@@ -1,14 +1,12 @@
-"""This module contains the available structural response functions and their base class"""
-from __future__ import print_function, absolute_import, division
+"""This module contains the available response functions and their base class"""
+import time as timer
 
-# importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication# TODO
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication # TODO
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
-import time as timer
 
 def _GetModelPart(model, solver_settings):
     #TODO can be removed once model is fully available
@@ -24,12 +22,9 @@ def _GetModelPart(model, solver_settings):
 
     return model_part
 
-# ==============================================================================
+
 class ResponseFunctionBase(object):
-    """The base class for structural response functions. Each response function
-    is able to calculate its response value and gradient.
-    All the necessary steps have to be implemented, like e.g. initializing,
-    solving of primal (and adjoint) analysis ...
+    """The base class for response functions. This is a copy from StructuralMechanicsApplication - move to core?
     """
 
     def RunCalculation(self, calculate_gradient):
@@ -65,11 +60,11 @@ class ResponseFunctionBase(object):
     def GetShapeGradient(self):
         raise NotImplementedError("GetShapeGradient needs to be implemented by the derived class")
 
-# ==============================================================================
+
 class AdjointResponseFunction(ResponseFunctionBase):
     """Linear adjoint response function.
     - runs the primal analysis
-    - primal results are transferred to adjoint model part via python or hdf5
+    - primal results are transferred to adjoint model part via python
     - uses primal results to calculate value
     - uses primal results to calculate gradient by running the adjoint analysis
 
@@ -104,9 +99,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
             KM.HEAT_FLUX,
             KM.FACE_HEAT_FLUX
         ]
-        # if primal_parameters["solver_settings"].Has("rotation_dofs"):
-        #     if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
-        #         self.primal_state_variables.append(KM.ROTATION)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -114,7 +106,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def InitializeSolutionStep(self):
         # Run the primal analysis.
-        # TODO if primal_analysis.status==solved: return
         Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
         if not self.primal_analysis.time < self.primal_analysis.end_time:
@@ -171,16 +162,13 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
-        #if self.response_settings["adjoint_settings"].GetString() == "auto":
+        # Put primal solution on adjoint model
         Logger.PrintInfo(self._GetLabel(), "Transfer primal state to adjoint model part.")
         variable_utils = KM.VariableUtils()
         for variable in self.primal_state_variables:
             variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
-
     def _GetAdjointParameters(self):
-
         adjoint_settings = self.response_settings["adjoint_settings"].GetString()
 
         if adjoint_settings == "auto":
@@ -254,7 +242,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 adjoint_parameters = Parameters( parameter_file.read() )
 
         return adjoint_parameters
-
 
     def _GetLabel(self):
         type_labels = {
