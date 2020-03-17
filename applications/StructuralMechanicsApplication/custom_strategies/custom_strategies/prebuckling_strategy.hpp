@@ -481,7 +481,10 @@ public:
             // Build and solve system
             pBuilderAndSolver->BuildAndSolve(pScheme, rModelPart, rStiffnessMatrix,rDx, rRHS);
             if( mLoadStepIteration == 0 ){
-                norm_before =  TSparseSpace::TwoNorm(rStiffnessMatrix);
+                norm_step_1 =  TSparseSpace::TwoNorm(rStiffnessMatrix);
+            }
+            if( mLoadStepIteration == 1 ){
+                norm_step_2 =  TSparseSpace::TwoNorm(rStiffnessMatrix);
             }
             // Update internal variables
             this->pGetScheme()->Update(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
@@ -679,9 +682,14 @@ public:
         return norm1;
     }
 
-    double GetNormBefore()
+    double GetNormStep1()
     {
-        return norm_before;
+        return norm_step_1;
+    }
+
+    double GetNormStep2()
+    {
+        return norm_step_2;
     }
 
 
@@ -788,7 +796,8 @@ private:
     double norm1 = 0.0;
     double norm2 = 0.0;
     double eigenv = 0.0;
-    double norm_before = 0.0;
+    double norm_step_1 = 0.0;
+    double norm_step_2 = 0.0;
 
     ///@}
     ///@name Private Operators

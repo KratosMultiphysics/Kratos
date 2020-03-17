@@ -121,7 +121,8 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
             eig_strategy.Solve()
             if( i%2 == 1):
                 LoadFactor.append( mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR][0] )
-                print("Norm-Before: ",eig_strategy.GetNormBefore())
+                print("NormStep1: ",eig_strategy.GetNormStep1())
+                print("NormStep2: ",eig_strategy.GetNormStep2())
                 print("Norm1: ",eig_strategy.GetNorm1())
                 print("Norm2: ",eig_strategy.GetNorm2())
                 print("Eigenvalue: ",eig_strategy.GetEigenvalue())
