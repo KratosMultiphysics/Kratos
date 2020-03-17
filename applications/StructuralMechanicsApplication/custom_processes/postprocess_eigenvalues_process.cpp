@@ -87,6 +87,7 @@ public:
     void Finalize() override
     {
         mpGidEigenIO->FinalizeResults();
+        mpGidEigenIO->Flush();
     }
 
     ~GidEigenOutputWrapper()
