@@ -22,6 +22,8 @@
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
+#include "custom_conditions/line_load_condition.h"
+#include "custom_conditions/small_displacement_line_load_condition.h"
 
 namespace Kratos
 {
@@ -399,7 +401,8 @@ namespace Kratos
     template class AdjointSemiAnalyticBaseCondition<PointLoadCondition>;
     template class AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D>;
     template class AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D>;
-
+    template class AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>>;
+    template class AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>>;
 
 
 } // Namespace Kratos
