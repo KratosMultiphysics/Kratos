@@ -164,7 +164,7 @@ public:
             GetTargetModelPart(rModelPart, mTargetModelPartName);
 
         const double domain_aggregated_temperature =
-            VariableUtils().SumHistoricalVariable(TEMPERATURE, r_target_model_part);
+            VariableUtils().SumHistoricalVariable<double>(TEMPERATURE, r_target_model_part);
 
         const Communicator& r_communicator = r_target_model_part.GetCommunicator();
         const int number_of_nodes = r_communicator.LocalMesh().NumberOfNodes();
