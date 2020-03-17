@@ -41,9 +41,9 @@ public:
     {
         KRATOS_TRY;
 
-        std::string target_model_part = Settings["model_part_name"].GetString();
+        mTargetModelPartName = Settings["model_part_name"].GetString();
 
-        auto& r_target_model_part = GetTargetModelPart(rModelPart, target_model_part);
+        auto& r_target_model_part = GetTargetModelPart(rModelPart, mTargetModelPartName);
         auto& r_nodes = r_target_model_part.Nodes();
         mNumNodes = r_nodes.size();
 
@@ -160,8 +160,10 @@ public:
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
+	
+        const ModelPart& r_target_model_part = GetTargetModelPart(rModelPart, mTargetModelPartName);	
 
-        const Communicator& r_communicator = rModelPart.GetCommunicator();
+        const Communicator& r_communicator = r_target_model_part.GetCommunicator();
         const int number_of_nodes = r_communicator.LocalMesh().NumberOfNodes();
         
 	double domain_aggregated_temperature = 0.0;
@@ -204,6 +206,7 @@ private:
     ///@{
 
 	int mNumNodes = 0;
+	std::string mTargetModelPartName;	
 
     ///@}
     ///@name Private Operators
