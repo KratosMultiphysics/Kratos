@@ -301,6 +301,25 @@ public:
         return std::sqrt(aux_sum);
     }
 
+    static TDataType TwoNorm(compressed_matrix<TDataType> const& rA) // Frobenious norm
+    {
+        TDataType aux_sum = TDataType();
+
+        const auto& r_row_indices = rA.index1_data();
+        const auto& r_col_indices = rA.index2_data();
+
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(r_row_indices.size()); ++i) {
+            const IndexType row_index = r_row_indices[i];
+
+            for (int j=0; j<static_cast<int>(r_col_indices.size()); ++j) {
+                const IndexType col_index = r_col_indices[j];
+                aux_sum += rA(row_index, col_index) * rA(row_index, col_index);
+            }
+        }
+        return std::sqrt(aux_sum);
+    }
+
     /**
      * This method computes the Jacobi norm
      * @param rA The matrix to compute the Jacobi norm
