@@ -157,7 +157,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
     # Test exact integration in 3D
     # TRIANGLE
-    def test_triangle_exact_integration_1(self):
+    def _test_triangle_exact_integration_1_delanautor(self, use_delaunator = False):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -180,7 +180,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(3).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D3N(2)
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D3N(2,1.0e6, 0, 1.0, use_delaunator)
 
         # Triangle 2
         normal[2] = -1.0
@@ -212,6 +212,12 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2, 0], 1.0 / 6.0)
         self.assertAlmostEqual(matrix_solution[2, 1], 4.0 / 6.0)
         self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 6.0)
+
+    def test_triangle_exact_integration_1(self):
+        self._test_triangle_exact_integration_1_delanautor(False)
+
+    def test_triangle_exact_integration_1_delanautor(self):
+        self._test_triangle_exact_integration_1_delanautor(True)
 
     def test_triangle_exact_integration_2(self):
         current_model = KratosMultiphysics.Model()
