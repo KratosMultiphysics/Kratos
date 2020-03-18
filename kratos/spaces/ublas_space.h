@@ -280,24 +280,12 @@ public:
     static TDataType TwoNorm(Matrix const& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
-#ifndef _OPENMP
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
-            {
-                aux_sum += rA(i,j) * rA(i,j);
-            }
-        }
-#else
         #pragma omp parallel for reduction(+:aux_sum)
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
-            {
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++) {
+            for (int j = 0; j < static_cast<int>(rA.size2()); j++) {
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
-#endif
         return std::sqrt(aux_sum);
     }
 
