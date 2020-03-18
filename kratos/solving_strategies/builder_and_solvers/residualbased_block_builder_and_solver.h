@@ -153,6 +153,10 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    bool LHSHasDirichletDofs() override
+    {
+        return true;
+    }
 
     /**
      * @brief Function to perform the build of the RHS. The vector could be sized as the total number

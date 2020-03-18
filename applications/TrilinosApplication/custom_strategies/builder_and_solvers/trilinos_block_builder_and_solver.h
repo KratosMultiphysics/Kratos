@@ -155,6 +155,10 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    bool LHSHasDirichletDofs() override
+    {
+        return true;
+    }
 
     /**
      * @brief Function to perform the build the system matrix and the residual

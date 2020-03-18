@@ -323,6 +323,13 @@ public:
        mpLinearSystemSolver = pLinearSystemSolver;
     }
 
+
+    //this function tells if dirichlet rows and dofs are contained in the LHS
+    virtual bool LHSHasDirichletDofs()
+    {
+        return false;
+    }
+
     /**
      * @brief Function to perform the building of the LHS, depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
      * @param pScheme The pointer to the integration scheme

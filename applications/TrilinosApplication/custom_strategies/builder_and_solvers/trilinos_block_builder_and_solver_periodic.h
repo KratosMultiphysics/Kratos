@@ -130,7 +130,10 @@ public:
     /*@} */
     /**@name Operations */
     /*@{ */
-
+    bool LHSHasDirichletDofs() override
+    {
+        return true;
+    }
 
     /// Assign an Equation Id to all degrees of freedom in the system.
     /**

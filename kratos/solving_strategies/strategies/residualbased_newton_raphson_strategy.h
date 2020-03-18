@@ -424,6 +424,29 @@ class ResidualBasedNewtonRaphsonStrategy
     void SetUseOldStiffnessInFirstIterationFlag(bool UseOldStiffnessInFirstIterationFlag)
     {
         mUseOldStiffnessInFirstIteration = UseOldStiffnessInFirstIterationFlag;
+
+        if(mUseOldStiffnessInFirstIteration)
+        {
+            if(GetBuilderAndSolver()->LHSHasDirichletDofs() == false)
+            {
+                KRATOS_WARNING("NR-Strategy") << "sorry the builder and solver employed does not support \n"
+                                 << "using Old Stiffness on First Iteration. \n"
+                                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
+
+                mUseOldStiffnessInFirstIteration = false;
+            }
+            if( BaseType::GetModelPart().GetBufferSize() == 1)
+            {
+                KRATOS_WARNING("NR-Strategy")
+                                 << "sorry the buffer size needs to be at least 2 in order to use \n"
+                                 << "current buffer size for modelpart: " << BaseType::GetModelPart() << std::endl
+                                 << "is :" << BaseType::GetModelPart()
+                                 << "Old Stiffness on First Iteration. \n"
+                                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
+
+                mUseOldStiffnessInFirstIteration = false;
+            }
+        }
     }
 
     /**
@@ -820,7 +843,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 p_builder_and_solver->Build(p_scheme, r_model_part, rA, rb);
 
                 //change sign to dx_prediction
-                TSparseSpace::InplaceMult(dx_prediction, -1.0);
+                TSparseSpace::InplaceMult(dx_prediction, -1.00);
 
                 //apply rb -= A*dx_prediction
                 TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
@@ -834,8 +857,8 @@ class ResidualBasedNewtonRaphsonStrategy
                 p_builder_and_solver->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
                 //put back the prediction into the database
-                UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
-
+                //UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
+                TSparseSpace::UnaliasedAdd(rDx, 1.00, dx_prediction);
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
             }
@@ -1262,6 +1285,30 @@ class ResidualBasedNewtonRaphsonStrategy
         mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
         mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
         mUseOldStiffnessInFirstIteration = Settings["use_old_stiffness_in_first_iteration"].GetBool();
+
+        if(mUseOldStiffnessInFirstIteration)
+        {
+            if(GetBuilderAndSolver()->LHSHasDirichletDofs() == false)
+            {
+                KRATOS_WARNING("NR-Strategy") << "sorry the builder and solver employed does not support \n"
+                                 << "using Old Stiffness on First Iteration. \n"
+                                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
+
+                mUseOldStiffnessInFirstIteration = false;
+            }
+            if( BaseType::GetModelPart().GetBufferSize() == 1)
+            {
+                KRATOS_WARNING("NR-Strategy")
+                                 << "sorry the buffer size needs to be at least 2 in order to use \n"
+                                 << "current buffer size for modelpart: " << BaseType::GetModelPart() << std::endl
+                                 << "is :" << BaseType::GetModelPart()
+                                 << "Old Stiffness on First Iteration. \n"
+                                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
+
+                mUseOldStiffnessInFirstIteration = false;
+            }
+        }
+
     }
 
     ///@}
