@@ -423,22 +423,16 @@ public:
             rIntegrationPoints.resize(number_of_integration_points);
         }
 
-        IntegrationPointsArrayType integration_points_knot_span(
-            NumPointsPerSpanU * NumPointsPerSpanV);
+        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
 
         IndexType counter = 0;
         for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i) {
             for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
                 IntegrationPointUtilities::IntegrationPoints2D(
-                    integration_points_knot_span,
+                    integration_point_iterator,
                     NumPointsPerSpanU, NumPointsPerSpanV,
                     knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
                     knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
-
-                for (IndexType k = 0; k < integration_points_knot_span.size(); ++k) {
-                    rIntegrationPoints[counter] = integration_points_knot_span[k];
-                    counter++;
-                }
             }
         }
     }

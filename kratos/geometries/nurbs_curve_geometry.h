@@ -327,22 +327,14 @@ public:
         if (rIntegrationPoints.size() != number_of_integration_points)
             rIntegrationPoints.resize(number_of_integration_points);
 
-        IntegrationPointsArrayType integration_points_knot_span(
-            IntegrationPointsPerSpan);
+        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
 
-        IndexType counter = 0;
         for (IndexType i = 0; i < num_spans; ++i)
         {
             IntegrationPointUtilities::IntegrationPoints1D(
-                integration_points_knot_span,
+                integration_point_iterator,
                 IntegrationPointsPerSpan,
                 rSpanIntervals[i], rSpanIntervals[i + 1]);
-
-            for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
-            {
-                rIntegrationPoints[counter] = integration_points_knot_span[k];
-                counter++;
-            }
         }
     }
 

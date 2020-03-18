@@ -49,12 +49,12 @@ public:
     ///@{
 
     static void IntegrationPoints1D(
-        IntegrationPointsArrayType& rIntegrationPoints,
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU,
         double U0, double U1);
 
     static void IntegrationPoints2D(
-        IntegrationPointsArrayType& rIntegrationPoints,
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU, SizeType PointsInV,
         double U0, double U1, double V0, double V1);
 

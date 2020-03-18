@@ -15,15 +15,11 @@
 
 namespace Kratos
 {
-
     void IntegrationPointUtilities::IntegrationPoints1D(
-        IntegrationPointsArrayType& rIntegrationPoints,
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU,
         double U0, double U1)
     {
-        if (rIntegrationPoints.size() != PointsInU)
-            rIntegrationPoints.resize(PointsInU);
-
         KRATOS_ERROR_IF(PointsInU < 1)
             << "Degree need to be bigger than 0." << std::endl;
 
@@ -35,24 +31,19 @@ namespace Kratos
         IndexType counter = 0;
         for (SizeType u = 0; u < PointsInU; ++u)
         {
-            auto& r_int_point = rIntegrationPoints[counter];
-
-            r_int_point[0] = U0 + distance_u * integration_point_list_u[u][0];
-            r_int_point.Weight() =
+            (*rIntegrationPointsBegin)[0] = U0 + distance_u * integration_point_list_u[u][0];
+            (*rIntegrationPointsBegin).Weight() =
                 integration_point_list_u[u][1] * length_u;
 
-            counter++;
+            rIntegrationPointsBegin++;
         }
     }
 
     void IntegrationPointUtilities::IntegrationPoints2D(
-        IntegrationPointsArrayType& rIntegrationPoints,
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU, SizeType PointsInV,
         double U0, double U1, double V0, double V1)
     {
-        if (rIntegrationPoints.size() != PointsInU * PointsInV)
-            rIntegrationPoints.resize(PointsInU * PointsInV);
-
         KRATOS_ERROR_IF(PointsInU < 1 || PointsInV < 1)
             << "Degrees need to be bigger than 0." << std::endl;
 
@@ -64,20 +55,17 @@ namespace Kratos
         const std::vector<std::vector<double>> integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
         const std::vector<std::vector<double>> integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
 
-        IndexType counter = 0;
         for (SizeType u = 0; u < PointsInU; ++u)
         {
             for (SizeType v = 0; v < PointsInV; ++v)
             {
-                auto& r_int_point = rIntegrationPoints[counter];
-
-                r_int_point[0] = U0 + distance_u * integration_point_list_u[u][0];
-                r_int_point[1] = V0 + distance_v * integration_point_list_v[v][0];
-                r_int_point.Weight() =
+                (*rIntegrationPointsBegin)[0] = U0 + distance_u * integration_point_list_u[u][0];
+                (*rIntegrationPointsBegin)[1] = V0 + distance_v * integration_point_list_v[v][0];
+                (*rIntegrationPointsBegin).Weight() =
                     integration_point_list_u[u][1] * length_u *
                     integration_point_list_v[v][1] * length_v;
 
-                counter++;
+                rIntegrationPointsBegin++;
             }
         }
     }
