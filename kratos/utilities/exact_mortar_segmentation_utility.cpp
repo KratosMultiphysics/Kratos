@@ -1382,6 +1382,10 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
 
         if (mConsiderDelaunator) {
             std::vector<double> coordinates(list_size * 2);
+            for (IndexType i = 0; i < list_size; ++i) {
+                coordinates[2 * i]     = rPointList[i].X();
+                coordinates[2 * i + 1] = rPointList[i].Y();
+            }
 
             const auto& r_triangles_list = DelaunatorUtilities::ComputeTrianglesConnectivity(coordinates);
 
