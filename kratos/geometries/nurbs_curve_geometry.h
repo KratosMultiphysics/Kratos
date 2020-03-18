@@ -266,7 +266,7 @@ public:
     }
 
     /// Returns the number of spans.
-    SizeType NumberOfKnotSpans(IndexType DirectionIndex = 1) const
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex = 0) const
     {
         SizeType knot_span_counter = 0;
         for (IndexType i = 0; i < mKnots.size() - 1; i++) {
@@ -279,9 +279,9 @@ public:
 
     /* @brief Provides knot spans of this nurbs curve.
      * @param resulting vector of span intervals.
-     * @param index of chosen direction, for curves always 1.
+     * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 1) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
