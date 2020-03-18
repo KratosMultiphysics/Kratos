@@ -6,12 +6,12 @@ import math
 
 class TestAdjointLoadingConditions(KratosUnittest.TestCase):
 
-    def __CheckSensitivityMatrix(self, sen_matrix, reference_res_list,digits_to_check=5):
+    def __CheckSensitivityMatrix(self, sen_matrix, reference_sen_matrix, digits_to_check=5):
         for i in range(sen_matrix.Size1()):
             for j in range(sen_matrix.Size2()):
-                self.assertAlmostEqual(sen_matrix[i,j], reference_res_list[i][j], digits_to_check)
+                self.assertAlmostEqual(sen_matrix[i,j], reference_sen_matrix[i][j], digits_to_check)
 
-    def _SimplestSurfaceLoadCondition3D4N(self, prefix = ""):
+    def _SurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -68,7 +68,7 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         cond.CalculateSensitivityMatrix(KratosMultiphysics.PRESSURE, sen_matrix, mp.ProcessInfo)
         self.__CheckSensitivityMatrix(sen_matrix, reference_res_3)
 
-    def _SimplestLineLoadCondition3D2N(self, prefix = ""):
+    def _LineLoadCondition3D2N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -116,17 +116,17 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         cond.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, sen_matrix, mp.ProcessInfo)
         self.__CheckSensitivityMatrix(sen_matrix, reference_res_2)
 
-    def test_SDSimplestSurfaceLoadCondition3D4N(self):
-        self._SimplestSurfaceLoadCondition3D4N("SmallDisplacement")
+    def test_SDSurfaceLoadCondition3D4N(self):
+        self._SurfaceLoadCondition3D4N(prefix = "SmallDisplacement")
 
-    def test_SimplesAdjointSurfaceLoadCondition3D4N(self):
-        self._SimplestSurfaceLoadCondition3D4N()
+    def test_AdjointSurfaceLoadCondition3D4N(self):
+        self._SurfaceLoadCondition3D4N()
 
-    def test_SDSimplestLineLoadCondition3D2N(self):
-        self._SimplestLineLoadCondition3D2N("SmallDisplacement")
+    def test_SDLineLoadCondition3D2N(self):
+        self._LineLoadCondition3D2N(prefix = "SmallDisplacement")
 
-    def test_SimplesAdjointLineLoadCondition3D2N(self):
-        self._SimplestLineLoadCondition3D2N()
+    def test_AdjointLineLoadCondition3D2N(self):
+        self._LineLoadCondition3D2N()
 
 if __name__ == '__main__':
     KratosUnittest.main()
