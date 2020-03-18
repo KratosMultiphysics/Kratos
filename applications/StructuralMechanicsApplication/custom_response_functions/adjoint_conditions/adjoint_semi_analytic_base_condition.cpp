@@ -24,6 +24,7 @@
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/line_load_condition.h"
 #include "custom_conditions/small_displacement_line_load_condition.h"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 
 namespace Kratos
 {
@@ -234,44 +235,30 @@ namespace Kratos
         this->CalculateRightHandSide(RHS, process_info);
 
         if (rDesignVariable == SHAPE_SENSITIVITY) {
-            if ((rOutput.size1() != local_size) || (rOutput.size2() != local_size)) {
-                rOutput.resize(local_size, local_size, false);
+            const std::vector<FiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
+            Vector derived_RHS;
+
+            if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) ) {
+                rOutput.resize(dimension * number_of_nodes, local_size, false);
             }
-            noalias(rOutput) = ZeroMatrix(local_size,local_size);
-            int i_2 = 0;
-            for (auto& node_i : this->GetGeometry())
-            {
-                // Pertubation, gradient analysis and recovery of x
-                node_i.X0() += delta;
-                node_i.X()  += delta;
-                this->CalculateRightHandSide(perturbed_RHS, process_info);
-                row(rOutput, i_2) = (perturbed_RHS - RHS) / delta;
-                node_i.X0() -= delta;
-                node_i.X()  -= delta;
 
-                // Reset the pertubed vector
-                perturbed_RHS = Vector(0);
+            IndexType index = 0;
 
-                // Pertubation, gradient analysis and recovery of y
-                node_i.Y0() += delta;
-                node_i.Y()  += delta;
-                this->CalculateRightHandSide(perturbed_RHS, process_info);
-                row(rOutput, i_2 + 1) = (perturbed_RHS - RHS) / delta;
-                node_i.Y0()-= delta;
-                node_i.Y() -= delta;
+            Vector RHS;
+            pGetPrimalCondition()->CalculateRightHandSide(RHS, process_info);
+            for(auto& node_i : mpPrimalCondition->GetGeometry()) {
+                for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i) {
+                    // Get pseudo-load contribution from utility
+                    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalCondition(), RHS, coord_directions[coord_dir_i],
+                                                                                node_i, delta, derived_RHS, process_info);
 
-                // Reset the pertubed vector
-                perturbed_RHS = Vector(0);
+                    KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
-                // Pertubation, gradient analysis and recovery of z
-                node_i.Z0() += delta;
-                node_i.Z()  += delta;
-                this->CalculateRightHandSide(perturbed_RHS, process_info);
-                row(rOutput, i_2 + 2) = (perturbed_RHS - RHS) / delta;
-                node_i.Z0() -= delta;
-                node_i.Z()  -= delta;
-
-                i_2 += 3;
+                    for(IndexType i = 0; i < derived_RHS.size(); ++i) {
+                        rOutput( (coord_dir_i + index*dimension), i) = derived_RHS[i];
+                    }
+                }
+                index++;
             }
         }
         else if (this->Has(rDesignVariable)) {
