@@ -244,7 +244,6 @@ protected:
         const bool CompleteUpdate = false
     ) override
     {
-        KRATOS_WATCH(complete_update)
         if(CompleteUpdate == true)
         {
             NRBaseType::UpdateDatabase(A,Dx,b,MoveMesh,true);
