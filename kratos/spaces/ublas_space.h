@@ -283,7 +283,7 @@ public:
         #pragma omp parallel for reduction(+:aux_sum)
         for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
             for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
-                aux_sum += rA(i,j) * rA(i,j);
+                aux_sum += std::pow(rA(i,j),2);
             }
         }
         return std::sqrt(aux_sum);
