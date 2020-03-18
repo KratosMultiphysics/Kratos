@@ -398,9 +398,6 @@ class TestExactIntegration(KratosUnittest.TestCase):
     def test_triangle_exact_integration_3(self):
         self._test_triangle_exact_integration_3(False)
 
-    def test_triangle_exact_integration_3_delanautor(self):
-        self._test_triangle_exact_integration_3(True)
-
     # QUADRILATERAL
     def test_quadrilateral_exact_integration_1(self):
         current_model = KratosMultiphysics.Model()
