@@ -93,7 +93,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     } {
         return [list "-cancel-" [= "You have selected MPI parallelism system.\n\
                                     Input files have been written.\n\
-                                    Run the case with: mpirun -np \[npartitions\] python3 MainKratos.py" ]]
+                                    Run the case with: mpiexec -np \[npartitions\] python3 MainKratos.py --using-mpi" ]]
     }
 
     ### Measure time
