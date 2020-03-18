@@ -295,7 +295,7 @@ protected:
             // Perform final update
             TSparseSpace::Assign(aux,-(1.0 - XmaxDisp), DxDisp);
             TSparseSpace::UnaliasedAdd(aux,-(1.0 - XmaxLM), DxLM);
-            NRBaseType::UpdateDatabase(A,aux,b,MoveMesh, complete_update);
+            NRBaseType::UpdateDatabase(A,aux,b,MoveMesh, CompleteUpdate);
         }
     }
 
