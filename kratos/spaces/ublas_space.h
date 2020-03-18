@@ -277,7 +277,7 @@ public:
         return std::sqrt(Dot(rX, rX));
     }
 
-    static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
+    static TDataType TwoNorm(Matrix const& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
 #ifndef _OPENMP
