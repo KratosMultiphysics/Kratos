@@ -351,7 +351,7 @@ protected:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         const bool MoveMesh,
-        const bool complete_update
+        const bool CompleteUpdate
     ) override
     {
         // Skip LINE SEARCH if initialized with previous stiffness
