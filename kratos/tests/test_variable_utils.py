@@ -492,6 +492,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+
         ##apply the fixity
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VISCOSITY, True, model_part.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, model_part.Nodes)
