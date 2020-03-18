@@ -101,11 +101,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"max_iteration\":       200,"
             puts $FileVar "            \"scaling\":             [GiD_AccessValue get gendata Scaling],"
             puts $FileVar "            \"preconditioner_type\": \"None\""
-        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "klu") || ([GiD_AccessValue get gendata Solver_Type] eq "multi_level")} {
+        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "amesos") || ([GiD_AccessValue get gendata Solver_Type] eq "multi_level")} {
             puts $FileVar "            \"solver_type\": \"[GiD_AccessValue get gendata Solver_Type]\","
             puts $FileVar "            \"scaling\":     [GiD_AccessValue get gendata Scaling]"
         } else {
-            puts $FileVar "            \"solver_type\": \"klu\","
+            puts $FileVar "            \"solver_type\": \"amesos\","
             puts $FileVar "            \"scaling\":     false"
         }
     } else {
