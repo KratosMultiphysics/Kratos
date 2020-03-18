@@ -325,16 +325,14 @@ public:
     {
         TDataType aux_sum = TDataType();
 
-        const auto& r_row_indices = rA.index1_data();
-        const auto& r_col_indices = rA.index2_data();
-        const auto& r_values = rA.value_data();
+        typedef typename compressed_matrix<TDataType>::const_iterator1 t_it_1;
+        typedef typename compressed_matrix<TDataType>::const_iterator2 t_it_2;
 
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(r_values.size()); ++i) {
-            const IndexType row_index = r_row_indices[i];
-            const IndexType col_index = r_col_indices[i];
-            if (row_index != col_index) {
-                aux_sum += std::abs(r_values[i]);
+        for (t_it_1 it_1 = rA.begin1(); it_1 != rA.end1(); ++it_1) {
+            for (t_it_2 it_2 = it_1.begin(); it_2 != it_1.end(); ++it_2) {
+                if (it_2.index1() != it_2.index2()) {
+                    aux_sum += std::abs(*it_2);
+                }
             }
         }
         return aux_sum;
