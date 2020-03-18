@@ -41,7 +41,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "maximum_iterations": 10,
             "echo_level": 0,
             "consider_periodic_conditions": false,
-            "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-5,
@@ -197,11 +196,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, set the time discretization utility to compute the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
-                time_order = self.settings["time_order"].GetInt()
-                if time_order == 2:
-                    self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-                else:
-                    raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+                time_order = 2
+                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
                 err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
                 err_msg += "Available options are: \"bdf2\""
@@ -209,6 +205,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         # Cases in which a time scheme manages the time integration
         else:
             if not hasattr(self, "_turbulence_model_solver"):
+                # Bossak time integration scheme
                 if self.settings["time_scheme"].GetString() == "bossak":
                     # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
@@ -221,6 +218,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size)
+                # BDF2 time integration scheme
+                elif self.settings["time_scheme"].GetString() == "bdf2":
+                    solution_scheme = TrilinosFluid.TrilinosGearScheme()
+                # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
                     solution_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
