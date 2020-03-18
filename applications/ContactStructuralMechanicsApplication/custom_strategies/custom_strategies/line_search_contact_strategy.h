@@ -268,7 +268,7 @@ protected:
             ComputeMixedResidual(b, roDisp, roLM);
 
             // Compute half step residual
-            NRBaseType::UpdateDatabase(A,aux,b,MoveMesh, complete_update);
+            NRBaseType::UpdateDatabase(A,aux,b,MoveMesh, CompleteUpdate);
             TSparseSpace::SetToZero(b);
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
             double rhDisp;
