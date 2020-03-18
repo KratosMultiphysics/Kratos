@@ -327,16 +327,14 @@ public:
 
         const auto& r_row_indices = rA.index1_data();
         const auto& r_col_indices = rA.index2_data();
+        const auto& r_values = rA.value_data();
 
         #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(r_row_indices.size()); ++i) {
+        for (int i=0; i<static_cast<int>(r_values.size()); ++i) {
             const IndexType row_index = r_row_indices[i];
-
-            for (int j=0; j<static_cast<int>(r_col_indices.size()); ++j) {
-                const IndexType col_index = r_col_indices[j];
-                if (row_index != col_index) {
-                    aux_sum += std::abs(rA(row_index, col_index));
-                }
+            const IndexType col_index = r_col_indices[i];
+            if (row_index != col_index) {
+                aux_sum += std::abs(r_values[i]);
             }
         }
         return aux_sum;
