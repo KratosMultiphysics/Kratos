@@ -49,6 +49,7 @@ jobs:
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
