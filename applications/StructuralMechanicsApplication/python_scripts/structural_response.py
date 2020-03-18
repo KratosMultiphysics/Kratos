@@ -440,6 +440,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         return adjoint_parameters
 
+
     def _GetLabel(self):
         type_labels = {
             "adjoint_nodal_displacement" : "NodalDisplacement",
