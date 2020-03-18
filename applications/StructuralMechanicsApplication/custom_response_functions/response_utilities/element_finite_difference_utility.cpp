@@ -67,51 +67,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
-                                                const Vector& rRHS,
-                                                const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
-                                                const double& rPertubationSize,
-                                                Vector& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
-        {
-            const IndexType coord_dir =
-                ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
-
-            // define working variables
-            Vector RHS_perturbed;
-
-            if (rOutput.size() != rRHS.size())
-                rOutput.resize(rRHS.size(), false);
-
-            // perturb the design variable
-            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
-            rNode.Coordinates()[coord_dir] += rPertubationSize;
-
-            // compute LHS after perturbation
-            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
-
-            // compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
-
-            // unperturb the design variable
-            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
-            rNode.Coordinates()[coord_dir] -= rPertubationSize;
-        }
-        else
-        {
-            KRATOS_WARNING("ElementFiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
-            if ( (rOutput.size() != 0) )
-                rOutput.resize(0,false);
-        }
-
-        KRATOS_CATCH("");
-    }
-
     void ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
