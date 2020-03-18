@@ -351,11 +351,11 @@ protected:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         const bool MoveMesh,
-        const bool complete_update
+        const bool CompleteUpdate
     ) override
     {
         // Skip LINE SEARCH if initialized with previous stiffness
-        if (complete_update)
+        if (CompleteUpdate)
         {
             BaseType::UpdateDatabase(A, Dx, b, MoveMesh, true);
         } else {
