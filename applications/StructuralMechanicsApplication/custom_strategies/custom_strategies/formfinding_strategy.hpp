@@ -114,10 +114,10 @@ private:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         const bool MoveMesh,
-        const bool complete_update
+        const bool CompleteUpdate
     ) override
     {
-        BaseType::UpdateDatabase(A, Dx, b, MoveMesh, complete_update);
+        BaseType::UpdateDatabase(A, Dx, b, MoveMesh, CompleteUpdate);
         for(auto& r_node : mrFormFindingModelPart.Nodes()){
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);

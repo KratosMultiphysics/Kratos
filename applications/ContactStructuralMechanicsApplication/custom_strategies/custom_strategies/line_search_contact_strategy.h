@@ -241,11 +241,11 @@ protected:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         const bool MoveMesh,
-        const bool complete_update = false
+        const bool CompleteUpdate = false
     ) override
     {
         KRATOS_WATCH(complete_update)
-        if(complete_update == true)
+        if(CompleteUpdate == true)
         {
             NRBaseType::UpdateDatabase(A,Dx,b,MoveMesh,true);
         }

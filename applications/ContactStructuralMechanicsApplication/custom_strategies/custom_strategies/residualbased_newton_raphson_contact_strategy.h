@@ -789,7 +789,7 @@ protected:
         const bool CompleteUpdate = false
         ) override
     {
-        BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
+        BaseType::UpdateDatabase(A,Dx,b,MoveMesh, CompleteUpdate);
 
         // TODO: Add something if necessary
     }
