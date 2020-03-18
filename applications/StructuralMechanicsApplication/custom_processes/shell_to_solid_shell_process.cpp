@@ -178,7 +178,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
 
     // We copy the dof from the first node
     const auto it_node_begin = r_nodes_array.begin();
-    NodeType::DofsContainerType dofs = it_node_begin->GetDofs();
+    NodeType::DofsContainerType& dofs = it_node_begin->GetDofs();
 
     // We initialize the thickness
     #pragma omp parallel for
@@ -243,7 +243,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
 
         // Set the DOFs in the nodes
         for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-            p_node0->pAddDof(*it_dof);
+            p_node0->pAddDof(**it_dof);
 
         // We copy the step data
         CopyVariablesList(p_node0, p_node_begin);
@@ -258,7 +258,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
 
             // Set the DOFs in the nodes
             for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                p_node1->pAddDof(*it_dof);
+                p_node1->pAddDof(**it_dof);
 
             // We copy the step data
             CopyVariablesList(p_node1, p_node_begin);
@@ -410,7 +410,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
 
     // We copy the dof from the first node
     const auto it_node_begin = r_nodes_array.begin();
-    NodeType::DofsContainerType dofs = it_node_begin->GetDofs();
+    NodeType::DofsContainerType& dofs = it_node_begin->GetDofs();
 
     // Initial check
     const SizeType number_of_layers = mThisParameters["number_of_layers"].GetInt();
@@ -449,7 +449,7 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteCollapse()
 
             // Set the DOFs in the nodes
             for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
-                p_node->pAddDof(*it_dof);
+                p_node->pAddDof(**it_dof);
 
             // We copy the step data
             CopyVariablesList(p_node, p_node_begin);

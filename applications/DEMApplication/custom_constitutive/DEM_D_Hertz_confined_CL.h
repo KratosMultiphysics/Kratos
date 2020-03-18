@@ -20,7 +20,7 @@ namespace Kratos {
 
         ~DEM_D_Hertz_confined() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         using DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce;
 

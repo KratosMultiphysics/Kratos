@@ -66,6 +66,38 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsAddDifferentObjectsSameName, KratosCor
 
     // registering the a different object with the name - NOT OK, this is UNDEFINED BEHAVIOR, we don't know what we get when we query the name
     KRATOS_CHECK_EXCEPTION_IS_THROWN(KratosComponents<Condition>::Add("dummy_1", dummy_2), "Error: An object of different type was already registered with name \"dummy_1\"");
+
+    // Clean up after ourselves
+    KratosComponents<Condition>::Remove("dummy_1");
+    KratosComponents<Condition>::Remove("dummy_1111");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosComponentsRemove, KratosCoreFastSuite)
+{
+    DummyCondition1 remove_dummy;
+    std::string registered_name("RemoveTestDummy");
+
+    // First we add the condition
+    KratosComponents<Condition>::Add(registered_name, remove_dummy);
+    KRATOS_CHECK(KratosComponents<Condition>::Has(registered_name));
+
+    // Then we remove it
+    KratosComponents<Condition>::Remove(registered_name);
+    KRATOS_CHECK_IS_FALSE(KratosComponents<Condition>::Has(registered_name));
+
+    // We can still register another object with the same name
+    DummyCondition1 another_dummy;
+    KratosComponents<Condition>::Add(registered_name, another_dummy);
+    KRATOS_CHECK(KratosComponents<Condition>::Has(registered_name));
+
+    // If we try to remove things that do not exist, we get an error
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KratosComponents<Condition>::Remove("WrongName"),
+        "Error: Trying to remove inexistent component \"WrongName\"."
+    );
+
+    // Clean up after ourselves
+    KratosComponents<Condition>::Remove(registered_name);
 }
 
 }

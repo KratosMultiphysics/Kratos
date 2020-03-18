@@ -1,8 +1,6 @@
 {
 	"problem_data"             : {
 		"problem_name"    : "contactMP",
-		"model_part_name" : "Structure",
-		"domain_size"     : 3,
 		"parallel_type"   : "OpenMP",
 		"start_time"      : 0.0,
 		"end_time"        : 1.0,
@@ -15,6 +13,7 @@
 		"time_integration_method"         : "explicit",
 		"scheme_type"                     : "central_differences",
 		"time_step_prediction_level" 	  : 0,
+		"domain_size"				      : 3,
 		"model_import_settings"   : {
 			"input_type"                  : "mdpa",
 			"input_filename"              : "ring_set_up_dem_fem/FEM"
@@ -26,94 +25,94 @@
 		"time_stepping":{
 			"time_step"			: 5e-05
 		},
-		"model_part_name" 					  : "Structure"
+		"model_part_name" 					  : "Structure",
+		"domain_size"     : 3
 	},
-	"constraints_process_list"  : [{
-		"python_module" : "fix_vector_variable_process",
-		"kratos_module" : "KratosMultiphysics",
-		"help" : "This process fixes the selected components of a given vector variable",
-		"Parameters" : {
-			"model_part_name" : "Structure.dirichlet",
-			"variable_name" : "DISPLACEMENT",
-			"constrained" : [true, true, true]
+	"processes": {
+		"constraints_process_list"  : [{
+			"python_module" : "fix_vector_variable_process",
+			"kratos_module" : "KratosMultiphysics",
+			"help" : "This process fixes the selected components of a given vector variable",
+			"Parameters" : {
+				"model_part_name" : "Structure.dirichlet",
+				"variable_name" : "DISPLACEMENT",
+				"constrained" : [true, true, true]
+				}
+		}],
+		"loads_process_list"  : [{
+			"python_module"               : "assign_vector_by_direction_process",
+			"kratos_module"               : "KratosMultiphysics",
+			"help"                        : [],
+			"check"                       : "DirectorVectorNonZero direction",
+			"process_name"                : "AssignDirectionVectorProcess",
+			"Parameters"      : {
+				"model_part_name"         : "Structure",
+				"variable_name"           : "VOLUME_ACCELERATION",
+                "constrained"             : false,
+				"modulus"                 : 9.81,
+				"direction"               : [0.0,0.0,-1.0],
+				"interval"                : [0.0,"End"]
 			}
-	}],
-	"loads_process_list"  : [{
-		"python_module"               : "assign_vector_by_direction_process",
-		"kratos_module"               : "KratosMultiphysics",
-		"help"                        : [],
-		"check"                       : "DirectorVectorNonZero direction",
-		"process_name"                : "AssignDirectionVectorProcess",
-		"Parameters"      : {
-			"model_part_name"         : "Structure",
-			"variable_name"           : "VOLUME_ACCELERATION",
-			"modulus"                 : 9.81,
-			"direction"               : [0.0,0.0,-1.0],
-			"interval"                : [0.0,"End"]
-		}
-	},{
-		"kratos_module"               : "KratosMultiphysics.CableNetApplication",
-		"python_module"               : "edge_cable_element_process",
-		"process_name"                : "EdgeCableElementProcess",
-		"Parameters"      : {
-			"model_part_name"           : "Structure.edgeCable1",
-			"computing_model_part_name" : "Structure.computing_domain",
-			"element_type"              : "cable",
-			"node_id_order"             : [7,10,9,11,12,13,14,17,20,23,29,34,42,47,57,67,77,92,119,296],
-			"element_id"                : 782,
-			"property_id"               : 2
-		}
-	},{
-		"kratos_module"               : "KratosMultiphysics.CableNetApplication",
-		"python_module"               : "edge_cable_element_process",
-		"process_name"                : "EdgeCableElementProcess",
-		"Parameters"      : {
-			"model_part_name"           : "Structure.edgeCable2",
-			"computing_model_part_name" : "Structure.computing_domain",
-			"element_type"              : "cable",
-			"node_id_order"             : [297,304,303,306,307,310,311,315,317,320,324,327,329,332,335,337,339,340,342,345],
-			"element_id"                : 783,
-			"property_id"               : 3
-		}
-	},{
-		"kratos_module"               : "KratosMultiphysics.CableNetApplication",
-		"python_module"               : "edge_cable_element_process",
-		"process_name"                : "EdgeCableElementProcess",
-		"Parameters"      : {
-			"model_part_name"           : "Structure.edgeCable3",
-			"computing_model_part_name" : "Structure.computing_domain",
-			"element_type"              : "cable",
-			"node_id_order"             : [4,90,120,133,149,164,179,195,211,228,244,258,275,292,313,326,333,338,343,349],
-			"element_id"                : 784,
-			"property_id"               : 4
-		}
-	},{
-		"kratos_module"               : "KratosMultiphysics.CableNetApplication",
-		"python_module"               : "edge_cable_element_process",
-		"process_name"                : "EdgeCableElementProcess",
-		"Parameters"      : {
-			"model_part_name"           : "Structure.edgeCable4",
-			"computing_model_part_name" : "Structure.computing_domain",
-			"element_type"              : "cable",
-			"node_id_order"             : [2,5,15,25,36,49,65,82,101,122,143,163,182,202,221,240,260,279,322,347],
-			"element_id"                : 785,
-			"property_id"               : 5
-		}
-	},{
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "ring_set_up_dem_fem/ring_set_up_dem_fem_test_results.json",
-            "model_part_name"  : "Structure.checkMP",
-            "time_frequency"   : 5e-04,
-			"tolerance"        : 1e-2
-        }
-    }],
-	"list_other_processes"             :  [],
-	"json_output_process"              :  [],
+		},{
+			"kratos_module"               : "KratosMultiphysics.CableNetApplication",
+			"python_module"               : "edge_cable_element_process",
+			"process_name"                : "EdgeCableElementProcess",
+			"Parameters"      : {
+				"edge_sub_model_part_name"  : "Structure.edgeCable1",
+				"element_type"              : "cable",
+				"node_id_order"             : [7,10,9,11,12,13,14,17,20,23,29,34,42,47,57,67,77,92,119,296],
+				"element_id"                : 782,
+				"property_id"               : 2
+			}
+		},{
+			"kratos_module"               : "KratosMultiphysics.CableNetApplication",
+			"python_module"               : "edge_cable_element_process",
+			"process_name"                : "EdgeCableElementProcess",
+			"Parameters"      : {
+				"edge_sub_model_part_name"  : "Structure.edgeCable2",
+				"element_type"              : "cable",
+				"node_id_order"             : [297,304,303,306,307,310,311,315,317,320,324,327,329,332,335,337,339,340,342,345],
+				"element_id"                : 783,
+				"property_id"               : 3
+			}
+		},{
+			"kratos_module"               : "KratosMultiphysics.CableNetApplication",
+			"python_module"               : "edge_cable_element_process",
+			"process_name"                : "EdgeCableElementProcess",
+			"Parameters"      : {
+				"edge_sub_model_part_name"  : "Structure.edgeCable3",
+				"element_type"              : "cable",
+				"node_id_order"             : [4,90,120,133,149,164,179,195,211,228,244,258,275,292,313,326,333,338,343,349],
+				"element_id"                : 784,
+				"property_id"               : 4
+			}
+		},{
+			"kratos_module"               : "KratosMultiphysics.CableNetApplication",
+			"python_module"               : "edge_cable_element_process",
+			"process_name"                : "EdgeCableElementProcess",
+			"Parameters"      : {
+				"edge_sub_model_part_name"  : "Structure.edgeCable4",
+				"element_type"              : "cable",
+				"node_id_order"             : [2,5,15,25,36,49,65,82,101,122,143,163,182,202,221,240,260,279,322,347],
+				"element_id"                : 785,
+				"property_id"               : 5
+			}
+		},{
+			"python_module"   : "from_json_check_result_process",
+			"kratos_module" : "KratosMultiphysics",
+			"help"                  : "",
+			"process_name"          : "FromJsonCheckResultProcess",
+			"Parameters"            : {
+				"check_variables"  : ["DISPLACEMENT_Z"],
+				"input_file_name"  : "ring_set_up_dem_fem/ring_set_up_dem_fem_test_results.json",
+				"model_part_name"  : "Structure.checkMP",
+				"time_frequency"   : 5e-04,
+				"tolerance"        : 1e-2
+			}
+		}],
+		"list_other_processes"             :  [],
+		"json_output_process"              :  []
+	},
 	"output_processes"                 : {
 		"gid_output"      : []
 	}

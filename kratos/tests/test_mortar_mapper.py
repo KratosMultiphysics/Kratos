@@ -131,35 +131,35 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #out.ExecuteFinalizeSolutionStep()
 
     def test_less_basic_mortar_mapping_triangle_pure_implicit(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_integration_several_triangles"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_integration_several_triangles"
         self._mapper_tests(input_filename, 3, 3, True)
 
     def test_less_basic_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_integration_several_triangles"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_integration_several_triangles"
         self._mapper_tests(input_filename, 3, 3)
 
     def test_simple_curvature_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_simple_curvature"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_simple_curvature"
         self._mapper_tests(input_filename, 3, 3)
 
     def test_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle"
         self._mapper_tests(input_filename, 3, 3)
 
     def test_mortar_mapping_triangle_discontinous_interface(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_discontinous_interface"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_discontinous_interface"
         self._mapper_tests(input_filename, 3, 3, False, False, True)
 
     def test_mortar_mapping_quad(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_quadrilateral"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_quadrilateral"
         self._mapper_tests(input_filename, 4, 4)
 
     def test_mortar_mapping_quad_tri(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
         self._mapper_tests(input_filename, 4, 3, False, False, False, False, True)
 
     def test_mortar_mapping_tri_quad(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
         self._mapper_tests(input_filename, 3, 4, False, True, False, True, False)
 
     def __post_process(self, debug = "GiD"):

@@ -1,12 +1,12 @@
 {
     "properties" : [{
-        "model_part_name" : "Parts_Parts_Auto1",
+        "model_part_name" : "Thermic.Parts_Parts_Auto1",
         "properties_id"   : 1,
         "Material"        : {
             "Variables"        : {
                 "DENSITY"       : 7850.0,
                 "CONDUCTIVITY"  : 15.0,
-                "SPECIFIC_HEAT" : 1.0e-3 
+                "SPECIFIC_HEAT" : 1.0e-3
             },
             "Tables"           : {}
         }

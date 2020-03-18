@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
+from KratosMultiphysics.ConvectionDiffusionApplication import apply_thermal_face_process
 
 class ApplyThermalFaceProcessTest(UnitTest.TestCase):
     def runTest(self):
@@ -26,10 +27,9 @@ class ApplyThermalFaceProcessTest(UnitTest.TestCase):
         interface_model_part.AddCondition(root_model_part.GetCondition(2))
 
         # Call the apply_thermal_interface_process
-        interface_model_part = self.model.GetModelPart("FaceModelPart")
-        import apply_thermal_face_process
+        interface_model_part = self.model.GetModelPart("MainModelPart.FaceModelPart")
         settings = KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "FaceModelPart",
+            "model_part_name": "MainModelPart.FaceModelPart",
             "ambient_temperature": 300.0,
             "add_ambient_radiation": true,
             "emissivity": 0.1,
@@ -40,7 +40,7 @@ class ApplyThermalFaceProcessTest(UnitTest.TestCase):
 
     def checkResults(self):
         # Check the interface properties
-        face_model_part = self.model.GetModelPart("FaceModelPart")
+        face_model_part = self.model.GetModelPart("MainModelPart.FaceModelPart")
         face_properties = face_model_part.GetCondition(1).Properties
         self.assertEqual(face_model_part.NumberOfProperties(), 1)
         self.assertEqual(face_model_part.GetRootModelPart().NumberOfProperties(), 6)

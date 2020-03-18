@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license:
+//  License:         BSD License
+//                     Kratos default license:
 //kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -30,10 +30,12 @@ GenerateDemProcess::GenerateDemProcess(
 
 void GenerateDemProcess::Execute() 
 {
-    auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
+    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
     nodal_neigh_process.Execute();
 
     const auto it_element_begin = mrModelPart.ElementsBegin();
+    const int max_id_FEM_nodes = this->GetMaximumFEMId();
+
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = it_element_begin + i;
@@ -42,13 +44,13 @@ void GenerateDemProcess::Execute()
         bool is_active = true;
         if (it_elem->IsDefined(ACTIVE))
             is_active = it_elem->Is(ACTIVE);
-        bool dem_generated = it_elem->GetValue(DEM_GENERATED);
+        const bool dem_generated = it_elem->GetValue(DEM_GENERATED);
 
         if (!is_active && !dem_generated) {
             auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
-			auto& r_node0 = r_geom[0];
-			auto& r_node1 = r_geom[1];
-			auto& r_node2 = r_geom[2];
+            const auto& r_node0 = r_geom[0];
+            const auto& r_node1 = r_geom[1];
+            const auto& r_node2 = r_geom[2];
             const double dist01 = this->CalculateDistanceBetweenNodes(r_node0, r_node1);
             const double dist02 = this->CalculateDistanceBetweenNodes(r_node0, r_node2);
             const double dist12 = this->CalculateDistanceBetweenNodes(r_node1, r_node2);
@@ -72,7 +74,9 @@ void GenerateDemProcess::Execute()
                             potential_radii(neigh) = dist_between_nodes - r_neighbour.GetValue(RADIUS);
                             if (potential_radii(neigh) < 0.0 || potential_radii(neigh) / dist_between_nodes < 0.2) { // Houston-> We have a problem
                                 const double new_radius = dist_between_nodes*0.5;
-                                auto& r_radius_neigh_old = mrDEMModelPart.GetNode(r_neighbour.Id()).GetSolutionStepValue(RADIUS);
+                                auto& pDEM_particle = r_neighbour.GetValue(DEM_PARTICLE_POINTER);
+                                auto& r_radius_neigh_old = pDEM_particle->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+                                pDEM_particle->SetRadius(new_radius);
                                 r_radius_neigh_old = new_radius;
                                 r_neighbour.SetValue(RADIUS, new_radius);
                                 potential_radii(neigh) = new_radius;
@@ -89,7 +93,12 @@ void GenerateDemProcess::Execute()
                         radius = this->GetMinimumValue(distances)*0.5;
                     }
                     const array_1d<double,3>& r_coordinates = r_node.Coordinates();
-                    this->CreateDEMParticle(r_node.Id(), r_coordinates, p_DEM_properties, radius, r_node);
+                    const int id = this->GetMaximumDEMId() + 1;
+                    
+                    if (mrDEMModelPart.Elements().size() == 0)
+                        this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, radius, r_node);
+                    else 
+                        this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, r_node);
                 }
             }
             it_elem->SetValue(DEM_GENERATED, true);
@@ -111,9 +120,17 @@ void GenerateDemProcess::CreateDEMParticle(
     NodeType& rNode
 )
 {
-    mParticleCreator.CreateSphericParticle(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
+    auto &r_process_info = mrModelPart.GetProcessInfo();
+    std::string sphere_type;
+    if (r_process_info[DEMFEM_CONTACT])
+        sphere_type = "PolyhedronSkinSphericParticle3D";
+    else
+        sphere_type = "SphericParticle3D";
+
+    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, sphere_type);
     rNode.SetValue(IS_DEM, true);
     rNode.SetValue(RADIUS, Radius);
+    rNode.SetValue(DEM_PARTICLE_POINTER, spheric_particle);
 }
 
 
@@ -145,10 +162,51 @@ double GenerateDemProcess::GetMinimumValue(
     for (int i = 0; i < rValues.size(); i++) 
         if (aux > rValues[i] && rValues[i] != 0.0) 
             aux = rValues[i];
-	return aux;
+    return aux;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+int GenerateDemProcess::GetMaximumDEMId()
+{
+    const auto it_DEM_begin = mrDEMModelPart.ElementsBegin();
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrDEMModelPart.Elements().size()); i++) {
+        auto it_DEM = it_DEM_begin + i;
+        auto& r_geometry = it_DEM->GetGeometry();
+        const int DEM_id = r_geometry[0].Id();
+
+        const int thread_id = OpenMPUtils::ThisThread();
+
+        if (DEM_id > max_vector[thread_id])
+            max_vector[thread_id] = DEM_id;
+    }
+    return *std::max_element(max_vector.begin(), max_vector.end());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int GenerateDemProcess::GetMaximumFEMId()
+{
+    const auto it_FEM_node_begin = mrModelPart.NodesBegin();
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_FEM_node = it_FEM_node_begin + i;
+        const int FEM_node_id = it_FEM_node->Id();
+
+        const int thread_id = OpenMPUtils::ThisThread();
+        if (FEM_node_id > max_vector[thread_id])
+            max_vector[thread_id] = FEM_node_id;
+    }
+    return *std::max_element(max_vector.begin(), max_vector.end());
+}
 
 }  // namespace Kratos

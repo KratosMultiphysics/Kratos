@@ -1,7 +1,7 @@
 {
     "properties": [
     {
-            "model_part_name": "Parts_Parts_Auto1",
+            "model_part_name": "Structure.Parts_Parts_Auto1",
             "properties_id": 3,
             "Material": {
                     "name": "Material",
@@ -17,7 +17,7 @@
             }
     },
     {
-            "model_part_name": "Parts_Parts_Auto2",
+            "model_part_name": "Structure.Parts_Parts_Auto2",
             "properties_id": 4,
             "Material": {
                     "name": "Material",

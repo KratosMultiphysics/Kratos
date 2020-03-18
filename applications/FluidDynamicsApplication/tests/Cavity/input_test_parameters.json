@@ -46,6 +46,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "square5"
         },
+        "material_import_settings": {
+            "materials_filename": "cavity_test_materials.json"
+        },
         "time_scheme":"bossak",
         "alpha":-0.3
     },

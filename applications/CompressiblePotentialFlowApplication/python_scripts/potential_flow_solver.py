@@ -11,6 +11,7 @@ class PotentialFlowFormulation(object):
     def __init__(self, formulation_settings):
         self.element_name = None
         self.condition_name = None
+        self.process_info_data = {}
 
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
@@ -20,8 +21,18 @@ class PotentialFlowFormulation(object):
                 self._SetUpCompressibleElement(formulation_settings)
             elif element_type == "embedded_incompressible":
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
+            elif element_type == "embedded_compressible":
+                self._SetUpEmbeddedCompressibleElement(formulation_settings)
+            elif element_type == "perturbation_incompressible":
+                self._SetUpIncompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_compressible":
+                self._SetUpCompressiblePerturbationElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
+
+    def SetProcessInfo(self, model_part):
+        for variable,value in self.process_info_data.items():
+            model_part.ProcessInfo[variable] = value
 
     def _SetUpIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -41,13 +52,43 @@ class PotentialFlowFormulation(object):
         self.element_name = "CompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
+    def _SetUpIncompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_incompressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "IncompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpCompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "CompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_incompressible"
+            "element_type": "embedded_incompressible",
+            "penalty_coefficient": 0.0
+
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
+    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
 def CreateSolver(model, custom_settings):
@@ -67,7 +108,7 @@ class PotentialFlowSolver(FluidSolver):
                 "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": "unknown_materials.json"
+                "materials_filename": ""
             },
             "formulation": {
                 "element_type": "incompressible"
@@ -84,6 +125,7 @@ class PotentialFlowSolver(FluidSolver):
             },
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
             "move_mesh_flag": false,
             "reference_chord": 1.0,
@@ -105,10 +147,12 @@ class PotentialFlowSolver(FluidSolver):
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
+        self.formulation.SetProcessInfo(self.main_model_part)
         self.min_buffer_size = 1
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.reference_chord = custom_settings["reference_chord"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
+        self.element_has_nodal_properties = False
 
         #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -135,7 +179,8 @@ class PotentialFlowSolver(FluidSolver):
         self._ComputeNodalNeighbours()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        if "incompressible" in self.settings["formulation"]["element_type"].GetString():
+        strategy = self._GetStrategyType()
+        if strategy == "linear":
             # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
                 self.GetComputingModelPart(),
@@ -145,7 +190,7 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
-        elif "compressible" in self.settings["formulation"]["element_type"].GetString():
+        elif strategy == "non_linear":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
@@ -171,7 +216,20 @@ class PotentialFlowSolver(FluidSolver):
 
     def _ComputeNodalNeighbours(self):
         # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.main_model_part, avg_elem_num, avg_node_num).Execute()
+        KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part).Execute()
+
+    def _GetStrategyType(self):
+        element_type = self.settings["formulation"]["element_type"].GetString()
+        if "incompressible" in element_type:
+            if not self.settings["formulation"].Has("penalty_coefficient"):
+                strategy = "linear"
+            elif self.settings["formulation"]["penalty_coefficient"].GetDouble() == 0.0:
+                strategy = "linear"
+            else:
+                strategy = "non_linear"
+        elif "compressible" in element_type:
+            strategy = "non_linear"
+        else:
+            strategy = ""
+
+        return strategy

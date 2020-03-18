@@ -44,17 +44,6 @@ namespace preconditioner {
 
 namespace detail {
 
-// Same backends are always compatible
-template <class B1, class B2>
-struct compatible_backends
-    : std::is_same<B1, B2>::type {};
-
-// Builtin backend allows mixing backends of different value types,
-// so that scalar and non-scalar backends may coexist.
-template <class V1, class V2>
-struct compatible_backends< backend::builtin<V1>, backend::builtin<V2> >
-    : std::true_type {};
-
 // Backend for schur complement preconditioner is selected as the one with
 // lower dimensionality of its value_type.
 
@@ -84,7 +73,7 @@ struct common_backend< backend::builtin<V1>, backend::builtin<V2>,
 template <class USolver, class PSolver>
 class schur_pressure_correction {
     static_assert(
-            detail::compatible_backends<
+            backend::backends_compatible<
                 typename USolver::backend_type,
                 typename PSolver::backend_type
                 >::value,

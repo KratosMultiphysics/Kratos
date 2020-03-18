@@ -40,6 +40,8 @@ namespace Kratos
     {
     protected:
 
+        ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
     public:
         KRATOS_CLASS_POINTER_DEFINITION(SlidingCableElement3D);
 
@@ -117,19 +119,19 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
 
-        Vector GetCurrentLengthArray(int Step = 0);
+        Vector GetCurrentLengthArray(int Step = 0) const;
         Vector GetRefLengthArray() const;
         Vector GetDeltaPositions(const int& rDirection) const;
-        Vector GetDirectionVectorNt();
+        Vector GetDirectionVectorNt() const;
         Vector GetInternalForces();
 
-        Matrix ElasticStiffnessMatrix();
-        Matrix GeometricStiffnessMatrix();
-        inline Matrix TotalStiffnessMatrix();
+        Matrix ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        Matrix GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        inline Matrix TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
 
-        double GetCurrentLength();
+        double GetCurrentLength() const;
         double GetRefLength() const;
-        double CalculateGreenLagrangeStrain();
+        double CalculateGreenLagrangeStrain() const;
         inline double LinearStiffness() const
         {
             return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
@@ -170,6 +172,15 @@ namespace Kratos
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+
+        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+
+        void GetConstitutiveLawTrialResponse(
+            const ProcessInfo& rCurrentProcessInfo);
+
         /**
          * @brief This function checks if self weight is present
          */
@@ -183,6 +194,8 @@ namespace Kratos
         Vector GetCustomInternalForceWithFriction(const Vector& rNormalForces);
 
         Vector CalculateProjectionLengths();
+
+        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const;
 
     private:
 

@@ -23,8 +23,17 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, model_part)
 
         #reset all data
         for node in model_part.Nodes:
@@ -346,7 +355,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         #note that y and z are inverted in the rotated system
@@ -399,7 +408,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = KratosMultiphysics.Parameters(
@@ -444,7 +453,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = KratosMultiphysics.Parameters(
@@ -490,7 +499,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
@@ -542,7 +551,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = KratosMultiphysics.Parameters(
@@ -583,7 +592,7 @@ class TestProcesses(KratosUnittest.TestCase):
     def test_assign_scalar_field_scalar_variable_to_conditions(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = KratosMultiphysics.Parameters(
@@ -621,7 +630,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = KratosMultiphysics.Parameters(
@@ -660,7 +669,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         KratosMultiphysics.FindNodalHProcess(model_part).Execute();
@@ -676,8 +685,16 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
 
         settings = KratosMultiphysics.Parameters(
         """
@@ -979,10 +996,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_ref.dat")
 
         # Here we also test if the output to folder(s) (and subfolder(s)) works
         settings = KratosMultiphysics.Parameters("""{
@@ -995,7 +1012,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_settings": {
                                 "file_name"   : "node_output",
-                                "folder_name" : "auxiliar_files_for_python_unnitest/test_parent_folder/test_subfolder"
+                                "folder_name" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
                             },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
@@ -1006,7 +1023,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
                             "reference_file_name"   : "",
-                            "output_file_name"      : "auxiliar_files_for_python_unnitest/test_parent_folder/test_subfolder/node_output.dat",
+                            "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/node_output.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
@@ -1029,10 +1046,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/element_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/element_output_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [ {
@@ -1075,10 +1092,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/condition_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/condition_output_ref.dat")
 
         # Here we also test if setting the write_buffer_size works
         settings = KratosMultiphysics.Parameters("""{
@@ -1124,10 +1141,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_ref.dat")
 
         # Note that we are comparing the same file as for without restart
         settings = KratosMultiphysics.Parameters("""{
@@ -1186,10 +1203,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_restart_time_not_found_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_restart_time_not_found_ref.dat")
 
         # Note that we are comparing the same file as for without restart
         settings = KratosMultiphysics.Parameters("""{
@@ -1248,13 +1265,13 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         # Delete the file in case it is leftover from a previous test
         kratos_utils.DeleteFileIfExisting("node_output_failed_restart.dat")
 
-        reference_file_name = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_failed_restart_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_failed_restart_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [ {
@@ -1299,12 +1316,12 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_1_ref.dat")
-        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_2_ref.dat")
-        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/node_output_3_ref.dat")
+        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/node_output_3_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [ {
@@ -1369,12 +1386,12 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/line_output_1_ref.dat")
-        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/line_output_2_ref.dat")
-        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unnitest/point_output_process_ref_files/line_output_3_ref.dat")
+        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/line_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/line_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/line_output_3_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [ {
@@ -1436,7 +1453,7 @@ class TestProcesses(KratosUnittest.TestCase):
     def test_assign_flag_process(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = KratosMultiphysics.Parameters("""{
@@ -1476,8 +1493,17 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, model_part)
 
         #reset all data
         for node in model_part.Nodes:

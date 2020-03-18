@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # pyKratos imports
 from .data_value_container import DataValueContainer
-from .Variables import VariableComponent
+from .Variable import VariableComponent
 
 # Other imports
 from copy import deepcopy

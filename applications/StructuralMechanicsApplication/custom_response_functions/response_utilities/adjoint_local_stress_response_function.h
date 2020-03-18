@@ -55,6 +55,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >* Array1DComponentsPointerType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of AdjointLocalStressResponseFunction
@@ -77,6 +80,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void FinalizeSolutionStep() override;
 
     using AdjointStructuralResponseFunction::CalculateGradient;
 
@@ -110,6 +115,7 @@ public:
                                              const ProcessInfo& rProcessInfo) override;
 
     double CalculateValue(ModelPart& rModelPart) override;
+
 
     ///@}
     ///@name Access
@@ -171,6 +177,7 @@ private:
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
+    bool mAddParticularSolution = false;
 
 
     ///@}
@@ -198,6 +205,18 @@ private:
     void ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
     void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+
+    void CalculateParticularSolution() const;
+
+    void CalculateParticularSolutionLinearElement2N(Vector& rResult) const;
+
+    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
+
+    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
+
+    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
+
+    void FindVariableComponent(Array1DComponentsPointerType& rTracedDof) const;
 
     ///@}
     ///@name Private  Access

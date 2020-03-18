@@ -51,6 +51,12 @@ struct scalar_of< std::complex<T> > {
     typedef T type;
 };
 
+/// Replace scalar type in the complex type.
+template <class T, class S>
+struct replace_scalar<std::complex<T>, S> {
+    typedef std::complex<S> type;
+};
+
 /// Specialization of conjugate transpose for scalar complex arguments.
 template <typename T>
 struct adjoint_impl< std::complex<T> >

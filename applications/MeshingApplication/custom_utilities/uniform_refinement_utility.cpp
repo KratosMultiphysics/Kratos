@@ -97,11 +97,12 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
 {
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformRefinementUtility") << "Attempting to refine an empty model part" << std::endl;
-    else
-    {
-        mDofs = mrModelPart.NodesBegin()->GetDofs();
-        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-            it_dof->FreeDof();
+    else {
+        const auto& r_old_dofs = mrModelPart.NodesBegin()->GetDofs();
+        for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
+            mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
+        for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+            (**it_dof).FreeDof();
     }
 
     // Get the lowest refinement level
@@ -476,8 +477,8 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
     middle_node->Set(NEW_ENTITY, true);
 
     // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(**it_dof);
 
     return middle_node;
 }
@@ -550,8 +551,8 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
     middle_node->Set(NEW_ENTITY, true);
 
     // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(**it_dof);
 
     return middle_node;
 }
@@ -588,8 +589,8 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInBody(
     middle_node->Set(NEW_ENTITY, true);
 
     // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(**it_dof);
 
     // Store the created node on the tags map in order to later add it to the sub model parts
     // IndexType tag = mNodesTags[rBody(0)->Id()];

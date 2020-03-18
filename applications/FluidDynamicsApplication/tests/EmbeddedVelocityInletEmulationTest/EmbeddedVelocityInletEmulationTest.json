@@ -16,6 +16,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "embedded_velocity_inlet_emulation_test"
         },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedVelocityInletEmulationTestMaterials.json"
+        },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 5,

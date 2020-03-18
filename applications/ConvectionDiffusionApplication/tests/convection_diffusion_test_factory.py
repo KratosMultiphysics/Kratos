@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import convection_diffusion_analysis
+from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
 # Other imports
 import os
@@ -43,7 +43,7 @@ class ConvectionDiffusionTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = convection_diffusion_analysis.ConvectionDiffusionAnalysis(model, ProjectParameters)
+            self.test = ConvectionDiffusionAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -70,3 +70,6 @@ class BasicConvectionDiffusionTransientTest(ConvectionDiffusionTestFactory):
 
 class BasicDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_diffusion_test_stationary"
+
+class SimpleThermoMechanicalTest(ConvectionDiffusionTestFactory):
+    file_name = "thermo_mechanical_tests/coupled_problem_test"

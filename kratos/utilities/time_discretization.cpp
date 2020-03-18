@@ -135,10 +135,10 @@ std::vector<double> BDF2::ComputeBDFCoefficients(const double DeltaTime, const d
 
     if (PreviousDeltaTime < std::numeric_limits<double>::epsilon()) {
         KRATOS_DETAIL("ComputeBDFCoefficients") << "previous delta-time is zero, using "
-            << "constant time-step for computation of coefficients" << std::endl;
-        coefficients[0] =  1.5 / DeltaTime;
-        coefficients[1] = -2.0 / DeltaTime;
-        coefficients[2] =  0.5 / DeltaTime;
+            << "BDF1 Coefficients \n";
+        coefficients[0] =  1.0 / DeltaTime;
+        coefficients[1] = -1.0 / DeltaTime;
+        coefficients[2] =  0.0;
     }
     else {
         coefficients[0] =  time_coeff * (rho * rho + 2.0 * rho); // coefficient for step n+1 (3/2Dt if Dt is constant)

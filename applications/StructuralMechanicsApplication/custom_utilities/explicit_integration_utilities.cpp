@@ -165,19 +165,22 @@ double InnerCalculateDeltaTime(
             // Computing length as the smallest side of the geometry
 //             const double length = it_elem->GetGeometry().Length();
             double min_length = std::numeric_limits<double>::max();
+            const auto edges = r_geometry.GenerateEdges();
             for (IndexType i_edge = 0; i_edge < r_geometry.EdgesNumber(); ++i_edge) {
-                min_length = std::min(r_geometry.Edges()[i_edge].Length(), min_length);
+                min_length = std::min(edges[i_edge].Length(), min_length);
             }
 
             // We compute the minimum height of the face too
+            const auto faces = r_geometry.GenerateFaces();
+            double max_length = 0.0;
             for (IndexType i_face = 0; i_face < r_geometry.FacesNumber(); ++i_face) {
-                double max_length = 0.0;
 
-                for (IndexType i_edge = 0; i_edge < r_geometry.Faces()[i_face].EdgesNumber(); ++i_edge) {
-                    max_length = std::max(r_geometry.Faces()[i_face].Edges()[i_edge].Length(), max_length);
+                const auto sub_edges = faces[i_face].GenerateEdges();
+                for (IndexType i_edge = 0; i_edge < faces[i_face].EdgesNumber(); ++i_edge) {
+                    max_length = std::max(sub_edges[i_edge].Length(), max_length);
                 }
 
-                min_length = std::min(r_geometry.Faces()[i_face].Area()/max_length, min_length);
+                min_length = std::min(faces[i_face].Area()/max_length, min_length);
             }
 
             // Compute courant criterion

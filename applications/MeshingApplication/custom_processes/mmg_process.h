@@ -219,6 +219,11 @@ public:
      */
     void CleanSuperfluousNodes();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -477,11 +482,6 @@ private:
      */
     void MarkConditionsSubmodelParts(ModelPart& rModelPart);
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -496,11 +496,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-//     /// Assignment operator.
-//     MmgProcess& operator=(MmgProcess const& rOther);
+    /// Assignment operator.
+    MmgProcess& operator=(MmgProcess const& rOther);
 
-//     /// Copy constructor.
-//     MmgProcess(MmgProcess const& rOther);
+    /// Copy constructor.
+    MmgProcess(MmgProcess const& rOther);
 
     ///@}
 

@@ -36,7 +36,7 @@ class CoSimulationSolverWrapper(object):
 
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name) for (data_name, data_config) in self.settings["data"].items()}
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
@@ -57,6 +57,8 @@ class CoSimulationSolverWrapper(object):
             self.__GetIO().Finalize()
 
     def AdvanceInTime(self, current_time):
+        # in case a solver does not provide time information (e.g. external or steady solvers),
+        # then this solver should return "0.0" here
         raise Exception('"AdvanceInTime" must be implemented in the derived class!')
 
     def Predict(self):

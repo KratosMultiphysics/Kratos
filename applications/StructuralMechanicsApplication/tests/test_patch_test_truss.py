@@ -30,6 +30,31 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
+    def _add_non_linear_constitutive_law(self,mp,law):
+
+
+        if law=="henky": cl = StructuralMechanicsApplication.HyperElasticIsotropicHenky1D()
+        else:
+            cl = StructuralMechanicsApplication.HyperElasticIsotropicOgden1D()
+
+            if law=="st_venant":
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_1,4.0)
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_2,2.0)
+            elif law=="neo_hookean":
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_1,2.0)
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_2,0.0)
+            elif law=="ogden1":
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_1,2.71)
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_2,-4.73)
+            elif law=="ogden2":
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_1,8.75)
+                mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.OGDEN_BETA_2,0.06)
+
+            else:
+                self.skipTest("constitutive law: "+law+" not defined")
+
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
     def _apply_material_properties(self,mp,dim):
         #define properties
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
@@ -42,11 +67,11 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-    def _apply_material_properties_plasticity(self,mp,dim,H,A):
+    def _apply_material_properties_plasticity(self,mp,dim,H,A,sigma_yield):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1000)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,A)
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.YIELD_STRESS,100)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.YIELD_STRESS,sigma_yield)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.HARDENING_MODULUS_1D,H)
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -66,13 +91,13 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'y'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
             #     POINT_LOAD_Y,0,load_size_dir)
         if(which_dof == 'x'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
@@ -216,6 +241,40 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self.assertAlmostEqual(out[0][0],force,tolerance)
             self.assertAlmostEqual(out[0][1],0.00)
             self.assertAlmostEqual(out[0][2],0.00)
+
+    def _check_results_non_linear_material(self,mp,timestep,YoungsModulus,law):
+
+
+        stretch,sigma = [],[]
+        element = mp.Elements[1]
+        sigma_ele = element.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)[0][0]/YoungsModulus
+        F_ele = element.CalculateOnIntegrationPoints(StructuralMechanicsApplication.REFERENCE_DEFORMATION_GRADIENT_DETERMINANT,mp.ProcessInfo)[0]
+
+        if law=="st_venant":
+            stretch = [0.6297529346993256, 0.9359841203103666, 1.0670961335495621, 1.163641270736839, 1.2425883140514031, 1.3104599880331695]
+            sigma = [-0.18999999999996658, -0.05799999999999994, 0.07400000000000012, 0.20600000002983992, 0.33800000000000036, 0.4700000000000293]
+
+        elif law=="neo_hookean":
+            stretch = [0.6833592127049908, 0.7747458543375265, 0.8819067416968309, 1.006017999837923, 1.1474770923487387, 1.3058088628203894]
+            sigma = [-0.3900000003668075, -0.25800000022501096, -0.12600000002385625, 0.005999999999920564, 0.13799999998991874, 0.27000000011382536]
+
+        elif law=="henky":
+            stretch = [0.7604995028912644, 0.8211318098094303, 0.8978583179960842, 1.0, 1.147652164914522, 1.399004852613141]
+            sigma = [-0.3599999998718602, -0.24000000022156956, -0.12000000003145407, 0.0, 0.11999999996643032, 0.23999999977127376]
+
+        elif law=="ogden2":
+            stretch = [0.7466052641532852, 1.053300970805586, 1.1604252901246612, 1.226921648690603, 1.2758123679207791, 1.3147572485994239]
+            sigma = [-0.1395000000207611, 0.06250000002370547, 0.2645000001160986, 0.46650000012730924, 0.6685000006539804, 0.8705000000920567]
+
+        elif law=="ogden1":
+            stretch = [0.8382491000767017, 0.8910296536245373, 0.9721069100785644, 1.1152057455979112, 1.3749349998549794]
+            sigma = [-0.27000000004992064, -0.1500000000666889, -0.02999999999983684, 0.09000000005740993, 0.20999999987702636]
+
+        else:
+            self.skipTest("constitutive law: "+law+" not defined")
+
+        self.assertAlmostEqual(sigma_ele, sigma[timestep])
+        self.assertAlmostEqual(F_ele, stretch[timestep])
 
 
     def _check_results_dynamic(self,mp,time_i):
@@ -413,6 +472,74 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._solve_nonlinear(mp)
             self._check_results_nonlinear(mp,time_step,Force_i)
             time_step += 1
+
+
+    def test_truss3D2N_nonlinear_material(self):
+
+        all_claws = ["st_venant","henky","neo_hookean","ogden1","ogden2"]
+
+        for claw_i in all_claws:
+            current_model = KratosMultiphysics.Model()
+            mp = current_model.CreateModelPart("solid_part")
+            self._add_variables(mp)
+
+
+            youngs_modulus = 200000000000.0
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,youngs_modulus)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
+            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
+
+
+            self._add_non_linear_constitutive_law(mp,claw_i)
+
+            #create nodes
+            mp.CreateNewNode(1,0.0,0.0,0.0)
+            mp.CreateNewNode(2,1.2,0.0,0.0)
+            #add dofs
+            self._add_dofs(mp)
+            #create condition
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+
+            #create submodelparts for dirichlet boundary conditions
+            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+            bcs_xyz.AddNodes([1])
+            bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
+            bcs_yz.AddNodes([2])
+
+            #create a submodalpart for neumann boundary conditions
+            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+            bcs_neumann.AddNodes([2])
+            bcs_neumann.AddConditions([1])
+
+            #create Element
+            mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+            #apply constant boundary conditions
+            self._apply_BCs(bcs_xyz,'xyz')
+            self._apply_BCs(bcs_yz,'yz')
+
+            #incrementally increase load -> nonlinear case
+            time_start = 0.00
+            time_end = 1.20
+            if claw_i=="ogden1": time_end = 1.0
+            time_delta = 0.2
+            time_i = time_start
+            time_step = 0
+            while (time_i < time_end):
+
+                time_i += time_delta
+                #apply non-constant boundary conditions
+                if claw_i=='st_venant':       Force_i = -380000000 + 1320000000*(time_i-0.2)
+                elif claw_i=='henky':         Force_i = -780000000 + 1200000000*(time_i-0.15)
+                elif claw_i=='neo_hookean':   Force_i = -780000000 + 1320000000*(time_i-0.2)
+                elif claw_i=='ogden1':        Force_i = -780000000 + 1200000000*time_i
+                elif claw_i=='ogden2':        Force_i = -380000000 + 2020000000*(time_i-0.15)
+
+                self._apply_Neumann_BCs(bcs_neumann,'x',Force_i)
+                #solve + compare
+                self._solve_nonlinear(mp)
+                self._check_results_non_linear_material(mp,time_step,youngs_modulus,claw_i)
+                time_step += 1
+
 
     def test_truss3D2N_prestress_nonlinear_fix(self):
         dim = 3
@@ -793,7 +920,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp = current_model.CreateModelPart("solid_part")
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
-        self._apply_material_properties_plasticity(mp,dim,200,1.5)
+        self._apply_material_properties_plasticity(mp,dim,H=200,A=1.5,sigma_yield=100)
         self._add_constitutive_law(mp,False)
 
         #create nodes
@@ -846,7 +973,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp = current_model.CreateModelPart("solid_part")
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
-        self._apply_material_properties_plasticity(mp,dim,750,0.1)
+        self._apply_material_properties_plasticity(mp,dim,H=750,A=0.1,sigma_yield=100)
         self._add_constitutive_law(mp,False)
 
         #create nodes
@@ -890,8 +1017,62 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         for i in range(2): self.assertAlmostEqual(reaction_nodes[0][2*i], 0.0,6)
         for i in range(3): self.assertAlmostEqual(reaction_nodes[1][i], 0.0,6)
 
-        plastic_disp = 0.170945051
-        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
+        plastic_disp = 0.17094823447089938
+        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp,4)
+
+
+
+
+    def test_truss3D2N_nonlinear_plasticity_prestress(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        self._apply_material_properties_plasticity(mp,dim,H=500,A=0.01,sigma_yield=80)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,100.0)
+        self._add_constitutive_law(mp,False)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,1.2,0.0,0.0)
+        mp.CreateNewNode(3,2.4,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1,3])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2])
+
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+
+        #create Element
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+
+        #apply boundary conditions
+        Force_X = -1.0
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+        self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+
+        #solve + compare
+        self._solve_nonlinear(mp)
+
+        displacement_node2_x = mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        self.assertAlmostEqual(displacement_node2_x, -0.09407182775540882,4)
+
+
+
+
+
 
 def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)

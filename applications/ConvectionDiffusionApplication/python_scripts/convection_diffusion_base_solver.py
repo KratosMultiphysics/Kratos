@@ -2,9 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
+import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -417,9 +420,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 var = KratosMultiphysics.KratosGlobals.GetVariable(key)
                 if (self._check_variable_to_set(var)):
                     if value.IsDouble():
-                        KratosMultiphysics.VariableUtils().SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                        KratosMultiphysics.VariableUtils().SetVariable(var, value.GetDouble(), model_part.Nodes)
                     elif value.IsVector():
-                        KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                        KratosMultiphysics.VariableUtils().SetVariable(var, value.GetVector(), model_part.Nodes)
                     else:
                         raise ValueError("Type of value is not available")
 
@@ -460,7 +463,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Import constitutive laws.
@@ -557,12 +559,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
-        import base_convergence_criteria_factory as convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
         return convergence_criterion.convergence_criterion
 
     def _create_linear_solver(self):
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 

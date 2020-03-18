@@ -1,0 +1,61 @@
+{
+    "properties": [{
+        "model_part_name": "Main.Inlets",
+        "properties_id": 1,
+        "Material": {
+            "name": "steel",
+            "constitutive_law": {
+                "name": "LinearElastic3DLaw"
+            },
+            "Variables": {
+                "KratosMultiphysics.YOUNG_MODULUS": 200.0,
+                "POISSON_RATIO": 0.3,
+                "YIELD_STRESS": 400.0,
+                "KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE" : 0.1,
+                "FluidDynamicsApplication.VORTICITY_MAGNITUDE" : -5.888
+                },
+            "Tables": {
+                "Table1": {
+                    "input_variable": "KratosMultiphysics.TEMPERATURE",
+                    "output_variable": "YOUNG_MODULUS",
+                    "data": [
+                        [0.0, 100.0],
+                        [200.0, 500.0]
+                    ]
+                }
+            }
+        }
+    }, {
+        "model_part_name": "Main.Outlet",
+        "properties_id": 2,
+        "Material": {
+            "name": "steel",
+            "constitutive_law": {
+                "name": "KratosMultiphysics.FluidDynamicsApplication.Newtonian2DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 100.0,
+                "POISSON_RATIO": 0.1,
+                "YIELD_STRESS": 800.0,
+                "HTC" : 0.3,
+                "TIME_STEPS" : 159,
+                "CAUCHY_STRESS_VECTOR" : [1.5,0.3,-2.58],
+                "LOCAL_INERTIA_TENSOR" : [[1.27,-22.5],[2.01,0.257]],
+                "UPDATE_SENSITIVITIES" : true,
+                "IDENTIFIER" : "MyTestString"
+            },
+            "Tables": {
+                "Table1" : {
+                    "input_variable": "TEMPERATURE",
+                    "output_variable": "YOUNG_MODULUS",
+                    "data": [
+                        [0.0, 2.0],
+                        [1.0, 10.0],
+                        [2.0, 12.0],
+                        [3.5, 15.0]
+                    ]
+                }
+            }
+        }
+    }]
+}

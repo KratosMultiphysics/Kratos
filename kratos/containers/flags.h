@@ -238,6 +238,12 @@ public:
         mFlags = BlockType();
     }
 
+    Flags AsFalse() const
+    {
+        Flags this_flag_false(*this);
+        this_flag_false.mFlags = !((*this).mFlags);
+        return this_flag_false;
+    }
 
     ///@}
     ///@name Access
@@ -326,9 +332,9 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right );
+    friend bool KRATOS_API(KRATOS_CORE) operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right );
+    friend bool KRATOS_API(KRATOS_CORE) operator!=(const Flags& Left, const Flags& Right );
 
     friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
@@ -478,5 +484,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_FLAGS_H_INCLUDED  defined
-
-

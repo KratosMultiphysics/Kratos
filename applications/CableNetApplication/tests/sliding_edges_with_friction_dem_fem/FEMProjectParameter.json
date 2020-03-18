@@ -33,8 +33,7 @@
 		"python_module" : "edge_cable_element_process",
 		"process_name"  : "EdgeCableElementProcess",
 		"Parameters"    : {
-			"model_part_name"           : "Structure.EdgeCablePart1",
-			"computing_model_part_name" : "Structure.computing_domain",
+			"edge_sub_model_part_name"  : "Structure.EdgeCablePart1",
 			"element_type"				: "cable",
 			"node_id_order"             : [444,334,302,271,241,217,192,168,146,123,106,90,73,58,45,35,26,17,10,5,2,1,446],
 			"element_id"                : 846,
@@ -45,8 +44,7 @@
 		"python_module" : "edge_cable_element_process",
 		"process_name"  : "EdgeCableElementProcess",
 		"Parameters"    : {
-			"model_part_name"           : "Structure.EdgeCablePart2",
-			"computing_model_part_name" : "Structure.computing_domain",
+			"edge_sub_model_part_name"  : "Structure.EdgeCablePart2",
 			"element_type"				: "cable",
 			"node_id_order"             : [443,442,440,438,435,431,426,420,413,405,401,392,382,378,369,363,355,349,343,339,337,333,445],
 			"element_id"                : 847,
@@ -60,6 +58,7 @@
         "Parameters"    : {
             "model_part_name" : "Structure.SelfWeight3D_truss",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,1.0,0.0],
             "interval"        : [0.0,"End"]

@@ -198,7 +198,7 @@ void Define2DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement)
 
 // This function selects the elements downstream the trailing edge as
 // potentially wake elements
-const bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const Element& rElement) const
+bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const Element& rElement) const
 {
     // Compute the distance from the trailing edge to the element's center
     const auto distance_to_element_center =
@@ -297,7 +297,7 @@ void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
 }
 
 // This function checks if the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement) const
+bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement) const
 {
     unsigned int number_of_nodes_with_negative_distance = 0;
     // REMINDER: In 3D the elemental_distances may not be match with the nodal
