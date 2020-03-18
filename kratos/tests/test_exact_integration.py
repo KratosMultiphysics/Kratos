@@ -157,7 +157,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
     # Test exact integration in 3D
     # TRIANGLE
-    def _test_triangle_exact_integration_1_delanautor(self, use_delaunator = False):
+    def _test_triangle_exact_integration_1(self, use_delaunator = False):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -214,10 +214,10 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 6.0)
 
     def test_triangle_exact_integration_1(self):
-        self._test_triangle_exact_integration_1_delanautor(False)
+        self._test_triangle_exact_integration_1(False)
 
     def test_triangle_exact_integration_1_delanautor(self):
-        self._test_triangle_exact_integration_1_delanautor(True)
+        self._test_triangle_exact_integration_1(True)
 
     def _test_triangle_exact_integration_2(self, use_delaunator = False):
         current_model = KratosMultiphysics.Model()
@@ -275,12 +275,12 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 12.0)
 
     def test_triangle_exact_integration_2(self):
-        self._test_triangle_exact_integration_1_delanautor(False)
+        self._test_triangle_exact_integration_2(False)
 
     def test_triangle_exact_integration_2_delanautor(self):
-        self._test_triangle_exact_integration_1_delanautor(True)
+        self._test_triangle_exact_integration_2(True)
 
-    def _test_triangle_exact_integration_3(self):
+    def _test_triangle_exact_integration_3(self, use_delaunator = False):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -396,10 +396,10 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2, 2],  1.0 / 12.0)
 
     def test_triangle_exact_integration_3(self):
-        self._test_triangle_exact_integration_1_delanautor(False)
+        self._test_triangle_exact_integration_3(False)
 
     def test_triangle_exact_integration_3_delanautor(self):
-        self._test_triangle_exact_integration_1_delanautor(True)
+        self._test_triangle_exact_integration_3(True)
 
     # QUADRILATERAL
     def test_quadrilateral_exact_integration_1(self):
