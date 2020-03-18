@@ -302,7 +302,7 @@ public:
 
             for (int j=0; j<static_cast<int>(r_col_indices.size()); ++j) {
                 const IndexType col_index = r_col_indices[j];
-                aux_sum += rA(row_index, col_index) * rA(row_index, col_index);
+                aux_sum += std::pow(rA(row_index, col_index) , 2);
             }
         }
         return std::sqrt(aux_sum);
