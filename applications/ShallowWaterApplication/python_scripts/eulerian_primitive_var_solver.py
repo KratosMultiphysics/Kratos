@@ -15,7 +15,7 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
 
         # Set the element and condition names for the replace settings
         self.element_name = "ReducedSWE"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
     def AddVariables(self):
