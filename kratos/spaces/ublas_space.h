@@ -289,7 +289,7 @@ public:
             }
         }
 #else
-        #pragma omp parallel reduction(+:aux_sum)
+        //#pragma omp parallel reduction(+:aux_sum)
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
