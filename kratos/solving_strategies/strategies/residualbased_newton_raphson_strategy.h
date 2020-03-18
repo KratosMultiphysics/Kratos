@@ -1289,7 +1289,8 @@ class ResidualBasedNewtonRaphsonStrategy
         {
             if(GetBuilderAndSolver()->LHSHasDirichletDofs() == false)
             {
-                KRATOS_WARNING("NR-Strategy") << "sorry the builder and solver employed does not support \n"
+                KRATOS_WARNING("NR-Strategy")
+                                 << "sorry the builder and solver employed does not support \n"
                                  << "using Old Stiffness on First Iteration. \n"
                                  << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
 
