@@ -173,7 +173,7 @@ public:
      */
     virtual const Parameters GetDefaultParameters() const
     {
-        KRATOS_WARNING("Process") << "GetDefaultParameters not implemented. Returning empty parameters" << std::endl;
+        KRATOS_ERROR << "GetDefaultParameters not implemented. Returning empty parameters" << std::endl;
         const Parameters default_parameters = Parameters(R"({})" );
 
         return default_parameters;
@@ -272,5 +272,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_PROCESS_H_INCLUDED  defined
-
 
