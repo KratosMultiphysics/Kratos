@@ -277,7 +277,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
 
-        self.use_python_primal_solution_data_transfer = self._UsePythonPrimalDataTransfer()
+        self.use_python_primal_solution_data_transfer = self.response_settings["primal_data_transfer_with_python"].GetBool() 
 
         # Create the adjoint solver
         adjoint_parameters = self._GetAdjointParameters()
@@ -369,6 +369,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
         if adjoint_settings == "auto":
             Logger.PrintInfo(self._GetLabel(), "Automatic set up adjoint parameters for response:", self.identifier)
 
+            if not self.use_python_primal_solution_data_transfer:
+                raise Exception("Auto setup of adjoint parameters does only support primal data transfer with python.")
+
             with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
                 primal_parameters = Parameters( parameter_file.read() )
 
@@ -435,39 +438,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
             with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
 
-            # prevent the case that primal solution is transfered by python and the HDF5 process
-            if self.use_python_primal_solution_data_transfer:
-                if adjoint_parameters["processes"].Has("list_other_processes"):
-                    for i in range(0,adjoint_parameters["processes"]["list_other_processes"].size()):
-                        process = adjoint_parameters["processes"]["list_other_processes"][i]
-                        if process["python_module"].GetString() ==  "single_mesh_temporal_input_process":
-                            raise Exception("For transfering the primal results 'python' is chosen but also 'single_mesh_temporal_input_process' is provided within the adjoint parameters!")
-
         return adjoint_parameters
-
-
-    def _UsePythonPrimalDataTransfer(self):
-        use_python_data_transfer = True
-
-        if self.response_settings["adjoint_settings"].GetString() == "auto":
-            if self.response_settings.Has("primal_data_transfer"):
-                primal_data_transfer = self.response_settings["primal_data_transfer"].GetString()
-                if primal_data_transfer != "python":
-                    raise Exception("Auto setup of adjoint parameters does not support {} for primal data transfer. Only available for 'python'.".format(primal_data_transfer))
-        else:
-            if self.response_settings.Has("primal_data_transfer"):
-                primal_data_transfer = self.response_settings["primal_data_transfer"].GetString()
-                if primal_data_transfer == "hdf5":
-                    use_python_data_transfer = False
-                elif primal_data_transfer == "python":
-                    pass
-                else:
-                    raise Exception("For primal data transfer {} is not supported. Choose between 'hdf5' and 'python'.".format(primal_data_transfer))
-            else:
-                use_python_data_transfer = False
-
-        return use_python_data_transfer
-
 
     def _GetLabel(self):
         type_labels = {
