@@ -16,9 +16,10 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
-#include "containers/model.h"
+#include "utilities/delaunator_utilities.h"
 // DEBUG
 #include "includes/gid_io.h"
 
@@ -1359,8 +1360,9 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
     )
 {
     // We do the clipping
-    if (IsAllInside == false)
+    if (!IsAllInside)
         ComputeClippingIntersections(rPointList, rSlaveGeometry, rMasterGeometry, rRefCenter);
+
 
     // We compose the triangles
     const SizeType list_size = rPointList.size();
@@ -1378,45 +1380,68 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
             rPointList[i_point_list].Coordinates() = local_point.Coordinates();
         }
 
-        // We will check if the triangle is inside the slave geometry, so we will compute an auxiliar shape function
-        array_1d<double, 2> auxiliar_slave_center_local_coords, auxiliar_master_center_local_coords;
+        if (mConsiderDelaunator) {
+            std::vector<double> coordinates(list_size * 2);
 
-        // We compute the angles between the nodes
-        rSlaveGeometry.PointLocalCoordinates(local_point, rSlaveGeometry.Center());
-        const array_1d<double, 3>& normal = rSlaveGeometry.UnitNormal(local_point);
-        const std::vector<IndexType> index_vector = ComputeAnglesIndexes(rPointList, normal);
+            const auto& r_triangles_list = DelaunatorUtilities::ComputeTrianglesConnectivity(coordinates);
 
-        // We resize the array of points of the decomposed triangles
-        rConditionsPointsSlave.resize((list_size - 2));
+            // Resize the vector
+            rConditionsPointsSlave.resize(r_triangles_list.size());
 
-        IndexType aux_elem_index = 0;
-        ArrayTriangleType points_locals_slave, points_locals_master;
-        for (IndexType elem = 0; elem < list_size - 2; ++elem) { // NOTE: We always have two points less that the number of nodes
+            // Iterate over the generated triangles
+            IndexType aux_elem_index = 0;
+            ArrayTriangleType points_locals_slave;
+            for (IndexType i = 0; i < r_triangles_list.size(); i += 3) {
+                points_locals_slave[0] = rPointList[r_triangles_list[i]];
+                points_locals_slave[1] = rPointList[r_triangles_list[i + 1]];
+                points_locals_slave[2] = rPointList[r_triangles_list[i + 2]];
 
-            points_locals_slave[0] = rPointList[0];
-            points_locals_slave[1] = rPointList[index_vector[elem + 0] + 1];
-            points_locals_slave[2] = rPointList[index_vector[elem + 1] + 1];
-            points_locals_master[0] = aux_master_point_list[0];
-            points_locals_master[1] = aux_master_point_list[index_vector[elem + 0] + 1];
-            points_locals_master[2] = aux_master_point_list[index_vector[elem + 1] + 1];
+                // We add the triangle to the vector
+                rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
 
-            // We compute if the center is inside the slave geometry
-            auxiliar_slave_center_local_coords[0] = 1.0/3.0 * (points_locals_slave[0].X() + points_locals_slave[1].X() + points_locals_slave[2].X());
-            auxiliar_slave_center_local_coords[1] = 1.0/3.0 * (points_locals_slave[0].Y() + points_locals_slave[1].Y() + points_locals_slave[2].Y());
-            auxiliar_master_center_local_coords[0] = 1.0/3.0 * (points_locals_master[0].X() + points_locals_master[1].X() + points_locals_master[2].X());
-            auxiliar_master_center_local_coords[1] = 1.0/3.0 * (points_locals_master[0].Y() + points_locals_master[1].Y() + points_locals_master[2].Y());
-            const bool center_is_inside = CheckCenterIsInside(auxiliar_slave_center_local_coords) && CheckCenterIsInside(auxiliar_master_center_local_coords, TNumNodesMaster);
-            if (!center_is_inside) {
-                rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
-                KRATOS_WARNING_IF("ExactMortarIntegrationUtility", mEchoLevel > 0) << "The generated intersection is probably a concave polygon. Check it out: \n" << rSlaveGeometry << "\n" << rMasterGeometry << std::endl;
-                continue; // We skip this triangle
+                // We update the auxiliar index
+                ++aux_elem_index;
             }
+        } else {
+            // We will check if the triangle is inside the slave geometry, so we will compute an auxiliar shape function
+            array_1d<double, 2> auxiliar_slave_center_local_coords, auxiliar_master_center_local_coords;
 
-            // We add the triangle to the vector
-            rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
+            // We compute the angles between the nodes
+            rSlaveGeometry.PointLocalCoordinates(local_point, rSlaveGeometry.Center());
+            const array_1d<double, 3>& normal = rSlaveGeometry.UnitNormal(local_point);
+            const std::vector<IndexType> index_vector = ComputeAnglesIndexes(rPointList, normal);
 
-            // We update the auxiliar index
-            ++aux_elem_index;
+            // We resize the array of points of the decomposed triangles
+            rConditionsPointsSlave.resize((list_size - 2));
+
+            IndexType aux_elem_index = 0;
+            ArrayTriangleType points_locals_slave, points_locals_master;
+            for (IndexType elem = 0; elem < list_size - 2; ++elem) { // NOTE: We always have two points less that the number of nodes
+                points_locals_slave[0] = rPointList[0];
+                points_locals_slave[1] = rPointList[index_vector[elem + 0] + 1];
+                points_locals_slave[2] = rPointList[index_vector[elem + 1] + 1];
+                points_locals_master[0] = aux_master_point_list[0];
+                points_locals_master[1] = aux_master_point_list[index_vector[elem + 0] + 1];
+                points_locals_master[2] = aux_master_point_list[index_vector[elem + 1] + 1];
+
+                // We compute if the center is inside the slave geometry
+                auxiliar_slave_center_local_coords[0] = 1.0/3.0 * (points_locals_slave[0].X() + points_locals_slave[1].X() + points_locals_slave[2].X());
+                auxiliar_slave_center_local_coords[1] = 1.0/3.0 * (points_locals_slave[0].Y() + points_locals_slave[1].Y() + points_locals_slave[2].Y());
+                auxiliar_master_center_local_coords[0] = 1.0/3.0 * (points_locals_master[0].X() + points_locals_master[1].X() + points_locals_master[2].X());
+                auxiliar_master_center_local_coords[1] = 1.0/3.0 * (points_locals_master[0].Y() + points_locals_master[1].Y() + points_locals_master[2].Y());
+                const bool center_is_inside = CheckCenterIsInside(auxiliar_slave_center_local_coords) && CheckCenterIsInside(auxiliar_master_center_local_coords, TNumNodesMaster);
+                if (!center_is_inside) {
+                    rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
+                    KRATOS_WARNING_IF("ExactMortarIntegrationUtility", mEchoLevel > 0) << "The generated intersection is probably a concave polygon. Check it out: \n" << rSlaveGeometry << "\n" << rMasterGeometry << std::endl;
+                    continue; // We skip this triangle
+                }
+
+                // We add the triangle to the vector
+                rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
+
+                // We update the auxiliar index
+                ++aux_elem_index;
+            }
         }
 
         if (rConditionsPointsSlave.size() > 0)

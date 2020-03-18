@@ -31,7 +31,7 @@
 /* QUADRILATERALS */
 #include "geometries/quadrilateral_3d_4.h"
 
-// /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
+// /* The integration points (we clip triangles in 3D, so with line and triangle is enough)*/
 // #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 
@@ -155,11 +155,13 @@ public:
         const SizeType IntegrationOrder = 0,
         const double DistanceThreshold = std::numeric_limits<double>::max(),
         const SizeType EchoLevel = 0,
-        const double ZeroToleranceFactor = 1.0
+        const double ZeroToleranceFactor = 1.0,
+        const bool ConsiderDelaunator = false
         ) :mIntegrationOrder(IntegrationOrder),
            mDistanceThreshold(DistanceThreshold),
            mEchoLevel(EchoLevel),
-           mZeroToleranceFactor(ZeroToleranceFactor)
+           mZeroToleranceFactor(ZeroToleranceFactor),
+           mConsiderDelaunator(ConsiderDelaunator)
     {
         GetIntegrationMethod();
     }
@@ -749,11 +751,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mIntegrationOrder;        /// The integration order to consider
-    double mDistanceThreshold;         /// The distance where we directly  consider out of integration limits
-    SizeType mEchoLevel;               /// The echo level considered
-    double mZeroToleranceFactor;       /// The zero tolerance factor considered
+    SizeType mIntegrationOrder;              /// The integration order to consider
+    double mDistanceThreshold;               /// The distance where we directly  consider out of integration limits
+    SizeType mEchoLevel;                     /// The echo level considered
+    double mZeroToleranceFactor;             /// The zero tolerance factor considered
     IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
+    bool mConsiderDelaunator;                /// If consider the DelaunatorUtilities in 3D in order to construct the triangles
 
     ///@}
     ///@name Private Operators
