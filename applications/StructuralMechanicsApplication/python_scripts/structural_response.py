@@ -277,6 +277,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
 
+        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool() 
+
         # Create the adjoint solver
         adjoint_parameters = self._GetAdjointParameters()
         adjoint_model = KratosMultiphysics.Model()
@@ -352,8 +354,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
-        if self.response_settings["adjoint_settings"].GetString() == "auto":
+        # Put primal solution on adjoint model
+        if self.primal_data_transfer_with_python:
             Logger.PrintInfo(self._GetLabel(), "Transfer primal state to adjoint model part.")
             variable_utils = KratosMultiphysics.VariableUtils()
             for variable in self.primal_state_variables:
@@ -366,6 +368,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         if adjoint_settings == "auto":
             Logger.PrintInfo(self._GetLabel(), "Automatic set up adjoint parameters for response:", self.identifier)
+
+            if not self.primal_data_transfer_with_python:
+                raise Exception("Auto setup of adjoint parameters does only support primal data transfer with python.")
 
             with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
                 primal_parameters = Parameters( parameter_file.read() )
