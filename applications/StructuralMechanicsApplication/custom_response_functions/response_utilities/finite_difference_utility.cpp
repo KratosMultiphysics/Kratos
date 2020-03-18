@@ -16,12 +16,12 @@
 // External includes
 
 // Project includes
-#include "element_finite_difference_utility.h"
+#include "finite_difference_utility.h"
 #include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
-    void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
+    void FiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
                                                 const Vector& rRHS,
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
@@ -67,7 +67,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
+    void FiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
@@ -79,12 +79,12 @@ namespace Kratos
 
         if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
-            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
+            KRATOS_WARNING_IF("FiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
-                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+                const IndexType coord_dir = FiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
                 Matrix LHS_perturbed;
@@ -110,7 +110,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_WARNING("ElementFiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
                 rOutput.resize(0,0,false);
         }
@@ -118,7 +118,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
+    void FiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
@@ -130,12 +130,12 @@ namespace Kratos
 
         if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
-            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative", OpenMPUtils::IsInParallel() != 0)
+            KRATOS_WARNING_IF("FiniteDifferenceUtility::CalculateMassMatrixDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
-                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+                const IndexType coord_dir = FiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
                 Matrix perturbed_mass_matrix;
@@ -160,7 +160,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_WARNING("ElementFiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
                 rOutput.resize(0,0,false);
         }
@@ -168,7 +168,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    std::size_t ElementFiniteDifferenceUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
+    std::size_t FiniteDifferenceUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
     {
         if( rDesignVariable == SHAPE_SENSITIVITY_X )
             return 0;
