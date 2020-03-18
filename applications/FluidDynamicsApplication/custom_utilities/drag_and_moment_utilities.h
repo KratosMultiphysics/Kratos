@@ -90,7 +90,7 @@ namespace Kratos
     * @param rModelPart reference to the model part in where the drag is to be computed
     * @return An array containing the drag force value and the base moments.
     */
-    array_1d<double, 6> CalculateBodyFittedDragAndMoment(ModelPart &rModelPart, array_1d<double, 3> rReferencePoint);
+    std::tuple<array_1d<double, 3>, array_1d<double, 3>> CalculateBodyFittedDragAndMoment(ModelPart &rModelPart, array_1d<double, 3> rReferencePoint);
 
     /**
     * Computes the integral of the Cauchy stress term normal projection in the given modelpart elements.
