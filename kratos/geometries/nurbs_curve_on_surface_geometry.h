@@ -159,9 +159,9 @@ public:
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
      * @param vector of span intervals.
-     * @param index of chosen direction, for curves always 1.
+     * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 1) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
     {
         auto interval = mpNurbsCurve->DomainInterval();
         this->Spans(rSpans, interval.GetT0(), interval.GetT1());
@@ -175,8 +175,8 @@ public:
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
-        mpNurbsSurface->Spans(surface_spans_u, 1);
-        mpNurbsSurface->Spans(surface_spans_v, 2);
+        mpNurbsSurface->Spans(surface_spans_u, 0);
+        mpNurbsSurface->Spans(surface_spans_v, 1);
 
         CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
             rSpans,
