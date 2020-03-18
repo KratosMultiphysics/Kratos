@@ -8,7 +8,6 @@ import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
 from KratosMultiphysics.PoromechanicsApplication.poromechanics_U_Pw_solver import UPwSolver
@@ -91,6 +90,7 @@ class MPIUPwSolver(UPwSolver):
     #### Specific internal functions ####
 
     def _ConstructLinearSolver(self):
+        from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _ConstructBuilderAndSolver(self, block_builder):
