@@ -277,7 +277,7 @@ public:
         return std::sqrt(Dot(rX, rX));
     }
 
-    static TDataType TwoNorm(Matrix const& rA) // Frobenious norm
+    static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
         #pragma omp parallel for reduction(+:aux_sum)
@@ -289,7 +289,7 @@ public:
         return std::sqrt(aux_sum);
     }
 
-    static TDataType TwoNorm(compressed_matrix<TDataType> const& rA) // Frobenious norm
+    static TDataType TwoNorm(const compressed_matrix<TDataType> & rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
 
@@ -313,7 +313,7 @@ public:
      * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
-    static TDataType JacobiNorm(Matrix const& rA)
+    static TDataType JacobiNorm(const Matrix& rA)
     {
         TDataType aux_sum = TDataType();
         #pragma omp parallel for reduction(+:aux_sum)
