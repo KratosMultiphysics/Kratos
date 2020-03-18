@@ -26,7 +26,7 @@ namespace Kratos
         const double distance_u = U1 - U0;
         const double length_u = std::abs(U1 - U0);
 
-        const std::vector<std::vector<double>> integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
+        const std::vector<std::vector<double>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
 
         IndexType counter = 0;
         for (SizeType u = 0; u < PointsInU; ++u)
@@ -52,8 +52,8 @@ namespace Kratos
         const double distance_v = V1 - V0;
         const double length_v = std::abs(V1 - V0);
 
-        const std::vector<std::vector<double>> integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
-        const std::vector<std::vector<double>> integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
+        const std::vector<std::vector<double>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
+        const std::vector<std::vector<double>>& integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
 
         for (SizeType u = 0; u < PointsInU; ++u)
         {
