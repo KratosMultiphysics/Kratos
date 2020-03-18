@@ -327,6 +327,27 @@ public:
         return aux_sum;
     }
 
+    static TDataType JacobiNorm(const compressed_matrix<TDataType>& rA)
+    {
+        TDataType aux_sum = TDataType();
+
+        const auto& r_row_indices = rA.index1_data();
+        const auto& r_col_indices = rA.index2_data();
+
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(r_row_indices.size()); ++i) {
+            const IndexType row_index = r_row_indices[i];
+
+            for (int j=0; j<static_cast<int>(r_col_indices.size()); ++j) {
+                const IndexType col_index = r_col_indices[j];
+                if (row_index != col_index) {
+                    aux_sum += std::abs(rA(row_index, col_index));
+                }
+            }
+        }
+        return aux_sum;
+    }
+
     static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
