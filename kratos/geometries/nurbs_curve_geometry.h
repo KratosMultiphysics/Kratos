@@ -389,7 +389,7 @@ public:
             PointsArrayType nonzero_control_points(num_nonzero_cps);
             auto first_cp_index = shape_function_container.GetFirstNonzeroControlPoint();
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                nonzero_control_points(j) = pGetPoint(j);
+                nonzero_control_points(j) = pGetPoint(first_cp_index + j);
             }
             /// Get Shape Functions N
             if (NumberOfShapeFunctionDerivatives >= 0) {
