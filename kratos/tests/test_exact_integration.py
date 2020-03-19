@@ -50,7 +50,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -97,7 +97,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -146,7 +146,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -199,7 +199,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -260,7 +260,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -330,7 +330,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond3, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("First Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -347,7 +347,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond4, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Second Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -364,7 +364,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond2, cond3, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Third Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -381,7 +381,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond2, cond4, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Fourth Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -444,7 +444,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
@@ -516,7 +516,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
         # Debug
-        #if (solution == True):
+        #if solution:
             #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
