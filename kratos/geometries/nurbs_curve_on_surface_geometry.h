@@ -275,7 +275,7 @@ public:
             /// Get Shape Functions N
             if (NumberOfShapeFunctionDerivatives >= 0) {
                 for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(cp_indices[j], 0);
+                    N(0, j) = shape_function_container(j, 0);
                 }
             }
 
@@ -285,7 +285,7 @@ public:
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
                     for (IndexType k = 0; k < n + 2; k++) {
                         for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                            shape_function_derivatives[n](j, k) = shape_function_container(cp_indices[j], shape_derivative_index + k);
+                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
                         }
                     }
                     shape_derivative_index += n + 2;

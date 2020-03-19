@@ -389,12 +389,12 @@ public:
             PointsArrayType nonzero_control_points(num_nonzero_cps);
             auto first_cp_index = shape_function_container.GetFirstNonzeroControlPoint();
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                nonzero_control_points(j) = pGetPoint(first_cp_index + j);
+                nonzero_control_points(j) = pGetPoint(j);
             }
             /// Get Shape Functions N
             if (NumberOfShapeFunctionDerivatives >= 0) {
                 for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(first_cp_index + j, 0);
+                    N(0, j) = shape_function_container(j, 0);
                 }
             }
 
@@ -402,7 +402,7 @@ public:
             if (NumberOfShapeFunctionDerivatives > 0) {
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
                     for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                        shape_function_derivatives[n](j, 0) = shape_function_container(first_cp_index + j, n + 1);
+                        shape_function_derivatives[n](j, 0) = shape_function_container(j, n + 1);
                     }
                 }
             }
