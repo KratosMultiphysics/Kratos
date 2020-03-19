@@ -104,9 +104,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 20
@@ -130,9 +130,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def _create_strategy(self, mp):
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
         convergence_criterion.SetEchoLevel(0)
 
         #max_iters = 1
