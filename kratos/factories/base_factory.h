@@ -83,6 +83,18 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /** Constructor.
+     */
+    explicit BaseFactory()
+    {
+    }
+
+    /** Destructor.
+     */
+    virtual ~BaseFactory()
+    {
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -174,7 +186,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {
