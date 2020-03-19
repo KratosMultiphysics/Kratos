@@ -18,7 +18,6 @@ namespace Kratos {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_with_damage_parallel_bond to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
-        SetDebugPrintingOptionValue(pProp);
     }
 
     void DEM_KDEM_with_damage_parallel_bond::Check(Properties::Pointer pProp) const {
@@ -39,8 +38,10 @@ namespace Kratos {
         }
     }
 
-    void DEM_KDEM_with_damage_parallel_bond::SetDebugPrintingOptionValue(Properties::Pointer pProp) {
+    void DEM_KDEM_with_damage_parallel_bond::Initialize(SphericContinuumParticle* element) {
 
+        mDebugPrintingOption = false;
+        Properties::Pointer pProp = element->pGetProperties();
         if (!pProp->Has(DEBUG_PRINTING_OPTION)) {
             mDebugPrintingOption = false;
         } else {
