@@ -21,9 +21,8 @@
 #include "includes/define.h"
 #if defined EIGEN_USE_MKL_ALL
 #include "eigen_pardiso_ldlt_solver.h"
-#else // defined EIGEN_USE_MKL_ALL
-#include "eigen_sparse_lu_solver.h"
 #endif // defined EIGEN_USE_MKL_ALL
+#include "eigen_sparse_lu_solver.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
@@ -62,6 +61,7 @@ class EigensystemSolver
             "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 1,
             "normalize_eigenvectors": false,
+            "use_mkl_if_available": true,
             "max_iteration": 1000,
             "tolerance": 1e-6,
             "echo_level": 1
@@ -177,7 +177,7 @@ class EigensystemSolver
         }
 
         #if defined USE_EIGEN_MKL
-        EigenPardisoLDLTSolver<double> solver;
+        auto solver = mParam["use_mkl_if_available"].GetBool() ? EigenPardisoLDLTSolver<double> : EigenSparseLUSolver<double>;
         #else  // defined USE_EIGEN_MKL
         EigenSparseLUSolver<double> solver;
         #endif // defined USE_EIGEN_MKL
