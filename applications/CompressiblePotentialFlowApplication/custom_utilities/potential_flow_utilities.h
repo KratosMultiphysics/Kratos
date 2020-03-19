@@ -78,6 +78,9 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeTotalVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
