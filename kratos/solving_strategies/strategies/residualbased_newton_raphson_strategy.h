@@ -156,9 +156,6 @@ class ResidualBasedNewtonRaphsonStrategy
         // be reshaped at each step or not
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
-        // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
-
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
