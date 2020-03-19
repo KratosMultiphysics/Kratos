@@ -179,26 +179,32 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PRESTRESS_VECTOR,prestress)
 
     def _solve_static(self,mp):
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-6)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 1000
-        compute_reactions = False
-        reform_step_dofs = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "newton_raphson_strategy",
+            "max_iteration"            : 1000,
+            "compute_reactions"        : false,
+            "reform_dofs_at_each_step" : false,
+            "move_mesh_flag"           : true,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name"               : "residual_criteria",
+                "absolute_tolerance" : 1.0e-6,
+                "relative_tolerance" : 1.0e-6,
+                "echo_level"         : 0
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
 
