@@ -56,6 +56,7 @@
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
+#include "utilities/delaunator_utilities.h"
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
@@ -1066,6 +1067,10 @@ void AddUtilitiesToPython(pybind11::module &m)
     mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
     mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>);
     mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>);
+
+    // Delaunator utilities
+    auto mod_delaunator = m.def_submodule("CreateTriangleMeshFromNodes");
+    mod_delaunator.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")

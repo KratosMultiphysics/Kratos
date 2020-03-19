@@ -76,11 +76,11 @@ namespace Python
         //here we add the dense matrix
         auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
-        matrix_binder.def("__init__", [](DenseMatrix<double> &matrix, py::buffer b){
+        matrix_binder.def(py::init( [](py::buffer b){
           py::buffer_info info = b.request();
           KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
-          matrix = DenseMatrix<double>(info.shape[0], info.shape[1]);
+          DenseMatrix<double> matrix = DenseMatrix<double>(info.shape[0], info.shape[1]);
 
           std::size_t count = 0;
           for( int i=0; i<info.shape[0]; ++i ) {
@@ -89,7 +89,9 @@ namespace Python
               count++;
             }
           }
-        });
+
+          return matrix;
+        }));
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
@@ -140,12 +142,12 @@ namespace Python
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");
         cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type>());
-        cplx_matrix_binder.def("__init__", [](ComplexMatrix &matrix, py::buffer b){
+        cplx_matrix_binder.def(py::init( [](py::buffer b){
           py::buffer_info info = b.request();
           KRATOS_ERROR_IF( info.format != py::format_descriptor<std::complex<double>>::value &&
             info.format != py::format_descriptor<double>::value ) << "Expected a double or complex array" << std::endl;
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
-          matrix = ComplexMatrix(info.shape[0], info.shape[1]);
+          ComplexMatrix matrix = ComplexMatrix(info.shape[0], info.shape[1]);
 
           std::size_t count = 0;
           //if the python data is complex, copy the values
@@ -168,7 +170,9 @@ namespace Python
               }
             }
           }
-        });
+
+          return matrix;
+        }));
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
