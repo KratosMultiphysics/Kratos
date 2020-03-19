@@ -543,7 +543,7 @@ public:
         ) override
     {
         int old_ndof = -1;
-        unsigned int old_node_id = rDofSet.begin()->Id();
+        unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
         int ndof=0;
         for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
             if(it->EquationId() < TSparseSpaceType::Size1(rA) ) {
@@ -567,6 +567,14 @@ public:
             mBlockSize = 1;
         else
             mBlockSize = ndof;
+
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+
+        if(mBlockSize == 0) {
+            mBlockSize = max_block_size;
+        }
+
+        KRATOS_ERROR_IF(mBlockSize != max_block_size) << "Block size is not consistent. Local: " << mBlockSize  << " Max: " << max_block_size << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 

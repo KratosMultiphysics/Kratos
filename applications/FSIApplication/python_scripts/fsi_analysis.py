@@ -106,6 +106,7 @@ class FSIAnalysis(AnalysisStage):
 
     def _GetOrderOfProcessesInitialization(self):
         return ["structure_constraints_process_list",
+                "structure_contact_process_list",
                 "structure_loads_process_list",
                 "fluid_gravity",
                 "fluid_initial_conditions_process_list",

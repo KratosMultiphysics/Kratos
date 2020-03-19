@@ -25,10 +25,6 @@ namespace Kratos
 {
 namespace Testing
 {
-
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
     void PrepareModelPart(ModelPart& rModelPart)
     {
         // Nodes
@@ -101,10 +97,10 @@ namespace Testing
         const double & r_MP_KineticEnergy   = r_model_part.pGetElement(element_id)->GetValue(MP_KINETIC_ENERGY);
         const double & r_MP_StrainEnergy    = r_model_part.pGetElement(element_id)->GetValue(MP_STRAIN_ENERGY);
         const double & r_MP_TotalEnergy     = r_model_part.pGetElement(element_id)->GetValue(MP_TOTAL_ENERGY);
-        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy, 7.35 , tolerance);
-        KRATOS_CHECK_NEAR(r_MP_KineticEnergy  ,10.50 , tolerance);
-        KRATOS_CHECK_NEAR(r_MP_StrainEnergy   ,11.375, tolerance);
-        KRATOS_CHECK_NEAR(r_MP_TotalEnergy    ,29.225, tolerance);
+        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy, 7.35 , 1e-6);
+        KRATOS_CHECK_NEAR(r_MP_KineticEnergy  ,10.50 , 1e-6);
+        KRATOS_CHECK_NEAR(r_MP_StrainEnergy   ,11.375, 1e-6);
+        KRATOS_CHECK_NEAR(r_MP_TotalEnergy    ,29.225, 1e-6);
     }
 
 } // namespace Testing

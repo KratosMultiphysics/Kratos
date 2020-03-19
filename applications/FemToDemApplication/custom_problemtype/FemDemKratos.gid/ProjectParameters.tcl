@@ -31,8 +31,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
     puts $FileVar "  \"pressure_load_extrapolation\":     [GiD_AccessValue get gendata Extrapolate_Pressure_Load],"
-    puts $FileVar "  \"displacement_perturbed_tangent\":  [GiD_AccessValue get gendata Displacement_Perturbed_Tangent_Computation],"
-    
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
+
+
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {

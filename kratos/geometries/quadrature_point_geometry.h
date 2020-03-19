@@ -56,6 +56,7 @@ public:
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
+    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
@@ -81,8 +82,8 @@ public:
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
-        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -121,6 +122,7 @@ public:
             ThisGeometryShapeFunctionContainer)
     {
     }
+
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
@@ -134,87 +136,66 @@ public:
     {
     }
 
-    explicit QuadraturePointGeometry(const PointsArrayType& ThisPoints)
+    /// Constructor with points, N, Vector<DN_De, ...>
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
+            GeometryShapeFunctionContainerType(
+                GeometryData::GI_GAUSS_1,
+                ThisIntegrationPoint,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsDerivatives))
     {
     }
 
-    /**
-     * Copy constructor.
-     * Constructs this geometry as a copy of given geometry.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     */
-    QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
+    /// Constructor with points, N, Vector<DN_De, ...>, parent
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryShapeFunctionContainerType(
+                GeometryData::GI_GAUSS_1,
+                ThisIntegrationPoint,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsDerivatives))
+        , mpGeometryParent(pGeometryParent)
+    {
+    }
+
+    /// Destructor.
+    ~QuadraturePointGeometry() override = default;
+
+    /// Copy constructor.
+    QuadraturePointGeometry(
+        QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
+        , mGeometryData(rOther.mGeometryData)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
-
-    /**
-     * Copy constructor from a geometry with other point type.
-     * Construct this geometry as a copy of given geometry which
-     * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
-     * geometry PointType.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     */
-    template<class TOtherPointType>
-    QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
-        : BaseType( rOther )
-    {
-    }
-
-    /// Destructor. Does nothing!!!
-    ~QuadraturePointGeometry() override {}
 
     ///@}
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
-    QuadraturePointGeometry& operator=( const QuadraturePointGeometry& rOther )
+    /// Assignment operator.
+    QuadraturePointGeometry& operator=(
+        const QuadraturePointGeometry& rOther )
     {
         BaseType::operator=( rOther );
 
-        return *this;
-    }
-
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
-    template<class TOtherPointType>
-    QuadraturePointGeometry& operator=( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
-    {
-        BaseType::operator=( rOther );
+        mGeometryData = rOther.mGeometryData;
+        mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
@@ -225,7 +206,9 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new QuadraturePointGeometry( ThisPoints ) );
+        KRATOS_ERROR << "QuadraturePointGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+            << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
+            << std::endl;
     }
 
     ///@}
@@ -464,7 +447,6 @@ private:
         rSerializer.load("GeometryData", mGeometryData);
 
         mGeometryData.SetGeometryDimension(&msGeometryDimension);
-
     }
 
     QuadraturePointGeometry()

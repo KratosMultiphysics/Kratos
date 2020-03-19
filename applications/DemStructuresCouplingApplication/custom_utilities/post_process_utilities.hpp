@@ -155,10 +155,6 @@ void Clear(pybind11::list& my_list);
 ///@name Un accessible methods
 ///@{
 
-/// Assignment operator.
-PostProcessUtilities & operator=(PostProcessUtilities const& rOther);
-
-
 ///@}
 
 }; // Class PostProcessUtilities

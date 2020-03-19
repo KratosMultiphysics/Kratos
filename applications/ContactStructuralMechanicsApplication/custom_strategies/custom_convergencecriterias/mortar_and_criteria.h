@@ -361,17 +361,10 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(0));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(0, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(1, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MORTAR_AND_CRITERIA_H  defined */
-
