@@ -33,23 +33,13 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::INVERTED_SEARCH(Kratos::Flags::Create(0));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_INVERTED_SEARCH(Kratos::Flags::Create(0, false));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CREATE_AUXILIAR_CONDITIONS(Kratos::Flags::Create(1));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_CREATE_AUXILIAR_CONDITIONS(Kratos::Flags::Create(1, false));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MULTIPLE_SEARCHS(Kratos::Flags::Create(2));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_MULTIPLE_SEARCHS(Kratos::Flags::Create(2, false));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PREDEFINE_MASTER_SLAVE(Kratos::Flags::Create(3));
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_PREDEFINE_MASTER_SLAVE(Kratos::Flags::Create(3, false));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PURE_SLIP(Kratos::Flags::Create(4));
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Kratos::Flags BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NOT_PURE_SLIP(Kratos::Flags::Create(4, false));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -65,7 +55,7 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
 
     KRATOS_ERROR_IF(mrMainModelPart.HasSubModelPart("Contact") == false) << "AdvancedContactSearch:: Please add the Contact submodelpart to your modelpart list" << std::endl;
 
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
@@ -1821,11 +1811,11 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap Ba
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters()
+const Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters() const
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "allocation_size"                      : 1000,
         "bucket_size"                          : 4,

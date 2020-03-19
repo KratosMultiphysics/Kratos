@@ -52,7 +52,7 @@ struct RANSEvmVMSAdjointData
 };
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-class RansEvmKEpsilonVMSAdjoint
+class KRATOS_API(RANS_APPLICATION) RansEvmKEpsilonVMSAdjoint
     : public RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData<TNumNodes>, TNumNodes>
 {
 public:
