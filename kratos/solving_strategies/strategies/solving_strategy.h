@@ -119,6 +119,8 @@ public:
     {
         const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
         SetMoveMeshFlag(move_mesh_flag);
+        const int echo_level = ThisParameters.Has("echo_level") ? ThisParameters["echo_level"].GetInt() : 1;
+        SetEchoLevel(echo_level);
     }
 
     /**
@@ -137,7 +139,7 @@ public:
     /** Destructor.
      */
     virtual ~SolvingStrategy(){}
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -163,7 +165,7 @@ public:
 
     /**
      * @brief The problem of interest is solved.
-     * @details 
+     * @details
      * {
      * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
@@ -233,7 +235,7 @@ public:
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy
-     * @details 
+     * @details
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
@@ -331,7 +333,7 @@ public:
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
-             
+
         KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
 
         KRATOS_CATCH("")
@@ -422,7 +424,7 @@ protected:
     ///@{
 
     // Level of echo for the solving strategy
-    int mEchoLevel;
+    int mEchoLevel = 1;
 
     // Settings for the rebuilding of the stiffness matrix
     int mRebuildLevel;
