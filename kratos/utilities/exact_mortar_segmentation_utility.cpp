@@ -1394,6 +1394,19 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
                 points_locals_slave[1] = rPointList[r_triangles_list[i + 1]];
                 points_locals_slave[2] = rPointList[r_triangles_list[i + 2]];
 
+//                 const double ax = rPointList[r_triangles_list[i    ]].X();
+//                 const double ay = rPointList[r_triangles_list[i    ]].Y();
+//                 const double bx = rPointList[r_triangles_list[i + 1]].X();
+//                 const double by = rPointList[r_triangles_list[i + 1]].Y();
+//                 const double cx = rPointList[r_triangles_list[i + 2]].X();
+//                 const double cy = rPointList[r_triangles_list[i + 2]].Y();
+//
+//                 const double area = std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by));
+//                 if (area > GetZeroToleranceFactor() * ZeroTolerance) {
+//                     rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
+//                     continue; // We skip this triangle
+//                 }
+
                 // We add the triangle to the vector
                 rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
 
