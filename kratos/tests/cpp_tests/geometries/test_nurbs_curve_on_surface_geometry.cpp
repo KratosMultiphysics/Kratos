@@ -376,7 +376,7 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
-        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 1);
+        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
         double length = 0;
