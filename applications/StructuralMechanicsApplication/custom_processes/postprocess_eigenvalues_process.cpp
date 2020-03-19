@@ -265,9 +265,12 @@ std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue
     } else if (lable_type == "frequency") {
         label += "_EigenFrequency_[Hz]_";
         label_number = std::sqrt(EigenvalueSolution) / (2 * Globals::Pi);
+    } else if(lable_type == "load_multiplier"){
+        label += "_LoadMultiplier_[-]_";
+        label_number = EigenvalueSolution;
     } else {
         KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n"
-                        << "Available options are: \"angular_frequency\", \"frequency\"" << std::endl;
+                        << "Available options are: \"angular_frequency\", \"frequency\", \"load_multiplier\"" << std::endl;
     }
 
     // reset the stringstream

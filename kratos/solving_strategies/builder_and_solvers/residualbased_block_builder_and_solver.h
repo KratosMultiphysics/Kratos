@@ -14,7 +14,6 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
-
 /* System includes */
 #include <unordered_set>
 
@@ -30,7 +29,6 @@
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-
 
 namespace Kratos
 {
@@ -64,6 +62,9 @@ namespace Kratos
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * @tparam TSparseSpace The sparse system considered
+ * @tparam TDenseSpace The dense system considered
+ * @tparam TLinearSolver The linear solver considered
  * @author Riccardo Rossi
  */
 template<class TSparseSpace,
@@ -76,6 +77,14 @@ class ResidualBasedBlockBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the flags
+    KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
+
+    // Scaling enum
+    enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDER_MAX_DIAGONAL = 2, CONSIDER_PRESCRIBED_DIAGONAL = 3};
+    
+    /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
 
     /// Definition of the base class
@@ -125,19 +134,46 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "ResidualBasedBlockBuilderAndSolver"
+            "name"                               : "ResidualBasedBlockBuilderAndSolver",
+            "block_builder"                      : true,
+            "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
+            "silent_warnings"                    : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // Setting flags
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
+        }
+        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
 
     /**
      * @brief Default constructor.
      */
-    explicit ResidualBasedBlockBuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
+    explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
+        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
     }
 
     /** Destructor.
@@ -394,7 +430,7 @@ public:
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
         } else {
             TSparseSpace::SetToZero(Dx);
-            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         // Prints informations about the current time
@@ -824,78 +860,82 @@ public:
      * should refer to the particular Builder And Solver choosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
-        std::size_t system_size = A.size1();
-        std::vector<double> scaling_factors (system_size, 0.0);
+        const std::size_t system_size = rA.size1();
+        Vector scaling_factors (system_size);
 
+        const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for firstprivate(ndofs)
         for (int k = 0; k<ndofs; k++) {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-            if(dof_iterator->IsFixed())
+            auto it_dof_iterator = it_dof_iterator_begin + k;
+            if (it_dof_iterator->IsFixed()) {
                 scaling_factors[k] = 0.0;
-            else
+            } else {
                 scaling_factors[k] = 1.0;
-
+            }
         }
 
-        double* Avalues = A.value_data().begin();
-        std::size_t* Arow_indices = A.index1_data().begin();
-        std::size_t* Acol_indices = A.index2_data().begin();
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
 
-        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel for firstprivate(system_size)
-        for (int k = 0; k < static_cast<int>(system_size); ++k){
-            std::size_t col_begin = Arow_indices[k];
-            std::size_t col_end = Arow_indices[k+1];
+        // The diagonal considered
+        mScaleFactor = GetScaleNorm(rModelPart, rA);
+
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        #pragma omp parallel firstprivate(system_size)
+        {
+            std::size_t col_begin = 0, col_end  = 0;
             bool empty = true;
-            for (std::size_t j = col_begin; j < col_end; ++j)
-            {
-                if(Avalues[j] != 0.0)
-                {
-                    empty = false;
-                    break;
+
+            #pragma omp for
+            for (int k = 0; k < static_cast<int>(system_size); ++k) {
+                col_begin = Arow_indices[k];
+                col_end = Arow_indices[k + 1];
+                empty = true;
+                for (std::size_t j = col_begin; j < col_end; ++j) {
+                    if(Avalues[j] != 0.0) {
+                        empty = false;
+                        break;
+                    }
+                }
+
+                if(empty) {
+                    rA(k, k) = mScaleFactor;
+                    rb[k] = 0.0;
                 }
             }
-
-            if(empty == true)
-            {
-                A(k,k) = 1.0;
-                b[k] = 0.0;
-            }
         }
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(system_size); ++k)
-        {
+        #pragma omp parallel for firstprivate(system_size)
+        for (int k = 0; k < static_cast<int>(system_size); ++k) {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
-            double k_factor = scaling_factors[k];
-            if (k_factor == 0)
-            {
-                // zero out the whole row, except the diagonal
+            const double k_factor = scaling_factors[k];
+            if (k_factor == 0.0) {
+                // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if (static_cast<int>(Acol_indices[j]) != k )
                         Avalues[j] = 0.0;
 
-                // zero out the RHS
-                b[k] = 0.0;
-            }
-            else
-            {
-                // zero out the column which is associated with the zero'ed row
+                // Zero out the RHS
+                rb[k] = 0.0;
+            } else {
+                // Zero out the column which is associated with the zero'ed row
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if(scaling_factors[ Acol_indices[j] ] == 0 )
                         Avalues[j] = 0.0;
@@ -953,7 +993,8 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
-        TSystemVectorType& rb) override
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
@@ -976,10 +1017,7 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            double max_diag = 0.0;
-            for(IndexType i = 0; i < rA.size1(); ++i) {
-                max_diag = std::max(std::abs(rA(i,i)), max_diag);
-            }
+            const double max_diag = GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
             #pragma omp parallel for
@@ -1073,6 +1111,10 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
+    double mScaleFactor = 1.0;         /// The manuallyset scale factor
+
+    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                    /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -1405,6 +1447,128 @@ protected:
         }
     }
 
+    /**
+     * @brief This method returns the scale norm considering for scaling the diagonal
+     * @param rModelPart The problem model part
+     * @param rA The LHS matrix
+     * @return The scale norm
+     */
+    double GetScaleNorm(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
+    {
+        switch (mScalingDiagonal) {
+            case SCALING_DIAGONAL::NO_SCALING:
+                return 1.0;
+            case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
+                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+                KRATOS_ERROR_IF_NOT(r_current_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
+                const double scale_factor = r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
+                KRATOS_ERROR_IF(scale_factor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
+                return scale_factor;
+            }
+            case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
+                return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
+            case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
+                return GetMaxDiagonal(rA);
+//                 return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
+            default:
+                return GetMaxDiagonal(rA);
+        }
+    }
+
+    /**
+     * @brief This method returns the diagonal norm considering for scaling the diagonal
+     * @param rA The LHS matrix
+     * @return The diagonal norm
+     */
+    double GetDiagonalNorm(TSystemMatrixType& rA)
+    {
+        double diagonal_norm = 0.0;
+        #pragma omp parallel for reduction(+:diagonal_norm)
+        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+            diagonal_norm += std::pow(rA(i,i), 2);
+        }
+        return std::sqrt(diagonal_norm);
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @return The diagonal  max value
+     */
+    double GetAveragevalueDiagonal(TSystemMatrixType& rA)
+    {
+        return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @return The diagonal  max value
+     */
+    double GetMaxDiagonal(TSystemMatrixType& rA)
+    {
+//         // NOTE: Reduction failing in MSVC
+//         double max_diag = 0.0;
+//         #pragma omp parallel for reduction(max:max_diag)
+//         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+//             max_diag = std::max(max_diag, std::abs(rA(i,i)));
+//         }
+//         return max_diag;
+
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        Vector max_vector(num_threads, 0.0);
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+            const int id = OpenMPUtils::ThisThread();
+            const double abs_value_ii = std::abs(rA(i,i));
+            if (abs_value_ii > max_vector[id])
+                max_vector[id] = abs_value_ii;
+        }
+
+        double max_diag = 0.0;
+        for(int i = 0; i < num_threads; ++i) {
+            max_diag = std::max(max_diag, max_vector[i]);
+        }
+        return max_diag;
+    }
+
+    /**
+     * @brief This method returns the diagonal min value
+     * @param rA The LHS matrix
+     * @return The diagonal min value
+     */
+    double GetMinDiagonal(TSystemMatrixType& rA)
+    {
+//         // NOTE: Reduction failing in MSVC
+//         double min_diag = std::numeric_limits<double>::max();
+//         #pragma omp parallel for reduction(min:min_diag)
+//         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+//             min_diag = std::min(min_diag, std::abs(rA(i,i)));
+//         }
+//         return min_diag;
+
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        Vector min_vector(num_threads, std::numeric_limits<double>::max());
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+            const int id = OpenMPUtils::ThisThread();
+            const double abs_value_ii = std::abs(rA(i,i));
+            if (abs_value_ii < min_vector[id])
+                min_vector[id] = abs_value_ii;
+        }
+
+        double min_diag = std::numeric_limits<double>::max();
+        for(int i = 0; i < num_threads; ++i) {
+            min_diag = std::min(min_diag, min_vector[i]);
+        }
+        return min_diag;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1622,6 +1786,9 @@ private:
 ///@name Type Definitions
 ///@{
 
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
 
 ///@}
 
