@@ -213,8 +213,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
                 KratosMultiphysics.ReadMaterialsUtility(aux_material_settings, self.model)
-
-                os.remove(aux_materials_filename)
+                KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 
             materials_imported = True
         else:
