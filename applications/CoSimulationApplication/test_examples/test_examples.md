@@ -15,7 +15,7 @@ This section describes the different folders and files which are provided.
 - readme.md: A description of the specific example
 
 When the setup files are run, working directories are created which have to match the ones specified in the parameter file.
-These folder are expandalbe and are deleted when the setup files are (re)run.
+These folder are expandable and are deleted when the setup files are (re)run.
 
 ## Running a case
 
