@@ -517,9 +517,9 @@ void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters FindIntersectedGeometricalObjectsProcess::GetDefaultParameters()
+const Parameters FindIntersectedGeometricalObjectsProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "intersected_model_part_name"  : "",
         "intersecting_model_part_name" : "",

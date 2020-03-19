@@ -277,6 +277,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
 
+        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool() 
+
         # Create the adjoint solver
         adjoint_parameters = self._GetAdjointParameters()
         adjoint_model = KratosMultiphysics.Model()
@@ -352,8 +354,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
-        if self.response_settings["adjoint_settings"].GetString() == "auto":
+        # Put primal solution on adjoint model
+        if self.primal_data_transfer_with_python:
             Logger.PrintInfo(self._GetLabel(), "Transfer primal state to adjoint model part.")
             variable_utils = KratosMultiphysics.VariableUtils()
             for variable in self.primal_state_variables:
@@ -366,6 +368,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         if adjoint_settings == "auto":
             Logger.PrintInfo(self._GetLabel(), "Automatic set up adjoint parameters for response:", self.identifier)
+
+            if not self.primal_data_transfer_with_python:
+                raise Exception("Auto setup of adjoint parameters does only support primal data transfer with python.")
 
             with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
                 primal_parameters = Parameters( parameter_file.read() )
@@ -401,9 +406,13 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
             if solver_settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
                 solver_settings["model_import_settings"]["input_type"].SetString("mdpa")
-                solver_settings["model_import_settings"].AddEmptyValue("input_filename")
-                model_part_name = solver_settings["model_part_name"].GetString()
-                solver_settings["model_import_settings"]["input_filename"].SetString(model_part_name)
+                if solver_settings["model_import_settings"].Has("input_filename"):
+                    file_name = solver_settings["model_import_settings"]["input_filename"].GetString()
+                else:
+                    Logger.PrintWarning(self._GetLabel(), "Automatic adjoint settings creator assumes the model_part_name as input_filename.")
+                    solver_settings["model_import_settings"].AddEmptyValue("input_filename")
+                    file_name = solver_settings["model_part_name"].GetString()
+                solver_settings["model_import_settings"]["input_filename"].SetString(file_name)
 
             # Dirichlet conditions: change variables
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
