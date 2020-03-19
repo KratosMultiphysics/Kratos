@@ -214,6 +214,7 @@ class PotentialFlowSolver(FluidSolver):
             max_iterations = self.settings["maximum_iterations"].GetInt()
 
             self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+            #self.solver = KratosMultiphysics.LineSearchStrategy(
                 self.GetComputingModelPart(),
                 time_scheme,
                 self.linear_solver,
@@ -229,6 +230,7 @@ class PotentialFlowSolver(FluidSolver):
             max_iterations = self.settings["maximum_iterations"].GetInt()
 
             self.solver = KCPFApp.UpwindResidualBasedNewtonRaphsonStrategy(
+            #self.solver = KCPFApp.UpwindLineSearchStrategy(
                 self.GetComputingModelPart(),
                 time_scheme,
                 self.linear_solver,
