@@ -293,9 +293,16 @@ Enables or Disables(default) the use of [cotire](https://github.com/sakra/cotire
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
 In order to install and compile with this switch please use:
+
+On Linux
 ```shell
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1 
+```
+On Windows
+```shell
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
@@ -340,7 +347,7 @@ Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
 
 Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
 
-`-DTRILINOS_PREFIX=String`
+`-DTRILINOS_LIBRARY_PREFIX=String`
 Indicates the prefix of the trilinos libraries in case they have:
 ```
 libepetra.so          -> No prefix
