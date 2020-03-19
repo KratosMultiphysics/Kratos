@@ -371,12 +371,20 @@ protected:
         const array_1d<double,3> rHeightGrad,
         const BoundedMatrix<double,3,3> rFlowGrad);
 
+    void StreamLineTensor(
+        BoundedMatrix<double,2,2>& rTensor,
+        const array_1d<double,3>& rVector);
+
     void CrossWindTensor(
         BoundedMatrix<double,2,2>& rTensor,
         const array_1d<double,3>& rVeector);
 
     void StabilizationParameter(
         double& rTau,
+        const ElementData& rData);
+
+    void StabilizationParameter(
+        BoundedMatrix<double,2,2>& rCharacteristicLength,
         const ElementData& rData);
 
     ///@}

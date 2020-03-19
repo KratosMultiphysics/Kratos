@@ -184,9 +184,6 @@ void ShallowWater2D3::AddSourceTerms(
     const double height4_3 = pow(rData.effective_height, 1.33333333333) + rData.irregularity;
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
-    // Advection term
-    rLHS += rData.velocity_div * flow_mass_matrix;
-
     // Rain
     rRHS += prod(height_mass_matrix, rData.rain);
 }
@@ -298,9 +295,10 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
 
 void ShallowWater2D3::ElementData::PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight)
 {
-    const double unit_height = height / irregularity;
+    const double unit_height = Height / irregularity;
     rWetFraction = 0.5 * (1 + std::erf(2 * unit_height));
-    rEffectiveHeight = rWetFraction * Height + irregularity * std::exp(-4 * std::pow(unit_height, 2)) / 4 / std::sqrt(M_PI);
+    rEffectiveHeight = rWetFraction * Height;
+    rEffectiveHeight += 0.25 * irregularity * std::exp(-4 * std::pow(unit_height, 2)) / std::sqrt(M_PI);
 }
 
 void ShallowWater2D3::ComputeMassMatrix(
@@ -317,6 +315,7 @@ void ShallowWater2D3::ComputeMassMatrix(
         // TODO: add consistent mass matrix with stabilization
     }
 }
+
 void ShallowWater2D3::ComputeMassMatrix(
     BoundedMatrix<double,9,9>& rFlowMatrix,
     BoundedMatrix<double,9,9>& rHeightMatrix,
@@ -339,86 +338,97 @@ void ShallowWater2D3::ComputeGradientMatrix(
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    const double c2 = rData.gravity * rData.effective_height; // c=sqrt(gh)
+    const double u_1 = rData.velocity[0];
+    const double u_2 = rData.velocity[1];
+    BoundedMatrix<double,2,2> l;
+    StabilizationParameter(l, rData);
+
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t i_block = 3 * i;
         for (size_t j = 0; j < 3; ++j)
         {
             const size_t j_block = 3 * j;
-            const double c2 = rData.gravity * rData.effective_height; // c=sqrt(gh)
 
             /* First component
-             * A_1 = {{u_1   0   gh},
-             *        { 0   u_1   0},
-             *        { 1    0    0}}
+             * A_1 = {{2 * u_1   0   -u_1^2 + gh},
+             *        {  u_2    u_1   -u_1 * u_2},
+             *        {   1      0        0     }}
              */
-            const double g1_ij = rN[i] * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += g1_ij * rData.velocity[0];
-            rMatrix(i_block,     j_block + 2) += g1_ij * c2;
-            rMatrix(i_block + 1, j_block + 1) += g1_ij * rData.velocity[0];
+            double g1_ij = rN[i] * rDN_DX(j,0);
+            rMatrix(i_block,     j_block)     += g1_ij * 2 * u_1;
+            rMatrix(i_block,     j_block + 2) += g1_ij * (-pow(u_1,2) + c2);
+            rMatrix(i_block + 1, j_block)     += g1_ij * u_2;
+            rMatrix(i_block + 1, j_block + 1) += g1_ij * u_1;
+            rMatrix(i_block + 1, j_block + 2) += -g1_ij * u_1 * u_2;
             rMatrix(i_block + 2, j_block)     += g1_ij;
 
             /* Second component
-             * A_2 = {{u_2   0    0},
-             *        { 0   u_2  gh},
-             *        { 0    1    0}}
+             * A_2 = {{u_2    u_1      -u_1 * u_2},
+             *        { 0   2 * u_2   -u_2^2 + gh},
+             *        { 0      1            0    }}
              */
-            const double g2_ij = rN[i] * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += g2_ij * rData.velocity[1];
-            rMatrix(i_block + 1, j_block + 1) += g2_ij * rData.velocity[1];
-            rMatrix(i_block + 1, j_block + 2) += g2_ij * c2;
+            double g2_ij = rN[i] * rDN_DX(j,1);
+            rMatrix(i_block,     j_block)     += g2_ij * u_2;
+            rMatrix(i_block,     j_block + 1) += g2_ij * u_1;
+            rMatrix(i_block,     j_block + 2) += -g2_ij * u_1 * u_2;
+            rMatrix(i_block + 1, j_block + 1) += g2_ij * 2 * u_2;
+            rMatrix(i_block + 1, j_block + 2) += g2_ij * (-pow(u_2,2) + c2);
             rMatrix(i_block + 2, j_block + 1) += g2_ij;
 
             double d_ij;
-            double tau;
-            StabilizationParameter(tau, rData);
             /* Stabilization x-x
-             * A1*A1 = {{u_1^2 + gh   0   u_1 * gh},
-             *          {    0      u_1^2     0   },
-             *          {   u_1       0      gh   }}
+             * A1*A1
              */
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += tau * d_ij * (pow(rData.velocity[0],2) + c2);
-            rMatrix(i_block,     j_block + 2) += tau * d_ij * rData.velocity[0] * c2;
-            rMatrix(i_block + 1, j_block + 1) += tau * d_ij * pow(rData.velocity[0],2);
-            rMatrix(i_block + 2, j_block)     += tau * d_ij * rData.velocity[0];
-            rMatrix(i_block + 2, j_block + 2) += tau * d_ij * c2;
+            rMatrix(i_block,     j_block)     += l(0,0) * d_ij * (3*pow(u_1,2) + c2);
+            rMatrix(i_block,     j_block + 2) += l(0,0) * d_ij * (-2*pow(u_1,3) + 2*u_1*c2);
+            rMatrix(i_block + 1, j_block)     += l(0,0) * d_ij * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += l(0,0) * d_ij * pow(u_1,2);
+            rMatrix(i_block + 1, j_block + 2) += l(0,0) * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
+            rMatrix(i_block + 2, j_block)     += l(0,0) * d_ij * 2*u_1;
+            rMatrix(i_block + 2, j_block + 2) += l(0,0) * d_ij * (-pow(u_1,2) + c2);
 
-            /* Stabilixation y-y
-             * A2*A2 = {{u_2^2      0           0   },
-             *          {   0  u_2^2 + gh   u_2 * gh},
-             *          {   0      u_2         gh   }}
+            /* Stabilization y-y
+             * A2*A2
              */
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += tau * d_ij * pow(rData.velocity[1],2);
-            rMatrix(i_block + 1, j_block + 1) += tau * d_ij * (pow(rData.velocity[1],2) + c2);
-            rMatrix(i_block + 1, j_block + 2) += tau * d_ij * rData.velocity[1] * c2;
-            rMatrix(i_block + 2, j_block + 1) += tau * d_ij * rData.velocity[1];
-            rMatrix(i_block + 2, j_block + 2) += tau * d_ij * c2;
+            rMatrix(i_block,     j_block)     += l(1,1) * d_ij * pow(u_2,2);
+            rMatrix(i_block,     j_block + 1) += l(1,1) * d_ij * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 2) += l(1,1) * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
+            rMatrix(i_block + 1, j_block + 1) += l(1,1) * d_ij * (3*(pow(u_2,2) + c2));
+            rMatrix(i_block + 1, j_block + 2) += l(1,1) * d_ij * (-2*pow(u_2,3) + 2*u_2*c2);
+            rMatrix(i_block + 2, j_block + 1) += l(1,1) * d_ij * 2*u_2;
+            rMatrix(i_block + 2, j_block + 2) += l(1,1) * d_ij * (-pow(u_2,2) + c2);
 
             /* Stabilization x-y
-             * A1*A2 = {{u_1 * u_2    gh          0   },
-             *          {    0     u_1 * u_2  u_1 * gh},
-             *          {   u_2        0          0   }}
+             * A1*A2
              */
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += tau * d_ij * rData.velocity[0] * rData.velocity[1];
-            rMatrix(i_block,     j_block + 1) += tau * d_ij * c2;
-            rMatrix(i_block + 1, j_block + 1) += tau * d_ij * rData.velocity[0] * rData.velocity[1];
-            rMatrix(i_block + 1, j_block + 2) += tau * d_ij * rData.velocity[0] * c2;
-            rMatrix(i_block + 2, j_block)     += tau * d_ij * rData.velocity[1];
+            rMatrix(i_block,     j_block)     += l(0,1) * d_ij * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 1) += l(0,1) * d_ij * (pow(u_1,2)+c2);
+            rMatrix(i_block,     j_block + 2) += -l(0,1) * d_ij * 2*pow(u_1,2)*u_2;
+            rMatrix(i_block + 1, j_block)     += l(0,1) * d_ij * pow(u_2,2);
+            rMatrix(i_block + 1, j_block + 1) += l(0,1) * d_ij * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 2) += l(0,1) * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
+            rMatrix(i_block + 2, j_block)     += l(0,1) * d_ij * u_2;
+            rMatrix(i_block + 2, j_block)     += l(0,1) * d_ij * u_1;
+            rMatrix(i_block + 2, j_block)     += -l(0,1) * d_ij * u_1*u_2;
 
             /* Stabilization y-x
-             * A2*A1 = {{u_1 * u_2     0     u_2 * gh},
-             *          {   gh     u_1 * u_2     0   },
-             *          {    0        u_1        0   }}
+             * A2*A1
              */
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += tau * d_ij * rData.velocity[0] * rData.velocity[1];
-            rMatrix(i_block,     j_block + 2) += tau * d_ij * rData.velocity[1] * c2;
-            rMatrix(i_block + 1, j_block)     += tau * d_ij * c2;
-            rMatrix(i_block + 1, j_block + 1) += tau * d_ij * rData.velocity[0] * rData.velocity[1];
-            rMatrix(i_block + 2, j_block + 1) += tau * d_ij * rData.velocity[0];
+            rMatrix(i_block,     j_block)     += l(1,0) * d_ij * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 1) += l(1,0) * d_ij * pow(u_1,2);
+            rMatrix(i_block,     j_block + 2) += l(1,0) * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
+            rMatrix(i_block + 1, j_block)     += l(1,0) * d_ij * (pow(u_2,2) + c2);
+            rMatrix(i_block + 1, j_block + 1) += l(1,0) * d_ij * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 2) += -l(1,0) * d_ij * 2*u_1*pow(u_2,2);
+            rMatrix(i_block + 2, j_block)     += l(1,0) * d_ij * u_2;
+            rMatrix(i_block + 2, j_block)     += l(1,0) * d_ij * u_1;
+            rMatrix(i_block + 2, j_block)     += -l(1,0) * d_ij * u_1*u_2;
         }
     }
 }
@@ -491,8 +501,8 @@ void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
 
     // Final assembly of the tensors
     const double length = this->GetGeometry().Length();
-    double f1_grad = std::max(std::sqrt(std::pow(flow_grad(0,0),2)+std::pow(flow_grad(1,0),2))+epsilon, rData.dt_inv);
-    double f2_grad = std::max(std::sqrt(std::pow(flow_grad(0,1),2)+std::pow(flow_grad(1,1),2))+epsilon, rData.dt_inv);
+    double f1_grad = std::max(std::sqrt(pow(flow_grad(0,0),2)+pow(flow_grad(1,0),2))+epsilon, rData.dt_inv);
+    double f2_grad = std::max(std::sqrt(pow(flow_grad(0,1),2)+pow(flow_grad(1,1),2))+epsilon, rData.dt_inv);
     double h_grad = std::max(norm_2(height_grad)+epsilon, 1.0);
     rK1 = 0.5 * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
     rK2 = 0.5 * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
@@ -536,10 +546,18 @@ void ShallowWater2D3::AlgebraicResidual(
     rHeightresidual = height_acc + rFlowDiv + rain;
 }
 
+void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
+{
+    const double epsilon = 1e-6; // small value to avoid division by zero
+    const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
+    rTensor = outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + epsilon);
+}
+
 void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
 {
+    const double epsilon = 1e-6; // small value to avoid division by zero
     const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
-    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / inner_prod(rVector, rVector);
+    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + epsilon);
 }
 
 void ShallowWater2D3::StabilizationParameter(double& rTau, const ElementData& rData)
@@ -547,6 +565,14 @@ void ShallowWater2D3::StabilizationParameter(double& rTau, const ElementData& rD
     const double epsilon = 1e-6; // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
     rTau = length * rData.stab_factor / (norm_2(rData.velocity) + rData.gravity * rData.effective_height + epsilon);
+}
+
+void ShallowWater2D3::StabilizationParameter(BoundedMatrix<double,2,2>& rCharacteristicLength, const ElementData& rData)
+{
+    double length;
+    StabilizationParameter(length, rData);
+    StreamLineTensor(rCharacteristicLength, rData.flow_rate);
+    rCharacteristicLength *= length;
 }
 
 } // namespace kratos
