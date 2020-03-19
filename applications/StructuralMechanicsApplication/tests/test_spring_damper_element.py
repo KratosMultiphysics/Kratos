@@ -56,7 +56,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
     def _solve(self,mp):
 
-        #define a minimal newton raphson dynamic solver
+        # Define a minimal newton raphson solver
         settings = KratosMultiphysics.Parameters("""
         {
             "name"                     : "newton_raphson_strategy",
