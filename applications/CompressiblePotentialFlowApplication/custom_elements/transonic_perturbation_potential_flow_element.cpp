@@ -188,7 +188,7 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::Initialize(const 
 template <int Dim, int NumNodes>
 void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    FindUpstreamElementSharingFace(rCurrentProcessInfo);
+    //FindUpstreamElementSharingFace(rCurrentProcessInfo);
     //FindUpstreamElementSharingNode(rCurrentProcessInfo);
 }
 
@@ -475,7 +475,8 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         // Calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        const double density = ComputeDensity(rCurrentProcessInfo);
+        // const double density = ComputeDensity(rCurrentProcessInfo);
+        const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
         const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
         array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
         const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
@@ -497,7 +498,8 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
         const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, r_upstream_element, rCurrentProcessInfo);
         const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
         const double Drho_Dv2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
-        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        // array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeTotalVelocity<Dim, NumNodes>(*this, rCurrentProcessInfo);
         const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
         const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<Dim, NumNodes>(*this, rCurrentProcessInfo);
@@ -539,9 +541,45 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
                 }
             }
 
+            // if(this->Id()==12632){
+            //     for(unsigned int i = 0; i < NumNodes; i++){
+            //         KRATOS_WARNING_IF("LHS Supersonic Accelerating",rLeftHandSideMatrix(i,i) < 0.0)
+            //         << " Negative diagonal entry in element # " << this->Id()
+            //         << "        rLeftHandSideMatrix(i,i) = " << rLeftHandSideMatrix(i,i)
+            //         << " Upstream element Id = " << r_upstream_element.Id()
+            //         << "        at node # " << GetGeometry()[i].Id()  << std::endl;
+            //         // if(rLeftHandSideMatrix(i,i) < 0.0){
+            //         //     KRATOS_WATCH(density)
+            //         //     KRATOS_WATCH(i)
+            //         //     KRATOS_WATCH(term_matrix_laplacian(i,i))
+            //         //     KRATOS_WATCH(term_matrix_nonlinear(i,i))
+            //         //     KRATOS_WATCH(term_matrix_laplacian)
+            //         //     KRATOS_WATCH(term_matrix_nonlinear)
+            //         //     KRATOS_WATCH(rLeftHandSideMatrix(i,i))
+            //         //     KRATOS_WATCH(upstream_upwind_factor)
+            //         // }
+            //     }
+            // }
+
+            // for(unsigned int i = 0; i < NumNodes; i++){
+            //     KRATOS_WARNING_IF("LHS Supersonic Accelerating",rLeftHandSideMatrix(i,i) < 0.0)
+            //     << " Negative diagonal entry in element # " << this->Id()
+            //     << "        rLeftHandSideMatrix(i,i) = " << rLeftHandSideMatrix(i,i)
+            //     << "        at node # " << GetGeometry()[i].Id()  << std::endl;
+            //     // if(rLeftHandSideMatrix(i,i) < 0.0){
+            //     //         rLeftHandSideMatrix(i,i) = data.vol;
+            //     //         KRATOS_WATCH(rLeftHandSideMatrix(i,i))
+            //     //         // KRATOS_WATCH(term_matrix_laplacian(i,i))
+            //     //         // KRATOS_WATCH(term_matrix_laplacian)
+            //     //         // KRATOS_WATCH(rLeftHandSideMatrix(i,i))
+            //     //         // KRATOS_WATCH(upstream_upwind_factor)
+            //     // }
+            // }
+
         }
         // Supersonic flow and decelerating (local_mach_number < upstream_mach_number)
         else{
+            // std::cout.precision(16);
             BoundedVector<double, NumNodes + 1> Drho_DPhi =
                 PotentialFlowUtilities::ComputeAndAssembleDrhoDphiSupersonicDecelerating<Dim, NumNodes>(
                     r_this, r_upstream_element, rCurrentProcessInfo);
@@ -560,13 +598,47 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
                     rLeftHandSideMatrix(i,j) += term_matrix_nonlinear(i,j);
                 }
             }
+
+            // if(this->Id()==12632){
+            //     for(unsigned int i = 0; i < NumNodes; i++){
+            //         KRATOS_WARNING_IF("LHS Supersonic Decelerating",rLeftHandSideMatrix(i,i) < 0.0)
+            //         << " Negative diagonal entry in element # " << this->Id()
+            //         << "        rLeftHandSideMatrix(i,i) = " << rLeftHandSideMatrix(i,i)
+            //         << " Upstream element Id = " << r_upstream_element.Id()
+            //         << "        at node # " << GetGeometry()[i].Id()  << std::endl;
+            //         // if(rLeftHandSideMatrix(i,i) < 0.0){
+            //         //     KRATOS_WATCH(density)
+            //         //     KRATOS_WATCH(i)
+            //         //     KRATOS_WATCH(term_matrix_laplacian(i,i))
+            //         //     KRATOS_WATCH(term_matrix_nonlinear(i,i))
+            //         //     KRATOS_WATCH(term_matrix_laplacian)
+            //         //     KRATOS_WATCH(term_matrix_nonlinear)
+            //         //     KRATOS_WATCH(rLeftHandSideMatrix(i,i))
+            //         //     KRATOS_WATCH(upstream_upwind_factor)
+            //         // }
+            //     }
+            // }
+            // //KRATOS_WATCH(upstream_upwind_factor)
+            // //KRATOS_WATCH(this->Id())
+
+            // for(unsigned int i = 0; i < NumNodes; i++){
+            //         KRATOS_WARNING_IF("LHS Supersonic Decelerating",rLeftHandSideMatrix(i,i) < 0.0)
+            //         << " Negative diagonal entry in element # " << this->Id()
+            //         << "        rLeftHandSideMatrix(i,i) = " << rLeftHandSideMatrix(i,i)
+            //         << "        at node # " << GetGeometry()[i].Id()  << std::endl;
+            //         // if(rLeftHandSideMatrix(i,i) < 0.0){
+            //         //     rLeftHandSideMatrix(i,i) = data.vol;
+            //         //     KRATOS_WATCH(rLeftHandSideMatrix(i,i))
+            //         //     // KRATOS_WATCH(term_matrix_laplacian(i,i))
+            //         //     // KRATOS_WATCH(term_matrix_laplacian)
+            //         //     // KRATOS_WATCH(rLeftHandSideMatrix(i,i))
+            //         //     // KRATOS_WATCH(upstream_upwind_factor)
+            //         // }
+            //     }
         }
+
     }
-    for(unsigned int i = 0; i < NumNodes; i++){
-        KRATOS_WARNING_IF("CalculateLeftHandSideNormalElement",rLeftHandSideMatrix(i,i) < 0.0)
-        << " Negative diagonal entry in element # " << this->Id()
-        << "                            at node # " << GetGeometry()[i].Id()  << std::endl;
-    }
+
 }
 
 template <int Dim, int NumNodes>
@@ -584,8 +656,10 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHan
         // Calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        const double density = ComputeDensity(rCurrentProcessInfo);
-        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        // const double density = ComputeDensity(rCurrentProcessInfo);
+        const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
+        // array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeTotalVelocity<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
         noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
     }
@@ -600,7 +674,8 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHan
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         const double upwind_density = PotentialFlowUtilities::ComputeUpwindDensity<Dim, NumNodes>(*this, *pGetUpstreamElement(), rCurrentProcessInfo);
-        array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        // array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeTotalVelocity<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
         const BoundedVector<double, NumNodes> rhs = - data.vol * upwind_density * prod(data.DN_DX, velocity);
 
@@ -627,7 +702,8 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHand
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
+    // const double density = ComputeDensity(rCurrentProcessInfo);
+    const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
     array_1d<double, Dim> velocity = ComputeVelocity(rCurrentProcessInfo);
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
@@ -665,7 +741,8 @@ void TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHan
     GeometryUtils::CalculateGeometryData(r_geometry, data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
+    // const double density = ComputeDensity(rCurrentProcessInfo);
+    const double density = PotentialFlowUtilities::ComputePerturbationDensity<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
@@ -939,7 +1016,7 @@ double TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensity(
 
     if (local_mach_number > mach_number_limit)
     { // Clamping the mach number to mach_number_limit
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << " in element #" << this->Id() << std::endl;
+        // KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << " in element #" << this->Id() << std::endl;
         local_mach_number = mach_number_limit;
     }
 
@@ -959,7 +1036,7 @@ double TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensity(
     }
     else
     {
-        KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
+        // KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
         return rho_inf * 0.00001;
     }
 }
@@ -982,11 +1059,11 @@ array_1d<double, Dim> TransonicPerturbationPotentialFlowElement<Dim, NumNodes>::
     const ProcessInfo& rCurrentProcessInfo) const
 {
 
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    // const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeTotalVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    // for (unsigned int i = 0; i < Dim; i++){
+    //     velocity[i] += free_stream_velocity[i];
+    // }
 
     return velocity;
 }
