@@ -19,6 +19,7 @@
 
 // Strategies
 #include "custom_strategies/upwind_residualbased_newton_raphson_strategy.hpp"
+#include "custom_strategies/upwind_line_search_strategy.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -43,10 +44,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom strategy types
     typedef UpwindResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > UpwindResidualBasedNewtonRaphsonStrategyType;
+    typedef UpwindLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > UpwindLineSearchStrategyType;
 
     py::class_<UpwindResidualBasedNewtonRaphsonStrategyType,
                typename UpwindResidualBasedNewtonRaphsonStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType>(
         m, "UpwindResidualBasedNewtonRaphsonStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer,
+                      ConvergenceCriteriaPointer, int, bool, bool, bool>());
+
+    py::class_<UpwindLineSearchStrategyType,
+               typename UpwindLineSearchStrategyType::Pointer, UpwindResidualBasedNewtonRaphsonStrategyType>(
+        m, "UpwindLineSearchStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer,
                       ConvergenceCriteriaPointer, int, bool, bool, bool>());
 }

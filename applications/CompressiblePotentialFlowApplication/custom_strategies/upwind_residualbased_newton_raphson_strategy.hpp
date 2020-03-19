@@ -39,6 +39,12 @@ public:
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TSchemeType TSchemeType;
 
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
     ///@}
     ///@name Life Cycle
 
@@ -116,7 +122,7 @@ public:
         BaseType::EchoInfo(iteration_number);
 
         // Updating the results stored in the database
-        BaseType::UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+        UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -158,6 +164,7 @@ public:
                             p_scheme, BaseType::mpA, BaseType::mpDx, BaseType::mpb, r_model_part);
                         KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0)
                             << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                        KRATOS_INFO("ITERATION NUMBER ") << iteration_number << std::endl;
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
@@ -191,7 +198,7 @@ public:
             BaseType::EchoInfo(iteration_number);
 
             // Updating the results stored in the database
-            BaseType::UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+            UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -241,6 +248,25 @@ public:
 
         return is_converged;
     }
+protected:
+
+virtual void UpdateDatabase(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MoveMesh) override
+    {
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+
+        p_scheme->Update(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+
+        // Move the mesh if needed
+        if (MoveMesh == true)
+            BaseType::MoveMesh();
+    }
+
+
 
 private:
 
