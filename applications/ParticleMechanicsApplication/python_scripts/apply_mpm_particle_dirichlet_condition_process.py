@@ -183,7 +183,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
                 ## IMPOSED DISPLACEMENT
                 previous_displacement = mpc.GetValue(KratosParticle.MPC_DISPLACEMENT)
-                incremental_displacement= self.value - previous_displacement
+                incremental_displacement= self.value #- previous_displacement
                 mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
                
     
