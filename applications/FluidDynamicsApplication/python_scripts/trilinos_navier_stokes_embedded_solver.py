@@ -51,14 +51,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
-            "linear_solver_settings"       : {
-                "solver_type"                        : "multi_level",
-                "max_iteration"                      : 200,
-                "tolerance"                          : 1e-6,
-                "max_levels"                         : 3,
-                "symmetric"                          : false,
-                "reform_preconditioner_at_each_step" : true,
-                "scaling"                            : true
+            "linear_solver_settings": {
+                "solver_type": "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -99,6 +93,9 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
 
+        # TODO: SWITCH THIS ON BY CALLING THE BASE SOLVER CONSTRUCTOR (INSTEAD OF THE BASE ONE) ONCE THIS IS IMPLEMENTED
+        self._fm_ale_is_active = False
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
     def AddVariables(self):
@@ -120,45 +117,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         super(NavierStokesMPIEmbeddedMonolithicSolver,self).PrepareModelPart()
         ## Construct MPI the communicators
         self.distributed_model_part_importer.CreateCommunicators()
-
-    def AddDofs(self):
-        super(NavierStokesMPIEmbeddedMonolithicSolver, self).AddDofs()
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","DOFs for the VMS Trilinos fluid solver added correctly.")
-
-    # TODO: ONCE THE FM-ALE WORKS IN MPI, THE BASE Initialize() METHOD HAS TO BE CALLED
-    def Initialize(self):
-        # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # If the solver requires an instance of the stabilized embedded_formulation class, set the process info variables
-            if hasattr(self, 'embedded_formulation'):
-                self.embedded_formulation.SetProcessInfo(self.GetComputingModelPart())
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
-
-        # Set the distance modification process
-        self.__GetDistanceModificationProcess().ExecuteInitialize()
-
-        # For the primitive Ausas formulation, set the find nodal neighbours process
-        # Recall that the Ausas condition requires the nodal neighbouts.
-        if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
-            computing_model_part = self.GetComputingModelPart()
-            data_communicator = computing_model_part.GetCommunicator().GetDataCommunicator()
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
-                data_communicator,
-                computing_model_part)
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Solver initialization finished.")
 
     def get_epetra_communicator(self):
         if not hasattr(self, '_epetra_communicator'):

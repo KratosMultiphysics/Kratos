@@ -47,14 +47,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings"       : {
-                "solver_type"                        : "multi_level",
-                "max_iteration"                      : 200,
-                "tolerance"                          : 1e-8,
-                "max_levels"                         : 3,
-                "symmetric"                          : false,
-                "reform_preconditioner_at_each_step" : true,
-                "scaling"                            : true
+            "linear_solver_settings": {
+                "solver_type": "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -138,12 +132,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.PrepareModelPart()
-
-    def AddDofs(self):
-        ## Base class DOFs addition
-        super(TrilinosNavierStokesSolverMonolithic, self).AddDofs()
-
-        KratosMultiphysics.Logger.Print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
     def Initialize(self):
         # If there is turbulence modelling, set the Epetra communicator in the turbulence solver

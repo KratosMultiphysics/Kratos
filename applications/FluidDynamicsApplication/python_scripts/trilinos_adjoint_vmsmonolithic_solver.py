@@ -37,7 +37,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "materials_filename": ""
             },
             "linear_solver_settings" : {
-                "solver_type" : "multi_level"
+                "solver_type" : "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],

@@ -49,13 +49,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings":   {
-                "solver_type": "AmgclMPISolver",
-                "tolerance": 1.0e-6,
-                "max_iteration": 10,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "None",
-                "krylov_type": "cg"
+                "solver_type": "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -110,7 +104,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
         self.distributed_model_part_importer.ImportModelPart()
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","MPI model reading finished.")
 
@@ -118,18 +111,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         super(NavierStokesMPITwoFluidsSolver,self).PrepareModelPart()
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
-
-    def AddDofs(self):
-        super(NavierStokesMPITwoFluidsSolver, self).AddDofs()
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","DOFs for the Trilinos Two Fluid solver added correctly.")
-
-
-    def Initialize(self):
-        ## Base class solver intiialization
-        super(NavierStokesMPITwoFluidsSolver, self).Initialize()
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver", "Solver initialization finished.")
 
     def get_epetra_communicator(self):
         if not hasattr(self, '_epetra_communicator'):
