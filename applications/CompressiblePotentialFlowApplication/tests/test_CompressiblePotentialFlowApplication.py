@@ -49,9 +49,19 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    KratosUnittest.runTests(AssembleTestSuites())
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS) # TESTS_OUTPUTS
+    #KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
+    #KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating")
+    #KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicDecelerating")
+    KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating2")
+    #KratosMultiphysics.Tester.RunTestCases("TestTransonicPerturbationPotentialFlowElementLHSSuperSonicDecelerating")
+
+    #KratosMultiphysics.Tester.RunTestCases("TestCompressiblePerturbationPotentialFlowElementLHS2")
+    #KratosMultiphysics.Tester.RunTestCases("TestTransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating2")
+    # KratosMultiphysics.Tester.RunTestCases("TestComputeDensity")
+    #KratosMultiphysics.Tester.RunTestCases("TestComputeDrhoDphiUpSupersonicAccelerating")
+    #KratosMultiphysics.Tester.RunTestCases("TestComputeDerivativeMachNumberSquaredWRTVelocitySquared")
+    # KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+    # KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    #KratosUnittest.runTests(AssembleTestSuites())
+    # KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
