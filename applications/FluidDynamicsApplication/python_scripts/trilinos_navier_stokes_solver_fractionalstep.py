@@ -83,7 +83,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
 
 
     def AddVariables(self):
@@ -93,7 +93,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","variables for the trilinos fractional step solver added correctly")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"variables for the trilinos fractional step solver added correctly")
 
 
     def ImportModelPart(self):
@@ -102,7 +102,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         ## Execute the Metis partitioning and reading
         self.distributed_model_part_importer.ImportModelPart()
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","MPI model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(TrilinosNavierStokesSolverFractionalStep,self).PrepareModelPart()
@@ -114,14 +114,14 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         ## Base class DOFs addition
         super(TrilinosNavierStokesSolverFractionalStep, self).AddDofs()
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
     def Initialize(self):
         ## Base class solver intiialization
         super(TrilinosNavierStokesSolverFractionalStep, self).Initialize()
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def Finalize(self):
         self.get_solution_strategy().Clear()

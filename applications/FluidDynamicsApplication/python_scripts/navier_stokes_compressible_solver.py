@@ -76,7 +76,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
         ## Set the element replace settings
         #self._SetCompressibleElementReplaceSettings()
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesCompressibleSolver", "Construction of NavierStokesCompressibleSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesCompressibleSolver finished.")
 
     def AddVariables(self):
 
@@ -107,7 +107,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)  #for momentum
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesCompressibleSolver", "Monolithic compressible fluid solver variables added correctly")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Monolithic compressible fluid solver variables added correctly")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
@@ -133,7 +133,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 pass
 
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesCompressibleSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)

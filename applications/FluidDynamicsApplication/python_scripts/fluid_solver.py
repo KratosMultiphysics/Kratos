@@ -75,7 +75,7 @@ class FluidSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -94,14 +94,14 @@ class FluidSolver(PythonSolver):
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
 
-        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
     def ExportModelPart(self):
         ## Model part writing
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model export finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model export finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -132,7 +132,7 @@ class FluidSolver(PythonSolver):
             if not is_converged:
                 msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-                KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
+                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, msg)
             return is_converged
         else:
             return True

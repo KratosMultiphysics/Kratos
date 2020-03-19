@@ -86,18 +86,18 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
         if self._bfecc_convection:
             self._bfecc_convection = False
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesMPITwoFluidsSolver", "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","Construction of NavierStokesMPITwoFluidsSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPITwoFluidsSolver finished.")
 
     def AddVariables(self):
         super(NavierStokesMPITwoFluidsSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","Variables for the Trilinos Two Fluid solver added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Variables for the Trilinos Two Fluid solver added correctly.")
 
     def ImportModelPart(self):
         ## Construct the distributed import model part utility
@@ -105,7 +105,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         ## Execute the Metis partitioning and reading
         self.distributed_model_part_importer.ImportModelPart()
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","MPI model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(NavierStokesMPITwoFluidsSolver,self).PrepareModelPart()

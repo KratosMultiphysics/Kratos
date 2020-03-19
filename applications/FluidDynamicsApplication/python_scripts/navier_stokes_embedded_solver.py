@@ -305,7 +305,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if self._fm_ale_is_active:
             self._get_fm_ale_virtual_model_part()
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
@@ -328,7 +328,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if self._fm_ale_is_active:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
         # Call the base solver PrepareModelPart()
@@ -378,7 +378,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Fill the virtual model part geometry. Note that the mesh moving util is created in this first call
             self._get_mesh_moving_util().Initialize(self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def AdvanceInTime(self, current_time):
         # Call base solver AdvanceInTime to clone the time step and get the new time

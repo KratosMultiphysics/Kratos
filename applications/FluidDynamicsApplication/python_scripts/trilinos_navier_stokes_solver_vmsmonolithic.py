@@ -101,9 +101,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
             self._turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"])
             self.condition_name = self._turbulence_model_solver.GetFluidVelocityPressureConditionName()
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Using " + self.condition_name + " as wall condition")
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Construction of TrilinosNavierStokesSolverMonolithic finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
     def AddVariables(self):
         ## Add variables from the base class
@@ -120,7 +120,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         ## Execute the Metis partitioning and reading
         self.distributed_model_part_importer.ImportModelPart()
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -160,7 +160,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.SetParentSolvingStrategy(solution_strategy)
 
-        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def Finalize(self):
         self.get_solution_strategy().Clear()
