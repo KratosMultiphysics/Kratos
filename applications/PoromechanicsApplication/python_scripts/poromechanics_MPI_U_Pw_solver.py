@@ -6,8 +6,8 @@ import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+from KratosMultiphysics.PoromechanicsApplication import TrilinosExtension as TrilinosPoro
 
 # Import base class file
 from KratosMultiphysics.PoromechanicsApplication.poromechanics_U_Pw_solver import UPwSolver
@@ -125,11 +125,11 @@ class MPIUPwSolver(UPwSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_k)
             if(solution_type == "quasi_static"):
                 if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
-                    scheme = KratosPoro.TrilinosNewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                    scheme = TrilinosPoro.TrilinosNewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
-                    scheme = KratosPoro.TrilinosNewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
+                    scheme = TrilinosPoro.TrilinosNewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
-                scheme = KratosPoro.TrilinosNewmarkDynamicUPwScheme(beta,gamma,theta)
+                scheme = TrilinosPoro.TrilinosNewmarkDynamicUPwScheme(beta,gamma,theta)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 

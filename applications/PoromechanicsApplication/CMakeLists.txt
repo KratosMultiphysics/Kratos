@@ -2,9 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPoromechanicsApplication ****")
 
-################### PYBIND11
-include(pybind11Tools)
-
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
@@ -84,58 +81,27 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
 )
 
-if(${USE_MPI} MATCHES ON)
+## Define python interface sources
+set( KRATOS_POROMECHANICS_PYTHON_INTERFACE_SOURCES
 
-    kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_python_application.cpp
+)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
-    include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-    link_directories(${TRILINOS_LIBRARIES})
+## define Poromechanics test sources
 
-    ## Define python interface sources
-    set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mpi_strategies_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_mpi_python_application.cpp
-    )
-
-    ## PoromechanicsApplication core library (C++ parts)
-    add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosStructuralMechanicsCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES} )
-
-else()
-
-    ## Define python interface sources
-    set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/poromechanics_python_application.cpp
-    )
-
-    ## PoromechanicsApplication core library (C++ parts)
-    add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-
-endif()
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 ###############################################################################
 ## PoromechanicsApplication core library (C++ parts)
-#add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-#target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosStructuralMechanicsCore)
+add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
+target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties( KratosPoromechanicsCore PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
 
 ## PoromechanicsApplication python module
-pybind11_add_module(KratosPoromechanicsApplication MODULE THIN_LTO ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosPoromechanicsApplication MODULE THIN_LTO ${KRATOS_POROMECHANICS_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosPoromechanicsCore)
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 
@@ -178,3 +144,9 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosPoromechanicsCore DESTINATION libs )
 install(TARGETS KratosPoromechanicsApplication DESTINATION libs )
+
+## If trilinos is avaliable, switch on the Fluid trilinos extension
+if(${USE_MPI})
+  message("Enabling trilinos extension for KratosPoromechanicsApplication")
+  add_subdirectory(trilinos_extension)
+endif(${USE_MPI})

@@ -18,6 +18,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/dof_updater.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -457,28 +458,19 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            //Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
-            {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
-            }
-        }
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
         this->UpdateVariablesDerivatives(r_model_part);
 
         KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /// Free memory allocated by this object.
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -529,6 +521,12 @@ protected:
 
         KRATOS_CATCH( "" )
     }
+
+private:
+
+    /// Member Variables
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
 }; // Class NewmarkQuasistaticUPwScheme
 }  // namespace Kratos
