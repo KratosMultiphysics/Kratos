@@ -49,28 +49,26 @@ First, install the following packages from a terminal:
 Then, make sure that the following applications are added in the configure.sh file:
 
 > add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
-> 
+>
 > add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-> 
+>
 > add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
-> 
+>
 > add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
-> 
+>
 > add_app ${KRATOS_APP_DIR}/MetisApplication;
-> 
+>
 > add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
 And also that the following options are set:
 
 > -DUSE_MPI=ON \\
-> 
+>
 > -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \\
-> 
+>
 > -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \\
-> 
+>
 > -DTRILINOS_LIBRARY_PREFIX="trilinos_" \\
-> 
-> -DUSE_PORO_MPI=ON \\
 
 Uncomment the following line in
 [KratosPoromechanics.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/KratosPoromechanics.py).

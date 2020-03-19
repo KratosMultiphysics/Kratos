@@ -84,10 +84,12 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
 )
 
-if(${USE_PORO_MPI} MATCHES ON)
+if(${USE_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
-    include_directories(${TRILINOS_INCLUDE_DIR})
+    kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
+
+    include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
+    link_directories(${TRILINOS_LIBRARIES})
 
     ## Define python interface sources
     set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
@@ -102,7 +104,7 @@ if(${USE_PORO_MPI} MATCHES ON)
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosTrilinosCore KratosStructuralMechanicsCore)
+    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosStructuralMechanicsCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES} )
 
 else()
 
