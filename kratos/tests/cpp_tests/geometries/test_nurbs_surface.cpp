@@ -430,8 +430,11 @@ namespace Testing {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        surface.CreateIntegrationPoints(integration_points);
+
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
-        surface.CreateQuadraturePointGeometries(quadrature_points, 3);
+        surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
         double area = 0;
@@ -461,6 +464,19 @@ namespace Testing {
             element.GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
             TOLERANCE);
+
+        // check location of quadrature points
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[2][0];
+        local_coords[1] = integration_points[2][1];
+        surface.GlobalCoordinates(global_coords, local_coords);
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[2].Center(), global_coords, TOLERANCE);
+
+        local_coords[0] = integration_points[5][0];
+        local_coords[1] = integration_points[5][1];
+        surface.GlobalCoordinates(global_coords, local_coords);
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[5].Center(), global_coords, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceQuarterSphere, KratosCoreNurbsGeometriesFastSuite) {

@@ -346,20 +346,22 @@ typedef Node<3> NodeType;
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
     {
         // Nurbs curve on a Nurbs surface
-        auto curve = GenerateReferenceCurve2dNodes();
+        auto curve = GenerateReferenceCurve3d();
 
-        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve.CreateIntegrationPoints(integration_points);
+
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
-        curve.CreateQuadraturePointGeometries(quadrature_points, 3);
+        curve.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
 
-        KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
-        double area = 0;
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
+        double length = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
-                area += quadrature_points[i].IntegrationPoints()[j].Weight();
+                length += quadrature_points[i].IntegrationPoints()[j].Weight();
             }
         }
-        KRATOS_CHECK_NEAR(area, 11.18033988749894, TOLERANCE);
+        KRATOS_CHECK_NEAR(length, 131.892570399495, TOLERANCE);
 
         auto element = Element(0, quadrature_points(2));
 
@@ -380,6 +382,14 @@ typedef Node<3> NodeType;
             element.GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
             TOLERANCE);
+
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[10][0];
+        local_coords[1] = integration_points[10][1];
+        curve.GlobalCoordinates(global_coords, local_coords);
+
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[10].Center(), global_coords, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.

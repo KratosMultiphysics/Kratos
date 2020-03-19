@@ -375,8 +375,11 @@ typedef Node<3> NodeType;
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
 
         // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve_on_surface.CreateIntegrationPoints(integration_points);
+
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
-        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3);
+        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
         double length = 0;
@@ -386,6 +389,14 @@ typedef Node<3> NodeType;
             }
         }
         KRATOS_CHECK_NEAR(length, 23.313708498984759, TOLERANCE);
+
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[2][0];
+        local_coords[1] = integration_points[2][1];
+        curve_on_surface.GlobalCoordinates(global_coords, local_coords);
+
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[2].Center(), global_coords, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.
