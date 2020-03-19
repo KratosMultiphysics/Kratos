@@ -108,6 +108,12 @@ public:
             KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or relative_tolerance not defined on settings. Using default 1.0e-4" << std::endl;
             mRatioTolerance = 1.0e-4;
         }
+        if (Settings.Has("echo_level")) {
+            BaseType::mEchoLevel = Settings["echo_level"].GetInt();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "echo_level not defined on settings. Using default 1" << std::endl;
+            BaseType::mEchoLevel = 1;
+        }
 
         this->mActualizeRHSIsNeeded = true;
     }
