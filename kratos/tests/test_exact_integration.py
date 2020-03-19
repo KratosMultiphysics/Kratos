@@ -399,7 +399,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self._test_triangle_exact_integration_3(False)
 
     # QUADRILATERAL
-    def test_quadrilateral_exact_integration_1(self):
+    def _test_quadrilateral_exact_integration_1(self, use_delaunator = False):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -424,7 +424,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(4).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(2)
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(2,1.0e6, 0, 1.0, use_delaunator)
 
         # Quadrilateral 2
         model_part.CreateNewNode(5, 0.00, 0.00, 0.01)
@@ -467,7 +467,10 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[5, 1],  2.0 / 3.0)
         self.assertAlmostEqual(matrix_solution[5, 2],  1.0 / 6.0)
 
-    def test_quadrilateral_exact_integration_2(self):
+    def test_quadrilateral_exact_integration_1(self):
+        self._test_quadrilateral_exact_integration_1(False)
+
+    def _test_quadrilateral_exact_integration_2(self, use_delaunator = False):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -492,7 +495,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(4).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N()
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(2,1.0e6, 0, 1.0, use_delaunator)
 
         # Quadrilateral 2
         normal[2] = -1.0
@@ -536,6 +539,8 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[5, 1], 5.0 / 6.0)
         self.assertAlmostEqual(matrix_solution[5, 2], 1.0 / 24.0)
 
+    def test_quadrilateral_exact_integration_2(self):
+        self._test_quadrilateral_exact_integration_2(False)
 
 if __name__ == '__main__':
     KratosUnittest.main()
