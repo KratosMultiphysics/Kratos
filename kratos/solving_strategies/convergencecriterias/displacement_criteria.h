@@ -93,7 +93,7 @@ public:
         } else if (Settings.Has("absolute_tolerance")) {
             mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
         } else {
-            KRATOS_WARNING("DisplacementCriteria") << "displacement_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
+            KRATOS_WARNING("DisplacementCriteria") << "displacement_absolute_tolerance or absolute_tolerance not defined on settings. Using default 1.0e-9" << std::endl;
             mAlwaysConvergedNorm = 1.0e-9;
         }
         if (Settings.Has("displacement_relative_tolerance")) {
@@ -101,7 +101,7 @@ public:
         } else if (Settings.Has("relative_tolerance")) {
             mRatioTolerance = Settings["relative_tolerance"].GetDouble();
         } else {
-            KRATOS_WARNING("DisplacementCriteria") << "displacement_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
+            KRATOS_WARNING("DisplacementCriteria") << "displacement_relative_tolerance or relative_tolerance not defined on settings. Using default 1.0e-4" << std::endl;
             mRatioTolerance = 1.0e-4;
         }
     }
