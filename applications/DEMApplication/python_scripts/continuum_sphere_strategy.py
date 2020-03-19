@@ -32,7 +32,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.test_type = DEM_parameters["TestType"].GetString()
 
-        self.amplified_continuum_search_radius_extension = DEM_parameters["AmplifiedSearchRadiusExtension"].GetDouble()
+        self.continuum_search_radius_amplification_factor = DEM_parameters["AmplifiedSearchRadiusExtension"].GetDouble()
 
         if 'MaxAmplificationRatioOfSearchRadius' in DEM_parameters.keys():
             self.max_amplification_ratio_of_search_radius = DEM_parameters["MaxAmplificationRatioOfSearchRadius"].GetDouble()
@@ -67,7 +67,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetVariablesAndOptions()
 
         # ADDITIONAL VARIABLES AND OPTIONS
-        self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
+        self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR, self.continuum_search_radius_amplification_factor)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):

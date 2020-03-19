@@ -80,8 +80,6 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
