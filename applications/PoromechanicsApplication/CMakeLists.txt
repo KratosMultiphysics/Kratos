@@ -88,6 +88,7 @@ if(${USE_MPI} MATCHES ON)
 
     kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/TrilinosApplication)
 
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
     link_directories(${TRILINOS_LIBRARIES})
 
