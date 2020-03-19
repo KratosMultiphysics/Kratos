@@ -720,6 +720,11 @@ public:
      * @param rModelPart The model part of the problem to solve
      * @return 0 all OK, 1 otherwise
      */
+    virtual int Check(const ModelPart& rModelPart) const
+    {
+        return const_cast<Scheme&>(*this).Check(const_cast<ModelPart&>(rModelPart)); // TODO remove this after the transition period and move the implementation from the non-const version of this function here
+    }
+
     virtual int Check(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -991,9 +996,9 @@ public:
         const Element& rElement,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        this->GetElementalDofList(
+        const_cast<Scheme&>(*this).GetElementalDofList(
             Element::Pointer(&const_cast<Element&>(rElement)),
             rDofList,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
@@ -1020,9 +1025,9 @@ public:
         const Condition& rCondition,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        this->GetConditionDofList(
+        const_cast<Scheme&>(*this).GetConditionDofList(
             Condition::Pointer(&const_cast<Condition&>(rCondition)),
             rDofList,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
