@@ -594,10 +594,15 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            TSparseSpace::Copy(b_modified, rb);
-
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                b_modified[i] = rb[i];
+            }
             // Fill with zeros
-            TSparseSpace::SetToZero(b_modified);
+            #pragma omp parallel for
+            for (int i = static_cast<int>(BaseType::mEquationSystemSize); i < static_cast<int>(total_size_of_system); ++i) {
+                b_modified[i] = 0.0;
+            }
             rb.resize(total_size_of_system, false);
 
             // Compute LM contributions
@@ -651,10 +656,15 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            TSparseSpace::Copy(b_modified, rb);
-
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                b_modified[i] = rb[i];
+            }
             // Fill with zeros
-            TSparseSpace::SetToZero(b_modified);
+            #pragma omp parallel for
+            for (int i = static_cast<int>(BaseType::mEquationSystemSize); i < static_cast<int>(total_size_of_system); ++i) {
+                b_modified[i] = 0.0;
+            }
             rb.resize(total_size_of_system, false);
 
             // Definition of the number of blocks
