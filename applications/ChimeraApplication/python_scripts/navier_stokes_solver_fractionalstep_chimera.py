@@ -31,7 +31,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_VELOCITY)
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid chimera solver variables added correctly.")
 
     def ImportModelPart(self):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "chimera"):
@@ -59,6 +59,9 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         chimera_setup_utils.SetChimeraInternalPartsFlag(
             self.model,
             self.chimera_internal_parts)
+
+    def GetComputingModelPart(self):
+        return self.main_model_part            
 
     def InitializeSolutionStep(self):
         self.chimera_process.ExecuteInitializeSolutionStep()
