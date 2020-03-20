@@ -83,7 +83,7 @@ public:
 
     // Scaling enum
     enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDER_MAX_DIAGONAL = 2, CONSIDER_PRESCRIBED_DIAGONAL = 3};
-    
+
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
 
@@ -967,7 +967,6 @@ public:
             TSystemVectorType b_modified(rb.size());
             TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); //free memory
 
             // Apply diagonal values on slaves
             #pragma omp parallel for
@@ -1008,7 +1007,6 @@ public:
             TSystemVectorType b_modified(rb.size());
             TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
             SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
