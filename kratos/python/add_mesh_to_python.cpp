@@ -306,19 +306,31 @@ pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
 }
 
 template< class TObject >
-void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, pybind11::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsArray1d(
+    TObject& dummy,
+    const Variable< array_1d<double, 3> >& rVariable,
+    pybind11::list values_list,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
-    std::vector< array_1d<double,3> > values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
+    std::vector< array_1d<double, 3> > values(values_list.size());
+    for (unsigned int i = 0; i < values_list.size(); i++)
     {
-        if(py::isinstance<array_1d<double,3> >(values_list[i]))
-            values[i] = (values_list[i]).cast<array_1d<double,3> >();
-        else
-            KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
+        if (py::isinstance<array_1d<double, 3>>(values_list[i])) {
+            values[i] = (values_list[i]).cast<array_1d<double, 3> >();
+        }
+        else if (py::isinstance<pybind11::list>(values_list[i]) ||
+            py::isinstance<Vector>(values_list[i]))
+        {
+            Vector value = (values_list[i]).cast<Vector>();
+            KRATOS_ERROR_IF(value.size() != 3)
+                << " parsed vector is not of size 3. Size of vector: " << value.size() << std::endl;
+            values[i] = value;
+        }
+        else {
+            KRATOS_ERROR << "expecting a list of array_1d<double,3> " << std::endl;
+        }
     }
-    dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValueOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
 }
 
 template< class TObject >
