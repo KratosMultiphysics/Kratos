@@ -76,7 +76,7 @@ public:
     // Constraint enum
     enum class CONSTRAINT_FACTOR {CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR = 0, CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR = 1, CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR = 2};
     enum class AUXILIAR_CONSTRAINT_FACTOR {CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR = 0, CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR = 1, CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR = 2};
-    
+
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier);
 
@@ -139,7 +139,7 @@ public:
 
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
-        
+
         // Auxiliar set for dirichlet dofs
         std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
 
@@ -150,7 +150,7 @@ public:
             msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
             KRATOS_ERROR << msg.str() << std::endl;
         }
-        
+
         // The first option will not consider any scaling (the diagonal values will be replaced with 1)
         if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
             BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
@@ -161,10 +161,10 @@ public:
         } else { // Otherwise we will assume we impose a numerical value
             BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
         }
-        
+
         // Auxiliar set for constraints
         std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","defined_in_process_info"};
-        
+
         // Definition of the constraint scale factor
         const std::string& r_constraint_scale_factor = ThisParameters["constraint_scale_factor"].GetString();
 
@@ -175,7 +175,7 @@ public:
             msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
             KRATOS_ERROR << msg.str() << std::endl;
         }
-        
+
         // This case will consider the mean value in the diagonal as a scaling value
         if (r_constraint_scale_factor == "use_mean_diagonal") {
             mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
@@ -184,10 +184,10 @@ public:
         } else { // Otherwise we will assume we impose a numerical value
             mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
         }
-        
+
         // Definition of the auxiliar constraint scale factor
         const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["auxiliar_constraint_scale_factor"].GetString();
-        
+
         // Check the values
         if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
             std::stringstream msg;
@@ -195,7 +195,7 @@ public:
             msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
             KRATOS_ERROR << msg.str() << std::endl;
         }
-        
+
         // This case will consider the mean value in the diagonal as a scaling value
         if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
             mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
@@ -215,7 +215,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(typename TLinearSolver::Pointer pNewLinearSystemSolver)   
+    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
@@ -342,7 +342,7 @@ public:
         for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i) {
             mLagrangeMultiplierVector[i] += rDx[BaseType::mEquationSystemSize + i];
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -379,7 +379,7 @@ public:
         for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i) {
             mLagrangeMultiplierVector[i] += rDx[BaseType::mEquationSystemSize + i];
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -407,58 +407,6 @@ public:
         BaseType::BuildRHS(pScheme, rModelPart, rb);
 
         KRATOS_CATCH("")
-    }
-
-
-    /**
-     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
-     * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
-     * way the matrix and RHS are built
-     * @param pScheme The integration scheme considered
-     * @param rModelPart The model part of the problem to solve
-     */
-    void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart
-        ) override
-    {
-        KRATOS_TRY;
-
-        BaseType::SetUpDofSet(pScheme, rModelPart);
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Organises the dofset in order to speed up the building phase
-     * @param rModelPart The model part of the problem to solve
-     */
-    void SetUpSystem(
-        ModelPart& rModelPart
-        ) override
-    {
-        BaseType::SetUpSystem(rModelPart);
-    }
-
-    /**
-     * @brief We call this method in order to do an initial resize of the system of equations
-     * @param pScheme The integration scheme considered
-     * @param pA Pointer to the LHS
-     * @param pDx Pointer to the unknowns increment vector
-     * @param pb The pointer to the RHS
-     * @param rModelPart The model part of the problem to solve
-     */
-    void ResizeAndInitializeVectors(
-        typename TSchemeType::Pointer pScheme,
-        TSystemMatrixPointerType& pA,
-        TSystemVectorPointerType& pDx,
-        TSystemVectorPointerType& pb,
-        ModelPart& rModelPart
-        ) override
-    {
-        // Base method
-        BaseType::ResizeAndInitializeVectors(pScheme, pA, pDx, pb, rModelPart);
     }
 
     /**
@@ -548,20 +496,20 @@ public:
         for (int k = ndofs; k<static_cast<int>(system_size); ++k) {
             scaling_factors[k] = 1.0;
         }
-        
+
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
         BaseType::mScaleFactor = this->GetScaleNorm(rModelPart, rA);
-        
+
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel firstprivate(system_size)
         {
             std::size_t col_begin = 0, col_end  = 0;
             bool empty = true;
-            
+
             #pragma omp for
             for (int k = 0; k < static_cast<int>(system_size); ++k) {
                 col_begin = Arow_indices[k];
@@ -602,7 +550,7 @@ public:
             }
         }
     }
-    
+
     /**
      * @brief Applies the constraints with master-slave relation matrix (RHS only)
      * @param pScheme The integration scheme considered
@@ -674,7 +622,7 @@ public:
 
         KRATOS_CATCH("")
     }
-    
+
     /**
      * @brief Applies the constraints with master-slave relation matrix
      * @param pScheme The integration scheme considered
@@ -694,7 +642,7 @@ public:
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             // Getting process info
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-            
+
             // First build the relation matrix
             BuildMasterSlaveConstraints(rModelPart);
 
@@ -905,7 +853,7 @@ protected:
 
     CONSTRAINT_FACTOR mConstraintFactorConsidered;                  /// The value considered for the constraint factor
     AUXILIAR_CONSTRAINT_FACTOR mAuxiliarConstraintFactorConsidered; /// The value considered for the auxiliar constraint factor
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
