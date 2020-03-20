@@ -144,7 +144,7 @@ class PotentialFlowSolver(FluidSolver):
                 "automatic_time_step" : false,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 1.0,
-                "time_step":            0.1
+                "time_step":            1.0
             },
             "auxiliary_variables_list" : []
         }''')
