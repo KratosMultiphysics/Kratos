@@ -94,19 +94,20 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         # Call base solver Initialize() to calculate the nodal neighbours and initialize the strategy
         super(PotentialFlowAdjointSolver, self).Initialize()
 
-        # Initialize the response function
-        self.response_function.Initialize()
+        # Initialize the response function and the sensitivity builder
+        self.get_response_function().Initialize()
+        self.get_sensitivity_builder().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
-        self.response_function.InitializeSolutionStep()
+        self.get_response_function().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
-        self.response_function.FinalizeSolutionStep()
-        self.sensitivity_builder.UpdateSensitivities()
+        self.get_response_function().FinalizeSolutionStep()
+        self.get_sensitivity_builder().UpdateSensitivities()
 
     def _get_strategy_type(self):
         strategy_type = "linear"
@@ -124,10 +125,9 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         return self._response_function
 
     def _create_response_function(self):
-        computing_model_part = self.GetComputingModelPart()
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
-                computing_model_part,
+                self.main_model_part,
                 self.response_function_settings)
         else:
             raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
@@ -140,9 +140,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
 
     def _create_sensitivity_builder(self):
         response_function = self.get_response_function()
-        computing_model_part = self.GetComputingModelPart()
-        KratosMultiphysics.SensitivityBuilder(
+        sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.sensitivity_settings,
-            computing_model_part,
+            self.main_model_part,
             response_function)
         return sensitivity_builder
