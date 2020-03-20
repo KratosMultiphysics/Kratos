@@ -88,12 +88,33 @@ protected:
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
         return "StandardStrategyFactory";
     }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << this->Info() << std::endl;
+        const auto factory_components = KratosComponents<StandardStrategyFactory>::GetComponents();
+        for (const auto& r_comp : factory_components) {
+            rOStream << "\t" << r_comp.first << std::endl;
+        }
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+//         rOStream << this->Info() << std::endl;
+//         const auto factory_components = KratosComponents<StandardStrategyFactory>::GetComponents();
+//         for (const auto& r_comp : factory_components) {
+//             rOStream << "\t" << r_comp.first << std::endl;
+//         }
+    }
+
 };
 
 ///@}
@@ -113,7 +134,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
-    
+
     return rOStream;
 }
 

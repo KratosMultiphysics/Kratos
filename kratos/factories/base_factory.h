@@ -196,7 +196,7 @@ public:
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << Info() << std::endl;
+        rOStream << this->Info() << std::endl;
         const auto factory_components = KratosComponents<FactoryType>::GetComponents();
         for (const auto& r_comp : factory_components) {
             rOStream << "\t" << r_comp.first << std::endl;
@@ -206,7 +206,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-//         rOStream << Info() << std::endl;
+//         rOStream << this->Info() << std::endl;
 //         const auto factory_components = KratosComponents<FactoryType>::GetComponents();
 //         for (const auto& r_comp : factory_components) {
 //             rOStream << "\t" << r_comp.first << std::endl;
