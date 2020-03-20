@@ -7,6 +7,8 @@ import math
 class TestAdjointLoadingConditions(KratosUnittest.TestCase):
 
     def __CheckSensitivityMatrix(self, sen_matrix, reference_sen_matrix, digits_to_check=5):
+        if ((sen_matrix.Size1() != len(reference_sen_matrix)) or (sen_matrix.Size2() != len(reference_sen_matrix[0]))):
+            raise Exception('Matrix sizes does not fit!')
         for i in range(sen_matrix.Size1()):
             for j in range(sen_matrix.Size2()):
                 self.assertAlmostEqual(sen_matrix[i,j], reference_sen_matrix[i][j], digits_to_check)
@@ -24,13 +26,13 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         mp.CreateNewNode(4,0.0,1.0,0.0)
 
         #ensure that the property 1 is created
-        mp.GetProperties()[1]
+        props = mp.GetProperties()[1]
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("AdjointSemiAnalytic" + prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition("AdjointSemiAnalytic" + prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], props)
 
         # first we apply a constant SURFACE_LOAD to the condition
         load_on_cond = KratosMultiphysics.Vector(3)
@@ -64,9 +66,13 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         cond.SetValue(KratosMultiphysics.PRESSURE, 1.0)
 
         # check w.r.t. to design variable PRESSURE
-        reference_res_3 = ((0,0,0.25,0,0,0.25,0,0,0.25,0,0,0.25),())
+        reference_res_3 = [0,0,0.25,0,0,0.25,0,0,0.25,0,0,0.25]
         cond.CalculateSensitivityMatrix(KratosMultiphysics.PRESSURE, sen_matrix, mp.ProcessInfo)
-        self.__CheckSensitivityMatrix(sen_matrix, reference_res_3)
+        if ((sen_matrix.Size2() != len(reference_res_3)) or sen_matrix.Size1() != 1):
+            raise Exception('Matrix sizes does not fit!')
+        for i in range(sen_matrix.Size2()):
+            self.assertAlmostEqual(sen_matrix[0,i], reference_res_3[i], 5)
+
 
     def _LineLoadCondition3D2N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
@@ -81,13 +87,13 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         mp.CreateNewNode(2,1.0,1.0,0.0)
 
         #ensure that the property 1 is created
-        mp.GetProperties()[1]
+        props = mp.GetProperties()[1]
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("AdjointSemiAnalytic" + prefix + "LineLoadCondition3D2N", 1, [1,2], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition("AdjointSemiAnalytic" + prefix + "LineLoadCondition3D2N", 1, [1,2], props)
         cond.SetValue(KratosMultiphysics.LOCAL_AXIS_2, [-1.0, 1.0, 0.0])
 
         #first we apply a constant LINE_LOAD to theh condition
