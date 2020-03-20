@@ -90,8 +90,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Compress
     std::array<double, 3> upstream_potential{1.0, 150.0, 90.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     // Compute RHS
@@ -121,8 +121,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHSSupersonic
     std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     // Compute RHS
@@ -152,8 +152,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHSSupersonic
     std::array<double, 3> upstream_potential{1.0, 180.0, 51.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     // Compute RHS
@@ -204,8 +204,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
     std::array<double, 3> upstream_potential{1.0, 150.0, 90.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     // Compute LHS
@@ -257,8 +257,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
         UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
     }
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     // Compute LHS
@@ -311,8 +311,8 @@ GenerateTransonicPerturbationElement(model_part);
         UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
     }
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     Vector RHS_original = ZeroVector(number_of_nodes);
@@ -392,8 +392,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHSSuperS
         UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
     }
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     double local_mach_number =
@@ -508,8 +508,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHSSuperSonic
         UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
     }
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     // Compute LHS
@@ -562,8 +562,8 @@ GenerateTransonicPerturbationElement(model_part);
         UpstreamElementalDofList[i]->SetEquationId(upstream_ids[i]);
     }
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     Vector RHS_original = ZeroVector(number_of_nodes);
@@ -787,8 +787,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPotentialFlowElementEquationIdVector, Compres
     std::array<double, 3> upstream_potential{1.0, 180.0, 90.0};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     for (auto& r_node : model_part.Nodes()){
@@ -828,8 +828,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPotentialFlowElementEquationIdVectorWake, Com
 
     GenerateTestingTransonicUpstreamElement(model_part);
 
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(model_part, 4, 4);
-    neighbour_finder.Execute();
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
     for (unsigned int i = 0; i < 3; i++) {
