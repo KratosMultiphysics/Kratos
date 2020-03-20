@@ -202,6 +202,7 @@ class PotentialFlowSolver(FluidSolver):
             strategy_type = None
         return strategy_type
 
+    @classmethod
     def _create_solution_scheme(self):
         # Fake scheme creation to do the solution update
         solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
