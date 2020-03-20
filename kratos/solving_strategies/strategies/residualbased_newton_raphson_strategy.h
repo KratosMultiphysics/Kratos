@@ -157,7 +157,8 @@ class ResidualBasedNewtonRaphsonStrategy
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
+        const int build_level = ThisParameters.Has("build_level") ? ThisParameters["build_level"].GetInt() : 2;
+        this->SetRebuildLevel(build_level);
 
         mpA = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
