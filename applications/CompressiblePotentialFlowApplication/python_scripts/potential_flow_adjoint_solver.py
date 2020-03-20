@@ -126,9 +126,10 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         return self._response_function
 
     def _create_response_function(self):
+        computing_model_part = self.GetComputingModelPart()
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
-                self.main_model_part,
+                computing_model_part,
                 self.response_function_settings)
         else:
             raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
@@ -140,9 +141,10 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         return self._sensitivity_builder
 
     def _create_sensitivity_builder(self):
+        computing_model_part = self.GetComputingModelPart()
         response_function = self.get_response_function()
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.sensitivity_settings,
-            self.main_model_part,
+            computing_model_part,
             response_function)
         return sensitivity_builder
