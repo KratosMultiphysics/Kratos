@@ -61,7 +61,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
             self.chimera_internal_parts)
 
     def GetComputingModelPart(self):
-        return self.main_model_part            
+        return self.main_model_part
 
     def InitializeSolutionStep(self):
         self.chimera_process.ExecuteInitializeSolutionStep()
