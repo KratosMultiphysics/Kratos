@@ -614,10 +614,6 @@ public:
 
             // Finally reassign
             TSparseSpace::Copy(b_modified, rb);
-
-            // Free memory
-            b_lm.resize(0, false);
-            b_modified.resize(0, false);
         }
 
         KRATOS_CATCH("")
@@ -751,11 +747,6 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
             }
 
-            // Free memory
-            copy_of_A.resize(0, 0, false);
-            copy_of_T.resize(0, 0, false);
-            transpose_of_T.resize(0, 0, false);
-
             // Compute LM contributions
             TSystemVectorType b_lm(total_size_of_system);
             ComputeRHSLMContributions(b_lm, constraint_scale_factor);
@@ -765,10 +756,6 @@ public:
 
             // Finally reassign
             TSparseSpace::Copy(b_modified, rb);
-
-            // Free memory
-            b_lm.resize(0, false);
-            b_modified.resize(0, false);
         }
 
         KRATOS_CATCH("")
@@ -1116,7 +1103,6 @@ private:
 
         // Finally compute the RHS LM contribution
         noalias(aux_lm_rhs_contribution) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
-        aux_slave_dof_vector.resize(0, false); // Free memory
 
         if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
             #pragma omp parallel for
@@ -1130,7 +1116,6 @@ private:
                 rbLM[ndofs + i] = aux_lm_rhs_contribution[i];
             }
         }
-        aux_lm_rhs_contribution.resize(0, false); // Free memory
 
         // We compute the transposed matrix of the global relation matrix
         TSystemMatrixType T_transpose_matrix(ndofs, number_of_slave_dofs);
@@ -1141,7 +1126,6 @@ private:
         for (int i = 0; i < ndofs; ++i) {
             rbLM[i] = aux_whole_dof_vector[i];
         }
-        aux_whole_dof_vector.resize(0, false); // Free memory
 
         KRATOS_CATCH("")
     }
