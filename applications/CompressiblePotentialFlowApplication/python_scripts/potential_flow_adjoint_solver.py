@@ -109,6 +109,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.get_response_function().FinalizeSolutionStep()
         self.get_sensitivity_builder().UpdateSensitivities()
 
+    @classmethod
     def _get_strategy_type(self):
         strategy_type = "linear"
         return strategy_type
