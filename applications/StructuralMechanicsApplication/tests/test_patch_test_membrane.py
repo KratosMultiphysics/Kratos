@@ -209,30 +209,34 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         strategy.Solve()
 
     def _solve_dynamic(self,mp):
-
-        #define a minimal newton raphson dynamic solver
-        damp_factor_m = -0.30
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 500
-        compute_reactions = True
-        reform_step_dofs = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+        # Define a minimal newton raphson solver
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "newton_raphson_strategy",
+            "max_iteration"            : 500,
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : false,
+            "move_mesh_flag"           : true,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "bossak",
+                "damp_factor_m" : -0.3
+            },
+            "convergence_criteria_settings" : {
+                "name"               : "residual_criteria",
+                "absolute_tolerance" : 1.0e-9,
+                "relative_tolerance" : 1.0e-6,
+                "echo_level"         : 0
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
 
