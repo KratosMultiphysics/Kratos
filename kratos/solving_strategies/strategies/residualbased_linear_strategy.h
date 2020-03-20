@@ -144,10 +144,12 @@ public:
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
+        const int echo_level = ThisParameters.Has("echo_level") ? ThisParameters["echo_level"].GetInt() : 1;
+        SetEchoLevel(echo_level);
 
         // By default the matrices are rebuilt at each solution step
-        this->SetRebuildLevel(1);
+        const int build_level = ThisParameters.Has("build_level") ? ThisParameters["build_level"].GetInt() : 1;
+        this->SetRebuildLevel(build_level);
     }
 
     /**
@@ -424,7 +426,7 @@ public:
             for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
 
-            //the following is needed since we need to eventually compute time derivatives after applying 
+            //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
