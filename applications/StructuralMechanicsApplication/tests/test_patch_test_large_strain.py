@@ -427,6 +427,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
+        A,b = self._define_movement(dim)
+
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
         self._solve(mp,"elimination_builder")
@@ -474,6 +476,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
 
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
@@ -524,6 +528,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
 
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
@@ -582,6 +588,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
 
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
@@ -642,6 +650,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
+        A,b = self._define_movement(dim)
+
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
         self._solve(mp,"elimination_builder")
@@ -687,6 +697,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
 
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
@@ -737,6 +749,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
 
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
@@ -798,6 +812,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
 
         self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
