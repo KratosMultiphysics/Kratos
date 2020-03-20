@@ -53,6 +53,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
@@ -74,6 +75,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedSymbolicNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = False
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
@@ -94,6 +96,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedAusasNavierStokes"
         self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
@@ -113,6 +116,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedSymbolicNavierStokesDiscontinuous"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = False
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
@@ -231,8 +235,10 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "maximum_iterations": 7,
             "echo_level": 0,
             "time_order": 2,
+            "time_scheme": "bdf2",
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
+            "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
@@ -277,21 +283,16 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
+        # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
         super(NavierStokesEmbeddedMonolithicSolver,self).__init__(model,custom_settings)
 
         self.min_buffer_size = 3
         self.embedded_formulation = EmbeddedFormulation(self.settings["formulation"])
         self.element_name = self.embedded_formulation.element_name
         self.condition_name = self.embedded_formulation.condition_name
-
-        ## Set the formulation level set type
         self.level_set_type = self.embedded_formulation.level_set_type
-
-        ## Set the nodal properties flag
+        self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
-
-        ## Construct the linear solver
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -300,11 +301,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         # If the FM-ALE is required, do a first call to the _get_fm_ale_virtual_model_part
         # Note that this will create the virtual model part in the model
-        self.__fm_ale_is_active = self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0
-        if self.__fm_ale_is_active:
+        self._fm_ale_is_active = self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0
+        if self._fm_ale_is_active:
             self._get_fm_ale_virtual_model_part()
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
@@ -324,10 +325,10 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
-        if self.__fm_ale_is_active:
+        if self._fm_ale_is_active:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
         # Call the base solver PrepareModelPart()
@@ -341,70 +342,50 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._set_distance_function()
 
     def Initialize(self):
-        computing_model_part = self.GetComputingModelPart()
+        # Construct and set the solution strategy
+        solution_strategy = self.get_solution_strategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
-
-        # Set the time discretization utility to compute the BDF coefficients
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 2:
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        # Initialize the solution strategy
+        if not self.is_restarted():
+            # If the solver requires an instance of the stabilized embedded_formulation class, set the process info variables
+            if hasattr(self, 'embedded_formulation'):
+                self.embedded_formulation.SetProcessInfo(self.GetComputingModelPart())
+            # Initialize the solution strategy
+            solution_strategy.Initialize()
         else:
-            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
-
-        # Creating the solution strategy
-        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
-
-        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
-                                                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
-
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                                                            time_scheme,
-                                                                            self.linear_solver,
-                                                                            self.conv_criteria,
-                                                                            builder_and_solver,
-                                                                            self.settings["maximum_iterations"].GetInt(),
-                                                                            self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool())
-
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
+            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
+            try:
+                solution_strategy.SetInitializePerformedFlag(True)
+            except AttributeError:
+                pass
 
         # Set the distance modification process
-        self._GetDistanceModificationProcess().ExecuteInitialize()
+        self.get_distance_modification_process().ExecuteInitialize()
 
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbours.
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
-            number_of_avg_elems = 10
-            number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart())
+            computing_model_part = self.GetComputingModelPart()
+            data_communicator = computing_model_part.GetCommunicator().GetDataCommunicator()
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
+                data_communicator,
+                computing_model_part)
 
         # If required, intialize the FM-ALE utility
-        if self.__fm_ale_is_active:
+        if self._fm_ale_is_active:
             self.fm_ale_step = 1
             # Fill the virtual model part geometry. Note that the mesh moving util is created in this first call
             self._get_mesh_moving_util().Initialize(self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def AdvanceInTime(self, current_time):
         # Call base solver AdvanceInTime to clone the time step and get the new time
         new_time = super(NavierStokesEmbeddedMonolithicSolver, self).AdvanceInTime(current_time)
 
         # Save the current step and time in the virtual model part process info
-        if self.__fm_ale_is_active:
+        if self._fm_ale_is_active:
             self._get_fm_ale_virtual_model_part().ProcessInfo[KratosMultiphysics.STEP] += 1
             self._get_fm_ale_virtual_model_part().ProcessInfo[KratosMultiphysics.TIME] = new_time
 
@@ -430,7 +411,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Correct the distance field
             # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
             # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
-            self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+            self.get_distance_modification_process().ExecuteInitializeSolutionStep()
 
             # Perform the FM-ALE operations
             # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
@@ -445,7 +426,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Restore the fluid node fixity to its original status
             # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
             # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
-            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+            self.get_distance_modification_process().ExecuteFinalizeSolutionStep()
 
             return is_converged
         else:
@@ -528,12 +509,12 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
 
-    def _GetDistanceModificationProcess(self):
+    def get_distance_modification_process(self):
         if not hasattr(self, '_distance_modification_process'):
-            self._distance_modification_process = self.__CreateDistanceModificationProcess()
+            self._distance_modification_process = self._create_distance_modification_process()
         return self._distance_modification_process
 
-    def __CreateDistanceModificationProcess(self):
+    def _create_distance_modification_process(self):
         # Set the distance modification settings according to the level set type
         # Note that the distance modification process is applied to the volume model part
         distance_modification_settings = self.settings["distance_modification_settings"]
@@ -583,7 +564,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             raise Exception("MeshMovingApplication is required to construct the FM-ALE utility (ExplicitFixedMeshALEUtilities)")
 
     def _is_fm_ale_step(self):
-        if self.__fm_ale_is_active:
+        if self._fm_ale_is_active:
             if (self.fm_ale_step == self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt()):
                 return True
             else:
@@ -592,7 +573,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             return False
 
     def __UpdateFMALEStepCounter(self):
-        if self.__fm_ale_is_active:
+        if self._fm_ale_is_active:
             if (self._is_fm_ale_step()):
                 # Reset the FM-ALE steps counter
                 self.fm_ale_step = 1
