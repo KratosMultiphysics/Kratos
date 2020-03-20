@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -101,56 +101,38 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         return A,b
 
     def _solve(self,mp):
-
-        #define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+        strategy = self._create_strategy(mp)
         strategy.Check()
         strategy.Solve()
 
     def _create_strategy(self, mp):
-        #define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
-        convergence_criterion.SetEchoLevel(0)
-
-        #max_iters = 1
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+        # Define a minimal newton raphson solver
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "newton_raphson_strategy",
+            "max_iteration"            : 20,
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : true,
+            "move_mesh_flag"           : true,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static"
+            },
+            "convergence_criteria_settings" : {
+                "name"               : "residual_criteria",
+                "absolute_tolerance" : 1.0e-20,
+                "relative_tolerance" : 1.0e-14,
+                "echo_level"         : 0
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         return strategy
 
     def _solve_with_strategy(self, strategy, lhs, step):
