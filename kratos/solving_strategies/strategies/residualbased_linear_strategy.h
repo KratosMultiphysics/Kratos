@@ -117,7 +117,7 @@ public:
     explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart, ThisParameters)
     {
-        mCalculateNormDxFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_norm_dx"].GetBool() : false;
+        mCalculateNormDxFlag = ThisParameters.Has("compute_norm_dx") ? ThisParameters["compute_norm_dx"].GetBool() : false;
 
         mCalculateReactionsFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_reactions"].GetBool() : false;
 
