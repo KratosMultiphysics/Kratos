@@ -50,10 +50,10 @@ if __name__ == '__main__':
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS) # TESTS_OUTPUTS
-    #KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
+    KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
     #KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating")
     #KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicDecelerating")
-    KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating2")
+    #KratosMultiphysics.Tester.RunTestCases("TestPingTransonicPerturbationPotentialFlowElementLHSSuperSonicAccelerating2")
     #KratosMultiphysics.Tester.RunTestCases("TestTransonicPerturbationPotentialFlowElementLHSSuperSonicDecelerating")
 
     #KratosMultiphysics.Tester.RunTestCases("TestCompressiblePerturbationPotentialFlowElementLHS2")
@@ -63,5 +63,5 @@ if __name__ == '__main__':
     #KratosMultiphysics.Tester.RunTestCases("TestComputeDerivativeMachNumberSquaredWRTVelocitySquared")
     # KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
     # KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    #KratosUnittest.runTests(AssembleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
     # KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
