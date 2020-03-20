@@ -119,6 +119,7 @@ class MechanicalSolver(PythonSolver):
                 "max_iteration"            : 20,
                 "compute_reactions"        : true,
                 "reform_dofs_at_each_step" : false,
+                "compute_norm_dx"          : false,
                 "move_mesh_flag"           : true,
                 "build_level"              : 2,
                 "echo_level"               : 0
