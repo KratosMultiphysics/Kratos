@@ -36,7 +36,6 @@
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
-#include "custom_processes/move_rotor_process.h"
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "spaces/ublas_space.h"
