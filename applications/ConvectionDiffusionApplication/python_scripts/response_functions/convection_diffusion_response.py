@@ -152,76 +152,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def _GetAdjointParameters(self):
         adjoint_settings = self.response_settings["adjoint_settings"].GetString()
 
-        if adjoint_settings == "auto":
-            Logger.PrintInfo(self._GetLabel(), "Automatic set up adjoint parameters for response:", self.identifier)
-
-            with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
-                primal_parameters = Parameters( parameter_file.read() )
-
-            if primal_parameters["processes"].Has("list_other_processes"):
-                Logger.PrintWarning(self._GetLabel(), "Auto setup of adjoint parameters has detected 'list_other_processes'.")
-
-            # clone primal settings as base for adjoint
-            adjoint_parameters = primal_parameters.Clone()
-
-            # analysis settings
-            solver_settings = adjoint_parameters["solver_settings"]
-            primal_solver_type = solver_settings["solver_type"].GetString()
-            if primal_solver_type != "stationary":
-                raise Exception("Auto setup of adjoint parameters does not support {} solver_type. Only available for 'stationary'".format(primal_solver_type))
-            solver_settings["solver_type"].SetString("adjoint_"+primal_solver_type)
-
-            primal_model_part_name = solver_settings["model_part_name"].GetString()
-            adjoint_model_part_name = "adjoint_" + primal_model_part_name
-            solver_settings["model_part_name"].SetString(adjoint_model_part_name)
-            solver_settings.AddValue("primal_model_part_name", primal_model_part_name)
-
-            if solver_settings.Has("element_replace_settings"):
-                solver_settings.RemoveValue("element_replace_settings")
-
-            if not solver_settings.Has("compute_reactions"):
-                solver_settings.AddEmptyValue("compute_reactions")
-            solver_settings["compute_reactions"].SetBool(False)
-
-            if solver_settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
-                solver_settings["model_import_settings"]["input_type"].SetString("mdpa")
-                if solver_settings["model_import_settings"].Has("input_filename"):
-                    file_name = solver_settings["model_import_settings"]["input_filename"].GetString()
-                else:
-                    Logger.PrintWarning(self._GetLabel(), "Automatic adjoint settings creator assumes the model_part_name as input_filename.")
-                    solver_settings["model_import_settings"].AddEmptyValue("input_filename")
-                    file_name = solver_settings["model_part_name"].GetString()
-                solver_settings["model_import_settings"]["input_filename"].SetString(file_name)
-
-            dirichlet_variable_table = {
-                "TEMPERATURE": "ADJOINT_HEAT_TRANSFER"
-            }
-
-            # Dirichlet conditions: change variables
-            for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
-                process = adjoint_parameters["processes"]["constraints_process_list"][i]
-                variable_name = process["Parameters"]["variable_name"].GetString()
-                process["Parameters"]["variable_name"].SetString(dirichlet_variable_table[variable_name])
-                process["Parameters"]["value"].SetDouble(0.0)
-
-            # initial conditions - do not modify to read the same values as in primal:
-
-            # Output process:
-            # TODO how to add the output process? How find out about the variables?
-            if adjoint_parameters.Has("output_processes"):
-                Logger.PrintInfo(self._GetLabel(), "Output process is removed for adjoint analysis. To enable it define adjoint_parameters yourself.")
-                adjoint_parameters.RemoveValue("output_processes")
-
-            # sensitivity settings
-            solver_settings.AddValue("sensitivity_settings", self.response_settings["sensitivity_settings"])
-
-            # response settings
-            solver_settings.AddValue("response_function_settings", self.response_settings)
-            solver_settings["response_function_settings"].RemoveValue("sensitivity_settings")
-
-        else: # adjoint parameters file is explicitely given - do not change it.
-            with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+            adjoint_parameters = Parameters( parameter_file.read() )
 
         return adjoint_parameters
 
