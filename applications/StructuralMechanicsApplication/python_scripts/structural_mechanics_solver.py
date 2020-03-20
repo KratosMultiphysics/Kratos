@@ -114,30 +114,7 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "compute_reactions": true,
             "block_builder" : true,
-            "strategy_settings" : {
-                "name"                     : "newton_raphson_strategy",
-                "max_iteration"            : 20,
-                "compute_reactions"        : true,
-                "reform_dofs_at_each_step" : false,
-                "compute_norm_dx"          : false,
-                "move_mesh_flag"           : true,
-                "build_level"              : 2,
-                "echo_level"               : 0
-            }
-            "scheme_settings" : {
-                "name"                               : "static",
-                "rayleigh_beta_variable"             : "RAYLEIGH_BETA"
-            },
-            "convergence_criteria_settings" : {
-                 "name"                              : "residual_criteria",
-                 "residual_absolute_tolerance"       : 1.0e-9,
-                 "residual_relative_tolerance"       : 1.0e-4,
-                 "displacement_absolute_tolerance"   : 1.0e-9,
-                 "displacement_relative_tolerance"   : 1.0e-4,
-                 "echo_level"                        : 0
-            },
             "builder_and_solver_settings" : {
-                "name"                               : "block_builder_and_solver",
                 "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
                 "silent_warnings"                    : false
             },
