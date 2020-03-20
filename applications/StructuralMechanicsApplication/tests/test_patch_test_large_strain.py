@@ -359,10 +359,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         delta_time = ul_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = ul_mp.ProcessInfo[KratosMultiphysics.TIME]
 
-        print("360")
         tl_strategy = self._create_strategy(tl_mp)
 
-        print("363")
         ul_strategy = self._create_strategy(ul_mp)
 
         for iter in range(1, 4):
@@ -389,9 +387,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                 #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
 
             self._solve_with_strategy(tl_strategy, tl_lhs, iter)
-            print("a")
             self._solve_with_strategy(ul_strategy, ul_lhs, iter)
-            print("b")
 
             # Check displacement
             for i in range(2, 4):
