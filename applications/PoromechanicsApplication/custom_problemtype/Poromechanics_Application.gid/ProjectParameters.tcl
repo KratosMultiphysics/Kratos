@@ -31,7 +31,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
+        puts $FileVar "        \"solver_type\":                        \"poromechanics_trilinos_U_Pw_solver\","
     } else {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
     }

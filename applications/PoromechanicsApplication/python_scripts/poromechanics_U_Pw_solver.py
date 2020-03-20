@@ -202,7 +202,7 @@ class UPwSolver(PythonSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        self.builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -212,8 +212,7 @@ class UPwSolver(PythonSolver):
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
-        self.solver = self._ConstructSolver(builder_and_solver,
-                                            self.settings["strategy_type"].GetString())
+        self.solver = self._ConstructSolver(self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -431,7 +430,7 @@ class UPwSolver(PythonSolver):
 
         return convergence_criterion
 
-    def _ConstructSolver(self, builder_and_solver, strategy_type):
+    def _ConstructSolver(self, strategy_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
@@ -454,7 +453,7 @@ class UPwSolver(PythonSolver):
                                                                                self.scheme,
                                                                                self.linear_solver,
                                                                                self.convergence_criterion,
-                                                                               builder_and_solver,
+                                                                               self.builder_and_solver,
                                                                                self.strategy_params,
                                                                                max_iters,
                                                                                compute_reactions,
@@ -465,7 +464,7 @@ class UPwSolver(PythonSolver):
                                                                        self.scheme,
                                                                        self.linear_solver,
                                                                        self.convergence_criterion,
-                                                                       builder_and_solver,
+                                                                       self.builder_and_solver,
                                                                        self.strategy_params,
                                                                        max_iters,
                                                                        compute_reactions,
@@ -490,7 +489,7 @@ class UPwSolver(PythonSolver):
                                                                                self.scheme,
                                                                                self.linear_solver,
                                                                                self.convergence_criterion,
-                                                                               builder_and_solver,
+                                                                               self.builder_and_solver,
                                                                                self.strategy_params,
                                                                                max_iters,
                                                                                compute_reactions,
@@ -501,7 +500,7 @@ class UPwSolver(PythonSolver):
                                                                        self.scheme,
                                                                        self.linear_solver,
                                                                        self.convergence_criterion,
-                                                                       builder_and_solver,
+                                                                       self.builder_and_solver,
                                                                        self.strategy_params,
                                                                        max_iters,
                                                                        compute_reactions,
