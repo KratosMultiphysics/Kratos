@@ -69,7 +69,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
-    def _create_builder_and_solver(self):    
+    def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
         if self.settings["consider_periodic_conditions"].GetBool():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicForChimera Periodic conditions are not implemented in this case .")
