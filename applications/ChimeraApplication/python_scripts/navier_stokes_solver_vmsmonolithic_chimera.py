@@ -46,7 +46,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
 
     def Initialize(self):
         # Call the base solver to create the solution strategy
-        super(NavierStokesSolverFractionalStepForChimera,self).Initialize()
+        super(NavierStokesSolverMonolithicChimera,self).Initialize()
 
         # Chimera utilities initialization
         self.chimera_process = chimera_setup_utils.GetApplyChimeraProcess(
