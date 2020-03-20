@@ -17,6 +17,8 @@ include_directories(${CMAKE_SOURCE_DIR}/applications/DEMApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/MeshingApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+include_directories(${CMAKE_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
+#include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
@@ -45,6 +47,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/remove_alone_DEM_elements_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/FEMDEM_coupling_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_flag_no_remesh_femdem_boundary_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_femdem_element.cpp

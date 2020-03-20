@@ -107,7 +107,7 @@ class DamTSolAirHeatFluxProcess : public Process
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Computing the t_soil_air according to t_sol_air criteria
         double t_sol_air = mAmbientTemperature + (mAbsorption_index * mTotalInsolation / mH0) - (mEmisivity * mDeltaR / mH0);
@@ -138,7 +138,7 @@ class DamTSolAirHeatFluxProcess : public Process
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
