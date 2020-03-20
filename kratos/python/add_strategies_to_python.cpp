@@ -206,7 +206,7 @@ namespace Kratos
             return *dummy;
         }
 
-        template< typename TSpaceType > 
+        template< typename TSpaceType >
         py::class_< TSpaceType > CreateSpaceInterface(pybind11::module& m, std::string Name)
         {
             py::class_< TSpaceType > binder(m,Name.c_str());
@@ -246,26 +246,26 @@ namespace Kratos
             typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
             py::class_< BaseSchemeType, typename BaseSchemeType::Pointer >(m,"Scheme")
-            .def(py::init< >())
-                    .def("Initialize", &BaseSchemeType::Initialize)
-                    .def("SchemeIsInitialized", &BaseSchemeType::SchemeIsInitialized)
-                    .def("ElementsAreInitialized", &BaseSchemeType::ElementsAreInitialized)
-                    .def("ConditionsAreInitialized", &BaseSchemeType::ConditionsAreInitialized)
-                    .def("InitializeElements", &BaseSchemeType::InitializeElements)
-                    .def("InitializeConditions", &BaseSchemeType::InitializeConditions)
-                    .def("InitializeSolutionStep", &BaseSchemeType::InitializeSolutionStep)
-                    .def("FinalizeSolutionStep", &BaseSchemeType::FinalizeSolutionStep)
-                    .def("InitializeNonLinIteration", &BaseSchemeType::InitializeNonLinIteration)
-                    .def("FinalizeNonLinIteration", &BaseSchemeType::FinalizeNonLinIteration)
-                    .def("Predict", &BaseSchemeType::Predict)
-                    .def("Update", &BaseSchemeType::Update)
-                    .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
-                    .def("Clean", &BaseSchemeType::Clean)
-                    .def("Clear",&BaseSchemeType::Clear)
-                    .def("MoveMesh", MoveMesh)
-                    .def("Check", &BaseSchemeType::Check)
-                    .def("Info", &BaseSchemeType::Info)
-                    ;
+                .def(py::init< >())
+                .def("Initialize", &BaseSchemeType::Initialize)
+                .def("SchemeIsInitialized", &BaseSchemeType::SchemeIsInitialized)
+                .def("ElementsAreInitialized", &BaseSchemeType::ElementsAreInitialized)
+                .def("ConditionsAreInitialized", &BaseSchemeType::ConditionsAreInitialized)
+                .def("InitializeElements", &BaseSchemeType::InitializeElements)
+                .def("InitializeConditions", &BaseSchemeType::InitializeConditions)
+                .def("InitializeSolutionStep", &BaseSchemeType::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &BaseSchemeType::FinalizeSolutionStep)
+                .def("InitializeNonLinIteration", &BaseSchemeType::InitializeNonLinIteration)
+                .def("FinalizeNonLinIteration", &BaseSchemeType::FinalizeNonLinIteration)
+                .def("Predict", &BaseSchemeType::Predict)
+                .def("Update", &BaseSchemeType::Update)
+                .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
+                .def("Clean", &BaseSchemeType::Clean)
+                .def("Clear",&BaseSchemeType::Clear)
+                .def("MoveMesh", MoveMesh)
+                .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
+                .def("Info", &BaseSchemeType::Info)
+                ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>::Pointer,
