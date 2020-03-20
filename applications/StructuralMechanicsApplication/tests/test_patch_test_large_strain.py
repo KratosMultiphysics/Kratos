@@ -114,8 +114,12 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         return A,b
 
-    def _solve(self,mp,builder_type):
+    def _solve(self,mp, builder_type = "block_builder"):
+        strategy = self._create_strategy(mp, builder_type)
+        strategy.Check()
+        strategy.Solve()
 
+    def _create_strategy(self, mp, builder_type = "block_builder"):
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         if(builder_type == "elimination_builder"):
@@ -124,29 +128,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
             raise Exception("builder_type unknown")
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
-        convergence_criterion.SetEchoLevel(0)
 
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
-        strategy.Check()
-        strategy.Solve()
-
-    def _create_strategy(self, mp):
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
