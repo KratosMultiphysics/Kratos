@@ -11,8 +11,15 @@
 #include "EpetraExt_MatrixMatrix.h"
 #include "Epetra_FEVector.h"
 
+#include "EpetraExt_CrsMatrixIn.h"
+#include <EpetraExt_VectorIn.h>
+#include <EpetraExt_RowMatrixOut.h>
+#include <EpetraExt_MultiVectorOut.h>
+
 #include <iostream>
 #include <vector>
+#include <sstream>
+#include <fstream>
 
 #define PRINT() std::cout<<"Rank : "<<mpi_rank
 
@@ -25,23 +32,18 @@ int main(int argc, char *argv[])
     // Get current rank and a total num process
     const int mpi_rank = comm.MyPID();
     const int mpi_size = comm.NumProc();
-
-    /*
-    * Creating the intial EpetraFE vector
-    */
-    const int local_elements_per_rank = 10;
-    const int num_over_lapping_elems = 3;
+    const int local_elements_per_rank = 5;
+    const int num_over_lapping_elems = 0;
     const int total_num_local_elems = local_elements_per_rank+num_over_lapping_elems;
     std::vector<int> my_local_elements;
     for(int i=0; i<local_elements_per_rank; ++i)
     {
         my_local_elements.emplace_back( (mpi_rank*local_elements_per_rank)+i );
     }
-
     //defining a map as needed
     const Epetra_Map local_map(-1, my_local_elements.size(), my_local_elements.data(), 0, comm);
 
-    // Making the EpetraFE vector
+    // Making the EpetraFE vector 10x1
     Epetra_FEVector epetra_vector(local_map);
 
     std::vector<double> values(total_num_local_elems, 0.0);
@@ -61,55 +63,77 @@ int main(int argc, char *argv[])
     if(ierr != 0) PRINT()<<" Epetra failure found : "<< ierr<<std::endl;
     ierr = epetra_vector.GlobalAssemble();
     if(ierr != 0) PRINT()<<" Epetra failure found : "<< ierr<<std::endl;
-    std::cout << epetra_vector<<std::endl;
 
-    PRINT()<<"NumMyElements() "<<epetra_vector.Map().NumMyElements()<<std::endl;
-    PRINT()<<"MyLength() "<<epetra_vector.MyLength()<<std::endl;
-
-
-
-
-    // Now make the map which is to be used as source in import
-    std::vector<int> target_map_ids;
-    // std::vector<int> target_map_ids(my_local_elements.size(),0);
-    // epetra_vector.Map().MyGlobalElements(&target_map_ids[0]);
+    // Making dummy epetra matrix (square) 10x10
+    Epetra_FECrsGraph a_graph(Copy, local_map, 10);
+    // Fill the graph
+    ierr = a_graph.InsertGlobalIndices(ids.size(), ids.data(), ids.size(), ids.data());
+    ierr = a_graph.GlobalAssemble();
+    // use the graph to make the matrix
+    Epetra_FECrsMatrix mat_a(Copy,a_graph);
     if(mpi_rank == 0){
-        target_map_ids.push_back(11);
-        target_map_ids.push_back(12);
-        target_map_ids.push_back(2);
-        const Epetra_Map target_map(-1, target_map_ids.size(), target_map_ids.data(), 0, comm);
-        Epetra_Import importer(target_map, epetra_vector.Map());
-
-        // Making the EpetraFE vector
-        Epetra_FEVector import_epetra_vector(target_map);
-
-        //importing in the new temp vector the values
-        ierr = import_epetra_vector.Import(epetra_vector, importer, Insert);
-        if(ierr != 0) PRINT()<<" Epetra failure found : "<< ierr<<std::endl;
-        std::cout << import_epetra_vector<<std::endl;
+        std::vector<double> diag_values{2, 5.50, 2.111};
+        std::vector<int> col_indices{1,8,5};
+        mat_a.ReplaceGlobalValues(5, col_indices.size(), diag_values.data(), col_indices.data());
     }
+    // mat_a.PutScalar(1.0);
+    mat_a.GlobalAssemble();
+
+    {
+        EpetraExt::RowMatrixToMatrixMarketFile("amat.mm", mat_a);
+    }
+
+    // Making dummy epetra matrix (rectangle) 10x2
+    std::vector<int> row_elems = my_local_elements;
+    std::vector<int> col_elems{0,1};
+    const Epetra_Map row_map(-1, row_elems.size(), row_elems.data(), 0, comm);
+    const Epetra_Map col_map(-1, col_elems.size(), col_elems.data(), 0, comm);
+
+    Epetra_FECrsGraph b_graph(Copy, row_map, 10);
+    ierr = b_graph.InsertGlobalIndices(ids.size(), ids.data(), col_elems.size(), col_elems.data());
+    ierr = b_graph.GlobalAssemble();
+    std::cout<<"b_graph "<<b_graph<<std::endl;
+
+    Epetra_FECrsMatrix mat_b(Copy,b_graph);
+    mat_b.FillComplete();
     if(mpi_rank == 1){
-        // target_map_ids.push_back(4);
-        target_map_ids.push_back(5);
-        target_map_ids.push_back(6);
-        const Epetra_Map target_map(-1, target_map_ids.size(), target_map_ids.data(), 0, comm);
-        Epetra_Import importer(target_map, epetra_vector.Map());
+        std::vector<double> diag_valuesb{2, 0.50};
+        std::vector<int> col_indicesb{0,1};
+        mat_b.ReplaceGlobalValues(5, 2, diag_valuesb.data(), col_indicesb.data());
+    }
+    mat_b.GlobalAssemble();
 
-        // Making the EpetraFE vector
-        Epetra_FEVector import_epetra_vector(target_map);
-
-        //importing in the new temp vector the values
-        ierr = import_epetra_vector.Import(epetra_vector, importer, Insert);
-        if(ierr != 0) PRINT()<<" Epetra failure found : "<< ierr<<std::endl;
-        std::cout << import_epetra_vector<<std::endl;
+    {
+        EpetraExt::RowMatrixToMatrixMarketFile("bmat.mm", mat_b);
     }
 
-    std::cout << "Current MPI rank      : "<<mpi_rank << std::endl;
-    comm.Barrier();
+    // Now multiplying c = a*b
+    Epetra_FECrsMatrix mat_c(Copy,local_map, 1);
+    // c <- A*B
+    EpetraExt::MatrixMatrix::Multiply(mat_a, false, mat_b, false, mat_c, true);
+    mat_c.FillComplete();
+    mat_c.GlobalAssemble();
+
+    {
+        EpetraExt::RowMatrixToMatrixMarketFile("cmat.mm", mat_c);
+    }
+
+    Epetra_FEVector vec_x(local_map);
+    Epetra_FEVector vec_y(local_map);
     if(mpi_rank == 0){
-        std::cout << "Test Trilinos successfully complete !" << std::endl;
-        std::cout << "Total MPI ranks       : "<<mpi_size << std::endl;
+        std::vector<double> vals = {1.0,1.0,1.0,1.0};
+        std::vector<int> ids = {1,4,5,8};
+        vec_x.ReplaceGlobalValues(ids.size(), ids.data(), vals.data());
     }
+    vec_x.GlobalAssemble();
+
+    EpetraExt::MultiVectorToMatrixMarketFile("xvec.mm", vec_x);
+
+    mat_a.Multiply(false, vec_x, vec_y);
+
+    EpetraExt::MultiVectorToMatrixMarketFile("yvec.mm", vec_y);
+
+    vec_y.GlobalAssemble();
 
     // MPI_Finalize after you are done using MPI.
     (void) MPI_Finalize ();

@@ -500,7 +500,6 @@ protected:
         const auto &r_clone_constraint = new LinearMasterSlaveConstraint();
         // Initialise the boundary nodes dofs to 0 at ever time steps
         rBoundaryNode.FastGetSolutionStepValue(rVariable, 0) = 0.0;
-
         for (std::size_t i = 0; i < rGeometry.size(); i++)
         {
             //Interpolation of rVariable
@@ -629,15 +628,15 @@ protected:
             Vector weights;
             bool is_found = SearchNode(rBinLocator, r_boundary_node, r_host_element, weights);
             if (is_found){
-                MakeConstraints(r_boundary_node, r_host_element, weights, ms_velocity_container, ms_pressure_container,
-                                                            constraints_id_vector, start_constraint_id);
-                found_counter += 1;
                 if(node_p_index != mpi_rank){
-                    auto p_geom = r_host_element->GetGeometry(); 
+                    auto p_geom = r_host_element->GetGeometry();
                     for(auto p_node=p_geom.ptr_begin(); p_node != p_geom.ptr_end(); ++p_node)
                         SendNodes[node_p_index].push_back(*p_node);
                 }
-            }
+                MakeConstraints(r_boundary_node, r_host_element, weights, ms_velocity_container, ms_pressure_container,
+                                                            constraints_id_vector, start_constraint_id);
+                found_counter += 1;
+            } 
         }
 
         if (is_comm_distributed)

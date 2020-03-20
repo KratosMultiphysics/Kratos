@@ -116,6 +116,8 @@ public:
      */
     static void GatherModelPartOnAllRanks(ModelPart &rModelPartToGather, ModelPart &rGatheredModelPart);
 
+    static void TransferNodeGeometries(ModelPart& rModelPartToGather, ModelPart& rGatheredModelPart);
+
     ///@}
     ///@name Access
     ///@{
@@ -175,6 +177,12 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+
+    void TransferConditionGeometries(ModelPart& rModelPartToGather, ModelPart& rGatheredModelPart)
+    {
+
+    }
 
     ///@}
     ///@name Private Operations

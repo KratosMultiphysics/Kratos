@@ -140,6 +140,9 @@ class TrilinosChimeraNavierStokesSolverMonolithic(TrilinosNavierStokesSolverMono
         else:
             # TODO: This should be trilinos version
             self.builder_and_solver =  TrilinosChimera.TrilinosChimeraResidualBasedBuilderAndSolver(self.EpetraCommunicator,guess_row_size,self.trilinos_linear_solver)
+            #self.builder_and_solver =  TrilinosChimera.TrilinosBlockBuilderAndSolverWithConstraints(self.EpetraCommunicator,guess_row_size,self.trilinos_linear_solver)
+
+        #
         ## Construct the Trilinos Newton-Raphson strategy
         self.solver = KratosTrilinos.TrilinosNewtonRaphsonStrategy(self.computing_model_part,
                                                                    self.time_scheme,

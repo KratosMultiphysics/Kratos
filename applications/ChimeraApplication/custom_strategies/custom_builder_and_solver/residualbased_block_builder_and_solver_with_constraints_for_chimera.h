@@ -59,8 +59,8 @@ namespace Kratos
  *
  *
  *
- *   L =        [I  0  0 ]
- *              [0  I  0 ]
+ *   L' =        [I  0  0 ]
+ *               [0  I  0 ]
  *
  *  K_mod = L'KT
  *  F_mod = L'(F-K*g)
@@ -251,6 +251,8 @@ protected:
             const double stop_constraints = OpenMPUtils::GetCurrentTime();
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Applying constraints time: " << stop_constraints - start_constraints << std::endl;
         }
+
+        TSparseSpace::WriteMatrixMarketMatrix("T_matrix.mm", BaseType::mT, false);
 
         KRATOS_CATCH("")
     }
