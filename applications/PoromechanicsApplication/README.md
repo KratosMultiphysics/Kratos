@@ -70,9 +70,4 @@ And also that the following options are set:
 >
 > -DTRILINOS_LIBRARY_PREFIX="trilinos_" \\
 
-Uncomment the following line in
-[KratosPoromechanics.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/KratosPoromechanics.py).
-
-> import KratosMultiphysics.TrilinosApplication
-
 *Note*: For the moment, MPI only works in Linux. Non-local Damage and Fracture Propagation features do not work in MPI.

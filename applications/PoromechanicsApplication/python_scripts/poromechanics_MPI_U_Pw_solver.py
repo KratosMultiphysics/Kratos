@@ -7,6 +7,7 @@ import KratosMultiphysics.mpi as KratosMPI
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 from KratosMultiphysics.PoromechanicsApplication import TrilinosExtension as TrilinosPoro
 
 # Import base class file

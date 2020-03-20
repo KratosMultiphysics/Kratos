@@ -105,8 +105,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"solver_type\": \"[GiD_AccessValue get gendata Solver_Type]\","
             puts $FileVar "            \"scaling\":     [GiD_AccessValue get gendata Scaling]"
         } else {
-            puts $FileVar "            \"solver_type\": \"amesos\","
-            puts $FileVar "            \"scaling\":     false"
+            puts $FileVar "            \"solver_type\": \"amesos\"
         }
     } else {
         if {[GiD_AccessValue get gendata Solver_Type] eq "amgcl"} {

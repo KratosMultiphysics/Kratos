@@ -10,6 +10,9 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
+// System includes
+#include <pybind11/pybind11.h>
+
 // Trilinos includes
 #include "Epetra_FEVector.h"
 #include "Epetra_FECrsMatrix.h"
