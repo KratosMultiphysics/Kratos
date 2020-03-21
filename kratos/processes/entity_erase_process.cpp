@@ -154,9 +154,9 @@ void EntitiesEraseProcess<MasterSlaveConstraint>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters()
+const Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "remove_from_all_levels" : false,
         "remove_all_entities"    : false

@@ -789,8 +789,7 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
-//KRATOS_WATCH(typeid(*p_builder_and_solver).name())
-KRATOS_WATCH(p_builder_and_solver->Info())
+
             if (mUseOldStiffnessInFirstIteration){
                 p_builder_and_solver->BuildAndSolve_LinearizedOnOldIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
             } else {
@@ -1132,13 +1131,11 @@ KRATOS_WATCH(p_builder_and_solver->Info())
      * @param MoveMesh The flag that allows to move the mesh
      */
 
-    virtual void
-    UpdateDatabase(
-            TSystemMatrixType &rA,
-            TSystemVectorType &rDx,
-            TSystemVectorType &rb,
-            const bool MoveMesh
-            )
+    virtual void UpdateDatabase(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MoveMesh)
     {
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();

@@ -76,6 +76,22 @@ namespace Python
         //here we add the dense matrix
         auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
+        matrix_binder.def(py::init( [](py::buffer b){
+          py::buffer_info info = b.request();
+          KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
+          KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
+          DenseMatrix<double> matrix = DenseMatrix<double>(info.shape[0], info.shape[1]);
+
+          std::size_t count = 0;
+          for( int i=0; i<info.shape[0]; ++i ) {
+            for( int j=0; j<info.shape[1]; ++j ) {
+              matrix(i,j) = static_cast<double *>(info.ptr)[count];
+              count++;
+            }
+          }
+
+          return matrix;
+        }));
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
@@ -107,17 +123,17 @@ namespace Python
         auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
         compressed_matrix_binder.def(py::init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
-        compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double> 
+        compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double>
                                                     {return std::vector<double>(
                                                         rA.value_data().begin(),
                                                         rA.value_data().end()
                                                         ) ;});
-        compressed_matrix_binder.def("index1_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t> 
+        compressed_matrix_binder.def("index1_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index1_data().begin(),
                                                         rA.index1_data().end()
                                                         ) ;});
-        compressed_matrix_binder.def("index2_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t> 
+        compressed_matrix_binder.def("index2_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index2_data().begin(),
                                                         rA.index2_data().end()
@@ -126,6 +142,37 @@ namespace Python
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");
         cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type>());
+        cplx_matrix_binder.def(py::init( [](py::buffer b){
+          py::buffer_info info = b.request();
+          KRATOS_ERROR_IF( info.format != py::format_descriptor<std::complex<double>>::value &&
+            info.format != py::format_descriptor<double>::value ) << "Expected a double or complex array" << std::endl;
+          KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
+          ComplexMatrix matrix = ComplexMatrix(info.shape[0], info.shape[1]);
+
+          std::size_t count = 0;
+          //if the python data is complex, copy the values
+          if( info.format == py::format_descriptor<std::complex<double>>::value )
+          {
+            for( int i=0; i<info.shape[0]; ++i ) {
+              for( int j=0; j<info.shape[1]; ++j ) {
+                matrix(i,j) = static_cast<std::complex<double> *>(info.ptr)[count];
+                count++;
+              }
+            }
+          }
+          //if the python data is real, copy the values to the real part and initialize the imaginary part
+          else if( info.format == py::format_descriptor<double>::value )
+          {
+            for( int i=0; i<info.shape[0]; ++i ) {
+              for( int j=0; j<info.shape[1]; ++j ) {
+                matrix(i,j) = std::complex<double>(static_cast<double *>(info.ptr)[count], 0.0);
+                count++;
+              }
+            }
+          }
+
+          return matrix;
+        }));
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
@@ -138,6 +185,17 @@ namespace Python
       #endif // KRATOS_USE_AMATRIX
         cplx_matrix_binder.def(py::init<const ComplexMatrix& >());
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
+        cplx_matrix_binder.def_buffer( [](ComplexMatrix& self)-> py::buffer_info{
+                                                                    return py::buffer_info(
+                                                                    self.data().begin(),
+                                                                    sizeof(std::complex<double>),
+                                                                    py::format_descriptor<std::complex<double>>::format(),
+                                                                    2,
+                                                                    {self.size1(),self.size2()},
+                                                                    {sizeof(std::complex<double>)*self.size2(),
+                                                                     sizeof(std::complex<double>) }
+                                                                    );
+                                                                    });
 
         ;
         //here we add the complex sparse matrix
@@ -150,12 +208,12 @@ namespace Python
                                                         rA.value_data().begin(),
                                                         rA.value_data().end()
                                                         ) ;});
-        cplx_compressed_matrix_binder.def("index1_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t> 
+        cplx_compressed_matrix_binder.def("index1_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index1_data().begin(),
                                                         rA.index1_data().end()
                                                         ) ;});
-        cplx_compressed_matrix_binder.def("index2_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t> 
+        cplx_compressed_matrix_binder.def("index2_data", [](const ComplexCompressedMatrix& rA) -> std::vector<std::size_t>
                                                     {return std::vector<std::size_t>(
                                                         rA.index2_data().begin(),
                                                         rA.index2_data().end()
