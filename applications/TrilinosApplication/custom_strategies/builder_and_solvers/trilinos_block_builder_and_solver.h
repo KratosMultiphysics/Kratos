@@ -192,7 +192,7 @@ public:
             if (element_is_active) {
                 // calculate elemental contribution
                 pScheme->CalculateSystemContributions(
-                    *(it), LHS_Contribution, RHS_Contribution,
+                    **it, LHS_Contribution, RHS_Contribution,
                     equation_ids_vector, r_current_process_info);
 
                 // assemble the elemental contribution
@@ -214,8 +214,8 @@ public:
             const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
             if (condition_is_active) {
                 // calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(
-                    *(it), LHS_Contribution, RHS_Contribution,
+                pScheme->CalculateSystemContributions(
+                    **it, LHS_Contribution, RHS_Contribution,
                     equation_ids_vector, r_current_process_info);
 
                 // assemble the condition contribution
@@ -223,7 +223,7 @@ public:
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
-                pScheme->CleanMemory(*(it));
+                pScheme->CleanMemory(**it);
             }
         }
 
@@ -261,14 +261,14 @@ public:
 
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            pScheme->Calculate_LHS_Contribution(*(it), LHS_Contribution,
+            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*(it));
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -276,11 +276,13 @@ public:
         // assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(
-                *(it), LHS_Contribution, equation_ids_vector, r_current_process_info);
+            pScheme->Calculate_LHS_Contribution(
+                **it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
             TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+
+            // TODO CleanMemory is missing
         }
 
         // finalizing the assembly
@@ -446,7 +448,7 @@ public:
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(*(it), RHS_Contribution,
+            pScheme->Calculate_RHS_Contribution(**it, RHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
@@ -458,8 +460,8 @@ public:
         // assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
-            pScheme->Condition_Calculate_RHS_Contribution(
-                *(it), RHS_Contribution, equation_ids_vector, r_current_process_info);
+            pScheme->Calculate_RHS_Contribution(
+                **it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
             TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
@@ -498,7 +500,7 @@ public:
 
         // Taking dofs of elements
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            pScheme->GetElementalDofList(*(it_elem), dof_list, r_current_process_info);
+            pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
             for (typename DofsVectorType::iterator i_dof = dof_list.begin();
                  i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
@@ -507,7 +509,7 @@ public:
         // Taking dofs of conditions
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            pScheme->GetConditionDofList(*(it_cond), dof_list, r_current_process_info);
+            pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
             for (typename DofsVectorType::iterator i_dof = dof_list.begin();
                  i_dof != dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
@@ -633,7 +635,7 @@ public:
 
             // assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-                pScheme->EquationId(*(it_elem), equation_ids_vector,
+                pScheme->EquationId(**it_elem, equation_ids_vector,
                                     r_current_process_info);
 
                 // filling the list of active global indices (non fixed)
@@ -656,8 +658,8 @@ public:
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-                pScheme->Condition_EquationId(
-                    *(it_cond), equation_ids_vector, r_current_process_info);
+                pScheme->EquationId(
+                    **it_cond, equation_ids_vector, r_current_process_info);
 
                 // filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;

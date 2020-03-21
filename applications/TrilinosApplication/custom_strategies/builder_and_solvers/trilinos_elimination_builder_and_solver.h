@@ -213,7 +213,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateSystemContributions(**it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
             /*KRATOS_WATCH((*it)->Id());
             for(unsigned int i = 0; i<EquationId.size(); i++)
                std::cout << EquationId[i] << " ";
@@ -225,7 +225,7 @@ public:
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -235,11 +235,13 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateSystemContributions(**it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
+
+            // TODO CleanMemory is missing
         }
 
         //finalizing the assembly
@@ -286,13 +288,13 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0,0,false);
@@ -301,10 +303,12 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
+
+            // TODO CleanMemory is missing
         }
 
         //finalizing the assembly
@@ -466,7 +470,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->Calculate_RHS_Contribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
@@ -478,7 +482,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->Calculate_RHS_Contribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
@@ -516,7 +520,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*it,ElementalDofList,CurrentProcessInfo);
+            pScheme->GetDofList(**it,ElementalDofList,CurrentProcessInfo);
 
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
@@ -529,7 +533,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=pConditions.ptr_begin(); it!=pConditions.ptr_end(); ++it)
         {
             // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*it,ElementalDofList,CurrentProcessInfo);
+            pScheme->GetDofList(**it,ElementalDofList,CurrentProcessInfo);
 
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
@@ -1114,7 +1118,7 @@ public:
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
-                pScheme->EquationId( *it, EquationId, CurrentProcessInfo );
+                pScheme->EquationId( **it, EquationId, CurrentProcessInfo );
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
@@ -1137,7 +1141,7 @@ public:
           // assemble all conditions
           for (typename ConditionsArrayType::ptr_iterator it=rConditions.ptr_begin(); it!=rConditions.ptr_end(); ++it)
           {
-              pScheme->Condition_EquationId( *it, EquationId, CurrentProcessInfo );
+              pScheme->EquationId( **it, EquationId, CurrentProcessInfo );
 
               //filling the list of active global indices (non fixed)
               unsigned int num_active_indices = 0;
