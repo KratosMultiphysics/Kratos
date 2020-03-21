@@ -2,9 +2,9 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -27,7 +27,7 @@ def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
 
-class AnalyticsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
+class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -36,51 +36,25 @@ class AnalyticsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super(AnalyticsTestSolution, self).FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
-            normal_impact_vel = node.GetSolutionStepValue(NORMAL_IMPACT_VELOCITY)
-            face_normal_impact_vel = node.GetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
             if node.Id == 1:
-                if time < 0.03:
-                    expected_value = 0.0
+                if self.time > 0.099:
+                    expected_value = 11.07179
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 0.0
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.045 and time < 0.28:
-                    expected_value = 3.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 0.0
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.29 and time < 0.37:
-                    expected_value = 3.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 2.842938
-                    self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.43:
-                    expected_value = 14.4637
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 7.9635188
+                    expected_value = 6.941702
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
             if node.Id == 2:
-                if time < 0.03:
-                    expected_value = 0.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.045 and time < 0.13:
-                    expected_value = 3.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.17 and time < 0.37:
-                    expected_value = 3.941702
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.43:
-                    expected_value = 14.4637
+                if self.time > 0.099:
+                    expected_value = 16.29633
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id == 3:
-                if time < 0.13:
-                    expected_value = 0.0
-                    self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.17 and time < 0.32:
-                    expected_value = 3.941702
+                if self.time > 0.099:
+                    expected_value = 16.29633
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
 
     @classmethod
@@ -97,7 +71,7 @@ class AnalyticsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
         super(AnalyticsTestSolution, self).Finalize()
 
 
-class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
+class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -110,7 +84,7 @@ class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
             self.MakeAnalyticsMeasurements()
             if is_time_to_print:
                 self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
                     self.CheckTotalNumberOfCrossingParticles()
 
@@ -132,7 +106,7 @@ class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
 
 
 
-class MultiGhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
+class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -145,7 +119,7 @@ class MultiGhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
             self.MakeAnalyticsMeasurements()
             if is_time_to_print:  # or IsCountStep()
                 self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
 
                     if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
@@ -181,22 +155,22 @@ class TestAnalytics(KratosUnittest.TestCase):
         CreateAndRunStageInOneOpenMPThread(AnalyticsTestSolution, model, parameters_file_name)
 
 
-    @classmethod
-    @KratosUnittest.expectedFailure
-    def test_Analytics_2(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
-        model = Kratos.Model()
-        CreateAndRunStageInOneOpenMPThread(GhostsTestSolution, model, parameters_file_name)
+    # @classmethod
+    # @KratosUnittest.expectedFailure
+    # def test_Analytics_2(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
+    #     model = Kratos.Model()
+    #     CreateAndRunStageInOneOpenMPThread(GhostsTestSolution, model, parameters_file_name)
 
 
-    @classmethod
-    @KratosUnittest.expectedFailure
-    def test_Analytics_3(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
-        model = Kratos.Model()
-        CreateAndRunStageInOneOpenMPThread(MultiGhostsTestSolution, model, parameters_file_name)
+    # @classmethod
+    # @KratosUnittest.expectedFailure
+    # def test_Analytics_3(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
+    #     model = Kratos.Model()
+    #     CreateAndRunStageInOneOpenMPThread(MultiGhostsTestSolution, model, parameters_file_name)
 
 
     def tearDown(self):

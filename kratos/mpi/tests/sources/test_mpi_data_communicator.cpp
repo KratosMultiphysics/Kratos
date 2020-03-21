@@ -15,7 +15,6 @@
 
 #include "includes/data_communicator.h"
 #include "includes/kratos_components.h"
-#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 #include "testing/testing.h"
@@ -1253,18 +1252,28 @@ template<typename T> void MPIDataCommunicatorSendRecvIntegralTypeTest()
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<T> send_buffer{(T)world_rank, (T)world_rank};
+    T send_value(world_rank);
+    T recv_value(999);
+    std::vector<T> send_buffer{send_value, send_value};
     std::vector<T> recv_buffer{999, 999};
 
     if (world_size > 1)
     {
-        // two-buffer version
+        const T expected_recv = world_rank > 0 ? world_rank - 1 : world_size - 1;
+
+        // value two-buffer version
+        mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
+        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+
+        // value return version
+        T return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
+        KRATOS_CHECK_EQUAL(return_value, expected_recv);
+
+        // vector two-buffer version
         mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
 
-        // return version
+        // vector return version
         std::vector<T> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
-
-        const T expected_recv = world_rank > 0 ? world_rank - 1 : world_size - 1;
 
         KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)
@@ -1299,18 +1308,28 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosM
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
+    double send_value(2.0*world_rank);
+    double recv_value(-1.0);
     std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
     std::vector<double> recv_buffer{-1.0, -1.0};
 
     if (world_size > 1)
     {
+        const double expected_recv = world_rank > 0 ? 2.0*(world_rank - 1) : 2.0*(world_size - 1);
+
+        // value two-buffer version
+        mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
+        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+
+        // value return version
+        double return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
+        KRATOS_CHECK_EQUAL(return_value, expected_recv);
+
         // two-buffer version
         mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
 
         // return version
         std::vector<double> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
-
-        const double expected_recv = world_rank > 0 ? 2.0*(world_rank - 1) : 2.0*(world_size - 1);
 
         KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)

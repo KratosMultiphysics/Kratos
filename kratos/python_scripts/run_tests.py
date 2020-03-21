@@ -6,6 +6,7 @@ import sys
 import getopt
 import threading
 import subprocess
+from importlib import import_module
 
 import KratosMultiphysics as KtsMp
 import KratosMultiphysics.KratosUnittest as KtsUt
@@ -51,7 +52,7 @@ class Commander(object):
         if t.isAlive():
             self.process.terminate()
             t.join()
-            print('\n[Error]: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
+            print('\n[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
 
     def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
         ''' Calls the script that will run the tests.
@@ -118,7 +119,7 @@ class Commander(object):
                         script,
                         '-l'+level,
                         '-v'+str(verbose)
-                    ], stdout=subprocess.PIPE)
+                    ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(script)))
                 except OSError:
                     # Command does not exist
                     print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)
@@ -161,7 +162,7 @@ class Commander(object):
 
         # importing the apps such that they get registered for the cpp-tests
         for application in applications:
-            __import__("KratosMultiphysics." + application)
+            import_module("KratosMultiphysics." + application)
 
         try:
             KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)

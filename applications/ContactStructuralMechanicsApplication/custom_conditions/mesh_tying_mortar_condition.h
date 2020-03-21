@@ -387,7 +387,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -537,19 +537,19 @@ protected:
     void InitializeDofData(DofData<TTensor>& rDofData)
     {
         // Slave element info
-        rDofData.Initialize(GetGeometry());
+        rDofData.Initialize(GetParentGeometry());
 
         if (TTensor == ScalarValue) {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
-                const double value = GetGeometry()[i_node].FastGetSolutionStepValue(mDoubleVariables[0]);
-                const double lm = GetGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
+                const double value = GetParentGeometry()[i_node].FastGetSolutionStepValue(mDoubleVariables[0]);
+                const double lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
                 rDofData.u1(i_node, 0) = value;
                 rDofData.LagrangeMultipliers(i_node, 0) = lm;
             }
         } else {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
-                const array_1d<double, 3>& value = GetGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[0]);
-                const array_1d<double, 3>& lm = GetGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double, 3>& value = GetParentGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[0]);
+                const array_1d<double, 3>& lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                 for (IndexType i_dof = 0; i_dof < TDim; i_dof++) {
                     rDofData.u1(i_node, i_dof) = value[i_dof];
                     rDofData.LagrangeMultipliers(i_node, i_dof) = lm[i_dof];

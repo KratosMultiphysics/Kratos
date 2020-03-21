@@ -520,7 +520,7 @@ public:
 
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
-                Doftemp.push_back( i->get() );
+                Doftemp.push_back( *i );
             }
         }
 
@@ -534,7 +534,7 @@ public:
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
                 //mDofSet.push_back(*i);
-                Doftemp.push_back( i->get() );
+                Doftemp.push_back( *i );
             }
         }
 
@@ -632,10 +632,10 @@ public:
 
                     Node<3>::DofsContainerType::iterator i_dof;
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
-                        if (i_dof->GetVariable().Key() == key)
+                        if ((*i_dof)->GetVariable().Key() == key)
                             break;
                     if(i_dof == it->GetDofs().end())
-                        KRATOS_THROW_ERROR(std::logic_error,"dof not found",*i_dof);
+                        KRATOS_THROW_ERROR(std::logic_error,"dof not found",**i_dof);
 
                     Doftemp.push_back( i_dof.base()->get() );
 
@@ -742,7 +742,7 @@ public:
 
                     Node<3>::DofsContainerType::iterator i_dof;
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
-                        if (i_dof->GetVariable().Key() == key)
+                        if ((*i_dof)->GetVariable().Key() == key)
                             break;
 
                     Doftemp.push_back( i_dof.base()->get() );
@@ -975,7 +975,7 @@ public:
                 for (ModelPart::NodeIterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
                     for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
                     {
-                        send_buffer[position++] = i_dof->EquationId();
+                        send_buffer[position++] = (*i_dof)->EquationId();
 //  			    std::cout << rank << " : sending equation id : " << i_dof->EquationId() << " for " << i_dof->GetVariable().Name() << " dof in node " << i_node->Id() << std::endl;
                     }
 // 		    {
@@ -1053,7 +1053,7 @@ public:
                     if (i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
                         for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
                         {
-                            i_dof->SetEquationId(receive_buffer[position++]);
+                            (*i_dof)->SetEquationId(receive_buffer[position++]);
                             // 			    std::cout << rank << " : receiving equation id  : " << i_dof->EquationId() <<  " for " << i_dof->GetVariable().Name() << " dof in node " << i_node->Id() << std::endl;
                         }
                 // 		    {
@@ -1276,15 +1276,6 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {}
-
-    //**************************************************************************
-    //**************************************************************************
-    void ApplyPointLoads(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b) override
-    {}
-
 
     /*@} */
     /**@name Operations */

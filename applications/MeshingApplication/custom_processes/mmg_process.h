@@ -219,6 +219,11 @@ public:
      */
     void CleanSuperfluousNodes();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -367,6 +372,11 @@ private:
     void InitializeSolDataDistance();
 
     /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    void InitializeDisplacementData();
+
+    /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
     void ExecuteRemeshing();
@@ -445,6 +455,17 @@ private:
     }
 
     /**
+     * @brief This method collapses the prisms elements into triangles
+     */
+    void CollapsePrismsToTriangles();
+
+    /**
+     * @brief This method extrudes the triangles elements into prisms
+     * @param rOldModelPart The old model part
+     */
+    void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
+
+    /**
      * @brief This function removes the conditions with duplicated geometries
      */
     void ClearConditionsDuplicatedGeometries();
@@ -456,9 +477,10 @@ private:
     void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
+     * @param rModelPart The modelpart to be marked
      */
-    Parameters GetDefaultParameters();
+    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access
@@ -474,11 +496,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-//     /// Assignment operator.
-//     MmgProcess& operator=(MmgProcess const& rOther);
+    /// Assignment operator.
+    MmgProcess& operator=(MmgProcess const& rOther);
 
-//     /// Copy constructor.
-//     MmgProcess(MmgProcess const& rOther);
+    /// Copy constructor.
+    MmgProcess(MmgProcess const& rOther);
 
     ///@}
 

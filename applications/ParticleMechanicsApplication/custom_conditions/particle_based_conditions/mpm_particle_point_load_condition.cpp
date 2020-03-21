@@ -43,9 +43,9 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer MPMParticlePointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+    Condition::Pointer MPMParticlePointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
     {
-        return Kratos::make_intrusive<MPMParticlePointLoadCondition>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<MPMParticlePointLoadCondition>(NewId, pGeometry, pProperties);
     }
 
     //************************************************************************************

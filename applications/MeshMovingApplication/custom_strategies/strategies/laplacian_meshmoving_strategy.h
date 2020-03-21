@@ -154,11 +154,7 @@ public:
   };
 
   void Initialize() override {
-    unsigned int n_average_elements = 10;
-    unsigned int n_average_nodes = 10;
-    FindNodalNeighboursProcess find_nodal_neighbours_process =
-        FindNodalNeighboursProcess(*mpmesh_model_part, n_average_elements,
-                                   n_average_nodes);
+    FindNodalNeighboursProcess find_nodal_neighbours_process(*mpmesh_model_part);
     find_nodal_neighbours_process.Execute();
   }
 
@@ -191,9 +187,6 @@ public:
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 3;
       mstrategy_z->Solve();
     }
-
-    MoveMeshUtilities::MoveMesh(
-        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     if (mreform_dof_set_at_each_step == true)
     {

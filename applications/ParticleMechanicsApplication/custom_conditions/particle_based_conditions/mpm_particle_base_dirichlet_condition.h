@@ -134,6 +134,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Calculate Shape Function Values in a given point
+     */
+    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
+
     ///@}
     ///@name Protected  Access
     ///@{

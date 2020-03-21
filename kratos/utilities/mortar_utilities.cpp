@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
@@ -143,7 +144,7 @@ void ComputeNodesMeanNormalModelPart(
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // Reset NORMAL
-    VariableUtils().SetVectorVar(NORMAL, zero_array, r_nodes_array);
+    VariableUtils().SetVariable(NORMAL, zero_array, r_nodes_array);
 
     // Declare auxiliar coordinates
     CoordinatesArrayType aux_coords;
@@ -154,9 +155,14 @@ void ComputeNodesMeanNormalModelPart(
         const auto it_cond_begin = r_conditions_array.begin();
 
         #pragma omp parallel for firstprivate(aux_coords)
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
             const GeometryType& r_geometry = it_cond->GetGeometry();
+
+            // Avoid not "flat" conditions
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Set condition normal
             r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
@@ -164,8 +170,13 @@ void ComputeNodesMeanNormalModelPart(
         }
 
         // Adding the normal contribution of each node
-        for(Condition& r_cond : r_conditions_array) {
+        for (Condition& r_cond : r_conditions_array) {
             GeometryType& r_geometry = r_cond.GetGeometry();
+
+            // Avoid not "flat" conditions
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Iterate over nodes
             for (NodeType& r_node : r_geometry) {
@@ -178,9 +189,14 @@ void ComputeNodesMeanNormalModelPart(
         const auto it_elem_begin = r_elements_array.begin();
 
         #pragma omp parallel for firstprivate(aux_coords)
-        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
             auto it_elem = it_elem_begin + i;
             const GeometryType& r_geometry = it_elem->GetGeometry();
+
+            // Avoid not "flat" elements
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Set elemition normal
             r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
@@ -188,8 +204,13 @@ void ComputeNodesMeanNormalModelPart(
         }
 
         // Adding the normal contribution of each node
-        for(Element& r_elem : r_elements_array) {
+        for (Element& r_elem : r_elements_array) {
             GeometryType& r_geometry = r_elem.GetGeometry();
+
+            // Avoid not "flat" elements
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Iterate over nodes
             for (NodeType& r_node : r_geometry) {
@@ -200,7 +221,7 @@ void ComputeNodesMeanNormalModelPart(
     }
 
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
+    for (int i = 0; i < num_nodes; ++i) {
         auto it_node = it_node_begin + i;
 
         array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
@@ -441,7 +462,7 @@ void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVaria
     )
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetScalarVar(rThisVariable, 0.0, r_nodes_array);
+    VariableUtils().SetVariable(rThisVariable, 0.0, r_nodes_array);
 }
 
 /***********************************************************************************/
@@ -454,7 +475,7 @@ void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHi
     )
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetVectorVar(rThisVariable, ZeroVector(3), r_nodes_array);
+    VariableUtils().SetVariable(rThisVariable, ZeroVector(3), r_nodes_array);
 }
 
 /***********************************************************************************/
@@ -724,9 +745,7 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    double& r_aux_value = pThisNode->FastGetSolutionStepValue(rThisVariable);
-    #pragma omp atomic
-    r_aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    pThisNode->FastGetSolutionStepValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -743,13 +762,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSet
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    auto& aux_vector = pThisNode->FastGetSolutionStepValue(rThisVariable);
-    const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
-    for (IndexType i = 0; i < 3; ++i) {
-        double& r_aux_value = aux_vector[i];
-        #pragma omp atomic
-        r_aux_value += area_coeff * nodal_vaux[i];
-    }
+    pThisNode->FastGetSolutionStepValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
 
 /***********************************************************************************/
@@ -766,9 +779,7 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    double& r_aux_value = pThisNode->GetValue(rThisVariable);
-    #pragma omp atomic
-    r_aux_value += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    pThisNode->GetValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -785,13 +796,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSet
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    auto& aux_vector = pThisNode->GetValue(rThisVariable);
-    const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
-    for (IndexType i = 0; i < 3; ++i) {
-        double& r_aux_value = aux_vector[i];
-        #pragma omp atomic
-        r_aux_value += area_coeff * nodal_vaux[i];
-    }
+    pThisNode->GetValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX);
 }
 
 /***********************************************************************************/

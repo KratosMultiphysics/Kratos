@@ -30,6 +30,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
 
     def _create_nodes(self,mp):

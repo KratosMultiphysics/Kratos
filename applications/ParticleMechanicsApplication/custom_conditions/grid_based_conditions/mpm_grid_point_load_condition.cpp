@@ -43,9 +43,9 @@ MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryT
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMGridPointLoadCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridPointLoadCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -75,11 +75,11 @@ void MPMGridPointLoadCondition::CalculateAll(
 {
     KRATOS_TRY
 
-    const unsigned int NumberOfNodes = GetGeometry().size();
-    const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int matrix_size = NumberOfNodes * Dimension;
+    const unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
@@ -103,24 +103,24 @@ void MPMGridPointLoadCondition::CalculateAll(
     }
 
     // Vector with a loading applied to the condition
-    array_1d<double, 3 > PointLoad = ZeroVector(3);
+    array_1d<double, 3 > point_load = ZeroVector(3);
     if( this->Has( POINT_LOAD ) )
     {
-        noalias(PointLoad) = this->GetValue( POINT_LOAD );
+        noalias(point_load) = this->GetValue( POINT_LOAD );
     }
 
-    for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+    for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
     {
-        const unsigned int base = ii*Dimension;
+        const unsigned int base = ii*dimension;
 
         if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
         {
-            noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
+            noalias(point_load) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
         }
 
-        for(unsigned int k = 0; k < Dimension; ++k)
+        for(unsigned int k = 0; k < dimension; ++k)
         {
-            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
+            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * point_load[k];
         }
     }
 

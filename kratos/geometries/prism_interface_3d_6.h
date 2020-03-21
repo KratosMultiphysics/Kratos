@@ -1318,8 +1318,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1566,11 +1568,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData PrismInterface3D6<TPointType>::msGeometryData(
-    3, 3, 2, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_2,
     PrismInterface3D6<TPointType>::AllIntegrationPoints(),
     PrismInterface3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType> const
+GeometryDimension PrismInterface3D6<TPointType>::msGeometryDimension(
+    3, 3, 2);
+
 }// namespace Kratos.
 
 #endif // KRATOS_PRISM_INTERFACE_3D_6_H_INCLUDED  defined

@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_MONOLITIC_PFEM2_2D_ELEM_H_INCLUDED)
-#define  KRATOS_MONOLITIC_PFEM2_2D_ELEM_H_INCLUDED
+#ifndef KRATOS_MONOLITHIC_PFEM2_2D_ELEM_H_INCLUDED
+#define KRATOS_MONOLITHIC_PFEM2_2D_ELEM_H_INCLUDED
 
 // System includes
 
@@ -27,10 +27,9 @@
 namespace Kratos
 {
 
-  class MonolithicPFEM22D
-	  : public Element
-   {
-   public:
+class MonolithicPFEM22D : public Element
+{
+public:
 
      /// Counted pointer of PFEM22D
     KRATOS_CLASS_POINTER_DEFINITION(MonolithicPFEM22D);
@@ -64,37 +63,37 @@ namespace Kratos
     MonolithicPFEM22D(IndexType NewId = 0) :
         Element(NewId)
     {}
+
     MonolithicPFEM22D(IndexType NewId, const NodesArrayType& ThisNodes) :
         Element(NewId, ThisNodes)
     {}
 
-     MonolithicPFEM22D(IndexType NewId, GeometryType::Pointer pGeometry);
-     MonolithicPFEM22D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    MonolithicPFEM22D(IndexType NewId, GeometryType::Pointer pGeometry);
 
-     /// Destructor.
-     virtual ~ MonolithicPFEM22D() override;
+    MonolithicPFEM22D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~ MonolithicPFEM22D() override;
 
 
-     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override;
 
-     //void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
+    void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
 
-     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
-     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
 
 protected:
 
     void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
-
 
     virtual void AddViscousTerm(MatrixType& rDampMatrix,
         const BoundedMatrix<double, 3, 2>& rShapeDeriv,
@@ -125,10 +124,11 @@ protected:
         const int ndivisions);
 
     template<class T>
-    bool InvertMatrix(const T& input, T& inverse)  ;
+    bool InvertMatrix(const T& input, T& inverse);
 
 
 private:
+
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const override
@@ -146,9 +146,8 @@ private:
     /// Copy constructor.
     MonolithicPFEM22D(MonolithicPFEM22D const& rOther);
 
+}; // Class PFEM22D
 
-
-   }; // Class PFEM22D
 }  // namespace Kratos.
 
-#endif // KRATOS_MONOLITIC_PFEM2_2D_ELEM_H_INCLUDED  defined
+#endif // KRATOS_MONOLITHIC_PFEM2_2D_ELEM_H_INCLUDED  defined

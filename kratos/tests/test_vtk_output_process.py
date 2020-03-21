@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.vtk_output_process as vtk_output_process
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
 
@@ -235,9 +236,7 @@ def SetSolution(model_part):
 def SetupVtkOutputProcess(current_model, parameters):
     return vtk_output_process.Factory(parameters, current_model)
 
-def Check(output_file,reference_file):
-    import KratosMultiphysics.compare_two_files_check_process as compare_process
-
+def Check(output_file,reference_file, file_format):
     ## Settings string in json format
     params = KratosMultiphysics.Parameters("""{
         "reference_file_name" : "",
@@ -245,16 +244,10 @@ def Check(output_file,reference_file):
     }""")
     params["reference_file_name"].SetString(GetFilePath(reference_file))
     params["output_file_name"].SetString(output_file)
+    if file_format == "ascii":
+        params.AddEmptyValue("comparison_type").SetString("vtk")
 
-    cmp_process = compare_process.CompareTwoFilesCheckProcess(params)
-
-    cmp_process.ExecuteInitialize()
-    cmp_process.ExecuteBeforeSolutionLoop()
-    cmp_process.ExecuteInitializeSolutionStep()
-    cmp_process.ExecuteFinalizeSolutionStep()
-    cmp_process.ExecuteBeforeOutputStep()
-    cmp_process.ExecuteAfterOutputStep()
-    cmp_process.ExecuteFinalize()
+    CompareTwoFilesCheckProcess(params).Execute()
 
 def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
@@ -306,13 +299,13 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             vtk_output_process.PrintOutput()
 
             Check(os.path.join("test_vtk_output","Main_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"), file_format)
 
             Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"), file_format)
 
             Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"), file_format)
 
 
 if __name__ == '__main__':

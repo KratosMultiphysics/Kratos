@@ -342,7 +342,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -442,7 +442,7 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& r_geometry = this->GetGeometry();
+        auto& r_geometry = this->GetParentGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
             friction_coeffient_vector[i_node] = r_geometry[i_node].GetValue(FRICTION_COEFFICIENT);

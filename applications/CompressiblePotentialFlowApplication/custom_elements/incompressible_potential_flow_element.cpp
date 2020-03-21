@@ -13,6 +13,8 @@
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -148,7 +150,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
 
     if (wake != 0 && active == true)
     {
-        CheckWakeCondition();
         ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
@@ -195,6 +196,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     {
         rValues[0] = PotentialFlowUtilities::ComputeIncompressiblePressureCoefficient<Dim,NumNodes>(*this,rCurrentProcessInfo);
     }
+    else if (rVariable == DENSITY)
+    {
+        rValues[0] = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    }
+    else if (rVariable == MACH)
+    {
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        const double velocity_module = sqrt(inner_prod(velocity, velocity));
+        rValues[0] = velocity_module / rCurrentProcessInfo[SOUND_VELOCITY];
+    }
+    else if (rVariable == SOUND_VELOCITY)
+    {
+        rValues[0] = rCurrentProcessInfo[SOUND_VELOCITY];
+    }
     else if (rVariable == WAKE)
     {
         const IncompressiblePotentialFlowElement& r_this = *this;
@@ -238,6 +253,15 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
             v[k] = vaux[k];
         rValues[0] = v;
     }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        const array_1d<double, Dim>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k] - free_stream_velocity[k];
+        rValues[0] = v;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,7 +294,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
-    noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
@@ -382,7 +406,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
@@ -409,7 +433,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     GetWakeDistances(data.distances);
 
@@ -445,7 +469,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     GetWakeDistances(data.distances);
 
@@ -550,41 +574,30 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
-{
-    array_1d<double, Dim> upper_wake_velocity;
-    upper_wake_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
-
-    array_1d<double, Dim> lower_wake_velocity;
-    lower_wake_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-    const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
-
-    KRATOS_WARNING_IF("IncompressibleElement", std::abs(vupnorm - vlownorm) > 0.1) << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
+    const double reference_chord = rCurrentProcessInfo[REFERENCE_CHORD];
 
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        double aux_potential = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+    auto r_geometry = GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; i++){
+        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         double potential_jump = aux_potential - potential;
 
-        if (distances[i] > 0)
-        {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, -2.0 / free_stream_velocity_norm * (potential_jump));
+        if (distances[i] > 0){
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, - (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
+            r_geometry[i].UnSetLock();
         }
-        else
-        {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / free_stream_velocity_norm * (potential_jump));
+        else{
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
+            r_geometry[i].UnSetLock();
         }
     }
 }
@@ -625,5 +638,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerial
 // Template class instantiation
 
 template class IncompressiblePotentialFlowElement<2, 3>;
+template class IncompressiblePotentialFlowElement<3, 4>;
 
 } // namespace Kratos

@@ -419,10 +419,19 @@ namespace Kratos
                     if (r_node.Is(VISITED)) {
                         const auto &r_d_0 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 0);
                         const auto &r_d_1 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 1);
-                        noalias(r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0)) = r_d_0 - r_d_1;
-                        r_node.Fix(MESH_DISPLACEMENT_X);
-                        r_node.Fix(MESH_DISPLACEMENT_Y);
-                        r_node.Fix(MESH_DISPLACEMENT_Z);
+                        auto &r_mesh_disp = r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0);
+                        if (!r_node.IsFixed(MESH_DISPLACEMENT_X)) {
+                            r_node.Fix(MESH_DISPLACEMENT_X);
+                            r_mesh_disp[0] = r_d_0[0] - r_d_1[0];
+                        }
+                        if (!r_node.IsFixed(MESH_DISPLACEMENT_Y)) {
+                            r_node.Fix(MESH_DISPLACEMENT_Y);
+                            r_mesh_disp[1] = r_d_0[1] - r_d_1[1];
+                        }
+                        if (!r_node.IsFixed(MESH_DISPLACEMENT_Z)) {
+                            r_node.Fix(MESH_DISPLACEMENT_Z);
+                            r_mesh_disp[2] = r_d_0[2] - r_d_1[2];
+                        }
                     }
                 }
             }

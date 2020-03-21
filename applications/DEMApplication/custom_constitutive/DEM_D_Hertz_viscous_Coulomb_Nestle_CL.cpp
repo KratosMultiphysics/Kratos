@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Hertz_viscous_Coulomb_Nestle::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_Hertz_viscous_Coulomb_Nestle::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
 
         if (verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_viscous_Coulomb_Nestle to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
@@ -43,7 +43,7 @@ namespace Kratos {
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 SphericParticle* const element,
                                                                 Condition* const wall) {
-        
+
         const double my_mass    = element->GetMass();
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
         const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);

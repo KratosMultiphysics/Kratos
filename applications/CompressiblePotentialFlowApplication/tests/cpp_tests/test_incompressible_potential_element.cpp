@@ -18,6 +18,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
   namespace Testing {
@@ -38,7 +39,7 @@ namespace Kratos {
       free_stream_velocity(0) = 10.0;
 
       rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
-      pElemProp->SetValue(FREE_STREAM_DENSITY,1.0);
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -59,6 +60,7 @@ namespace Kratos {
       // Set the element properties
       rModelPart.CreateNewProperties(0);
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -132,7 +134,7 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 3> reference({0.5, 0.0, -0.5});
+      std::array<double, 3> reference{0.5, 0.0, -0.5};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -149,7 +151,7 @@ namespace Kratos {
 
       BoundedVector<double,3> distances = AssignDistances();
 
-      pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
+      pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
 
       AssignPotentialsToWakeElement(pElement, distances);
@@ -162,7 +164,7 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 6> reference({0.5, 0.0, 0.0, 0.0, 0.0, -0.5});
+      std::array<double, 6> reference{0.5, 0.0, 0.0, 0.0, 0.0, -0.5};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -193,12 +195,11 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->Set(TO_SPLIT);
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 3> reference({0.125, 0.0, -0.125});
+      std::array<double, 3> reference{0.125, 0.0, -0.125};
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -250,7 +251,7 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
@@ -283,11 +284,11 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       const auto returned_distances = PotentialFlowUtilities::GetWakeDistances<2, 3>(*pElement);
 
-      std::array<double, 3> reference({1.0, -1.0, -1.0});
+      std::array<double, 3> reference{1.0, -1.0, -1.0};
 
       for (unsigned int i = 0; i < returned_distances.size(); i++) {
         KRATOS_CHECK_NEAR(returned_distances(i), reference[i], 1e-7);
@@ -307,7 +308,7 @@ namespace Kratos {
 
       auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
 
-      std::array<double, 3> reference({1.0, 2.0, 3.0});
+      std::array<double, 3> reference{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -331,7 +332,7 @@ namespace Kratos {
       array_1d<double, 3> potentials =
           PotentialFlowUtilities::GetPotentialOnUpperWakeElement<2, 3>(*pElement, distances);
 
-      std::array<double, 3> reference({1.0, 2.0, 3.0});
+      std::array<double, 3> reference{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -355,7 +356,7 @@ namespace Kratos {
       array_1d<double, 3> potentials =
           PotentialFlowUtilities::GetPotentialOnLowerWakeElement<2, 3>(*pElement, distances);
 
-      std::array<double, 3> reference({6.0, 7.0, 8.0});
+      std::array<double, 3> reference{6.0, 7.0, 8.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -379,7 +380,7 @@ namespace Kratos {
       BoundedVector<double, 2 * 3> potentials =
           PotentialFlowUtilities::GetPotentialOnWakeElement<2, 3>(*pElement, distances);
 
-      std::array<double, 6> reference({1.0, 2.0, 3.0, 6.0, 7.0, 8.0});
+      std::array<double, 6> reference{1.0, 2.0, 3.0, 6.0, 7.0, 8.0};
 
       for (unsigned int i = 0; i < potentials.size(); i++) {
         KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
@@ -399,7 +400,7 @@ namespace Kratos {
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<2,3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -417,13 +418,13 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       AssignPotentialsToWakeElement(pElement, distances);
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<2, 3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -441,13 +442,13 @@ namespace Kratos {
       pElement->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistances();
-      pElement->SetValue(ELEMENTAL_DISTANCES, distances);
+      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       AssignPotentialsToWakeElement(pElement, distances);
 
       auto velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<2, 3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);
@@ -467,7 +468,7 @@ namespace Kratos {
 
       auto velocity = PotentialFlowUtilities::ComputeVelocity<2,3>(*pElement);
 
-      std::array<double, 2> reference({1.0, 1.0});
+      std::array<double, 2> reference{1.0, 1.0};
 
       for (unsigned int i = 0; i < velocity.size(); i++) {
         KRATOS_CHECK_NEAR(velocity(i), reference[i], 1e-7);

@@ -26,8 +26,8 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
     )
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    const Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // The dimensions
     const SizeType dimension = rMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -96,9 +96,9 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ContactSearchWrapperProcess::GetDefaultParameters()
+const Parameters ContactSearchWrapperProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "simple_search"                        : false,
         "allocation_size"                      : 1000,
@@ -113,6 +113,7 @@ Parameters ContactSearchWrapperProcess::GetDefaultParameters()
         "static_check_movement"                : false,
         "predefined_master_slave"              : true,
         "id_name"                              : "",
+        "normal_orientation_threshold"         : 1.0e-1,
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
         "pure_slip"                            : false,
@@ -121,6 +122,7 @@ Parameters ContactSearchWrapperProcess::GetDefaultParameters()
             "bounding_box_factor"             : 0.1,
             "debug_obb"                       : false,
             "OBB_intersection_type"           : "SeparatingAxisTheorem",
+            "build_from_bounding_box"         : true,
             "lower_bounding_box_coefficient"  : 0.0,
             "higher_bounding_box_coefficient" : 1.0
             }

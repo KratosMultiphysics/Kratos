@@ -1,6 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.DEMApplication import *
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 
 class TimeStepTester(object):
@@ -261,8 +261,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.30
 
 
-    def FinalizeTimeStep(self, time):
-        super(CustomizedSolutionForTimeStepTesting, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super(CustomizedSolutionForTimeStepTesting, self).FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
         #if not self.step%200:

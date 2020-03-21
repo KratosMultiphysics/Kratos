@@ -30,7 +30,7 @@
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
     #include "custom_utilities/tetrahedra_reconnect_utility.h"
-#endif 
+#endif
 
 #include "custom_utilities/cutting_iso_app.h"
 
@@ -47,12 +47,43 @@ namespace Python
 {
 namespace py = pybind11;
 
+void RecursiveEnsureModelPartOwnsProperties(ModelPart& rModelPart)
+{
+    MeshingUtilities::RecursiveEnsureModelPartOwnsProperties(rModelPart);
+}
+
+void RecursiveEnsureModelPartOwnsPropertiesWithClear(
+    ModelPart& rModelPart,
+    const bool RemovePreviousProperties
+    )
+{
+    MeshingUtilities::RecursiveEnsureModelPartOwnsProperties(rModelPart, RemovePreviousProperties);
+}
+
+void EnsureModelPartOwnsProperties(ModelPart& rModelPart)
+{
+    MeshingUtilities::EnsureModelPartOwnsProperties(rModelPart);
+}
+
+void EnsureModelPartOwnsPropertiesWithClear(
+    ModelPart& rModelPart,
+    const bool RemovePreviousProperties
+    )
+{
+    MeshingUtilities::EnsureModelPartOwnsProperties(rModelPart, RemovePreviousProperties);
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     // MeshingUtilities
-    m.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
-    m.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
-    
+    auto mod_meshing_utilities = m.def_submodule("MeshingUtilities");
+    mod_meshing_utilities.def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsProperties);
+    mod_meshing_utilities.def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsPropertiesWithClear);
+    mod_meshing_utilities.def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsProperties);
+    mod_meshing_utilities.def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsPropertiesWithClear);
+    mod_meshing_utilities.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
+    mod_meshing_utilities.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
+
     py::class_<MeshTransfer < 2 > >(m,"MeshTransfer2D")
     .def(py::init< >())
     .def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
@@ -120,7 +151,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("AddHole", &TetgenVolumeMesher::AddHole)
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
-    
+
     py::class_<TetrahedraReconnectUtility >(m,"TetrahedraReconnectUtility")
     .def(py::init<ModelPart&>())
     .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
@@ -133,14 +164,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
     ;
 #endif
-    
+
 #ifdef PRAGMATIC_ACTIVATED
     py::class_<PragmaticAdaptor >(m,"PragmaticAdaptor")
     .def(py::init< >())
     .def("AdaptMesh", &PragmaticAdaptor::AdaptMesh)
     ;
 #endif
-    
+
     py::class_<Cutting_Isosurface_Application >(m,"Cutting_Isosurface_Application")
     .def(py::init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)

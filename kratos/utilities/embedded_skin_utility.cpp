@@ -17,6 +17,10 @@
 // Project includes
 #include "variable_utils.h"
 #include "embedded_skin_utility.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "utilities/divide_triangle_2d_3.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
 
@@ -25,6 +29,7 @@ namespace Kratos
     template<std::size_t TDim>
     void EmbeddedSkinUtility<TDim>::GenerateSkin()
     {
+        // Erase all the geometrical entities of embedded skin model part
         this->Clear();
 
         // Initialize the ids. for the new entries
@@ -42,15 +47,16 @@ namespace Kratos
 
         int n_elems = mrModelPart.NumberOfElements();
         for (int i_elem = 0; i_elem < n_elems; ++i_elem){
-            ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i_elem;
+            const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
 
             // Get element geometry
-            const Geometry<Node<3>> &r_geometry = it_elem->GetGeometry();
-            const Vector nodal_distances = this->SetDistancesVector(it_elem);
+            const auto &r_geometry = it_elem->GetGeometry();
+            const Vector nodal_distances = this->SetDistancesVector(*it_elem);
 
             // If split, create the intersection geometry
             if (this->ElementIsSplit(r_geometry, nodal_distances)) {
-                this->ComputeElementSkin(r_geometry, nodal_distances, temp_node_id, temp_cond_id, p_cond_prop, new_nodes_vect, new_conds_vect);
+                const auto p_elem = Kratos::make_intrusive<Element>(*it_elem);
+                this->ComputeElementSkin(p_elem, nodal_distances, temp_node_id, temp_cond_id, p_cond_prop, new_nodes_vect, new_conds_vect);
             }
         }
 
@@ -74,8 +80,29 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::InterpolateDiscontinuousMeshVariableToSkin(
+        const Variable<double> &rMeshVariable,
+		const Variable<double> &rSkinVariable,
+        const std::string &rInterfaceSide)
+    {
+        this->InterpolateMeshVariableToSkinSpecialization<double>(rMeshVariable, rSkinVariable, rInterfaceSide);
+    }
+
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::InterpolateDiscontinuousMeshVariableToSkin(
+        const Variable<array_1d<double,3>> &rMeshVariable,
+		const Variable<array_1d<double,3>> &rSkinVariable,
+        const std::string &rInterfaceSide)
+    {
+        this->InterpolateMeshVariableToSkinSpecialization<array_1d<double,3>>(rMeshVariable, rSkinVariable, rInterfaceSide);
+    }
+
+    template<std::size_t TDim>
     void EmbeddedSkinUtility<TDim>::Clear()
     {
+        // Remove all the entries of the edge nodes map
+        mEdgeNodesMap.clear();
+
         // Flag all the geometrical entities with the TO_ERASE flag
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(TO_ERASE, true, mrSkinModelPart.Nodes());
         VariableUtils().SetFlag<ModelPart::ElementsContainerType>(TO_ERASE, true, mrSkinModelPart.Elements());
@@ -89,7 +116,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     void EmbeddedSkinUtility<TDim>::ComputeElementSkin(
-        const Geometry<Node<3>> &rGeometry,
+        const Element::Pointer pElement,
         const Vector &rNodalDistances,
         unsigned int &rTempNodeId,
         unsigned int &rTempCondId,
@@ -98,7 +125,8 @@ namespace Kratos
         ModelPart::ConditionsContainerType &rNewCondsVect)
     {
         // Set the split utility and compute the splitting pattern
-        DivideGeometry::Pointer p_split_utility = this->SetDivideGeometryUtility(rGeometry, rNodalDistances);
+        const auto &r_geom = pElement->GetGeometry();
+        DivideGeometry::Pointer p_split_utility = this->SetDivideGeometryUtility(r_geom, rNodalDistances);
         p_split_utility->GenerateDivision();
         p_split_utility->GenerateIntersectionsSkin();
 
@@ -111,15 +139,16 @@ namespace Kratos
 
         // Create the split interface geometries in the skin model part
         for (unsigned int i_int_geom = 0; i_int_geom < n_interface_geom; ++i_int_geom){
-            DivideGeometry::IndexedPointGeometryPointerType p_int_sub_geom = split_interface_geometries[i_int_geom];
-            GeometryData::KratosGeometryType p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
+            const auto p_int_sub_geom = split_interface_geometries[i_int_geom];
+            const auto p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
             const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
 
             // Fill the new condition nodes array
             Condition::NodesArrayType sub_int_geom_nodes_array;
             for (unsigned int i_node = 0; i_node < sub_int_geom_n_nodes; ++i_node){
-                DivideGeometry::IndexedPointType &r_sub_int_geom_node = p_int_sub_geom->operator[](i_node);
-                Node<3>::Pointer p_new_node = mrSkinModelPart.CreateNewNode(
+                // Create the new node
+                const auto &r_sub_int_geom_node = (*p_int_sub_geom)[i_node];
+                auto p_new_node = mrSkinModelPart.CreateNewNode(
                     rTempNodeId,
                     r_sub_int_geom_node.X(),
                     r_sub_int_geom_node.Y(),
@@ -127,15 +156,22 @@ namespace Kratos
                 rTempNodeId++;
                 rNewNodesVect.push_back(p_new_node);
                 sub_int_geom_nodes_array.push_back(p_new_node);
+
+                // Add the new node data to the map
+                // Note that we take advantage of the Id numbering of the intersection nodes to identify the intersected edge
+                const unsigned int intersected_edge_id = r_sub_int_geom_node.Id() - r_geom.PointsNumber();
+                const auto new_info = std::make_tuple(pElement, intersected_edge_id);
+                mEdgeNodesMap.insert(EdgeNodesMapType::value_type(p_new_node, new_info));
             }
 
-            // Set the new condition geometry
-            Geometry< Node<3> >::Pointer p_new_geom = this->SetNewConditionGeometry(
+            // Set the new condition pointer
+            auto p_new_cond = this->pCreateNewCondition(
                 p_int_sub_geom_type,
-                sub_int_geom_nodes_array);
+                sub_int_geom_nodes_array,
+                rTempCondId,
+                pCondProp);
 
             // Create the new condition
-            Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(rTempCondId, p_new_geom, pCondProp);
             rNewCondsVect.push_back(p_new_cond);
 
             // Update the new elements id. counter
@@ -191,7 +227,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    Geometry< Node<3> >::Pointer EmbeddedSkinUtility<TDim>::SetNewConditionGeometry(
+    Geometry< Node<3> >::Pointer EmbeddedSkinUtility<TDim>::pCreateNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray)
     {
@@ -203,6 +239,29 @@ namespace Kratos
             default:
                 KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << rOriginGeometryType;
         }
+    }
+
+    template<std::size_t TDim>
+    Condition::Pointer EmbeddedSkinUtility<TDim>::pCreateNewCondition(
+        const GeometryData::KratosGeometryType &rOriginGeometryType,
+        const Condition::NodesArrayType &rNewNodesArray,
+        const unsigned int &rConditionId,
+        const Properties::Pointer pConditionProperties)
+    {
+        auto p_new_geom = this->pCreateNewConditionGeometry(rOriginGeometryType, rNewNodesArray);
+        return mrConditionPrototype.Create(rConditionId, p_new_geom, pConditionProperties);
+    }
+
+    template<>
+    const std::string EmbeddedSkinUtility<2>::GetConditionType()
+    {
+        return "LineCondition2D2N";
+    }
+
+    template<>
+    const std::string EmbeddedSkinUtility<3>::GetConditionType()
+    {
+        return "SurfaceCondition3D3N";
     }
 
     template<std::size_t TDim>
@@ -242,21 +301,21 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    const Vector EmbeddedSkinUtility<TDim>::SetDistancesVector(ModelPart::ElementIterator ItElem)
+    const Vector EmbeddedSkinUtility<TDim>::SetDistancesVector(const Element &rElement)
     {
-        auto &r_geom = ItElem->GetGeometry();
+        const auto &r_geom = rElement.GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
 
-        if (mLevelSetType == "continuous"){
+        if (mLevelSetType == LevelSetTypeEnum::Continuous) {
             // Continuous nodal distance function case
             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                 nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
             }
-        } else if (mLevelSetType == "discontinuous") {
+        } else if (mLevelSetType == LevelSetTypeEnum::Discontinuous) {
             // Discontinuous elemental distance function case
-            nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
+            nodal_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
         } else {
-            KRATOS_ERROR << "Level set type must be either 'continuous' or 'discontinuous'. Got " << mLevelSetType;
+            KRATOS_ERROR << "Level set type must be either \'continuous\' or \'discontinuous\'";
         }
 
         return nodal_distances;
@@ -277,8 +336,85 @@ namespace Kratos
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 return Kratos::make_shared<DivideTetrahedra3D4>(rGeometry, rNodalDistances);
             default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+                KRATOS_ERROR << "Asking for a non-implemented divide geometry utility.";
         }
+    }
+
+    template<std::size_t TDim>
+    ModifiedShapeFunctions::UniquePointer EmbeddedSkinUtility<TDim>::pCreateModifiedShapeFunctions(
+        const Geometry<Node<3>>::Pointer pGeometry,
+        const Vector& rNodalDistances)
+    {
+        // Get the geometry type
+        const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
+
+        // Return the modified shape functions utility
+        if (mLevelSetType == LevelSetTypeEnum::Continuous) {
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                default:
+                    KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+            }
+        } else if (mLevelSetType == LevelSetTypeEnum::Discontinuous) {
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    return Kratos::make_unique<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    return Kratos::make_unique<Tetrahedra3D4AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                default:
+                    KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
+            }
+        } else {
+            KRATOS_ERROR << "Level set type must be either \'continuous\' or \'discontinuous\'.";
+        }
+    }
+
+    template<std::size_t TDim>
+    Matrix EmbeddedSkinUtility<TDim>::GetModifiedShapeFunctionsValues(
+        const ModifiedShapeFunctions::UniquePointer &rpModifiedShapeFunctions,
+        const std::string &rInterfaceSide) const
+    {
+        Vector w_int;
+        Matrix int_sh_func;
+        ModifiedShapeFunctions::ShapeFunctionsGradientsType int_grads;
+
+        if (rInterfaceSide == "positive") {
+            rpModifiedShapeFunctions->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+                int_sh_func,
+                int_grads,
+                w_int,
+                GeometryData::GI_GAUSS_2);
+        } else if (rInterfaceSide == "negative") {
+            rpModifiedShapeFunctions->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+                int_sh_func,
+                int_grads,
+                w_int,
+                GeometryData::GI_GAUSS_2);
+        } else {
+            KRATOS_ERROR << "Interface side must be either 'positive' or 'negative'. Got " << rInterfaceSide;
+        }
+
+        return int_sh_func;
+    }
+
+    template<std::size_t TDim>
+    Matrix EmbeddedSkinUtility<TDim>::GetModifiedShapeFunctionsValuesOnEdge(
+        const ModifiedShapeFunctions::UniquePointer &rpModifiedShapeFunctions,
+        const std::string &rInterfaceSide) const
+    {
+        Matrix edge_N_values;
+        if (rInterfaceSide == "positive") {
+            rpModifiedShapeFunctions->ComputeShapeFunctionsOnPositiveEdgeIntersections(edge_N_values);
+        } else if (rInterfaceSide == "negative") {
+            rpModifiedShapeFunctions->ComputeShapeFunctionsOnNegativeEdgeIntersections(edge_N_values);
+        } else {
+            KRATOS_ERROR << "Interface side must be either 'positive' or 'negative'. Got " << rInterfaceSide;
+        }
+
+        return edge_N_values;
     }
 
     template class Kratos::EmbeddedSkinUtility<2>;

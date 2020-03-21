@@ -3,7 +3,7 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import MultiFileFlag
 from KratosMultiphysics import GiDPostMode
-import gid_output
+import KratosMultiphysics.gid_output as gid_output # this is deprecated
 
 
 class SwimmingDEMGiDOutput(gid_output.GiDOutput):

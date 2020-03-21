@@ -66,6 +66,20 @@
 #include "custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/history_linear_elastic_3D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+
 namespace Kratos
 {
 
@@ -196,6 +210,20 @@ const SimoJuNonlocalDamagePlaneStress2DLaw mSimoJuNonlocalDamagePlaneStress2DLaw
 const ModifiedMisesNonlocalDamage3DLaw mModifiedMisesNonlocalDamage3DLaw;
 const ModifiedMisesNonlocalDamagePlaneStrain2DLaw mModifiedMisesNonlocalDamagePlaneStrain2DLaw;
 const ModifiedMisesNonlocalDamagePlaneStress2DLaw mModifiedMisesNonlocalDamagePlaneStress2DLaw;
+
+const HistoryLinearElastic3DLaw mHistoryLinearElastic3DLaw;
+const HistoryLinearElasticPlaneStrain2DLaw mHistoryLinearElasticPlaneStrain2DLaw;
+const HistoryLinearElasticPlaneStress2DLaw mHistoryLinearElasticPlaneStress2DLaw;
+
+const HyperElastic3DLaw                       mHyperElastic3DLaw;
+const LinearElastic3DLaw                      mLinearElastic3DLaw;
+const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
+const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
+const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
+const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;
+const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
+const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
 
 // Assignment operator.
 KratosPoromechanicsApplication& operator=(KratosPoromechanicsApplication const& rOther);

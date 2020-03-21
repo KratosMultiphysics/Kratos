@@ -117,15 +117,18 @@ void DistanceModificationProcess::Execute()
     this->ExecuteInitializeSolutionStep();
 }
 
-void DistanceModificationProcess::ExecuteInitialize() {
-
+void DistanceModificationProcess::ExecuteInitialize()
+{
     KRATOS_TRY;
 
-    // Continuous distance field required variables check
     if (mContinuousDistance){
+        // Continuous distance modification historical variables check
         const auto& r_node = *mrModelPart.NodesBegin();
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+
+        // Compute NODAL_H (used for computing the distance tolerance)
+        FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable> nodal_h_calculator(mrModelPart);
+        nodal_h_calculator.Execute();
     }
 
     KRATOS_CATCH("");
@@ -141,9 +144,6 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
     if(!mIsModified){
         // Modify the nodal distance values to avoid bad intersections
         if (mContinuousDistance) {
-            // Compute NODAL_H (used for computing the distance tolerance)
-            FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable> nodal_h_calculator(mrModelPart);
-            nodal_h_calculator.Execute();
             // Modify the continuous distance field
             this->ModifyDistance();
         } else {
@@ -194,7 +194,7 @@ void DistanceModificationProcess::ModifyDistance() {
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(r_nodes.size()); ++k) {
             auto it_node = r_nodes.begin() + k;
-            const double h = it_node->FastGetSolutionStepValue(NODAL_H);
+            const double h = it_node->GetValue(NODAL_H);
             const double tol_d = mDistanceThreshold*h;
             double& d = it_node->FastGetSolutionStepValue(DISTANCE);
 
@@ -232,7 +232,7 @@ void DistanceModificationProcess::ModifyDistance() {
             std::vector<double> aux_modified_distance_values;
 
             for (auto it_node = nodes_begin; it_node < nodes_end; ++it_node) {
-                const double h = it_node->FastGetSolutionStepValue(NODAL_H);
+                const double h = it_node->GetValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
                 double &d = it_node->FastGetSolutionStepValue(DISTANCE);
 
@@ -293,7 +293,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
             for (unsigned int i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                 if (std::abs(r_elem_dist(i_node)) < tol_d){
-                    r_elem_dist(i_node) = -tol_d;
+                    r_elem_dist(i_node) = r_elem_dist(i_node) > 0.0 ? tol_d : -tol_d;
                 }
             }
         }
@@ -326,7 +326,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
                             aux_modified_distances_ids.push_back(it_elem->Id());
                             aux_modified_elemental_distances.push_back(r_elem_dist);
                         }
-                        r_elem_dist(i_node) = -tol_d;
+                        r_elem_dist(i_node) = r_elem_dist(i_node) > 0.0 ? tol_d : -tol_d;
                     }
                 }
             }
@@ -500,22 +500,22 @@ void DistanceModificationProcess::SetDiscontinuousDistanceToSplitFlag()
     }
 }
 
-void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray) 
+void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray)
 {
-    const auto& r_node = *mrModelPart.NodesBegin(); 
+    const auto& r_node = *mrModelPart.NodesBegin();
     for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
         if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
             const auto& r_double_var  = KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
             KRATOS_CHECK_DOF_IN_NODE(r_double_var, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_double_var, r_node)
 
-            mDoubleVariablesList.push_back(&r_double_var);               
+            mDoubleVariablesList.push_back(&r_double_var);
         }
         else if (KratosComponents<ComponentType>::Has(rVariableStringArray[i_variable])){
             const auto& r_component_var  = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
             KRATOS_CHECK_DOF_IN_NODE(r_component_var, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var, r_node)
-            
+
             mComponentVariablesList.push_back(&r_component_var);
         }
         else if (KratosComponents<Variable<array_1d<double,3>>>::Has(rVariableStringArray[i_variable])){

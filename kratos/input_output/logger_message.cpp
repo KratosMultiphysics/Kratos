@@ -19,14 +19,13 @@
 
 // Project includes
 #include "input_output/logger_message.h"
-#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
   LoggerMessage::MessageSource::MessageSource()
   {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-    mRank = r_comm.Rank();
+    mRank = ParallelEnvironment::GetDefaultRank();
   }
 
   std::string LoggerMessage::Info() const

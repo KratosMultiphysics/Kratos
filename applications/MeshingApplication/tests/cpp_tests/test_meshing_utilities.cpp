@@ -15,9 +15,8 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "containers/model.h"
+#include "utilities/cpp_tests_utilities.h"
 #include "custom_utilities/meshing_utilities.h"
 
 namespace Kratos {
@@ -26,9 +25,9 @@ namespace Kratos {
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
 
-        void CreateDummy2DModelPart(ModelPart& rModelPart)
+        void CreateDummy2DNoModelPartPropertiesModelPart(ModelPart& rModelPart)
         {
-            Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+            Properties::Pointer p_elem_prop = Kratos::make_shared<Properties>(0);
 
             // First we create the nodes
             rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -45,38 +44,24 @@ namespace Kratos {
             rModelPart.CreateNewElement("Element2D3N", 4, {{5,6,3}}, p_elem_prop);
         }
 
-        void CreateDummy3DModelPart(ModelPart& rModelPart)
+        /**
+        * Checks the correct work of the EnsureModelPartOwnsProperties
+        * Test triangle
+        */
+        KRATOS_TEST_CASE_IN_SUITE(EnsureModelPartOwnsProperties, KratosMeshingApplicationFastSuite)
         {
-            Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+            r_current_process_info[DOMAIN_SIZE] = 2;
 
-            // First we create the nodes
-            rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
+            CreateDummy2DNoModelPartPropertiesModelPart(r_model_part);
 
-            rModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
+            KRATOS_CHECK(r_model_part.NumberOfProperties() == 0);
 
-            // Now we create the elements
-            rModelPart.CreateNewElement("Element3D4N", 1, {{12,10,8,9}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 2, {{4,6,9,7}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 3, {{11,7,9,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 4, {{5,3,8,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 5, {{4,6,7,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 6, {{2,3,5,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 7, {{10,9,6,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 8, {{7,8,3,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 9, {{7,8,6,9}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 10, {{4,1,6,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 11, {{9,12,11,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("Element3D4N", 12, {{3,2,1,6}}, p_elem_prop);
+            MeshingUtilities::EnsureModelPartOwnsProperties(r_model_part);
+
+            KRATOS_CHECK(r_model_part.NumberOfProperties() == 1);
         }
 
         /**
@@ -90,7 +75,7 @@ namespace Kratos {
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             r_current_process_info[DOMAIN_SIZE] = 2;
 
-            CreateDummy2DModelPart(r_model_part);
+            CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
 
             Parameters parameters = Parameters(R"(
             {
@@ -117,7 +102,7 @@ namespace Kratos {
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             r_current_process_info[DOMAIN_SIZE] = 3;
 
-            CreateDummy3DModelPart(r_model_part);
+            CppTestsUtilities::Create3DGeometry(r_model_part, "Element3D4N");
 
             Parameters parameters = Parameters(R"(
             {

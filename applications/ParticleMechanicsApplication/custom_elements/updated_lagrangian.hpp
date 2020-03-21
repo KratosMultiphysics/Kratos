@@ -335,16 +335,6 @@ public:
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * Called at the end of eahc solution step
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
@@ -524,7 +514,8 @@ protected:
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
-                                    const double& rIntegrationWeight);
+                                    const double& rIntegrationWeight,
+                                    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the vectors of the RHS

@@ -45,13 +45,13 @@ namespace Kratos
         rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
 
         // Additional check to eliminate loss of point load quantity
-        GeometryType& rGeom = GetGeometry();
+        GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         double denominator = 1.0;
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            if (rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0){
+            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
                 denominator -= rResult[i];
                 rResult[i] = 0;
             }

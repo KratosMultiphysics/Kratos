@@ -12,13 +12,12 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger, Parameters
 import KratosMultiphysics.DEMApplication as DEM
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
-import CFD_DEM_coupling
-import swimming_DEM_procedures as SDP
-import swimming_DEM_gid_output
-import embedded
-import variables_management
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_gid_output as swimming_DEM_gid_output
+import KratosMultiphysics.SwimmingDEMApplication.embedded as embedded
+import KratosMultiphysics.SwimmingDEMApplication.variables_management as variables_management
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -27,7 +26,7 @@ def Say(*args):
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
 # For other implementations of MPI it will not work.
 
-import DEM_procedures as DP
+import KratosMultiphysics.DEMApplication.DEM_procedures as DP
 
 class SDEMLogger(object):
     def __init__(self, do_print_file=False):
@@ -105,7 +104,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_parameters = self.project_parameters['fluid_parameters']
 
         # First, read the parameters generated from the interface
-        import swimming_dem_default_input_parameters as only_swimming_defaults
+        import KratosMultiphysics.SwimmingDEMApplication.swimming_dem_default_input_parameters as only_swimming_defaults
         import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
 
 
@@ -302,12 +301,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         fluid_domain_dimension = self.project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
         self.custom_functions_tool = SDP.FunctionsCalculator(fluid_domain_dimension)
 
-        # creating a stationarity assessment tool
-        self.stationarity_tool = SDP.StationarityAssessmentTool(
-            self.project_parameters["stationarity"]["max_pressure_variation_rate_tol"].GetDouble(),
-            self.custom_functions_tool
-            )
-
         # creating a debug tool
         self.dem_volume_tool = self.GetVolumeDebugTool()
 
@@ -362,7 +355,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.project_parameters.AddEmptyValue("perform_analytics_option").SetBool(False)
 
         if self.project_parameters["perform_analytics_option"].GetBool():
-            import analytics
+            import KratosMultiphysics.SwimmingDEMApplication.analytics as analytics
             variables_to_measure = [Kratos.PRESSURE]
             steps_between_measurements = 100
             gauge = analytics.Gauge(
@@ -383,13 +376,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
             gauge.ConstructArrayOfNodes(condition)
             Say(gauge.variables)
         # ANALYTICS END
-
-        import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_model_part,
-            self.custom_functions_tool)
 
         self.FillHistoryForcePrecalculatedVectors()
 
@@ -516,7 +502,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_model_part.CloneTimeStep(self.time)
 
     def DEMSolve(self, time='None'): # time is passed in case it is needed
-        self._GetDEMAnalysis().solver.Solve()
+        self._GetDEMAnalysis().solver.SolveSolutionStep()
 
     def UpdateALEMeshMovement(self, time):
         pass
@@ -548,8 +534,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             embedded.ApplyEmbeddedBCsToBalls(self.spheres_model_part, self.project_parameters)
 
     def AssessStationarity(self):
-        Say("Assessing Stationarity...\n")
-        self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
+        self.stationarity = self._GetSolver().AssessStationarity()
         self.stationarity_counter.Deactivate(self.stationarity)
 
     def SetInlet(self):
@@ -733,21 +718,21 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def _GetDEMAnalysis(self):
         if not hasattr(self, '_disperse_phase_analysis'):
-            import fluid_coupled_DEM_analysis as DEM_analysis
+            import KratosMultiphysics.SwimmingDEMApplication.fluid_coupled_DEM_analysis as DEM_analysis
             self._disperse_phase_analysis = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.project_parameters)
 
         return self._disperse_phase_analysis
 
     def _GetFluidAnalysis(self):
         if not hasattr(self, '_fluid_phase_analysis'):
-            import DEM_coupled_fluid_dynamics_analysis as fluid_analysis
+            import KratosMultiphysics.SwimmingDEMApplication.DEM_coupled_fluid_dynamics_analysis as fluid_analysis
             self._fluid_phase_analysis = fluid_analysis.DEMCoupledFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
             self._fluid_phase_analysis.main_path = self.main_path
         return self._fluid_phase_analysis
 
     # To-do: for the moment, provided for compatibility
     def _CreateSolver(self):
-        import swimming_DEM_solver
+        import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_solver as swimming_DEM_solver
         return swimming_DEM_solver.SwimmingDEMSolver(self.model,
                                                      self.project_parameters,
                                                      self.GetFieldUtility(),

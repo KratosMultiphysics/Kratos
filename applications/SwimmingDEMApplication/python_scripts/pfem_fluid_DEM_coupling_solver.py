@@ -3,7 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-from pfem_fluid_solver import PfemFluidSolver
+from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_solver import PfemFluidSolver
 
 
 def CreateSolver(model, parameters):

@@ -112,12 +112,29 @@ public:
     }
 
     // Constructor 1
-    PenaltyMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
+    PenaltyMethodFrictionalMortarContactAxisymCondition(
+        IndexType NewId,
+        GeometryPointerType pGeometry
+        ):BaseType(NewId, pGeometry)
     {
     }
 
     // Constructor 2
-    PenaltyMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
+    PenaltyMethodFrictionalMortarContactAxisymCondition(
+        IndexType NewId,
+        GeometryPointerType pGeometry,
+        PropertiesPointerType pProperties
+        ):BaseType( NewId, pGeometry, pProperties )
+    {
+    }
+
+    // Constructor 3
+    PenaltyMethodFrictionalMortarContactAxisymCondition(
+        IndexType NewId,
+        GeometryPointerType pGeometry,
+        PropertiesPointerType pProperties,
+        GeometryType::Pointer pMasterGeometry
+        ):BaseType( NewId, pGeometry, pProperties, pMasterGeometry )
     {
     }
 
@@ -139,13 +156,12 @@ public:
     ///@{
 
     /**
-     * Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an arry of nodes
      * @param NewId The ID of the new element
      * @param rThisNodes The nodes of the new element
      * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
@@ -153,17 +169,31 @@ public:
         ) const override;
 
     /**
-     * Creates a new element pointer from an existing geometry
+     * @brief Creates a new element pointer from an existing geometry
      * @param NewId The ID of the new element
      * @param pGeom The  geometry taken to create the condition
      * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
         PropertiesPointerType pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element pointer from an existing geometry
+     * @param NewId the ID of the new element
+     * @param pGeom the  geometry taken to create the condition
+     * @param pProperties the properties assigned to the new element
+     * @param pMasterGeom the paired geometry
+     * @return a Pointer to the new element
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryPointerType pGeom,
+        PropertiesPointerType pProperties,
+        GeometryPointerType pMasterGeom
         ) const override;
 
     /******************************************************************/
@@ -220,7 +250,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 

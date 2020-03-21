@@ -80,7 +80,7 @@ HenckyElasticPlasticUP3DLaw::~HenckyElasticPlasticUP3DLaw()
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
-void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
@@ -178,7 +178,7 @@ void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const Ma
 
 }
 
-void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
+void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {
     mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
 

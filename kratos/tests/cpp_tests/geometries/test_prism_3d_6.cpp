@@ -104,6 +104,25 @@ namespace Testing {
         KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
     }
 
+    /**
+     * This test performs the check of the box intersection method
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6BoxIntersection, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRegularPrism3D6();
+
+        // Prism inside the box
+        KRATOS_CHECK(p_geom->HasIntersection(Point(-0.6,-0.6,-0.6), Point(0.6,0.6,0.6)));
+
+        // Prism contains the box
+        KRATOS_CHECK(p_geom->HasIntersection(Point(-.25,-.25,-.25), Point(.25,.25,.25)));
+
+        // Prism intersects the box
+        KRATOS_CHECK(p_geom->HasIntersection(Point(.25,.25,.25), Point(1.0,1.0,1.0)));
+
+        // Prism not intersects the box
+        KRATOS_CHECK_IS_FALSE(p_geom->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.1)));
+    }
+
     /** Checks the inside test for a given point respect to the prism
     * Checks the inside test for a given point respect to the prism
     * It performs 4 tests:

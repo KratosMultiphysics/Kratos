@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
+from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics import * # TODO remove
 
 import os
@@ -12,9 +13,9 @@ def Factory(settings, Model):
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
 
-    if model_part.GetCommunicator().TotalProcesses() > 1:
-        from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI
-        return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    if model_part.IsDistributed():
+        from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess
+        return DistributedGiDOutputProcess(model_part, output_name, postprocess_parameters)
     else:
         return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
@@ -153,14 +154,14 @@ class GiDOutputProcess(KM.Process):
         self._InitializeGiDIO(gidpost_flags,gidpost_flags)
 
         # Process nodal and gauss point output
-        self.nodal_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_results"])
-        self.gauss_point_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
-        self.nodal_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
-        self.nodal_flags = self._GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
+        self.nodal_variables = kratos_utilities.GenerateVariableListFromInput(result_file_configuration["nodal_results"])
+        self.gauss_point_variables = kratos_utilities.GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
+        self.nodal_nonhistorical_variables = kratos_utilities.GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
+        self.nodal_flags = kratos_utilities.GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
-        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags = kratos_utilities.GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
         self.elemental_conditional_flags_names =[]
         for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
             self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
@@ -462,24 +463,6 @@ class GiDOutputProcess(KM.Process):
                                         p,
                                         self.output_surface_index,
                                         0.01)
-
-    def _GenerateVariableListFromInput(self,param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is a string
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
-
-    def _GenerateFlagsListFromInput(self,param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is a string
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ globals()[ param[i].GetString() ] for i in range( 0,param.size() ) ]
 
     def __write_mesh(self, label):
         if self.body_io is not None:

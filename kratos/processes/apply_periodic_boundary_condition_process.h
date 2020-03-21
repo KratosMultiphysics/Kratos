@@ -139,25 +139,9 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
 
     /**
-     * @brief   Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
+     * @brief Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
      */
     void CalculateTransformationMatrix();
-
-    /**
-     * @brief   Calculate the transformation matrix which translates the given vector along mDirOfTranslation by mDistance
-     * @param   Modulus is the magnitude by which the translation should happen in the direction of mDirOfTranslation.
-     * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
-     */
-    void CalculateTranslationMatrix(const double Modulus, MatrixType& rMatrix);
-
-    /**
-     * @brief   Calculate the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
-     *          by provided Theta and stores the result in rMatrix The following code is generated from MATLAB and is adapted here.
-     * @see     http://paulbourke.net/geometry/rotate/
-     * @param   Theta is the angle of rotation about mAxisOfRotationVector and mCenterOfRotation.
-     * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
-     */
-    void CalculateRotationMatrix(const double Theta, MatrixType& rMatrix );
 
     /*
      * @brief Transform the point(node_cords) using the mTransformationMatrix calculated in CalculateTransformationMatrix function

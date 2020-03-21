@@ -19,6 +19,7 @@
 
 // Project includes
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "incompressible_potential_flow_element.h"
 
 namespace Kratos
@@ -132,6 +133,10 @@ protected:
 private:
 
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo);
+
+    void AddPotentialGradientStabilizationTerm(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo);
     friend class Serializer;

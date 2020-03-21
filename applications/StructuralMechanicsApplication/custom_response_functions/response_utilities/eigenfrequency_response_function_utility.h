@@ -348,7 +348,7 @@ protected:
             const Matrix& rNodeEigenvectors = r_node_i.GetValue(EIGENVECTOR_MATRIX);
             for (std::size_t dof_index = 0; dof_index < r_node_dofs.size(); dof_index++)
             {
-                const auto& current_dof = std::begin(r_node_dofs) + dof_index;
+                const auto& current_dof = *(std::begin(r_node_dofs) + dof_index);
                 const std::size_t dof_index_at_element = std::distance(eq_ids.begin(), std::find(eq_ids.begin(), eq_ids.end(), current_dof->EquationId()));
                 rEigenvectorOfElement(dof_index_at_element) = rNodeEigenvectors((eigenfrequency_id-1), dof_index);
             }

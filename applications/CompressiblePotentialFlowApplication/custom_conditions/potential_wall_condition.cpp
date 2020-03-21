@@ -11,6 +11,7 @@
 //
 
 #include "potential_wall_condition.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -174,12 +175,35 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    std::vector<double> rValues;
+    // Get parent element
     GlobalPointer<Element> pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
-    this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
+
+    // Get pressure coefficient
+    std::vector<double> pressure;
+    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, pressure, rCurrentProcessInfo);
+    this->SetValue(PRESSURE_COEFFICIENT, pressure[0]);
+
+    // Get velocity
+    std::vector<array_1d<double, 3>> velocity;
+    pElem->GetValueOnIntegrationPoints(VELOCITY, velocity, rCurrentProcessInfo);
+    this->SetValue(VELOCITY, velocity[0]);
+
+    // Get density
+    std::vector<double> density;
+    pElem->GetValueOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
+    this->SetValue(DENSITY, density[0]);
+
+    // Get local mach number
+    std::vector<double> local_mach_number;
+    pElem->GetValueOnIntegrationPoints(MACH, local_mach_number, rCurrentProcessInfo);
+    this->SetValue(MACH, local_mach_number[0]);
+
+    // Get local speed of sound
+    std::vector<double> local_speed_of_sound;
+    pElem->GetValueOnIntegrationPoints(SOUND_VELOCITY, local_speed_of_sound, rCurrentProcessInfo);
+    this->SetValue(SOUND_VELOCITY, local_speed_of_sound[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -94,7 +94,7 @@ namespace Kratos
             for (std::size_t i = 0; i < NumberOfDivisions; i++) {
                 id_cond++;
                 const std::size_t ref_id = (2 * i)+1;
-                Condition::Pointer pcond = r_contact_model_part.CreateNewCondition("Condition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop);
+                Condition::Pointer pcond = r_contact_model_part.CreateNewCondition("SurfaceCondition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop);
                 pcond->Set(SLAVE, true);
                 pcond->Set(MASTER, false);
                 slave_conds.push_back(pcond);
@@ -125,7 +125,7 @@ namespace Kratos
                 id_cond++;
                 this_set.AddId(id_cond);
                 const std::size_t ref_id = (2 * (i + NumberOfDivisions + 1)+1);
-                Condition::Pointer pcond = r_contact_model_part.CreateNewCondition("Condition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop);
+                Condition::Pointer pcond = r_contact_model_part.CreateNewCondition("SurfaceCondition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop);
                 pcond->Set(SLAVE, false);
                 pcond->Set(MASTER, true);
                 master_conds.push_back(pcond);
@@ -191,6 +191,7 @@ namespace Kratos
             {
                 "simple_search"                        : true,
                 "search_factor"                        : 3.5,
+                "normal_orientation_threshold"         : 0.0,
                 "type_search"                          : "InRadius",
                 "check_gap"                            : "MappingCheck"
             })" );
@@ -336,6 +337,7 @@ namespace Kratos
             {
                 "simple_search"                        : true,
                 "search_factor"                        : 3.5,
+                "normal_orientation_threshold"         : 0.0,
                 "type_search"                          : "InRadiusWithOBB",
                 "check_gap"                            : "MappingCheck",
                 "octree_search_parameters" : {
@@ -474,6 +476,7 @@ namespace Kratos
             {
                 "simple_search"                        : true,
                 "search_factor"                        : 3.5,
+                "normal_orientation_threshold"         : 0.0,
                 "type_search"                          : "OctreeWithOBB",
                 "check_gap"                            : "MappingCheck",
                 "octree_search_parameters" : {

@@ -20,7 +20,6 @@ The Trilinos application also provides __MPI versions of most of the core classe
 - TrilinosEliminationBuilderAndSolver
 - TrilinosBlockBuilderAndSolver
 - TrilinosBlockBuilderAndSolverPeriodic
-- TrilinosConvectionDiffusionStrategy
 
 #### Convergence Criterias
 - TrilinosDisplacementCriteria
@@ -31,7 +30,6 @@ The Trilinos application also provides __MPI versions of most of the core classe
 
 #### Solving Strategies
 - TrilinosSolvingStrategy
-- TrilinosFSStrategy
 - TrilinosLinearStrategy
 - TrilinosNewtonRaphsonStrategy
 - TrilinosLaplacianMeshMovingStrategy
@@ -40,8 +38,14 @@ The Trilinos application also provides __MPI versions of most of the core classe
 For more information about these please refer to their serial version (without trilinos prefix) in the main Kratos documentation.
 
 ### Components reference
-* [__Zoltan__](https://trilinos.org/packages/zoltan).
 * [__Epetra__](https://trilinos.org/packages/epetra).
 * [__Aztec__](https://trilinos.org/packages/aztec).
 * [__Amesos__](https://trilinos.org/packages/amesos).
 * [__Teuchos__](https://trilinos.org/packages/teuchos).
+
+### Notes for compilation
+Trilinos is a large project and not all of its packages are being used in Kratos. Check the [configuration file of the CI (Travis)](https://github.com/KratosMultiphysics/Kratos/blob/master/.travis.yml) to see which packages are necessary in order to compile the TrilinosApplication.
+Furthermore it is possible to do a minimal installation of the TrilinosApplication with only using the Epetra package. Using the other packages is enabled by default, but can be disabled with the following flags:
+- *TRILINOS_EXCLUDE_ML_SOLVER*: Setting this flag to `ON` in the configure file will exclude the interface to the Trilinos ML solver package
+- *TRILINOS_EXCLUDE_AZTEC_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers from the Trilinos AztecOO package
+- *TRILINOS_EXCLUDE_AMESOS_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos package

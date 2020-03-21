@@ -146,8 +146,6 @@ namespace Kratos
 				sum_areas = thread_sum_areas;
 
 			}
-			//const double mean_temperature = sum_temperatures / sum_areas;
-			std::cout << "Finished, the water volume is " << sum_areas << std::endl;
 			return sum_areas;
 
 			KRATOS_CATCH("")

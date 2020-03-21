@@ -98,22 +98,22 @@ struct MMGMeshInfo
     /**
      * @brief It returns the number of the first type of conditions
      */
-    const SizeType NumberFirstTypeConditions() const;
+    SizeType NumberFirstTypeConditions() const;
 
     /**
      * @brief It returns the number of the second type of conditions
      */
-    const SizeType NumberSecondTypeConditions() const;
+    SizeType NumberSecondTypeConditions() const;
 
     /**
      * @brief It returns the number of the first type of elements
      */
-    const SizeType NumberFirstTypeElements() const;
+    SizeType NumberFirstTypeElements() const;
 
     /**
      * @brief It returns the number of the second type of elements
      */
-    const SizeType NumberSecondTypeElements() const;
+    SizeType NumberSecondTypeElements() const;
 };
 
 /**
@@ -158,6 +158,12 @@ public:
 
     /// Index pair
     typedef std::pair<IndexType,IndexType> IndexPairType;
+
+    /// Index and string vector pair
+    typedef std::pair<IndexType, std::vector<std::string>> IndexStringVectorPairType;
+
+    /// Definition of the zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name  Enum's
@@ -418,6 +424,12 @@ public:
     void SetSolSizeTensor(const SizeType NumNodes);
 
     /**
+     * @brief This sets the size of the displacement for lagrangian movement
+     * @param[in] NumNodes Number of nodes
+     */
+    void SetDispSizeVector(const SizeType NumNodes);
+
+    /**
      * @brief This checks the mesh data and prints if it is OK
      */
     void CheckMeshData();
@@ -445,6 +457,12 @@ public:
      * @param[in] rOutputName The output name
      */
     void OutputSol(const std::string& rOutputName);
+
+    /**
+     * @brief This sets the output displacement
+     * @param[in] rOutputName The output name
+     */
+    void OutputDisplacement(const std::string& rOutputName);
 
     /**
      * @brief This method generates the maps of reference for conditions and elements from an existing json
@@ -544,6 +562,16 @@ public:
         );
 
     /**
+     * @brief This function is used to set the displacement vector (x, y, z)
+     * @param[in] rMetric This array contains the components of the displacement vector
+     * @param[in] NodeId The id of the node
+     */
+    void SetDisplacementVector(
+        const array_1d<double, 3>& rDisplacement,
+        const IndexType NodeId
+        );
+
+    /**
      * @brief This function is used to retrieve the metric scalar
      * @param[in,out] rMetric The inverse of the size node
      */
@@ -562,6 +590,12 @@ public:
     void GetMetricTensor(TensorArrayType& rMetric);
 
     /**
+     * @brief This function is used to retrieve the displacement vector (x, y, z)
+     * @param[in,out] rDisplacement This array contains the components of the displacement vector
+     */
+    void GetDisplacementVector(array_1d<double, 3>& rDisplacement);
+
+    /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      * @param[in,out] rModelPart The model part of interest to study
      */
@@ -574,13 +608,15 @@ public:
      * @param[in,out] rColorMapCondition Auxiliar color map for conditions
      * @param[in,out] rColorMapElement Auxiliar color map for elements
      * @param[in] Framework The framework considered
+     * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
      */
     void GenerateMeshDataFromModelPart(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,std::vector<std::string>>& rColors,
         ColorsMapType& rColorMapCondition,
         ColorsMapType& rColorMapElement,
-        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN
+        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN,
+        const bool CollapsePrismElements = false
         );
 
     /**
@@ -604,6 +640,12 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method generates displacement data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method writes mesh data to an existing model part
@@ -736,6 +778,25 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Sets a flag according to a given status over all submodelparts
+     * @param rFlag flag to be set
+     * @param FlagValue flag value to be set
+     */
+    void ResursivelyAssignFlagEntities(
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool FlagValue
+        )
+    {
+        // We call it recursively
+        for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Conditions());
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Elements());
+            ResursivelyAssignFlagEntities(r_sub_model_part, rFlag, FlagValue);
+        }
+    }
 
     ///@}
     ///@name Private  Access

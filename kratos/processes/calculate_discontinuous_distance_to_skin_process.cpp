@@ -91,6 +91,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Execute()
 	{
+		this->Clear();
 		this->Initialize();
 		this->FindIntersections();
 		this->CalculateDistances(this->GetIntersections());
@@ -194,7 +195,7 @@ namespace Kratos
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
 	{
 		auto &r_geometry = rElement1.GetGeometry();
-		const auto r_edges_container = r_geometry.Edges();
+		const auto r_edges_container = r_geometry.GenerateEdges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
 
 		// Initialize cut edges and points arrays

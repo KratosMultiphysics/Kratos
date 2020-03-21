@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 import json
@@ -101,8 +101,8 @@ class DamSelfweightSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add variables for the solid conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.FORCE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -291,11 +291,11 @@ class DamSelfweightSolver(object):
         aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_selfweight_model_process_dam
+        from KratosMultiphysics.DamApplication import check_and_prepare_selfweight_model_process_dam
         check_and_prepare_selfweight_model_process_dam.CheckAndPrepareSelfweightModelProcess(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
-        import dam_constitutive_law_utility
+        from KratosMultiphysics.DamApplication import dam_constitutive_law_utility
         dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)
 
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )

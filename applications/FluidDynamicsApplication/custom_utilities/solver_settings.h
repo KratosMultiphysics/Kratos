@@ -61,6 +61,7 @@ public:
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> StrategyType;
     typedef typename StrategyType::Pointer StrategyPointerType;
     typedef typename Process::Pointer ProcessPointerType;
+    typedef BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> TBuilderAndSolverType;
 
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
@@ -123,7 +124,7 @@ public:
     virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
                                     const double Tolerance,
-                                    const unsigned int MaxIter) = 0;
+                                    const unsigned int MaxIter) {}
 
     virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
     {
@@ -169,11 +170,19 @@ public:
 
         if ( itStrategy != mStrategies.end() )
         {
-            pThisStrategy.swap(itStrategy->second);
-            return true;
+            if(itStrategy->second != nullptr)
+            {
+                pThisStrategy.swap(itStrategy->second);
+                return true;
+            } else {
+                KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+                return false;
+            }
         }
-        else
+        else {
+            KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
             return false;
+        }
     }
 
     virtual bool FindTolerance(StrategyLabel const& rStrategyLabel,

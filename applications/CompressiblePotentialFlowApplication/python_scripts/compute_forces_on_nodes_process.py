@@ -29,24 +29,24 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
 
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
         free_stream_velocity = self.body_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
-        #TODO: Read density from ProcessInfo once available
-        free_stream_density = 1.225
+        free_stream_density = self.body_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_DENSITY)
+
         free_stream_velocity_norm = free_stream_velocity.norm_2()
         dynamic_pressure = 0.5*free_stream_density*free_stream_velocity_norm**2
 
         for cond in self.body_model_part.Conditions:
             condition_normal = cond.GetGeometry().Normal()
-            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
 
             for node in cond.GetNodes():
                 added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
-                nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
-                node.SetValue(KratosMultiphysics.REACTION, nodal_force)
+                nodal_force = node.GetSolutionStepValue(KratosMultiphysics.REACTION) + added_force
+                node.SetSolutionStepValue(KratosMultiphysics.REACTION, nodal_force)
 
-        total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
+        total_force = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part, 0)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Lift Force = ', total_force[1])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])

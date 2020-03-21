@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -33,8 +32,8 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         model_part = model[params["model_part_name"].GetString()]
 
-        if model_part.GetCommunicator().TotalProcesses() > 1: # mpi-execution
-            from KratosMultiphysics.TrilinosApplication.trilinos_restart_utility import TrilinosRestartUtility as RestartUtility
+        if model_part.IsDistributed(): # mpi-execution
+            from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as RestartUtility
         else:
             from KratosMultiphysics.restart_utility import RestartUtility
 

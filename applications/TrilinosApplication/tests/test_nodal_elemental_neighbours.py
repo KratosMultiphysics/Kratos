@@ -5,6 +5,7 @@ import sys
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
@@ -24,7 +25,6 @@ class TestNodalElementalNeighbours(KratosUnittest.TestCase):
         KratosMultiphysics.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
     def _ReadDistributedModelPart(self,model_part, mdpa_file_name):
-        from KratosMultiphysics.TrilinosApplication import trilinos_import_model_part_utility
 
         importer_settings = KratosMultiphysics.Parameters("""{
             "model_import_settings": {
@@ -35,7 +35,7 @@ class TestNodalElementalNeighbours(KratosUnittest.TestCase):
             "echo_level" : 0
         }""")
 
-        model_part_import_util = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(model_part, importer_settings)
+        model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
         model_part_import_util.ImportModelPart()
         model_part_import_util.CreateCommunicators()
 
@@ -82,7 +82,7 @@ class TestNodalElementalNeighbours(KratosUnittest.TestCase):
             8 : [5,6,7],
             9 : [7,8]
         }
-        
+
         #do the check
         for key,values in found_ids.items():
             ref_values = reference_ids[key]

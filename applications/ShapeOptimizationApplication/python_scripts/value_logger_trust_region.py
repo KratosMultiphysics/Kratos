@@ -8,16 +8,15 @@
 #
 # ==============================================================================
 
-# Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+# importing the Kratos Library
+import KratosMultiphysics as KM
 
 # Import logger base classes
-from value_logger_base import ValueLogger
+from .value_logger_base import ValueLogger
 
 # Import additional libraries
 import csv
-from custom_timer import Timer
+from .custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerTrustRegion( ValueLogger ):
@@ -31,8 +30,8 @@ class ValueLoggerTrustRegion( ValueLogger ):
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
 
-            for itr in range(self.specified_constraints.size()):
-                con_type = self.specified_constraints[itr]["type"].GetString()
+            for itr in range(self.constraints.size()):
+                con_type = self.constraints[itr]["type"].GetString()
                 row.append("{:>13}".format("c"+str(itr+1)+": "+con_type))
                 row.append("{:>13}".format("c"+str(itr+1)+"_ref"))
                 row.append("{:>12s}".format("len_C"+str(itr+1)))
@@ -48,52 +47,53 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
-        print("\n-------------------------------------------------------")
+        KM.Logger.Print("")
+        KM.Logger.Print("-------------------------------------------------------\n")
 
-        objective_id = self.specified_objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", round(self.value_history[objective_id][self.current_iteration],12))
+        objective_id = self.objectives[0]["identifier"].GetString()
+        KM.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", round(self.history["response_value"][objective_id][self.current_index],12))
 
-        print("> Absolut change of objective = ",round(self.value_history["abs_change_obj"][self.current_iteration],4)," [%]")
-        print("> Relative change of objective = ",round(self.value_history["rel_change_obj"][self.current_iteration],4)," [%]\n")
+        KM.Logger.PrintInfo("ShapeOpt", "Absolut change of objective = ",round(self.history["abs_change_objective"][self.current_index],4)," [%]")
+        KM.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ",round(self.history["rel_change_objective"][self.current_index],4)," [%]\n")
 
-        for itr in range(self.specified_constraints.size()):
-            constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
+        for itr in range(self.constraints.size()):
+            constraint_id = self.constraints[itr]["identifier"].GetString()
+            KM.Logger.PrintInfo("ShapeOpt", "Value of C"+str(itr+1)+" = ", round(self.history["response_value"][constraint_id][self.current_index],12), "\n")
 
-        print("\nNormInf3D of dX = ", round(self.value_history["norm_dX"][self.current_iteration],6))
+        KM.Logger.PrintInfo("ShapeOpt", "NormInf3D of dX = ", round(self.history["norm_dX"][self.current_index],6), "\n")
 
-        print("\nlen_bar_obj = ", round(self.value_history["len_bar_obj"][self.current_iteration],6))
-        print("adj_len_bar_obj = ", round(self.value_history["adj_len_bar_obj"][self.current_iteration],6))
+        KM.Logger.PrintInfo("ShapeOpt", "len_bar_obj = ", round(self.history["len_bar_obj"][self.current_index],6))
+        KM.Logger.PrintInfo("ShapeOpt", "adj_len_bar_obj = ", round(self.history["adj_len_bar_obj"][self.current_index],6), "\n")
 
-        print("\nlen_bar_cons = ", [round(entry, 6) for entry in self.value_history["len_bar_cons"][self.current_iteration]])
-        print("adj_len_bar_cons = ", [round(entry, 6) for entry in self.value_history["adj_len_bar_cons"][self.current_iteration]])
+        KM.Logger.PrintInfo("ShapeOpt", "len_bar_cons = ", [round(entry, 6) for entry in self.history["len_bar_cons"][self.current_index]])
+        KM.Logger.PrintInfo("ShapeOpt", "adj_len_bar_cons = ", [round(entry, 6) for entry in self.history["adj_len_bar_cons"][self.current_index]], "\n")
 
-        print("\n-------------------------------------------------------")
+        KM.Logger.Print("-------------------------------------------------------")
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:>4d}".format(self.current_iteration))
+            row.append("{:>4d}".format(self.current_index))
 
-            objective_id = self.specified_objectives[0]["identifier"].GetString()
-            row.append(" {:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["abs_change_obj"][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["rel_change_obj"][self.current_iteration]))
+            objective_id = self.objectives[0]["identifier"].GetString()
+            row.append(" {:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["abs_change_objective"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["rel_change_objective"][self.current_index]))
 
-            for itr in range(self.specified_constraints.size()):
-                constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-                row.append(" {:> .5E}".format(self.value_history[constraint_id][self.current_iteration]))
+            for itr in range(self.constraints.size()):
+                constraint_id = self.constraints[itr]["identifier"].GetString()
+                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
-                row.append("{:>12f}".format(self.value_history["len_bar_cons"][self.current_iteration][itr]))
-                row.append("{:>12f}".format(self.value_history["adj_len_bar_cons"][self.current_iteration][itr]))
+                row.append("{:>12f}".format(self.history["len_bar_cons"][self.current_index][itr]))
+                row.append("{:>12f}".format(self.history["adj_len_bar_cons"][self.current_index][itr]))
 
-            row.append("{:>12d}".format(self.value_history["bi_itrs"][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["bi_err"][self.current_iteration]))
-            row.append("{:>17f}".format(self.value_history["test_norm_dX_bar"][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["norm_dX"][self.current_iteration]))
-            row.append(" {:>.5E}".format(self.value_history["step_length"][self.current_iteration]))
+            row.append("{:>12d}".format(self.history["bi_itrs"][self.current_index]))
+            row.append("{:>12f}".format(self.history["bi_err"][self.current_index]))
+            row.append("{:>17f}".format(self.history["test_norm_dX_bar"][self.current_index]))
+            row.append("{:>12f}".format(self.history["norm_dX"][self.current_index]))
+            row.append(" {:>.5E}".format(self.history["step_length"][self.current_index]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 

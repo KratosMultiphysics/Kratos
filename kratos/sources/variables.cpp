@@ -76,6 +76,7 @@ KRATOS_CREATE_VARIABLE(double, INTERVAL_END_TIME)
 
 KRATOS_CREATE_VARIABLE(double, RESIDUAL_NORM)
 KRATOS_CREATE_VARIABLE(double, CONVERGENCE_RATIO)
+KRATOS_CREATE_VARIABLE(double, BUILD_SCALE_FACTOR)
 
 KRATOS_CREATE_VARIABLE(double, TEMPERATURE)
 KRATOS_CREATE_VARIABLE(double, PRESSURE)
@@ -101,6 +102,8 @@ KRATOS_CREATE_VARIABLE(double, INTERNAL_ENERGY)
 KRATOS_CREATE_VARIABLE(double, STRAIN_ENERGY)
 KRATOS_CREATE_VARIABLE(double, EXTERNAL_ENERGY)
 KRATOS_CREATE_VARIABLE(double, TOTAL_ENERGY)
+
+KRATOS_CREATE_VARIABLE(double, VOLUMETRIC_STRAIN)
 
 KRATOS_CREATE_VARIABLE(double, THERMAL_EXPANSION_COEFFICIENT)
 KRATOS_CREATE_VARIABLE(double, STABILIZATION_FACTOR)
@@ -452,7 +455,6 @@ void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDEMVariables();      //TODO: move to application
     KratosApplication::RegisterFSIVariables();      //TODO: move to application
     KratosApplication::RegisterMATVariables();      //TODO: move to application
-    KratosApplication::RegisterLegacyStructuralAppVariables();  //TODO: move to application
     KratosApplication::RegisterGlobalPointerVariables();
 
     // Variables that should be moved to applications (but have too many dependencies)
@@ -488,6 +490,7 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(RESIDUAL_NORM)
     KRATOS_REGISTER_VARIABLE(CONVERGENCE_RATIO)
+    KRATOS_REGISTER_VARIABLE(BUILD_SCALE_FACTOR)
 
     //SCHEMES
     KRATOS_REGISTER_VARIABLE(IS_RESTARTED)
@@ -596,6 +599,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(GRADIENT_PENALTY_COEFFICIENT)
 
     //STRAIN MEASURES
+    KRATOS_REGISTER_VARIABLE(VOLUMETRIC_STRAIN)
     KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR)
 
     //STRESS MEASURES

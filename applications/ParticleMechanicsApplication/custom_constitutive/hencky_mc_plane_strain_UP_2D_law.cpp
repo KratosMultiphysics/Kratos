@@ -31,9 +31,9 @@ namespace Kratos
 HenckyMCPlasticPlaneStrainUP2DLaw::HenckyMCPlasticPlaneStrainUP2DLaw()
     : HenckyElasticPlasticPlaneStrainUP2DLaw()
 {
-    mpHardeningLaw   = MPMHardeningLaw::Pointer( new MPMHardeningLaw() );
-    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new ParticleHardeningLaw() );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = ParticleFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyMCPlasticPlaneStrainUP2DLaw::HenckyMCPlasticPlaneStrainUP2DLaw()
 HenckyMCPlasticPlaneStrainUP2DLaw::HenckyMCPlasticPlaneStrainUP2DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 

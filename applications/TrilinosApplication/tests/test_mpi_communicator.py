@@ -1,11 +1,10 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.MetisApplication as KratosMetis
-import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-import kratos_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 
 def GetFilePath(fileName):
@@ -44,7 +43,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
 
             # Partition of the original .mdpa file
-            number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
+            number_of_partitions = self.communicator.Size() # Number of partitions equals the number of processors
             domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             verbosity = 0
             sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
@@ -62,7 +61,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         model_part_io.ReadModelPart(main_model_part)
 
         ## Construct and execute the Parallel fill communicator
-        ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(main_model_part.GetRootModelPart())
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
 
         ## Check submodelpart of each main_model_part of each processor
@@ -202,9 +201,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         self.assertEqual(comm.SumAll(1), self.world.Size())
         self.assertEqual(comm.SumAll(2.0), 2.0*self.world.Size())
-        self.assertEqual(comm.MinAll(comm.MyPID()), self.world.MinAll(self.world.Rank()))
-        self.assertEqual(comm.MaxAll(comm.MyPID()), self.world.MaxAll(self.world.Rank()))
-        self.assertEqual(comm.ScanSum(1,1), self.world.Rank()+1)
+        self.assertEqual(comm.MinAll(comm.Rank()), self.world.MinAll(self.world.Rank()))
+        self.assertEqual(comm.MaxAll(comm.Rank()), self.world.MaxAll(self.world.Rank()))
+        self.assertEqual(comm.ScanSum(1), self.world.Rank()+1)
 
     def testCommunicatorReductionSerial(self):
         current_model = KratosMultiphysics.Model()
@@ -215,9 +214,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         self.assertEqual(comm.SumAll(1), 1)
         self.assertEqual(comm.SumAll(2.0), 2.0)
-        self.assertEqual(comm.MinAll(comm.MyPID()), 0)
-        self.assertEqual(comm.MaxAll(comm.MyPID()), 0)
-        self.assertEqual(comm.ScanSum(1,1), 1)
+        self.assertEqual(comm.MinAll(comm.Rank()), 0)
+        self.assertEqual(comm.MaxAll(comm.Rank()), 0)
+        self.assertEqual(comm.ScanSum(1), 1)
 
 
     #def test_model_part_io_properties_block(self):

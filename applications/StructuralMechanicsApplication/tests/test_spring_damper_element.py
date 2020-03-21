@@ -7,6 +7,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt, sin, cos, pi, exp, atan
 
+from KratosMultiphysics import kratos_utilities as kratos_utils
+external_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication")
+
 class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -58,7 +61,6 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
         convergence_criterion.SetEchoLevel(0)
 
@@ -89,6 +91,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
         time = time - delta_time * (buffer_size)
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         for size in range(0, buffer_size):
             step = size - (buffer_size -1)
             mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
@@ -181,7 +184,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         #time integration parameters
         dt = 0.001
         time = 0.0
-        end_time = 4.0
+        end_time = 0.01
         step = 0
 
         self._set_and_fill_buffer(mp,2,dt)
@@ -231,7 +234,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         #time integration parameters
         dt = 0.01
         time = 0.0
-        end_time = 10.0
+        end_time = 0.1
         step = 0
 
         self._set_and_fill_buffer(mp,2,dt)
@@ -274,7 +277,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         #time integration parameters
         dt = 0.05
         time = 0.0
-        end_time = 20.0
+        end_time = 1.0
         step = 0
 
         self._set_and_fill_buffer(mp,2,dt)
@@ -293,9 +296,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
 
+    @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
     def test_undamped_mdof_system_eigen(self):
         import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-        # FEAST is available otherwise this test is not being called
         if not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
             self.skipTest("Pastix Solver is not available")
 

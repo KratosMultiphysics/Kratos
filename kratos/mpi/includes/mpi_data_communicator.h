@@ -62,9 +62,15 @@ void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalVa
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)               \
+type SendRecvImpl(                                                                           \
+    const type SendValue, const int SendDestination, const int SendTag,                      \
+    const int RecvSource, const int RecvTag) const override;                                 \
 std::vector<type> SendRecvImpl(const std::vector<type>& rSendValues,                         \
     const int SendDestination, const int SendTag,                                            \
     const int RecvSource, const int RecvTag) const override;                                 \
+void SendRecvImpl(                                                                           \
+    const type SendValue, const int SendDestination, const int SendTag,                      \
+    type& RecvValue, const int RecvSource, const int RecvTag) const override;                \
 void SendRecvImpl(                                                                           \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
@@ -151,7 +157,7 @@ namespace Kratos
  *
  *  @see DataCommunicator in the KratosCore for the full interface and a serial do-nothing implementation.
  */
-class MPIDataCommunicator: public DataCommunicator
+class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 {
   public:
     ///@name Type Definitions
@@ -174,7 +180,13 @@ class MPIDataCommunicator: public DataCommunicator
     ///@name Operations
     ///@{
 
-    DataCommunicator::UniquePointer Clone() const override;
+    /// Create a new MPIDataCommunicator using the provided MPI_Comm object.
+    /** The new MPIDataCommunicator instance is returned as a unique pointer,
+     *  since it is responsible for managing the lifetime of the underlying MPI_Comm,
+     *  and in particular calling MPI_Comm_free once it goes out of scope
+     *  (this is only required/done if Comm is not one of the predefined MPI_COMM types).
+     */
+    static MPIDataCommunicator::UniquePointer Create(MPI_Comm MPIComm);
 
     void Barrier() const override;
 
@@ -191,9 +203,17 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    bool AndReduce(
+        const bool Value,
+        const int Root) const override;
+
     Kratos::Flags AndReduce(
         const Kratos::Flags Values,
         const Kratos::Flags Mask,
+        const int Root) const override;
+
+    bool OrReduce(
+        const bool Value,
         const int Root) const override;
 
     Kratos::Flags OrReduce(
@@ -209,7 +229,11 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
 
+    bool AndReduceAll(const bool Value) const override;
+
     Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    bool OrReduceAll(const bool Value) const override;
 
     Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
@@ -232,6 +256,10 @@ class MPIDataCommunicator: public DataCommunicator
     int Size() const override;
 
     bool IsDistributed() const override;
+
+    bool IsDefinedOnThisRank() const override;
+
+    bool IsNullOnThisRank() const override;
 
     ///@}
     ///@name Helper functions for error checking in MPI
@@ -341,6 +369,11 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void SendRecvDetail(
         const TDataType& rSendMessage, const int SendDestination, const int SendTag,
         TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const;
+
+    template<class TDataType> TDataType SendRecvDetail(
+        const TDataType& rSendMessage,
+        const int SendDestination, const int SendTag,
+        const int RecvSource, const int RecvTag) const;
 
     template<class TDataType> std::vector<TDataType> SendRecvDetail(
         const std::vector<TDataType>& rSendMessage,

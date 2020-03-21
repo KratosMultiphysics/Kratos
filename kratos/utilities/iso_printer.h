@@ -54,7 +54,6 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/geometry_utilities.h"
-//#include "custom_utilities/parallel_fill_communicator.h"
 // #include "spatial_containers/spatial_containers.h"
 
 

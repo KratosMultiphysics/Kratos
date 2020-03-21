@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 
-import dam_mechanical_solver
+from KratosMultiphysics.DamApplication import dam_mechanical_solver
 
 
 def CreateSolver(main_model_part, custom_settings):

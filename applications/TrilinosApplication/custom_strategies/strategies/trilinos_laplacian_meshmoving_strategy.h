@@ -25,10 +25,10 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
 {
@@ -200,8 +200,6 @@ public:
 
         }
 
-        MoveMesh();
-
         // clearing the system if needed
         if (m_reform_dof_set_at_each_step == true)
             mstrategy->Clear();
@@ -209,19 +207,6 @@ public:
         return 0.0;
 
         KRATOS_CATCH("")
-    }
-
-    void MoveMesh() override
-    {
-
-        for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-             i != BaseType::GetModelPart().NodesEnd();
-             ++i)
-        {
-            (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
-        }
     }
 
     /*@} */

@@ -66,9 +66,7 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize() override;
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
-    void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;

@@ -15,6 +15,7 @@
 #define  KRATOS_MEMORY_H_INCLUDED
 
 /* System includes */
+#include <iostream>
 #include <utility>
 
 /* External includes */
@@ -47,6 +48,23 @@ unique_ptr<C> make_unique(Args &&...args) {
     return unique_ptr<C>(new C(std::forward<Args>(args)...));
 }
 
+template<class T>
+std::ostream& operator <<(std::ostream& rOStream, const Kratos::weak_ptr<T>& rData) {
+
+  if(!rData.expired())
+    rOStream << *rData.lock().get();
+  else
+    rOStream <<" expired weak_ptr ";
+
+  return rOStream;
+}
+
+template<class T>
+std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>& rData) {
+  rOStream << *rData.get();
+  return rOStream;
+}
+
 } // namespace Kratos
 
 
@@ -59,9 +77,9 @@ namespace Kratos {
 template< class T > class GlobalPointer;
 }
 
-#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef Kratos::intrusive_ptr<a > Pointer; \
+#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef typename Kratos::intrusive_ptr<a > Pointer; \
 typedef Kratos::GlobalPointer<a > WeakPointer; \
 typedef Kratos::unique_ptr<a > UniquePointer; \
-a::Pointer shared_from_this(){ return a::Pointer(this); }
+typename a::Pointer shared_from_this(){ return a::Pointer(this); }
 
 #endif /* KRATOS_MEMORY_H_INCLUDED  defined */

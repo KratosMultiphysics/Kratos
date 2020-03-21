@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.ParticleMechanicsApplication.python_solvers_wrapper_particle import CreateSolver
 
 class ParticleMechanicsAnalysis(AnalysisStage):
@@ -15,37 +15,6 @@ class ParticleMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initializing the parameters
         solver_settings = project_parameters["solver_settings"]
-
-        if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
-            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed.'
-            KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", warn_msg)
-
-        if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
-            warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_sett"ings" will be employed.'
-            KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", warn_msg)
-
-        if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
-            warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed.'
-            KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", warn_msg)
-
-        if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
-            time_stepping_params = KratosMultiphysics.Parameters("{}")
-            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
-            solver_settings.AddValue("time_stepping", time_stepping_params)
-
-        if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
-
-        if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
@@ -58,33 +27,6 @@ class ParticleMechanicsAnalysis(AnalysisStage):
             # import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         super(ParticleMechanicsAnalysis, self).__init__(model, project_parameters)
-
-    def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage"""
-        import time
-
-        ## Analysis timer start
-        analysis_start_time = time.time()
-
-        while self.time < self.end_time:
-            ## Solution loop timer start
-            start_solve_time = time.time()
-
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
-            ## Stop solution loop timer
-            end_solve_time = time.time()
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
-
-        ## Stop analysis timer
-        analysis_end_time = time.time()
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
-
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -104,7 +46,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
                 KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", info_msg)
-                from process_factory import KratosProcessFactory
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -135,12 +77,12 @@ class ParticleMechanicsAnalysis(AnalysisStage):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
             if parameter_name == "grid_output":
-                from gid_output_process import GiDOutputProcess as OutputProcess
+                from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
                 grid_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Grid"
                 gid_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
                                     self.project_parameters["grid_output_configuration"])
             elif parameter_name == "body_output":
-                from KratosMultiphysics.ParticleMechanicsApplication.mpm_gid_output_process import ParticleMPMGiDOutputProcess as OutputProcess
+                from KratosMultiphysics.ParticleMechanicsApplication.particle_gid_output_process import ParticleGiDOutputProcess as OutputProcess
                 mp_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Body"
                 gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(), mp_output_file_name,
                                     self.project_parameters["body_output_configuration"])

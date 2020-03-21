@@ -269,7 +269,7 @@ void InterfacePreprocessCondition::CreateNewCondition(
 {
     KRATOS_TRY;
 
-    Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(ConditionId, rGeometry, pThisProperties));
+    Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(ConditionId, rGeometry.Points(), pThisProperties));
     mrMainModelPart.AddCondition(p_cond);
     AssignMasterSlaveCondition(p_cond);
 
@@ -370,7 +370,7 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
             if (rEdgeGeometry[it_node].Is(INTERFACE)) ++count;
     }
 
-    const std::string condition_name = (number_of_points == 2 || SimplestGeometry) ? "Condition2D2N" : "Condition2D3N";
+    const std::string condition_name = (number_of_points == 2 || SimplestGeometry) ? "LineCondition2D2N" : "LineCondition2D3N";
 
     Condition const& r_condition =  KratosComponents<Condition>::Get(condition_name);
 

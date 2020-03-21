@@ -714,5 +714,37 @@ namespace Testing
         TestAllShapeFunctionsLocalGradients(*geom);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Normal, KratosCoreGeometriesFastSuite) {
+        Geometry<Point> geom(Triangle3D3<Point>(
+            std::make_shared<Point>(0.55, -0.25, 0.0),
+            std::make_shared<Point>(0.50, -0.25, 0.0),
+            std::make_shared<Point>(0.50, 0.25, 0.0))
+        );
+        auto normal = geom.Normal(0);
+
+        array_1d<double, 3> cross_norm;
+        cross_norm[0] = 0.0;
+        cross_norm[1] = 0.0;
+        cross_norm[2] = 1.0;
+        array_1d<double, 3> cross;
+        MathUtils<double>::CrossProduct(cross, cross_norm, normal);
+
+        KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(cross[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(cross[2], 0.0, TOLERANCE);
+
+        normal /= norm_2(normal);
+
+        auto unit_normal = geom.UnitNormal(0);
+
+        KRATOS_CHECK_NEAR(unit_normal[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[2], -1.0, TOLERANCE);
+
+        KRATOS_CHECK_NEAR(unit_normal[0], normal[0], TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[1], normal[1], TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[2], normal[2], TOLERANCE);
+    }
+
 } // namespace Testing.
 } // namespace Kratos.

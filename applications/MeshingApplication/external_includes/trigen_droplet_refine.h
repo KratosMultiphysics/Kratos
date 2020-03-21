@@ -14,16 +14,9 @@
 #define  KRATOS_TRIGEN_DROPLET_MODELER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
-
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -32,8 +25,7 @@
 #include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
-
-
+#include "utilities/timer.h"
 
 namespace Kratos
 {
@@ -129,7 +121,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen Droplet Refining Mesher")
-        boost::timer auxiliary;
+        const auto inital_time = std::chrono::steady_clock::now();
 
 
 //clearing elements
@@ -249,7 +241,7 @@ public:
 			    //generating the dofs
 			    for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 			    {
-				Node<3>::DofType& rDof = *iii;
+				Node<3>::DofType& rDof = **iii;
 				Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 				(p_new_dof)->FreeDof();
 			    }
@@ -336,11 +328,10 @@ public:
             in_mid.pointlist[base] = (nodes_begin + i)->X();
             in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
-            Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
-            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            auto& node_dofs = (nodes_begin + i)->GetDofs();
+            for(auto iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
-//                                    iii->Id() = i+1;
+                (**iii).SetEquationId(i+1);
             }
         }
         //in_mid.numberoftriangles = ThisModelPart.Elements().size();
@@ -354,7 +345,7 @@ public:
         char options1[] = "Pne";
         triangulate(options1, &in_mid, &out_mid, &vorout_mid);
         //print out the mesh generation time
-        std::cout<<"mesh generation time = "<<auxiliary.elapsed();
+        std::cout << "mesh generation time = " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //number of newly generated triangles
         unsigned int el_number=out_mid.numberoftriangles;
 
@@ -512,7 +503,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType& rDof = **iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
@@ -1438,6 +1429,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined
-
-
-

@@ -10,65 +10,41 @@
 //  Main authors:    Antonia Larese
 //
 
-
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
-
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/edge_data.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-
+#include "add_custom_utilities_to_python.h"
 
 
 namespace Kratos
 {
 
-namespace Python
-{
+    namespace Python
+    {
 
+        void  AddCustomUtilitiesToPython(pybind11::module& pymodule)
+        {
+	        namespace py = pybind11;
 
-  void  AddCustomUtilitiesToPython(pybind11::module& pymodule)
-  {
-	namespace py = pybind11;
+		    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 
+    	    py::class_< MatrixContainer < 2, SparseSpaceType> > (pymodule,"MatrixContainer2D")
+            .def(py::init< >())
+    	    .def("ConstructCSRVector", &MatrixContainer < 2, SparseSpaceType >::ConstructCSRVector)
+    	    .def("BuildCSRData", &MatrixContainer < 2, SparseSpaceType >::BuildCSRData)
+    	    .def("Clear", &MatrixContainer < 2, SparseSpaceType >::Clear)
+    	    ;
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    	    py::class_< MatrixContainer < 3, SparseSpaceType> > (pymodule,"MatrixContainer3D")
+            .def(py::init< >())
+    	    .def("ConstructCSRVector", &MatrixContainer < 3, SparseSpaceType >::ConstructCSRVector)
+    	    .def("BuildCSRData", &MatrixContainer < 3, SparseSpaceType >::BuildCSRData)
+    	    .def("Clear", &MatrixContainer < 3, SparseSpaceType >::Clear)
+    	    ;
+        }
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-  		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    	typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-    	py::class_< MatrixContainer < 2, SparseSpaceType> > (pymodule,"MatrixContainer2D")
-        .def(py::init< >())
-    	.def("ConstructCSRVector", &MatrixContainer < 2, SparseSpaceType >::ConstructCSRVector)
-    	.def("BuildCSRData", &MatrixContainer < 2, SparseSpaceType >::BuildCSRData)
-    	.def("Clear", &MatrixContainer < 2, SparseSpaceType >::Clear)
-    	;
-
-    	py::class_< MatrixContainer < 3, SparseSpaceType> > (pymodule,"MatrixContainer3D")
-        .def(py::init< >())
-    	.def("ConstructCSRVector", &MatrixContainer < 3, SparseSpaceType >::ConstructCSRVector)
-    	.def("BuildCSRData", &MatrixContainer < 3, SparseSpaceType >::BuildCSRData)
-    	.def("Clear", &MatrixContainer < 3, SparseSpaceType >::Clear)
-    	;
-
-
-  }
-
-
-
-
-
-}  // namespace Python.
+    }  // namespace Python
 
 } // Namespace Kratos
