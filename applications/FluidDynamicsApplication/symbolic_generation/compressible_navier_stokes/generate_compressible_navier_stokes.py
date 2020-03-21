@@ -1,17 +1,17 @@
 from KratosMultiphysics import *
+from KratosMultiphysics.sympy_fe_utilities import *
 
 from sympy import *
-from sympy_fe_utilities import *
 import pprint
 
 from params_dict import params
-import ConvectiveFlux
-import DiffusiveFlux
-import SourceTerm
-import StabilizationMatrix
+import generate_convective_flux
+import generate_diffusive_flux
+import generate_source_term
+import generate_stabilization_matrix
 
 
-dim = params["dim"]                         # Define Dimension in params.py  
+dim = params["dim"]                         # Define Dimension in params.py
 BlockSize = dim+2 					        # Dimension of the vector of Unknowns
 do_simplifications = False
 mode = "c"                                  # Output mode to a c++ file
@@ -58,17 +58,17 @@ Gsc = DefineMatrix('G',BlockSize,dim)       # Diffusive Flux matrix with Shock C
 
 ## Matrix Computation
 
-S = SourceTerm.computeS(f,rg,params)
-#SourceTerm.printS(S,params)
-A = ConvectiveFlux.computeA(Ug,params)
-#ConvectiveFlux.printA(A,params)
-#G = DiffusiveFlux.computeG(Ug,params,H,G)
-Gsc = DiffusiveFlux.computeGsc(Ug,params,H,Gsc,v_sc,k_sc)   
-#DiffusiveFlux.printK(Gsc,params)
-Tau = StabilizationMatrix.computeTau(params)
-#StabilizationMatrix.printTau(Tau,params)
+S = generate_source_term.computeS(f,rg,params)
+#generate_source_term.printS(S,params)
+A = generate_convective_flux.computeA(Ug,params)
+#generate_convective_flux.printA(A,params)
+#G = generate_diffusive_flux.computeG(Ug,params,H,G)
+Gsc = generate_diffusive_flux.computeGsc(Ug,params,H,Gsc,v_sc,k_sc)
+#generate_diffusive_flux.printK(Gsc,params)
+Tau = generate_stabilization_matrix.computeTau(params)
+#generate_stabilization_matrix.printTau(Tau,params)
 
-## Nonlinear operator definition   
+## Nonlinear operator definition
 l1 = Matrix(zeros(dim+2,1))		            # Convective Matrix*Gradient of U
 A_small = []
 for j in range(0,dim):
@@ -81,10 +81,10 @@ l3 = S*Ug				                    # Source term
 print("\nCompute Non-linear operator\n")
 L = l1-l3                                   # Nonlinear operator
 
-## Residual definition     
-res = -acc - L		
+## Residual definition
+res = -acc - L
 
-## Nonlinear adjoint operator definition  
+## Nonlinear adjoint operator definition
 m1 = Matrix(zeros(dim+2,1))		            # Convective term
 psi = Matrix(zeros(dim+2,dim))
 
@@ -92,9 +92,9 @@ for j in range(0,dim):
     A_T = A[j].transpose()
     for l in range(0,dim+2):
         for m in range(0,dim+2):
-            psi[l,j] += A_T[l,m]*Q[m,j]                 
+            psi[l,j] += A_T[l,m]*Q[m,j]
             for n in range(0,dim+2):
-                psi[l,j] +=diff(A_T[l,m],Ug[n])*H[n,j]*V[m]   
+                psi[l,j] +=diff(A_T[l,m],Ug[n])*H[n,j]*V[m]
 
 for s in range(0,dim+2):
     for j in range(0,dim):
@@ -115,7 +115,7 @@ res_e[0,0] = res[dim+1]
 
 ## Variational Formulation - Final equation
 n1 = V.transpose()*acc		                # Mass term - FE scale
-    
+
 temp = zeros(dim+2,1)
 A_smalll = []
 for i in range(0,dim):
@@ -134,7 +134,7 @@ for j in range(0,dim):
 
 n4 = -V.transpose()*(S*Ug)		            # Source term - FE scale
 
-n5 = L_adj.transpose()*(Tau*res)	        # VMS_adjoint - Subscales 
+n5 = L_adj.transpose()*(Tau*res)	        # VMS_adjoint - Subscales
 
 print("\nCompute Variational Formulation\n")
 rv = n1+n2+n3+n4+n5 			            # VARIATIONAL FORMULATION - FINAL EQUATION
@@ -147,7 +147,7 @@ U_gauss = U.transpose()*N
 w_gauss = w.transpose()*N
 f_gauss = f_ext.transpose()*N                     #COMMENT for manufactured solution
 acc_gauss = (bdf0*U+bdf1*Un+bdf2*Unn).transpose()*N
-r_gauss = (r.transpose()*N)[0]                    #COMMENT for manufactured solution  
+r_gauss = (r.transpose()*N)[0]                    #COMMENT for manufactured solution
 #r_gauss = Symbol('r_gauss', positive = True)     #USED fro manufactured solution
 
 ## Gradients computation
@@ -188,7 +188,7 @@ for i in range(0,nnodes):
 print("\nCompute RHS\n")
 rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
 rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
-    
+
 print("\nCompute LHS\n")
 lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS
 lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)

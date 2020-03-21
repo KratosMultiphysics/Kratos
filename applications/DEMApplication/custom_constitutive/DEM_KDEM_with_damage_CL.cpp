@@ -9,8 +9,6 @@
 
 namespace Kratos {
 
-    void DEM_KDEM_with_damage::Initialize(SphericContinuumParticle* element) {}
-
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_with_damage::Clone() const {
         DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_with_damage(*this));
         return p_clone;

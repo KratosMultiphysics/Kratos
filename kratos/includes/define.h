@@ -494,8 +494,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_FLAG
 #endif
 #define KRATOS_DEFINE_FLAG(name) \
-    extern const Kratos::Flags name;     \
-    extern const Kratos::Flags NOT_##name
+    extern const Kratos::Flags name;
 
 #ifdef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
 #undef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
@@ -507,15 +506,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_FLAG
 #endif
 #define KRATOS_CREATE_FLAG(name, position)                  \
-    const Kratos::Flags name(Kratos::Flags::Create(position));              \
-    const Kratos::Flags NOT_##name(Kratos::Flags::Create(position, false))
+    const Kratos::Flags name(Kratos::Flags::Create(position));
 
 #ifdef KRATOS_REGISTER_FLAG
 #undef KRATOS_REGISTER_FLAG
 #endif
 #define KRATOS_REGISTER_FLAG(name)                  \
-    KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(name);             \
-    KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(NOT_##name)
+    KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(name);
 
 
 
@@ -523,22 +520,19 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_LOCAL_FLAG
 #endif
 #define KRATOS_DEFINE_LOCAL_FLAG(name)		\
-  static const Kratos::Flags name;			\
-  static const Kratos::Flags NOT_##name
+  static const Kratos::Flags name;
 
 #ifdef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
 #undef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
 #endif
 #define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)		\
-  static KRATOS_API(application) const Kratos::Flags name;			\
-  static KRATOS_API(application) const Kratos::Flags NOT_##name
+  static KRATOS_API(application) const Kratos::Flags name;
 
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
 #define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)		\
-  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));		\
-  const Kratos::Flags class_name::NOT_##name(Kratos::Flags::Create(position, false))
+  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));
 
 
 
@@ -548,6 +542,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 //
 //-----------------------------------------------------------------
 
+#ifdef KRATOS_REGISTER_GEOMETRY
+#undef KRATOS_REGISTER_GEOMETRY
+#endif
+#define KRATOS_REGISTER_GEOMETRY(name, reference) \
+    KratosComponents<Geometry<Node<3>>>::Add(name, reference); \
+    Serializer::Register(name, reference);
+  
 #ifdef KRATOS_REGISTER_ELEMENT
 #undef KRATOS_REGISTER_ELEMENT
 #endif
