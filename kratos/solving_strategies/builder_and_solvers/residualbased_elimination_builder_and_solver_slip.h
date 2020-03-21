@@ -865,7 +865,6 @@ protected:
             {
 
                 //calculate elemental contribution
-                (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
                 (*it)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
                 Geometry< Node < 3 > >& geom = (*it)->GetGeometry();
@@ -911,7 +910,6 @@ protected:
             {
 
                 //calculate elemental contribution
-                (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
                 (*it)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
                 Geometry< Node < 3 > >& geom = (*it)->GetGeometry();
