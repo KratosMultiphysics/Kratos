@@ -281,7 +281,7 @@ class FluidSolver(PythonSolver):
         return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
     def get_estimate_dt_utility(self):
-        if not hasattr(self, '_estimate_dt_utility'):
+        if not hasattr(self, '__estimate_dt_utility'):
             self._estimate_dt_utility = self._create_estimate_dt_utility()
         return self._estimate_dt_utility
 
