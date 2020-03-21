@@ -123,13 +123,13 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
@@ -144,7 +144,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         else:
             err_msg = "Custom scheme creation is not allowed. Embedded Navier-Stokes elements manage the time integration internally."
             raise Exception(err_msg)
-        return solution_scheme
+        return scheme
 
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -184,7 +184,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
     def _create_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
+        time_scheme = self.get_scheme()
         linear_solver = self.get_linear_solver()
         convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()

@@ -203,10 +203,10 @@ class PotentialFlowSolver(FluidSolver):
         return strategy_type
 
     @classmethod
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         # Fake scheme creation to do the solution update
-        solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        return solution_scheme
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        return scheme
 
     def _create_convergence_criterion(self):
         convergence_criterion = KratosMultiphysics.ResidualCriteria(
@@ -217,7 +217,7 @@ class PotentialFlowSolver(FluidSolver):
     def _create_solution_strategy(self):
         strategy_type = self._get_strategy_type()
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
+        time_scheme = self.get_scheme()
         linear_solver = self.get_linear_solver()
         if strategy_type == "linear":
             solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(

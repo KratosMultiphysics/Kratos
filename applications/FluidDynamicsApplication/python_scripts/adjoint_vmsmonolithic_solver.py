@@ -128,22 +128,22 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         response_function = self.get_response_function()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
-            solution_scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(
+            scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(
                 self.settings["scheme_settings"],
                 response_function)
         elif scheme_type == "steady":
-            solution_scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(response_function)
+            scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(response_function)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
-        return solution_scheme
+        return scheme
 
     def _create_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
+        time_scheme = self.get_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
         calculate_reaction_flag = False

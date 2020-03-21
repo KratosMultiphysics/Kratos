@@ -173,13 +173,13 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, set the time discretization utility to compute the BDF coefficients
@@ -197,28 +197,28 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 if self.settings["time_scheme"].GetString() == "bossak":
                     # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        solution_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             domain_size,
                             KratosCFD.PATCH_INDEX)
                     else:
-                        solution_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size)
                 # BDF2 time integration scheme
                 elif self.settings["time_scheme"].GetString() == "bdf2":
-                    solution_scheme = TrilinosFluid.TrilinosGearScheme()
+                    scheme = TrilinosFluid.TrilinosGearScheme()
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
+                    scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size)
             else:
                 self._turbulence_model_solver.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
-                    solution_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                    scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size,
@@ -226,12 +226,12 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
+                    scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size,
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-        return solution_scheme
+        return scheme
 
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -276,7 +276,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
     def _create_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
+        time_scheme = self.get_scheme()
         linear_solver = self.get_linear_solver()
         convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()

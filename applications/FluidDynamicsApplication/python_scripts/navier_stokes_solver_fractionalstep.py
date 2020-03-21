@@ -155,7 +155,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         else:
             return True
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         pass
 
     def _create_linear_solver(self):

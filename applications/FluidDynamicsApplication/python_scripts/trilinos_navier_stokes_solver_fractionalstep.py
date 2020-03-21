@@ -131,7 +131,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         pass
 
     def _create_linear_solver(self):

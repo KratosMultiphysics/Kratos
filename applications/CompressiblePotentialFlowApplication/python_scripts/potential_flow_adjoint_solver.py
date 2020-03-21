@@ -114,11 +114,11 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         strategy_type = "linear"
         return strategy_type
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         # Fake scheme creation to do the solution update
         response_function = self.get_response_function()
-        solution_scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
-        return solution_scheme
+        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
+        return scheme
 
     def get_response_function(self):
         if not hasattr(self, '_response_function'):

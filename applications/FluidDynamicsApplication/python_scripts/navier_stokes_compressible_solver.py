@@ -160,7 +160,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
@@ -171,7 +171,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 KratosMultiphysics.SLIP)
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2
@@ -184,7 +184,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
         else:
             err_msg = "Custom scheme creation is not allowed. Compressible Navier-Stokes elements manage the time integration internally."
             raise Exception(err_msg)
-        return solution_scheme
+        return scheme
 
     def _create_convergence_criterion(self):
         convergence_criterion = KratosMultiphysics.ResidualCriteria(

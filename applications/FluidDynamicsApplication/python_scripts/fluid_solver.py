@@ -23,7 +23,7 @@ class FluidSolver(PythonSolver):
     Depending on the formulation type, derived classes may require to
     override some (or all) the following functions:
 
-    _create_solution_scheme
+    _create_scheme
     _create_convergence_criterion
     _create_linear_solver
     _create_builder_and_solver
@@ -285,10 +285,10 @@ class FluidSolver(PythonSolver):
             self._estimate_dt_utility = self._create_estimate_dt_utility()
         return self._estimate_dt_utility
 
-    def get_solution_scheme(self):
-        if not hasattr(self, '_solution_scheme'):
-            self._solution_scheme = self._create_solution_scheme()
-        return self._solution_scheme
+    def get_scheme(self):
+        if not hasattr(self, '_scheme'):
+            self._scheme = self._create_scheme()
+        return self._scheme
 
     def get_convergence_criterion(self):
         if not hasattr(self, '_convergence_criterion'):
@@ -323,13 +323,13 @@ class FluidSolver(PythonSolver):
 
         return estimate_dt_utility
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
@@ -347,21 +347,21 @@ class FluidSolver(PythonSolver):
                 # Bossak time integration scheme
                 if self.settings["time_scheme"].GetString() == "bossak":
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        solution_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             domain_size,
                             KratosCFD.PATCH_INDEX)
                     else:
-                        solution_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size)
                 # BDF2 time integration scheme
                 elif self.settings["time_scheme"].GetString() == "bdf2":
-                    solution_scheme = KratosCFD.GearScheme()
+                    scheme = KratosCFD.GearScheme()
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size)
@@ -373,7 +373,7 @@ class FluidSolver(PythonSolver):
             else:
                 self._turbulence_model_solver.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
-                    solution_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                    scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                                 self.settings["alpha"].GetDouble(),
                                 self.settings["move_mesh_strategy"].GetInt(),
                                 domain_size,
@@ -381,12 +381,12 @@ class FluidSolver(PythonSolver):
                                 self._turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size,
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-        return solution_scheme
+        return scheme
 
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -418,7 +418,7 @@ class FluidSolver(PythonSolver):
 
     def _create_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
+        time_scheme = self.get_scheme()
         linear_solver = self.get_linear_solver()
         convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()

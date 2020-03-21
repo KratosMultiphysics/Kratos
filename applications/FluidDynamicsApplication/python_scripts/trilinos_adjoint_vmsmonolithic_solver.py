@@ -105,18 +105,18 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _create_scheme(self):
         response_function = self.get_response_function()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
-            solution_scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
+            scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
                 self.settings["scheme_settings"],
                 response_function)
         elif scheme_type == "steady":
-            solution_scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
+            scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
-        return solution_scheme
+        return scheme
 
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -147,7 +147,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def _create_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
+        time_scheme = self.get_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
         calculate_reaction_flag = False
