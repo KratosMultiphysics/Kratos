@@ -31,7 +31,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddGeometricalUtilitiesToPython(pybind11::module& m);
+void  AddGeometricalUtilitiesToPython(pybind11::module& m);  // This must change in all of the instances  AddGeometricalUtilitiesToPython, AddOtherUtilitiesToPython, AddKernelUtilitiesToPython, AddVariableUtilitiesToPython
 
 }  // namespace Python.
 

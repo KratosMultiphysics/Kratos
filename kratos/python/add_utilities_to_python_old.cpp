@@ -17,16 +17,15 @@
 // External includes
 
 // Project includes
-#include "python/add_geometrical_utilities_to_python.h"  //this must be splited. How to declare them, it's called in many files
-//#include "spaces/ublas_space.h"
-//#include "linear_solvers/linear_solver.h"
-
+#include "python/add_utilities_to_python.h"  //this must be splited. How to declare them, it's called in many files
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 // These might have to be included in all partitions...
 #include "includes/define_python.h"
 #include "processes/process.h"
-//#include "includes/global_pointer_variables.h"
-//#include "utilities/python_function_callback_utility.h"
+#include "includes/global_pointer_variables.h"
+#include "utilities/python_function_callback_utility.h"
 
 
 
@@ -49,13 +48,13 @@
 
 
 // //Kernel
-#include "utilities/openmp_utils.h"
-#include "utilities/iso_printer.h"
-#include "utilities/activation_utilities.h"
-#include "utilities/interval_utility.h"
-#include "utilities/table_stream_utility.h"
-#include "utilities/read_materials_utility.h"
-#include "utilities/sensitivity_builder.h"
+// #include "utilities/openmp_utils.h"
+// #include "utilities/iso_printer.h"
+// #include "utilities/activation_utilities.h"
+// #include "utilities/interval_utility.h"
+// #include "utilities/table_stream_utility.h"
+// #include "utilities/read_materials_utility.h"
+// #include "utilities/sensitivity_builder.h"
 
 
 // //Other
@@ -79,23 +78,23 @@
 namespace Kratos {
 namespace Python {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////     Kernell  //////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////     Kernell  //////////////////////////////////////////////////////
 
-/**
- * @brief Sets the current table utility on the process info
- * @param rCurrentProcessInfo The process info
- */
-void SetOnProcessInfo(
-    typename TableStreamUtility::Pointer pTable,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    rCurrentProcessInfo[TABLE_UTILITY] = pTable;
-}
+// /**
+//  * @brief Sets the current table utility on the process info
+//  * @param rCurrentProcessInfo The process info
+//  */
+// void SetOnProcessInfo(
+//     typename TableStreamUtility::Pointer pTable,
+//     ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
+// }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -174,8 +173,11 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////     Other  //////////////////////////////////////////////////////
+
+
+
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////     Other  //////////////////////////////////////////////////////
 
 
 // // Auxiliar ModelPart Utility
@@ -317,7 +319,7 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -407,37 +409,40 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 
 
-void AddGeometricalUtilitiesToPython(pybind11::module &m)  // This must change in all of the sub-instances
+void AddUtilitiesToPython(pybind11::module &m)  // This must change in all of the sub-instances
 {
     //KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP
     namespace py = pybind11;   //KEEP
 
-    //typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    //typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    // py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
-    //     .def(py::init<const std::string&>() )
-    //     .def(py::init<const std::string&, Parameters>())
-    //     .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
-    //     .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
-    //     .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
-    //     .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
-    //     ;
+    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def(py::init<const std::string&, Parameters>())
+        .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
+        .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+        .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
+        .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+        ;
 
-    // py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
-    //     .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
-    //     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
-    //     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-    //     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
-    //     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
-    //     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
-    //     .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
-    //     ;
+    py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
+        .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
+        .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
+        ;
 
 
-
+    py::class_<DeflationUtils>(m,"DeflationUtils")
+        .def(py::init<>())
+        .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
+        ;
 
     //KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP//KEEP
 
@@ -488,6 +493,58 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)  // This must change i
 //         .def("__str__", PrintObject<Timer>)
 //         ;
 
+
+// //     py::class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
+// //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
+// //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
+// //             ;
+// //
+// //     py::class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
+// //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
+// //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
+// //             ;
+
+//     py::class_< BinBasedFastPointLocator < 2 >, BinBasedFastPointLocator < 2 >::Pointer >(m,"BinBasedFastPointLocator2D")
+//         .def(py::init<ModelPart& >())
+//         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
+//         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
+//         .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+//         ;
+
+//     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
+//         .def(py::init<ModelPart&  >())
+//         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
+//         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
+//         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
+//         ;
+
+//     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
+//         .def(py::init<ModelPart& >())
+//         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
+//         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabaseAssignedSize)
+//         .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 2 > ::FindPointOnMeshSimplified)
+//         ;
+
+//     py::class_< BinBasedFastPointLocatorConditions < 3 > >(m,"BinBasedFastPointLocatorConditions3D")
+//         .def(py::init<ModelPart&  >())
+//         .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabase)
+//         .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
+//         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabaseAssignedSize)
+//         ;
+
+//     py::class_< BinBasedNodesInElementLocator < 2 > >(m,"BinBasedNodesInElementLocator2D")
+//         .def(py::init<ModelPart& >())
+//         .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 2 > ::UpdateSearchDatabase)
+//         .def("FindNodesInElement", &BinBasedNodesInElementLocator < 2 > ::FindNodesInElement)
+//         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
+//         ;
+
+//     py::class_< BinBasedNodesInElementLocator < 3 > >(m,"BinBasedNodesInElementLocator3D")
+//         .def(py::init<ModelPart&  >())
+//         .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabase)
+//         .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
+//         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
+//         ;
 
 //     // Exact integration (for testing)
 //     py::class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
@@ -727,13 +784,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)  // This must change i
     ////////////////////////////////////////////     Geometry  //////////////////////////////////////////////////////
 
 
-    py::class_<DeflationUtils>(m,"DeflationUtils")
-        .def(py::init<>())
-        .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
-        ;
-
-
-
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
     typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
     typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
@@ -859,119 +909,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)  // This must change i
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
-
-
-
-
-//     py::class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
-//             .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
-//                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
-//             ;
-//
-//     py::class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
-//             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
-//                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
-//             ;
-
-    py::class_< BinBasedFastPointLocator < 2 >, BinBasedFastPointLocator < 2 >::Pointer >(m,"BinBasedFastPointLocator2D")
-        .def(py::init<ModelPart& >())
-        .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
-        ;
-
-    py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
-        .def(py::init<ModelPart&  >())
-        .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
-        ;
-
-    py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
-        .def(py::init<ModelPart& >())
-        .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 2 > ::FindPointOnMeshSimplified)
-        ;
-
-    py::class_< BinBasedFastPointLocatorConditions < 3 > >(m,"BinBasedFastPointLocatorConditions3D")
-        .def(py::init<ModelPart&  >())
-        .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabase)
-        .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabaseAssignedSize)
-        ;
-
-    py::class_< BinBasedNodesInElementLocator < 2 > >(m,"BinBasedNodesInElementLocator2D")
-        .def(py::init<ModelPart& >())
-        .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 2 > ::UpdateSearchDatabase)
-        .def("FindNodesInElement", &BinBasedNodesInElementLocator < 2 > ::FindNodesInElement)
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
-        ;
-
-    py::class_< BinBasedNodesInElementLocator < 3 > >(m,"BinBasedNodesInElementLocator3D")
-        .def(py::init<ModelPart&  >())
-        .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabase)
-        .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
-        .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
-        ;
-
-
-//Ex-Kernel
-    py::class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
-        .def(py::init<ModelPart& >() )
-        .def("AddScalarVarIsosurface", &IsosurfacePrinterApplication::AddScalarVarIsosurface)
-        .def("AddScalarVarIsosurfaceAndLower", &IsosurfacePrinterApplication::AddScalarVarIsosurfaceAndLower)
-        .def("AddScalarVarIsosurfaceAndHigher", &IsosurfacePrinterApplication::AddScalarVarIsosurfaceAndHigher)
-        .def("ClearData", &IsosurfacePrinterApplication::ClearData)
-        .def("AddSkinConditions", &IsosurfacePrinterApplication::AddSkinConditions)
-        .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
-        ;
-
-    py::class_<OpenMPUtils >(m,"OpenMPUtils")
-        .def(py::init<>())
-        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-    //     .staticmethod("SetNumThreads")
-        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
-    //     .staticmethod("GetNumThreads")
-        .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-    //     .staticmethod("PrintOMPInfo")
-        ;
-
-    py::class_< ActivationUtilities >(m,"ActivationUtilities")
-        .def(py::init< >())
-        .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
-        ;
-
-
-    // Adding table from table stream to python
-    py::class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
-        .def(py::init<>())
-        .def(py::init< bool >())
-        .def("SetOnProcessInfo",SetOnProcessInfo)
-        ;
-
-    py::class_<IntervalUtility >(m,"IntervalUtility")
-        .def(py::init<Parameters >())
-        .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
-        .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
-        .def("IsInInterval", &IntervalUtility ::IsInInterval)
-        ;
-
-    // Read materials utility
-    py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-    .def(py::init<Model&>())
-    .def(py::init<Parameters, Model&>())
-    .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
-    ;
-
-    py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
-        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
-        .def("Initialize", &SensitivityBuilder::Initialize)
-        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
-
-
-
-
 
 
 
