@@ -204,7 +204,7 @@ public:
                 if (element_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -213,7 +213,7 @@ public:
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
+                    pScheme->CleanMemory(*it);
 
                 }
 
@@ -233,7 +233,7 @@ public:
                 if (condition_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
@@ -242,7 +242,7 @@ public:
 #endif
 
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
+                    pScheme->CleanMemory(*it);
                 }
             }
         }
@@ -290,13 +290,13 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS(A, LHS_Contribution, EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -305,7 +305,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS(A, LHS_Contribution, EquationId);
@@ -353,13 +353,13 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -367,7 +367,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
@@ -576,7 +576,7 @@ public:
                 if (element_is_active)
                 {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);
@@ -598,7 +598,7 @@ public:
                 if (condition_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);
@@ -655,7 +655,7 @@ public:
             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
             // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+            pScheme->GetDofList(*it, ElementalDofList, CurrentProcessInfo);
 
             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
         }
@@ -669,7 +669,7 @@ public:
             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
             // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+            pScheme->GetDofList(*it, ElementalDofList, CurrentProcessInfo);
             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
         }
 
@@ -1063,7 +1063,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
                 auto it_elem = el_begin + i_elem;
-                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -1085,7 +1085,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
-                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_cond, ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];

@@ -223,7 +223,7 @@ public:
         for (int i = 0; i < A_size; i++)
             omp_init_lock(&lock_array[i]);
 
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         //COMPONENT X
         CurrentProcessInfo[FRACTIONAL_STEP] = 1;
@@ -241,7 +241,7 @@ public:
         }
 
 #else
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         //COMPONENT X
         CurrentProcessInfo[FRACTIONAL_STEP] = 1;
         ScalarBuildComponent(mrVar_x, pScheme, r_model_part, A, b);

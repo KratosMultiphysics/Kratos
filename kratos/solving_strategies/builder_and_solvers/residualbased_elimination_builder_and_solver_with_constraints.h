@@ -633,7 +633,7 @@ protected:
                 auto it_elem = r_elements_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -645,7 +645,7 @@ protected:
                 auto it_cond = r_conditions_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -835,7 +835,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
                 auto it_elem = el_begin + i_elem;
-                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -859,7 +859,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
-                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_cond, ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
@@ -1818,13 +1818,13 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it_elem.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
 
                     // Clean local elemental memory
-                    pScheme->CleanMemory(*(it_elem.base()));
+                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -1841,13 +1841,13 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it_cond.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
 
                     // Clean local elemental memory
-                    pScheme->CleanMemory(*(it_cond.base()));
+                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
@@ -1897,7 +1897,7 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it_elem.base()), rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->Calculate_RHS_Contribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
@@ -1917,7 +1917,7 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it_cond.base()), rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->Calculate_RHS_Contribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
