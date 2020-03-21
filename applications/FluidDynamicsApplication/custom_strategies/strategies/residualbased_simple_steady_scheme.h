@@ -132,7 +132,6 @@ public:
   {
     KRATOS_TRY;
 
-    rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
@@ -158,7 +157,6 @@ public:
   {
     KRATOS_TRY;
 
-    rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
@@ -211,6 +209,8 @@ public:
                                        TSystemVectorType& rDx,
                                        TSystemVectorType& rb) override
   {
+    // TODO call to BaseClass is missing!
+
     if (mpTurbulenceModel) // If not null
     {
       mpTurbulenceModel->Execute();
@@ -279,7 +279,6 @@ public:
     for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin();
          itElem != rModelPart.Elements().ptr_end(); ++itElem)
     {
-      (*itElem)->InitializeNonLinearIteration(rCurrentProcessInfo);
       (*itElem)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
       Matrix SteadyLHS;
       (*itElem)->CalculateLocalVelocityContribution(SteadyLHS,RHS_Contribution,rCurrentProcessInfo);

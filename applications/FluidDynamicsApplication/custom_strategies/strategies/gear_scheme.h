@@ -229,6 +229,8 @@ public:
     {
         KRATOS_TRY
 
+        // TODO baseclass call is missing!
+
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
         KRATOS_CATCH("")
@@ -239,6 +241,8 @@ public:
                                          TSystemVectorType &Dx,
                                          TSystemVectorType &b) override
     {
+        // TODO baseclass call is missing!
+
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //if orthogonal subscales are computed
@@ -332,9 +336,6 @@ public:
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
 
-        // Initialize element
-        rCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Get Equation Id
         rCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
 
@@ -361,9 +362,6 @@ public:
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
 
-        // Initialize element
-        rCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Get Equation Id
         rCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
 
@@ -388,9 +386,6 @@ public:
 
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
-
-        // Initialize element
-        rCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
         rCurrentCondition->EquationIdVector(rEquationId,rCurrentProcessInfo);
@@ -417,9 +412,6 @@ public:
 
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
-
-        // Initialize element
-        rCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
         rCurrentCondition->EquationIdVector(rEquationId,rCurrentProcessInfo);

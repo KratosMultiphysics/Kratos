@@ -18,7 +18,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -246,9 +245,6 @@ namespace Kratos {
         {
             KRATOS_TRY
 
-            //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-
             //basic operations for the element considered
             (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -267,9 +263,6 @@ namespace Kratos {
                                         Element::EquationIdVectorType& EquationId,
                                         ProcessInfo& CurrentProcessInfo) override
         {
-            //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-
             //basic operations for the element considered
             (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
@@ -293,8 +286,6 @@ namespace Kratos {
         {
             KRATOS_TRY
 
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -312,10 +303,6 @@ namespace Kratos {
                                                           ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
-
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            //Initializing the non linear iteration for the current condition
-            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
@@ -373,6 +360,7 @@ namespace Kratos {
                                                TSystemVectorType& Dx,
                                                TSystemVectorType& b) override
         {
+            // TODO Baseclass call is missing!
             KRATOS_TRY
 
             if (mpTurbulenceModel != 0) // If not null
@@ -383,6 +371,8 @@ namespace Kratos {
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
+            // TODO Baseclass call is missing!
+
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             //if orthogonal subscales are computed
@@ -430,6 +420,7 @@ namespace Kratos {
 
         void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
+            // TODO Baseclass call is missing!
 			ComputeReactions(rModelPart, A, Dx, b);
             //Element::EquationIdVectorType EquationId;
             //LocalSystemVectorType RHS_Contribution;
@@ -512,7 +503,6 @@ namespace Kratos {
 			{
 				ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
 
-				(itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
 				(itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo); //TODO: call CalculateRHS instead
 
 				GeometryType& rGeom = (itElem)->GetGeometry();
@@ -536,13 +526,6 @@ namespace Kratos {
 			}
 
 			rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
-
-#pragma omp parallel for firstprivate(nelems, itelem_begin)
-			for (int i = 0; i<nelems; i++)
-			{
-				ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
-				(itElem)->FinalizeSolutionStep(CurrentProcessInfo);
-			}
 		}
         //************************************************************************************************
         //************************************************************************************************

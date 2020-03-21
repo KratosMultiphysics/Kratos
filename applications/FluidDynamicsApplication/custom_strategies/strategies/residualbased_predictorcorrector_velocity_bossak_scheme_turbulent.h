@@ -19,7 +19,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -448,9 +447,6 @@ namespace Kratos {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
 
-            //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-            //KRATOS_WATCH(LHS_Contribution);
             //basic operations for the element considered
             (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -478,9 +474,6 @@ namespace Kratos {
                                         ProcessInfo& CurrentProcessInfo) override
         {
             int k = OpenMPUtils::ThisThread();
-
-            //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
@@ -511,8 +504,6 @@ namespace Kratos {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
 
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
             //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
@@ -539,10 +530,6 @@ namespace Kratos {
             KRATOS_TRY;
 
             int k = OpenMPUtils::ThisThread();
-
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            //Initializing the non linear iteration for the current condition
-            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
@@ -593,6 +580,7 @@ namespace Kratos {
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
+            // TODO call to Baseclass is missing!
             const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
             if (mpTurbulenceModel) // If not null
@@ -684,8 +672,6 @@ namespace Kratos {
                 auto itElem = rModelPart.Elements().ptr_begin()+k;
                 int thread_id = OpenMPUtils::ThisThread();
 
-                (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
-                //KRATOS_WATCH(LHS_Contribution);
                 //basic operations for the element considered
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
