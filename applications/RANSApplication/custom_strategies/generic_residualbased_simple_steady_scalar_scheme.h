@@ -113,7 +113,6 @@ public:
     {
         KRATOS_TRY;
 
-        rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentElement->CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -136,7 +135,6 @@ public:
     {
         KRATOS_TRY;
 
-        rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentCondition->CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 

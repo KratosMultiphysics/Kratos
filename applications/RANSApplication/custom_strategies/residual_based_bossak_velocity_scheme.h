@@ -170,7 +170,6 @@ public:
 
         const int k = OpenMPUtils::ThisThread();
 
-        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
         (pCurrentElement)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentElement)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
 
@@ -195,9 +194,6 @@ public:
     {
         const int k = OpenMPUtils::ThisThread();
 
-        // Initializing the non linear iteration for the current element
-        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // basic operations for the element considered
         (pCurrentElement)->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentElement)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
@@ -221,7 +217,6 @@ public:
         KRATOS_TRY
         const int k = OpenMPUtils::ThisThread();
 
-        (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
         (pCurrentCondition)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -247,7 +242,6 @@ public:
 
         const int k = OpenMPUtils::ThisThread();
 
-        (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
         (pCurrentCondition)->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
