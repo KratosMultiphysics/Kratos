@@ -209,7 +209,7 @@ public:
                                        TSystemVectorType& rDx,
                                        TSystemVectorType& rb) override
   {
-    // TODO call to BaseClass is missing!
+    BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
 
     if (mpTurbulenceModel) // If not null
     {

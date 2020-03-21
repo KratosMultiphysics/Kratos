@@ -580,7 +580,8 @@ namespace Kratos {
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
-            // TODO call to Baseclass is missing!
+            BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
             const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
             if (mpTurbulenceModel) // If not null

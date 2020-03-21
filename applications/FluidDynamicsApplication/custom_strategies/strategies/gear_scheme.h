@@ -229,7 +229,7 @@ public:
     {
         KRATOS_TRY
 
-        // TODO baseclass call is missing!
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
 
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
@@ -241,7 +241,7 @@ public:
                                          TSystemVectorType &Dx,
                                          TSystemVectorType &b) override
     {
-        // TODO baseclass call is missing!
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
 
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 

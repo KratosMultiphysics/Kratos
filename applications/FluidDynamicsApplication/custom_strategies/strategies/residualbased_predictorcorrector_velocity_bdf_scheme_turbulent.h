@@ -360,8 +360,8 @@ namespace Kratos {
                                                TSystemVectorType& Dx,
                                                TSystemVectorType& b) override
         {
-            // TODO Baseclass call is missing!
             KRATOS_TRY
+            BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
 
             if (mpTurbulenceModel != 0) // If not null
                 mpTurbulenceModel->Execute();
@@ -371,7 +371,7 @@ namespace Kratos {
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
-            // TODO Baseclass call is missing!
+            BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
 
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -420,7 +420,7 @@ namespace Kratos {
 
         void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
-            // TODO Baseclass call is missing!
+            BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
 			ComputeReactions(rModelPart, A, Dx, b);
             //Element::EquationIdVectorType EquationId;
             //LocalSystemVectorType RHS_Contribution;
