@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_STATIC_SCHEME_H_INCLUDED)
@@ -104,30 +104,6 @@ public:
         }
 
         BaseType::Initialize(rModelPart);
-
-        KRATOS_CATCH("");
-    }
-
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                SystemMatrixType& rA,
-                                SystemVectorType& rDx,
-                                SystemVectorType& rb) override
-    {
-        KRATOS_TRY;
-
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        KRATOS_CATCH("");
-    }
-
-    void FinalizeSolutionStep(ModelPart& rModelPart,
-                              SystemMatrixType& rA,
-                              SystemVectorType& rDx,
-                              SystemVectorType& rb) override
-    {
-        KRATOS_TRY;
-
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         KRATOS_CATCH("");
     }
