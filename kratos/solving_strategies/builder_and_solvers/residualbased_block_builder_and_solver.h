@@ -214,7 +214,7 @@ public:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
@@ -608,7 +608,7 @@ public:
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set;
@@ -1135,7 +1135,7 @@ protected:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -1394,7 +1394,7 @@ protected:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
@@ -1577,7 +1577,7 @@ protected:
             case SCALING_DIAGONAL::NO_SCALING:
                 return 1.0;
             case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
-                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+                const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
                 KRATOS_ERROR_IF_NOT(r_current_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
                 const double scale_factor = r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
                 KRATOS_ERROR_IF(scale_factor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;

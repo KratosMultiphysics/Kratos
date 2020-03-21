@@ -223,7 +223,7 @@ public:
         for (int i = 0; i < A_size; i++)
             omp_init_lock(&lock_array[i]);
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         //COMPONENT X
         CurrentProcessInfo[FRACTIONAL_STEP] = 1;
@@ -241,7 +241,7 @@ public:
         }
 
 #else
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         //COMPONENT X
         CurrentProcessInfo[FRACTIONAL_STEP] = 1;
         ScalarBuildComponent(mrVar_x, pScheme, r_model_part, A, b);
@@ -273,7 +273,7 @@ public:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            //const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             GlobalPointersVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + nodes_partition[k];
             GlobalPointersVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + nodes_partition[k + 1];
@@ -853,7 +853,7 @@ protected:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
             typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
 
@@ -899,7 +899,7 @@ protected:
 
             Condition::EquationIdVectorType EquationId;
 
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
             typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];

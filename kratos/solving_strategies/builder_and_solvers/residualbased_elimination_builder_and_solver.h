@@ -174,7 +174,7 @@ public:
         //getting the array of the conditions
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
@@ -284,7 +284,7 @@ public:
         //terms
         Element::EquationIdVectorType EquationId;
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
@@ -337,7 +337,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
@@ -550,7 +550,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& pConditions = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //contributions to the system
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -632,7 +632,7 @@ public:
 
         Element::DofsVectorType ElementalDofList;
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         unsigned int nthreads = OpenMPUtils::GetNumThreads();
 
@@ -1044,7 +1044,7 @@ protected:
         #pragma omp parallel firstprivate(ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
             std::vector<std::unordered_set<std::size_t> > temp_indexes(equation_size);

@@ -618,7 +618,7 @@ protected:
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set, dof_temp_slave_set;
@@ -816,7 +816,7 @@ protected:
         #pragma omp parallel firstprivate(ids, second_ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
             std::vector<IndexSetType> temp_indexes(equation_size);
@@ -1000,7 +1000,7 @@ protected:
         }
 
         // The process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
@@ -1526,7 +1526,7 @@ private:
         /// First we detect the master fixed DoFs ///
 
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Vector containing the localization in the system of the different terms
         DofsVectorType slave_dof_list, master_dof_list;
@@ -1787,7 +1787,7 @@ private:
         )
     {
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting the array of elements
         ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -1867,7 +1867,7 @@ private:
         )
     {
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting the array of elements
         ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -2125,7 +2125,7 @@ private:
         }
 
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Initialize the constant vector
         double aux_constant_value = 0.0;
