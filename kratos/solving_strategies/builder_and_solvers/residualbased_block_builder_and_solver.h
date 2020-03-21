@@ -496,22 +496,21 @@ public:
      * @param rA The LHS matrix of the system of equations
      * @param rDx The vector of unkowns
      * @param rb The RHS vector of the system of equations
-     * @param mesh_moving_needed tells if the update of the scheme needs
-     *                           to be performed when calling the Update of the scheme
+     * @param MeshMovingNeeded tells if the update of the scheme needs  to be performed when calling the Update of the scheme
      */
     void BuildAndSolve_LinearizedOnOldIteration(
         typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb,
-        bool mesh_moving_needed) override
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MeshMovingNeeded
+        ) override
     {
         KRATOS_INFO("BlockBuilderAndSolver")
             << "Linearizing on Old iteration" << std::endl;
 
-        if(rModelPart.GetBufferSize() == 1)
-        {
+        if(rModelPart.GetBufferSize() == 1) {
             KRATOS_ERROR << "BlockBuilderAndSolver: \n"
                 << "The buffer size needs to be at least 2 in order to use \n"
                 << "BuildAndSolve_LinearizedOnOldIteration \n"
@@ -521,7 +520,7 @@ public:
                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
         }
 
-        //TODO: here we need to take the vector from other ones because
+        //TODO: Here we need to take the vector from other ones because
         //we cannot create a trilinos vector without a communicator. To be improved!
         TSystemVectorType dx_prediction(rDx);
         TSystemVectorType rhs_addition(rb); //we know it is zero here, so we do not need to set it
@@ -530,22 +529,21 @@ public:
         // but we store the prediction increment in dx_prediction.
         // The goal is that the stiffness is computed with the
         // converged configuration at the end of the previous step.
+        const auto it_dof_begin = BaseType::mDofSet.begin();
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i)
-        {
-            auto it_dof = BaseType::mDofSet.begin() + i;
+        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
+            auto it_dof = it_dof_begin + i;
             //NOTE: this is initialzed to - the value of dx prediction
             dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
         }
 
-        //Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
+        // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
-        if (mesh_moving_needed)
-        {
-#pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-            {
-                auto it_node = rModelPart.NodesBegin() + i;
+        const auto it_node_begin = rModelPart.NodesBegin();
+        if (MeshMovingNeeded) {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i) {
+                auto it_node = it_node_begin + i;
                 noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
                 noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
             }
@@ -553,36 +551,33 @@ public:
 
         this->Build(pScheme, rModelPart, rA, rb);
 
-        //put back the prediction into the database
-        //UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
+        // Put back the prediction into the database
+        // UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
         TSparseSpace::InplaceMult(dx_prediction, -1.00); //change sign to dx_prediction
         TSparseSpace::UnaliasedAdd(rDx, 1.00, dx_prediction);
 
-        //Use UpdateDatabase to bring back the solution
-        //to where it was taking into account BCs
-        //it is done here so that constraints are correctly taken into account right after
+        // Use UpdateDatabase to bring back the solution
+        // to where it was taking into account BCs
+        // it is done here so that constraints are correctly taken into account right after
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
-        if (mesh_moving_needed)
-        {
-#pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-            {
-                auto it_node = rModelPart.NodesBegin() + i;
+        if (MeshMovingNeeded) {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i) {
+                auto it_node = it_node_begin + i;
                 noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
                 noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
             }
         }
 
-        //apply rb -= A*dx_prediction
+        // Apply rb -= A*dx_prediction
         TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
         TSparseSpace::UnaliasedAdd(rb, -1.00, rhs_addition);
 
-        if (!rModelPart.MasterSlaveConstraints().empty())
-        {
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-        // TODO: here we should use SystemSolveWithPhysics
+        // TODO: Here we should use SystemSolveWithPhysics
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
     }
 

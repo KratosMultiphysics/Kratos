@@ -437,14 +437,16 @@ public:
      * @param rA The LHS matrix of the system of equations
      * @param rDx The vector of unkowns
      * @param rb The RHS vector of the system of equations
+     * @param MeshMovingNeeded tells if the update of the scheme needs  to be performed when calling the Update of the scheme
      */
     virtual void BuildAndSolve_LinearizedOnOldIteration(
         typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb,
-        bool mesh_moving_needed)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MeshMovingNeeded
+        )
     {
         KRATOS_WARNING("BuilderAndSolver") << "no special implementation available for BuildAndSolve_LinearizedOnOldIteration. Using normal BuildAndSolve" << std::endl;
         this->BuildAndSolve(pScheme,rModelPart,rA,rDx,rb);
