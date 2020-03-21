@@ -361,7 +361,7 @@ namespace Kratos {
                                                TSystemVectorType& b) override
         {
             KRATOS_TRY
-            BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
+            BaseType::InitializeNonLinIteration(r_model_part, A, Dx, b);
 
             if (mpTurbulenceModel != 0) // If not null
                 mpTurbulenceModel->Execute();

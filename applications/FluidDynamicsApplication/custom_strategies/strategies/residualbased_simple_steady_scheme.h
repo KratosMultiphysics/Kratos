@@ -209,7 +209,7 @@ public:
                                        TSystemVectorType& rDx,
                                        TSystemVectorType& rb) override
   {
-    BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+    BaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
     if (mpTurbulenceModel) // If not null
     {
