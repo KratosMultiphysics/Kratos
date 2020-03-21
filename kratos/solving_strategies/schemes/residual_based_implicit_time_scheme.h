@@ -135,80 +135,6 @@ public:
     ///@{
 
     /**
-     * @brief It initializes a non-linear iteration (for the element)
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-        ) override
-    {
-        KRATOS_TRY;
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @param pCurrentCondition The condition to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Condition::Pointer pCurrentCondition,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual element)
-     * @param pCurrentElement The element to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Element::Pointer pCurrentElement,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
-    }
-
-    /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
      * @param pCurrentElement The element to compute
@@ -228,8 +154,6 @@ public:
         KRATOS_TRY;
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-
-        //pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
 
@@ -264,9 +188,6 @@ public:
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        // Initializing the non linear iteration for the current element
-        // pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Basic operations for the element considered
         pCurrentElement->CalculateRightHandSide(rRHSContribution,rCurrentProcessInfo);
 
@@ -300,9 +221,6 @@ public:
         KRATOS_TRY;
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-
-        // Initializing the non linear iteration for the current condition
-        //pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the condition considered
         pCurrentCondition->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
@@ -339,9 +257,6 @@ public:
         KRATOS_TRY;
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
-
-        // Initializing the non linear iteration for the current condition
-        //pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the condition considered
         pCurrentCondition->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
@@ -384,27 +299,6 @@ public:
 
         KRATOS_CATCH("ResidualBasedImplicitTimeScheme.InitializeSolutionStep");
     }
-
-    /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided.
-     * @details Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart The model part of the problem to solve
-     * @return Zero means  all ok
-     */
-    int Check(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY;
-
-        const int err = BaseType::Check(rModelPart);
-        if(err!=0) return err;
-
-        return 0;
-
-        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Check");
-    }
-
 
     ///@}
     ///@name Access
