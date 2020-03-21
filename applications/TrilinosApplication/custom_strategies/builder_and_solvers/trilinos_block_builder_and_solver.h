@@ -182,7 +182,7 @@ public:
 
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
@@ -257,7 +257,7 @@ public:
 
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
@@ -441,7 +441,7 @@ public:
 
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
@@ -488,7 +488,7 @@ public:
         ElementsArrayType& r_elements_array =
             rModelPart.GetCommunicator().LocalMesh().Elements();
         DofsVectorType dof_list;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
         IndexType guess_num_dofs =
@@ -629,7 +629,7 @@ public:
             // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
             Element::EquationIdVectorType equation_ids_vector;
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {

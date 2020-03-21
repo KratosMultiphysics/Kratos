@@ -208,7 +208,7 @@ public:
 
         //			int rank = A.Comm().MyPID(); //getting the processor Id
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
@@ -280,7 +280,7 @@ public:
         //terms
         Element::EquationIdVectorType EquationId;
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
@@ -450,7 +450,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         //resetting to zero the vector of reactions
         // 			TSparseSpace::SetToZero(BaseType::mReactionsVector);
@@ -505,7 +505,7 @@ public:
 
         Element::DofsVectorType ElementalDofList;
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
@@ -1109,7 +1109,7 @@ public:
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
 
             Element::EquationIdVectorType EquationId;
-            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
