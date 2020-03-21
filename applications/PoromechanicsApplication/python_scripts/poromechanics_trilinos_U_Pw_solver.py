@@ -40,10 +40,31 @@ class TrilinosUPwSolver(UPwSolver):
         super(TrilinosUPwSolver, self).PrepareModelPart()
 
         # Set ProcessInfo variables
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,
+        #                                           self.settings["start_time"].GetDouble())
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
+        #                                           self.settings["time_step"].GetDouble())
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
+        # self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
+
+        # if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+        #     materials_imported = self.import_constitutive_laws()
+        #     ## Set buffer size
+        #     self._SetBufferSize()
+        #     if materials_imported:
+        #         KratosMultiphysics.Logger.PrintInfo("TrilinosUPwSolver", "Constitutive law was successfully imported via json.")
+        #     else:
+        #         KratosMultiphysics.Logger.PrintInfo("TrilinosUPwSolver", "Constitutive law was not successfully imported.")
+
+
+        # if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
+        #     self.model.AddModelPart(self.main_model_part)
 
         # Construct the communicators
         self.distributed_model_part_importer.CreateCommunicators()
+
+        # stop
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosUPwSolver: ", "Model reading finished.")
 
@@ -87,11 +108,13 @@ class TrilinosUPwSolver(UPwSolver):
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosUPwSolver: ", "Solver initialization finished.")
 
+    # def GetComputingModelPart(self):
+    #     return self.main_model_part
 
     #### Specific internal functions ####
 
     def _ConstructLinearSolver(self):
-        from KratosMultiphysics.KratosTrilinos import trilinos_linear_solver_factory
+        from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _ConstructBuilderAndSolver(self, block_builder):

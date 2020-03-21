@@ -27,8 +27,6 @@ class PoromechanicsAnalysis(AnalysisStage):
 
         ## Import parallel modules if needed
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
             from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
