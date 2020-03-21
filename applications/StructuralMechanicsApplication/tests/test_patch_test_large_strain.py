@@ -186,7 +186,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
 
         #given the matrix A, the analytic deformation gradient is F+I
-        F = A
+        F = A.copy()
         for i in range(3):
             F[i,i] += 1.0
 
