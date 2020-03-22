@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD

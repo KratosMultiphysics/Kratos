@@ -6,7 +6,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 ## Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):

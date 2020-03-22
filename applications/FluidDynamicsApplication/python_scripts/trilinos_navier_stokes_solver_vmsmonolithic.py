@@ -137,7 +137,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         # If there is turbulence modelling, set the Epetra communicator in the turbulence solver
         # TODO: Check if this needs to be done before creating the strategy
         if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.SetCommunicator(self.get_epetra_communicator())
+            self._turbulence_model_solver.SetCommunicator(self._GetEpetraCommunicator())
 
         # Construct and set the solution strategy
         solution_strategy = self.GetSolutionStrategy()
@@ -168,7 +168,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.Finalize()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
@@ -259,8 +259,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.GetLinearSolver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
@@ -276,10 +276,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetScheme()
-        linear_solver = self.GetLinearSolver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
         convergence_criterion = self.GetConvergenceCriterion()
-        builder_and_solver = self.GetBuilderAndSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,

@@ -181,7 +181,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         # Create the pressure and velocity linear solvers
         # Note that linear_solvers is a tuple. The first item is the pressure
         # linear solver. The second item is the velocity linear solver.
-        linear_solvers = self.GetLinearSolver()
+        linear_solvers = self._GetLinearSolver()
 
         # Create the fractional step settings instance
         # TODO: next part would be much cleaner if we passed directly the parameters to the c++

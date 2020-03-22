@@ -143,9 +143,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetScheme()
-        linear_solver = self.GetLinearSolver()
-        builder_and_solver = self.GetBuilderAndSolver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         calculate_reaction_flag = False
         reform_dof_set_at_each_step = False
         calculate_norm_dx_flag = False

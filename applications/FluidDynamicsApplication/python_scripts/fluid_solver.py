@@ -30,7 +30,7 @@ class FluidSolver(PythonSolver):
     _CreateSolutionStrategy
 
     The solution strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions GetSolutionStrategy, GetBuilderAndSolver,
+    using the getter functions GetSolutionStrategy, _GetBuilderAndSolver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -285,7 +285,7 @@ class FluidSolver(PythonSolver):
             self._estimate_dt_utility = self._CreateEstimateDtUtility()
         return self._estimate_dt_utility
 
-    def GetScheme(self):
+    def _GetScheme(self):
         if not hasattr(self, '_scheme'):
             self._scheme = self._CreateScheme()
         return self._scheme
@@ -295,12 +295,12 @@ class FluidSolver(PythonSolver):
             self._convergence_criterion = self._CreateConvergenceCriterion()
         return self._convergence_criterion
 
-    def GetLinearSolver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
             self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
-    def GetBuilderAndSolver(self):
+    def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
@@ -407,7 +407,7 @@ class FluidSolver(PythonSolver):
         return convergence_criterion
 
     def _CreateBuilderAndSolver(self):
-        linear_solver = self.GetLinearSolver()
+        linear_solver = self._GetLinearSolver()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
                 linear_solver,
@@ -418,10 +418,10 @@ class FluidSolver(PythonSolver):
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetScheme()
-        linear_solver = self.GetLinearSolver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
         convergence_criterion = self.GetConvergenceCriterion()
-        builder_and_solver = self.GetBuilderAndSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,

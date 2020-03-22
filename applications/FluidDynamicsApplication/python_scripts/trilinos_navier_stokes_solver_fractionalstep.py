@@ -6,7 +6,6 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
@@ -126,7 +125,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
     def Finalize(self):
         self.GetSolutionStrategy().Clear()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
@@ -152,13 +151,13 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        epetra_communicator = self.get_epetra_communicator()
+        epetra_communicator = self._GetEpetraCommunicator()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         # Create the pressure and velocity linear solvers
         # Note that linear_solvers is a tuple. The first item is the pressure
         # linear solver. The second item is the velocity linear solver.
-        linear_solvers = self.GetLinearSolver()
+        linear_solvers = self._GetLinearSolver()
 
         # Create the fractional step settings instance
         # TODO: next part would be much cleaner if we passed directly the parameters to the c++

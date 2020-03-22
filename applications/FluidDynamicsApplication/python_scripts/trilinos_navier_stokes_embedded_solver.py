@@ -19,7 +19,6 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
-
     @classmethod
     def GetDefaultSettings(cls):
 
@@ -114,7 +113,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Construct MPI the communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
@@ -163,8 +162,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.GetLinearSolver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
@@ -180,10 +179,10 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetScheme()
-        linear_solver = self.GetLinearSolver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
         convergence_criterion = self.GetConvergenceCriterion()
-        builder_and_solver = self.GetBuilderAndSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
@@ -195,5 +194,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
 
+    @classmethod
     def _FmAleIsActive(self):
         return False

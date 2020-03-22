@@ -9,8 +9,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-
+# Import turbulence model solver
 from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_solver import CreateTurbulenceModel
 
 class StabilizedFormulation(object):

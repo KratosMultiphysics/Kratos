@@ -6,7 +6,6 @@ import KratosMultiphysics.mpi as KratosMPI
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
@@ -100,7 +99,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
@@ -130,8 +129,8 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.GetLinearSolver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
@@ -147,9 +146,9 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetScheme()
-        linear_solver = self.GetLinearSolver()
-        builder_and_solver = self.GetBuilderAndSolver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         calculate_reaction_flag = False
         reform_dof_set_at_each_step = False
         calculate_norm_dx_flag = False

@@ -4,8 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
 from KratosMultiphysics.ChimeraApplication import chimera_setup_utils
-# Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
@@ -70,7 +68,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
     def _CreateBuilderAndSolver(self):
-        linear_solver = self.GetLinearSolver()
+        linear_solver = self._GetLinearSolver()
         if self.settings["consider_periodic_conditions"].GetBool():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicForChimera Periodic conditions are not implemented in this case .")
             raise NotImplementedError

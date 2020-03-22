@@ -217,8 +217,8 @@ class PotentialFlowSolver(FluidSolver):
     def _CreateSolutionStrategy(self):
         strategy_type = self._GetStrategyType()
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetScheme()
-        linear_solver = self.GetLinearSolver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
         if strategy_type == "linear":
             solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,

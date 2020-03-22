@@ -14,8 +14,6 @@ if have_conv_diff:
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
 
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -187,7 +185,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
-        import os
         warn_msg  = '\nThe materials import mechanism used in the two fluids solver is DEPRECATED!\n'
         warn_msg += 'It will be removed to use the base fluid_solver.py one as soon as the subproperties are available.\n'
         KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
@@ -300,7 +297,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
-            linear_solver = self.GetLinearSolver()
+            linear_solver = self._GetLinearSolver()
             if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
                     KratosMultiphysics.DISTANCE,
@@ -317,7 +314,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _CreateVariationalDistanceProcess(self):
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
-        linear_solver = self.GetLinearSolver()
+        linear_solver = self._GetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(

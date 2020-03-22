@@ -1,5 +1,4 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -7,7 +6,6 @@ import KratosMultiphysics
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
-from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)
