@@ -17,6 +17,8 @@
 // External includes
 
 // Project includes
+#include "includes/define_python.h"
+#include "processes/process.h"
 #include "python/add_geometrical_utilities_to_python.h"
 
 //Geometrical (and kernel) utilities
@@ -403,10 +405,14 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
 
 
     // GeometricalTransformationUtilities
+    auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
+    mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
+    mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+
+    // GeometricalTransformationUtilities
     auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
-
 
 
 
