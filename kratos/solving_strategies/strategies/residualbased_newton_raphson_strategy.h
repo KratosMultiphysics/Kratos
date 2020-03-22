@@ -1131,13 +1131,11 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param MoveMesh The flag that allows to move the mesh
      */
 
-    virtual void
-    UpdateDatabase(
-            TSystemMatrixType &rA,
-            TSystemVectorType &rDx,
-            TSystemVectorType &rb,
-            const bool MoveMesh
-            )
+    virtual void UpdateDatabase(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MoveMesh)
     {
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
