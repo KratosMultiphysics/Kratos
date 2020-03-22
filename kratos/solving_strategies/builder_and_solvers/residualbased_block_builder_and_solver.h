@@ -496,7 +496,7 @@ public:
      * @param rA The LHS matrix of the system of equations
      * @param rDx The vector of unkowns
      * @param rb The RHS vector of the system of equations
-     * @param MeshMovingNeeded tells if the update of the scheme needs  to be performed when calling the Update of the scheme
+     * @param MoveMesh tells if the update of the scheme needs  to be performed when calling the Update of the scheme
      */
     void BuildAndSolveLinearizedOnPreviousIteration(
         typename TSchemeType::Pointer pScheme,
@@ -504,7 +504,7 @@ public:
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
         TSystemVectorType& rb,
-        const bool MeshMovingNeeded
+        const bool MoveMesh
         ) override
     {
         KRATOS_INFO("BlockBuilderAndSolver")
@@ -540,12 +540,12 @@ public:
         // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
         const auto it_node_begin = rModelPart.NodesBegin();
-        if (MeshMovingNeeded) {
+        if (MoveMesh) {
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i) {
                 auto it_node = it_node_begin + i;
-                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates()
+                                                + it_node->FastGetSolutionStepValue(DISPLACEMENT);
             }
         }
 
@@ -560,12 +560,12 @@ public:
         // to where it was taking into account BCs
         // it is done here so that constraints are correctly taken into account right after
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
-        if (MeshMovingNeeded) {
+        if (MoveMesh) {
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i) {
                 auto it_node = it_node_begin + i;
-                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates()
+                                                + it_node->FastGetSolutionStepValue(DISPLACEMENT);
             }
         }
 
