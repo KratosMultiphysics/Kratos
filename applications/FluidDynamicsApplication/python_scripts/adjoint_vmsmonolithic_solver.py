@@ -114,7 +114,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
     def Initialize(self):
         # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
+        solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # If there is adjoint turbulence model, initialize it
@@ -123,13 +123,13 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         # Initialize the strategy and adjoint utilities
         solution_strategy.Initialize()
-        self.get_response_function().Initialize()
-        self.get_sensitivity_builder().Initialize()
+        self.GetResponseFunction().Initialize()
+        self.GetSensitivityBuilder().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
-    def _create_scheme(self):
-        response_function = self.get_response_function()
+    def _CreateScheme(self):
+        response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
             scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(
@@ -141,11 +141,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_scheme()
-        linear_solver = self.get_linear_solver()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self.GetScheme()
+        linear_solver = self.GetLinearSolver()
+        builder_and_solver = self.GetBuilderAndSolver()
         calculate_reaction_flag = False
         reform_dof_set_at_each_step = False
         calculate_norm_dx_flag = False

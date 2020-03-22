@@ -169,9 +169,9 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
-        self.compute_nodal_neighbours()
+        self.ComputeNodalElementalNeighbours()
 
-        solution_strategy = self.get_solution_strategy()
+        solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
@@ -180,14 +180,14 @@ class PotentialFlowSolver(FluidSolver):
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
-    def compute_nodal_neighbours(self):
+    def ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call
         data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
         KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
             data_communicator,
             self.GetComputingModelPart()).Execute()
 
-    def _get_strategy_type(self):
+    def _GetStrategyType(self):
         element_type = self.settings["formulation"]["element_type"].GetString()
         if "incompressible" in element_type:
             if not self.settings["formulation"].Has("penalty_coefficient"):
@@ -203,22 +203,22 @@ class PotentialFlowSolver(FluidSolver):
         return strategy_type
 
     @classmethod
-    def _create_scheme(self):
+    def _CreateScheme(self):
         # Fake scheme creation to do the solution update
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return scheme
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = KratosMultiphysics.ResidualCriteria(
             self.settings["relative_tolerance"].GetDouble(),
             self.settings["absolute_tolerance"].GetDouble())
         return convergence_criterion
 
-    def _create_solution_strategy(self):
-        strategy_type = self._get_strategy_type()
+    def _CreateSolutionStrategy(self):
+        strategy_type = self._GetStrategyType()
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_scheme()
-        linear_solver = self.get_linear_solver()
+        time_scheme = self.GetScheme()
+        linear_solver = self.GetLinearSolver()
         if strategy_type == "linear":
             solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
@@ -229,7 +229,7 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
         elif strategy_type == "non_linear":
-            convergence_criterion = self.get_convergence_criterion()
+            convergence_criterion = self.GetConvergenceCriterion()
             solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                 computing_model_part,
                 time_scheme,

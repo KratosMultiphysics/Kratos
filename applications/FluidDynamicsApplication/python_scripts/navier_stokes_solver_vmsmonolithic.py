@@ -332,7 +332,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
     def Initialize(self):
         # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
+        solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Initialize the solution strategy
@@ -361,7 +361,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             if hasattr(self, 'time_discretization'):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
-            self.get_solution_strategy().InitializeSolutionStep()
+            self.GetSolutionStrategy().InitializeSolutionStep()
             # Perform the turbulence modelling InitializeSolutionStep
             if hasattr(self, "_turbulence_model_solver"):
                 self._turbulence_model_solver.InitializeSolutionStep()

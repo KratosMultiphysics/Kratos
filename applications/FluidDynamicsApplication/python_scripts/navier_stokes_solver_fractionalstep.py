@@ -139,7 +139,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
-        solution_strategy = self.get_solution_strategy()
+        solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
@@ -149,16 +149,16 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         if self._TimeBufferIsInitialized():
             is_converged = super(NavierStokesSolverFractionalStep,self).SolveSolutionStep()
             if self.compute_reactions:
-                self.get_solution_strategy().CalculateReactions()
+                self.GetSolutionStrategy().CalculateReactions()
 
             return is_converged
         else:
             return True
 
-    def _create_scheme(self):
+    def _CreateScheme(self):
         pass
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         # Create the pressure linear solver
         pressure_linear_solver_configuration = self.settings["pressure_linear_solver_settings"]
         pressure_linear_solver = linear_solver_factory.ConstructSolver(pressure_linear_solver_configuration)
@@ -168,20 +168,20 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         # Return a tuple containing both linear solvers
         return (pressure_linear_solver, velocity_linear_solver)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         pass
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         pass
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         # Create the pressure and velocity linear solvers
         # Note that linear_solvers is a tuple. The first item is the pressure
         # linear solver. The second item is the velocity linear solver.
-        linear_solvers = self.get_linear_solver()
+        linear_solvers = self.GetLinearSolver()
 
         # Create the fractional step settings instance
         # TODO: next part would be much cleaner if we passed directly the parameters to the c++

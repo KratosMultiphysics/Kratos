@@ -105,8 +105,8 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_scheme(self):
-        response_function = self.get_response_function()
+    def _CreateScheme(self):
+        response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
             scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
@@ -118,11 +118,11 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 3:
@@ -130,7 +130,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.get_linear_solver()
+        trilinos_linear_solver = self.GetLinearSolver()
         epetra_communicator = self.get_epetra_communicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
@@ -145,11 +145,11 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 trilinos_linear_solver)
         return builder_and_solver
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_scheme()
-        linear_solver = self.get_linear_solver()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self.GetScheme()
+        linear_solver = self.GetLinearSolver()
+        builder_and_solver = self.GetBuilderAndSolver()
         calculate_reaction_flag = False
         reform_dof_set_at_each_step = False
         calculate_norm_dx_flag = False

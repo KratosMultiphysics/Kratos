@@ -72,14 +72,14 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         # Create the pressure and velocity linear solvers
         # Note that linear_solvers is a tuple. The first item is the pressure
         # linear solver. The second item is the velocity linear solver.
-        linear_solvers = self.get_linear_solver()
+        linear_solvers = self.GetLinearSolver()
 
         # Create the fractional step settings instance
         # TODO: next part would be much cleaner if we passed directly the parameters to the c++

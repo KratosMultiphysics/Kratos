@@ -124,17 +124,17 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def Finalize(self):
-        self.get_solution_strategy().Clear()
+        self.GetSolutionStrategy().Clear()
 
     def get_epetra_communicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_scheme(self):
+    def _CreateScheme(self):
         pass
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         # Create the pressure linear solver
         pressure_linear_solver_configuration = self.settings["pressure_linear_solver_settings"]
         pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(pressure_linear_solver_configuration)
@@ -144,13 +144,13 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         # Return a tuple containing both linear solvers
         return (pressure_linear_solver, velocity_linear_solver)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         pass
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         pass
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self.get_epetra_communicator()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -158,7 +158,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         # Create the pressure and velocity linear solvers
         # Note that linear_solvers is a tuple. The first item is the pressure
         # linear solver. The second item is the velocity linear solver.
-        linear_solvers = self.get_linear_solver()
+        linear_solvers = self.GetLinearSolver()
 
         # Create the fractional step settings instance
         # TODO: next part would be much cleaner if we passed directly the parameters to the c++

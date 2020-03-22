@@ -6,7 +6,7 @@ import KratosMultiphysics
 # from KratosMultiphysics.python_solver import PythonSolver
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-from KratosMultiphysics.FluidDynamicsApplication import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
@@ -30,28 +30,28 @@ class AdjointFluidSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
 
     def InitializeSolutionStep(self):
-        self.get_solution_strategy().InitializeSolutionStep()
-        self.get_response_function().InitializeSolutionStep()
+        self.GetSolutionStrategy().InitializeSolutionStep()
+        self.GetResponseFunction().InitializeSolutionStep()
         if hasattr(self, "_adjoint_turbulence_model_solver"):
             self._adjoint_turbulence_model_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.get_solution_strategy().Predict()
+        self.GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        return self.get_solution_strategy().SolveSolutionStep()
+        return self.GetSolutionStrategy().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.get_solution_strategy().FinalizeSolutionStep()
-        self.get_response_function().FinalizeSolutionStep()
+        self.GetSolutionStrategy().FinalizeSolutionStep()
+        self.GetResponseFunction().FinalizeSolutionStep()
 
         if hasattr(self, "_adjoint_turbulence_model_solver"):
             self._adjoint_turbulence_model_solver.FinalizeSolutionStep()
 
-        self.get_sensitivity_builder().UpdateSensitivities()
+        self.GetSensitivityBuilder().UpdateSensitivities()
 
     def Check(self):
-        self.get_solution_strategy().Check()
+        self.GetSolutionStrategy().Check()
 
         if hasattr(self, "_adjoint_turbulence_model_solver"):
             self._adjoint_turbulence_model_solver.Check()
@@ -117,12 +117,12 @@ class AdjointFluidSolver(FluidSolver):
         if not hasattr(self, "_adjoint_turbulence_model_solver"):
             KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
-    def get_response_function(self):
+    def GetResponseFunction(self):
         if not hasattr(self, '_response_function'):
-            self._response_function = self._create_response_function()
+            self._response_function = self.__CreateResponseFunction()
         return self._response_function
 
-    def _create_response_function(self):
+    def __CreateResponseFunction(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
         if response_type == "drag":
@@ -140,14 +140,14 @@ class AdjointFluidSolver(FluidSolver):
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
 
-    def get_sensitivity_builder(self):
+    def GetSensitivityBuilder(self):
         if not hasattr(self, '_sensitivity_builder'):
-            self._sensitivity_builder = self._create_sensitivity_builder()
+            self._sensitivity_builder = self.__CreateSensitivityBuilder()
         return self._sensitivity_builder
 
-    def _create_sensitivity_builder(self):
-        response_function = self.get_response_function()
-        KratosMultiphysics.SensitivityBuilder(
+    def __CreateSensitivityBuilder(self):
+        response_function = self.GetResponseFunction()
+        sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],
             self.main_model_part,
             response_function)

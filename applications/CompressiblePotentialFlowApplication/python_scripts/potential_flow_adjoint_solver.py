@@ -95,37 +95,37 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         super(PotentialFlowAdjointSolver, self).Initialize()
 
         # Initialize the response function and the sensitivity builder
-        self.get_response_function().Initialize()
-        self.get_sensitivity_builder().Initialize()
+        self.GetResponseFunction().Initialize()
+        self.GetSensitivityBuilder().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
-        self.get_response_function().InitializeSolutionStep()
+        self.GetResponseFunction().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
-        self.get_response_function().FinalizeSolutionStep()
-        self.get_sensitivity_builder().UpdateSensitivities()
+        self.GetResponseFunction().FinalizeSolutionStep()
+        self.GetSensitivityBuilder().UpdateSensitivities()
 
     @classmethod
-    def _get_strategy_type(self):
+    def _GetStrategyType(self):
         strategy_type = "linear"
         return strategy_type
 
-    def _create_scheme(self):
+    def _CreateScheme(self):
         # Fake scheme creation to do the solution update
-        response_function = self.get_response_function()
+        response_function = self.GetResponseFunction()
         scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
         return scheme
 
-    def get_response_function(self):
+    def GetResponseFunction(self):
         if not hasattr(self, '_response_function'):
-            self._response_function = self._create_response_function()
+            self._response_function = self.__CreateResponseFunction()
         return self._response_function
 
-    def _create_response_function(self):
+    def __CreateResponseFunction(self):
         computing_model_part = self.GetComputingModelPart()
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
@@ -135,14 +135,14 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
             raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
         return response_function
 
-    def get_sensitivity_builder(self):
+    def GetSensitivityBuilder(self):
         if not hasattr(self, '_sensitivity_builder'):
-            self._sensitivity_builder = self._create_sensitivity_builder()
+            self._sensitivity_builder = self.__CreateSensitivityBuilder()
         return self._sensitivity_builder
 
-    def _create_sensitivity_builder(self):
+    def __CreateSensitivityBuilder(self):
         computing_model_part = self.GetComputingModelPart()
-        response_function = self.get_response_function()
+        response_function = self.GetResponseFunction()
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.sensitivity_settings,
             computing_model_part,

@@ -118,7 +118,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
     def Initialize(self):
         # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
+        solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Initialize the solution strategy
@@ -137,12 +137,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        self.get_solution_strategy().InitializeSolutionStep()
+        self.GetSolutionStrategy().InitializeSolutionStep()
 
 
     def Solve(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        self.get_solution_strategy().Solve()
+        self.GetSolutionStrategy().Solve()
 
     def PrepareModelPart(self):
         super(NavierStokesCompressibleSolver,self).PrepareModelPart()
@@ -160,7 +160,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
-    def _create_scheme(self):
+    def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
@@ -186,7 +186,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             raise Exception(err_msg)
         return scheme
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = KratosMultiphysics.ResidualCriteria(
             self.settings["relative_tolerance"].GetDouble(),
             self.settings["absolute_tolerance"].GetDouble())
