@@ -49,7 +49,7 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
-#include "add_utilities_to_python.h"
+//#include "add_utilities_to_python.h"
 #include "add_geometrical_utilities_to_python.h"
 #include "add_other_utilities_to_python.h"
 #include "add_variable_utilities_to_python.h"//Partition needed
