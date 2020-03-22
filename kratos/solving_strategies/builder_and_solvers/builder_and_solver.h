@@ -438,7 +438,7 @@ public:
      * @param rDx The vector of unkowns
      * @param rb The RHS vector of the system of equations
      */
-    virtual void BuildAndSolve_LinearizedOnOldIteration(
+    virtual void BuildAndSolveLinearizedOnPreviousIteration(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
@@ -446,7 +446,7 @@ public:
         TSystemVectorType &rb,
         bool mesh_moving_needed)
     {
-        KRATOS_WARNING("BuilderAndSolver") << "no special implementation available for BuildAndSolve_LinearizedOnOldIteration. Using normal BuildAndSolve" << std::endl;
+        KRATOS_WARNING("BuilderAndSolver") << "no special implementation available for BuildAndSolveLinearizedOnPreviousIteration. Using normal BuildAndSolve" << std::endl;
         this->BuildAndSolve(pScheme,rModelPart,rA,rDx,rb);
     }
 

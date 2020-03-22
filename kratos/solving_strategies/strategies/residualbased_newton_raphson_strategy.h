@@ -789,10 +789,9 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
-//KRATOS_WATCH(typeid(*p_builder_and_solver).name())
-KRATOS_WATCH(p_builder_and_solver->Info())
+
             if (mUseOldStiffnessInFirstIteration){
-                p_builder_and_solver->BuildAndSolve_LinearizedOnOldIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
+                p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
             }
@@ -1218,22 +1217,6 @@ KRATOS_WATCH(p_builder_and_solver->Info())
         mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
         mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
         mUseOldStiffnessInFirstIteration = Settings["use_old_stiffness_in_first_iteration"].GetBool();
-
-        if(mUseOldStiffnessInFirstIteration)
-        {
-            if( BaseType::GetModelPart().GetBufferSize() == 1)
-            {
-                KRATOS_WARNING("NR-Strategy")
-                                 << "sorry the buffer size needs to be at least 2 in order to use \n"
-                                 << "current buffer size for modelpart: " << BaseType::GetModelPart() << std::endl
-                                 << "is :" << BaseType::GetModelPart()
-                                 << "Old Stiffness on First Iteration. \n"
-                                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
-
-                mUseOldStiffnessInFirstIteration = false;
-            }
-        }
-
     }
 
     ///@}

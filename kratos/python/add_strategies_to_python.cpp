@@ -428,7 +428,7 @@ namespace Kratos
                 .def("Build", &BuilderAndSolverType::Build)
                 .def("SystemSolve", &BuilderAndSolverType::SystemSolve)
                 .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
-                .def("BuildAndSolve_LinearizedOnOldIteration", &BuilderAndSolverType::BuildAndSolve_LinearizedOnOldIteration)
+                .def("BuildAndSolveLinearizedOnPreviousIteration", &BuilderAndSolverType::BuildAndSolveLinearizedOnPreviousIteration)
                 .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
@@ -461,7 +461,7 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
             .def(py::init< LinearSolverType::Pointer > ())
-.def("BuildAndSolve_LinearizedOnOldIteration", &ResidualBasedBlockBuilderAndSolverType::BuildAndSolve_LinearizedOnOldIteration)            ;
+            ;
 
             //********************************************************************
             //********************************************************************

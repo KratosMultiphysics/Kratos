@@ -458,7 +458,7 @@ public:
      * @param mesh_moving_needed tells if the update of the scheme needs
      *                           to be performed when calling the Update of the scheme
      */
-    void BuildAndSolve_LinearizedOnOldIteration(
+    void BuildAndSolveLinearizedOnPreviousIteration(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
