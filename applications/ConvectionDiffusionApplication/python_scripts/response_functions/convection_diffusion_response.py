@@ -1,15 +1,17 @@
-"""This module contains the available response functions and their base class"""
+"""
+This module contains an interface to the available response functions
+"""
 import time as timer
 
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication # TODO
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
 
 class ResponseFunctionBase(object):
-    """The base class for response functions. This is a copy from StructuralMechanicsApplication - move to core?
+    """
+    The base class for response functions. This is a copy from StructuralMechanicsApplication
     """
 
     def RunCalculation(self, calculate_gradient):
@@ -82,11 +84,15 @@ class AdjointResponseFunction(ResponseFunctionBase):
             KM.FACE_HEAT_FLUX
         ]
 
+        self.value = None
+
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
 
     def InitializeSolutionStep(self):
+        self.value = None
+
         # Run the primal analysis.
         Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
@@ -97,10 +103,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         startTime = timer.time()
-        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        self.value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
     def CalculateGradient(self):
         # synchronize the modelparts
@@ -113,7 +117,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
-        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+        return self.value
 
     def GetShapeGradient(self):
         gradient = {}
@@ -134,7 +138,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
             raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
 
-        # TODO this should happen automatically
         for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
             adjoint_node.X0 = primal_node.X0
             adjoint_node.Y0 = primal_node.Y0
@@ -150,11 +153,24 @@ class AdjointResponseFunction(ResponseFunctionBase):
             variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
     def _GetAdjointParameters(self):
-        adjoint_settings = self.response_settings["adjoint_settings"].GetString()
 
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
             adjoint_parameters = Parameters( parameter_file.read() )
 
+        if self.response_settings["transfer_response_parameters"].GetBool():
+
+            # sensitivity settings
+            if adjoint_parameters["solver_settings"].Has("sensitivity_settings"):
+                Logger.PrintWarning(self._GetLabel(), "Adjoint settings already have 'sensitivity_settings' - Will be overwritten!")
+                adjoint_parameters["solver_settings"].RemoveValue("sensitivity_settings")
+            adjoint_parameters["solver_settings"].AddValue("sensitivity_settings", self.response_settings["sensitivity_settings"])
+
+            # response settings
+            if adjoint_parameters["solver_settings"].Has("response_function_settings"):
+                Logger.PrintWarning(self._GetLabel(), "Adjoint settings already have 'response_function_settings' - Will be overwritten!")
+                adjoint_parameters["solver_settings"].RemoveValue("response_function_settings")
+            adjoint_parameters["solver_settings"].AddValue("response_function_settings", self.response_settings)
+        
         return adjoint_parameters
 
     def _GetLabel(self):
