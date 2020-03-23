@@ -40,7 +40,7 @@ class CoupledSolverIQNI(CoupledSolverGaussSeidel):
             if not self.model.IsReady():
                 dx = self.omega * r
             else:
-                dr = -r
+                dr = -1 * r
                 dx = self.model.Predict(dr) + r
             self.x += dx
             y = self.solver_wrappers[0].SolveSolutionStep(self.x)
