@@ -22,7 +22,6 @@
 #include "solving_strategies/schemes/residual_based_bdf_scheme.h"
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
-#include "includes/variables_derivatives.h"
 #include "includes/checks.h"
 
 namespace Kratos

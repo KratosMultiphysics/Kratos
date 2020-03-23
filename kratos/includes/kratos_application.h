@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_components.h"
-#include "includes/variables_derivatives.h"
 #include "includes/element.h"
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
@@ -240,7 +239,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpMasterSlaveConstraints;
     }
 
-
     void SetComponents(
         KratosComponents<VariableData>::ComponentsContainerType const&
             VariableDataComponents)
@@ -280,116 +278,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     {
         mpConditions->insert(
             ConditionComponents.begin(), ConditionComponents.end());
-    }
-
-    VariablesDerivatives<Variable<double>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        Variable<double> const& rComponentType) {
-        return *mpDoubleVariablesDerivatives;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 3>>>::DerivativesDatabaseType&
-    GetVariableTimeDerivatives(Variable<array_1d<double, 3>> const& rComponentType) {
-        return *mpArray1DVariablesDerivatives;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 4>>>::DerivativesDatabaseType&
-    GetVariableTimeDerivatives(Variable<array_1d<double, 4>> const& rComponentType) {
-        return *mpArray1D4VariablesDerivatives;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 6>>>::DerivativesDatabaseType&
-    GetVariableTimeDerivatives(Variable<array_1d<double, 6>> const& rComponentType) {
-        return *mpArray1D6VariablesDerivatives;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 9>>>::DerivativesDatabaseType&
-    GetVariableTimeDerivatives(Variable<array_1d<double, 9>> const& rComponentType) {
-        return *mpArray1D9VariablesDerivatives;
-    }
-
-    VariablesDerivatives<Variable<Vector>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        Variable<Vector> const& rComponentType) {
-        return *mpVectorVariablesDerivatives;
-    }
-
-    VariablesDerivatives<Variable<Matrix>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        Variable<Matrix> const& rComponentType) {
-        return *mpMatrixVariablesDerivatives;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 3>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rComponentType) {
-        return *mpArray1DVariableComponentsTimeDerivatives;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 4>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rComponentType) {
-        return *mpArray1D4VariableComponentsTimeDerivatives;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 6>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rComponentType) {
-        return *mpArray1D6VariableComponentsTimeDerivatives;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 9>>>>::DerivativesDatabaseType& GetVariableTimeDerivatives(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rComponentType) {
-        return *mpArray1D9VariableComponentsTimeDerivatives;
-    }
-
-    VariablesDerivatives<Variable<double>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        Variable<double> const& rComponentType) {
-        return *mpDoubleVariableResiduals;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 3>>>::DerivativesDatabaseType&
-    GetVariableResidualVariables(Variable<array_1d<double, 3>> const& rComponentType) {
-        return *mpArray1DVariableResiduals;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 4>>>::DerivativesDatabaseType&
-    GetVariableResidualVariables(Variable<array_1d<double, 4>> const& rComponentType) {
-        return *mpArray1D4VariableResiduals;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 6>>>::DerivativesDatabaseType&
-    GetVariableResidualVariables(Variable<array_1d<double, 6>> const& rComponentType) {
-        return *mpArray1D6VariableResiduals;
-    }
-
-    VariablesDerivatives<Variable<array_1d<double, 9>>>::DerivativesDatabaseType&
-    GetVariableResidualVariables(Variable<array_1d<double, 9>> const& rComponentType) {
-        return *mpArray1D9VariableResiduals;
-    }
-
-    VariablesDerivatives<Variable<Vector>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        Variable<Vector> const& rComponentType) {
-        return *mpVectorVariableResiduals;
-    }
-
-    VariablesDerivatives<Variable<Matrix>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        Variable<Matrix> const& rComponentType) {
-        return *mpMatrixVariableResiduals;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 3>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const& rComponentType) {
-        return *mpArray1DVariableComponentsVariableResiduals;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 4>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>> const& rComponentType) {
-        return *mpArray1D4VariableComponentsVariableResiduals;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 6>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>> const& rComponentType) {
-        return *mpArray1D6VariableComponentsVariableResiduals;
-    }
-
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor< array_1d<double, 9>>>>::DerivativesDatabaseType& GetVariableResidualVariables(
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>> const& rComponentType) {
-        return *mpArray1D9VariableComponentsVariableResiduals;
     }
 
     Serializer::RegisteredObjectsContainerType& GetRegisteredObjects() {
@@ -602,32 +490,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
 
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
-
-    // Time derivatives variables
-    VariablesDerivatives<Variable<double> >::DerivativesDatabaseType* mpDoubleVariablesDerivatives;
-    VariablesDerivatives<Variable<array_1d<double, 3> > >::DerivativesDatabaseType* mpArray1DVariablesDerivatives;
-    VariablesDerivatives<Variable<array_1d<double, 4> > >::DerivativesDatabaseType* mpArray1D4VariablesDerivatives;
-    VariablesDerivatives<Variable<array_1d<double, 6> > >::DerivativesDatabaseType* mpArray1D6VariablesDerivatives;
-    VariablesDerivatives<Variable<array_1d<double, 9> > >::DerivativesDatabaseType* mpArray1D9VariablesDerivatives;
-    VariablesDerivatives<Variable<Vector> >::DerivativesDatabaseType* mpVectorVariablesDerivatives;
-    VariablesDerivatives<Variable<Matrix> >::DerivativesDatabaseType* mpMatrixVariablesDerivatives;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::DerivativesDatabaseType* mpArray1DVariableComponentsTimeDerivatives;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::DerivativesDatabaseType* mpArray1D4VariableComponentsTimeDerivatives;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::DerivativesDatabaseType* mpArray1D6VariableComponentsTimeDerivatives;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::DerivativesDatabaseType* mpArray1D9VariableComponentsTimeDerivatives;
-
-    // Residual variables
-    VariablesDerivatives<Variable<double> >::DerivativesDatabaseType* mpDoubleVariableResiduals;
-    VariablesDerivatives<Variable<array_1d<double, 3> > >::DerivativesDatabaseType* mpArray1DVariableResiduals;
-    VariablesDerivatives<Variable<array_1d<double, 4> > >::DerivativesDatabaseType* mpArray1D4VariableResiduals;
-    VariablesDerivatives<Variable<array_1d<double, 6> > >::DerivativesDatabaseType* mpArray1D6VariableResiduals;
-    VariablesDerivatives<Variable<array_1d<double, 9> > >::DerivativesDatabaseType* mpArray1D9VariableResiduals;
-    VariablesDerivatives<Variable<Vector> >::DerivativesDatabaseType* mpVectorVariableResiduals;
-    VariablesDerivatives<Variable<Matrix> >::DerivativesDatabaseType* mpMatrixVariableResiduals;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::DerivativesDatabaseType* mpArray1DVariableComponentsVariableResiduals;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>::DerivativesDatabaseType* mpArray1D4VariableComponentsVariableResiduals;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>::DerivativesDatabaseType* mpArray1D6VariableComponentsVariableResiduals;
-    VariablesDerivatives<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>::DerivativesDatabaseType* mpArray1D9VariableComponentsVariableResiduals;
 
     // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
