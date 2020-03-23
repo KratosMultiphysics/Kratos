@@ -138,7 +138,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 trilinos_linear_solver,
                 KratosFluid.PATCH_INDEX)
         else:
-            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
+            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver)
