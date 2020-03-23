@@ -1799,10 +1799,6 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     }
     rOStream << std::endl;
 
-    if (IsDistributed()) {
-        mpCommunicator->PrintData(rOStream);
-    }
-
     // Printing the submodelparts by their names in alphabetical order
     std::vector< std::string > submodel_part_names;
     submodel_part_names.reserve(NumberOfSubModelParts());
@@ -1841,15 +1837,10 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     }
     rOStream << std::endl;
     rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
-    
+
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
-    }
-    rOStream << std::endl;
-
-    if (IsDistributed()) {
-        mpCommunicator->PrintData(rOStream, PrefixString);
     }
 
     // Printing the submodelparts by their names in alphabetical order
