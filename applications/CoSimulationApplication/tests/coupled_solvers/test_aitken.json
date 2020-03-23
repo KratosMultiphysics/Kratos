@@ -56,7 +56,7 @@
             "type" : "solver_wrappers.python.tube_structure_solver",
             "settings" :
             {
-                "working_directory" : "coupled_solvers/CSD",
+                "working_directory" : "coupled_solvers/CSM",
                 "input_file"  : "solver_parameters.json",
                 "interface_input" :
                 {
