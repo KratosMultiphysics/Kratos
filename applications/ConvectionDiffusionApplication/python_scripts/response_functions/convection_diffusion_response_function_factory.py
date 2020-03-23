@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
-from . import convection_diffusion_response
+from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response
 
 def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()
