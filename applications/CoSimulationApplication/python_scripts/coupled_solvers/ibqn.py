@@ -31,8 +31,8 @@ class CoupledSolverIBQN(CoupledSolverGaussSeidel):
         super().Initialize()
 
         self.y = self.solver_wrappers[0].GetInterfaceOutput()
-        self.xtemp = self.x.deepcopy()
-        self.ytemp = self.y.deepcopy()
+        self.dxtemp = self.x.deepcopy()
+        self.dytemp = self.y.deepcopy()
         self.u = self.x.GetNumpyArray().shape[0]
         self.w = self.y.GetNumpyArray().shape[0]
         self.ready = False
@@ -45,13 +45,13 @@ class CoupledSolverIBQN(CoupledSolverGaussSeidel):
             model.Initialize()
             self.components += [model]
 
-    def lop_f(self, x):
-        self.xtemp.SetNumpyArray(x.flatten())
-        return self.model_f.Predict(self.xtemp).GetNumpyArray()
+    def lop_f(self, dx):
+        self.dxtemp.SetNumpyArray(dx.flatten())
+        return self.model_f.Predict(self.dxtemp).GetNumpyArray()
 
-    def lop_s(self, y):
-        self.ytemp.SetNumpyArray(y.flatten())
-        return self.model_s.Predict(self.ytemp).GetNumpyArray()
+    def lop_s(self, dy):
+        self.dytemp.SetNumpyArray(dy.flatten())
+        return self.model_s.Predict(self.dytemp).GetNumpyArray()
 
     def SolveSolutionStep(self):
         iu = aslinearoperator(np.identity(self.u))

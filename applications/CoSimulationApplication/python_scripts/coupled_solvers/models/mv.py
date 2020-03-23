@@ -55,12 +55,11 @@ class ModelMV(CoSimulationComponent):
             self.v = np.delete(self.v, -1, 1)
             self.w = np.delete(self.w, -1, 1)
 
-    def Predict(self, r_in):
-        r = r_in.GetNumpyArray().reshape(-1, 1)
+    def Predict(self, dr_in):
+        dr = dr_in.GetNumpyArray().reshape(-1, 1)
         if self.ncurr is None:
             raise RuntimeError("No information to predict")
         # Approximation for the inverse of the Jacobian from a multiple vector model
-        dr = -r
         dxt = self.ncurr @ dr
         dxt_out = self.out.deepcopy()
         dxt_out.SetNumpyArray(dxt.flatten())

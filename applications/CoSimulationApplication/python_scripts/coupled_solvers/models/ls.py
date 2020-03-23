@@ -78,15 +78,14 @@ class ModelLS(CoSimulationComponent):
                 self.wprev[i] = np.delete(self.wprev[i], -1, 1)
             v = np.hstack((self.vcurr, np.hstack(self.vprev)))
 
-    def Predict(self, r_in):
-        r = r_in.GetNumpyArray().reshape(-1, 1)
+    def Predict(self, dr_in):
+        dr = dr_in.GetNumpyArray().reshape(-1, 1)
         v = np.hstack((self.vcurr, np.hstack(self.vprev)))
         w = np.hstack((self.wcurr, np.hstack(self.wprev)))
         if not v.shape[1]:
             raise RuntimeError("No information to predict")
         # Approximation for the inverse of the Jacobian from a least-squares model
         qq, rr = np.linalg.qr(v, mode='reduced')
-        dr = -r
         b = qq.T @ dr
         c = solve_triangular(rr, b)
         dxt = w @ c

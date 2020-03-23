@@ -40,12 +40,12 @@ class CoupledSolverIQNI(CoupledSolverGaussSeidel):
             if not self.model.IsReady():
                 dx = self.omega * r
             else:
-                dx = self.model.Predict(r) + r
+                dr = -r
+                dx = self.model.Predict(dr) + r
             self.x += dx
             y = self.solver_wrappers[0].SolveSolutionStep(self.x)
             xt = self.solver_wrappers[1].SolveSolutionStep(y)
             r = xt - self.x
             self.model.Add(r, xt)
             self.FinalizeIteration(r)
-        # self.model.pn = y.GetNumpyArray() / 1000
 
