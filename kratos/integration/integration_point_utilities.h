@@ -30,7 +30,7 @@ public:
     ///@name private static members
     ///@{
 
-    static const std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
+    static const std::vector<std::vector<std::array<double, 2>>> s_gauss_legendre;
 
     ///@}
 public:
