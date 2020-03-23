@@ -38,6 +38,7 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
     rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.99;
+    rModelPart.GetProcessInfo()[UPWINDING_FACTOR_CONSTANT] = 1.0;
 
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) * rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);

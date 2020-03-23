@@ -582,7 +582,8 @@ double ComputeUpwindFactor(const Element& rElement, const ProcessInfo& rCurrentP
     const double local_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rElement, rCurrentProcessInfo);
     const double M_2 = local_mach_number * local_mach_number;
 
-    return 1 - M_c_2 / M_2;
+    const double upwinding_factor_constant = rCurrentProcessInfo[UPWINDING_FACTOR_CONSTANT];
+    return upwinding_factor_constant * (1 - M_c_2 / M_2);
 }
 
 template <int Dim, int NumNodes>
@@ -594,7 +595,8 @@ double ComputeDerivativeUpwindFactorWRTMachNumberSquared(const Element& rElement
     const double local_mach_number = ComputePerturbationLocalMachNumber<Dim, NumNodes>(rElement, rCurrentProcessInfo);
     const double M_4 = local_mach_number * local_mach_number * local_mach_number * local_mach_number;
 
-    return M_c_2 / M_4;
+    const double upwinding_factor_constant = rCurrentProcessInfo[UPWINDING_FACTOR_CONSTANT];
+    return upwinding_factor_constant * (M_c_2 / M_4);
 }
 
 template <int Dim, int NumNodes>

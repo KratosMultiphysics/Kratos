@@ -29,6 +29,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
                 "mach_number_limit": 0.94,
+                "upwinding_factor_constant": 1.0,
                 "initialize_flow_field": true,
                 "perturbation_field": false
             }  """ )
@@ -46,6 +47,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
         self.mach_number_limit = settings["mach_number_limit"].GetDouble()
+        self.upwinding_factor_constant = settings["upwinding_factor_constant"].GetDouble()
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
         self.perturbation_field = settings["perturbation_field"].GetBool()
         if(self.perturbation_field):
@@ -64,6 +66,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(KratosCFD.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWINDING_FACTOR_CONSTANT,self.upwinding_factor_constant)
 
     def ExecuteInitializeSolutionStep(self):
         self.step = self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP]
