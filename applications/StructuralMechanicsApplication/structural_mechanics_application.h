@@ -47,7 +47,7 @@
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/prestress_membrane_element.hpp"
+#include "custom_elements/membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
@@ -63,6 +63,7 @@
 /* Adding solid elements */
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/axisym_small_displacement.h"
+#include "custom_elements/z_strain_driven_2p5_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/updated_lagrangian.h"
@@ -78,9 +79,10 @@
 #include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/small_displacement_line_load_condition.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
 
@@ -94,9 +96,11 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/user_provided_linear_elastic_law.h"
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
+#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
 #include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_henky_1d.h"
@@ -346,8 +350,8 @@ private:
     const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element
-    const PrestressMembraneElement mPreStressMembraneElement3D3N;
-    const PrestressMembraneElement mPreStressMembraneElement3D4N;
+    const MembraneElement mMembraneElement3D4N;
+    const MembraneElement mMembraneElement3D3N;
 
     // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
@@ -385,6 +389,12 @@ private:
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
+
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D3N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D4N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D6N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D8N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D9N;
 
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
@@ -459,6 +469,11 @@ private:
     const LineLoadCondition<3> mLineLoadCondition3D2N;
     const LineLoadCondition<3> mLineLoadCondition3D3N;
 
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D2N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D3N;
+    const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D2N;
+    const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D3N;
+
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
     const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
 
@@ -468,6 +483,12 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D6N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
+
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D3N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D4N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D6N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D8N;
+    const SmallDisplacementSurfaceLoadCondition3D mSmallDisplacementSurfaceLoadCondition3D9N;
 
     // Point moment
     const PointMomentCondition3D mPointMomentCondition3D1N;
@@ -487,6 +508,8 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
+    const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws
@@ -506,6 +529,7 @@ private:
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
+    const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;

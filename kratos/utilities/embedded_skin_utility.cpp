@@ -255,7 +255,7 @@ namespace Kratos
     template<>
     const std::string EmbeddedSkinUtility<2>::GetConditionType()
     {
-        return "Condition2D2N";
+        return "LineCondition2D2N";
     }
 
     template<>

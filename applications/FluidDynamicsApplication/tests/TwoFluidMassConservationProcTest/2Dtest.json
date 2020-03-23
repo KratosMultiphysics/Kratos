@@ -47,7 +47,7 @@
         	"python_module" : "apply_inlet_process",
         	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         	"Parameters"    : {
-            	"model_part_name" : "AutomaticInlet2D_Inlet",
+            	"model_part_name" : "FluidModelPart.AutomaticInlet2D_Inlet",
             	"variable_name"   : "VELOCITY",
             	"modulus"         : 1.0,
             	"direction"       : "automatic_inwards_normal",
@@ -57,7 +57,7 @@
         	"python_module" : "apply_outlet_process",
         	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         	"Parameters"    : {
-            	"model_part_name"    : "Outlet2D_Outlet",
+            	"model_part_name"    : "FluidModelPart.Outlet2D_Outlet",
             	"variable_name"      : "PRESSURE",
             	"constrained"        : true,
             	"value"              : 0.0,

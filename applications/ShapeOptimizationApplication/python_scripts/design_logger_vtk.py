@@ -62,9 +62,9 @@ class DesignLoggerVTK( DesignLogger ):
         vtk_parameters.AddValue("nodal_solution_step_data_variables", nodal_results)
 
         if output_mode == "WriteDesignSurface":
-            vtk_parameters["model_part_name"].SetString(self.design_surface.Name)
+            vtk_parameters["model_part_name"].SetString(self.design_surface.FullName())
         elif output_mode == "WriteOptimizationModelPart":
-            vtk_parameters["model_part_name"].SetString(self.optimization_model_part.Name)
+            vtk_parameters["model_part_name"].SetString(self.optimization_model_part.FullName())
         else:
             raise NameError("The following design output mode is not defined within a VTK output (name may be misspelled): " + output_mode)
 

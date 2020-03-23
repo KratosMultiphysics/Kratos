@@ -37,7 +37,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
                 "echo_level"                      : 0,
                 "number_of_divisions_at_subscale" : 2,
                 "subscale_interface_base_name"    : "refined_interface",
-                "subscale_boundary_condition"     : "Condition2D2N"
+                "subscale_boundary_condition"     : "LineCondition2D2N"
             }
         }
         """)

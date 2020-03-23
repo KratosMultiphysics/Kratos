@@ -88,7 +88,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","POINT_MOMENT_Z"],
             "input_file_name"  : "beam_test/nonlinear_2D2NBeamCr_test_results.json",
-            "model_part_name"  : "PointLoad3D_neumann",
+            "model_part_name"  : "Structure.PointLoad3D_neumann",
             "time_frequency"   : 9
         }
     }
@@ -102,7 +102,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y","POINT_MOMENT_Z"],
             "output_file_name" : "beam_test/nonlinear_2D2NBeamCr_test_results.json",
-            "model_part_name"  : "PointLoad3D_neumann",
+            "model_part_name"  : "Structure.PointLoad3D_neumann",
             "time_frequency"   : 9
         }
     }

@@ -21,8 +21,16 @@
 #include "includes/model_part.h"
 #include "interface_communicator.h"
 
-namespace Kratos
+namespace Kratos {
+
+namespace {
+
+bool SearchNotSuccessful(const InterfaceCommunicator::MapperInterfaceInfoPointerType& rpInterfaceInfo)
 {
+    return !(rpInterfaceInfo->GetLocalSearchWasSuccessful());
+}
+
+}
 
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
@@ -126,8 +134,7 @@ void InterfaceCommunicator::FilterInterfaceInfosSuccessfulSearch()
         auto new_end = std::remove_if(
             r_interface_infos_rank.begin(),
             r_interface_infos_rank.end(),
-            [](const auto& rp_interface_info)
-            { return !((*rp_interface_info).GetLocalSearchWasSuccessful()); });
+            SearchNotSuccessful); // cannot use lambda here bcs it is not supported by some older compilers
 
         r_interface_infos_rank.erase(new_end, r_interface_infos_rank.end());
     }

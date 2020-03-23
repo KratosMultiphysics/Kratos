@@ -80,7 +80,7 @@ public:
     RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansNutKEpsilonHighReCalculationProcess() override;
+    ~RansNutKEpsilonHighReCalculationProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -163,9 +163,10 @@ private:
     Parameters mrParameters;
     std::string mModelPartName;
 
-    int mEchoLevel;
-
     double mCmu;
+    double mMinValue;
+
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators

@@ -24,20 +24,14 @@
             "mortar_type"                    : "ALMContactFrictional"
         },
         "time_stepping"                      : {
-            "time_step_intervals" : {
-                "first_interval" : {
-                    "interval"  : [0.0, 0.9999999999],
-                    "time_step" : 1.0e0
-                },
-                "second_interval" : {
-                    "interval"  : [1.0, 1.9999999999],
-                    "time_step" : 5.0e-1
-                },
-                "third_interval" : {
-                    "interval"  : [2.0, "End"],
-                    "time_step" : 5.0e-2
-                }
-            }
+            "time_step_table" : [
+                [0.0, 1.0],
+                [0.9999, 1.0],
+                [1.0, 0.5],
+                [1.999999999, 0.5],
+                [2.0, 0.05],
+                [2.6, 0.05]
+            ]
         },
         "buffer_size"                        : 3,
         "line_search"                        : false,
@@ -155,7 +149,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                 "result_file_configuration" : {
@@ -186,7 +180,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "step",
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",

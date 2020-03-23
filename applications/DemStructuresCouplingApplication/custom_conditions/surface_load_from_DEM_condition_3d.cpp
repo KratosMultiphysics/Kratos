@@ -72,6 +72,24 @@ namespace Kratos
         return Kratos::make_intrusive<SurfaceLoadFromDEMCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    Condition::Pointer SurfaceLoadFromDEMCondition3D::Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const
+    {
+        KRATOS_TRY
+
+        Condition::Pointer p_new_cond = Kratos::make_intrusive<SurfaceLoadFromDEMCondition3D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        p_new_cond->SetData(this->GetData());
+        p_new_cond->Set(Flags(*this));
+        return p_new_cond;
+
+        KRATOS_CATCH("");
+    }
+
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
 
@@ -106,14 +124,11 @@ namespace Kratos
         const unsigned int number_of_nodes = Geometry.size();
         const unsigned int mat_size = number_of_nodes * 3;
 
-        //Resizing as needed the LHS
-        if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
-        {
-            if (rLeftHandSideMatrix.size1() != mat_size)
-            {
+        // Resizing as needed the LHS
+        if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+            if (rLeftHandSideMatrix.size1() != mat_size) {
                 rLeftHandSideMatrix.resize(mat_size, mat_size, false);
             }
-
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
         }
 
@@ -125,7 +140,7 @@ namespace Kratos
                 rRightHandSideVector.resize(mat_size, false);
             }
 
-            rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+            noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
         }
 
         // Reading integration points and local gradients
@@ -137,7 +152,7 @@ namespace Kratos
         GeometryType::JacobiansType J;
         J = Geometry.Jacobian(J,integration_method);
 
-        // Vector with a loading applied to the elemnt
+        // Vector with a loading applied to the element
         array_1d<double, 3 > surface_load;
 
         for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
