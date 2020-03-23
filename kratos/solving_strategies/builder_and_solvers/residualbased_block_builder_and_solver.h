@@ -507,7 +507,7 @@ public:
         const bool MoveMesh
         ) override
     {
-        KRATOS_INFO("BlockBuilderAndSolver")
+        KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0)
             << "Linearizing on Old iteration" << std::endl;
 
         if(rModelPart.GetBufferSize() == 1) {
@@ -521,7 +521,7 @@ public:
         }
 
         //TODO: Here we need to take the vector from other ones because
-        //we cannot create a trilinos vector without a communicator. To be improved!
+        // We cannot create a trilinos vector without a communicator. To be improved!
         TSystemVectorType dx_prediction(rDx);
         TSystemVectorType rhs_addition(rb); //we know it is zero here, so we do not need to set it
 
