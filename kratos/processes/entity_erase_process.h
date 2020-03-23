@@ -82,7 +82,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ERASE_ALL_ENTITIES
+        Flags Options = REMOVE_FROM_ALL_LEVELS.AsFalse() | ERASE_ALL_ENTITIES.AsFalse()
         );
 
     /**
@@ -114,6 +114,11 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -211,11 +216,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -274,5 +274,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_ENTITY_ERASE_PROCESS_INCLUDED  defined
-
-

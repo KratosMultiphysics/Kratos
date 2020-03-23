@@ -56,7 +56,11 @@ class DamAzenhaHeatFluxProcess : public Process
                 "A"                                   : 0.0,
                 "B"                                   : 0.0,
                 "C"                                   : 0.0,
-                "D"                                   : 0.0
+                "D"                                   : 0.0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -105,7 +109,7 @@ class DamAzenhaHeatFluxProcess : public Process
         if (mAging == false)
         {
             const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-            Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+            const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
             if (nnodes != 0)
             {
@@ -144,7 +148,7 @@ class DamAzenhaHeatFluxProcess : public Process
         if (mAging == false)
         {
             const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-            Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+            const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
             double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
             if (nnodes != 0)
@@ -190,7 +194,7 @@ class DamAzenhaHeatFluxProcess : public Process
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         if (nnodes != 0)
         {
@@ -223,7 +227,7 @@ class DamAzenhaHeatFluxProcess : public Process
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
         if (nnodes != 0)

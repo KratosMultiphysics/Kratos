@@ -89,7 +89,7 @@ public:
     }
 
     /// Destructor.
-    ~FrictionalLaw()
+    virtual ~FrictionalLaw()
     {
     }
 

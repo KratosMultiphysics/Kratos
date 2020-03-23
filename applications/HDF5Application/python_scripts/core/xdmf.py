@@ -418,7 +418,13 @@ class SpatialGrid(Grid):
     def add_attribute(self, attr):
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
-            grid.add_attribute(attr)
+            if (attr.center == "Cell"):
+                if (isinstance(attr, ConditionData) and (grid.name.startswith("RootModelPart.Conditions"))):
+                    grid.add_attribute(attr)
+                if (isinstance(attr, ElementData) and (grid.name.startswith("RootModelPart.Elements"))):
+                    grid.add_attribute(attr)
+            else:
+                grid.add_attribute(attr)
 
     def add_grid(self, grid):
         self.grids.append(grid)

@@ -18,6 +18,8 @@
 #include "includes/define_python.h"
 #include "geometries/point.h"
 #include "includes/node.h"
+#include "python/containers_interface.h"
+#include "python/add_geometries_to_python.h"
 #include "geometries/geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -40,7 +42,9 @@
 #include "geometries/hexahedra_3d_8.h"
 // #include "geometries/hexahedra_3d_20.h"
 // #include "geometries/hexahedra_3d_27.h"
-#include "python/add_geometries_to_python.h"
+// Nurbs Geometries
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 
 namespace Kratos
 {
@@ -48,10 +52,13 @@ namespace Kratos
 namespace Python
 {
     typedef std::size_t IndexType;
-    typedef Geometry<Node<3> > GeometryType;
-    typedef GeometryType::PointsArrayType NodesArrayType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef Point::CoordinatesArrayType CoordinatesArrayType;
+    typedef std::size_t SizeType;
+    typedef Node<3> NodeType;
+    typedef PointerVector<NodeType> NodeContainerType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef typename GeometryType::PointsArrayType PointsArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
@@ -134,6 +141,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Dimension access
     .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
+    .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
     .def("Normal",GetNormal)
@@ -145,6 +153,9 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
     .def("__str__", PrintObject<GeometryType>)
+    .def("__getitem__", [](GeometryType& self, unsigned int i){return self(i);} )
+    .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
+    .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
 //     .def("Points", &GeometryType::ConstGetPoints)
 //     .def("Points", &GeometryType::GetPoints)
     ;
@@ -194,6 +205,50 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     ;
 //     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
 //     ;
+
+    // Adding PointsArrayType to interface
+    PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"NodesVector");
+
+    /// Nurbs Geometries
+    // NurbsSurfaceGeometry3D
+    py::class_<NurbsSurfaceGeometry<3, NodeContainerType>, NurbsSurfaceGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsSurfaceGeometry3D")
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&>())
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&, const Vector&>())
+        .def("PolynomialDegreeU", &NurbsSurfaceGeometry<3, NodeContainerType>::PolynomialDegreeU)
+        .def("PolynomialDegreeV", &NurbsSurfaceGeometry<3, NodeContainerType>::PolynomialDegreeV)
+        .def("KnotsU", &NurbsSurfaceGeometry<3, NodeContainerType>::KnotsU)
+        .def("KnotsV", &NurbsSurfaceGeometry<3, NodeContainerType>::KnotsV)
+        .def("NumberOfKnotsU", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfKnotsU)
+        .def("NumberOfKnotsV", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfKnotsV)
+        .def("IsRational", &NurbsSurfaceGeometry<3, NodeContainerType>::IsRational)
+        .def("Weights", &NurbsSurfaceGeometry<3, NodeContainerType>::Weights)
+        .def("NumberOfControlPointsU", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfControlPointsU)
+        .def("NumberOfControlPointsV", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfControlPointsV)
+        ;
+
+    // NurbsCurveGeometry3D
+    py::class_<NurbsCurveGeometry<3, NodeContainerType>, NurbsCurveGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsCurveGeometry3D")
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector&>())
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector&, const Vector&>())
+        .def("PolynomialDegree", &NurbsCurveGeometry<3, NodeContainerType>::PolynomialDegree)
+        .def("Knots", &NurbsCurveGeometry<3, NodeContainerType>::Knots)
+        .def("NumberOfKnots", &NurbsCurveGeometry<3, NodeContainerType>::NumberOfKnots)
+        .def("NumberOfControlPoints", &NurbsCurveGeometry<3, NodeContainerType>::NumberOfNonzeroControlPoints)
+        .def("IsRational", &NurbsCurveGeometry<3, NodeContainerType>::IsRational)
+        .def("Weights", &NurbsCurveGeometry<3, NodeContainerType>::Weights)
+        ;
+
+    // NurbsCurveGeometry2D
+    py::class_<NurbsCurveGeometry<2, NodeContainerType>, NurbsCurveGeometry<2, NodeContainerType>::Pointer, GeometryType >(m, "NurbsCurveGeometry2D")
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector>())
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector, const Vector>())
+        .def("PolynomialDegree", &NurbsCurveGeometry<2, NodeContainerType>::PolynomialDegree)
+        .def("Knots", &NurbsCurveGeometry<2, NodeContainerType>::Knots)
+        .def("NumberOfKnots", &NurbsCurveGeometry<2, NodeContainerType>::NumberOfKnots)
+        .def("NumberOfControlPoints", &NurbsCurveGeometry<2, NodeContainerType>::NumberOfNonzeroControlPoints)
+        .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
+        .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
+        ;
 
 }
 
