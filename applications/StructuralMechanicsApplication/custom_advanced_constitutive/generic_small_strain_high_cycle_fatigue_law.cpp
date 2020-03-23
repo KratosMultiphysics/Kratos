@@ -315,7 +315,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
 template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     const Variable<int>& rThisVariable,
-    const int& rValue
+    const int& rValue,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if (rThisVariable == NUMBER_OF_CYCLES) {

@@ -185,12 +185,14 @@ public:
 
     /**
      * @brief Sets the value of a specified variable (integer)
-     * @param rVariable the variable to be returned
+     * @param rThisVariable the variable to be returned
      * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
      */
     void SetValue(
         const Variable<int>& rThisVariable,
-        const int& rValue);
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
