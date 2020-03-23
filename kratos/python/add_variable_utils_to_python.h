@@ -11,8 +11,8 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_ADD_VARIABLE_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_VARIABLE_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_VARIABLE_UTILS_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_VARIABLE_UTILS_TO_PYTHON_H_INCLUDED
 
 
 
@@ -31,10 +31,10 @@ namespace Kratos
 namespace Python
 {
 
-void  AddVariableUtilitiesToPython(pybind11::module& m);
+void  AddVariableUtilsToPython(pybind11::module& m);
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_VARIABLE_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_VARIABLE_UTILS_TO_PYTHON_H_INCLUDED  defined

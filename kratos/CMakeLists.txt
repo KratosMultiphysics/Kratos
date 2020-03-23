@@ -150,10 +150,9 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_factories_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp

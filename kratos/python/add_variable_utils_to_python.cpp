@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "python/add_variable_utilities_to_python.h"
+#include "python/add_variable_utils_to_python.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 
@@ -168,7 +168,7 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
     rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rContainer, Flag, CheckValue);
 }
 
-    void AddVariableUtilitiesToPython(pybind11::module &m)
+    void AddVariableUtilsToPython(pybind11::module &m)
 {
 
     namespace py = pybind11;
