@@ -41,12 +41,11 @@ namespace Kratos
 		/**
 		Creates a Zero Quaternion.
 		*/
-		Quaternion()
-			: mX(0.0)
-			, mY(0.0)
-			, mZ(0.0)
-			, mW(0.0)
-		{
+		Quaternion(){
+			SetX(0.0);
+			SetY(0.0);
+			SetZ(0.0);
+			SetW(0.0);
 		}
 
 		/**
@@ -56,30 +55,28 @@ namespace Kratos
 		@param y y coefficient
 		@param z z coefficient
 		*/
-		Quaternion(T w, T x, T y, T z)
-			: mX(x)
-			, mY(y)
-			, mZ(z)
-			, mW(w)
-		{
+		Quaternion(T w, T x, T y, T z){
+			SetX(x);
+			SetY(y);
+			SetZ(z);
+			SetW(w);
 		}
 
 		/**
 		Creates a Quaternion from another Quaternion.
 		@param other the other Quaternion
 		*/
-		Quaternion(const Quaternion& other)
-			: mX(other.mX)
-			, mY(other.mY)
-			, mZ(other.mZ)
-			, mW(other.mW)
-		{
+		Quaternion(const Quaternion& other) {
+			SetX(other.X());
+			SetY(other.Y());
+			SetZ(other.Z());
+			SetW(other.W());
 		}
 
 		///@}
 
-                /// Destructor.
-                virtual ~Quaternion(){};
+		/// Destructor.
+		virtual ~Quaternion(){};
 
 	public:
 
@@ -90,33 +87,22 @@ namespace Kratos
 		Copies a Quaternion.
 		@param other the other Quaternion
 		*/
-		Quaternion& operator= (const Quaternion& other)
-		{
+		Quaternion& operator= (const Quaternion& other) {
 			if(this != &other) {
-				mX = other.mX;
-				mY = other.mY;
-				mZ = other.mZ;
-				mW = other.mW;
+				SetX(other.X());
+				SetY(other.Y());
+				SetZ(other.Z());
+				SetW(other.W());
 			}
 			return *this;
 		}
 
-		const_reference	operator []	(size_t i) const
-		{
-			if (i == 0) return mX;
-			if (i == 1) return mY;
-			if (i == 2) return mZ;
-			if (i == 3) return mW;
-			KRATOS_ERROR << "Unknown component for a Quaternion. Component number "<<i<<"?";
+		const_reference	operator []	(size_t i) const {
+			return mQuaternionValues[i];
 		}
 
-		reference operator [] (size_t i)
-		{
-			if (i == 0) return mX;
-			if (i == 1) return mY;
-			if (i == 2) return mZ;
-			if (i == 3) return mW;
-			KRATOS_ERROR << "Unknown component for a Quaternion. Component number "<<i<<"?";
+		reference operator [] (size_t i) {
+			return mQuaternionValues[i];
 		}
 
 
@@ -125,10 +111,10 @@ namespace Kratos
     template <typename TExpressionType, std::size_t TCategory>
     Quaternion& operator = (AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
                 {
-                    mX = Other.expression()[0];
-                    mY = Other.expression()[1];
-                    mZ = Other.expression()[2];
-                    mW = Other.expression()[3];
+                    SetX(Other.expression()[0]);
+                    SetY(Other.expression()[1]);
+                    SetZ(Other.expression()[2]);
+                    SetW(Other.expression()[3]);
 
                     return *this;
                 }
@@ -137,10 +123,10 @@ namespace Kratos
                 BOOST_UBLAS_INLINE
                 Quaternion& operator = (const boost::numeric::ublas::vector_expression<AE> &ae)
                 {
-                    mX = ae()(0);
-                    mY = ae()(1);
-                    mZ = ae()(2);
-                    mW = ae()(3);
+                    SetX(ae()(0));
+                    SetY(ae()(1));
+                    SetZ(ae()(2));
+                    SetW(ae()(3));
 
                     return *this;
                 }
@@ -157,33 +143,33 @@ namespace Kratos
 		Returns the X coefficient of this quaternion.
 		@return the X coefficient of this quaternion.
 		*/
-		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T x()const { return mX; }
-		inline const T X()const { return mX; }
-		inline void SetX(T& value) { mX = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T x()const { return mQuaternionValues[0]; }
+		inline const T X()const { return mQuaternionValues[0]; }
+		inline void SetX(const T& value) { mQuaternionValues[0] = value; }
 
 		/**
 		Returns the Y coefficient of this quaternion.
 		@return the Y coefficient of this quaternion.
 		*/
-		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T y()const { return mY; }
-		inline const T Y()const { return mY; }
-		inline void SetY(T& value) { mY = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T y()const { return mQuaternionValues[1]; }
+		inline const T Y()const { return mQuaternionValues[1]; }
+		inline void SetY(const T& value) { mQuaternionValues[1] = value; }
 
 		/**
 		Returns the Z coefficient of this quaternion.
 		@return the Z coefficient of this quaternion.
 		*/
-		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T z()const { return mZ; }
-		inline const T Z()const { return mZ; }
-		inline void SetZ(T& value) { mZ = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T z()const { return mQuaternionValues[2]; }
+		inline const T Z()const { return mQuaternionValues[2]; }
+		inline void SetZ(const T& value) { mQuaternionValues[2] = value; }
 
 		/**
 		Returns the W coefficient of this quaternion.
 		@return the W coefficient of this quaternion.
 		*/
-		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T w()const { return mW; }
-		inline const T W()const { return mW; }
-		inline void SetW(T& value) { mW = value; }
+		KRATOS_DEPRECATED_MESSAGE("Deprecated method due to style") inline const T w()const { return mQuaternionValues[3]; }
+		inline const T W()const { return mQuaternionValues[3]; }
+		inline void SetW(const T& value) { mQuaternionValues[3] = value; }
 
 		///@}
 
@@ -199,7 +185,7 @@ namespace Kratos
 		*/
 		inline const T squaredNorm()const
 		{
-			return mX*mX + mY*mY + mZ*mZ + mW*mW;
+			return X()*X() + Y()*Y() + Z()*Z() + W()*W();
 		}
 
 		/**
@@ -221,10 +207,10 @@ namespace Kratos
 			T n = this->squaredNorm();
 			if(n > 0.0 && n != 1.0) {
 				n = std::sqrt(n);
-				mX /= n;
-				mY /= n;
-				mZ /= n;
-				mW /= n;
+				mQuaternionValues[0] /= n;
+				mQuaternionValues[1] /= n;
+				mQuaternionValues[2] /= n;
+				mQuaternionValues[3] /= n;
 			}
 		}
 
@@ -234,7 +220,7 @@ namespace Kratos
 		*/
 		inline Quaternion conjugate()const
 		{
-			return Quaternion(mW, -mX, -mY, -mZ);
+			return Quaternion(W(), -X(), -Y(), -Z());
 		}
 
 		/**
@@ -255,17 +241,17 @@ namespace Kratos
 		        if( R.size1()!=3 || R.size2()!=3 )
 		          R.resize(3,3,false);
 
-			R(0, 0) = 2.0 * ( mW*mW + mX*mX - 0.5 );
-			R(0, 1) = 2.0 * ( mX*mY - mW*mZ );
-			R(0, 2) = 2.0 * ( mX*mZ + mW*mY );
+			R(0, 0) = 2.0 * ( W()*W() + X()*X() - 0.5 );
+			R(0, 1) = 2.0 * ( X()*Y() - W()*Z() );
+			R(0, 2) = 2.0 * ( X()*Z() + W()*Y() );
 
-			R(1, 0) = 2.0 * ( mY*mX + mW*mZ );
-			R(1, 1) = 2.0 * ( mW*mW + mY*mY - 0.5 );
-			R(1, 2) = 2.0 * ( mY*mZ - mX*mW );
+			R(1, 0) = 2.0 * ( Y()*X() + W()*Z() );
+			R(1, 1) = 2.0 * ( W()*W() + Y()*Y() - 0.5 );
+			R(1, 2) = 2.0 * ( Y()*Z() - X()*W() );
 
-			R(2, 0) = 2.0 * ( mZ*mX - mW*mY );
-			R(2, 1) = 2.0 * ( mZ*mY + mW*mX );
-			R(2, 2) = 2.0 * ( mW*mW + mZ*mZ - 0.5 );
+			R(2, 0) = 2.0 * ( Z()*X() - W()*Y() );
+			R(2, 1) = 2.0 * ( Z()*Y() + W()*X() );
+			R(2, 2) = 2.0 * ( W()*W() + Z()*Z() - 0.5 );
 		}
 
 		/**
@@ -275,21 +261,21 @@ namespace Kratos
 		*/
 		inline void ToEulerAngles(array_1d<double, 3>& EA)const
 		{
-			double test = mW * mW - mX * mX - mY * mY + mZ * mZ;
+			double test = W() * W() - X() * X() - Y() * Y() + Z() * Z();
 			if (test > (1.0 - 1.0e-6)) { // singularity at north pole
-				EA[0] = -atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
+				EA[0] = -atan2 (2 * Z() * W(), (W() * W() - Z() * Z()));
 				EA[1] = 0.0;
 				EA[2] = 0.0;
 			}
 			else if (test < (-1.0 +  1.0e-6)) { // singularity at south pole
-				EA[0] = atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
+				EA[0] = atan2 (2 * Z() * W(), (W() * W() - Z() * Z()));
 				EA[1] = Globals::Pi;
 				EA[2] = 0.0;
 			}
 			else {
-				EA[0] = atan2((mX * mZ + mY * mW), -(mY * mZ - mX * mW));
+				EA[0] = atan2((X() * Z() + Y() * W()), -(Y() * Z() - X() * W()));
 				EA[1] = -acos (test);
-				EA[2] = atan2((mX * mZ - mY * mW), (mY * mZ + mX * mW));
+				EA[2] = atan2((X() * Z() - Y() * W()), (Y() * Z() + X() * W()));
 			}
 		}
 
@@ -303,17 +289,17 @@ namespace Kratos
 		{
 			T xx, yy, zz, ww;
 
-			if(mW < 0.0) {
-				xx = -mX;
-				yy = -mY;
-				zz = -mZ;
-				ww = -mW;
+			if(W() < 0.0) {
+				xx = -X();
+				yy = -Y();
+				zz = -Z();
+				ww = -W();
 			}
 			else {
-				xx = mX;
-				yy = mY;
-				zz = mZ;
-				ww = mW;
+				xx = X();
+				yy = Y();
+				zz = Z();
+				ww = W();
 			}
 
 			T vNorm = xx*xx + yy*yy + zz*zz;
@@ -343,10 +329,9 @@ namespace Kratos
 		@param v the output rotation vector
 		*/
 		template<class TVector3>
-		inline void ToRotationVector(TVector3& v)const
-		{
-		        if( v.size()!=3 )
-			  v.resize(3);
+		inline void ToRotationVector(TVector3& v)const {
+			if( v.size()!=3 )
+				v.resize(3);
 
 			this->ToRotationVector(v(0), v(1), v(2));
 		}
@@ -366,19 +351,19 @@ namespace Kratos
 		inline void RotateVector3(const TVector3_A& a, TVector3_B& b)const
 		{
 			// b = 2.0 * cross( this->VectorialPart, a )
-			b(0) = 2.0 * (mY * a(2) - mZ * a(1));
-			b(1) = 2.0 * (mZ * a(0) - mX * a(2));
-			b(2) = 2.0 * (mX * a(1) - mY * a(0));
+			b(0) = 2.0 * (Y() * a(2) - Z() * a(1));
+			b(1) = 2.0 * (Z() * a(0) - X() * a(2));
+			b(2) = 2.0 * (X() * a(1) - Y() * a(0));
 
 			// c = cross( this->VectorialPart, b )
-			T c0 = mY * b(2) - mZ * b(1);
-			T c1 = mZ * b(0) - mX * b(2);
-			T c2 = mX * b(1) - mY * b(0);
+			T c0 = Y() * b(2) - Z() * b(1);
+			T c1 = Z() * b(0) - X() * b(2);
+			T c2 = X() * b(1) - Y() * b(0);
 
 			// set results
-			b(0) = a(0) + b(0)*mW + c0;
-			b(1) = a(1) + b(1)*mW + c1;
-			b(2) = a(2) + b(2)*mW + c2;
+			b(0) = a(0) + b(0)*W() + c0;
+			b(1) = a(1) + b(1)*W() + c1;
+			b(2) = a(2) + b(2)*W() + c2;
 		}
 
 		/**
@@ -395,19 +380,19 @@ namespace Kratos
 		inline void RotateVector3(TVector3& a)const
 		{
 			// b = 2.0 * cross( this->VectorialPart, a )
-			T b0 = 2.0 * (mY * a(2) - mZ * a(1));
-			T b1 = 2.0 * (mZ * a(0) - mX * a(2));
-			T b2 = 2.0 * (mX * a(1) - mY * a(0));
+			T b0 = 2.0 * (Y() * a(2) - Z() * a(1));
+			T b1 = 2.0 * (Z() * a(0) - X() * a(2));
+			T b2 = 2.0 * (X() * a(1) - Y() * a(0));
 
 			// c = cross( this->VectorialPart, b )
-			T c0 = mY * b2 - mZ * b1;
-			T c1 = mZ * b0 - mX * b2;
-			T c2 = mX * b1 - mY * b0;
+			T c0 = Y() * b2 - Z() * b1;
+			T c1 = Z() * b0 - X() * b2;
+			T c2 = X() * b1 - Y() * b0;
 
 			// set results
-			a(0) += b0*mW + c0;
-			a(1) += b1*mW + c1;
-			a(2) += b2*mW + c2;
+			a(0) += b0*W() + c0;
+			a(1) += b1*W() + c1;
+			a(2) += b2*W() + c2;
 		}
 
 		///@}
@@ -594,7 +579,7 @@ namespace Kratos
 
                 /// Print object's data.
                 virtual void PrintData(std::ostream& rOStream) const {
-                    rOStream << std::endl << this->mX <<"  " << this->mY << "  " << this->mZ << "  " <<this->mW<< std::endl;
+                    rOStream << std::endl << this->X() <<"  " << this->Y() << "  " << this->Z() << "  " <<this->W()<< std::endl;
                 }
 
 	private:
@@ -602,10 +587,7 @@ namespace Kratos
 		///@name Member Variables
 		///@{
 
-		T mX;
-		T mY;
-		T mZ;
-		T mW;
+		array_1d<T,4>  mQuaternionValues;
 
 		///@}
 
@@ -616,25 +598,19 @@ namespace Kratos
 
 		void save(Serializer& rSerializer) const
 		{
-			rSerializer.save("X", mX);
-			rSerializer.save("Y", mY);
-			rSerializer.save("Z", mZ);
-			rSerializer.save("W", mW);
+			rSerializer.save("mQuaternionValues", mQuaternionValues);
 		}
 
 		void load(Serializer& rSerializer)
 		{
-			rSerializer.load("X", mX);
-			rSerializer.load("Y", mY);
-			rSerializer.load("Z", mZ);
-			rSerializer.load("W", mW);
+			rSerializer.load("mQuaternionValues", mQuaternionValues);
 		}
 
-                virtual std::string Info() const {
-                    std::stringstream buffer;
-                    buffer << "Quaternion " ;
-                    return buffer.str();
-                }
+		virtual std::string Info() const {
+			std::stringstream buffer;
+			buffer << "Quaternion " ;
+			return buffer.str();
+		}
 
 	};
 
