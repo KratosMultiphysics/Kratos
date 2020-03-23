@@ -101,7 +101,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            self._epetra_communicator = TrilinosApplication.CreateCommunicator()
         return self._epetra_communicator
 
     def _CreateScheme(self):
