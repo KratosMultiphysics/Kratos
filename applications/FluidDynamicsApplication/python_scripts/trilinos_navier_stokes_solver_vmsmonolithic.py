@@ -123,42 +123,20 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
     def PrepareModelPart(self):
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self._SetPhysicalProperties()
+        # Call the base solver to do the PrepareModelPart
+        # Note that his also calls the PrepareModelPart of the turbulence model
+        super(TrilinosNavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).PrepareModelPart()
-
+        # Create the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
-
-        if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
         # If there is turbulence modelling, set the Epetra communicator in the turbulence solver
-        # TODO: Check if this needs to be done before creating the strategy
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.SetCommunicator(self._GetEpetraCommunicator())
 
-        # Construct and set the solution strategy
-        solution_strategy = self.GetSolutionStrategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # Set the formulation instance process info variables
-            self.formulation.SetProcessInfo(self.GetComputingModelPart())
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
-
-        # If there is turbulence modelling, set the new solution strategy as parent strategy
-        if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.SetParentSolvingStrategy(solution_strategy)
+        # Call the base Initialize() method to create and initialize the strategy
+        super(TrilinosNavierStokesSolverMonolithic, self).Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 

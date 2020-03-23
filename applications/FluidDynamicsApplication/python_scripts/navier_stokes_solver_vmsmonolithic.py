@@ -330,23 +330,14 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
-        # Construct and set the solution strategy
+        # If the solver requires an instance of the stabilized formulation class, set the process info variables
+        if hasattr(self, 'formulation'):
+            self.formulation.SetProcessInfo(self.GetComputingModelPart())
+
+        # Construct and initialize the solution strategy
         solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # If the solver requires an instance of the stabilized formulation class, set the process info variables
-            if hasattr(self, 'formulation'):
-                self.formulation.SetProcessInfo(self.GetComputingModelPart())
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
+        solution_strategy.Initialize()
 
         # If there is turbulence modelling, set the new solution strategy as parent strategy
         if hasattr(self, "_turbulence_model_solver"):

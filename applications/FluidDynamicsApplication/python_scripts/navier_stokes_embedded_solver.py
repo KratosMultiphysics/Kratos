@@ -349,23 +349,14 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.__SetDistanceFunction()
 
     def Initialize(self):
-        # Construct and set the solution strategy
+        # If the solver requires an instance of the stabilized embedded_formulation class, set the process info variables
+        if hasattr(self, 'embedded_formulation'):
+            self.embedded_formulation.SetProcessInfo(self.GetComputingModelPart())
+
+        # Construct and initialize the solution strategy
         solution_strategy = self.GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # If the solver requires an instance of the stabilized embedded_formulation class, set the process info variables
-            if hasattr(self, 'embedded_formulation'):
-                self.embedded_formulation.SetProcessInfo(self.GetComputingModelPart())
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
+        solution_strategy.Initialize()
 
         # Set the distance modification process
         self.GetDistanceModificationProcess().ExecuteInitialize()
