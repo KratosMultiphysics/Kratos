@@ -1787,7 +1787,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
     if (!IsSubModelPart()) {
         if (IsDistributed()) {
-            rOStream << "    Distributed; Communicator has " << mpCommunicator->TotalProcesses() << "total processes" << std::endl;
+            rOStream << "    Distributed; Communicator has " << mpCommunicator->TotalProcesses() << " total processes" << std::endl;
         }
         mpProcessInfo->PrintData(rOStream);
     }
