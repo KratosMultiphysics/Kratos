@@ -148,7 +148,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                                                                         compute_reactions,
                                                                         reform_step_dofs,
                                                                         move_mesh_flag)
-        strategy.SetEchoLevel(1)
+        strategy.SetEchoLevel(0)
         strategy.SetUseOldStiffnessInFirstIterationFlag(linearize_on_previous_iteration)
 
         return strategy
