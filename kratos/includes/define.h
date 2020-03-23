@@ -490,135 +490,152 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 //
 //-----------------------------------------------------------------
 
-#ifdef KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE
-#undef KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE
+#ifdef KRATOS_CREATE_VARIABLE_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_VARIABLE_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
-    AddVariableTimeDerivative(variable, variable_derivative); \
-    VariablesDerivatives<VariableData>::AddTimeDerivative(variable, variable_derivative);
+#define KRATOS_CREATE_VARIABLE_WITH_TIME_DERIVATIVE(type, name, p_variable_derivative) \
+    /*const*/ Kratos::Variable<type > name(#name, p_variable_derivative);
 
-#ifdef KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_VARIABLE_WITH_TIME_DERIVATIVE_WITH_ZERO
+#undef KRATOS_CREATE_VARIABLE_WITH_TIME_DERIVATIVE_WITH_ZERO
 #endif
-#define KRATOS_REGISTER_3D_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_X, variable_derivative##_X) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_Y, variable_derivative##_Y) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_Z, variable_derivative##_Z)
+#define KRATOS_CREATE_VARIABLE_WITH_TIME_DERIVATIVE_WITH_ZERO(type, name, zero, p_variable_derivative) \
+    /*const*/ Kratos::Variable<type> name(#name, zero, p_variable_derivative);
 
-#ifdef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY)
+#define KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, p_variable_derivative) \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::array_1d<double, 3>(Kratos::ZeroVector(3)), p_variable_derivative); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
 
-#ifdef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZZ, variable_derivative##_ZZ) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YZ, variable_derivative##_YZ) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XZ, variable_derivative##_XZ)
+#define KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, p_variable_derivative) \
+     KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, name##_X, name##_Y, name##_Z, p_variable_derivative)
 
-#ifdef KRATOS_REGISTER_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_2D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YX, variable_derivative##_YX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY)
+#define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, p_variable_derivative) \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3), p_variable_derivative); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
 
-#ifdef KRATOS_REGISTER_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_3D_TENSOR_VARIABLE_TIME_DERIVATIVE_WITH_COMPONENTS(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable, variable_derivative) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XX, variable_derivative##_XX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XY, variable_derivative##_XY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_XZ, variable_derivative##_XZ) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YX, variable_derivative##_YX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YY, variable_derivative##_YY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_YZ, variable_derivative##_YZ) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZX, variable_derivative##_ZX) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZY, variable_derivative##_ZY) \
-    KRATOS_REGISTER_VARIABLE_TIME_DERIVATIVE(variable##_ZZ, variable_derivative##_ZZ)
+#define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, p_variable_derivative) \
+     KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, name##_XX, name##_YY, name##_XY, p_variable_derivative)
 
-//-----------------------------------------------------------------
-//
-//  Variables time derivatives
-//
-//-----------------------------------------------------------------
-
-#ifdef KRATOS_REGISTER_VARIABLE_RESIDUAL
-#undef KRATOS_REGISTER_VARIABLE_RESIDUAL
+#ifdef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
-    AddVariableResidual(variable, variable_residual); \
-    VariablesDerivatives<VariableData>::AddResidualVariable(variable, variable_residual);
+#define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, p_variable_derivative) \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::zero_vector<double>(6), p_variable_derivative); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 0)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 1)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 2)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
+                  component4(#component4, #name, 3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 3)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
+                  component5(#component5, #name, 4, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 4)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
+                  component6(#component6, #name, 5, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 5));
 
-#ifdef KRATOS_REGISTER_3D_VARIABLE_RESIDUAL_WITH_COMPONENTS
-#undef KRATOS_REGISTER_3D_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_3D_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_X, variable_residual##_X) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_Y, variable_residual##_Y) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_Z, variable_residual##_Z)
+#define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, p_variable_derivative) \
+     KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, name##_XX, name##_YY, name##_ZZ, name##_XY, name##_YZ, name##_XZ, p_variable_derivative)
 
-#ifdef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
-#undef KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY)
+#define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, p_variable_derivative) \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::zero_vector<double>(4), p_variable_derivative); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 0)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 1)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 2)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
+                  component4(#component4, #name, 3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 3));
 
-#ifdef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
-#undef KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZZ, variable_residual##_ZZ) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YZ, variable_residual##_YZ) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XZ, variable_residual##_XZ)
+#define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, p_variable_derivative) \
+     KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, name##_XX, name##_XY, name##_YX, name##_YY, p_variable_derivative)
 
-#ifdef KRATOS_REGISTER_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
-#undef KRATOS_REGISTER_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_2D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YX, variable_residual##_YX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY)
+#define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, component7, component8, component9, p_variable_derivative) \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::zero_vector<double>(9), p_variable_derivative); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 0)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 1)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 2)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component4(#component4, #name, 3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 3)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component5(#component5, #name, 4, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 4)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component6(#component6, #name, 5, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 5)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component7(#component7, #name, 6, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 6)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component8(#component8, #name, 7, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 7)); \
+\
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
+                  component9(#component9, #name, 8, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 8));
 
-#ifdef KRATOS_REGISTER_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
-#undef KRATOS_REGISTER_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS
+#ifdef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
+#undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
-#define KRATOS_REGISTER_3D_TENSOR_VARIABLE_RESIDUAL_WITH_COMPONENTS(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable, variable_residual) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XX, variable_residual##_XX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XY, variable_residual##_XY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_XZ, variable_residual##_XZ) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YX, variable_residual##_YX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YY, variable_residual##_YY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_YZ, variable_residual##_YZ) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZX, variable_residual##_ZX) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZY, variable_residual##_ZY) \
-    KRATOS_REGISTER_VARIABLE_RESIDUAL(variable##_ZZ, variable_residual##_ZZ)
+#define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, p_variable_derivative) \
+     KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, name##_XX, name##_XY, name##_XZ, name##_YX, name##_YY, name##_YZ, name##_ZX, name##_ZY, name##_ZZ, p_variable_derivative)
 
 //-----------------------------------------------------------------
 //
@@ -684,7 +701,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_REGISTER_GEOMETRY(name, reference) \
     KratosComponents<Geometry<Node<3>>>::Add(name, reference); \
     Serializer::Register(name, reference);
-  
+
 #ifdef KRATOS_REGISTER_ELEMENT
 #undef KRATOS_REGISTER_ELEMENT
 #endif
