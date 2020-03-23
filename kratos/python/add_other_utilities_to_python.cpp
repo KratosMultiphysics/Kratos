@@ -29,7 +29,6 @@
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
-// #include "utilities/signed_distance_calculator_bin_based.h"  // Why is this commented?
 #include "utilities/timer.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
