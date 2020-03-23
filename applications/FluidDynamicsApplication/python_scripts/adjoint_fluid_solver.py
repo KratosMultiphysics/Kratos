@@ -110,8 +110,9 @@ class AdjointFluidSolver(FluidSolver):
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
         KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        # TODO: CHECK WHY THIS IF STATEMENT IS REQUIRED.
-        # TODO: IF IT IS NOT REQUIRED WE CAN CALL THE _SetNodalProperties IN THE BASE SOLVER
+        # In RANS full adjoints, viscosity is summation of kinematic viscosity and turubulent viscosity.
+        # turbulent viscosity is read from hdf5, and viscosity also must be read from hdf5.
+        # therefore viscosity should not be updated only with kinematic viscosity.
         if not hasattr(self, "_adjoint_turbulence_model_solver"):
             KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
