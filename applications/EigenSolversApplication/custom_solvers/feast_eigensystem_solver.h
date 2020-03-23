@@ -200,7 +200,7 @@ class FEASTEigensystemSolver
 
         KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output.\n";
         KRATOS_INFO_IF("FeastEigensystemSolver", info > 0 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
-        KRATOS_INFO_IF("FeastEigensystemSolver", info == 7) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
+        KRATOS_ERROR_IF(info == 7) << "FEAST finished with warning " << info << ", no extremal eigenvalues could be found. Please check FEAST output.\n";
 
         // copy eigenvectors back to the provided row based matrix
         noalias(rEigenvectors) = tmp_eigenvectors;
