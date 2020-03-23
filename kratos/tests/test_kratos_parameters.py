@@ -470,6 +470,50 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
+    def test_extract_decorators(self):
+        # This method checks all the "IsXXX" Methods
+        tmp = Parameters("""{
+            "int_value" : 10,
+            "double_value@mandatory": 2.0,
+            "bool_value" : true,
+            "more_parameters" :  {
+                "sub_int_value@mandatory" : 30
+            },
+            "even_more_parameters@mandatory" :  {
+                "sub_int_value" : 30,
+                "sub_double_value": 2.0
+            }
+        }""")
+        decorator_tmp = tmp.ExtractDecorators()
+
+        extracted = Parameters("""{
+            "bool_value": true,
+            "double_value": 2.0,
+            "even_more_parameters": {
+                "sub_double_value": 2.0,
+                "sub_int_value": 30
+            },
+            "int_value": 10,
+            "more_parameters": {
+                "sub_int_value": 30
+            }
+        }""")
+        decorators = Parameters("""{
+            "bool_value": 0,
+            "double_value": 1,
+            "even_more_parameters": {
+                "sub_double_value": 1,
+                "sub_int_value": 1
+            },
+            "int_value": 0,
+            "more_parameters": {
+                "sub_int_value": 1
+            }
+        }""")
+
+        self.assertTrue( tmp.IsEquivalentTo(extracted) )
+        self.assertTrue( decorator_tmp.IsEquivalentTo(decorators) )
+
     def test_is_methods(self):
         # This method checks all the "IsXXX" Methods
         tmp = Parameters("""{
