@@ -208,7 +208,7 @@ namespace Kratos
             return *dummy;
         }
 
-        template< typename TSpaceType > 
+        template< typename TSpaceType >
         py::class_< TSpaceType > CreateSpaceInterface(pybind11::module& m, std::string Name)
         {
             py::class_< TSpaceType > binder(m,Name.c_str());
@@ -275,7 +275,7 @@ namespace Kratos
                 .def("Clean", &BaseSchemeType::Clean)
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
-                .def("Check", &BaseSchemeType::Check)
+                .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
