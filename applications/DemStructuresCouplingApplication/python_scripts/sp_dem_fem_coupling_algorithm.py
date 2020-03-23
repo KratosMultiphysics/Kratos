@@ -212,8 +212,6 @@ class SPAlgorithm(Algorithm):
                     if self.test_number:
                         self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
 
-                self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
-
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
             # Write SP data

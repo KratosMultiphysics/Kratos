@@ -80,20 +80,20 @@ namespace Kratos
             const Element::DofsVectorType &dofs,
             const Element::GeometryType &geom)
         {
-            const auto *current_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
+            const auto *pcurrent_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
             int counter = 0;
             for(unsigned int k = 0; k < dofs.size(); ++k){
                 auto variable_key = dofs[k]->GetVariable().Key();
                 if(k==0)
-                    current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
                 else if(dofs[k]->Id() != dofs[k-1]->Id()){
                     counter++;
-                    current_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
+                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
                 }
                 if (dofs[k]->IsFixed())
-                    row(PhiElemental, k) = ZeroVector(PhiElemental.size2());
+                    noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
                 else
-                    row(PhiElemental, k) = row(*current_rom_nodal_basis, MapPhi[variable_key]);
+                    noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
             }
         }
 
@@ -116,52 +116,57 @@ namespace Kratos
             Element::EquationIdVectorType EquationId;
             Matrix MatrixResiduals( (nelements + nconditions), mRomDofs); // Matrix of reduced residuals.
             Matrix PhiElemental;
-            for (int k = 0; k < nelements; k++){
-                auto it_el = el_begin + k;
-                //detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if ((it_el)->IsDefined(ACTIVE))
-                    element_is_active = (it_el)->Is(ACTIVE);
-                if (element_is_active){
-                    //calculate elemental contribution
-                    mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    Element::DofsVectorType dofs;
-                    it_el->GetDofList(dofs, CurrentProcessInfo);
-                    //assemble the elemental contribution - here is where the ROM acts
-                    //compute the elemental reduction matrix PhiElemental
-                    const auto& geom = it_el->GetGeometry();
-                    if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
-                        PhiElemental.resize(dofs.size(), mRomDofs,false);
-                    GetPhiElemental(PhiElemental, dofs, geom);
-                    noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
+            #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PhiElemental, el_begin, cond_begin)
+            {
+                #pragma omp for nowait
+                for (int k = 0; k < nelements; k++){
+                    auto it_el = el_begin + k;
+                    //detect if the element is active or not. If the user did not make any choice the element is active by default
+                    bool element_is_active = true;
+                    if ((it_el)->IsDefined(ACTIVE))
+                        element_is_active = (it_el)->Is(ACTIVE);
+                    if (element_is_active){
+                        //calculate elemental contribution
+                        mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        Element::DofsVectorType dofs;
+                        it_el->GetDofList(dofs, CurrentProcessInfo);
+                        //assemble the elemental contribution - here is where the ROM acts
+                        //compute the elemental reduction matrix PhiElemental
+                        const auto& geom = it_el->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
+                            PhiElemental.resize(dofs.size(), mRomDofs,false);
+                        GetPhiElemental(PhiElemental, dofs, geom);
+                        noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
 
-                    // clean local elemental me overridemory
-                    mpScheme->CleanMemory(*(it_el.base()));
+                        // clean local elemental me overridemory
+                        mpScheme->CleanMemory(*(it_el.base()));
+                    }
+
                 }
 
-            }
+                #pragma omp for nowait
+                for (int k = 0; k < nconditions;  k++){
+                    ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+                    //detect if the condition is active or not. If the user did not make any choice the condition is active by default
+                    bool condition_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        condition_is_active = (it)->Is(ACTIVE);
+                    if (condition_is_active){
+                        Condition::DofsVectorType dofs;
+                        it->GetDofList(dofs, CurrentProcessInfo);
+                        //calculate elemental contribution
+                        mpScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        //assemble the elemental contribution - here is where the ROM acts
+                        //compute the elemental reduction matrix PhiElemental
+                        const auto& geom = it->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
+                            PhiElemental.resize(dofs.size(), mRomDofs,false);
+                        GetPhiElemental(PhiElemental, dofs, geom);
+                        noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
 
-            for (int k = 0; k < nconditions;  k++){
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-                //detect if the condition is active or not. If the user did not make any choice the condition is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
-                if (condition_is_active){
-                    Condition::DofsVectorType dofs;
-                    it->GetDofList(dofs, CurrentProcessInfo);
-                    //calculate elemental contribution
-                    mpScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    //assemble the elemental contribution - here is where the ROM acts
-                    //compute the elemental reduction matrix PhiElemental
-                    const auto& geom = it->GetGeometry();
-                    if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
-                        PhiElemental.resize(dofs.size(), mRomDofs,false);
-                    GetPhiElemental(PhiElemental, dofs, geom);
-                    noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
-
-                    // clean local elemental memory
-                    mpScheme->CleanMemory(*(it.base()));
+                        // clean local elemental memory
+                        mpScheme->CleanMemory(*(it.base()));
+                    }
                 }
             }
         return MatrixResiduals;
