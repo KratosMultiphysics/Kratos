@@ -44,7 +44,11 @@ public:
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
                 "value" : 1.0,
-                "table" : 1
+                "table" : 1,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
