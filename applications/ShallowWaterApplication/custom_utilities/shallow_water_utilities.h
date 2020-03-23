@@ -123,6 +123,8 @@ public:
         }
     }
 
+    void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
+
     /**
      * @brief Computes the root mean square of a double or component type of non historical variable
      * @param rVariable reference to the variable to compute

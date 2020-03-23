@@ -137,11 +137,13 @@ public:
     ///@name Operations
     ///@{
 
-    /*typename BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         TSurfaceContainerPointType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
-    }*/
+        KRATOS_ERROR << "NurbsCurveOnSurfaceGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+            << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
+            << std::endl;
+    }
 
     ///@}
     ///@name Operation within Global Space
