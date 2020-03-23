@@ -706,6 +706,13 @@ public:
     void Append(const Parameters& rValue);
 
     /**
+     * @brief This method extracts the decorators of the parameters
+     * @details Removes the decorators from the name of the parameters, also returns a parameter containing an integer wich describes if it is required (the integer can be adapted to future uses)
+     * @return The Parameters containing an integer which describes how to be used
+     */
+    Parameters ExtractDecorators();
+
+    /**
      * @brief This method looks in a recursive way in the json structure
      * @param rBaseValue The value where to find
      * @param rValueToFind The value to look
@@ -937,6 +944,16 @@ private:
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
     void InternalSetValue(const Parameters& rOtherValue);
+
+    /**
+     * @brief This generates a Parameters which replies the structure of the original
+     * @param rDecoratorParameters Contains the integers describing how the original parameters must be used
+     * @param DefaultDecorator If all parameters have the same default decorator
+     */
+    void GenerateParametersDecorator(
+        Parameters& rDecoratorParameters,
+        const int DefaultDecorator = 0
+        );
 
 }; // Parameters class
 

@@ -893,6 +893,16 @@ void Parameters::Append(const Parameters& rValue)
 /***********************************************************************************/
 /***********************************************************************************/
 
+Parameters Parameters::ExtractDecorators()
+{
+    Parameters parameters_decorator(R"input({})input");
+    GenerateParametersDecorator(parameters_decorator);
+    return parameters_decorator;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::RecursivelyFindValue(
     const nlohmann::json& rBaseValue,
     const nlohmann::json& rValueToFind
@@ -1297,6 +1307,74 @@ void Parameters::InternalSetValue(const Parameters& rOtherValue)
 {
     delete[] mpValue;
     mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString()));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::GenerateParametersDecorator(
+    Parameters& rDecoratorParameters,
+    const int DefaultDecorator
+    )
+{
+    std::set<std::string> parameters_to_clear;
+    Parameters aux(R"input({"aux" : 0})input");
+    for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+        const std::string& r_item_name = itr.key();
+
+        int default_decorator = 0;
+        const std::size_t found_decorator = r_item_name.find("@");
+        if (found_decorator != std::string::npos) {
+            std::string name(r_item_name.begin(), r_item_name.begin() + found_decorator);
+            std::string decorator(r_item_name.begin() + found_decorator, r_item_name.end());
+            if (decorator == "@mandatory") { // We set 1
+                default_decorator = 1;
+                if(!itr->is_object()) {
+                    this->AddValue(name, (*this)[r_item_name]);
+                    parameters_to_clear.insert(r_item_name);
+                    rDecoratorParameters.AddValue(name, aux["aux"]);
+                    rDecoratorParameters[name].SetInt(1);
+                } else { // Now walk the tree recursively
+                    Parameters subobject = (*this)[r_item_name];
+                    Parameters aux_subdecorator(R"input({})input");
+                    subobject.GenerateParametersDecorator(aux_subdecorator, default_decorator);
+                    rDecoratorParameters.AddValue(name, aux_subdecorator);
+                    this->AddValue(name, subobject);
+                    parameters_to_clear.insert(r_item_name);
+                }
+            } else { // We set 0, the default
+                KRATOS_WARNING("Parameters") << "The following decorator is cannot be recognized: " << decorator << std::endl;
+                if(!itr->is_object()) {
+                    this->AddValue(name, (*this)[r_item_name]);
+                    parameters_to_clear.insert(r_item_name);
+                    rDecoratorParameters.AddValue(name, aux["aux"]);
+                    rDecoratorParameters[name].SetInt(DefaultDecorator);
+                } else { // Now walk the tree recursively
+                    Parameters subobject = (*this)[r_item_name];
+                    Parameters aux_subdecorator(R"input({})input");
+                    subobject.GenerateParametersDecorator(aux_subdecorator, DefaultDecorator);
+                    rDecoratorParameters.AddValue(name, aux_subdecorator);
+                    this->AddValue(name, subobject);
+                    parameters_to_clear.insert(r_item_name);
+                }
+            }
+        } else { // No decorator
+            if(!itr->is_object()) {
+                rDecoratorParameters.AddValue(r_item_name, aux["aux"]);
+                rDecoratorParameters[r_item_name].SetInt(DefaultDecorator);
+            } else { // Now walk the tree recursively
+                Parameters subobject = (*this)[r_item_name];
+                Parameters aux_subdecorator(R"input({})input");
+                subobject.GenerateParametersDecorator(aux_subdecorator, 0);
+                rDecoratorParameters.AddValue(r_item_name, aux_subdecorator);
+            }
+        }
+    }
+
+    // If we clear the original values
+    for (auto& r_name : parameters_to_clear) {
+        this->RemoveValue(r_name);
+    }
 }
 
 }  // namespace Kratos.
