@@ -55,7 +55,8 @@
         "time_stepping": {
             "automatic_time_step": false,
             "time_step": 0.05
-        }
+        },
+        "reform_dofs_at_each_step":true
     },
     "processes": {
         "initial_conditions_process_list": [],
