@@ -158,24 +158,28 @@ class FEASTEigensystemSolver
 
         // provide matrices in array form. fortran indices start with 1, must be int
         double* A = reinterpret_cast<double*>(rK.value_data().begin());
-        int IA[N+1] = {};
+        std::vector<int> IA;
+        IA.reserve(N+1);
         for( int i=0; i<N+1; ++i )
         {
             IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
         }
-        int JA[IA[N]-1] = {};
+        std::vector<int> JA;
+        JA.reserve(IA[N]-1);
         for( int i=0; i<IA[N]-1; ++i )
         {
             JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
         }
 
         double* B = reinterpret_cast<double*>(rM.value_data().begin());
-        int IB[N+1] = {};
+        std::vector<int> IB;
+        IB.reserve(N+1);
         for( int i=0; i<N+1; ++i )
         {
             IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
         }
-        int JB[IB[N]-1] = {};
+        std::vector<int> JB;
+        JB.reserve(IB[N]-1);
         for( int i=0; i<IB[N]-1; ++i )
         {
             JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
@@ -196,7 +200,7 @@ class FEASTEigensystemSolver
 
         // call feast
         fptr feast = CallFeast(T);
-        feast(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
+        feast(&UPLO, &N, A, IA.data(), JA.data(), B, IB.data(), JB.data(), fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
 
         KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output.\n";
         KRATOS_INFO_IF("FeastEigensystemSolver", info > 0 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
