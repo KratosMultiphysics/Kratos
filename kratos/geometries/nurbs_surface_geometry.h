@@ -254,7 +254,7 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
-    /// Returns the number of spans in DirectionIndex=1:U and DirectionIndex=2:V (which are larger than 0).
+    /// Returns the number of spans in DirectionIndex=0:U and DirectionIndex=1:V (which are larger than 0).
     SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
     {
         SizeType knot_span_counter = 0;
