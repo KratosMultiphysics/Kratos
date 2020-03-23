@@ -132,7 +132,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         trilinos_linear_solver = self._GetLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
-            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
+            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver,
