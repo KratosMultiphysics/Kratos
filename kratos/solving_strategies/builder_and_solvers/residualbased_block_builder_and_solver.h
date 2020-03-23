@@ -83,7 +83,7 @@ public:
 
     // Scaling enum
     enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDER_MAX_DIAGONAL = 2, CONSIDER_PRESCRIBED_DIAGONAL = 3};
-    
+
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
 
@@ -373,22 +373,29 @@ public:
         KRATOS_CATCH("")
     }
 
-    void SystemSolveWithPhysics(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b,
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    virtual void SystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
         ModelPart& rModelPart
-    )
+        )
     {
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
-            TSystemVectorType Dxmodified(b.size());
+            TSystemVectorType Dxmodified(rb.size());
 
-            InternalSystemSolveWithPhysics(A, Dxmodified, b, rModelPart);
+            InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
 
             //recover solution of the original problem
-            TSparseSpace::Mult(mT, Dxmodified, Dx);
+            TSparseSpace::Mult(mT, Dxmodified, rDx);
         } else {
-            InternalSystemSolveWithPhysics(A, Dx, b, rModelPart);
+            InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
     }
 
@@ -485,21 +492,46 @@ public:
      * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrixLHS
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
-        BuildRHS(pScheme, rModelPart, b);
-        SystemSolve(A, Dx, b);
+        Timer::Start("BuildRHS");
+
+        BuildRHS(pScheme, rModelPart, rb);
+
+        Timer::Stop("BuildRHS");
+
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            Timer::Start("ApplyRHSConstraints");
+            ApplyRHSConstraints(pScheme, rModelPart, rb);
+            Timer::Stop("ApplyRHSConstraints");
+        }
+
+        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+
+        const double start_solve = OpenMPUtils::GetCurrentTime();
+        Timer::Start("Solve");
+
+        SystemSolve(rA, rDx, rb);
+
+        Timer::Stop("Solve");
+        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -912,6 +944,44 @@ public:
     }
 
     /**
+     * @brief Applies the constraints with master-slave relation matrix (RHS only)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    void ApplyRHSConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
+
+            // We compute the transposed matrix of the global relation matrix
+            TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+
+            TSystemVectorType b_modified(rb.size());
+            TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+            TSparseSpace::Copy(b_modified, rb);
+
+            // Apply diagonal values on slaves
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
+                const IndexType slave_equation_id = mSlaveIds[i];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    rb[slave_equation_id] = 0.0;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Applies the constraints with master-slave relation matrix
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -937,7 +1007,6 @@ public:
             TSystemVectorType b_modified(rb.size());
             TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
             SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
@@ -1052,6 +1121,83 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void BuildRHSNoDirichlet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        //Getting the Elements
+        ElementsArrayType& pElements = rModelPart.Elements();
+
+        //getting the array of the conditions
+        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // assemble all elements
+        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+
+        const int nelements = static_cast<int>(pElements.size());
+        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
+        {
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i=0; i<nelements; i++) {
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (it)->IsDefined(ACTIVE) ) {
+                    element_is_active = (it)->Is(ACTIVE);
+                }
+
+                if(element_is_active) {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            }
+
+            LHS_Contribution.resize(0, 0, false);
+            RHS_Contribution.resize(0, false);
+
+            // assemble all conditions
+            const int nconditions = static_cast<int>(ConditionsArray.size());
+            #pragma omp for schedule(guided, 512)
+            for (int i = 0; i<nconditions; i++) {
+                auto it = ConditionsArray.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if( (it)->IsDefined(ACTIVE) ) {
+                    condition_is_active = (it)->Is(ACTIVE);
+                }
+
+                if(condition_is_active) {
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+
+    }
 
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
@@ -1376,6 +1522,46 @@ protected:
         }
     }
 
+    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
+    {
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+
+        size_t left_limit = index1_vector[i];
+//    size_t right_limit = index1_vector[i+1];
+
+        //find the first entry
+        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+        size_t last_found = EquationId[0];
+
+        double& r_a = values_vector[last_pos];
+        const double& v_a = Alocal(i_local,0);
+        #pragma omp atomic
+        r_a +=  v_a;
+
+        //now find all of the other entries
+        size_t pos = 0;
+        for (unsigned int j=1; j<EquationId.size(); j++) {
+            unsigned int id_to_find = EquationId[j];
+            if(id_to_find > last_found) {
+                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+            } else if(id_to_find < last_found) {
+                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+            } else {
+                pos = last_pos;
+            }
+
+            double& r = values_vector[pos];
+            const double& v = Alocal(i_local,j);
+            #pragma omp atomic
+            r +=  v;
+
+            last_found = id_to_find;
+            last_pos = pos;
+        }
+    }
+
     /**
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rModelPart The problem model part
@@ -1541,83 +1727,6 @@ private:
 
     }
 
-    void BuildRHSNoDirichlet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& b)
-    {
-        KRATOS_TRY
-
-        //Getting the Elements
-        ElementsArrayType& pElements = rModelPart.Elements();
-
-        //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-
-        const int nelements = static_cast<int>(pElements.size());
-        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
-        {
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i=0; i<nelements; i++) {
-                typename ElementsArrayType::iterator it = pElements.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    element_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(element_is_active) {
-                    //calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
-                }
-            }
-
-            LHS_Contribution.resize(0, 0, false);
-            RHS_Contribution.resize(0, false);
-
-            // assemble all conditions
-            const int nconditions = static_cast<int>(ConditionsArray.size());
-            #pragma omp for schedule(guided, 512)
-            for (int i = 0; i<nconditions; i++) {
-                auto it = ConditionsArray.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    condition_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(condition_is_active) {
-                    //calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
-                }
-            }
-        }
-
-        KRATOS_CATCH("")
-
-    }
-
     //******************************************************************************************
     //******************************************************************************************
 
@@ -1629,46 +1738,6 @@ private:
         partitions[number_of_threads] = number_of_rows;
         for (unsigned int i = 1; i < number_of_threads; i++) {
             partitions[i] = partitions[i - 1] + partition_size;
-        }
-    }
-
-    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
-    {
-        double* values_vector = A.value_data().begin();
-        std::size_t* index1_vector = A.index1_data().begin();
-        std::size_t* index2_vector = A.index2_data().begin();
-
-        size_t left_limit = index1_vector[i];
-//    size_t right_limit = index1_vector[i+1];
-
-        //find the first entry
-        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
-        size_t last_found = EquationId[0];
-
-        double& r_a = values_vector[last_pos];
-        const double& v_a = Alocal(i_local,0);
-        #pragma omp atomic
-        r_a +=  v_a;
-
-        //now find all of the other entries
-        size_t pos = 0;
-        for (unsigned int j=1; j<EquationId.size(); j++) {
-            unsigned int id_to_find = EquationId[j];
-            if(id_to_find > last_found) {
-                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            } else if(id_to_find < last_found) {
-                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
-            } else {
-                pos = last_pos;
-            }
-
-            double& r = values_vector[pos];
-            const double& v = Alocal(i_local,j);
-            #pragma omp atomic
-            r +=  v;
-
-            last_found = id_to_find;
-            last_pos = pos;
         }
     }
 
