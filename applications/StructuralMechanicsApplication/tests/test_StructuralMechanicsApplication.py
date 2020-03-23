@@ -203,6 +203,9 @@ from structural_mechanics_test_factory import RigidEliminationTest as TRigidElim
 from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
 from structural_mechanics_test_factory import RigidSphereFailingExplicit as TRigidSphereFailingExplicit
 
+# 2.5D solid element test
+from structural_mechanics_test_factory import Solid2p5DElementTest as TSolid2p5DElementTest
+
 ##### VALIDATION TESTS #####
 # SPRISM tests
 from structural_mechanics_test_factory import SprismPanTests              as TSprismPanTests
@@ -411,6 +414,8 @@ def AssembleTestSuites():
     nightSuite.addTest(TRigidEliminationTest('test_execution'))
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
     nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
+    # 2.5D solid element test
+    nightSuite.addTest(TSolid2p5DElementTest('test_execution'))
 
     if has_external_solvers_application:
         import KratosMultiphysics.ExternalSolversApplication

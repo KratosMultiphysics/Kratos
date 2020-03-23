@@ -130,7 +130,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         array_1d<double, 3> auxiliar_vector;
 
@@ -247,7 +247,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
         KRATOS_TRY;
 
         //Defining necessary variables
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         array_1d<double, 3> auxiliar_vector;
 
