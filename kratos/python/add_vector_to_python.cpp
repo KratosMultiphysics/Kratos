@@ -108,6 +108,7 @@ namespace Python
 
         binder.def("__iter__", [](TVectorType& self){ return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal); } , py::keep_alive<0,1>() ) ;
         binder.def("__str__", PrintObject<TVectorType>);
+        binder.def("copy", [](const TVectorType& self){TVectorType aux(self.size()); for (std::size_t i = 0; i < self.size(); ++i) { aux[i] = self[i];}; return aux;} );
 
         return std::move(binder);
     }
