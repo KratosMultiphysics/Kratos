@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_advanced_constitutive/generic_small_strain_isotropic_damage.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
