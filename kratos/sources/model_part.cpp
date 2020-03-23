@@ -20,7 +20,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
-#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -1788,8 +1787,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
     if (!IsSubModelPart()) {
         if (IsDistributed()) {
-            rOStream << "    Distributed over " << mpCommunicator->TotalProcesses() << " processes" << std::endl;
-            rOStream << "    Total number of processes: " << ParallelEnvironment::GetDataCommunicator("World").Size() << std::endl;
+            rOStream << "    Distributed; Communicator has " << mpCommunicator->TotalProcesses() << "total processes" << std::endl;
         }
         mpProcessInfo->PrintData(rOStream);
     }
