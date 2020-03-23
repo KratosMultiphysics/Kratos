@@ -552,7 +552,6 @@ public:
         this->Build(pScheme, rModelPart, rA, rb);
 
         // Put back the prediction into the database
-        // UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
         TSparseSpace::InplaceMult(dx_prediction, -1.0); //change sign to dx_prediction
         TSparseSpace::UnaliasedAdd(rDx, 1.0, dx_prediction);
 
