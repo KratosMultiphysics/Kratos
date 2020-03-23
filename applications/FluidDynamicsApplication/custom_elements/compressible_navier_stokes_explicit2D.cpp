@@ -182,17 +182,30 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     const BoundedMatrix<double,nodesElement,SpaceDimension>& f_ext = data.f_ext;			
     const array_1d<double,nodesElement>& r = data.r;
-    const double mu = data.mu;
-    // const double nu = data.nu;
-    const double lambda = data.lambda;
-    const double cv = data.c_v;
-    const double gamma = data.gamma;
-    const double cp = cv*gamma;
+    // const double mu = data.mu;
+    // // const double nu = data.nu;
+    // const double lambda = data.lambda;
+    // const double cv = data.c_v;
+    // const double gamma = data.gamma;
+    // const double cp = cv*gamma;
   
     const double sw_conv = 1.0;
     const double sw_diff = 1.0;
     const double sw_stab = 1.0;
 
+// Variazione multigas
+    double mu = data.mu;
+    double lambda = data.lambda;
+    double cv = data.c_v;
+    double gamma = data.gamma;
+    double cp = cv*gamma;
+
+    double ro0 = 1.225;
+    double rom = 2800;
+    double ror = ro0;
+
+    double c = 600;
+// Fine variazione    
 
     const double stab_c1 = 4.0;
     const double stab_c2 = 2.0;    
@@ -237,15 +250,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     // This is convenient during the implementation but has to be removed 
     // after some modification of the remainding part of the file
-    // for (j = 0; j < nodesElement; j++){
-
-    //     NN(0 * nNodalVariables + j*nScalarVariables    ) = N(j);
-    //     NN(1 * nNodalVariables + j*nScalarVariables + 1) = N(j);
-    //     NN(2 * nNodalVariables + j*nScalarVariables + 2) = N(j);
-    //     NN(3 * nNodalVariables + j*nScalarVariables + 3) = N(j);
-
-    // }
-
+   
     // This is convenient during the implementation but has to be removed 
     // after some modification of the remainding part of the file    
     for ( i = 0; i < nScalarVariables * SpaceDimension * nNodalVariables; i++)  gradV[i] = 0.0;
@@ -272,6 +277,23 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     const double m2_el = U_gauss(2);
     const double etot_el = U_gauss(3);
 
+    // Inizio variazione
+    double cvs = (cv + ro_el/ror * c)/(1 + ro_el/ror);
+    double gammas = (cp + ro_el/ror * c) / (cv + ro_el/ror * c);
+
+    // printf("ro_el = %.3e - ror = %.3e - ro_el/ror = %.3e \n", ro_el, ror, ro_el/ror);
+
+    gamma = gammas;
+    cv = cvs;
+    cp = gamma * cv;
+
+    mu = mu/(1 + ro_el/ror);
+
+    // Fine variazione
+
+
+
+
     const double u1_el = m1_el/ro_el;
 	const double u2_el = m2_el/ro_el;
 
@@ -284,6 +306,8 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
 
     const double SpeedSound = sqrt( gamma * (gamma - 1.0) * (etot_el / ro_el  - 0.5 * norm2u) );
 
+
+    // printf("gamma = %.3e - SpeedSound = %.3e\n", gamma, SpeedSound); 
 
     for (i = 0; i < size3; i++)     A(i) = 0.0;
 	
