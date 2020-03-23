@@ -186,7 +186,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
 
         #given the matrix A, the analytic deformation gradient is F+I
-        F = A.copy()
+        F = A
         for i in range(3):
             F[i,i] += 1.0
 
@@ -351,22 +351,12 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             tl_mp.CloneTimeStep(time)
             ul_mp.CloneTimeStep(time)
 
-            #load[1] = iter * 1.0e10
-            #tl_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
-            #ul_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
-
             for node in tl_load.Nodes:
                 node.Fix(KratosMultiphysics.DISPLACEMENT_X)
                 node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
             for node in ul_load.Nodes:
                 node.Fix(KratosMultiphysics.DISPLACEMENT_X)
                 node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
-            #for node in tl_load.Nodes:
-                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
-            #for node in ul_load.Nodes:
-                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
 
             self._solve_with_strategy(tl_strategy, tl_lhs, iter)
             self._solve_with_strategy(ul_strategy, ul_lhs, iter)
