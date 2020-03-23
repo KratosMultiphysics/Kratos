@@ -1122,6 +1122,83 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void BuildRHSNoDirichlet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        //Getting the Elements
+        ElementsArrayType& pElements = rModelPart.Elements();
+
+        //getting the array of the conditions
+        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // assemble all elements
+        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+
+        const int nelements = static_cast<int>(pElements.size());
+        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
+        {
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i=0; i<nelements; i++) {
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (it)->IsDefined(ACTIVE) ) {
+                    element_is_active = (it)->Is(ACTIVE);
+                }
+
+                if(element_is_active) {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            }
+
+            LHS_Contribution.resize(0, 0, false);
+            RHS_Contribution.resize(0, false);
+
+            // assemble all conditions
+            const int nconditions = static_cast<int>(ConditionsArray.size());
+            #pragma omp for schedule(guided, 512)
+            for (int i = 0; i<nconditions; i++) {
+                auto it = ConditionsArray.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if( (it)->IsDefined(ACTIVE) ) {
+                    condition_is_active = (it)->Is(ACTIVE);
+                }
+
+                if(condition_is_active) {
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+
+    }
+
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
@@ -1445,6 +1522,46 @@ protected:
         }
     }
 
+    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
+    {
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+
+        size_t left_limit = index1_vector[i];
+//    size_t right_limit = index1_vector[i+1];
+
+        //find the first entry
+        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+        size_t last_found = EquationId[0];
+
+        double& r_a = values_vector[last_pos];
+        const double& v_a = Alocal(i_local,0);
+        #pragma omp atomic
+        r_a +=  v_a;
+
+        //now find all of the other entries
+        size_t pos = 0;
+        for (unsigned int j=1; j<EquationId.size(); j++) {
+            unsigned int id_to_find = EquationId[j];
+            if(id_to_find > last_found) {
+                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+            } else if(id_to_find < last_found) {
+                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+            } else {
+                pos = last_pos;
+            }
+
+            double& r = values_vector[pos];
+            const double& v = Alocal(i_local,j);
+            #pragma omp atomic
+            r +=  v;
+
+            last_found = id_to_find;
+            last_pos = pos;
+        }
+    }
+
     /**
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rModelPart The problem model part
@@ -1610,83 +1727,6 @@ private:
 
     }
 
-    void BuildRHSNoDirichlet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& b)
-    {
-        KRATOS_TRY
-
-        //Getting the Elements
-        ElementsArrayType& pElements = rModelPart.Elements();
-
-        //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-
-        const int nelements = static_cast<int>(pElements.size());
-        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
-        {
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i=0; i<nelements; i++) {
-                typename ElementsArrayType::iterator it = pElements.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    element_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(element_is_active) {
-                    //calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
-                }
-            }
-
-            LHS_Contribution.resize(0, 0, false);
-            RHS_Contribution.resize(0, false);
-
-            // assemble all conditions
-            const int nconditions = static_cast<int>(ConditionsArray.size());
-            #pragma omp for schedule(guided, 512)
-            for (int i = 0; i<nconditions; i++) {
-                auto it = ConditionsArray.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    condition_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(condition_is_active) {
-                    //calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
-                }
-            }
-        }
-
-        KRATOS_CATCH("")
-
-    }
-
     //******************************************************************************************
     //******************************************************************************************
 
@@ -1698,46 +1738,6 @@ private:
         partitions[number_of_threads] = number_of_rows;
         for (unsigned int i = 1; i < number_of_threads; i++) {
             partitions[i] = partitions[i - 1] + partition_size;
-        }
-    }
-
-    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
-    {
-        double* values_vector = A.value_data().begin();
-        std::size_t* index1_vector = A.index1_data().begin();
-        std::size_t* index2_vector = A.index2_data().begin();
-
-        size_t left_limit = index1_vector[i];
-//    size_t right_limit = index1_vector[i+1];
-
-        //find the first entry
-        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
-        size_t last_found = EquationId[0];
-
-        double& r_a = values_vector[last_pos];
-        const double& v_a = Alocal(i_local,0);
-        #pragma omp atomic
-        r_a +=  v_a;
-
-        //now find all of the other entries
-        size_t pos = 0;
-        for (unsigned int j=1; j<EquationId.size(); j++) {
-            unsigned int id_to_find = EquationId[j];
-            if(id_to_find > last_found) {
-                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            } else if(id_to_find < last_found) {
-                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
-            } else {
-                pos = last_pos;
-            }
-
-            double& r = values_vector[pos];
-            const double& v = Alocal(i_local,j);
-            #pragma omp atomic
-            r +=  v;
-
-            last_found = id_to_find;
-            last_pos = pos;
         }
     }
 
