@@ -247,10 +247,9 @@ if(USE_COTIRE MATCHES ON)
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    #set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
 
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)

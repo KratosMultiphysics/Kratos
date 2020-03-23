@@ -26,6 +26,7 @@
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
+// #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/brute_force_point_locator.h"
 #include "utilities/deflation_utils.h"
@@ -210,7 +211,7 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
         ;
 
-    //signed distance calculator
+    //bin-based signed distance calculator
 //     py::class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
 //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
@@ -333,8 +334,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
         .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
         ;
-
-
 
 
     // Delaunator utilities
