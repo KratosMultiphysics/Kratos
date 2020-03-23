@@ -88,6 +88,8 @@ class SolverWrapperTubeFlow(CoSimulationComponent):
         self.pres = np.zeros(self.m)  # Pressure
         self.trac = np.zeros((self.m, 3))  # Traction
 
+        self.condition_number = np.pi * self.d ** 2 / 4.0 / (self.ureference + self.dz / self.dt)
+
         # ModelParts
         self.variable_disp = vars(KM)["DISPLACEMENT"]
         self.variable_pres = vars(KM)["PRESSURE"]
@@ -235,11 +237,11 @@ class SolverWrapperTubeFlow(CoSimulationComponent):
 
         f = np.zeros(2 * self.m + 4)
         if self.inlet_variable == "velocity":
-            f[0] = self.u[0] - self.GetInletBoundary()
-            f[1] = self.p[0] - (2.0 * self.p[1] - self.p[2])
+            f[0] = (self.u[0] - self.GetInletBoundary()) * self.condition_number
+            f[1] = (self.p[0] - (2.0 * self.p[1] - self.p[2])) * self.condition_number
         elif self.inlet_variable == "pressure":
-            f[0] = self.u[0] - (2.0 * self.u[1] - self.u[2])
-            f[1] = self.p[0] - self.GetInletBoundary()
+            f[0] = (self.u[0] - (2.0 * self.u[1] - self.u[2])) * self.condition_number
+            f[1] = (self.p[0] - self.GetInletBoundary()) * self.condition_number
         f[2:2 * self.m + 2:2] = (self.dz / self.dt * (self.a[1:self.m + 1] - self.an[1:self.m + 1])
                                  + (self.u[1:self.m + 1] + self.u[2:self.m + 2])
                                  * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
@@ -256,27 +258,29 @@ class SolverWrapperTubeFlow(CoSimulationComponent):
                                  * (self.a[1:self.m + 1] + self.a[2:self.m + 2])
                                  + (self.p[1:self.m + 1] - self.p[0:self.m])
                                  * (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0)
-        f[2 * self.m + 2] = self.u[self.m + 1] - (2.0 * self.u[self.m] - self.u[self.m - 1])
+        f[2 * self.m + 2] = (self.u[self.m + 1] - (2.0 * self.u[self.m] - self.u[self.m - 1])) * self.condition_number
         if self.outlet_type == 1:
-            f[2 * self.m + 3] = self.p[self.m + 1] - (2.0 * (self.cmk2 - (np.sqrt(self.cmk2 - self.pn[self.m + 1] / 2.0)
-                                                             - (self.u[self.m + 1] - self.un[self.m + 1]) / 4.0) ** 2))
+            f[2 * self.m + 3] = (self.p[self.m + 1] - (2.0 * (self.cmk2 - (np.sqrt(self.cmk2
+                                                                                   - self.pn[self.m + 1] / 2.0)
+                                                              - (self.u[self.m + 1] - self.un[self.m + 1]) / 4.0) ** 2))
+                                 ) * self.condition_number
         else:
-            f[2 * self.m + 3] = self.p[self.m + 1] - self.preference
+            f[2 * self.m + 3] = (self.p[self.m + 1] - self.preference) * self.condition_number
         return f
 
     def GetJacobian(self):
         usign = self.u[1:self.m + 1] > 0
         j = np.zeros((self.Al + self.Au + 1, 2 * self.m + 4))
         if self.inlet_variable == "velocity":
-            j[self.Au + 0 - 0, 0] = 1.0  # [0,0]
-            j[self.Au + 1 - 1, 1] = 1.0  # [1,1]
-            j[self.Au + 1 - 3, 3] = -2.0  # [1,3]
-            j[self.Au + 1 - 5, 5] = 1.0  # [1,5]
+            j[self.Au + 0 - 0, 0] = 1.0 * self.condition_number  # [0,0]
+            j[self.Au + 1 - 1, 1] = 1.0 * self.condition_number  # [1,1]
+            j[self.Au + 1 - 3, 3] = -2.0 * self.condition_number  # [1,3]
+            j[self.Au + 1 - 5, 5] = 1.0 * self.condition_number  # [1,5]
         elif self.inlet_variable == "pressure":
-            j[self.Au + 0 - 0, 0] = 1.0  # [0,0]
-            j[self.Au + 0 - 2, 2] = -2.0  # [0,2]
-            j[self.Au + 0 - 4, 4] = 1.0  # [0,4]
-            j[self.Au + 1 - 1, 1] = 1.0  # [1,1]
+            j[self.Au + 0 - 0, 0] = 1.0 * self.condition_number  # [0,0]
+            j[self.Au + 0 - 2, 2] = -2.0 * self.condition_number  # [0,2]
+            j[self.Au + 0 - 4, 4] = 1.0 * self.condition_number  # [0,4]
+            j[self.Au + 1 - 1, 1] = 1.0 * self.condition_number  # [1,1]
 
         j[self.Au + 2, 0:2 * self.m + 0:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i, 2*(i-1)]
         j[self.Au + 3, 0:2 * self.m + 0:2] = (-((self.u[1:self.m + 1] + 2.0 * self.u[0:self.m]) * usign
@@ -307,14 +311,14 @@ class SolverWrapperTubeFlow(CoSimulationComponent):
         j[self.Au - 2, 5:2 * self.m + 5:2] = (self.a[1:self.m + 1]
                                               + self.a[2:self.m + 2]) / 4.0  # [2*i+1, 2*(i+1)+1]
 
-        j[self.Au + (2 * self.m + 2) - (2 * self.m + 2), 2 * self.m + 2] = 1.0  # [2*m+2, 2*m+2]
-        j[self.Au + (2 * self.m + 2) - (2 * self.m), 2 * self.m] = -2.0  # [2*m+2, 2*m]
-        j[self.Au + (2 * self.m + 2) - (2 * self.m - 2), 2 * self.m - 2] = 1.0  # [2*m+2, 2*m-2]
+        j[self.Au + (2 * self.m + 2) - (2 * self.m + 2), 2 * self.m + 2] = 1.0 * self.condition_number  # [2*m+2, 2*m+2]
+        j[self.Au + (2 * self.m + 2) - (2 * self.m), 2 * self.m] = -2.0 * self.condition_number  # [2*m+2, 2*m]
+        j[self.Au + (2 * self.m + 2) - (2 * self.m - 2), 2 * self.m - 2] = 1.0 * self.condition_number  # [2*m+2, 2*m-2]
         if self.outlet_type == 1:
             j[self.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(np.sqrt(self.cmk2
                                                                                           - self.pn[self.m + 1] / 2.0)
                                                                                   - (self.u[self.m + 1]
                                                                                      - self.un[self.m + 1])
-                                                                                  / 4.0))  # [2*m+3, 2*m+2]
-        j[self.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
+                                                                                  / 4.0)) * self.condition_number  # [2*m+3, 2*m+2]
+        j[self.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0 * self.condition_number  # [2*m+3, 2*m+3]
         return j
