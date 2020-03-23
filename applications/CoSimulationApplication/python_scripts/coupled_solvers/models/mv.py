@@ -32,7 +32,7 @@ class ModelMV(CoSimulationComponent):
 
         self.v = np.empty((self.size_in, 0))
         self.w = np.empty((self.size_out, 0))
-        self.nprev = np.zeros((self.size_in, self.size_out))
+        self.nprev = np.zeros((self.size_out, self.size_in))
 
     def Filter(self):
         if self.v.shape[1] == 0:
