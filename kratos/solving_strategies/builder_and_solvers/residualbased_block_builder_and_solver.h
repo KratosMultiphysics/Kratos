@@ -553,8 +553,8 @@ public:
 
         // Put back the prediction into the database
         // UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
-        TSparseSpace::InplaceMult(dx_prediction, -1.00); //change sign to dx_prediction
-        TSparseSpace::UnaliasedAdd(rDx, 1.00, dx_prediction);
+        TSparseSpace::InplaceMult(dx_prediction, -1.0); //change sign to dx_prediction
+        TSparseSpace::UnaliasedAdd(rDx, 1.0, dx_prediction);
 
         // Use UpdateDatabase to bring back the solution
         // to where it was taking into account BCs
@@ -571,7 +571,7 @@ public:
 
         // Apply rb -= A*dx_prediction
         TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
-        TSparseSpace::UnaliasedAdd(rb, -1.00, rhs_addition);
+        TSparseSpace::UnaliasedAdd(rb, -1.0, rhs_addition);
 
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
