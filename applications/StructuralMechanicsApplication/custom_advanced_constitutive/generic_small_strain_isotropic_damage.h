@@ -207,13 +207,6 @@ public:
     bool Has(const Variable<double> &rThisVariable) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (integer)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<int>& rThisVariable) override;
-
-    /**
      * @brief Returns whether this constitutive Law has specified variable (Vector)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -240,17 +233,6 @@ public:
         ) override;
 
     /**
-     * @brief Sets the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<int>& rThisVariable,
-        const int& rValue,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * @brief Sets the value of a specified variable (Vector)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
@@ -272,16 +254,6 @@ public:
         const Variable<double> &rThisVariable,
         double& rValue
         ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    int& GetValue(
-        const Variable<int>& rThisVariable,
-        int& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (Vector)
