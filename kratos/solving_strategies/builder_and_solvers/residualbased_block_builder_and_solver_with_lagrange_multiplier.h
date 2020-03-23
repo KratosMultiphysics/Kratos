@@ -72,6 +72,7 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( DOUBLE_LAGRANGE_MULTIPLIER );
+    KRATOS_DEFINE_LOCAL_FLAG( TRANSFORMATION_MATRIX_COMPUTED );
 
     // Constraint enum
     enum class CONSTRAINT_FACTOR {CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR = 0, CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR = 1, CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR = 2};
@@ -210,6 +211,9 @@ public:
         } else {
             BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, false);
         }
+
+        // Initialize flag
+        BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, false);
     }
 
     /**
@@ -224,6 +228,7 @@ public:
         mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
+        BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, false);
     }
 
     /** Destructor.
@@ -582,7 +587,7 @@ public:
             }
 
             // If not previously computed we compute
-            if (TSparseSpace::TwoNorm(BaseType::mT) < std::numeric_limits<double>::epsilon()) {
+            if (BaseType::mOptions.IsNot(TRANSFORMATION_MATRIX_COMPUTED)) {
                 BuildMasterSlaveConstraints(rModelPart);
             }
 
@@ -771,6 +776,9 @@ public:
         // Clear member variables
         mCorrespondanceDofsSlave.clear();
         mLagrangeMultiplierVector.resize(0,false);
+
+        // Reset flag
+        BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, false);
     }
 
     /**
@@ -965,6 +973,9 @@ protected:
 
             BaseType::mT.set_filled(slave_size + 1, nnz);
 
+            // Reset flag
+            BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, false);
+
             Timer::Stop("ConstraintsRelationMatrixStructure");
         }
 
@@ -1033,6 +1044,9 @@ protected:
         for (auto eq_id : BaseType::mSlaveIds) {
             BaseType::mT(mCorrespondanceDofsSlave[eq_id], eq_id) = 1.0;
         }
+
+        // Set flag
+        BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, true);
 
         KRATOS_CATCH("")
     }
@@ -1158,6 +1172,8 @@ private:
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::TRANSFORMATION_MATRIX_COMPUTED(Kratos::Flags::Create(2));
 
 ///@}
 
