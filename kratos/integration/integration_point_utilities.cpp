@@ -20,8 +20,8 @@ namespace Kratos
         SizeType PointsInU,
         double U0, double U1)
     {
-        KRATOS_ERROR_IF(PointsInU < 1)
-            << "Degree need to be bigger than 0." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1)
+            << "PointsInU need to be bigger than 0, but is: " << PointsInU << std::endl;
 
         const double distance_u = U1 - U0;
         const double length_u = std::abs(U1 - U0);
@@ -43,8 +43,9 @@ namespace Kratos
         SizeType PointsInU, SizeType PointsInV,
         double U0, double U1, double V0, double V1)
     {
-        KRATOS_ERROR_IF(PointsInU < 1 || PointsInV < 1)
-            << "Degrees need to be bigger than 0." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1)
+            << "PointsInU and ~V need to be bigger than 0, but are PointsInU:"
+            << PointsInU << " and PointsInV: " << PointsInV << std::endl;
 
         const double distance_u = U1 - U0;
         const double length_u = std::abs(U1 - U0);
