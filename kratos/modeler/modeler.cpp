@@ -23,7 +23,6 @@ namespace Kratos
         const std::string& rFileName,
         IndexType EchoLevel) const
     {
-        KRATOS_ERROR << "Calling ImportGeometryModel from the base modeler." << std::endl;
     }
 
     void Modeler::PrepareGeometryModel(
@@ -31,7 +30,6 @@ namespace Kratos
         const Parameters PrepareGeometryParameters,
         IndexType EchoLevel) const
     {
-        KRATOS_ERROR << "Calling ImportGeometryModel from the base modeler." << std::endl;
     }
 
     void Modeler::GenerateModelPart(
@@ -40,7 +38,6 @@ namespace Kratos
         const Parameters PrepareGeometryParameters,
         IndexType EchoLevel) const
     {
-        KRATOS_ERROR << "Calling GenerateModelPart from the base modeler." << std::endl;
     }
 
     void Modeler::ImportModelPart(
@@ -48,7 +45,6 @@ namespace Kratos
         const std::string& rFileName,
         IndexType EchoLevel) const
     {
-        KRATOS_ERROR << "Calling ImportModelPart from the base modeler." << std::endl;
     }
 
     void Modeler::PrepareModelPart(
@@ -56,7 +52,6 @@ namespace Kratos
         const Parameters PrepareModelPartParameters,
         IndexType EchoLevel) const
     {
-        KRATOS_ERROR << "Calling PrepareModelPart from the base modeler." << std::endl;
     }
 
     ///@}
