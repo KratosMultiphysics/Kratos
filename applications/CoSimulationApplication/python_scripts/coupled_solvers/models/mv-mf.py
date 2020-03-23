@@ -57,12 +57,11 @@ class ModelMV(CoSimulationComponent):
             self.v = np.delete(self.v, -1, 1)
             self.w = np.delete(self.w, -1, 1)
 
-    def Predict(self, r_in):
-        r = r_in.GetNumpyArray().reshape(-1, 1)
+    def Predict(self, dr_in):
+        dr = dr_in.GetNumpyArray().reshape(-1, 1)
         if self.v.shape[1] + len(self.wprev) == 0:
             raise RuntimeError("No information to predict")
         # Approximation for the inverse of the Jacobian from a multiple vector model
-        dr = -r
         if self.v.shape[1]:
             qq, rr = np.linalg.qr(self.v, mode='reduced')
             b = qq.T @ dr
