@@ -387,6 +387,8 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     // Auxiliar ModelPart Utility
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
+        .def("RecursiveEnsureModelPartOwnsProperties", &AuxiliarModelPartUtilities::RecursiveEnsureModelPartOwnsProperties)
+        .def("EnsureModelPartOwnsProperties", &AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
