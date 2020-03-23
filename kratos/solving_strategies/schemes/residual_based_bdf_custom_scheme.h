@@ -644,14 +644,16 @@ private:
                 if (n_first_derivative == 0) {
                     mFirstDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(first_derivative_name));
                 } else {
-                    mFirstDoubleDerivatives.push_back(&VariablesDerivatives<Variable<double>>::GetFirstTimeDerivative(r_var));
+                    mFirstDoubleDerivatives.push_back(&(r_var.GetTimeDerivative()));
                 }
                 if (n_second_derivative == 0) {
                     mSecondDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(second_derivative_name));
                 } else {
-                    mSecondDoubleDerivatives.push_back(&VariablesDerivatives<Variable<double>>::GetSecondTimeDerivative(r_var));
+                    mSecondDoubleDerivatives.push_back(&(r_var.GetSecondTimeDerivative()));
                 }
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
+                const auto& r_var = KratosComponents< Variable< array_1d< double, 3> > >::Get(variable_name);
+
                 // Components
                 const auto& r_var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
                 const auto& r_var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y");
@@ -662,15 +664,17 @@ private:
                     mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_X"));
                     mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Y"));
                 } else {
-                    mFirstArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetFirstTimeDerivative(r_var_x));
-                    mFirstArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetFirstTimeDerivative(r_var_y));
+                    const std::string auxiliar_name = (r_var.GetTimeDerivative()).Name();
+                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_X"));
+                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_Y"));
                 }
                 if (n_second_derivative == 0) {
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
                 } else {
-                    mSecondArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetSecondTimeDerivative(r_var_x));
-                    mSecondArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetSecondTimeDerivative(r_var_y));
+                    const std::string auxiliar_name = (r_var.GetSecondTimeDerivative()).Name();
+                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_X"));
+                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_Y"));
                 }
 
                 if (mDomainSize == 3) {
@@ -679,12 +683,14 @@ private:
                     if (n_first_derivative == 0) {
                         mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Z"));
                     } else {
-                        mFirstArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetFirstTimeDerivative(r_var_z));
+                        const std::string auxiliar_name = (r_var.GetTimeDerivative()).Name();
+                        mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_Z"));
                     }
                     if (n_second_derivative == 0) {
                         mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
                     } else {
-                        mSecondArrayDerivatives.push_back(&VariablesDerivatives<VariableComponent<ComponentType>>::GetSecondTimeDerivative(r_var_z));
+                        const std::string auxiliar_name = (r_var.GetSecondTimeDerivative()).Name();
+                        mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_Z"));
                     }
                 }
             } else {
