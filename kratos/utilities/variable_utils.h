@@ -786,7 +786,7 @@ public:
     }
 
     /**
-     * @brief Fixes or frees a variable for all of the nodes in the list
+     * @brief Fixes or frees a variable for all of the nodes in the list. The dof has to exist.
      * @param rVar reference to the variable to be fixed or freed
      * @param IsFixed if true fixes, if false frees
      * @param rNodes reference to the nodes set to be frixed or freed
@@ -800,24 +800,29 @@ public:
     {
         KRATOS_TRY
 
-        if(rNodes.size() != 0) {
-            // First we do a check
+        if (rNodes.size() != 0) {
+            // checking the first node to avoid error being thrown in parallel region
+            KRATOS_ERROR_IF_NOT(rNodes.begin()->HasDofFor(rVar)) << "Trying to fix/free dof of variable " << rVar.Name() << " but this dof does not exist in node #" << rNodes.begin()->Id() << "!" << std::endl;
+
+#ifdef KRATOS_DEBUG
+            for (const auto& r_node : rNodes) {
+                KRATOS_ERROR_IF_NOT(r_node.HasDofFor(rVar)) << "Trying to fix/free dof of variable " << rVar.Name() << " but this dof does not exist in node #" << r_node.Id() << "!" << std::endl;
+            }
+#endif
+
             CheckVariableExists(rVar, rNodes);
 
-            // I assume that all the nodes sharing the same varibles list from modelpart
-            rNodes.begin()->pGetVariablesList()->AddDof(&rVar);
-
-            if(IsFixed == true) {
+            if (IsFixed) {
                 #pragma omp parallel for
                 for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
                     NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pAddDof(rVar)->FixDof();
+                    it_node->pGetDof(rVar)->FixDof();
                 }
             } else {
                 #pragma omp parallel for
                 for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
                     NodesContainerType::iterator it_node = rNodes.begin() + k;
-                    it_node->pAddDof(rVar)->FreeDof();
+                    it_node->pGetDof(rVar)->FreeDof();
                 }
             }
         }
