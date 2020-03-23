@@ -22,10 +22,6 @@
 #include "includes/ublas_complex_interface.h"
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
-// #include "python/matrix_python_interface.h"
-// #include "python/matrix_scalar_operator_python.h"
-// #include "python/matrix_scalar_assignment_operator_python.h"
-// #include "python/matrix_matrix_operator_python.h"
 
 namespace Kratos
 {
@@ -68,6 +64,7 @@ namespace Python
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, py::is_operator());
 
         binder.def("__str__", PrintObject<TMatrixType>);
+        binder.def("copy", [](const TMatrixType& self){TMatrixType aux(self.size1(), self.size2()); for (std::size_t i = 0; i < self.size1(); ++i) {for (std::size_t j = 0; j < self.size2(); ++j) {aux(i,j) = self(i,j);}}; return aux;} );
         return std::move(binder);
     }
 
