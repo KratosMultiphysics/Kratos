@@ -75,8 +75,8 @@ class SolverWrapperTubeStructure(CoSimulationComponent):
         self.disp = np.zeros((self.m, 3))  # Displacement
         self.trac = np.zeros((self.m, 3))  # Traction (always zero)
 
-        self.condition_number = ((self.rhos * self.h) / (self.beta * self.dt ** 2) + 6.0 * self.b1 / self.dz ** 4
-                                 + 2.0 * self.b2 / self.dz ** 2 + self.b3)  # Matrix condition number
+        self.conditioning = ((self.rhos * self.h) / (self.beta * self.dt ** 2) + 6.0 * self.b1 / self.dz ** 4
+                             + 2.0 * self.b2 / self.dz ** 2 + self.b3)  # Factor for conditioning Jacobian
 
         # ModelParts
         self.variable_pres = vars(KM)["PRESSURE"]
@@ -177,8 +177,8 @@ class SolverWrapperTubeStructure(CoSimulationComponent):
 
     def GetResidual(self):
         f = np.zeros(self.m + 4)
-        f[0] = (self.r[0] - self.rreference) * self.condition_number
-        f[1] = (self.r[1] - self.rreference) * self.condition_number
+        f[0] = (self.r[0] - self.rreference) * self.conditioning
+        f[1] = (self.r[1] - self.rreference) * self.conditioning
         f[2:self.m + 2] = ((self.rhos * self.h) / (self.beta * self.dt ** 2) * self.r[2: self.m + 2]
                            + self.b1 / self.dz ** 4 * (self.r[4:self.m + 4] - 4.0 * self.r[3:self.m + 3]
                                                        + 6.0 * self.r[2:self.m + 2] - 4.0 * self.r[1:self.m + 1]
@@ -190,14 +190,14 @@ class SolverWrapperTubeStructure(CoSimulationComponent):
                            - self.rhos * self.h * (self.rn[2:self.m + 2] / (self.beta * self.dt ** 2)
                                                    + self.rndot / (self.beta * self.dt)
                                                    + self.rnddot * (1.0 / (2.0 * self.beta) - 1.0)))
-        f[self.m + 2] = (self.r[self.m + 2] - self.rreference) * self.condition_number
-        f[self.m + 3] = (self.r[self.m + 3] - self.rreference) * self.condition_number
+        f[self.m + 2] = (self.r[self.m + 2] - self.rreference) * self.conditioning
+        f[self.m + 3] = (self.r[self.m + 3] - self.rreference) * self.conditioning
         return f
 
     def GetJacobian(self):
         j = np.zeros((self.Al + self.Au + 1, self.m + 4))
-        j[self.Au + 0 - 0, 0] = 1.0 * self.condition_number  # [0, 0]
-        j[self.Au + 1 - 1, 1] = 1.0 * self.condition_number  # [1, 1]
+        j[self.Au + 0 - 0, 0] = 1.0 * self.conditioning  # [0, 0]
+        j[self.Au + 1 - 1, 1] = 1.0 * self.conditioning  # [1, 1]
         j[self.Au + 2, 0:self.m] = self.b1 / self.dz ** 4  # [i, (i - 2)]
         j[self.Au + 1, 1:self.m + 1] = - 4.0 * self.b1 / self.dz ** 4 - self.b2 / self.dz ** 2  # [i, (i - 1)]
         j[self.Au + 0, 2:self.m + 2] = ((self.rhos * self.h) / (self.beta * self.dt ** 2)
@@ -205,6 +205,6 @@ class SolverWrapperTubeStructure(CoSimulationComponent):
                                         + self.b3)  # [i, i]
         j[self.Au - 1, 3:self.m + 3] = - 4.0 * self.b1 / self.dz ** 4 - self.b2 / self.dz ** 2  # [i, (i + 1)]
         j[self.Au - 2, 4:self.m + 4] = self.b1 / self.dz ** 4  # [i, (i + 2)]
-        j[self.Au + (self.m + 2) - (self.m + 2), self.m + 2] = 1.0 * self.condition_number  # [m + 2, m + 2]
-        j[self.Au + (self.m + 3) - (self.m + 3), self.m + 3] = 1.0 * self.condition_number  # [m + 3, m + 3]
+        j[self.Au + (self.m + 2) - (self.m + 2), self.m + 2] = 1.0 * self.conditioning  # [m + 2, m + 2]
+        j[self.Au + (self.m + 3) - (self.m + 3), self.m + 3] = 1.0 * self.conditioning  # [m + 3, m + 3]
         return j
