@@ -443,10 +443,10 @@ class MechanicalSolver(PythonSolver):
             bs_params = self.settings["builder_and_solver_settings"]
             consider_lagrange_multiplier_constraint_resolution = self.settings["builder_and_solver_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString()
             if consider_lagrange_multiplier_constraint_resolution == "none":
-                bs_params.RemoveValue("constraint_scale_factor")
-                bs_params.RemoveValue("auxiliar_constraint_scale_factor")
-                bs_params.RemoveValue("consider_lagrange_multiplier_constraint_resolution")
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+                block_bs_params = KratosMultiphysics.Parameters("""{}""")
+                block_bs_params.AddValue("diagonal_values_for_dirichlet_dofs", bs_params["diagonal_values_for_dirichlet_dofs"])
+                block_bs_params.AddValue("silent_warnings", bs_params["silent_warnings"])
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, block_bs_params)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
