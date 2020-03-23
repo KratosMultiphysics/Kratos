@@ -29,6 +29,9 @@ jobs:
         FC: gfortran-7
 
     steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     - uses: actions/checkout@v2
 
     - name: Cache Build
