@@ -116,7 +116,7 @@ class TestModelMV(KratosUnittest.TestCase):
         is_ready = mv.IsReady()
         self.assertTrue(is_ready)
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [4.94444444444445, 0, -6.18055555555556, -3.70833333333333, -4.944444444444452]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
 
@@ -135,7 +135,7 @@ class TestModelMV(KratosUnittest.TestCase):
                 0.474008207934337, 0.115595075239398, 0.485636114911081, 0.0677154582763338, -0.234610123119015]
         self.assertArrayAlmostEqual(mv.ncurr.flatten(), n_sol)
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [3.55677154582763, -1.20861833105335, -7.26607387140903, -6.29343365253078, -6.37688098495212]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
 
@@ -154,7 +154,7 @@ class TestModelMV(KratosUnittest.TestCase):
                 0.395788102475033, 0.155449413808076, 0.541033434650456, 0.162613981762918, -0.184107685627443]
         self.assertArrayAlmostEqual(mv.ncurr.flatten(), n_sol)
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [2.17629179331307, 7.43617021276596, 5.80395136778116, 5.96504559270517, -6.89209726443769]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         self.assertEqual(mv.v.shape, (m, 2))
@@ -179,7 +179,7 @@ class TestModelMV(KratosUnittest.TestCase):
                 1.72192513368984, -1.54545454545455, 0.0588235294117627, -0.262032085561494, -0.561497326203206]
         self.assertArrayAlmostEqual(mv.ncurr.flatten(), n_sol)
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [7.67847593582868, 21.1203208556145, 21.6136363636358, 23.3649732620315, -1.94652406417126]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         self.assertEqual(mv.v.shape, (m, 5))
@@ -195,7 +195,7 @@ class TestModelMV(KratosUnittest.TestCase):
         mv.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         self.assertEqual(mv.v.shape, (m, 5))
@@ -208,7 +208,7 @@ class TestModelMV(KratosUnittest.TestCase):
         mv.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         self.assertEqual(mv.v.shape, (m, 5))
@@ -233,7 +233,7 @@ class TestModelMV(KratosUnittest.TestCase):
         self.assertTrue(is_ready)
         self.assertArrayAlmostEqual(mv.ncurr.flatten(), nprev.flatten())
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
 
@@ -255,7 +255,7 @@ class TestModelMV(KratosUnittest.TestCase):
         self.assertArrayAlmostEqual(mv.ncurr.flatten(), n_sol)
 
         r.SetNumpyArray(r3)
-        dxt = mv.Predict(r)
+        dxt = mv.Predict(-1 * r)
         dxt_sol = [2.04216706698691, -8.02212881416246, -4.68760564006761, -1.31217195979005, -8.67687483319990]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         self.assertEqual(mv.v.shape, (m, 1))

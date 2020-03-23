@@ -114,7 +114,7 @@ class TestModelLS(KratosUnittest.TestCase):
         is_ready = ls.IsReady()
         self.assertTrue(is_ready)
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [4.94444444444445, 0, -6.18055555555556, -3.70833333333333, -4.944444444444452]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
 
@@ -129,7 +129,7 @@ class TestModelLS(KratosUnittest.TestCase):
         self.assertEqual(w.shape, (m, 2))
         self.assertArrayEqual(w[:, 0], xt4 - xt2)
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [3.55677154582763, -1.20861833105335, -7.26607387140903, -6.29343365253078, -6.37688098495212]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
 
@@ -144,7 +144,7 @@ class TestModelLS(KratosUnittest.TestCase):
         self.assertEqual(w.shape, (m, 2))
         self.assertArrayEqual(w[:, 0], xt5 - xt4)
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [2.17629179331307, 7.43617021276596, 5.80395136778116, 5.96504559270517, -6.89209726443769]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         v = np.hstack((ls.vcurr, np.hstack(ls.vprev)))
@@ -165,7 +165,7 @@ class TestModelLS(KratosUnittest.TestCase):
         ls.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [7.67847593582868, 21.1203208556145, 21.6136363636358, 23.3649732620315, -1.94652406417126]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         v = np.hstack((ls.vcurr, np.hstack(ls.vprev)))
@@ -183,7 +183,7 @@ class TestModelLS(KratosUnittest.TestCase):
         ls.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         v = np.hstack((ls.vcurr, np.hstack(ls.vprev)))
@@ -198,7 +198,7 @@ class TestModelLS(KratosUnittest.TestCase):
         ls.Add(r, xt)
         r.SetNumpyArray(r3)
 
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         v = np.hstack((ls.vcurr, np.hstack(ls.vprev)))
@@ -228,7 +228,7 @@ class TestModelLS(KratosUnittest.TestCase):
         ls.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         self.assertTrue(ls.added)
@@ -240,7 +240,7 @@ class TestModelLS(KratosUnittest.TestCase):
         ls.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [-8.52029914529913, -3.96866096866096, -0.505163817663819, -0.426103988603991, -14.1239316239316]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         v = np.hstack((ls.vcurr, np.hstack(ls.vprev)))
@@ -307,7 +307,7 @@ class TestModelLS(KratosUnittest.TestCase):
         ls.Add(r, xt)
 
         r.SetNumpyArray(r3)
-        dxt = ls.Predict(r)
+        dxt = ls.Predict(-1 * r)
         dxt_sol = [-4.19875900720576, -5.62710168134507, -2.21637309847878, -0.788630904723781, -11.8953162530024]
         self.assertArrayAlmostEqual(dxt.GetNumpyArray(), dxt_sol)
         v = np.hstack((ls.vcurr, np.hstack(ls.vprev)))
