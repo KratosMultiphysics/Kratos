@@ -1,19 +1,18 @@
-from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
-from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
+from KratosMultiphysics.CoSimulationApplication.coupled_solvers.gauss_seidel import CoupledSolverGaussSeidel
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-import numpy as np
-import time
-import json
-
 cs_data_structure = cs_tools.cs_data_structure
-import matplotlib.pyplot as plt
 
 def Create(parameters):
     return CoupledSolverRelaxation(parameters)
 
 
 class CoupledSolverRelaxation(CoupledSolverGaussSeidel):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+        self.omega = self.settings["omega"].GetDouble()
+
     def SolveSolutionStep(self):
         # Initial value
         self.x = self.predictor.Predict(self.x)
