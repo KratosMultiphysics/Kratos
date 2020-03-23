@@ -23,10 +23,10 @@
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/global_pointer_variables.h"
-#include "utilities/python_function_callback_utility.h"
+
 
 //Other utilities
-#include "utilities/convect_particles_utilities.h"
+#include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
 // #include "utilities/signed_distance_calculator_bin_based.h"  // Why is this commented?
@@ -38,14 +38,31 @@
 #include "utilities/variable_redistribution_utility.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
-
-//new
+#include "utilities/table_stream_utility.h"
+#include "utilities/read_materials_utility.h"
+#include "utilities/activation_utilities.h"
+#include "utilities/sensitivity_builder.h"
+#include "utilities/openmp_utils.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 
 namespace Kratos {
 namespace Python {
+
+/**
+ * @brief Sets the current table utility on the process info
+ * @param rCurrentProcessInfo The process info
+ */
+void SetOnProcessInfo(
+    typename TableStreamUtility::Pointer pTable,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    rCurrentProcessInfo[TABLE_UTILITY] = pTable;
+}
+
 
 
 // Auxiliar ModelPart Utilities
@@ -137,7 +154,6 @@ void PrintTimingInformation(Timer& rTimer)
 
 
 //mortar
-
 void ComputeNodesTangentModelPartWithSlipVariable(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& rSlipVariable,
@@ -188,16 +204,27 @@ void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPa
 }
 
 
+//compare elements and conditions utilities
+std::string GetRegisteredNameElement(const Element& rElement)
+{
+    std::string name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name);
+    return name;
+}
+
+std::string GetRegisteredNameCondition(const Condition& rCondition)
+{
+    std::string name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name);
+    return name;
+}
 
 
 
-
-
-
-    void AddOtherUtilitiesToPython(pybind11::module &m) 
+    void AddOtherUtilitiesToPython(pybind11::module &m)
 {
 
-    namespace py = pybind11; 
+    namespace py = pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -236,20 +263,6 @@ void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPa
         .def("GetConditionNumber", ThisGetConditionNumber)
         .def("GetConditionNumber", ThisDirectGetConditionNumber)
         ;
-    
-    //particle connect utility
-    py::class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
-        .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
-        .def("MoveParticles_Substepping", &ParticleConvectUtily<2>::MoveParticles_Substepping)
-        .def("MoveParticles_RK4", &ParticleConvectUtily<2>::MoveParticles_RK4)
-        ;
-
-    py::class_<ParticleConvectUtily<3> >(m,"ParticleConvectUtily3D")
-        .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
-        .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
-        .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
-        ;   
-
 
     //timer
     py::class_<Timer >(m,"Timer")
@@ -348,8 +361,8 @@ void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPa
     py::class_<MergeVariableListsUtility, typename MergeVariableListsUtility::Pointer>(m, "MergeVariableListsUtility")
         .def(py::init<>())
         .def("Merge",&MergeVariableListsUtility::Merge)
-        ;                
-    
+        ;
+
 
     // VariableRedistributionUtility
     typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
@@ -395,8 +408,8 @@ void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPa
         .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels3)
         .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels4)
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
-        ;    
-    
+        ;
+
     // Sparse matrix multiplication utility
     py::class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
         .def(py::init<>())
@@ -495,10 +508,48 @@ void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPa
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
- 
 
 
- 
+    // Adding table from table stream to python
+    py::class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
+        .def(py::init<>())
+        .def(py::init< bool >())
+        .def("SetOnProcessInfo",SetOnProcessInfo)
+        ;
+
+    // Read materials utility
+    py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
+    .def(py::init<Model&>())
+    .def(py::init<Parameters, Model&>())
+    .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    ;
+
+    //activation utilities
+    py::class_< ActivationUtilities >(m,"ActivationUtilities")
+        .def(py::init< >())
+        .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
+        ;
+
+
+    //sensitivity builder
+    py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
+
+
+    //OpenMP utilities
+    py::class_<OpenMPUtils >(m,"OpenMPUtils")
+        .def(py::init<>())
+        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
+    //     .staticmethod("SetNumThreads")
+        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
+    //     .staticmethod("GetNumThreads")
+        .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
+    //     .staticmethod("PrintOMPInfo")
+        ;
+
+
     // EntitiesUtilities
     auto entities_utilities = m.def_submodule("EntitiesUtilities");
     entities_utilities.def("InitializeAllEntities", &EntitiesUtilities::InitializeAllEntities );
@@ -511,8 +562,13 @@ void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPa
     auto constraint_utilities = m.def_submodule("ConstraintUtilities");
     constraint_utilities.def("ResetSlaveDofs", &ConstraintUtilities::ResetSlaveDofs );
     constraint_utilities.def("ApplyConstraints", &ConstraintUtilities::ApplyConstraints );
-    
+
+    // Compare elements and conditions utility
+    auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
+    mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
+    mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
+
 }
 
 } // namespace Python.
-} // Namespace Kratos 
+} // Namespace Kratos

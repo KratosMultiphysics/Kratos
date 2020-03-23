@@ -166,12 +166,12 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
     const bool CheckValue = true)
 {
     rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rContainer, Flag, CheckValue);
-}    
+}
 
-    void AddVariableUtilitiesToPython(pybind11::module &m) 
+    void AddVariableUtilitiesToPython(pybind11::module &m)
 {
 
-    namespace py = pybind11; 
+    namespace py = pybind11;
 
 
     py::class_<VariableUtils>(m, "VariableUtils")
@@ -460,8 +460,8 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
 
-    
+
 }
 
 } // namespace Python.
-} // Namespace Kratos 
+} // Namespace Kratos

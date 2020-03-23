@@ -21,7 +21,7 @@
 #include "processes/process.h"
 #include "python/add_geometrical_utilities_to_python.h"
 
-//Geometrical (and kernel) utilities
+//Geometrical utilities
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
@@ -36,36 +36,17 @@
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"
 #include "utilities/geometrical_transformation_utilities.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/iso_printer.h"
-#include "utilities/activation_utilities.h"
 #include "utilities/interval_utility.h"
-#include "utilities/table_stream_utility.h"
-#include "utilities/read_materials_utility.h"
-#include "utilities/sensitivity_builder.h"
-
-
-//new
+#include "utilities/convect_particles_utilities.h"
 #include "utilities/delaunator_utilities.h"
-#include "utilities/compare_elements_and_conditions_utility.h"
+
 
 
 
 
 namespace Kratos {
 namespace Python {
-
-/**
- * @brief Sets the current table utility on the process info
- * @param rCurrentProcessInfo The process info
- */
-void SetOnProcessInfo(
-    typename TableStreamUtility::Pointer pTable,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    rCurrentProcessInfo[TABLE_UTILITY] = pTable;
-}
 
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
@@ -129,36 +110,18 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 
 
-//compare elements and conditions utilities
-std::string GetRegisteredNameElement(const Element& rElement)
-{
-    std::string name;
-    CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name);
-    return name;
-}
 
-std::string GetRegisteredNameCondition(const Condition& rCondition)
-{
-    std::string name;
-    CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name);
-    return name;
-}
-
-
-
-
-
-    void AddGeometricalUtilitiesToPython(pybind11::module &m) 
+    void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
 
-    namespace py = pybind11; 
+    namespace py = pybind11;
 
     py::class_<DeflationUtils>(m,"DeflationUtils")
         .def(py::init<>())
         .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
         ;
-    
-    
+
+
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
     typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
     typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
@@ -234,7 +197,7 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
         .def("FindElement", &BruteForcePointLocator::FindElement)
         .def("FindCondition", &BruteForcePointLocator::FindCondition)
         ;
-    
+
 
     //isoprinter
     py::class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
@@ -256,7 +219,7 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
 //     py::class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
 //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
-//             ;    
+//             ;
 
 
     //binbased locators
@@ -300,9 +263,9 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
         .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabase)
         .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
-        ;    
+        ;
 
-    
+
     //embeded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
         .def(py::init< ModelPart&, ModelPart&, const std::string >())
@@ -320,7 +283,7 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
         .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 3 > )
         .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinArray< 3 > )
         .def("InterpolateDiscontinuousMeshVariableToSkin", InterpolateDiscontinuousMeshVariableToSkinDouble< 3 > )
-        ;  
+        ;
 
     //Geometry tester
     py::class_< GeometryTesterUtility>(m,"GeometryTesterUtility")
@@ -346,62 +309,37 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
         .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
         .def("AddVariablesToCutModelPart", &CuttingUtility::AddVariablesToCutModelPart )
         .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
-        ;     
+        ;
 
 
-    //interval utility    
+    //interval utility
     py::class_<IntervalUtility >(m,"IntervalUtility")
         .def(py::init<Parameters >())
         .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
         .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
         .def("IsInInterval", &IntervalUtility ::IsInInterval)
-        ; 
-    
-    // Adding table from table stream to python
-    py::class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
-        .def(py::init<>())
-        .def(py::init< bool >())
-        .def("SetOnProcessInfo",SetOnProcessInfo)
-        ;
-    
-    
-    // Read materials utility
-    py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-    .def(py::init<Model&>())
-    .def(py::init<Parameters, Model&>())
-    .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
-    ;
-
-
-    //sensitivity builder
-    py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
-        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
-        .def("Initialize", &SensitivityBuilder::Initialize)
-        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
-
-    
-    //OpenMP utilities
-    py::class_<OpenMPUtils >(m,"OpenMPUtils")
-        .def(py::init<>())
-        .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-    //     .staticmethod("SetNumThreads")
-        .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
-    //     .staticmethod("GetNumThreads")
-        .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-    //     .staticmethod("PrintOMPInfo")
         ;
 
-    //activation utilities
-    py::class_< ActivationUtilities >(m,"ActivationUtilities")
-        .def(py::init< >())
-        .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
-        ;    
+
+    //particle convect utility
+    py::class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
+        .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
+        .def("MoveParticles_Substepping", &ParticleConvectUtily<2>::MoveParticles_Substepping)
+        .def("MoveParticles_RK4", &ParticleConvectUtily<2>::MoveParticles_RK4)
+        ;
+
+    py::class_<ParticleConvectUtily<3> >(m,"ParticleConvectUtily3D")
+        .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
+        .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
+        .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
+        ;
+
 
 
 
     // Delaunator utilities
     auto mod_delaunator = m.def_submodule("CreateTriangleMeshFromNodes");
-    mod_delaunator.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);    
+    mod_delaunator.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
 
 
     // GeometricalTransformationUtilities
@@ -409,16 +347,7 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
 
-    // GeometricalTransformationUtilities
-    auto mod_compare_elem_cond_utils = m.def_submodule("CompareElementsAndConditionsUtility");
-    mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
-    mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
-
-
-
-
-    
 }
 
 } // namespace Python.
-} // Namespace Kratos    
+} // Namespace Kratos
