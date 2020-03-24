@@ -25,8 +25,6 @@ class EigenSolver(MechanicalSolver):
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
         diag_values = self.settings["builder_and_solver_settings"]["diagonal_values_for_dirichlet_dofs"].GetString()
-        if not diag_values == "defined_in_process_info":
-            raise Exception("The diagonal values of the BuilderAndSolver are predefined by the used eigensolver!")
         KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
 
     @classmethod
@@ -41,10 +39,7 @@ class EigenSolver(MechanicalSolver):
                 "number_of_eigenvalues" : 5,
                 "echo_level"            : 1
             },
-            "eigensolver_diagonal_values" : { },
-            "builder_and_solver_settings" : {
-                "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info"
-            }
+            "eigensolver_diagonal_values" : { }
         }""")
         this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
         return this_defaults
