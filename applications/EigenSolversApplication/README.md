@@ -60,7 +60,7 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     "echo_level": 1
 }
 ```
-If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex symmetric systems. The cmake switch `USE_FEAST4` must be set to `ON` and the location of the compiled FEAST library has to be specified using `FEAST4_ROOT`, e.g.
+If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex systems (symmetric or unsymmetric). The cmake switch `USE_FEAST4` must be set to `ON` and the location of the compiled FEAST library has to be specified using `FEAST4_ROOT`, e.g.
 ```batch
 -DUSE_FEAST4=ON \
 -DFEAST4_ROOT=/home/me/compiled/FEAST/4.0 \
@@ -70,6 +70,7 @@ If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~p
 ```json
 {
     "solver_type": "eigen_feast",
+    "symmetric": true,
     "number_of_eigenvalues": 3,
     "search_lowest_eigenvalues": true,
     "e_min" : 0.0,
@@ -173,8 +174,8 @@ apt-get update -y
 apt-get install -y intel-mkl-2020.0-088
 ```
 
-To enable the MKL environment use 
-    
+To enable the MKL environment use
+
 ```bash
 source /opt/intel/compilers_and_libraries_2020.0.166/linux/mkl/bin/mklvars.sh intel64 lp64
 ```
