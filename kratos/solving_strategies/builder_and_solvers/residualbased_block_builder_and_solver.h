@@ -1579,9 +1579,7 @@ protected:
             case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
                 ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
                 KRATOS_ERROR_IF_NOT(r_current_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
-                const double scale_factor = r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
-                KRATOS_ERROR_IF(scale_factor < std::numeric_limits<double>::epsilon()) << "Scale factor of the diagonal cannot be zero or almost zero" << std::endl;
-                return scale_factor;
+                return r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
             }
             case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
                 return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
