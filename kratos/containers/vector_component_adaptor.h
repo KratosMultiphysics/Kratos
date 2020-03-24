@@ -72,6 +72,8 @@ public:
 
     typedef Variable<TVectorType>  SourceVariableType;
 
+    typedef VectorComponentAdaptor<TVectorType> AdaptorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -113,6 +115,15 @@ public:
     static VectorComponentAdaptor const& StaticObject()
     {
         return msStaticObject;
+    }
+
+    /**
+     * @brief This method returns the time derivative variable
+     * @return The reference of the time derivative variable (if any)
+     */
+    const SourceVariableType& GetSourceTimeDerivative() const
+    {
+        return mpSourceVariable->GetTimeDerivative();
     }
 
     ///@}
