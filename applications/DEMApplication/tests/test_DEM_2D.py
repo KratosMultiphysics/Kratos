@@ -35,20 +35,21 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super(DEM2DTestSolution, self).FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
             if node.Id == 1:
-                if time > 0.2:
+                if self.time > 0.2:
                     expected_value = 6.076801447242313
                     self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id == 2:
-                if time > 0.2:
+                if self.time > 0.2:
                     expected_value = 8.604163136887411
                     self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id == 3:
-                if time > 0.2:
+                if self.time > 0.2:
                     expected_value = 10.016439272775422
                     self.CheckValueOfVelocity(normal_impact_vel, expected_value, tolerance)
 

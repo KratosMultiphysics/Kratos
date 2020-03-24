@@ -40,12 +40,6 @@
         ],
         "time_stepping": {
             "time_step": 25.0
-        },
-        "rom_settings": {
-            "nodal_unknowns": [
-                "TEMPERATURE"
-            ],
-            "number_of_rom_dofs": 28
         }
     },
     "processes": {

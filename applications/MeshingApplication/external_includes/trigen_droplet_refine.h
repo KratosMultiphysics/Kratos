@@ -16,10 +16,7 @@
 // System includes
 
 // External includes
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/define.h"
