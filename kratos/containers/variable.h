@@ -271,7 +271,7 @@ public:
 
     /**
      * @brief This method returns the time derivative variable
-     * @return The pointer of the time derivative variable (if any)
+     * @return The reference of the time derivative variable (if any)
      */
     const VariableType& GetTimeDerivative() const
     {
