@@ -13,7 +13,7 @@ def GetMethod(item_norm_container, method_name):
     method_names_list = [method_info_list[i][0] for i in range(len(method_info_list))]
     method_list = [method_info_list[i][1] for i in range(len(method_info_list))]
 
-    if (method_name not in method_names_list):
+    if method_name not in method_names_list:
         msg = "Unknown method name [ \"method_name\" = \"" + method_name + "\" ]\n"
         msg += "Allowed method names are:\n    "
         msg += "\n    ".join(sorted(method_names_list))
