@@ -45,6 +45,15 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    /// Definition of the size type
+    typedef std::size_t SizeType;
+
+    /// DoF array type definition
+    typedef ModelPart::DofsArrayType DofsArrayType;
+
+    /// Data type definition
+    typedef typename TSparseSpace::DataType TDataType;
+
     ///@}
     ///@name Life Cycle
 
@@ -120,6 +129,14 @@ public:
 
         // Debugging info
         BaseType::EchoInfo(iteration_number);
+
+        const double absolute_residual_norm = CalculateResidualNorm(r_model_part, r_dof_set, rb);
+        const double relaxation_factor = ComputeRelaxationFactor(absolute_residual_norm);
+        KRATOS_INFO("Absolute norm = ") << absolute_residual_norm << std::endl;
+        KRATOS_INFO("Relaxation factor = ") << relaxation_factor << std::endl;
+        KRATOS_WATCH(rDx(692))
+        rDx *= relaxation_factor;
+        KRATOS_WATCH(rDx(692))
 
         // Updating the results stored in the database
         UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -197,6 +214,14 @@ public:
             // Debugging info
             BaseType::EchoInfo(iteration_number);
 
+            const double absolute_residual_norm = CalculateResidualNorm(r_model_part, r_dof_set, rb);
+            const double relaxation_factor = ComputeRelaxationFactor(absolute_residual_norm);
+            KRATOS_INFO("Absolute norm = ") << absolute_residual_norm << std::endl;
+            KRATOS_INFO("Relaxation factor = ") << relaxation_factor << std::endl;
+            KRATOS_WATCH(rDx(692))
+            rDx *= relaxation_factor;
+            KRATOS_WATCH(rDx(692))
+
             // Updating the results stored in the database
             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
@@ -269,6 +294,58 @@ virtual void UpdateDatabase(
 
 
 private:
+
+    /**
+     * @brief This method computes the norm of the residual
+     * @details It checks if the dof is fixed
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rResidualSolutionNorm The norm of the residual
+     * @param rDofNum The number of DoFs
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rb RHS vector (residual + reactions)
+     */
+    double CalculateResidualNorm(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemVectorType& rb
+        )
+    {
+        // Initialize
+        TDataType residual_solution_norm = TDataType();
+        SizeType dof_num = 0;
+
+        // Auxiliar values
+        TDataType residual_dof_value = 0.0;
+        const auto it_dof_begin = rDofSet.begin();
+        const int number_of_dof = static_cast<int>(rDofSet.size());
+
+        // Loop over Dofs
+        #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
+        for (int i = 0; i < number_of_dof; i++) {
+            auto it_dof = it_dof_begin + i;
+
+            if (!it_dof->IsFixed()) {
+                const IndexType dof_id = it_dof->EquationId();
+                residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
+                residual_solution_norm += std::pow(residual_dof_value, 2);
+                dof_num++;
+            }
+        }
+
+        KRATOS_INFO("Current norm = ") << std::sqrt(residual_solution_norm) << std::endl;
+        KRATOS_INFO("System size = ") << (double)dof_num << std::endl;
+        return std::sqrt(residual_solution_norm) / (double)dof_num;
+    }
+
+    double ComputeRelaxationFactor(const double& rAbsoluteResidualNorm)
+    {
+        if(rAbsoluteResidualNorm < 1e-4){
+            return 1.0;
+        }
+        else{
+            return 0.5;
+        }
+    }
 
 
 }; /* Class UpwindResidualBasedNewtonRaphsonStrategy */
