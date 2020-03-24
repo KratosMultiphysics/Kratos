@@ -33,7 +33,7 @@ namespace Python
     {
         py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str(),py::buffer_protocol());
         binder.def(py::init<>());
-        binder.def(py::init<cons TMatrixType&>());
+        binder.def(py::init<const TMatrixType&>());
 
         //binder.def(py::init<std::TMatrixType& >())
         binder.def("Size1", [](const TMatrixType& self){return self.size1();} );
