@@ -704,9 +704,7 @@ private:
             "name"                  : "ResidualBasedBDFCustomScheme",
             "domain_size"           : 3,
             "integration_order"     : 2,
-            "variable"              : ["DISPLACEMENT"],
-            "first_derivative"      : ["VELOCITY"],
-            "second_derivative"     : ["ACCELERATION"]
+            "solution_variables"    : ["DISPLACEMENT"]
         })" );
 
         return default_parameters;
