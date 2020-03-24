@@ -24,7 +24,6 @@ class EigenSolver(MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
-        diag_values = self.settings["builder_and_solver_settings"]["diagonal_values_for_dirichlet_dofs"].GetString()
         KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
 
     @classmethod
