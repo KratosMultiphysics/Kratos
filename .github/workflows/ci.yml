@@ -29,6 +29,10 @@ jobs:
         FC: gfortran-7
 
     steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
     - uses: actions/checkout@v2
 
     - name: Cache Build
@@ -49,6 +53,7 @@ jobs:
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -100,6 +105,7 @@ jobs:
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
 
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"

@@ -133,6 +133,11 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -254,11 +259,6 @@ private:
      * @brief This divides the gradient value by the nodal area
      */
     void PonderateGradient();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters() const;
 
     ///@}
     ///@name Private  Access

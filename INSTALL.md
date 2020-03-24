@@ -347,7 +347,7 @@ Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
 
 Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
 
-`-DTRILINOS_PREFIX=String`
+`-DTRILINOS_LIBRARY_PREFIX=String`
 Indicates the prefix of the trilinos libraries in case they have:
 ```
 libepetra.so          -> No prefix
