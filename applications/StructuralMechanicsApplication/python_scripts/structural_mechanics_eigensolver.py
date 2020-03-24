@@ -41,10 +41,10 @@ class EigenSolver(MechanicalSolver):
                 "number_of_eigenvalues" : 5,
                 "echo_level"            : 1
             },
-            "eigensolver_diagonal_values : { },
+            "eigensolver_diagonal_values" : { },
             "builder_and_solver_settings" : {
                 "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info"
-            },
+            }
         }""")
         this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
         return this_defaults
