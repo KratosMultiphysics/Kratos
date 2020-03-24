@@ -53,6 +53,7 @@ namespace Kratos
  * @class Variable
  * @brief Variable class contains all information needed to store and retrive data from a data container.
  * @details Variable class contains all information needed to store and retrive data from a data container.  It contains key value which is needed for searching in data container. Also a zero value to use as a default value in the container. Finally it has the type of the Variable as its template parameter so the container can find it in its relative part.
+* @tparam TDataType The data type hold by the variable
 * @ingroup KratosCore
 * @author Pooyan Dadvand
 */
