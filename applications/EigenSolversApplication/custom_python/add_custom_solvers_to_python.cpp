@@ -191,8 +191,18 @@ void AddCustomSolversToPython(pybind11::module& m)
 
     register_eigensystem_solver<EigensystemSolver<>>(m, "EigensystemSolver");
 #if defined USE_FEAST4
-    register_eigensystem_solver<FEASTEigensystemSolver<>>(m, "FEASTEigensystemSolver");
-    register_eigensystem_solver<FEASTEigensystemSolver<complex>>(m, "ComplexFEASTEigensystemSolver");
+    register_eigensystem_solver<FEASTEigensystemSolver<true, double, double>>(m, "FEASTSymmetricEigensystemSolver");
+
+    typedef FEASTEigensystemSolver<false, double, complex> FEASTGeneralEigenSystemSolverType;
+    typedef LinearSolver<TUblasSparseSpace<double>, TUblasDenseSpace<double>> Base;
+    pybind11::class_<FEASTGeneralEigenSystemSolverType, typename FEASTGeneralEigenSystemSolverType::Pointer, Base >
+        (m, "FEASTGeneralEigensystemSolver")
+        .def(pybind11::init<Parameters>())
+        .def("Solve", &FEASTGeneralEigenSystemSolverType::Solve)
+    ;
+
+    register_eigensystem_solver<FEASTEigensystemSolver<true, complex, complex>>(m, "ComplexFEASTSymmetricEigensystemSolver");
+    register_eigensystem_solver<FEASTEigensystemSolver<false, complex, complex>>(m, "ComplexFEASTGeneralEigensystemSolver");
 #endif
 }
 
