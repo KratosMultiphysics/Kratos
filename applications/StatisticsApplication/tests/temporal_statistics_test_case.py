@@ -1,6 +1,3 @@
-import KratosMultiphysics as Kratos
-
-import KratosMultiphysics.StatisticsApplication as KratosStats
 from KratosMultiphysics.StatisticsApplication.test_utilities import HistoricalRetrievalMethod
 from KratosMultiphysics.StatisticsApplication.test_utilities import NonHistoricalRetrievalMethod
 
@@ -43,8 +40,9 @@ class TemporalStatisticsTestCase(statistics_test_case.StatisticsTestCase):
 
     def RunTemporalStatisticsTest(self, norm_type, container_name):
         raise Exception(
-            "Calling base class RunTemporalStatisticsTest method. Please implement it in derrived class"
-        )
+            "Calling base class RunTemporalStatisticsTest method in " +
+            str(self.__class__.__name__) +
+            ". Please implement it in derrived class")
 
 
 class TemporalStatisticsValueTestCases(TemporalStatisticsTestCase):
