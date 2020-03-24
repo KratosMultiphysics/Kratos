@@ -33,6 +33,7 @@ namespace Python
     {
         py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str(),py::buffer_protocol());
         binder.def(py::init<>());
+        binder.def(py::init<cons TMatrixType&>());
 
         //binder.def(py::init<std::TMatrixType& >())
         binder.def("Size1", [](const TMatrixType& self){return self.size1();} );
@@ -62,7 +63,6 @@ namespace Python
         //inplace versions
         binder.def("__imul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1*=value; return m1;}, py::is_operator());
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, py::is_operator());
-        binder.def("copy", [](const TMatrixType& self){TMatrixType aux(self.size1(), self.size2()); for (std::size_t i = 0; i < self.size1(); ++i) {for (std::size_t j = 0; j < self.size2(); ++j) {aux(i,j) = self(i,j);}}; return aux;} );
         binder.def("__str__", PrintObject<TMatrixType>);
         return std::move(binder);
     }
