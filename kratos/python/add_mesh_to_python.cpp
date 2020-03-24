@@ -290,14 +290,19 @@ template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
         const Variable<array_1d<double,3> >& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    std::vector<array_1d<double, 3>> Output;
-    dummy.CalculateOnIntegrationPoints(rVariable, Output, rCurrentProcessInfo);
-    pybind11::list result;
-    for (unsigned int j = 0; j < Output.size(); j++)
+    pybind11::list values_list;
+    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
+                dummy.GetIntegrationMethod() );
+    std::vector<array_1d<double,3> > values( integration_points.size() );
+    dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    for( unsigned int i=0; i<values.size(); i++ )
     {
-        result.append(Output[j]);
+        pybind11::list integration_point_value;
+        for( int j=0; j<3; j++ )
+            integration_point_value.append( values[i][j] );
+        values_list.append( integration_point_value );
     }
-    return result;
+    return( values_list );
 }
 
 template< class TObject >
