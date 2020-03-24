@@ -108,16 +108,16 @@ namespace Kratos
 		y_cell_coarse[mNumberOfDivisions[1]]=true;
 		z_cell_coarse[mNumberOfDivisions[2]]=true;
 
-		for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
-			for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
-				for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
+		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
 					double color = mColors.GetElementalColor(i,j,k);
 					auto face_color = mColors.GetElementalFaceColor(i,j,k);
-					if(color != mColors.GetElementalColor(i-1,j,k))
+					if((i > 0) && (color != mColors.GetElementalColor(i-1,j,k)))
 						x_cell_coarse[i]=true;
-					if(color != mColors.GetElementalColor(i,j-1,k))
+					if((j > 0) && (color != mColors.GetElementalColor(i,j-1,k)))
 						y_cell_coarse[j]=true;
-					if(color != mColors.GetElementalColor(i,j,k-1))
+					if((k > 0) && (color != mColors.GetElementalColor(i,j,k-1)))
 						z_cell_coarse[k]=true;
 
 					auto& previous_x_face_color = mColors.GetElementalFaceColor(i-1, j,k);
