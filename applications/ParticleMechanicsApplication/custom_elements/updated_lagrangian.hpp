@@ -514,7 +514,8 @@ protected:
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
-                                    const double& rIntegrationWeight);
+                                    const double& rIntegrationWeight,
+                                    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the vectors of the RHS

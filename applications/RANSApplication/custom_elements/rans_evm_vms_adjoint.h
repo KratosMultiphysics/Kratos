@@ -34,7 +34,7 @@ namespace Kratos
  * @see VMS monolithic fluid element
  */
 template <unsigned int TDim, class TRANSEvmVMSAdjointData, unsigned int TNumNodes = TDim + 1>
-class RANSEvmVMSAdjoint : public VMSAdjointElement<TDim>
+class KRATOS_API(RANS_APPLICATION) RANSEvmVMSAdjoint : public VMSAdjointElement<TDim>
 {
 public:
     ///@name Type Definitions

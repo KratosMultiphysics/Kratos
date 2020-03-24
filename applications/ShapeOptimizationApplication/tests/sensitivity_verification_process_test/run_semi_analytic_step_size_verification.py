@@ -21,6 +21,7 @@ kratos_response_settings = KM.Parameters("""
     "stress_treatment"  : "mean",
     "primal_settings"   : "primal_parameters.json",
     "adjoint_settings"  : "auto",
+    "primal_data_transfer_with_python": true,
     "sensitivity_settings" : {
         "sensitivity_model_part_name"     : "Parts_structure",
         "nodal_solution_step_sensitivity_variables"     : ["SHAPE_SENSITIVITY"],
