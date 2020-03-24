@@ -94,11 +94,10 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         bool OverwriteDiagonalValues,
         double MassMatrixDiagonalValue,
-        double StiffnessMatrixDiagonalValue, 
+        double StiffnessMatrixDiagonalValue,
         bool ComputeModalDecompostion = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart), 
-            mOverwriteDiagonalValues(OverwriteDiagonalValues),
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
             mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
             mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
             mComputeModalDecompostion(ComputeModalDecompostion)
@@ -388,7 +387,7 @@ public:
         KRATOS_TRY;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         SchemePointerType& pScheme = this->pGetScheme();
         SparseMatrixType& rMassMatrix = this->GetMassMatrix();
@@ -396,11 +395,11 @@ public:
 
         // Initialize dummy rhs vector
         SparseVectorType b;
-        SparseVectorType Dx;
+        SparseVectorType dx;
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
-        SparseSpaceType::Resize(Dx,SparseSpaceType::Size1(rMassMatrix));
+        SparseSpaceType::Resize(dx,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
-        SparseSpaceType::Set(Dx,0.0);
+        SparseSpaceType::Set(dx,0.0);
 
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
@@ -409,10 +408,9 @@ public:
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
 
-        if (mOverwriteDiagonalValues) {
-            ApplyDirichletConditions(rMassMatrix, mMassMatrixDiagonalValue);
-        }
-        
+        r_current_process_info[BUILD_SCALE_FACTOR] = mMassMatrixDiagonalValue;
+        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rMassMatrix, dx, b);
+
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
         }
@@ -424,9 +422,8 @@ public:
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
 
-        if (mOverwriteDiagonalValues) {
-            ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
-        }
+        r_current_process_info[BUILD_SCALE_FACTOR] = mStiffnessMatrixDiagonalValue;
+        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rStiffnessMatrix, dx, b);
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
@@ -444,7 +441,7 @@ public:
                 Eigenvalues,
                 Eigenvectors);
 
-        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
 
@@ -573,10 +570,9 @@ private:
 
     bool mInitializeWasPerformed = false;
 
-    bool mOverwriteDiagonalValues = true;
     double mMassMatrixDiagonalValue = 0.0;
     double mStiffnessMatrixDiagonalValue = 1.0;
-    
+
     bool mComputeModalDecompostion = false;
 
     ///@}
@@ -586,93 +582,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /// Apply Dirichlet boundary conditions without modifying dof pattern.
-    /**
-     *  The dof pattern is preserved to support algebraic multigrid solvers with
-     *  component-wise aggregation. Rows and columns of the fixed dofs are replaced
-     *  with zeros on the off-diagonal and the diagonal is scaled by factor.
-     */
-    void ApplyDirichletConditions(
-        SparseMatrixType& rA,
-        double Factor)
-    {
-        KRATOS_TRY
-
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Entering ApplyDirichletConditions" << std::endl;
-
-        const std::size_t SystemSize = rA.size1();
-        std::vector<double> ScalingFactors(SystemSize);
-        auto& rDofSet = this->pGetBuilderAndSolver()->GetDofSet();
-        const int NumDofs = static_cast<int>(rDofSet.size());
-
-        // NOTE: dofs are assumed to be numbered consecutively
-        #pragma omp parallel for firstprivate(NumDofs)
-        for(int k = 0; k<NumDofs; k++)
-        {
-            auto dof_iterator = std::begin(rDofSet) + k;
-            ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
-        }
-
-        double* AValues = std::begin(rA.value_data());
-        std::size_t* ARowIndices = std::begin(rA.index1_data());
-        std::size_t* AColIndices = std::begin(rA.index2_data());
-
-        // if there is a line of all zeros, put one on the diagonal
-        // #pragma omp parallel for firstprivate(SystemSize)
-        // for(int k = 0; k < static_cast<int>(SystemSize); ++k)
-        // {
-        //     std::size_t ColBegin = ARowIndices[k];
-        //     std::size_t ColEnd = ARowIndices[k+1];
-        //     bool empty = true;
-        //     for (auto j = ColBegin; j < ColEnd; ++j)
-        //         if(AValues[j] != 0.0)
-        //         {
-        //             empty = false;
-        //             break;
-        //         }
-        //     if(empty == true)
-        //         rA(k,k) = 1.0;
-        // }
-
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
-        {
-            std::size_t ColBegin = ARowIndices[k];
-            std::size_t ColEnd = ARowIndices[k+1];
-            if (ScalingFactors[k] == 0.0)
-            {
-                // row dof is fixed. zero off-diagonal columns and factor diagonal
-                for (std::size_t j = ColBegin; j < ColEnd; ++j)
-                {
-                    if (static_cast<int>(AColIndices[j]) != k)
-                    {
-                        AValues[j] = 0.0;
-                    }
-                    else
-                    {
-                        AValues[j] *= Factor;
-                    }
-                }
-            }
-            else
-            {
-                // row dof is not fixed. zero columns associated with fixed dofs
-                for (std::size_t j = ColBegin; j < ColEnd; ++j)
-                {
-                    AValues[j] *= ScalingFactors[AColIndices[j]];
-                }
-            }
-        }
-
-        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
-            <<  "Exiting ApplyDirichletConditions" << std::endl;
-
-        KRATOS_CATCH("")
-    }
 
     /// Assign eigenvalues and eigenvectors to kratos variables.
     void AssignVariables(DenseVectorType& rEigenvalues, DenseMatrixType& rEigenvectors)
