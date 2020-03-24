@@ -27,9 +27,9 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
-#include "includes/cfd_variables.h"                             // AM: Devo modificare questo file? NON MODIFICATO
-#include "fluid_dynamics_application_variables.h"       // AM: Devo modificare questo file? odificato
-//  #include "shallow_water_application_variables.h"    // AM: Cosa includo io qua?
+#include "includes/cfd_variables.h"                     
+#include "fluid_dynamics_application_variables.h"       
+
 
 
 namespace Kratos
@@ -226,6 +226,20 @@ public:
         if (mReformDofSetAtEachStep == true) this->Clear();
 
         auto& r_model_part = BaseType::GetModelPart();
+        
+        // Properties& r_properties = this->GetProperties();
+
+        // double c_v      = r_properties.GetValue(SPECIFIC_HEAT);
+        // double gamma    = r_properties.GetValue(HEAT_CAPACITY_RATIO);
+
+        double c_v      = 722;
+        double gamma    = 1.4;
+
+        double ro0      = 1.225;
+        double c        = 600;
+        double cp       = gamma*c_v;
+
+
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
@@ -236,9 +250,22 @@ public:
             array_1d<double,3> mom = it_node->FastGetSolutionStepValue(MOMENTUM);
             double ene = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
 
+            double k = (den - ro0)/ro0; 
+
+            double vel = norm_2(mom)/den;
+
             noalias(it_node->FastGetSolutionStepValue(VELOCITY)) = mom/den;
 
-            //it_node->FastGetSolutionStepValue(MACH)
+            double gammas = (cp + k * c)/(c_v + k * c);
+            double cvs = (c_v + k * c)/(1 + k);
+
+            double amount = ene - 0.5*(mom[0]*mom[0] + mom[1]*mom[1] + mom[2]*mom[2])/den;
+            double sound_speed = sqrt(gammas*(gammas - 1)*amount/den);
+            
+            it_node->FastGetSolutionStepValue(PRESSURE) = (gamma - 1) * amount;
+            it_node->FastGetSolutionStepValue(TEMPERATURE) = (1.0/(den * cvs)) * amount;
+
+            it_node->FastGetSolutionStepValue(MACH) = vel/sound_speed;
 
         }
 
