@@ -80,17 +80,17 @@ class FEASTEigensystemSolver
         mParam.ValidateAndAssignDefaults(default_params);
 
         KRATOS_ERROR_IF( mParam["number_of_eigenvalues"].GetInt() < 0 ) <<
-            "Invalid number of eigenvalues provided\n";
+            "Invalid number of eigenvalues provided" << std::endl;
 
         KRATOS_ERROR_IF( mParam["subspace_size"].GetInt() < 0 ) <<
-            "Invalid subspace size provided\n";
+            "Invalid subspace size provided" << std::endl;
 
         KRATOS_ERROR_IF( mParam["max_iteration"].GetInt() < 1 ) <<
-            "Invalid maximal number of iterations provided\n";
+            "Invalid maximal number of iterations provided" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
-            "Manually defined subspace size will be overwritten to match the defined number of eigenvalues\n";
+            "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
 
         const TScalarOut T = {};
         CheckParameters(T);
@@ -210,9 +210,10 @@ class FEASTEigensystemSolver
         auto feast = CallFeast(Ti, TSymmetric);
         feast(&UPLO, &N, A, IA.data(), JA.data(), B, IB.data(), JB.data(), fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
 
-        KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output.\n";
-        KRATOS_INFO_IF("FeastEigensystemSolver", info > 0 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
-        KRATOS_ERROR_IF(info == 7) << "FEAST finished with warning " << info << ", no extremal eigenvalues could be found. Please check FEAST output.\n";
+        KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output." << std::endl;
+        KRATOS_INFO_IF("FeastEigensystemSolver", info > 1 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output." << std::endl;
+        KRATOS_ERROR_IF(info == 1) << "FEAST finished with warning " << info << ", no eigenvalues could be found in the given search interval." << std::endl;
+        KRATOS_ERROR_IF(info == 7) << "FEAST finished with warning " << info << ", no extremal eigenvalues could be found. Please check FEAST output." << std::endl;
 
         // copy eigenvectors back to the provided row based matrix
         noalias(rEigenvectors) = tmp_eigenvectors;
@@ -289,28 +290,28 @@ class FEASTEigensystemSolver
     void CheckParameters(double T)
     {
         KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Cannot search for highest and lowest eigenvalues at the same time\n";
+            "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
 
         KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
-            "Invalid eigenvalue limits provided\n";
+            "Invalid eigenvalue limits provided" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
-            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices\n";
+            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
     }
 
     void CheckParameters(std::complex<double> T)
     {
         KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
-            "Invalid search radius provided\n";
+            "Invalid search radius provided" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
-            "Manually defined e_min, e_max are not used for complex symmetric matrices\n";
+            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Search for extremal eigenvalues is only available for Hermitian problems\n";
+            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
 
     }
 
