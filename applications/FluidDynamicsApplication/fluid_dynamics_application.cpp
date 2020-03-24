@@ -228,11 +228,11 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous2D3N",mEmbeddedQSVMSDiscontinuous2D3N);
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous3D4N",mEmbeddedQSVMSDiscontinuous3D4N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
-    KRATOS_REGISTER_ELEMENT("iStokes2D3N",mStokes2D3N);
-    KRATOS_REGISTER_ELEMENT("iStokes2D4N",mStokes2D4N);
-    KRATOS_REGISTER_ELEMENT("iStokes3D4N",mStokes3D4N);// Just to avoid name conflict i is used, ll be removed
-    KRATOS_REGISTER_ELEMENT("iStokes3D6N",mStokes3D6N);
-    KRATOS_REGISTER_ELEMENT("NewStokes3D8N",mStokes3D8N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D3N",mStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D4N",mStokes2D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D4N",mStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D6N",mStokes3D6N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D8N",mStokes3D8N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMSLinearizedDarcy3D",mTwoFluidVMSLinearizedDarcy3D);
 
 
