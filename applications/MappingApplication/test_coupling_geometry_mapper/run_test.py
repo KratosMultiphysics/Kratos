@@ -15,8 +15,12 @@ current_model = KM.Model()
 model_part_origin = current_model.CreateModelPart("origin")
 model_part_destination = current_model.CreateModelPart("destination")
 
-ReadModelPart(model_part_origin, "../tests/mdpa_files/blade_quad")
-ReadModelPart(model_part_destination, "../tests/mdpa_files/blade_tri")
+model_part_coupling = current_model.CreateModelPart("coupling")
+
+ReadModelPart(model_part_origin, "../coupled_cantilever/domainA.gid/domainA")
+ReadModelPart(model_part_destination, "../coupled_cantilever/domainB.gid/domainB")
+
+KratosMapping.IntersectionUtilities.FindIntersection1DGeometries2D(model_part_origin, model_part_destination, model_part_coupling)
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
@@ -25,4 +29,7 @@ mapper_params = KM.Parameters("""{
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
 
-# mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
+for node in model_part_origin.Nodes:
+    node.SetSolutionStepValue(KM.DISPLACEMENT_X, 1.0, model_part_origin.ProcessInfo)
+
+mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
