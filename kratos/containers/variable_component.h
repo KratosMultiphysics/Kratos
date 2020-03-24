@@ -125,15 +125,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief This method returns the time derivative variable
-     * @return The reference of the time derivative variable (if any)
-     */
-    const SourceVariableType& GetSourceTimeDerivative() const
-    {
-        return mAdaptor.GetSourceTimeDerivative();
-    }
-
     ///@}
     ///@name Access
     ///@{

@@ -117,15 +117,6 @@ public:
         return msStaticObject;
     }
 
-    /**
-     * @brief This method returns the time derivative variable
-     * @return The reference of the time derivative variable (if any)
-     */
-    const SourceVariableType& GetSourceTimeDerivative() const
-    {
-        return mpSourceVariable->GetTimeDerivative();
-    }
-
     ///@}
     ///@name Access
     ///@{
