@@ -280,16 +280,6 @@ public:
     }
 
     /**
-     * @brief This method returns the second time derivative variable
-     * @return The pointer of the second time derivative variable (if any)
-     */
-    const VariableType& GetSecondTimeDerivative() const
-    {
-        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
-        return mpTimeDerivativeVariable->GetTimeDerivative();
-    }
-
-    /**
      * @brief This method returns the zero value of the variable type
      * @return The zero value of the corresponding variable
      */
