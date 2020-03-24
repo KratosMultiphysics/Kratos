@@ -29,7 +29,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
                 "mach_number_limit": 0.94,
-                "initialize_flow_field": true
+                "initialize_flow_field": true,
+                "perturbation_field": false
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
 
@@ -45,6 +46,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
         self.mach_number_limit = settings["mach_number_limit"].GetDouble()
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
+        self.perturbation_field = settings["perturbation_field"].GetBool()
+        if(self.perturbation_field):
+            self.initialize_flow_field = False
 
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
@@ -61,7 +65,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
 
     def ExecuteInitializeSolutionStep(self):
-        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
+        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)
         far_field_process.Execute()
 
         # self.Execute()
@@ -111,7 +115,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):
         for node in cond.GetNodes():
             # Computing the value of the potential at the inlet
-            inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
+            if(self.perturbation_field):
+                inlet_potential = 0.0
+            else:
+                inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
 
             # Fixing the potential at the inlet nodes
             node.Fix(CPFApp.VELOCITY_POTENTIAL)
