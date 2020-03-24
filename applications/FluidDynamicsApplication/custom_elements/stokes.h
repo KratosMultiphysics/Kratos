@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Daniel Diez
-//  Co-authors:      Ruben Zorrilla
+//  Main author:
+//  Co-authors:
 //
 
 #if !defined(KRATOS_STOKES)
@@ -30,15 +30,8 @@ namespace Kratos
 {
 
 /*The "Stokes" element is an element based on the Variational Multiscale Stabilization technique (VMS)
-*
-* A distinctive feature of the element is the use of 4 LOCAL enrichment functions, which allows to model
-* a discontinuity in both the pressure field and in its gradient.
-* The enrichment functions are obtained by duplicating all of the degrees of freedom of the element.
-* Since the enrichment is performed elementwise, a purely local static condensation step is performed,
-* meaning that no extra degrees of freedom are added..
-*
-* Since a jump in the pressure can be considered, the element shall be able to habdle moderate changes of the viscosity
-* between the two fluids to be considered*/
+Enrichment not enabled in the formulation.
+*/
 
 ///@name Kratos Globals
 ///@{
