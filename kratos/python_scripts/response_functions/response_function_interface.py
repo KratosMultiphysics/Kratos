@@ -2,7 +2,7 @@ class ResponseFunctionInterface(object):
     """The base interface for response functions. Each response function
     is able to calculate its response value and gradient.
     """
-    
+
     def RunCalculation(self, calculate_gradient):
         self.Initialize()
         self.InitializeSolutionStep()
