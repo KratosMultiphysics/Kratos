@@ -2,7 +2,6 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeContainerArrays
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
@@ -154,11 +153,13 @@ class TemporalMaxMethodHelperClass(
         return Kratos.Parameters(settings_str)
 
 
-class TemporalMaxMagnitudeMethodTests(
+class TemporalMaxMethodTests(
         temporal_statistics_test_case.TemporalStatisticsNormTestCases,
         TemporalMaxMethodHelperClass):
     pass
 
 
 if __name__ == '__main__':
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    import KratosMultiphysics.KratosUnittest as KratosUnittest
     KratosUnittest.main()

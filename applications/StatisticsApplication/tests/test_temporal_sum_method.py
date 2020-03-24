@@ -2,109 +2,29 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.StatisticsApplication.test_utilities import HistoricalRetrievalMethod
-from KratosMultiphysics.StatisticsApplication.test_utilities import NonHistoricalRetrievalMethod
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeContainerArrays
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
-from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
-from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVariableValue
+from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
 
+import temporal_statistics_test_case
 
-class TemporalSumMethodTests(KratosUnittest.TestCase):
-    def setUp(self):
-        self.model = Kratos.Model()
-        self.model_part = self.model.CreateModelPart("test_model_part")
-        self.model_part.SetBufferSize(1)
 
-        self.__AddNodalSolutionStepVariables()
-        CreateModelPart(self.model_part)
-        InitializeModelPartVariables(self.model_part)
+class TemporalSumMethodHelperClass(
+        temporal_statistics_test_case.TemporalStatisticsTestCase):
+    def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-    def testSumHistoricalHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod, HistoricalRetrievalMethod)
+        settings = TemporalSumMethodHelperClass.__GetDefaultSettings(
+            norm_type, container_name)
+        input_method = TemporalSumMethodHelperClass.GetInputMethod(
+            container_name)
+        output_method = TemporalSumMethodHelperClass.GetOutputMethod(
+            container_name)
+        container = self.GetContainer(container_name)
 
-    def testSumHistoricalNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumHistoricalHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod, HistoricalRetrievalMethod)
-
-    def testSumHistoricalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumNodalNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumNodalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumConditionNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "condition_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Conditions,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumConditionNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "condition_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Conditions,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumElementNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "element_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Elements,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testSumElementNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalSumMethodTests.__GetDefaultSettings(
-            norm_type, "element_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Elements,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def __TestMethod(self, norm_type, settings, container, input_method,
-                     output_method):
-        factory = KratosProcessFactory(self.model)
+        factory = KratosProcessFactory(self.GetModel())
         self.process_list = factory.ConstructListOfProcesses(settings)
         InitializeProcesses(self)
 
@@ -113,7 +33,7 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
 
         for step in range(0, 12, 2):
             self.model_part.CloneTimeStep(step)
-            InitializeModelPartVariables(self.model_part)
+            InitializeModelPartVariables(self.GetModelPart())
             ExecuteProcessFinalizeSolutionStep(self)
 
             for index, item in enumerate(container):
@@ -129,13 +49,13 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
                     vec_list[index].append(current_vector)
                     mat_list[index].append(current_matrix)
 
-                analytical_method_scalar = TemporalSumMethodTests.__AnalyticalMethod(
+                analytical_method_scalar = TemporalSumMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.PRESSURE, scalar_list[index])
-                analytical_method_vec_3d = TemporalSumMethodTests.__AnalyticalMethod(
+                analytical_method_vec_3d = TemporalSumMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.VELOCITY, vec_3d_list[index])
-                analytical_method_vec = TemporalSumMethodTests.__AnalyticalMethod(
+                analytical_method_vec = TemporalSumMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.LOAD_MESHES, vec_list[index])
-                analytical_method_mat = TemporalSumMethodTests.__AnalyticalMethod(
+                analytical_method_mat = TemporalSumMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR,
                     mat_list[index])
 
@@ -216,27 +136,36 @@ class TemporalSumMethodTests(KratosUnittest.TestCase):
 
         return Kratos.Parameters(settings_str)
 
-    def __AddNodalSolutionStepVariables(self):
+    @classmethod
+    def AddVariables(cls):
         # input variables
-        self.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
+        cls.model_part.AddNodalSolutionStepVariable(
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
         # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_MEAN)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_MEAN)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_MEAN)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_MEAN)
+        cls.model_part.AddNodalSolutionStepVariable(
             Kratos.MATERIAL_PARAMETERS)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(
             Kratos.CAUCHY_STRESS_TENSOR)
 
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
 
+
+class TemporalSumMethodTests(
+        temporal_statistics_test_case.TemporalStatisticsValueTestCases,
+        temporal_statistics_test_case.TemporalStatisticsNormTestCases,
+        TemporalSumMethodHelperClass):
+    pass
 
 if __name__ == '__main__':
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    import KratosMultiphysics.KratosUnittest as KratosUnittest
     KratosUnittest.main()

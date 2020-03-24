@@ -83,7 +83,7 @@ def CreateModelPart(model_part):
     model_part.CreateNewCondition("LineCondition2D2N", 6, [6, 7], prop)
     model_part.CreateNewCondition("LineCondition2D2N", 7, [7, 1], prop)
 
-def InitializeModelPartVariables(model_part, is_random = True, is_local_variables = False):
+def InitializeModelPartVariables(model_part, is_random = True):
     if is_random:
         scalar_method = lambda item : GetRandomValue()
         array_3d_method = lambda item : GetRandomVector()

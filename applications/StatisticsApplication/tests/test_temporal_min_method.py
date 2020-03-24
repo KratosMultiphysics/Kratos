@@ -2,69 +2,27 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.StatisticsApplication.test_utilities import HistoricalRetrievalMethod
-from KratosMultiphysics.StatisticsApplication.test_utilities import NonHistoricalRetrievalMethod
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeContainerArrays
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
-from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
 
+import temporal_statistics_test_case
 
-class TemporalMinMethodTests(KratosUnittest.TestCase):
-    def setUp(self):
-        self.model = Kratos.Model()
-        self.model_part = self.model.CreateModelPart("test_model_part")
-        self.model_part.SetBufferSize(1)
 
-        self.__AddNodalSolutionStepVariables()
-        CreateModelPart(self.model_part)
-        InitializeModelPartVariables(self.model_part)
+class TemporalMinMethodHelperClass(
+        temporal_statistics_test_case.TemporalStatisticsTestCase):
+    def RunTemporalStatisticsTest(self, norm_type, container_name):
+        settings = TemporalMinMethodHelperClass.__GetDefaultSettings(
+            norm_type, container_name)
+        input_method = TemporalMinMethodHelperClass.GetInputMethod(
+            container_name)
+        output_method = TemporalMinMethodHelperClass.GetOutputMethod(
+            container_name)
+        container = self.GetContainer(container_name)
 
-    def testMinHistoricalHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMinMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod, HistoricalRetrievalMethod)
-
-    def testMinHistoricalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMinMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testMinNodalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMinMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testMinConditionNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMinMethodTests.__GetDefaultSettings(
-            norm_type, "condition_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Conditions,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testMinElementNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMinMethodTests.__GetDefaultSettings(
-            norm_type, "element_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Elements,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def __TestMethod(self, norm_type, settings, container, input_method,
-                     output_method):
-        factory = KratosProcessFactory(self.model)
+        factory = KratosProcessFactory(self.GetModel())
         self.process_list = factory.ConstructListOfProcesses(settings)
         InitializeProcesses(self)
 
@@ -90,13 +48,13 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
                     vec_list[index].append(current_vector)
                     mat_list[index].append(current_matrix)
 
-                analytical_method_scalar = TemporalMinMethodTests.__AnalyticalMethod(
+                analytical_method_scalar = TemporalMinMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.PRESSURE, scalar_list[index], step_list)
-                analytical_method_vec_3d = TemporalMinMethodTests.__AnalyticalMethod(
+                analytical_method_vec_3d = TemporalMinMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.VELOCITY, vec_3d_list[index], step_list)
-                analytical_method_vec = TemporalMinMethodTests.__AnalyticalMethod(
+                analytical_method_vec = TemporalMinMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.LOAD_MESHES, vec_list[index], step_list)
-                analytical_method_mat = TemporalMinMethodTests.__AnalyticalMethod(
+                analytical_method_mat = TemporalMinMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR,
                     mat_list[index], step_list)
 
@@ -174,7 +132,8 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
         settings_str = settings_str.replace("<TEST_CONTAINER>", container_name)
         return Kratos.Parameters(settings_str)
 
-    def __AddNodalSolutionStepVariables(self):
+    @classmethod
+    def AddVariables(self):
         # input variables
         self.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
@@ -184,7 +143,8 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
 
         # output variables for output_1
         self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
+        self.model_part.AddNodalSolutionStepVariable(
+            KratosStats.VECTOR_3D_NORM)
         self.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
         self.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
@@ -193,5 +153,13 @@ class TemporalMinMethodTests(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
 
 
+class TemporalMinMethodTests(
+        temporal_statistics_test_case.TemporalStatisticsNormTestCases,
+        TemporalMinMethodHelperClass):
+    pass
+
+
 if __name__ == '__main__':
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    import KratosMultiphysics.KratosUnittest as KratosUnittest
     KratosUnittest.main()

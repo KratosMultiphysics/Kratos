@@ -2,109 +2,29 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.StatisticsApplication.test_utilities import HistoricalRetrievalMethod
-from KratosMultiphysics.StatisticsApplication.test_utilities import NonHistoricalRetrievalMethod
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeContainerArrays
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
-from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
-from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVariableValue
+from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
 
+import temporal_statistics_test_case
 
-class TemporalVarianceMethodTests(KratosUnittest.TestCase):
-    def setUp(self):
-        self.model = Kratos.Model()
-        self.model_part = self.model.CreateModelPart("test_model_part")
-        self.model_part.SetBufferSize(1)
 
-        self.__AddNodalSolutionStepVariables()
-        CreateModelPart(self.model_part)
-        InitializeModelPartVariables(self.model_part)
+class TemporalVarianceMethodHelperClass(
+        temporal_statistics_test_case.TemporalStatisticsTestCase):
+    def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-    def testVarianceHistoricalHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod, HistoricalRetrievalMethod)
+        settings = TemporalVarianceMethodHelperClass.__GetDefaultSettings(
+            norm_type, container_name)
+        input_method = TemporalVarianceMethodHelperClass.GetInputMethod(
+            container_name)
+        output_method = TemporalVarianceMethodHelperClass.GetOutputMethod(
+            container_name)
+        container = self.GetContainer(container_name)
 
-    def testVarianceHistoricalNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceHistoricalHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod, HistoricalRetrievalMethod)
-
-    def testVarianceHistoricalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceNodalNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceNodalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceConditionNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "condition_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Conditions,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceConditionNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "condition_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Conditions,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceElementNonHistoricalValueMethod(self):
-        norm_type = "none"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "element_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Elements,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testVarianceElementNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalVarianceMethodTests.__GetDefaultSettings(
-            norm_type, "element_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Elements,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def __TestMethod(self, norm_type, settings, container, input_method,
-                     output_method):
-        factory = KratosProcessFactory(self.model)
+        factory = KratosProcessFactory(self.GetModel())
         self.process_list = factory.ConstructListOfProcesses(settings)
         InitializeProcesses(self)
 
@@ -113,7 +33,7 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
 
         for step in range(0, 12, 2):
             self.model_part.CloneTimeStep(step)
-            InitializeModelPartVariables(self.model_part)
+            InitializeModelPartVariables(self.GetModelPart())
             ExecuteProcessFinalizeSolutionStep(self)
 
             for index, item in enumerate(container):
@@ -129,19 +49,19 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
                     vec_list[index].append(current_vector)
                     mat_list[index].append(current_matrix)
 
-                analytical_method_scalar = TemporalVarianceMethodTests.__AnalyticalMethod(
+                analytical_method_scalar = TemporalVarianceMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.PRESSURE, scalar_list[index])
-                analytical_method_vec_3d = TemporalVarianceMethodTests.__AnalyticalMethod(
+                analytical_method_vec_3d = TemporalVarianceMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.VELOCITY, vec_3d_list[index])
-                analytical_method_vec = TemporalVarianceMethodTests.__AnalyticalMethod(
+                analytical_method_vec = TemporalVarianceMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.LOAD_MESHES, vec_list[index])
-                analytical_method_mat = TemporalVarianceMethodTests.__AnalyticalMethod(
+                analytical_method_mat = TemporalVarianceMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR,
                     mat_list[index])
 
                 if (norm_type == "none"):
-                    mean_method_scalar = output_method(
-                        item, KratosStats.SCALAR_MEAN)
+                    mean_method_scalar = output_method(item,
+                                                       KratosStats.SCALAR_MEAN)
                     mean_method_vec_3d = output_method(
                         item, KratosStats.VECTOR_3D_MEAN)
                     mean_method_vec = output_method(item,
@@ -157,8 +77,8 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
                     variance_method_mat = output_method(
                         item, Kratos.LOCAL_INERTIA_TENSOR)
                 else:
-                    mean_method_scalar = output_method(
-                        item, KratosStats.SCALAR_NORM)
+                    mean_method_scalar = output_method(item,
+                                                       KratosStats.SCALAR_NORM)
                     mean_method_vec_3d = output_method(
                         item, KratosStats.VECTOR_3D_NORM)
                     mean_method_vec = output_method(item, Kratos.DENSITY)
@@ -261,39 +181,47 @@ class TemporalVarianceMethodTests(KratosUnittest.TestCase):
 
         return Kratos.Parameters(settings_str)
 
-    def __AddNodalSolutionStepVariables(self):
+    @classmethod
+    def AddVariables(cls):
         # input variables
-        self.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
+        cls.model_part.AddNodalSolutionStepVariable(
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
         # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_MEAN)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_MEAN)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_MEAN)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_MEAN)
+        cls.model_part.AddNodalSolutionStepVariable(
             KratosStats.SCALAR_VARIANCE)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(
             KratosStats.VECTOR_3D_VARIANCE)
-        self.model_part.AddNodalSolutionStepVariable(
-            Kratos.MATERIAL_PARAMETERS)
-        self.model_part.AddNodalSolutionStepVariable(
-            Kratos.ELEMENTAL_DISTANCES)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.MATERIAL_PARAMETERS)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ELEMENTAL_DISTANCES)
+        cls.model_part.AddNodalSolutionStepVariable(
             Kratos.CAUCHY_STRESS_TENSOR)
-        self.model_part.AddNodalSolutionStepVariable(
+        cls.model_part.AddNodalSolutionStepVariable(
             Kratos.LOCAL_INERTIA_TENSOR)
 
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.NET_INPUT_MATERIAL)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NET_INPUT_MATERIAL)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
+
+
+class TemporalVarianceMethodTests(
+        temporal_statistics_test_case.TemporalStatisticsValueTestCases,
+        temporal_statistics_test_case.TemporalStatisticsNormTestCases,
+        TemporalVarianceMethodHelperClass):
+    pass
 
 
 if __name__ == '__main__':
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    import KratosMultiphysics.KratosUnittest as KratosUnittest
     KratosUnittest.main()
