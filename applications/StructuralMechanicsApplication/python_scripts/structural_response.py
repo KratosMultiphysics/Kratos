@@ -88,7 +88,7 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
     def GetNodalGradient(self, variable):
-        if variable != KM.SHAPE_SENSITIVITY:
+        if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.primal_model_part.Nodes:
@@ -209,7 +209,7 @@ class MassResponseFunction(ResponseFunctionInterface):
         return self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
     def GetNodalGradient(self, variable):
-        if variable != KM.SHAPE_SENSITIVITY:
+        if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))        
         gradient = {}
         for node in self.model_part.Nodes:
@@ -291,7 +291,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
     def GetNodalGradient(self, variable):
-        if variable != KM.SHAPE_SENSITIVITY:
+        if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))        
         gradient = {}
         for node in self.adjoint_model_part.Nodes:
