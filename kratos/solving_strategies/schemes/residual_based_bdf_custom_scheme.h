@@ -649,7 +649,7 @@ private:
                 if (n_second_derivative == 0) {
                     mSecondDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(second_derivative_name));
                 } else {
-                    mSecondDoubleDerivatives.push_back(&(r_var.GetSecondTimeDerivative()));
+                    mSecondDoubleDerivatives.push_back(&((r_var.GetTimeDerivative()).GetTimeDerivative()));
                 }
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 const auto& r_var = KratosComponents< Variable< array_1d< double, 3> > >::Get(variable_name);
@@ -672,7 +672,7 @@ private:
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
                 } else {
-                    const std::string auxiliar_name = (r_var.GetSecondTimeDerivative()).Name();
+                    const std::string auxiliar_name = ((r_var.GetTimeDerivative()).GetTimeDerivative()).Name();
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_X"));
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_Y"));
                 }
@@ -689,7 +689,7 @@ private:
                     if (n_second_derivative == 0) {
                         mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
                     } else {
-                        const std::string auxiliar_name = (r_var.GetSecondTimeDerivative()).Name();
+                        const std::string auxiliar_name = ((r_var.GetTimeDerivative()).GetTimeDerivative()).Name();
                         mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(auxiliar_name+"_Z"));
                     }
                 }
