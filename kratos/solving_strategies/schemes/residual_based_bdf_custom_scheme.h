@@ -197,15 +197,11 @@ public:
             } else if (domain_size == 3) { // We need to add the third component
                 const std::size_t number_variables_added = total_number_of_variables/2;
                 for (std::size_t i = 0; i < number_variables_added; ++i) {
-                    std::string variable_name = (*(mArrayVariable.begin() + 2 * i))->Name();
-                    variable_name.substr(0, variable_name.size() - 2);
-                    std::string first_derivative_name = (*(mFirstArrayDerivatives.begin() + 2 * i))->Name();
-                    first_derivative_name.substr(0, first_derivative_name.size() - 2);
-                    std::string second_derivative_name = (*(mSecondArrayDerivatives.begin() + 2 * i))->Name();
-                    second_derivative_name.substr(0, second_derivative_name.size() - 2);
-                    mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name + "_Z"));
-                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name + "_Z"));
-                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name + "_Z"));
+                    const std::string variable_name = ((*(mArrayVariable.begin() + 2 * i))->GetSourceVariable()).Name();
+                    const auto& r_var_z = KratosComponents<VariableComponent<ComponentType>>::Get(variable_name + "_Z");
+                    mArrayVariable.push_back(&r_var_z);
+                    mFirstArrayDerivatives.push_back(&(r_var_z.GetTimeDerivative()));
+                    mSecondArrayDerivatives.push_back(&((r_var_z.GetTimeDerivative()).GetTimeDerivative()));
                 }
             } else {
                 KRATOS_ERROR << "DOMAIN_SIZE can onbly be 2 or 3. It is: " << domain_size << std::endl;
@@ -616,76 +612,36 @@ private:
      */
     void CreateVariablesList(Parameters ThisParameters)
     {
-        const std::size_t n_variables = ThisParameters["variable"].size();
-        const std::size_t n_first_derivative = ThisParameters["first_derivative"].size();
-        const std::size_t n_second_derivative = ThisParameters["second_derivative"].size();
-
-        // Size check
-        KRATOS_ERROR_IF(n_variables != n_first_derivative && n_first_derivative > 0) << "Your list of variables is not the same size as the list of first derivatives variables" << std::endl;
-        KRATOS_ERROR_IF(n_variables != n_second_derivative && n_second_derivative > 0) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", n_first_derivative == 0) << "Your first derivatives variables is empty, it will be determined automatically using VariablesDerivatives" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", n_second_derivative == 0) << "Your ssecond derivatives variables is empty, it will be determined automatically using VariablesDerivatives" << std::endl;
+        const std::size_t n_variables = ThisParameters["solution_variables"].size();
 
         // The current dimension
         mDomainSize = ThisParameters["domain_size"].GetInt();
 
-        const auto variable_names = ThisParameters["variable"].GetStringArray();
-        const auto first_derivative_names = ThisParameters["first_derivative"].GetStringArray();
-        const auto second_derivative_names = ThisParameters["second_derivative"].GetStringArray();
+        const auto variable_names = ThisParameters["solution_variables"].GetStringArray();
 
         for (std::size_t p_var = 0; p_var < n_variables; ++p_var){
             const std::string& variable_name = variable_names[p_var];
-            const std::string& first_derivative_name = n_first_derivative == 0 ? "" : first_derivative_names[p_var];
-            const std::string& second_derivative_name = n_second_derivative == 0 ? "" : second_derivative_names[p_var];
 
             if(KratosComponents<Variable<double>>::Has(variable_name)){
                 const auto& r_var = KratosComponents<Variable<double>>::Get(variable_name);
                 mDoubleVariable.push_back(&r_var);
-                if (n_first_derivative == 0) {
-                    mFirstDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(first_derivative_name));
-                } else {
-                    mFirstDoubleDerivatives.push_back(&(r_var.GetTimeDerivative()));
-                }
-                if (n_second_derivative == 0) {
-                    mSecondDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(second_derivative_name));
-                } else {
-                    mSecondDoubleDerivatives.push_back(&((r_var.GetTimeDerivative()).GetTimeDerivative()));
-                }
+                mFirstDoubleDerivatives.push_back(&(r_var.GetTimeDerivative()));
+                mSecondDoubleDerivatives.push_back(&((r_var.GetTimeDerivative()).GetTimeDerivative()));
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 // Components
                 const auto& r_var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
                 const auto& r_var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y");
                 mArrayVariable.push_back(&r_var_x);
                 mArrayVariable.push_back(&r_var_y);
-
-                if (n_first_derivative == 0) {
-                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_X"));
-                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Y"));
-                } else {
-                    mFirstArrayDerivatives.push_back(&(r_var_x.GetTimeDerivative()));
-                    mFirstArrayDerivatives.push_back(&(r_var_y.GetTimeDerivative()));
-                }
-                if (n_second_derivative == 0) {
-                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
-                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
-                } else {
-                    mSecondArrayDerivatives.push_back(&((r_var_x.GetTimeDerivative()).GetTimeDerivative()));
-                    mSecondArrayDerivatives.push_back(&((r_var_y.GetTimeDerivative()).GetTimeDerivative()));
-                }
-
+                mFirstArrayDerivatives.push_back(&(r_var_x.GetTimeDerivative()));
+                mFirstArrayDerivatives.push_back(&(r_var_y.GetTimeDerivative()));
+                mSecondArrayDerivatives.push_back(&((r_var_x.GetTimeDerivative()).GetTimeDerivative()));
+                mSecondArrayDerivatives.push_back(&((r_var_y.GetTimeDerivative()).GetTimeDerivative()));
                 if (mDomainSize == 3) {
                     const auto& r_var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z");
                     mArrayVariable.push_back(&r_var_z);
-                    if (n_first_derivative == 0) {
-                        mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Z"));
-                    } else {
-                        mFirstArrayDerivatives.push_back(&(r_var_z.GetTimeDerivative()));
-                    }
-                    if (n_second_derivative == 0) {
-                        mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
-                    } else {
-                        mSecondArrayDerivatives.push_back(&((r_var_z.GetTimeDerivative()).GetTimeDerivative()));
-                    }
+                    mFirstArrayDerivatives.push_back(&(r_var_z.GetTimeDerivative()));
+                    mSecondArrayDerivatives.push_back(&((r_var_z.GetTimeDerivative()).GetTimeDerivative()));
                 }
             } else {
                 KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
