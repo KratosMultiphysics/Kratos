@@ -79,7 +79,7 @@ public:
 
     /// Copy constructor, with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
-        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
+        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
