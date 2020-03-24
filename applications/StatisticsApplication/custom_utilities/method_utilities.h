@@ -287,6 +287,14 @@ public:
     {
         return rDataItem.GetValue(rVariable);
     }
+
+    template <typename TDataType>
+    void operator()(TContainerItemType& rDataItem,
+                    const Variable<TDataType>& rVariable,
+                    const TDataType& rValue) const
+    {
+        rDataItem.SetValue(rVariable, rValue);
+    }
 };
 
 template <typename TContainerItemType>
@@ -310,6 +318,18 @@ public:
         KRATOS_TRY
 
         return rDataItem.FastGetSolutionStepValue(rVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <typename TDataType>
+    void operator()(TContainerItemType& rDataItem,
+                    const Variable<TDataType>& rVariable,
+                    const TDataType& rValue) const
+    {
+        KRATOS_TRY
+
+        rDataItem.FastGetSolutionStepValue(rVariable) = rValue;
 
         KRATOS_CATCH("");
     }

@@ -44,13 +44,12 @@ void InitializeVariables(TContainerType& rContainer,
         for (int i = 0; i < number_of_items; ++i)
         {
             TContainerItemType& r_item = *(rContainer.begin() + i);
+
             const TDataType& r_reference_value =
                 TDataRetrievalFunctor<TContainerItemType>()(r_item, rReferenceVariable);
-            TDataType& r_output_value =
-                TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
-            r_output_value = rOutputVariable.Zero();
-            MethodUtilities::DataTypeSizeInitializer<TDataType>(
-                r_output_value, r_reference_value);
+            TDataType output_value = rOutputVariable.Zero();
+            MethodUtilities::DataTypeSizeInitializer<TDataType>(output_value, r_reference_value);
+            TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable, output_value);
         }
     }
 }
@@ -67,9 +66,7 @@ void InitializeVariables(TContainerType& rContainer,
         for (int i = 0; i < number_of_items; ++i)
         {
             TContainerItemType& r_item = *(rContainer.begin() + i);
-            double& r_output_value =
-                TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable);
-            r_output_value = InitializerValue;
+            TDataStorageFunctor<TContainerItemType>()(r_item, rOutputVariable, InitializerValue);
         }
     }
 }
