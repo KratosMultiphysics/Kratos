@@ -418,12 +418,12 @@ public:
             }
         }
 
-        const DataCommunicator& r_communicator =
+        const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
         const std::vector<double> global_max_value_array =
-            r_communicator.AllGather(std::vector<double>{{global_max}});
+            r_data_communicator.AllGather(std::vector<double>{{global_max}});
         const std::vector<std::size_t> global_max_id_array =
-            r_communicator.AllGather(std::vector<std::size_t>{{global_id}});
+            r_data_communicator.AllGather(std::vector<std::size_t>{{global_id}});
 
         for (std::size_t i = 0; i < global_max_value_array.size(); ++i)
         {
@@ -483,12 +483,12 @@ public:
             }
         }
 
-        const DataCommunicator& r_communicator =
+        const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
         const std::vector<double> global_min_value_array =
-            r_communicator.AllGather(std::vector<double>{{global_min}});
+            r_data_communicator.AllGather(std::vector<double>{{global_min}});
         const std::vector<std::size_t> global_min_id_array =
-            r_communicator.AllGather(std::vector<std::size_t>{{global_id}});
+            r_data_communicator.AllGather(std::vector<std::size_t>{{global_id}});
 
         for (std::size_t i = 0; i < global_min_value_array.size(); ++i)
         {
@@ -534,13 +534,13 @@ public:
 
         std::sort(local_values.begin(), local_values.end());
 
-        const DataCommunicator& r_communicator =
+        const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
         const std::vector<std::vector<double>>& global_values =
-            r_communicator.Gatherv(local_values, 0);
+            r_data_communicator.Gatherv(local_values, 0);
 
         double median = 0.0;
-        if (r_communicator.Rank() == 0)
+        if (r_data_communicator.Rank() == 0)
         {
             const std::vector<double>& sorted_values_list =
                 MethodUtilities::SortSortedValuesList(global_values);
@@ -561,7 +561,7 @@ public:
             }
         }
 
-        r_communicator.Broadcast(median, 0);
+        r_data_communicator.Broadcast(median, 0);
         return median;
 
         KRATOS_CATCH("");
