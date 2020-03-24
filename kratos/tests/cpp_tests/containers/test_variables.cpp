@@ -45,6 +45,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestTimeDerivatives, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL((DISPLACEMENT_X.GetTimeDerivative()).Name(), "VELOCITY_X");
     KRATOS_CHECK_EQUAL(((DISPLACEMENT.GetTimeDerivative()).GetTimeDerivative()).Name(), "ACCELERATION");
     KRATOS_CHECK_EQUAL((VELOCITY.GetTimeDerivative()).Name(), "ACCELERATION");
+    KRATOS_CHECK_EQUAL((ROTATION.GetTimeDerivative()).Name(), "ANGULAR_VELOCITY");
+    KRATOS_CHECK_EQUAL((ROTATION_X.GetTimeDerivative()).Name(), "ANGULAR_VELOCITY_X");
+    KRATOS_CHECK_EQUAL(((ROTATION.GetTimeDerivative()).GetTimeDerivative()).Name(), "ANGULAR_ACCELERATION");
+    KRATOS_CHECK_EQUAL((ANGULAR_VELOCITY.GetTimeDerivative()).Name(), "ANGULAR_ACCELERATION");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
