@@ -38,3 +38,6 @@ class ResponseFunctionInterface(object):
 
     def GetElementalGradient(self, variable):
         raise NotImplementedError("GetElementalGradient needs to be implemented by the derived class")
+
+    def GetConditionalGradient(self, variable):
+        raise NotImplementedError("GetConditionalGradient needs to be implemented by the derived class")
