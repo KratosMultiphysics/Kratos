@@ -11,6 +11,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/mapping_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mapping_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mappers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     # Mappers
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/interpolative_mapper_base.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
@@ -25,6 +26,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/projection_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/geometrical_utilities/intersection_utilities.cpp
 )
 
 set(KRATOS_MAPPING_APPLICATION_SOURCES_MPI "")
