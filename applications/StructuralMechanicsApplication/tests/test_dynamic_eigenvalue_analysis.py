@@ -98,9 +98,14 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         compute_modal_decomposition = True
+        # see "structural_mechanics_eigensolver.py", values are for the "EigensystemSolver"
+        mass_matrix_diagonal_value = 0.0
+        stiffness_matrix_diagonal_value = 1.0
         eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
                                                                           eigen_scheme,
                                                                           builder_and_solver,
+                                                                          mass_matrix_diagonal_value,
+                                                                          stiffness_matrix_diagonal_value,
                                                                           compute_modal_decomposition)
         eig_strategy.SetEchoLevel(echo)
         eig_strategy.Solve()
