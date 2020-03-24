@@ -67,7 +67,7 @@ class SpatialStatisticsProcess(Kratos.Process):
 
             item_container = GetItemContainer(container_name)
             item_norm_container = GetNormTypeContainer(item_container, norm_type)
-            _ = GetMethod(item_norm_container, method_name)
+            GetMethod(item_norm_container, method_name)
 
         self.model_part_name = self.settings["model_part_name"].GetString()
 
