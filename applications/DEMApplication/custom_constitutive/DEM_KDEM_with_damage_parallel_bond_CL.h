@@ -23,7 +23,7 @@ namespace Kratos {
 
         void Check(Properties::Pointer pProp) const override;
 
-        void SetDebugPrintingOptionValue(Properties::Pointer pProp);
+        void Initialize(SphericContinuumParticle* element) override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

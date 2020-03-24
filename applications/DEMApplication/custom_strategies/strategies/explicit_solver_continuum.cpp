@@ -198,10 +198,7 @@ namespace Kratos {
 
             if (is_time_to_search_neighbours) {
 
-                CalculateMaxSearchDistance(); //Modifies r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] // Must be called before the bounding box or it uses non-existent elements
-
-	        if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
-
+                if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
                     BoundingBoxUtility();
                 } else {
                     GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
@@ -237,14 +234,10 @@ namespace Kratos {
                 r_process_info[SEARCH_CONTROL] = 1;
             }
 
-            //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-
             if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
             }
-            //}
-
         }
         //Synch this var.
         r_process_info[SEARCH_CONTROL] = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
@@ -432,8 +425,10 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
                 break;
             }
+
             double old_amplification = amplification;
-            amplification *= in_coordination_number / out_coordination_number;
+            amplification *= std::sqrt(in_coordination_number / out_coordination_number);
+
             const double max_factor_between_iterations = 1.1;
             if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
             if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
@@ -455,6 +450,7 @@ namespace Kratos {
                 KRATOS_WARNING("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
                 KRATOS_WARNING("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
             }
+            r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
         }
 
         else {
@@ -558,9 +554,12 @@ namespace Kratos {
             if (thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
         }
 
-        r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = maximum_across_threads;
-
         double& ratio = r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR];
+
+        if (maximum_across_threads > ratio) {
+            ratio = maximum_across_threads;
+        }
+
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
 
         static unsigned int counter = 0;
@@ -576,9 +575,8 @@ namespace Kratos {
             KRATOS_WARNING("DEM") <<"because the ratio is limited to that value ("<<max_ratio<<" times as introduced by "<<std::endl;
             KRATOS_WARNING("DEM") <<"the input variable 'MaxAmplificationRatioOfSearchRadius')"<<std::endl;
             KRATOS_WARNING("DEM") <<"************************************************************************"<<std::endl;
+            ratio = max_ratio;
         }
-
-        ratio = max_ratio;
 
         ++counter;
 
