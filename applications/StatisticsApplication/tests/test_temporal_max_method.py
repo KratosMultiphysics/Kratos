@@ -3,68 +3,47 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.StatisticsApplication.test_utilities import HistoricalRetrievalMethod
-from KratosMultiphysics.StatisticsApplication.test_utilities import NonHistoricalRetrievalMethod
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeContainerArrays
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
-from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
 from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeProcesses
 from KratosMultiphysics.StatisticsApplication.test_utilities import ExecuteProcessFinalizeSolutionStep
 
+import temporal_statistics_test_case
 
-class TemporalMaxMethodTests(KratosUnittest.TestCase):
-    def setUp(self):
-        self.model = Kratos.Model()
-        self.model_part = self.model.CreateModelPart("test_model_part")
-        self.model_part.SetBufferSize(1)
 
-        self.__AddNodalSolutionStepVariables()
-        CreateModelPart(self.model_part)
-        InitializeModelPartVariables(self.model_part)
+class TemporalMaxMethodHelperClass(
+        temporal_statistics_test_case.TemporalStatisticsTestCase):
+    @classmethod
+    def AddVariables(cls):
+        # input variables
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
+        cls.model_part.AddNodalSolutionStepVariable(
+            Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
-    def testMaxHistoricalHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMaxMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod, HistoricalRetrievalMethod)
+        # output variables for output_1
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
+        cls.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NET_INPUT_MATERIAL)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
 
-    def testMaxHistoricalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMaxMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_historical_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          HistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
+    def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-    def testMaxNodalNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMaxMethodTests.__GetDefaultSettings(
-            norm_type, "nodal_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Nodes,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
+        settings = TemporalMaxMethodHelperClass.__GetDefaultSettings(
+            norm_type, container_name)
+        input_method = TemporalMaxMethodHelperClass.GetInputMethod(
+            container_name)
+        output_method = TemporalMaxMethodHelperClass.GetOutputMethod(
+            container_name)
+        container = self.GetContainer(container_name)
 
-    def testMaxConditionNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMaxMethodTests.__GetDefaultSettings(
-            norm_type, "condition_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Conditions,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def testMaxElementNonHistoricalNormMethod(self):
-        norm_type = "magnitude"
-        settings = TemporalMaxMethodTests.__GetDefaultSettings(
-            norm_type, "element_non_historical")
-        self.__TestMethod(norm_type, settings, self.model_part.Elements,
-                          NonHistoricalRetrievalMethod,
-                          NonHistoricalRetrievalMethod)
-
-    def __TestMethod(self, norm_type, settings, container, input_method,
-                     output_method):
-        factory = KratosProcessFactory(self.model)
+        factory = KratosProcessFactory(self.GetModel())
         self.process_list = factory.ConstructListOfProcesses(settings)
         InitializeProcesses(self)
 
@@ -73,7 +52,7 @@ class TemporalMaxMethodTests(KratosUnittest.TestCase):
         step_list = []
         for step in range(0, 12, 2):
             self.model_part.CloneTimeStep(step)
-            InitializeModelPartVariables(self.model_part)
+            InitializeModelPartVariables(self.GetModelPart())
             ExecuteProcessFinalizeSolutionStep(self)
 
             step_list.append(step)
@@ -90,13 +69,13 @@ class TemporalMaxMethodTests(KratosUnittest.TestCase):
                     vec_list[index].append(current_vector)
                     mat_list[index].append(current_matrix)
 
-                analytical_method_scalar = TemporalMaxMethodTests.__AnalyticalMethod(
+                analytical_method_scalar = TemporalMaxMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.PRESSURE, scalar_list[index], step_list)
-                analytical_method_vec_3d = TemporalMaxMethodTests.__AnalyticalMethod(
+                analytical_method_vec_3d = TemporalMaxMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.VELOCITY, vec_3d_list[index], step_list)
-                analytical_method_vec = TemporalMaxMethodTests.__AnalyticalMethod(
+                analytical_method_vec = TemporalMaxMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.LOAD_MESHES, vec_list[index], step_list)
-                analytical_method_mat = TemporalMaxMethodTests.__AnalyticalMethod(
+                analytical_method_mat = TemporalMaxMethodHelperClass.__AnalyticalMethod(
                     norm_type, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR,
                     mat_list[index], step_list)
 
@@ -174,23 +153,11 @@ class TemporalMaxMethodTests(KratosUnittest.TestCase):
         settings_str = settings_str.replace("<TEST_CONTAINER>", container_name)
         return Kratos.Parameters(settings_str)
 
-    def __AddNodalSolutionStepVariables(self):
-        # input variables
-        self.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
-        self.model_part.AddNodalSolutionStepVariable(
-            Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
-        # output variables for output_1
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.SCALAR_NORM)
-        self.model_part.AddNodalSolutionStepVariable(KratosStats.VECTOR_3D_NORM)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.YIELD_STRESS)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.CUTTED_AREA)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.NET_INPUT_MATERIAL)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
+class TemporalMaxMagnitudeMethodTests(
+        temporal_statistics_test_case.TemporalStatisticsNormTestCases,
+        TemporalMaxMethodHelperClass):
+    pass
 
 
 if __name__ == '__main__':
