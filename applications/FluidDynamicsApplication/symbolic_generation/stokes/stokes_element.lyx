@@ -102,6 +102,11 @@ Stokes element symbolic implementation
 \end_layout
 
 \begin_layout Standard
+Modified from Two Fluid Navier-Stokes element symbolic implementation (removed
+ advection terms, enrichment terms).
+\end_layout
+
+\begin_layout Standard
 \begin_inset ERT
 status open
 
@@ -914,47 +919,6 @@ a 3x3 matrix (symmetric gradient of the test function in Voigt form)
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Formula $\mathbf{convective\_term}:=\mathbf{\left(a_{h}\cdot grad\_vh\right)^{T}}$
-\end_inset
-
- a 3x1 vector in where 
-\begin_inset Formula $\mathbf{a_{h}}$
-\end_inset
-
-is the convective velocity.
- If the option 
-\begin_inset Quotes eld
-\end_inset
-
-Picard
-\begin_inset Quotes erd
-\end_inset
-
- linearisation is set, the convective velocity is defined as a symbol 
-\begin_inset Formula $\mathbf{v_{conv}}$
-\end_inset
-
- meaning that it is treated as a constant in the automatic differenctiation.
- On the contrary, if the option 
-\begin_inset Quotes eld
-\end_inset
-
-FullNR
-\begin_inset Quotes erd
-\end_inset
-
- linearisation is set, the convective velocity is defined as 
-\begin_inset Formula $(\mathbf{v_{h}}-\mathbf{v_{mesh}})$
-\end_inset
-
- implying that 
-\begin_inset Formula $\mathbf{v_{h}}$
-\end_inset
-
- is considered in the automatic differenctiation.
-\end_layout
-
-\begin_layout Itemize
 \begin_inset Formula $\mathbf{stress}:$
 \end_inset
 
@@ -1035,17 +999,6 @@ artificial_compressibility
 
  is set as True, the artificial compressibility terms are also added to
  the residual.
-\end_layout
-
-\begin_layout Standard
-Similarly, we have the terms that correspond to the enrichment.
-\end_layout
-
-\begin_layout Itemize
-\begin_inset Formula $\mathbf{rv\_galerkin\_enriched}$
-\end_inset
-
-: functional corresponding to the enriched pressure term in Galerkin formulation.
 \end_layout
 
 \end_body
