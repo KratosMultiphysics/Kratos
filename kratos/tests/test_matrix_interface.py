@@ -15,8 +15,8 @@ class TestMatrixInterface(KratosUnittest.TestCase):
         b[1] = 2.0
         b[2] = 3.0
 
-        A2 = A.copy()
-        b2 = b.copy()
+        A2 = KM.Matrix(A)
+        b2 = KM.Vector(b)
 
         self.assertEqual(2,A2.Size1())
         self.assertEqual(3,A2.Size2())
@@ -25,6 +25,11 @@ class TestMatrixInterface(KratosUnittest.TestCase):
             self.assertEqual(b2[j], b2[j])
             for i in range(A2.Size1()):
                 self.assertEqual(A[i,j], A2[i,j])
+
+        A[0,1] = 2.0
+        self.assertEqual(1.0, A2[0,1])
+        b[0] = 2.0
+        self.assertEqual(1.0, b2[0])
 
     def test_assignement(self):
         A = KM.Matrix(2,3)
