@@ -92,15 +92,14 @@ public:
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
-        bool OverwriteDiagonalValues,
         double MassMatrixDiagonalValue,
         double StiffnessMatrixDiagonalValue,
-        bool ComputeModalDecompostion = false
+        bool ComputeModalDecomposition = false
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
             mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
             mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-            mComputeModalDecompostion(ComputeModalDecompostion)
+            mComputeModalDecompostion(ComputeModalDecomposition)
     {
         KRATOS_TRY
 
@@ -387,7 +386,6 @@ public:
         KRATOS_TRY;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         SchemePointerType& pScheme = this->pGetScheme();
         SparseMatrixType& rMassMatrix = this->GetMassMatrix();
@@ -395,11 +393,12 @@ public:
 
         // Initialize dummy rhs vector
         SparseVectorType b;
-        SparseVectorType dx;
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
-        SparseSpaceType::Resize(dx,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
-        SparseSpaceType::Set(dx,0.0);
+
+        // if the size of the Matrix is the same as the size of the dofset, then also the dirichlet-dofs are in the matrix
+        // i.e. a BlockBuilder is used
+        const bool matrix_contains_dirichlet_dofs = SparseSpaceType::Size1(rMassMatrix) == this->pGetBuilderAndSolver()->GetDofSet().size();
 
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
@@ -407,9 +406,9 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
         }
-
-        r_current_process_info[BUILD_SCALE_FACTOR] = mMassMatrixDiagonalValue;
-        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rMassMatrix, dx, b);
+        if (matrix_contains_dirichlet_dofs) {
+            this->ApplyDirichletConditions(rMassMatrix, mMassMatrixDiagonalValue);
+        }
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
@@ -422,8 +421,9 @@ public:
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
         }
 
-        r_current_process_info[BUILD_SCALE_FACTOR] = mStiffnessMatrixDiagonalValue;
-        this->pGetBuilderAndSolver()->ApplyDirichletConditions(pScheme, rModelPart, rStiffnessMatrix, dx, b);
+        if (matrix_contains_dirichlet_dofs) {
+            this->ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
+        }
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
@@ -583,6 +583,93 @@ private:
     ///@name Private Operations
     ///@{
 
+    /// Apply Dirichlet boundary conditions without modifying dof pattern.
+    /**
+     *  The dof pattern is preserved to support algebraic multigrid solvers with
+     *  component-wise aggregation. Rows and columns of the fixed dofs are replaced
+     *  with zeros on the off-diagonal and the diagonal is scaled by factor.
+     */
+    void ApplyDirichletConditions(
+        SparseMatrixType& rA,
+        double Factor)
+    {
+        KRATOS_TRY
+
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Entering ApplyDirichletConditions" << std::endl;
+
+        const std::size_t SystemSize = rA.size1();
+        std::vector<double> ScalingFactors(SystemSize);
+        auto& rDofSet = this->pGetBuilderAndSolver()->GetDofSet();
+        const int NumDofs = static_cast<int>(rDofSet.size());
+
+        // NOTE: dofs are assumed to be numbered consecutively
+        #pragma omp parallel for firstprivate(NumDofs)
+        for(int k = 0; k<NumDofs; k++)
+        {
+            auto dof_iterator = std::begin(rDofSet) + k;
+            ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
+        }
+
+        double* AValues = std::begin(rA.value_data());
+        std::size_t* ARowIndices = std::begin(rA.index1_data());
+        std::size_t* AColIndices = std::begin(rA.index2_data());
+
+        // if there is a line of all zeros, put one on the diagonal
+        // #pragma omp parallel for firstprivate(SystemSize)
+        // for(int k = 0; k < static_cast<int>(SystemSize); ++k)
+        // {
+        //     std::size_t ColBegin = ARowIndices[k];
+        //     std::size_t ColEnd = ARowIndices[k+1];
+        //     bool empty = true;
+        //     for (auto j = ColBegin; j < ColEnd; ++j)
+        //         if(AValues[j] != 0.0)
+        //         {
+        //             empty = false;
+        //             break;
+        //         }
+        //     if(empty == true)
+        //         rA(k,k) = 1.0;
+        // }
+
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
+        {
+            std::size_t ColBegin = ARowIndices[k];
+            std::size_t ColEnd = ARowIndices[k+1];
+            if (ScalingFactors[k] == 0.0)
+            {
+                // row dof is fixed. zero off-diagonal columns and factor diagonal
+                for (std::size_t j = ColBegin; j < ColEnd; ++j)
+                {
+                    if (static_cast<int>(AColIndices[j]) != k)
+                    {
+                        AValues[j] = 0.0;
+                    }
+                    else
+                    {
+                        AValues[j] *= Factor;
+                    }
+                }
+            }
+            else
+            {
+                // row dof is not fixed. zero columns associated with fixed dofs
+                for (std::size_t j = ColBegin; j < ColEnd; ++j)
+                {
+                    AValues[j] *= ScalingFactors[AColIndices[j]];
+                }
+            }
+        }
+
+        KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            <<  "Exiting ApplyDirichletConditions" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
     /// Assign eigenvalues and eigenvectors to kratos variables.
     void AssignVariables(DenseVectorType& rEigenvalues, DenseMatrixType& rEigenvectors)
     {
@@ -594,13 +681,11 @@ private:
 
         const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++)
-        {
+        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode!= rModelPart.NodesEnd(); itNode++) {
             ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
             const std::size_t NumNodeDofs = NodeDofs.size();
             Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
-            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs)
-            {
+            if (rNodeEigenvectors.size1() != NumEigenvalues || rNodeEigenvectors.size2() != NumNodeDofs) {
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
 
@@ -620,6 +705,7 @@ private:
             }
         }
     }
+
     ///
      /**
      * Computes the modal decomposition depending on the number of eigenvalues
@@ -646,7 +732,6 @@ private:
 
         KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
         KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
-
     }
 
     ///@}
