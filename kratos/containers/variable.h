@@ -378,7 +378,7 @@ private:
 
     TDataType mZero;                                        /// The zero type contains the null value of the current variable type
 
-    const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the static variable for the time derivative
+    const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
     ///@}
     ///@name Private Operators
