@@ -140,8 +140,70 @@ double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& 
 }
 // Prism3D4 version.
 template<>
-double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &fGeometry){
-    return 0.0; // TODO: complete this
+double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &rGeometry){
+    // Get nodes
+    const Node<3>& r_node_0 = rGeometry[0];
+    const Node<3>& r_node_1 = rGeometry[1];
+    const Node<3>& r_node_2 = rGeometry[2];
+    const Node<3>& r_node_3 = rGeometry[3];
+    const Node<3>& r_node_4 = rGeometry[4];
+    const Node<3>& r_node_5 = rGeometry[5];
+
+    // Calculate face centers (top and bottom face)
+    array_1d<double,4> low_dseta = 0.25 * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
+    array_1d<double,4> high_dseta = 0.25 * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
+
+    //    0
+    //   /  \
+    //  /    \
+    // 1----- 2
+
+    // v10 = x10 i + y10 j
+    // v20 = x20 i + y20 j
+
+    // v21 = v20 - v10
+    // v21 = (x20 - x10) i + (y20 - y10)j
+
+    // n_v21 = -(y20 - y10) i + (x20 - x10)j
+    // unit vector
+    // n_v21 /= || n_v21||
+
+    // Projection from Node 0 on edge 12:
+    // Hsq = v10 dot n_v21
+
+    // Calculate node-edge distances (top face)
+    double x10 = r_node_1.X() - r_node_0.X();
+    double y10 = r_node_1.Y() - r_node_0.Y();
+    double x20 = r_node_2.X() - r_node_0.X();
+    double y20 = r_node_2.Y() - r_node_0.Y();
+
+    // node 0, edge 12
+    double nx = -(y20-y10);
+    double ny = x20-x10;
+    double Hsq = x10*nx + y10*ny;
+    Hsq *= Hsq / (nx*nx + ny*ny);
+
+    // node 1, edge 20
+    nx = -y20;
+    ny = x20;
+    double hsq = x10*nx + y10*ny;
+    hsq *= hsq / (nx*nx + ny*ny);
+    Hsq = ( hsq < Hsq ) ? hsq : Hsq;
+
+    // node 2, edge 10
+    nx = -y10;
+    ny = x10;
+    hsq = x20*nx + y20*ny;
+    hsq *= hsq / (nx*nx + ny*ny);
+    Hsq = ( hsq < Hsq ) ? hsq : Hsq;
+
+    // Calculate distance between the face centers (dseta direction)
+    array_1d<double,3> d_dseta = high_dseta - low_dseta;
+    double h2_dseta = d_dseta[0]*d_dseta[0] + d_dseta[1]*d_dseta[1] + d_dseta[2]*d_dseta[2];
+
+    double h2 = h2_dseta < Hsq?h2_dseta:Hsq;
+
+    return std::sqrt(h2);
 }
 
 // Hexahedra3D8 version. We use the distance between face centers to compute lengths.
