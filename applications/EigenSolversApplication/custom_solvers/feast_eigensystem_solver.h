@@ -30,27 +30,30 @@ namespace Kratos
 {
 
 template<
-    typename TScalar = double,
-    class TSparseSpaceType = TUblasSparseSpace<TScalar>,
-    class TDenseSpaceType = TUblasDenseSpace<TScalar>>
-// template <typename TScalar = double>
+    bool TSymmetric,
+    typename TScalarIn,
+    typename TScalarOut,
+    class TSparseSpaceTypeIn = TUblasSparseSpace<TScalarIn>,
+    class TDenseSpaceTypeIn = TUblasDenseSpace<TScalarIn>,
+    class TSparseSpaceTypeOut = TUblasSparseSpace<TScalarOut>,
+    class TDenseSpaceTypeOut = TUblasDenseSpace<TScalarOut>>
 class FEASTEigensystemSolver
-    : public LinearSolver<TSparseSpaceType, TDenseSpaceType>
+    : public LinearSolver<TSparseSpaceTypeIn, TDenseSpaceTypeIn>
 {
     Parameters mParam;
 
   public:
     KRATOS_CLASS_POINTER_DEFINITION(FEASTEigensystemSolver);
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType> BaseType;
+    typedef LinearSolver<TSparseSpaceTypeIn, TDenseSpaceTypeIn> BaseType;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    typedef typename TSparseSpaceTypeIn::MatrixType SparseMatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    typedef typename TSparseSpaceTypeOut::VectorType VectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    typedef typename TDenseSpaceTypeOut::MatrixType DenseMatrixType;
 
-    typedef TScalar ValueType;
+    typedef TScalarIn ValueType;
 
     FEASTEigensystemSolver(
         Parameters param
@@ -58,37 +61,38 @@ class FEASTEigensystemSolver
     {
         Parameters default_params(R"(
         {
-            "solver_type": "eigen_feast",
-            "number_of_eigenvalues": 0,
-            "search_lowest_eigenvalues": false,
-            "search_highest_eigenvalues": false,
+            "solver_type" : "eigen_feast",
+            "symmetric" : true,
+            "number_of_eigenvalues" : 0,
+            "search_lowest_eigenvalues" : false,
+            "search_highest_eigenvalues" : false,
             "e_min" : 0.0,
             "e_max" : 0.0,
             "e_mid_re" : 0.0,
             "e_mid_im" : 0.0,
             "e_r" : 0.0,
             "subspace_size" : 0,
-            "max_iteration": 20,
-            "tolerance": 1e-12,
-            "echo_level": 1
+            "max_iteration" : 20,
+            "tolerance" : 1e-12,
+            "echo_level" : 0
         })");
 
         mParam.ValidateAndAssignDefaults(default_params);
 
         KRATOS_ERROR_IF( mParam["number_of_eigenvalues"].GetInt() < 0 ) <<
-            "Invalid number of eigenvalues provided\n";
+            "Invalid number of eigenvalues provided" << std::endl;
 
         KRATOS_ERROR_IF( mParam["subspace_size"].GetInt() < 0 ) <<
-            "Invalid subspace size provided\n";
+            "Invalid subspace size provided" << std::endl;
 
         KRATOS_ERROR_IF( mParam["max_iteration"].GetInt() < 1 ) <<
-            "Invalid maximal number of iterations provided\n";
+            "Invalid maximal number of iterations provided" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
-            "Manually defined subspace size will be overwritten to match the defined number of eigenvalues\n";
+            "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
 
-        const ValueType T = {};
+        const TScalarOut T = {};
         CheckParameters(T);
     }
 
@@ -96,8 +100,8 @@ class FEASTEigensystemSolver
 
     /**
      * Solve the generalized eigenvalue problem using FEAST
-     * @param rK (complex) symmetric matrix
-     * @param rM symmetric positive-definite matrix
+     * @param rK first input matrix
+     * @param rM second input matrix
      * @param rEigenvalues eigenvalues
      * @param rEigenvectors row-aligned eigenvectors [n_evs,n_dofs]
      */
@@ -105,12 +109,13 @@ class FEASTEigensystemSolver
         SparseMatrixType& rK,
         SparseMatrixType& rM,
         VectorType& rEigenvalues,
-        DenseMatrixType& rEigenvectors) override
+        DenseMatrixType& rEigenvectors) //cannot override, because double input / complex output must be possible
     {
         // settings
         const size_t system_size = rK.size1();
         size_t subspace_size;
-        const ValueType T = {};
+        const TScalarIn Ti = {};
+        const TScalarOut T = {};
 
         if( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() )
         {
@@ -132,7 +137,7 @@ class FEASTEigensystemSolver
             rEigenvectors.resize(system_size, subspace_size, false);
 
         // create column based matrix for the fortran routine
-        matrix<ValueType, column_major> tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
+        matrix<TScalarOut, column_major> tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
         VectorType residual(subspace_size);
 
         // set FEAST settings
@@ -143,6 +148,9 @@ class FEASTEigensystemSolver
 
         fpm[2] = -std::log10(mParam["tolerance"].GetDouble());
         fpm[3] = mParam["max_iteration"].GetInt();
+
+        if( !TSymmetric )
+            fpm[14] = 1;
 
         if( mParam["search_lowest_eigenvalues"].GetBool() )
         {
@@ -158,24 +166,28 @@ class FEASTEigensystemSolver
 
         // provide matrices in array form. fortran indices start with 1, must be int
         double* A = reinterpret_cast<double*>(rK.value_data().begin());
-        int IA[N+1] = {};
+        std::vector<int> IA;
+        IA.reserve(N+1);
         for( int i=0; i<N+1; ++i )
         {
             IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
         }
-        int JA[IA[N]-1] = {};
+        std::vector<int> JA;
+        JA.reserve(IA[N]-1);
         for( int i=0; i<IA[N]-1; ++i )
         {
             JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
         }
 
         double* B = reinterpret_cast<double*>(rM.value_data().begin());
-        int IB[N+1] = {};
+        std::vector<int> IB;
+        IB.reserve(N+1);
         for( int i=0; i<N+1; ++i )
         {
             IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
         }
-        int JB[IB[N]-1] = {};
+        std::vector<int> JB;
+        JB.reserve(IB[N]-1);
         for( int i=0; i<IB[N]-1; ++i )
         {
             JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
@@ -183,7 +195,7 @@ class FEASTEigensystemSolver
 
         double epsout;
         int loop;
-        ValueType E1 = GetE1(T);
+        TScalarOut E1 = GetE1(T);
         double E2 = GetE2(T);
         double* Emin = reinterpret_cast<double*>(&E1);
         double* Emax = reinterpret_cast<double*>(&E2);
@@ -195,12 +207,13 @@ class FEASTEigensystemSolver
         int info;
 
         // call feast
-        fptr feast = CallFeast(T);
-        feast(&UPLO, &N, A, IA, JA, B, IB, JB, fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
+        auto feast = CallFeast(Ti, TSymmetric);
+        feast(&UPLO, &N, A, IA.data(), JA.data(), B, IB.data(), JB.data(), fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
 
-        KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output.\n";
-        KRATOS_INFO_IF("FeastEigensystemSolver", info > 0 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
-        KRATOS_INFO_IF("FeastEigensystemSolver", info == 7) << "FEAST finished with warning " << info << ". Please check FEAST output.\n";
+        KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output." << std::endl;
+        KRATOS_INFO_IF("FeastEigensystemSolver", info > 1 && info < 6) << "FEAST finished with warning " << info << ". Please check FEAST output." << std::endl;
+        KRATOS_ERROR_IF(info == 1) << "FEAST finished with warning " << info << ", no eigenvalues could be found in the given search interval." << std::endl;
+        KRATOS_ERROR_IF(info == 7) << "FEAST finished with warning " << info << ", no extremal eigenvalues could be found. Please check FEAST output." << std::endl;
 
         // copy eigenvectors back to the provided row based matrix
         noalias(rEigenvectors) = tmp_eigenvectors;
@@ -230,16 +243,28 @@ class FEASTEigensystemSolver
 
   private:
 
-    typedef void (*fptr)(char*, int*, double*, int*, int*, double*, int*, int*, int*, double*, int*, double*, double*, int*, double*, double*, int*, double*, int*);
+    typedef void (feast_ptr)(char*, int*, double*, int*, int*, double*, int*, int*, int*, double*, int*, double*, double*, int*, double*, double*, int*, double*, int*);
 
-    fptr CallFeast(double T)
+    std::function<feast_ptr> CallFeast(double T, bool symmetric)
     {
-        return dfeast_scsrgv;
+        using namespace std::placeholders;
+
+        if( symmetric ) {
+            return std::bind(dfeast_scsrgv, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
+        } else {
+            return std::bind(dfeast_gcsrgv, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
+        }
     }
 
-    fptr CallFeast(std::complex<double> T)
+    std::function<feast_ptr> CallFeast(std::complex<double> T, bool symmetric)
     {
-        return zfeast_scsrgv;
+        using namespace std::placeholders;
+
+        if( symmetric ) {
+            return std::bind(zfeast_scsrgv, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
+        } else {
+            return std::bind(zfeast_gcsrgv, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
+        }
     }
 
     double GetE1(double T)
@@ -265,28 +290,28 @@ class FEASTEigensystemSolver
     void CheckParameters(double T)
     {
         KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Cannot search for highest and lowest eigenvalues at the same time\n";
+            "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
 
         KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
-            "Invalid eigenvalue limits provided\n";
+            "Invalid eigenvalue limits provided" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
-            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices\n";
+            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
     }
 
     void CheckParameters(std::complex<double> T)
     {
         KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
-            "Invalid search radius provided\n";
+            "Invalid search radius provided" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
-            "Manually defined e_min, e_max are not used for complex symmetric matrices\n";
+            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Search for extremal eigenvalues is only available for Hermitian problems\n";
+            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
 
     }
 
@@ -296,12 +321,10 @@ class FEASTEigensystemSolver
 /**
  * input stream function
  */
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+template<bool TSymmetric, typename TScalarIn, typename TScalarOut>
 inline std::istream& operator >>(
     std::istream& rIStream,
-    FEASTEigensystemSolver<TSparseSpaceType,
-    TDenseSpaceType,
-    TReordererType>& rThis)
+    FEASTEigensystemSolver<TSymmetric, TScalarIn, TScalarOut>& rThis)
 {
     return rIStream;
 }
@@ -309,10 +332,10 @@ inline std::istream& operator >>(
 /**
  * output stream function
  */
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+template<bool TSymmetric, typename TScalarIn, typename TScalarOut>
 inline std::ostream& operator <<(
     std::ostream& rOStream,
-    const FEASTEigensystemSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
+    const FEASTEigensystemSolver<TSymmetric, TScalarIn, TScalarOut>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

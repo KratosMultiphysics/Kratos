@@ -51,6 +51,17 @@ if( USE_EIGEN_MKL MATCHES ON )
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
+if( USE_FEAST4 MATCHES ON )
+    if( WIN32 )
+        message( FATAL_ERROR "FEAST4 is not yet supported under Windows")
+    endif()
+    if( USE_EIGEN_MKL MATCHES OFF OR NOT DEFINED USE_EIGEN_MKL )
+        message( FATAL_ERROR "FEAST4 can only be used with MKL" )
+    endif()
+
+    add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
+endif()
+
 ## generate variables with the sources
 set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
