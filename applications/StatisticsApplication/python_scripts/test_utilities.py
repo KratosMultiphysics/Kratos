@@ -75,13 +75,13 @@ def CreateModelPart(model_part):
     model_part.CreateNewElement("Element2D3N", 4, [2, 3, 5], prop)
     model_part.CreateNewElement("Element2D3N", 5, [5, 3, 4], prop)
 
-    model_part.CreateNewCondition("Condition2D2N", 1, [1, 2], prop)
-    model_part.CreateNewCondition("Condition2D2N", 2, [2, 3], prop)
-    model_part.CreateNewCondition("Condition2D2N", 3, [3, 4], prop)
-    model_part.CreateNewCondition("Condition2D2N", 4, [4, 5], prop)
-    model_part.CreateNewCondition("Condition2D2N", 5, [5, 6], prop)
-    model_part.CreateNewCondition("Condition2D2N", 6, [6, 7], prop)
-    model_part.CreateNewCondition("Condition2D2N", 7, [7, 1], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 2, [2, 3], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 3, [3, 4], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 4, [4, 5], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 5, [5, 6], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 6, [6, 7], prop)
+    model_part.CreateNewCondition("LineCondition2D2N", 7, [7, 1], prop)
 
 def InitializeModelPartVariables(model_part, is_random = True, is_local_variables = False):
     if is_random:
