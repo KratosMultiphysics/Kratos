@@ -13,9 +13,9 @@ class ROMStaticStruct(KratosUnittest.TestCase):
     def test_Struct_Static_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
-            with open("ProjectParametersROM.json",'r') as parameter_file:
+            with open("ProjectParameters.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            model = KratosMultiphysics.Model()      
+            model = KratosMultiphysics.Model()
             Simulation = TestStructuralMechanicsStaticROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
@@ -31,7 +31,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             self.assertLess(L2, 1.0e-4)
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-            
+
 
 ##########################################################################################
 
