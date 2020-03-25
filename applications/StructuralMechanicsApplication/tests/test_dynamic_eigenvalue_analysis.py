@@ -153,8 +153,8 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         self.assertAlmostEqual(modal_stiffness[0,1], 0.0, 4)
 
 
+@KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
 class TestDynamicEigenvalueAnalysis(BaseTestDynamicEigenvalueAnalysis):
-    @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
 
     def test_dynamic_eigenvalue_analysis_block_builder(self):
         self.execute_test_dynamic_eigenvalue_analysis(use_block_builder=True)
