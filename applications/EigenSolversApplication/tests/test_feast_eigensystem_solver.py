@@ -70,7 +70,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTGeneralEigensystemSolver'),"FEAST not found, skipping.")
     def test_real_general_gev(self):
 
-        space = KratosMultiphysics.UblasComplexSparseSpace()
+        space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
             "solver_type" : "eigen_feast",
@@ -99,9 +99,9 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             M[i, i] = 1
 
         # create result containers (they will be resized inside the solver)
-        # eigenvalues and vectors of unsymmetric matrices can be complex
-        eigenvalues = KratosMultiphysics.ComplexVector(n)
-        eigenvectors = KratosMultiphysics.ComplexMatrix(n, 1)
+        # eigenvalues and vectors of unsymmetric matrices are required to be real here
+        eigenvalues = KratosMultiphysics.Vector(n)
+        eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
         # Construct the solver
         eigen_solver = eigen_solver_factory.ConstructSolver(settings)
@@ -113,22 +113,19 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         self.assertEqual(eigenvectors.Size1(), 2)
         self.assertEqual(eigenvectors.Size2(), 5)
 
-        self.assertAlmostEqual(eigenvalues[0], 10.5+0.j, 7)
-        self.assertAlmostEqual(eigenvalues[1], 12.0+0.j, 7)
-
-        Kc = KratosMultiphysics.ComplexCompressedMatrix(K)
-        Mc = KratosMultiphysics.ComplexCompressedMatrix(M)
+        self.assertAlmostEqual(eigenvalues[0], 10.5, 7)
+        self.assertAlmostEqual(eigenvalues[1], 12.0, 7)
 
         for i in range(eigenvalues.Size()):
-            eigenvector = KratosMultiphysics.ComplexVector(n)
+            eigenvector = KratosMultiphysics.Vector(n)
             for j in range(n):
                 eigenvector[j] = eigenvectors[i,j]
 
-            _aux_1 = KratosMultiphysics.ComplexVector(n,0)
-            _aux_2 = KratosMultiphysics.ComplexVector(n,0)
+            _aux_1 = KratosMultiphysics.Vector(n,0)
+            _aux_2 = KratosMultiphysics.Vector(n,0)
 
-            space.Mult(Kc,eigenvector,_aux_1)
-            space.Mult(Mc,eigenvector,_aux_2)
+            space.Mult(K,eigenvector,_aux_1)
+            space.Mult(M,eigenvector,_aux_2)
             _aux_2 *= eigenvalues[i]
 
             self.assertVectorAlmostEqual(_aux_1, _aux_2)
