@@ -59,10 +59,18 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             if node.Id == 1: # this is the node at the top
-                self.assertMatrixAlmostEqual(eigen_vec_res_top_node, node[KSM.EIGENVECTOR_MATRIX])
+                self.__CompareMatrixAbs(eigen_vec_res_top_node, node[KSM.EIGENVECTOR_MATRIX])
             else:
                 # here we make sure that the fixed dofs have a zero eigenvector
                 self.assertMatrixAlmostEqual(eigen_vec_res_bottom_nodes, node[KSM.EIGENVECTOR_MATRIX])
+
+    def __CompareMatrixAbs(self, mat_1, mat_2, tol=7):
+        self.assertEqual(mat_1.Size1(), mat_2.Size1())
+        self.assertEqual(mat_1.Size2(), mat_2.Size2())
+
+        for i in range(mat_1.Size1()):
+            for j in range(mat_1.Size2()):
+                self.assertAlmostEqual(abs(mat_1[i,j]), abs(mat_2[i,j]), tol)
 
 
 if __name__ == '__main__':

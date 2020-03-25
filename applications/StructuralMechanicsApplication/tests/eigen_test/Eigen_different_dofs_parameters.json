@@ -27,8 +27,7 @@
             "max_iteration"         : 1000,
             "tolerance"             : 1e-9,
             "number_of_eigenvalues" : 2,
-            "echo_level"            : 0,
-            "use_mkl_if_available"  : false
+            "echo_level"            : 0
         },
         "rotation_dofs"            : true
     },
