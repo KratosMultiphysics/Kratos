@@ -198,7 +198,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         matrix_solution = KratosMultiphysics.Matrix()
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
             #print("Integration accomplished", matrix_solution)
 
@@ -259,7 +261,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         matrix_solution = KratosMultiphysics.Matrix()
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
             #print("Integration accomplished", matrix_solution)
 
@@ -329,9 +333,11 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
         solution = exact_integration.TestGetExactIntegration(cond1, cond3, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
-            #print("First Integration accomplished", matrix_solution)
+            #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
         self.assertAlmostEqual(matrix_solution[0, 0], 0.25)
@@ -346,9 +352,11 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
         solution = exact_integration.TestGetExactIntegration(cond1, cond4, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
-            #print("Second Integration accomplished", matrix_solution)
+            #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
         self.assertAlmostEqual(matrix_solution[0, 0], 1.0 / 12.0)
@@ -363,9 +371,11 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
         solution = exact_integration.TestGetExactIntegration(cond2, cond3, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
-            #print("Third Integration accomplished", matrix_solution)
+            #print("Integration accomplished", matrix_solution)
 
         self.assertTrue(solution)
         self.assertAlmostEqual(matrix_solution[0, 0],  1.0 / 6.0)
@@ -380,9 +390,12 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
         solution = exact_integration.TestGetExactIntegration(cond2, cond4, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
-            #print("Fourth Integration accomplished", matrix_solution)
+            #print("Integration accomplished", matrix_solution)
+
         if use_delaunator:
             self.assertTrue(solution)
         else:
@@ -429,7 +442,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(4).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(2,1.0e6, 0, 1.0, use_delaunator)
+        exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(2,1.0e6, 3, 1.0, use_delaunator)
 
         # Quadrilateral 2
         model_part.CreateNewNode(5, 0.00, 0.00, 0.01)
@@ -448,7 +461,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         matrix_solution = KratosMultiphysics.Matrix()
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
             #print("Integration accomplished", matrix_solution)
 
@@ -526,7 +541,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         matrix_solution = KratosMultiphysics.Matrix()
         solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
 
-        # Debug
+        ## Debug
+        #exact_integration.TestIODebug(model_part, "GiD")
+        ##exact_integration.TestIODebug(model_part, "VTK")
         #if solution:
             #print("Integration accomplished", matrix_solution)
 
