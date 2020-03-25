@@ -41,11 +41,7 @@ namespace Kratos
 		/**
 		Creates a Zero Quaternion.
 		*/
-		Quaternion(){
-			SetX(0.0);
-			SetY(0.0);
-			SetZ(0.0);
-			SetW(0.0);
+		Quaternion() : mQuaternionValues(zero_vector<T>(4)) {
 		}
 
 		/**
