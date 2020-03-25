@@ -52,7 +52,7 @@ The complete process to create the documentation website is automated by `run_mk
 *   Build static HTML website using `mkdocs build`. 
 *   Deploy website on GitHub Pages using `mkdocs gh-deploy`.
 
-Currently, the last step is skipped and the website is deployed (with GitHub Pages) at [toondm.github.io/](https://toondm.github.io/). 
+To activate the website, the user must have administrator privileges in the repository. 
 
 
 [1]:    https://www.mkdocs.org/

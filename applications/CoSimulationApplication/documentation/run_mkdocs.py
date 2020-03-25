@@ -12,15 +12,16 @@ README
     - material theme --> install with: pip install mkdocs-material
 """
 
-# clean docs folder
+# clean docs folder and add coconuts
 shutil.rmtree('docs')
+
 os.mkdir('docs')
-shutil.copy('logo.png', 'site/assets/images/favicon.ico')
-
 os.mkdir('docs/images')
-shutil.copy('logo.png', 'docs/images/logo.png')
+os.mkdir('docs/assets')
+os.mkdir('docs/assets/images')
 
-# shutil.copy('favicon.ico', 'docs/img/favicon.ico')
+shutil.copy('logo.png', 'docs/images/logo.png')
+shutil.copy('favicon.ico', 'docs/assets/images/favicon.ico')
 
 # find all MarkDown files in CoCoNuT
 files = glob.glob('../**/*.md', recursive=True)
@@ -56,9 +57,6 @@ for file in unused:
 # build static website
 print('\n')
 os.system('mkdocs build --clean')
-
-# add favicon
-shutil.copy('favicon.ico', 'site/assets/images/favicon.ico')
 
 # deploy website (need admin privileges on GitHub)
 os.system('mkdocs gh-deploy')
