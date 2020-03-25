@@ -67,9 +67,14 @@ class TestCase(TestCase):
         raise self.failureException(msg)
 
     def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
-        self.assertEqual(vector1.Size(), vector2.Size())
+        def GetErrMsg(mismatch_idx):
+            err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(mismatch_idx)
+            err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
+            return err_msg
+
+        self.assertEqual(vector1.Size(), vector2.Size(), msg="\nCheck failed because vector arguments do not have the same size")
         for i in range(vector1.Size()):
-            self.assertAlmostEqual(vector1[i], vector2[i], prec, msg="i={}".format(i))
+            self.assertAlmostEqual(vector1[i], vector2[i], prec, msg=GetErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
