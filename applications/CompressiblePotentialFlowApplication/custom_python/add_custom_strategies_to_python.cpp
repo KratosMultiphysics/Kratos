@@ -40,17 +40,25 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolverType::Pointer LinearSolverPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
+    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
     typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
     // Custom strategy types
     typedef UpwindResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > UpwindResidualBasedNewtonRaphsonStrategyType;
     typedef UpwindLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > UpwindLineSearchStrategyType;
 
+//     py::class_<UpwindResidualBasedNewtonRaphsonStrategyType,
+//                typename UpwindResidualBasedNewtonRaphsonStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType>(
+//         m, "UpwindResidualBasedNewtonRaphsonStrategy")
+//         .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer,
+//                       ConvergenceCriteriaPointer, int, bool, bool, bool>());
+
     py::class_<UpwindResidualBasedNewtonRaphsonStrategyType,
                typename UpwindResidualBasedNewtonRaphsonStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType>(
-        m, "UpwindResidualBasedNewtonRaphsonStrategy")
+        m, "UpwindResidualBasedNewtonRaphsonStrategyWithBuilderAndSolver")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer,
-                      ConvergenceCriteriaPointer, int, bool, bool, bool>());
+                      ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool>());
 
     py::class_<UpwindLineSearchStrategyType,
                typename UpwindLineSearchStrategyType::Pointer, UpwindResidualBasedNewtonRaphsonStrategyType>(
