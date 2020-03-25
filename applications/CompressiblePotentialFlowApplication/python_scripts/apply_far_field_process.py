@@ -87,6 +87,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' step = ', self.step)
         KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' free_stream_mach = ', self.free_stream_mach)
         KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' upwinding_factor_constant = ', self.upwinding_factor_constant)
+        KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' mach_number_limit = ', self.mach_number_limit)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)
