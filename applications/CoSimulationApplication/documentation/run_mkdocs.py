@@ -60,22 +60,5 @@ os.system('mkdocs build --clean')
 # add favicon
 shutil.copy('favicon.ico', 'site/assets/images/favicon.ico')
 
-# deploy website
-if False:
-    os.system('mkdocs gh-deploy')  # doesn't work, need admin rights on GitHub
-
-# copy site to other repository in folder cocodoc
-if True:
-    src = os.path.join(os.getcwd(), 'site')
-    dst = os.path.join(os.getcwd(), '../../../../cocodoc')
-
-    for item in os.listdir('site'):
-        src_item = os.path.join(src, item)
-        dst_item = os.path.join(dst, item)
-
-        if os.path.isfile(src_item):
-            os.remove(dst_item)
-            shutil.copy(src_item, dst_item)
-        if os.path.isdir(src_item):
-            shutil.rmtree(dst_item, ignore_errors=True)
-            shutil.copytree(src_item, dst_item)
+# deploy website (need admin privileges on GitHub)
+os.system('mkdocs gh-deploy')
