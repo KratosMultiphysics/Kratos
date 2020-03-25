@@ -120,7 +120,6 @@ public:
      */
     bool SolveSolutionStep() override
     {
-        std::ofstream outfile;
         BaseType::SetEchoLevel(0);
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
@@ -169,17 +168,16 @@ public:
         // Debugging info
         BaseType::EchoInfo(iteration_number);
 
-        // TSparseSpace::SetToZero(rb);
-        // p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-        // double absolute_residual_norm = CalculateResidualNorm(r_model_part, r_dof_set, rb);
-        // double relaxation_factor = ComputeRelaxationFactor(absolute_residual_norm);
-        // KRATOS_INFO("Absolute norm = ") << absolute_residual_norm << std::endl;
-        // KRATOS_INFO("Relaxation factor = ") << relaxation_factor << std::endl;
-        // KRATOS_WATCH(rDx(692))
-        // rDx *= relaxation_factor;
-        // KRATOS_WATCH(rDx(692))
+
         double displacement_norm = CalculateFinalCorrectionNorm(r_dof_set, rDx);
         KRATOS_INFO("DISPLACEMENT Absolute norm = ") << displacement_norm << std::endl;
+        double relaxation_factor = ComputeRelaxationFactor(displacement_norm);
+        KRATOS_INFO("Relaxation factor = ") << relaxation_factor << std::endl;
+        if (r_model_part.GetProcessInfo()[STEP] > 1) {
+            // KRATOS_WATCH(rDx(692))
+            rDx *= relaxation_factor;
+            // KRATOS_WATCH(rDx(692))
+        }
 
         // Updating the results stored in the database
         UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -189,20 +187,18 @@ public:
         double absolute_residual_norm = CalculateResidualNorm(r_dof_set, rb);
         KRATOS_INFO("RESIDUAL Absolute norm = ") << absolute_residual_norm << std::endl;
 
+        std::ofstream outfile;
         outfile.open("/media/inigo/10740FB2740F9A1C/2d_results_test/plots/convergence_results.dat", std::ios_base::app);
-        outfile << "   " << r_model_part.GetProcessInfo()[STEP]
-        << "      " << r_model_part.GetProcessInfo()[FREE_STREAM_MACH]
-        << "      " << absolute_residual_norm
-        << "      " << displacement_norm;
+        outfile << std::setw( 6 ) << std::setfill( ' ' ) << r_model_part.GetProcessInfo()[STEP];
+        outfile.setf( std::ios::fixed);
+        outfile.precision(3);
+        outfile << "   " << r_model_part.GetProcessInfo()[FREE_STREAM_MACH];
+        outfile << "       " << std::scientific << absolute_residual_norm
+        << "       " << displacement_norm;
         outfile.close();
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-        // TSparseSpace::SetToZero(rb);
-        // p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-        // absolute_residual_norm = CalculateResidualNorm(r_model_part, r_dof_set, rb);
-        // KRATOS_INFO("Absolute norm = ") << absolute_residual_norm << std::endl;
 
         if (is_converged) {
             if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -213,11 +209,6 @@ public:
 
             is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
-
-        // TSparseSpace::SetToZero(rb);
-        // p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-        // absolute_residual_norm = CalculateResidualNorm(r_model_part, r_dof_set, rb);
-        // KRATOS_INFO("Absolute norm = ") << absolute_residual_norm << std::endl;
 
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
@@ -281,12 +272,14 @@ public:
             // Debugging info
             BaseType::EchoInfo(iteration_number);
 
-            // absolute_residual_norm = CalculateResidualNorm(r_model_part, r_dof_set, rb);
-            // relaxation_factor = ComputeRelaxationFactor(absolute_residual_norm);
-            // KRATOS_INFO("Absolute norm = ") << absolute_residual_norm << std::endl;
-            // KRATOS_INFO("Relaxation factor = ") << relaxation_factor << std::endl;
+            double displacement_norm = CalculateFinalCorrectionNorm(r_dof_set, rDx);
+            // KRATOS_INFO("DISPLACEMENT Absolute norm = ") << displacement_norm << std::endl;
+            relaxation_factor = ComputeRelaxationFactor(displacement_norm);
+            if(relaxation_factor < 0.99){
+                KRATOS_INFO("Relaxation factor = ") << relaxation_factor << std::endl;
+            }
             // KRATOS_WATCH(rDx(692))
-            // rDx *= relaxation_factor;
+            rDx *= relaxation_factor;
             // KRATOS_WATCH(rDx(692))
 
             // Updating the results stored in the database
@@ -319,7 +312,7 @@ public:
                 << "Convergence achieved after " << iteration_number << " / "
                 << BaseType::mMaxIterationNumber << " iterations" << std::endl;
             outfile.open("/media/inigo/10740FB2740F9A1C/2d_results_test/plots/convergence_results.dat", std::ios_base::app);
-            outfile << "            " << iteration_number;
+            outfile << std::setw( 13 ) << std::setfill( ' ' ) << iteration_number << std::endl;
             outfile.close();
         }
 
@@ -436,16 +429,23 @@ private:
             }
         }
 
-        return std::sqrt(final_correction_norm) / (double)dof_num;
+        return std::sqrt(final_correction_norm) / std::sqrt((double)dof_num);
     }
 
     double ComputeRelaxationFactor(const double& rAbsoluteResidualNorm)
     {
-        if(rAbsoluteResidualNorm < 1e-4){
-            return 1.0;
+        // if(rAbsoluteResidualNorm < 1e-4){
+        //     return 1.0;
+        // }
+        // else{
+        //     return 0.5;
+        // }
+
+        if(rAbsoluteResidualNorm > 1.0){
+            return 1.0 / rAbsoluteResidualNorm;
         }
         else{
-            return 0.5;
+            return 1.0;
         }
     }
 
