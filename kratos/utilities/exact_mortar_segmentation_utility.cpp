@@ -1475,7 +1475,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
             const auto& r_triangles_list = DelaunatorUtilities::ComputeTrianglesConnectivity(reinterpret_cast<std::vector<Point>&>(rPointList));
 
             // Resize the vector
-            rConditionsPointsSlave.resize(r_triangles_list.size());
+            rConditionsPointsSlave.resize(r_triangles_list.size()/3);
 
             // Iterate over the generated triangles
             IndexType aux_elem_index = 0;
@@ -1485,18 +1485,21 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
                 points_locals_slave[1] = rPointList[r_triangles_list[i + 1]];
                 points_locals_slave[2] = rPointList[r_triangles_list[i + 2]];
 
-//                 const double ax = rPointList[r_triangles_list[i    ]].X();
-//                 const double ay = rPointList[r_triangles_list[i    ]].Y();
-//                 const double bx = rPointList[r_triangles_list[i + 1]].X();
-//                 const double by = rPointList[r_triangles_list[i + 1]].Y();
-//                 const double cx = rPointList[r_triangles_list[i + 2]].X();
-//                 const double cy = rPointList[r_triangles_list[i + 2]].Y();
-//
-//                 const double area = std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by));
-//                 if (area > GetZeroToleranceFactor() * ZeroTolerance) {
-//                     rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
-//                     continue; // We skip this triangle
-//                 }
+            #ifdef KRATOS_DEBUG
+                const double ax = rPointList[r_triangles_list[i    ]].X();
+                const double ay = rPointList[r_triangles_list[i    ]].Y();
+                const double bx = rPointList[r_triangles_list[i + 1]].X();
+                const double by = rPointList[r_triangles_list[i + 1]].Y();
+                const double cx = rPointList[r_triangles_list[i + 2]].X();
+                const double cy = rPointList[r_triangles_list[i + 2]].Y();
+
+                const double area = std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by));
+                if (area < GetZeroToleranceFactor() * ZeroTolerance) {
+                    KRATOS_WARNING("ExactMortarIntegrationUtility") << "The generated intersection provides a triangle of zero or negative area, skipping. Check it out: \n" << rSlaveGeometry << "\n" << rMasterGeometry << std::endl;
+                    rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
+                    continue; // We skip this triangle
+                }
+            #endif
 
                 // We add the triangle to the vector
                 rConditionsPointsSlave[aux_elem_index] = points_locals_slave;
