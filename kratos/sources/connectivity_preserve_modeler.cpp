@@ -251,41 +251,46 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
 ModelPart& rOriginModelPart,
 ModelPart& rDestinationModelPart) const
 {
-    for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
-        if(!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
-            rDestinationModelPart.CreateSubModelPart(i_part->Name());
+    // If we copy root model part into a submodel part, then it will create element/condition whith ids which may
+    // conflict with destination model part root model part ids
+    if (!rDestinationModelPart.IsSubModelPart())
+    {
+        for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
+            if(!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
+                rDestinationModelPart.CreateSubModelPart(i_part->Name());
+            }
+
+            ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
+
+            destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
+
+            std::vector<ModelPart::IndexType> ids;
+            ids.reserve(i_part->Elements().size());
+
+            // Execute only if we created elements in the destination
+            if (rDestinationModelPart.NumberOfElements() > 0)
+            {
+                //adding by index
+                for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
+                    ids.push_back(it->Id());
+                destination_part.AddElements(ids, 0); //adding by index
+            }
+
+            // Execute only if we created conditions in the destination
+            if (rDestinationModelPart.NumberOfConditions() > 0)
+            {
+                ids.clear();
+                for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
+                    ids.push_back(it->Id());
+                destination_part.AddConditions(ids, 0);
+            }
+
+            // Duplicate the Communicator for this SubModelPart
+            this->DuplicateCommunicatorData(*i_part, destination_part);
+
+            // Recursively call this function to duplicate any child SubModelParts
+            this->DuplicateSubModelParts(*i_part, destination_part);
         }
-
-        ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
-
-        destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
-
-        std::vector<ModelPart::IndexType> ids;
-        ids.reserve(i_part->Elements().size());
-
-        // Execute only if we created elements in the destination
-        if (rDestinationModelPart.NumberOfElements() > 0)
-        {
-            //adding by index
-            for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
-                ids.push_back(it->Id());
-            destination_part.AddElements(ids, 0); //adding by index
-        }
-
-        // Execute only if we created conditions in the destination
-        if (rDestinationModelPart.NumberOfConditions() > 0)
-        {
-            ids.clear();
-            for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
-                ids.push_back(it->Id());
-            destination_part.AddConditions(ids, 0);
-        }
-
-        // Duplicate the Communicator for this SubModelPart
-        this->DuplicateCommunicatorData(*i_part, destination_part);
-
-        // Recursively call this function to duplicate any child SubModelParts
-        this->DuplicateSubModelParts(*i_part, destination_part);
     }
 }
 
