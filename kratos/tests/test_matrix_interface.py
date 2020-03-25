@@ -18,13 +18,8 @@ class TestMatrixInterface(KratosUnittest.TestCase):
         A2 = KM.Matrix(A)
         b2 = KM.Vector(b)
 
-        self.assertEqual(2,A2.Size1())
-        self.assertEqual(3,A2.Size2())
-
-        for j in range(A2.Size2()):
-            self.assertEqual(b2[j], b2[j])
-            for i in range(A2.Size1()):
-                self.assertEqual(A[i,j], A2[i,j])
+        self.assertVectorAlmostEqual(b, b2)
+        self.assertMatrixAlmostEqual(A, A2)
 
         A[0,1] = 2.0
         self.assertEqual(1.0, A2[0,1])
@@ -78,10 +73,7 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(C[i,j], 3.0)
 
         A += B
-
-        for i in range(A.Size1()):
-            for j in range(A.Size2()):
-                self.assertEqual(C[i,j], A[i,j])
+        self.assertMatrixAlmostEqual(C, A)
 
     def test_matrix_diff(self):
         A = KM.Matrix(2,3)
@@ -95,9 +87,7 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(C[i,j], -1.0)
 
         A -= B
-        for i in range(A.Size1()):
-            for j in range(A.Size2()):
-                self.assertEqual(C[i,j], A[i,j])
+        self.assertMatrixAlmostEqual(C, A)
 
     def test_scalar_prod(self):
         A = KM.Matrix(2,3)
@@ -109,9 +99,7 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(C[i,j], 4.0)
 
         A *= 2.0
-        for i in range(A.Size1()):
-            for j in range(A.Size2()):
-                self.assertEqual(C[i,j], A[i,j])
+        self.assertMatrixAlmostEqual(C, A)
 
 if __name__ == '__main__':
     KratosUnittest.main()
