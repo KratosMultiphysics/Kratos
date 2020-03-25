@@ -330,7 +330,7 @@ private:
     template<class TSolver>
     struct DirectSolverWrapper : DirectSolverWrapperBase
     {
-        typedef DirectSolverWrapper BaseType;
+        typedef DirectSolverWrapperBase BaseType;
         typedef typename BaseType::MatrixMapType MatrixMapType;
         typedef typename BaseType::VectorRefType VectorRefType;
         typedef typename BaseType::ConstVectorRefType ConstVectorRefType;
