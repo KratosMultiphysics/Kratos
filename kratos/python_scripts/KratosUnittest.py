@@ -78,6 +78,7 @@ class TestCase(TestCase):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg="i={}; j={}".format(i,j))
 
+
 @contextmanager
 def SupressConsoleOutput():
     with open(os.devnull, "w") as devnull:
