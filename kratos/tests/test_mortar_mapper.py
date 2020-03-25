@@ -169,7 +169,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def test_mortar_mapping_quad_tri(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
         self._mapper_tests(input_filename, 4, 3, False, False, False, False, True, False)
-        #self._mapper_tests(input_filename, 4, 3, False, False, False, False, True, True)
+        self._mapper_tests(input_filename, 4, 3, False, False, False, False, True, True, 10.0)
 
     def test_mortar_mapping_tri_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
