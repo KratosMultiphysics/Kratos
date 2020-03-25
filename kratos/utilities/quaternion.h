@@ -62,7 +62,7 @@ namespace Kratos
 		Creates a Quaternion from another Quaternion.
 		@param other the other Quaternion
 		*/
-		Quaternion(const Quaternion& other) : mQuaternionValues(other.mQuaternionValues){
+		Quaternion(const Quaternion& other) : mQuaternionValues(other.mQuaternionValues) {
 		}
 
 		///@}
@@ -81,7 +81,7 @@ namespace Kratos
 		*/
 		Quaternion& operator= (const Quaternion& other) {
 			if(this != &other) {
-mQuaternionValues=other.mQuaternionValues;
+				mQuaternionValues=other.mQuaternionValues;
 			}
 			return *this;
 		}
@@ -204,7 +204,7 @@ mQuaternionValues=other.mQuaternionValues;
 		}
 
 		/**
-	    Returns the Conjugate of this Quaternion, which represents the opposite rotation
+		Returns the Conjugate of this Quaternion, which represents the opposite rotation
 		@return the Conjugate of this Quaternion
 		*/
 		inline Quaternion conjugate()const
@@ -227,8 +227,8 @@ mQuaternionValues=other.mQuaternionValues;
 		template<class TMatrix3x3>
 		inline void ToRotationMatrix(TMatrix3x3& R)const
 		{
-		        if( R.size1()!=3 || R.size2()!=3 )
-		          R.resize(3,3,false);
+			if( R.size1()!=3 || R.size2()!=3 )
+				R.resize(3,3,false);
 
 			R(0, 0) = 2.0 * ( W()*W() + X()*X() - 0.5 );
 			R(0, 1) = 2.0 * ( X()*Y() - W()*Z() );
