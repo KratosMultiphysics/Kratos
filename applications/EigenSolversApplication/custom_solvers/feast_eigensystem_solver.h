@@ -53,9 +53,11 @@ class FEASTEigensystemSolver
 
     typedef typename TDenseSpaceTypeIn::MatrixType DenseMatrixType;
 
+    typedef typename TDenseSpaceTypeOut::MatrixType DenseOutputMatrixType;
+
     typedef matrix<TScalarOut, column_major> FEASTMatrixType;
 
-    typedef typename TSparseSpaceTypeOut::VectorType FEASTVectorType;
+    typedef typename TSparseSpaceTypeOut::VectorType OutputVectorType;
 
     typedef TScalarIn ValueType;
 
@@ -136,7 +138,7 @@ class FEASTEigensystemSolver
 
         // create column based matrix for the fortran routine
         FEASTMatrixType tmp_eigenvectors(system_size, subspace_size);
-        FEASTVectorType tmp_eigenvalues(subspace_size);
+        OutputVectorType tmp_eigenvalues(subspace_size);
         VectorType residual(subspace_size);
 
         // set FEAST settings
@@ -219,7 +221,21 @@ class FEASTEigensystemSolver
         tmp_eigenvalues.resize(M, true);
         tmp_eigenvectors.resize(system_size, M, true);
 
-        RetrieveEigensolution<FEASTVectorType, VectorType>(tmp_eigenvalues, rEigenvalues, tmp_eigenvectors, rEigenvectors);
+        RetrieveEigensolution<OutputVectorType, VectorType>(tmp_eigenvalues, rEigenvalues, tmp_eigenvectors, rEigenvectors);
+    }
+
+    DenseOutputMatrixType& GetEigenvectorSolution()
+    {
+        KRATOS_ERROR_IF( mpEigenvectorMatrix == nullptr ) << "The eigenvector matrix is not initialized. This means, that the real general generalized " <<
+            "eigenvalue problem did not yield complex results or the solution has not yet been performed" << std::endl;
+        return *mpEigenvectorMatrix;
+    }
+
+    OutputVectorType& GetEigenvalueSolution()
+    {
+        KRATOS_ERROR_IF( mpEigenvectorMatrix == nullptr ) << "The eigenvector matrix is not initialized. This means, that the real general generalized " <<
+            "eigenvalue problem did not yield complex results or the solution has not yet been performed" << std::endl;
+        return *mpEigenvalueVector;
     }
 
     /**
@@ -238,6 +254,10 @@ class FEASTEigensystemSolver
     }
 
   private:
+
+    typename TDenseSpaceTypeOut::MatrixPointerType mpEigenvectorMatrix;
+
+    typename TSparseSpaceTypeOut::VectorPointerType mpEigenvalueVector;
 
     typedef void (feast_ptr)(char*, int*, double*, int*, int*, double*, int*, int*, int*, double*, int*, double*, double*, int*, double*, double*, int*, double*, int*);
 
@@ -286,6 +306,8 @@ class FEASTEigensystemSolver
     template<class TVectorType, class TOtherVectorType>
     void RetrieveEigensolution(TVectorType &rFeastEigenvalues, TOtherVectorType &rEigenvalues, FEASTMatrixType& rFeastEigenvectors, DenseMatrixType& rEigenvectors)
     {
+        bool complex_result = false;
+
         // copy real parts of eigenvalues to result vector
         if( rEigenvalues.size() != rFeastEigenvalues.size() )
             rEigenvalues.resize(rFeastEigenvalues.size(), false);
@@ -293,22 +315,45 @@ class FEASTEigensystemSolver
         #pragma omp parallel for
         for( size_t i=0; i<rEigenvalues.size(); ++i ) {
             rEigenvalues[i] = std::real(rFeastEigenvalues[i]);
-            KRATOS_WARNING_IF("FeastEigensystemSolver", std::imag(rFeastEigenvalues[i]) > 100*std::numeric_limits<double>::epsilon())
-                << "Eigenvalue " << i << " has an imaginary part of " << std::imag(rFeastEigenvalues[i]) << std::endl;
+            if( std::abs(std::imag(rFeastEigenvalues[i])) > 1000*std::numeric_limits<double>::epsilon() ) {
+                KRATOS_WARNING("FeastEigensystemSolver") << "Eigenvalue " << i << " has an imaginary part of " << std::imag(rFeastEigenvalues[i]) << std::endl;
+                complex_result = true;
+            }
         }
 
-        // copy real parts of eigenvectors to result matrix
-        // the eigensolver strategy expects an eigenvector matrix of shape [n_eigenvalues, n_dofs], so FEAST's eigenvector matrix has to be transposed
-        if( rEigenvectors.size1() != rFeastEigenvectors.size2() || rEigenvectors.size2() != rFeastEigenvectors.size1() )
-            rEigenvectors.resize(rFeastEigenvectors.size2(), rFeastEigenvectors.size1(), false);
+        if( !complex_result ) {
+            // copy real parts of eigenvectors to result matrix
+            // the eigensolver strategy expects an eigenvector matrix of shape [n_eigenvalues, n_dofs], so FEAST's eigenvector matrix has to be transposed
+            if( rEigenvectors.size1() != rFeastEigenvectors.size2() || rEigenvectors.size2() != rFeastEigenvectors.size1() )
+                rEigenvectors.resize(rFeastEigenvectors.size2(), rFeastEigenvectors.size1(), false);
 
-        #pragma omp parallel for
-        for( size_t i=0; i<rEigenvectors.size1(); ++i ) {
-            for( size_t j=0; j<rEigenvectors.size2(); ++j ) {
-                rEigenvectors(i,j) = std::real(rFeastEigenvectors(j,i));
-                KRATOS_WARNING_IF("FeastEigensystemSolver", std::imag(rFeastEigenvectors(j,i)) > 100*std::numeric_limits<double>::epsilon())
-                    << "Eigenvector entry " << i << "/" << j << " has an imaginary part of " << std::imag(rFeastEigenvectors(j,i)) << std::endl;
+            #pragma omp parallel for
+            for( size_t i=0; i<rEigenvectors.size1(); ++i ) {
+                for( size_t j=0; j<rEigenvectors.size2(); ++j ) {
+                    rEigenvectors(i,j) = std::real(rFeastEigenvectors(j,i));
+                }
             }
+        } else {
+            KRATOS_WARNING("FeastEigensystemSolver") << "The computed solution is complex. " <<
+                "Please use GetEigenvectorSolution() and GetEigenvalueSolution() to retrieve the complex result." << std::endl;
+
+            mpEigenvectorMatrix = TDenseSpaceTypeOut::CreateEmptyMatrixPointer();
+            mpEigenvalueVector = TSparseSpaceTypeOut::CreateEmptyVectorPointer();
+
+            // provide the complex solution
+            DenseOutputMatrixType& ev = *mpEigenvectorMatrix;
+            if( ev.size1() != rFeastEigenvectors.size2() || ev.size2() != rFeastEigenvectors.size1() )
+                ev.resize(rFeastEigenvectors.size2(), rFeastEigenvectors.size1(), false);
+            noalias(ev) = trans(rFeastEigenvectors);
+
+            OutputVectorType& e = *mpEigenvalueVector;
+            e.swap(rFeastEigenvalues);
+
+            // invalidate the double solution
+            rEigenvalues.resize(1, false);
+            rEigenvalues[0] = std::nan("");
+            rEigenvectors.resize(1, 1, false);
+            rEigenvectors(0,0) = std::nan("");
         }
     }
 
