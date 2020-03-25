@@ -398,6 +398,15 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
         if use_delaunator:
             self.assertTrue(solution)
+            self.assertAlmostEqual(matrix_solution[0, 0],  1.0 / 6.0)
+            self.assertAlmostEqual(matrix_solution[0, 1],  0.5)
+            self.assertAlmostEqual(matrix_solution[0, 2],  1.0 / 12.0)
+            self.assertAlmostEqual(matrix_solution[1, 0],  4.0 / 6.0)
+            self.assertAlmostEqual(matrix_solution[1, 1],  0.25)
+            self.assertAlmostEqual(matrix_solution[1, 2],  1.0 / 12.0)
+            self.assertAlmostEqual(matrix_solution[2, 0],  1.0 / 6.0)
+            self.assertAlmostEqual(matrix_solution[2, 1],  0.75)
+            self.assertAlmostEqual(matrix_solution[2, 2],  1.0 / 12.0)
         else:
             self.assertTrue(solution)
             self.assertAlmostEqual(matrix_solution[0, 0],  4.0 / 6.0)
