@@ -1,0 +1,25 @@
+FROM kratosmultiphysics/kratos-image-ci-ubuntu-bionic
+
+ENV HOME /root
+ENV PYTHONPATH ${PYTHONPATH}:/software/Kratos/bin/Release
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/software/Kratos/bin/Release/libs
+
+RUN git clone --depth 1 https://github.com/KratosMultiphysics/Kratos.git /software/Kratos && \
+    # setting some environment variables for the build
+    export KRATOS_BUILD_TYPE=Release && \
+    export CC=gcc && \
+    export CXX=g++ && \
+    export FC=gfortran-7 && \
+    export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON" && \
+    export KRATOS_CMAKE_CXX_FLAGS="-Wno-deprecated-declarations" && \
+    . /opt/intel/mkl/bin/mklvars.sh && \
+    # using the configure file from the CI
+    cp /software/Kratos/.github/workflows/configure.sh /software/Kratos/configure.sh && \
+    cd /software/Kratos && \
+    sh configure.sh && \
+    # cleanup after build
+    rm configure.sh
+
+CMD [ "/bin/bash" ]
+
+WORKDIR $HOME

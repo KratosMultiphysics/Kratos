@@ -127,6 +127,11 @@ public:
         mpContactProcess->ExecuteFinalizeSolutionStep();
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -179,11 +184,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access

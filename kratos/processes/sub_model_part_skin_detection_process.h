@@ -42,6 +42,7 @@ class FaceSelector
 {
 public:
 KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
+virtual ~FaceSelector() = default;
 virtual void Prepare(ModelPart& rMainModelPart) const = 0;
 virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
 };

@@ -18,7 +18,7 @@
 #include "includes/define_python.h"
 #include "add_constraint_to_python.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/linear_master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
 #include "constraints/slip_constraint.h"
 
 namespace Kratos
