@@ -4,7 +4,7 @@
 ## General concepts
 
 
-#### Hierarchy of mapping-related objects
+### Hierarchy of mapping-related objects
 
 CoCoNuT interacts with the mappers through the `SolverWrapperMapped` object: this wrapper behaves like every other `SolverWrapper` as far as the other components are concerned. 
 It contains 3 main components: a `Mapper` for the input, a real `SolverWrapper` and a `Mapper` for the output. The mappers are initialized through the `SetInterfaceInput` and `SetInterfaceOutput` methods respectively, by providing them with the `CoSimulationInterface` objects that will be respectively the input and output of the `SolverWrapperMapped` object.
@@ -16,7 +16,7 @@ At the lowest level, mappers interpolate historical variables between two `Model
 These mappers can be chained together in a `MapperCombined` object, creating in fact another layer of mapping. So many layers! Like an onion!
 
 
-#### Interpolators and transformers
+### Interpolators and transformers
 
 The `ModelPart`-level mappers have two main methods: `Initialize` and `__call__`. 
 
@@ -36,7 +36,7 @@ A transformer can never be used by itself, it must always be combined with an in
 ## Overview of special mappers
 
 
-#### MapperInterface
+### MapperInterface
 
 Special mapper-class that maps on the level of `CoSimulationInterface` objects. 
 It takes two `CoSimulationInterface` objects, 
@@ -49,7 +49,7 @@ JSON setting|type|description
 `type`|str|`ModelPart` mapper to be used
 `settings`|dict|all the settings for the `ModelPart` mapper specified in `type`
 
-#### MapperCombined
+### MapperCombined
 
 The `MapperCombined` is used to chain together multiple mappers. It contains always 1 interpolator and 0 or more transformers, on either side of the interpolator. If transformers are present, _intermediate_ `ModelPart` objects are created during initialization. This is done by working _inwards_ towards the interpolator. This means that transformers upstream of the interpolator, are initialized based on the _from_ `ModelPart` (input), while downstream transformers are initialized based on the _to_ `ModelPart` (output). 
 Some transformers can only be initialized in one direction, e.g. for `MapperAxisymmetric3DTo2D`, the 2D _to_ `ModelPart` must be supplied, therefore it must be downstream of the interpolator. 
@@ -62,7 +62,7 @@ JSON setting|type|description
 
 ## Overview of transformers
 
-#### MapperPermutation
+### MapperPermutation
 
 Permutates the coordinates and the vector variables according to the given `permutation`. 
 This transformer can be initialized in both directions. 
@@ -71,7 +71,7 @@ JSON setting|type|description
 ------:|:----:|-----------
 `permutation`|list|a permutation of the list [0, 1, 2]
 
-#### MapperAxisymmetric2DTo3D
+### MapperAxisymmetric2DTo3D
 
 Transforms from a 2D axisymmetric geometry to a 3D geometry. This transformer can only be initialized in the _forward_ direction, i.e. based on the 2D axisymmetric `ModelPart`. Therefore, it should be _upstream_ of the interpolator in a `MapperCombined`.
 
@@ -88,7 +88,7 @@ JSON setting|type|description
 `direction_radial`|string|must be `"X"`, `"Y"` or `"Z"`, specifies the second (radial) axis in 2D
 `n_tangential`|int|must be ≥ 6
 
-#### MapperAxisymmetric3DTo2D
+### MapperAxisymmetric3DTo2D
 
 Transforms from a 3D geometry to a 2D axisymmetric geometry. This transformer can only be initialized in the _backward_ direction, i.e. based on the 2D axisymmetric `ModelPart`. Therefore, it should be _downstream_ of the `MapperInterpolator` in a `MapperCombined`.
 
@@ -100,7 +100,7 @@ For more information and JSON settings, see `MapperAxisymmetric2DTo3D` which is 
 
 ## Overview of interpolators
 
-#### MapperInterpolator
+### MapperInterpolator
 
 Base-class for all interpolators (currently `MapperNearest`, `MapperLinear` and `MapperRadialBasis`). 
 
@@ -110,20 +110,20 @@ JSON setting|type|description
 `balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build; set to `true` if the tree is giving problems (which I don't expect)
 
 The `Initialize`-method should be called in all child-classes. It does the following:
-- read and store the coordinates from the _from_ and _to_ `ModelPart` objects
-- check if the bounding boxes of the _from_ and _to_ `ModelPart` objects are more or less overlapping
-- do an efficient nearest neighbour search using `scipy.spatial.cKDTree`
-- check if the _from_ `ModelPart` does not contain duplicate nodes (i.e. same coordinates)
+-   read and store the coordinates from the _from_ and _to_ `ModelPart` objects
+-   check if the bounding boxes of the _from_ and _to_ `ModelPart` objects are more or less overlapping
+-   do an efficient nearest neighbour search using `scipy.spatial.cKDTree`
+-   check if the _from_ `ModelPart` does not contain duplicate nodes (i.e. same coordinates)
 
 The `__call__`-method should not be overridden in the child-classes. It maps historical variables based on neighbours and coefficients determined in `Initialize`. Historical variables of type `Double` and type `Array` can be mapped (the latter is just the application of the former for each vector component).
 
 
-#### MapperNearest
+### MapperNearest
 
 Child-class of `MapperInterpolator`, does not require additional settings. Does simple nearest-neighbour mapping.
 
 
-#### MapperLinear
+### MapperLinear
 
 Child-class of `MapperInterpolator`, additional settings:
 
@@ -140,7 +140,7 @@ The kind of linear mapping depends on the number of coordinate directions, as gi
 **3D** - The _to_-point is first projected on the plane through the 3 nearest _from_-points. If the triangle consinsting of those 3 points is _deprecated_ (colinear points), the 2D-methodology is followed. Else, if the projected point lies inside the triangle, barycentric interpolation is done. If it lies outside the triangle, the 2D-methodology is followed.
 
 
-#### MapperRadialBasis
+### MapperRadialBasis
 
 Child-class of `MapperInterpolator`, additional settings:
 
@@ -189,16 +189,3 @@ As every to-point has different nearest neighbours in the _from_-points, the coe
 
 
 
-[//]: # (SOME HANDY MARKDOW URLS:)
-
-[//]: # (MarkDown cheat sheet: https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables)
-
-[//]: # (render LaTeX eqn as image: https://alexanderrodin.com/github-latex-markdown/)
-
-[//]: # (Greek lower: αβγδεζηϑθικλμνξοπρστυφϕχψω)
-[//]: # (Greek upper: ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ)
-[//]: # (super, sub: <sup></sup>, <sub></sub> )
-[//]: # (operators: + - − · / × √ ∘ ∗)
-[//]: # (other: ∂ Δ	∑ ≤ ≥ ∈ )
-[//]: # (more HTML math: http://www.unics.uni-hannover.de/nhtcapri/mathematics.html)
-[//]: # (and even more: http://www.alanflavell.org.uk/unicode/unidata22.html)
