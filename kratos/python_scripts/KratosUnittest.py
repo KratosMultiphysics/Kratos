@@ -77,11 +77,23 @@ class TestCase(TestCase):
             self.assertAlmostEqual(vector1[i], vector2[i], prec, msg=GetErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        self.assertEqual(matrix1.Size2(), matrix2.Size2())
+        def GetDimErrMsg():
+            err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
+            err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
+            err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
+            return err_msg
+
+        def GetValErrMsg(idx_1, idx_2):
+            err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(idx_1, idx_2)
+            err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
+            return err_msg
+
+        dimensions_match = (matrix1.Size1() == matrix2.Size1() and matrix1.Size2() == matrix2.Size2())
+        self.assertTrue(dimensions_match, msg=GetDimErrMsg())
+
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg="i={}; j={}".format(i,j))
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
 
 
 @contextmanager
