@@ -66,11 +66,7 @@ namespace Kratos
 		Creates a Quaternion from another Quaternion.
 		@param other the other Quaternion
 		*/
-		Quaternion(const Quaternion& other) {
-			SetX(other.X());
-			SetY(other.Y());
-			SetZ(other.Z());
-			SetW(other.W());
+		Quaternion(const Quaternion& other) : mQuaternionValues(other.mQuaternionValues){
 		}
 
 		///@}
