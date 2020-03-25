@@ -85,10 +85,7 @@ namespace Kratos
 		*/
 		Quaternion& operator= (const Quaternion& other) {
 			if(this != &other) {
-				SetX(other.X());
-				SetY(other.Y());
-				SetZ(other.Z());
-				SetW(other.W());
+mQuaternionValues=other.mQuaternionValues;
 			}
 			return *this;
 		}
