@@ -88,7 +88,7 @@ public:
 
     /// Copy constructor, with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
-        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
+        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
@@ -146,11 +146,13 @@ public:
     ///@name Operations
     ///@{
 
-    /*typename BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         TSurfaceContainerPointType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
-    }*/
+        KRATOS_ERROR << "NurbsCurveOnSurfaceGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+            << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
+            << std::endl;
+    }
 
     ///@}
     ///@name Curve Properties
