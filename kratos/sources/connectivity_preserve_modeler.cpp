@@ -152,18 +152,26 @@ void ConnectivityPreserveModeler::DuplicateElements(
     const Element& rReferenceElement) const
 {
     // Generate the elements
-    ModelPart::ElementsContainerType temp_elements;
-    temp_elements.reserve(rOriginModelPart.NumberOfElements());
+    ModelPart::ElementsContainerType& r_elements = rDestinationModelPart.Elements();
+    r_elements.reserve(rOriginModelPart.NumberOfElements());
+
+    // Calculates the maximum element id available in destination model part
+    // In here, passing original model part communicator makes sense, since
+    // it is only used to MaxAll of a double value (destination model part communicators are still not constructed).
+    const IndexType max_element_id =
+        GetMaxId(rDestinationModelPart.IsSubModelPart()
+                     ? rDestinationModelPart.GetRootModelPart().Elements()
+                     : r_elements,
+                 rOriginModelPart.GetCommunicator());
+
     for (auto i_elem = rOriginModelPart.ElementsBegin(); i_elem != rOriginModelPart.ElementsEnd(); ++i_elem) {
         Properties::Pointer properties = i_elem->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
-        Element::Pointer p_element = rReferenceElement.Create(i_elem->Id(), i_elem->pGetGeometry(), properties);
+        Element::Pointer p_element = rReferenceElement.Create(i_elem->Id() + max_element_id, i_elem->pGetGeometry(), properties);
 
-        temp_elements.push_back(p_element);
+        r_elements.push_back(p_element);
     }
-
-    rDestinationModelPart.AddElements(temp_elements.begin(), temp_elements.end());
 }
 
 void ConnectivityPreserveModeler::DuplicateConditions(
@@ -172,18 +180,26 @@ void ConnectivityPreserveModeler::DuplicateConditions(
     const Condition& rReferenceBoundaryCondition) const
 {
     // Generate the conditions
-    ModelPart::ConditionsContainerType temp_conditions;
-    temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
+    ModelPart::ConditionsContainerType& r_conditions = rDestinationModelPart.Conditions();
+    r_conditions.reserve(rOriginModelPart.NumberOfConditions());
+
+    // Calculates the maximum condition id available in destination model part
+    // In here, passing original model part communicator makes sense, since
+    // it is only used to MaxAll of a double value (destination model part communicators are still not constructed).
+    const IndexType max_condition_id =
+        GetMaxId(rDestinationModelPart.IsSubModelPart()
+                     ? rDestinationModelPart.GetRootModelPart().Conditions()
+                     : r_conditions,
+                 rOriginModelPart.GetCommunicator());
+
     for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond) {
         Properties::Pointer properties = i_cond->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
-        Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id(), i_cond->pGetGeometry(), properties);
+        Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id() + max_condition_id, i_cond->pGetGeometry(), properties);
 
-        temp_conditions.push_back(p_condition);
+        r_conditions.push_back(p_condition);
     }
-
-    rDestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
 }
 
 void ConnectivityPreserveModeler::DuplicateCommunicatorData(

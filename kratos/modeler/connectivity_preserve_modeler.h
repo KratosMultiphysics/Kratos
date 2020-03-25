@@ -162,6 +162,33 @@ private:
         ModelPart& rDestinationModelPart
     ) const;
 
+    template <typename TContainer>
+    IndexType GetMaxId(const TContainer& rContainer, const Communicator& rCommunicator) const
+    {
+        KRATOS_TRY
+
+        const int number_of_items = rContainer.size();
+
+        IndexType max_item_id{0}, local_id{0};
+        // using customized max reduction since windows doesnt support max reduction in omp
+#pragma omp parallel firstprivate(local_id)
+        {
+#pragma omp for
+            for (int i_item = 0; i_item < number_of_items; ++i_item)
+            {
+                const auto& r_item = *(rContainer.begin() + i_item);
+                local_id = std::max(local_id, r_item.Id());
+            }
+#pragma omp critical
+            {
+                max_item_id = std::max(max_item_id, local_id);
+            }
+        }
+        return rCommunicator.GetDataCommunicator().MaxAll(max_item_id);
+
+        KRATOS_CATCH("");
+    }
+
     ///@}
 };
 
