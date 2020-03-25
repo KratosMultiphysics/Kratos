@@ -110,8 +110,11 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
     Vector main_strain      = ZeroVector(3);
 
     for (unsigned int i = 0; i<3; ++i)
+    {
         main_strain[i] = rNewElasticLeftCauchyGreen(i,i);
-
+        mMainStrain[i] = main_strain[i];
+    }
+        
     for(unsigned int i=0; i<3; i++)
     {
         // the rStressMatrix is the precomputed principal stress
@@ -320,8 +323,15 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
     const double young_modulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
-    const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
-    const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
+    double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
+    double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
+
+    const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
+    if (volumetric_strain>0)
+    {
+        diagonal = young_modulus/(1.0+poisson_ratio);
+        nondiagonal *= 0.0;
+    }
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -344,9 +354,15 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
     const double young_modulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
-    const double lame_lambda  = (young_modulus*poisson_ratio)/((1+poisson_ratio)*(1-2*poisson_ratio));
+
+    double lame_lambda  = (young_modulus*poisson_ratio)/((1+poisson_ratio)*(1-2*poisson_ratio));
     const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
 
+    const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
+    if (volumetric_strain>0)
+    {
+        lame_lambda *= 0.0;
+    }
     const double diagonal    = (lame_lambda + lame_mu)/(lame_mu*(3.0*lame_lambda+2.0*lame_mu));
     const double nondiagonal = (-lame_lambda)/( 2.0*lame_mu*(3.0*lame_lambda + 2.0*lame_mu));
 
@@ -371,9 +387,16 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
     const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
-    const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
-    const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
+    double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
+    double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
     const double corte       = young_modulus/(1.0+poisson_ratio)/2.0;
+
+    const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
+    if (volumetric_strain>0)
+    {
+        diagonal = young_modulus/(1.0+poisson_ratio);
+        nondiagonal *= 0.0;
+    }
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -402,15 +425,25 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
     for (unsigned int i = 0; i<3; ++i)
     {
         main_strain[i] = rNewElasticLeftCauchyGreen(i,i);
+        mMainStrain[i] = main_strain[i];
     }
 
     // Calculate the elastic matrix
     BoundedMatrix<double,3,3> ElasticMatrix = ZeroMatrix(3,3);
-    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-    const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
-    const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
+    double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
+    double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
 
+    const auto volumetric_strain = main_strain[0] + main_strain[1] + main_strain[2];
+    if (volumetric_strain>0)
+    {
+        diagonal = young_modulus/(1.0+poisson_ratio);
+        nondiagonal *= 0.0;
+    }
+        
+
+    
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
