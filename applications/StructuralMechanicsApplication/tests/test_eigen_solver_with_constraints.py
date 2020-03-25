@@ -109,7 +109,7 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
             eig_vec_mat = node[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
             eig_vec_mat_contr = node_const[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
 
-            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 12) # Note: this might me too strict depending on the eigenvalue solver (works fine with eigen_eigensystem in compination with the eigen sparse-lu)
+            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 10) # Note: this might me too strict depending on the eigenvalue solver (works fine with eigen_eigensystem in compination with the eigen sparse-lu)
 
     def __CompareMatrix(self, mat_1, mat_2, tol=7):
         self.assertEqual(mat_1.Size1(), mat_2.Size1())
