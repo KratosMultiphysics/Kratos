@@ -134,6 +134,10 @@ class PotentialFlowSolver(FluidSolver):
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
+            "builder_and_solver_settings" : {
+                "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
+                "silent_warnings"                    : false
+            },
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
@@ -259,17 +263,32 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
         elif strategy_type == "upwind_non_linear":
-            convergence_criterion = self.get_convergence_criterion()
-            solution_strategy = KCPFApp.UpwindResidualBasedNewtonRaphsonStrategy(
+            RT = self.settings["relative_tolerance"].GetDouble()
+            AT = self.settings["absolute_tolerance"].GetDouble()
+            Displacement = KratosMultiphysics.DisplacementCriteria(RT, AT)
+            Displacement.SetEchoLevel(1)
+            Residual = KratosMultiphysics.ResidualCriteria(RT, AT)
+            Residual.SetEchoLevel(1)
+            convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+
+            bs_params = self.settings["builder_and_solver_settings"]
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+            builder_and_solver.SetEchoLevel(-1)
+            echo = builder_and_solver.GetEchoLevel()
+            print("echo = ", echo)
+
+            solution_strategy = KCPFApp.UpwindResidualBasedNewtonRaphsonStrategyWithBuilderAndSolver(
             #solution_strategy = KCPFApp.UpwindLineSearchStrategy(
                 computing_model_part,
                 time_scheme,
                 linear_solver,
                 convergence_criterion,
+                builder_and_solver,
                 self.settings["maximum_iterations"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
+            builder_and_solver.SetEchoLevel(0)
         else:
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
