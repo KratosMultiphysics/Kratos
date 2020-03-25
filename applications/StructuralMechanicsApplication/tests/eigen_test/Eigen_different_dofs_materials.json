@@ -13,7 +13,7 @@
                 "CROSS_AREA"        : 0.149225651,
                 "TORSIONAL_INERTIA" : 0.0337623035,
                 "I22"               : 0.0168811518,
-                "I33"               : 0.0168811518,
+                "I33"               : 0.02,
                 "USE_CONSISTENT_MASS_MATRIX" : true
             },
             "Tables"           : {}

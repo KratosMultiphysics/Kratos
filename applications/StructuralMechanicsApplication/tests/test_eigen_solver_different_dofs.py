@@ -40,7 +40,7 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
         self.__CheckEigenSolution(model["Structure"])
 
     def __CheckEigenSolution(self, model_part):
-        exp_eigen_values = KM.Vector([2.3779548, 2.3779548])
+        exp_eigen_values = KM.Vector([2.3779548, 2.465771262])
 
         self.assertVectorAlmostEqual(exp_eigen_values, model_part.ProcessInfo[KSM.EIGENVALUE_VECTOR])
 
@@ -48,8 +48,8 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
         eigen_vec_res_bottom_nodes.fill(0.0)
 
         eigen_vec_res_top_node_raw = [
-            [-0.00579401, 0.0, 0.0, 0.0, 0.9999832, 0.0],
-            [0.0, -0.00579401, 0.0,-0.9999832,0.0, 0.0]
+            [0.0, -0.00579401, 0.0,-0.9999832,0.0, 0.0],
+            [-0.00716752, 0.0, 0.0, 0.0, 0.99997431, 0.0]
         ]
 
         eigen_vec_res_top_node = KM.Matrix(2,6)
@@ -59,7 +59,6 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             if node.Id == 1: # this is the node at the top
-                print(node[KSM.EIGENVECTOR_MATRIX])
                 self.assertMatrixAlmostEqual(eigen_vec_res_top_node, node[KSM.EIGENVECTOR_MATRIX])
             else:
                 # here we make sure that the fixed dofs have a zero eigenvector
