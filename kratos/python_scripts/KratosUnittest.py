@@ -46,7 +46,7 @@ class TestCase(TestCase):
         absolute and relative difference
 
         If the two objects compare equal then they will automatically
-        compare relative almost equal. ''' 
+        compare relative almost equal. '''
 
         if first == second:
             # shortcut
@@ -69,14 +69,14 @@ class TestCase(TestCase):
     def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
         self.assertEqual(vector1.Size(), vector2.Size())
         for i in range(vector1.Size()):
-            self.assertAlmostEqual(vector1[i], vector2[i], prec)
+            self.assertAlmostEqual(vector1[i], vector2[i], prec, msg="i={}".format(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
         self.assertEqual(matrix1.Size2(), matrix2.Size2())
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg="i={}; j={}".format(i,j))
 
 @contextmanager
 def SupressConsoleOutput():
