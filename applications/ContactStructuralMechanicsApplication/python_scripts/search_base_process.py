@@ -156,8 +156,10 @@ class SearchBaseProcess(KM.Process):
             master_slave_process.Execute()
 
         # Setting the integration order and active check factor
+        KM.AuxiliarModelPartUtilities(self._get_process_model_part()).RecursiveEnsureModelPartOwnsProperties(True)
         for prop in self._get_process_model_part().GetProperties():
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
+            prop[CSMA.CONSIDER_TESSELLATION] = self.settings["consider_tessellation"].GetBool()
 
         # We initialize the contact values
         self._initialize_search_values()
@@ -380,7 +382,6 @@ class SearchBaseProcess(KM.Process):
 
         # Setting the integration order and active check factor
         for prop in self._get_process_model_part().GetProperties():
-            prop[CSMA.CONSIDER_TESSELLATION] = self.settings["consider_tessellation"].GetBool()
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
             prop[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
 
