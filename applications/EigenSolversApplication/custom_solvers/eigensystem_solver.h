@@ -317,9 +317,10 @@ private:
 
     struct DirectSolverWrapperBase
     {
-        typedef Eigen::Map<const EigenSparseLUSolver<double>::SparseMatrix> MatrixMapType;
-        typedef Eigen::Ref<const EigenSparseLUSolver<double>::Vector> ConstVectorRefType;
-        typedef Eigen::Ref<EigenSparseLUSolver<double>::Vector> VectorRefType;
+        typedef Eigen::Map<const Eigen::SparseMatrix<double, Eigen::RowMajor, int>> MatrixMapType;
+        typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenVectorType;
+        typedef Eigen::Ref<const EigenVectorType> ConstVectorRefType;
+        typedef Eigen::Ref<EigenVectorType> VectorRefType;
 
         virtual ~DirectSolverWrapperBase() = default;
         virtual void Compute(MatrixMapType a) = 0;
