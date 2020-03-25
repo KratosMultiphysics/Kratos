@@ -15,7 +15,7 @@ class LagrangianShallowWaterSolver(ShallowWaterBaseSolver):
         super(LagrangianShallowWaterSolver, self).__init__(model, settings)
         self.min_buffer_size = 2
         self.element_name = "ConservedElement"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.thickness = 1e-2
 
     def AddVariables(self):

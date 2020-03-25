@@ -415,6 +415,9 @@ class ExplicitStrategy(object):
     def FinalizeSolutionStep(self):
         (self.cplusplus_strategy).FinalizeSolutionStep()
 
+    def Finalize(self):
+        pass
+
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
