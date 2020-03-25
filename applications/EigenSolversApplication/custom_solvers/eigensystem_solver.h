@@ -176,13 +176,19 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
+        Kratos::unique_ptr<DirectSolverWrapperBase> p_solver;
+
         #if defined USE_EIGEN_MKL
-        auto solver = mParam["use_mkl_if_available"].GetBool() ? EigenPardisoLDLTSolver<double> : EigenSparseLUSolver<double>;
+        if (mParam["use_mkl_if_available"].GetBool()) {
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenPardisoLDLTSolver<double>>>();
+        } else {
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
+        }
         #else  // defined USE_EIGEN_MKL
-        EigenSparseLUSolver<double> solver;
+        p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
         #endif // defined USE_EIGEN_MKL
 
-        solver.Compute(a);
+        p_solver->Compute(a);
 
         int iteration = 0;
 
@@ -195,7 +201,7 @@ class EigensystemSolver
 
             for (int j = 0; j != nc; ++j) {
                 tmp = r.col(j);
-                solver.Solve(tmp, tt);
+                p_solver->Solve(tmp, tt);
 
                 for (int i = j; i != nc; ++i) {
                     ar(i, j) = r.col(i).dot(tt);
@@ -262,7 +268,7 @@ class EigensystemSolver
 
         for (int i = 0; i != nroot; ++i) {
             tmp = r.col(i);
-            solver.Solve(tmp, eigvecs.row(i));
+            p_solver->Solve(tmp, eigvecs.row(i));
             eigvecs.row(i).normalize();
         }
 
@@ -306,6 +312,33 @@ class EigensystemSolver
     void PrintData(std::ostream &rOStream) const override
     {
     }
+
+private:
+
+    struct DirectSolverWrapperBase
+    {
+        typedef Eigen::Map<const EigenSparseLUSolver<double>::SparseMatrix> MatrixMapType;
+        typedef Eigen::Ref<const EigenSparseLUSolver<double>::Vector> ConstVectorRefType;
+        typedef Eigen::Ref<EigenSparseLUSolver<double>::Vector> VectorRefType;
+
+        virtual ~DirectSolverWrapperBase() = default;
+        virtual void Compute(MatrixMapType a) = 0;
+        virtual void Solve(ConstVectorRefType b, VectorRefType x) = 0;
+    };
+
+    template<class TSolver>
+    struct DirectSolverWrapper : DirectSolverWrapperBase
+    {
+        typedef DirectSolverWrapper BaseType;
+        typedef typename BaseType::MatrixMapType MatrixMapType;
+        typedef typename BaseType::VectorRefType VectorRefType;
+        typedef typename BaseType::ConstVectorRefType ConstVectorRefType;
+
+        void Compute(MatrixMapType a) override {mSolver.Compute(a);}
+        void Solve(ConstVectorRefType b, VectorRefType x) override {mSolver.Solve(b, x);}
+        private:
+            TSolver mSolver;
+    };
 
 }; // class EigensystemSolver
 
