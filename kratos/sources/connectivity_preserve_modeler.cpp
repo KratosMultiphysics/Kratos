@@ -253,6 +253,7 @@ ModelPart& rDestinationModelPart) const
 {
     // If we copy root model part into a submodel part, then it will create element/condition whith ids which may
     // conflict with destination model part root model part ids
+    // or we need to add all the submodel part elements and conditions in the origin model part as well
     if (!rDestinationModelPart.IsSubModelPart())
     {
         for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
