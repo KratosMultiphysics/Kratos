@@ -422,6 +422,32 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     return name;
 }
 
+void RecursiveEnsureModelPartOwnsProperties(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities)
+{
+    rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();
+}
+
+void RecursiveEnsureModelPartOwnsPropertiesWithClear(
+    AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities,
+    const bool RemovePreviousProperties
+    )
+{
+    rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);
+}
+
+void EnsureModelPartOwnsProperties(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities)
+{
+    rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties();
+}
+
+void EnsureModelPartOwnsPropertiesWithClear(
+    AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities,
+    const bool RemovePreviousProperties
+    )
+{
+    rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties(RemovePreviousProperties);
+}
+
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -1121,8 +1147,10 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
-        .def("RecursiveEnsureModelPartOwnsProperties", &AuxiliarModelPartUtilities::RecursiveEnsureModelPartOwnsProperties)
-        .def("EnsureModelPartOwnsProperties", &AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties)
+        .def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsProperties)
+        .def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsPropertiesWithClear)
+        .def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsProperties)
+        .def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsPropertiesWithClear)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
