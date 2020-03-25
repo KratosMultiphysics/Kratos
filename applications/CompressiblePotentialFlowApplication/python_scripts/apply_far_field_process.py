@@ -73,10 +73,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         #self.free_stream_mach += 0.01
         #self.free_stream_mach = self.step / 1.0 * self.free_stream_mach_final
         #self.free_stream_mach = self.free_stream_mach_final + self.step / 100.0
-        # if self.step > 7:
-        #     self.free_stream_mach += 0.001
-        # else:
-        #     self.free_stream_mach += 0.01
+        if self.step > 7:
+            self.free_stream_mach += 0.001
+        else:
+            self.free_stream_mach += 0.01
         # else:
         #     self.free_stream_mach += 0.01
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
