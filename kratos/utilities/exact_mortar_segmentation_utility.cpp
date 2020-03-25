@@ -22,6 +22,7 @@
 #include "utilities/delaunator_utilities.h"
 // DEBUG
 #include "includes/gid_io.h"
+#include "input_output/vtk_output.h"
 
 namespace Kratos {
 template <>
@@ -1034,10 +1035,6 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
     const bool is_inside = GetExactIntegration(rOriginalSlaveGeometry, rSlaveNormal, rOriginalMasterGeometry, rMasterNormal, conditions_points_slave);
     if (is_inside) {
         GetTotalArea(rOriginalSlaveGeometry, conditions_points_slave, rArea);
-        // Debugging
-        if (mEchoLevel > 1) {
-            MathematicaDebug(0, rOriginalSlaveGeometry, 0, rOriginalMasterGeometry, conditions_points_slave);
-        }
     }
 
     return is_inside;
@@ -1139,57 +1136,117 @@ double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>:
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
-void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGiDDebug(ModelPart& rMainModelPart)
+void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestIODebug(
+    ModelPart& rMainModelPart,
+    const std::string IOConsidered
+    )
 {
     if (TDim == 3) {
         Model& current_model = rMainModelPart.GetModel();
         ModelPart& aux_model_part = current_model.CreateModelPart("exact_mortar_aux_model_part");
 
-        IndexType node_counter = 1;
-        IndexType cond_counter = 1;
+        // Copy conditions
+        aux_model_part.AddConditions(rMainModelPart.ConditionsBegin(), rMainModelPart.ConditionsEnd());
 
-        for (auto& cond : rMainModelPart.Conditions()) {
-            if (cond.Is(SLAVE)) {
-                auto& slave_geometry = cond.GetGeometry();
+        // Reset flag
+        for (auto& r_cond : rMainModelPart.Conditions()) {
+            r_cond.Reset(VISITED);
+        }
 
-                if ( cond.Has( INDEX_MAP )) {
-                    IndexMap::Pointer indexes_map = cond.GetValue( INDEX_MAP );
+        // Auxiliar values
+        IndexType node_counter = rMainModelPart.NumberOfNodes() + 1;
+        IndexType cond_counter = rMainModelPart.NumberOfConditions() + 1;
 
-                    for (auto it_pair = indexes_map->begin(); it_pair != indexes_map->end(); ++it_pair ) {
-                        Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(it_pair->first);
-                        ConditionArrayListType conditions_points_slave;
-                        const bool is_inside = GetExactIntegration(slave_geometry, cond.GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), conditions_points_slave);
-                        if (is_inside) {
-                            for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+        auto p_prop_slave = aux_model_part.CreateNewProperties(10001);
+        auto p_prop_master = aux_model_part.CreateNewProperties(10002);
+
+        for (auto& r_cond_slave : rMainModelPart.Conditions()) {
+            if (r_cond_slave.IsDefined(SLAVE)) {
+                if (r_cond_slave.Is(SLAVE)) {
+                    auto& r_slave_geometry = r_cond_slave.GetGeometry();
+
+                    if ( r_cond_slave.Has( INDEX_MAP )) {
+                        IndexMap::Pointer indexes_map = r_cond_slave.GetValue( INDEX_MAP );
+
+                        for (auto it_pair = indexes_map->begin(); it_pair != indexes_map->end(); ++it_pair ) {
+                            Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(it_pair->first);
+                            ConditionArrayListType conditions_points_slave;
+                            const bool is_inside = GetExactIntegration(r_slave_geometry, r_cond_slave.GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), conditions_points_slave);
+                            if (is_inside) {
+                                PointType global_point;
                                 std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                                for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-                                    PointType global_point;
-                                    slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                                    points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
-                                    node_counter++;
+                                for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+                                    for (IndexType i_node = 0; i_node < TDim; ++i_node) {
+                                        r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                        points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
+                                        node_counter++;
+                                    }
+                                    aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, GeometryType::PointsArrayType{points_array}, p_prop_slave);
+                                    cond_counter++;
                                 }
-                                aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
-                                cond_counter++;
+                            }
+                        }
+                    } else if ( r_cond_slave.Has( INDEX_SET )) {
+                        IndexSet::Pointer indexes_set = r_cond_slave.GetValue( INDEX_SET );
+
+                        for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
+                            Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(*it_pair);
+                            ConditionArrayListType conditions_points_slave;
+                            const bool is_inside = GetExactIntegration(r_slave_geometry, r_cond_slave.GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), conditions_points_slave);
+                            if (is_inside) {
+                                PointType global_point;
+                                std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                                for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+                                    for (IndexType i_node = 0; i_node < TDim; ++i_node) {
+                                        r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                        points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
+                                        node_counter++;
+                                    }
+                                    aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, GeometryType::PointsArrayType{points_array}, p_prop_slave);
+                                    cond_counter++;
+                                }
+                            }
+                        }
+                    } else {
+                        for (auto& r_cond_master : rMainModelPart.Conditions()) {
+                            if (r_cond_slave.Id() != r_cond_master.Id() && r_cond_master.IsNot(VISITED)) {
+                                r_cond_slave.Set(VISITED, true);
+                                ConditionArrayListType conditions_points_slave;
+                                const bool is_inside = GetExactIntegration(r_slave_geometry, r_cond_slave.GetValue(NORMAL), r_cond_master.GetGeometry(), r_cond_master.GetValue(NORMAL), conditions_points_slave);
+                                if (is_inside) {
+                                    PointType global_point;
+                                    std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                                    for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+                                        for (IndexType i_node = 0; i_node < TDim; ++i_node) {
+                                            r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                            points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
+                                            node_counter++;
+                                        }
+                                        aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, GeometryType::PointsArrayType{points_array}, p_prop_slave);
+                                        cond_counter++;
+                                    }
+                                }
                             }
                         }
                     }
-                } else {
-                    IndexSet::Pointer indexes_set = cond.GetValue( INDEX_SET );
-
-                    for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                        Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(*it_pair);
+                }
+            } else {
+                auto& r_slave_geometry = r_cond_slave.GetGeometry();
+                for (auto& r_cond_master : rMainModelPart.Conditions()) {
+                    if (r_cond_slave.Id() != r_cond_master.Id() && r_cond_master.IsNot(VISITED)) {
+                        r_cond_slave.Set(VISITED, true);
                         ConditionArrayListType conditions_points_slave;
-                        const bool is_inside = GetExactIntegration(slave_geometry, cond.GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), conditions_points_slave);
+                        const bool is_inside = GetExactIntegration(r_slave_geometry, r_cond_slave.GetValue(NORMAL), r_cond_master.GetGeometry(), r_cond_master.GetValue(NORMAL), conditions_points_slave);
                         if (is_inside) {
+                            PointType global_point;
+                            std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
                             for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-                                std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
                                 for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-                                    PointType global_point;
-                                    slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                    r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                                     points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
                                     node_counter++;
                                 }
-                                aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
+                                aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, GeometryType::PointsArrayType{points_array}, p_prop_slave);
                                 cond_counter++;
                             }
                         }
@@ -1198,12 +1255,46 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
             }
         }
 
-        auto pgidio = Kratos::make_shared<GidIO<>>("ExactMortarIntegrationUtilityDEBUG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
-        pgidio->InitializeMesh(0);
-        pgidio->WriteMesh(aux_model_part.GetMesh());
-        pgidio->FinalizeMesh();
-        pgidio->CloseResultFile();
+        // Reset flag
+        for (auto& r_cond : rMainModelPart.Conditions()) {
+            r_cond.Reset(VISITED);
+        }
 
+        if (IOConsidered == "GiD") {
+            auto pgidio = Kratos::make_shared<GidIO<>>("ExactMortarIntegrationUtilityDEBUG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
+            pgidio->InitializeMesh(0);
+            pgidio->WriteMesh(aux_model_part.GetMesh());
+            pgidio->FinalizeMesh();
+            pgidio->CloseResultFile();
+        } else if (IOConsidered == "VTK") {
+            Parameters parameters = Parameters(R"(
+            {
+                "model_part_name"                             : "exact_mortar_aux_model_part",
+                "file_format"                                 : "ascii",
+                "output_precision"                            : 7,
+                "output_control_type"                         : "step",
+                "output_frequency"                            : 1.0,
+                "output_sub_model_parts"                      : false,
+                "folder_name"                                 : ".",
+                "custom_name_prefix"                          : "",
+                "custom_name_postfix"                         : "",
+                "save_output_files_in_folder"                 : true,
+                "write_deformed_configuration"                : true,
+                "write_ids"                                   : false,
+                "nodal_solution_step_data_variables"          : [],
+                "nodal_data_value_variables"                  : [],
+                "nodal_flags"                                 : [],
+                "element_data_value_variables"                : [],
+                "element_flags"                               : [],
+                "condition_data_value_variables"              : [],
+                "condition_flags"                             : [],
+                "gauss_point_variables_extrapolated_to_nodes" : [],
+                "gauss_point_variables_in_elements"           : []
+            })" );
+            VtkOutput(aux_model_part, parameters).PrintOutput();
+        }
+
+        // Delete auxilar model part
         current_model.DeleteModelPart("exact_mortar_aux_model_part");
     }
 }
