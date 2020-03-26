@@ -188,7 +188,7 @@ private:
             for (int i_item = 0; i_item < number_of_items; ++i_item)
             {
                 const auto& r_item = *(rContainer.begin() + i_item);
-                local_id = std::max(local_id, r_item.Id());
+                local_id = std::max(local_id, static_cast<long unsigned int>(r_item.Id()));
             }
 #pragma omp critical
             {
