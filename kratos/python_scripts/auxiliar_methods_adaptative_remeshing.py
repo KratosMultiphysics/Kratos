@@ -80,6 +80,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
             # We reinitialize if remeshed previously
             if root_model_part.Is(KratosMultiphysics.MODIFIED):
                 self.analysis.ReInitializeSolver()
+            self.ExecuteInitializeSolutionStep()
             self.analysis.InitializeSolutionStep()
             # We reinitialize if remeshed on the InitializeSolutionStep
             if root_model_part.Is(KratosMultiphysics.MODIFIED):
@@ -87,6 +88,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
                 self.analysis.InitializeSolutionStep()
             self.analysis._GetSolver().Predict()
             self.analysis._GetSolver().SolveSolutionStep()
+            self.ExecuteBeforeFinalizeSolutionStep()
             self.analysis.FinalizeSolutionStep()
             self.analysis.OutputSolutionStep()
 
