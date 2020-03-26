@@ -169,6 +169,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
 
     // Now the component of mElasticPrincipalStrain are sorted in the same way as plastic_strain!
     mElasticPrincipalStrain -= plastic_strain;
+    mMainStrain = mElasticPrincipalStrain;
     mPlasticPrincipalStrain = plastic_strain;
 
     // We're saving the updated info in terms of principal strain and stress in these matrix
@@ -329,8 +330,10 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
     const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
     if (volumetric_strain>0)
     {
-        diagonal = young_modulus/(1.0+poisson_ratio);
-        nondiagonal *= 0.0;
+        double lame_lambda  = -(young_modulus)/(3*(1+poisson_ratio));
+        const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
+        diagonal = lame_lambda + 2 * lame_mu;
+        nondiagonal = lame_mu;
     }
 
     for (unsigned int i = 0; i<3; ++i)
@@ -361,7 +364,7 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
     const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
     if (volumetric_strain>0)
     {
-        lame_lambda *= 0.0;
+        lame_lambda =  -(young_modulus)/(3*(1+poisson_ratio));;
     }
     const double diagonal    = (lame_lambda + lame_mu)/(lame_mu*(3.0*lame_lambda+2.0*lame_mu));
     const double nondiagonal = (-lame_lambda)/( 2.0*lame_mu*(3.0*lame_lambda + 2.0*lame_mu));
@@ -394,8 +397,10 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
     const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
     if (volumetric_strain>0)
     {
-        diagonal = young_modulus/(1.0+poisson_ratio);
-        nondiagonal *= 0.0;
+        const double lame_lambda  = -(young_modulus)/(3*(1+poisson_ratio));
+        const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
+        diagonal = lame_lambda + 2 * lame_mu;
+        nondiagonal = lame_mu;
     }
 
     for (unsigned int i = 0; i<3; ++i)
@@ -438,8 +443,10 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
     const auto volumetric_strain = main_strain[0] + main_strain[1] + main_strain[2];
     if (volumetric_strain>0)
     {
-        diagonal = young_modulus/(1.0+poisson_ratio);
-        nondiagonal *= 0.0;
+        const double lame_lambda  = -(young_modulus)/(3*(1+poisson_ratio));
+        const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
+        diagonal = lame_lambda + 2 * lame_mu;
+        nondiagonal = lame_mu;
     }
         
 
