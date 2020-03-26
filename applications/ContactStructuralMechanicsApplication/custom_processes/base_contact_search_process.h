@@ -229,6 +229,11 @@ public:
      */
      virtual void ResetContactOperators();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -357,11 +362,6 @@ protected:
      * @return CheckGap: The equivalent enum
      */
     CheckGap ConvertCheckGap(const std::string& str);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access

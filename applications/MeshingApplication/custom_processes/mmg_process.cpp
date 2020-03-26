@@ -64,7 +64,7 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     ):mrThisModelPart(rThisModelPart),
       mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mFilename = mThisParameters["filename"].GetString();
@@ -1223,9 +1223,9 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
+const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "filename"                             : "out",
         "discretization_type"                  : "Standard",
