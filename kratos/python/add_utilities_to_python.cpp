@@ -36,6 +36,7 @@
 #include "utilities/mortar_utilities.h"
 #include "utilities/read_materials_utility.h"
 #include "includes/global_pointer_variables.h"
+
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/timer.h"
 #include "utilities/binbased_fast_point_locator.h"
