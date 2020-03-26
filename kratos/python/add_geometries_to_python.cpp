@@ -86,6 +86,14 @@ namespace Python
         return(dummy.IsIdSelfAssigned());
     }
 
+    void CreateQuadraturePointGeometries1(GeometryType& dummy,
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
+    {
+        return(dummy.CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives));
+    }
+
     array_1d<double,3> GetNormal(
         GeometryType& dummy,
         CoordinatesArrayType& LocalCoords
@@ -144,6 +152,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    // Quadrature points
+    .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     .def("Normal",GetNormal)
     .def("Normal",FastGetNormal)
     .def("UnitNormal",GetUnitNormal)
