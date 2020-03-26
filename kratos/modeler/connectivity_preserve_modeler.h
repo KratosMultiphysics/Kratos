@@ -128,6 +128,14 @@ public:
     ///@}
 
 private:
+    ///@name Private member Variables
+    ///@{
+
+    IndexType mElementOffset;
+    IndexType mConditionOffset;
+
+    ///@}
+
     ///@name Private Operations
     ///@{
 
@@ -144,13 +152,13 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         const Element& rReferenceElement
-    ) const;
+    );
 
     void DuplicateConditions(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         const Condition& rReferenceBoundaryCondition
-    ) const;
+    );
 
     void DuplicateCommunicatorData(
         ModelPart& rOriginModelPart,

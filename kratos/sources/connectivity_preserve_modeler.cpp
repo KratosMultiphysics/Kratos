@@ -149,56 +149,79 @@ void ConnectivityPreserveModeler::CopyCommonData(
 void ConnectivityPreserveModeler::DuplicateElements(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
-    const Element& rReferenceElement) const
+    const Element& rReferenceElement)
 {
     // Generate the elements
-    ModelPart::ElementsContainerType& r_elements = rDestinationModelPart.Elements();
-    r_elements.reserve(rOriginModelPart.NumberOfElements());
+    ModelPart::ElementsContainerType& r_elements = rDestinationModelPart.GetRootModelPart().Elements();
+    r_elements.reserve(rOriginModelPart.NumberOfElements() + r_elements.size());
 
     // Calculates the maximum element id available in destination model part
     // In here, passing original model part communicator makes sense, since
     // it is only used to MaxAll of a double value (destination model part communicators are still not constructed).
-    const IndexType max_element_id =
-        GetMaxId(rDestinationModelPart.IsSubModelPart()
-                     ? rDestinationModelPart.GetRootModelPart().Elements()
-                     : r_elements,
-                 rOriginModelPart.GetCommunicator());
+    mElementOffset = GetMaxId(r_elements, rOriginModelPart.GetCommunicator());
 
+    ModelPart::ElementsContainerType temp_elements;
+    temp_elements.reserve(rOriginModelPart.NumberOfElements());
     for (auto i_elem = rOriginModelPart.ElementsBegin(); i_elem != rOriginModelPart.ElementsEnd(); ++i_elem) {
         Properties::Pointer properties = i_elem->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
-        Element::Pointer p_element = rReferenceElement.Create(i_elem->Id() + max_element_id, i_elem->pGetGeometry(), properties);
+        Element::Pointer p_element = rReferenceElement.Create(i_elem->Id() + mElementOffset, i_elem->pGetGeometry(), properties);
+        temp_elements.push_back(p_element);;
+    }
 
-        r_elements.push_back(p_element);
+    for(auto it = temp_elements.begin(); it!=temp_elements.end(); it++)
+            r_elements.push_back( *(it.base()) );
+    r_elements.Unique();
+
+    // add to all of the leaves
+    ModelPart* r_current_model_part = &rDestinationModelPart;
+    while (r_current_model_part->IsSubModelPart()) {
+        for (auto it = temp_elements.begin(); it != temp_elements.end(); it++)
+            r_current_model_part->Elements().push_back(*(it.base()));
+
+        r_current_model_part->Elements().Unique();
+        r_current_model_part = r_current_model_part->GetParentModelPart();
     }
 }
 
 void ConnectivityPreserveModeler::DuplicateConditions(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
-    const Condition& rReferenceBoundaryCondition) const
+    const Condition& rReferenceBoundaryCondition)
 {
     // Generate the conditions
-    ModelPart::ConditionsContainerType& r_conditions = rDestinationModelPart.Conditions();
-    r_conditions.reserve(rOriginModelPart.NumberOfConditions());
+    ModelPart::ConditionsContainerType& r_conditions = rDestinationModelPart.GetRootModelPart().Conditions();
+    r_conditions.reserve(rOriginModelPart.NumberOfConditions() + r_conditions.size());
 
     // Calculates the maximum condition id available in destination model part
     // In here, passing original model part communicator makes sense, since
     // it is only used to MaxAll of a double value (destination model part communicators are still not constructed).
-    const IndexType max_condition_id =
-        GetMaxId(rDestinationModelPart.IsSubModelPart()
-                     ? rDestinationModelPart.GetRootModelPart().Conditions()
-                     : r_conditions,
-                 rOriginModelPart.GetCommunicator());
+    mConditionOffset = GetMaxId(r_conditions, rOriginModelPart.GetCommunicator());
 
+    ModelPart::ConditionsContainerType temp_conditions;
+    temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
     for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond) {
         Properties::Pointer properties = i_cond->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
-        Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id() + max_condition_id, i_cond->pGetGeometry(), properties);
+        Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id() + mConditionOffset, i_cond->pGetGeometry(), properties);
 
-        r_conditions.push_back(p_condition);
+        temp_conditions.push_back(p_condition);
+    }
+
+    for(auto it = temp_conditions.begin(); it!=temp_conditions.end(); it++)
+            r_conditions.push_back( *(it.base()) );
+    r_conditions.Unique();
+
+    // add to all of the leaves
+    ModelPart* r_current_model_part = &rDestinationModelPart;
+    while (r_current_model_part->IsSubModelPart()) {
+        for (auto it = temp_conditions.begin(); it != temp_conditions.end(); it++)
+            r_current_model_part->Conditions().push_back(*(it.base()));
+
+        r_current_model_part->Conditions().Unique();
+        r_current_model_part = r_current_model_part->GetParentModelPart();
     }
 }
 
@@ -248,15 +271,15 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
 }
 
 void ConnectivityPreserveModeler::DuplicateSubModelParts(
-ModelPart& rOriginModelPart,
-ModelPart& rDestinationModelPart) const
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart) const
 {
-    // If we copy root model part into a submodel part, then it will create element/condition whith ids which may
-    // conflict with destination model part root model part ids
-    // or we need to add all the submodel part elements and conditions in the origin model part as well
-    if (!rDestinationModelPart.IsSubModelPart())
-    {
-        for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
+    for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
+        // This check is required if root model part is copied to a submodel part which has
+        // the same root model part since otherwise the recursive addition of submodel parts will not end.
+        // Therefore, rDestinationModelPart and its submodel parts are not copied from
+        // rOriginModelPart
+        if (&(*i_part) != &rDestinationModelPart) {
             if(!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
                 rDestinationModelPart.CreateSubModelPart(i_part->Name());
             }
@@ -269,20 +292,18 @@ ModelPart& rDestinationModelPart) const
             ids.reserve(i_part->Elements().size());
 
             // Execute only if we created elements in the destination
-            if (rDestinationModelPart.NumberOfElements() > 0)
-            {
+            if (rDestinationModelPart.NumberOfElements() > 0) {
                 //adding by index
                 for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
-                    ids.push_back(it->Id());
+                    ids.push_back(it->Id() + mElementOffset);
                 destination_part.AddElements(ids, 0); //adding by index
             }
 
             // Execute only if we created conditions in the destination
-            if (rDestinationModelPart.NumberOfConditions() > 0)
-            {
+            if (rDestinationModelPart.NumberOfConditions() > 0) {
                 ids.clear();
                 for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
-                    ids.push_back(it->Id());
+                    ids.push_back(it->Id() + mConditionOffset);
                 destination_part.AddConditions(ids, 0);
             }
 
@@ -294,5 +315,4 @@ ModelPart& rDestinationModelPart) const
         }
     }
 }
-
 }
