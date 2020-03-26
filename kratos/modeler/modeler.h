@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "spatial_containers/spatial_containers.h"
 
 
@@ -59,6 +59,35 @@ public:
 
     /// Destructor.
     virtual ~Modeler() = default;
+
+    ///@}
+    ///@name Modeler Stages at Initialize
+    ///@{
+
+    /// Import geometry models from external input.
+    void ImportGeometryModel(
+        Model& rModel) const
+    {}
+
+    /// Prepare or update the geometry model_part.
+    void PrepareGeometryModel(
+        Model& rModel) const
+    {}
+
+    /// Convert the geometry model to analysis suitable models.
+    void GenerateModelPart(
+        Model& rModel) const
+    {}
+
+    /// Import the model_part from external input.
+    void ImportModelPart(
+        Model& rModel) const
+    {}
+
+    /// Prepare the analysis model_part for the simulation.
+    void PrepareModelPart(
+        Model& rModel) const
+    {}
 
     ///@}
     ///@name Operators
