@@ -114,6 +114,9 @@ namespace Kratos
       MatrixType& rMassMatrix,
       ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeNonLinearIteration(
+      ProcessInfo& CurrentProcessInfo) override;
+
     void FinalizeSolutionStep(
       ProcessInfo& rCurrentProcessInfo) override;
 
@@ -147,6 +150,7 @@ private:
     std::vector< array_1d<double, 3> > mG1Initial;            // Base vector 1 in initial reference configuration
     std::vector< array_1d<double, 3> > mG2Initial;            // Base vector 2 in initial reference configuration
     std::vector< array_1d<double, 3> > mG3Initial;            // Base vector 3 in initial reference configuration
+    bool mInitialPrestress;
 
 
     void CalculateAll(

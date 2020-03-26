@@ -119,7 +119,9 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
 
         self.properties.SetValue(
-            StructuralMechanicsApplication.DO_RANK_ONE_UPDATE, False)
+            StructuralMechanicsApplication.ADD_RHS_FOR_RANK_ONE_UPDATE, False)
+        self.properties.SetValue(
+            StructuralMechanicsApplication.USE_HYDROSTATIC_MATRIX, True)
 
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 

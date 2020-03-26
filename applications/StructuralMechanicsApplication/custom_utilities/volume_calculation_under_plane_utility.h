@@ -41,7 +41,7 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUtility
 {
 
-  public:
+public:
     /**
      * Type Definitions
      */
@@ -67,7 +67,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
     /**
      * Constructor.
      */
-    VolumeCalculationUnderPlaneUtility(Vector Centre, double Radius, Vector Normal) : mCentre(Centre), mRadius(Radius)
+    VolumeCalculationUnderPlaneUtility(array_1d<double, 3> Centre, double Radius, array_1d<double, 3> Normal) : mCentre(Centre), mRadius(Radius)
     {
 
         double norm = norm_2(Normal);
@@ -137,7 +137,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         if (!(HasDisplacement))
             KRATOS_WARNING("The model doesn't have DISPLACEMENT as variable. The predicted displacement will be set to zero");
 
-        for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
+        for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); ++i_node)
         {
 
             i_node->FastGetSolutionStepValue(DISTANCE) = 1.0 + dist_limit; // Initialise with max_distance
@@ -148,7 +148,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         if (mRadius < std::numeric_limits<double>::epsilon())
         {
 
-            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
+            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); ++i_node)
             {
 
                 node_v_distance = CalculateDistanceFromPlane(i_node->Coordinates());
@@ -159,7 +159,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         else
         {
 
-            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
+            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); ++i_node)
             {
 
                 node_v_distance = CalculateDistanceFromPlane(i_node->Coordinates());
@@ -171,7 +171,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
             }
         }
 
-        for (ModelPart::ConditionsContainerType::iterator cond = rModelPart.ConditionsBegin(); cond != rModelPart.ConditionsEnd(); cond++)
+        for (ModelPart::ConditionsContainerType::iterator cond = rModelPart.ConditionsBegin(); cond != rModelPart.ConditionsEnd(); ++cond)
         {
 
             array_1d<double, 3> distances_vector;
@@ -201,7 +201,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
 
                     triangle_splitter.GenerateDivision();
 
-                    for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); i++)
+                    for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); ++i)
                     {
 
                         IndexedPointGeometryType indexed_subgeom = *(triangle_splitter.mNegativeSubdivisions[i]);
@@ -216,8 +216,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
                         VolumeCalculationUnderPlaneUtility::CalculateIntDistanceDotN(*subgeom, IntegrationMethod, int_distance_dot_n);
                         VolumeCalculationUnderPlaneUtility::CalculateIntAreaDotNplane(*subgeom, IntegrationMethod, int_area_dot_n_plane);
                         VolumeCalculationUnderPlaneUtility::CalculateAndAssignNodalNormal(*subgeom, geom, IntegrationMethod);
-                        /* if (HasDisplacement)
-                            VolumeCalculationUnderPlaneUtility::CalculateDisplacementDotN(*subgeom, geom, IntegrationMethod, dV); //TODO: Use the nodal normals to predict */
                     }
                 }
                 else
@@ -229,8 +227,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
                         VolumeCalculationUnderPlaneUtility::CalculateIntDistanceDotN(geom, IntegrationMethod, int_distance_dot_n);
                         VolumeCalculationUnderPlaneUtility::CalculateIntAreaDotNplane(geom, IntegrationMethod, int_area_dot_n_plane);
                         VolumeCalculationUnderPlaneUtility::CalculateAndAssignNodalNormal(geom, geom, IntegrationMethod);
-                        /* if (HasDisplacement)
-                            VolumeCalculationUnderPlaneUtility::CalculateDisplacementDotN(geom, geom, IntegrationMethod, dV); //TODO: Use the nodal normals to predict */
                     }
                 }
             }
@@ -265,7 +261,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
 
         IntegrationMethodType IntegrationMethod = GeometryData::GI_GAUSS_1;
 
-        for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
+        for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); ++i_node)
         {
 
             i_node->FastGetSolutionStepValue(DISTANCE) = 1.0 + dist_limit; // Initialise with max_distance
@@ -276,7 +272,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         if (mRadius < std::numeric_limits<double>::epsilon())
         {
 
-            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
+            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); ++i_node)
             {
 
                 node_v_distance = CalculateDistanceFromPlane(i_node->Coordinates());
@@ -287,7 +283,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         else
         {
 
-            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
+            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); ++i_node)
             {
 
                 node_v_distance = VolumeCalculationUnderPlaneUtility::CalculateDistanceFromPlane(i_node->Coordinates());
@@ -299,7 +295,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
             }
         }
 
-        for (WeakPointerVector<Condition>::iterator cond = rConditonWeakPointersVector.begin(); cond != rConditonWeakPointersVector.end(); cond++)
+        for (WeakPointerVector<Condition>::iterator cond = rConditonWeakPointersVector.begin(); cond != rConditonWeakPointersVector.end(); ++cond)
         {
 
             array_1d<double, 3> distances_vector;
@@ -329,7 +325,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
 
                     triangle_splitter.GenerateDivision();
 
-                    for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); i++)
+                    for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); ++i)
                     {
 
                         IndexedPointGeometryType indexed_subgeom = *(triangle_splitter.mNegativeSubdivisions[i]);
@@ -447,57 +443,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         KRATOS_CATCH("")
     }
 
-    /* void CalculateDisplacementDotN(GeometryType &rSubGeom, GeometryType &rGeom, const IntegrationMethodType &IntegrationMethod, double &rdV)
-    {
-        KRATOS_TRY;
-
-        const unsigned int n_int_pts = rSubGeom.IntegrationPointsNumber(IntegrationMethod);
-        double displacement_dot_n = 0.0;
-        IntegrationPointsArrayType gauss_pts;
-
-        // Gauss points from subgeom
-        gauss_pts = rSubGeom.IntegrationPoints(IntegrationMethod);
-        Vector jacobians_values;
-        rSubGeom.DeterminantOfJacobian(jacobians_values, IntegrationMethod);
-        array_1d<double, 3> area_normal;
-        double area;
-
-        for (IndexType i_gauss = 0; i_gauss < n_int_pts; ++i_gauss)
-        {
-            CoordinatesArrayType global_coords = ZeroVector(3);
-            CoordinatesArrayType local_coords = ZeroVector(3);
-
-            // Degubbing navaneeth
-            area_normal = rSubGeom.Normal(gauss_pts[i_gauss].Coordinates());
-            area = norm_2(area_normal);
-
-            if (area > std::numeric_limits<double>::epsilon())
-                area_normal /= area;
-            else
-            {
-
-                area_normal *= 0;
-            }
-
-            // Interpolate the displacement on the gauss points of subgeometry
-            rSubGeom.GlobalCoordinates(global_coords, gauss_pts[i_gauss].Coordinates());
-            rGeom.PointLocalCoordinates(local_coords, global_coords);
-            Vector N(rGeom.size());
-            array_1d<double, 3> displacement = ZeroVector(3);
-            rGeom.ShapeFunctionsValues(N, local_coords);
-            for (IndexType i_node = 0; i_node < rGeom.size(); i_node++)
-            {
-
-                displacement += N[i_node] * (rGeom[i_node].GetSolutionStepValue(DISPLACEMENT, 0) - rGeom[i_node].GetSolutionStepValue(DISPLACEMENT, 1));
-            }
-
-            // Integration displacement dot normal
-            displacement_dot_n = MathUtils<double>::Dot(displacement, area_normal);
-            rdV += displacement_dot_n * gauss_pts[i_gauss].Weight() * jacobians_values[i_gauss];
-        }
-        KRATOS_CATCH("")
-    } */
-
     void CalculateAndAssignNodalNormal(GeometryType &rSubGeom, GeometryType &rGeom, const IntegrationMethodType &IntegrationMethod)
     {
         KRATOS_TRY;
@@ -591,14 +536,29 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
             rIsNegative = false;
     }
 
+    double CalculateMaxNegativeDistance(ModelPart &rModelPart)
+    {
+        KRATOS_TRY;
+        double max_neg_distance = rModelPart.NodesBegin()->GetSolutionStepValue(DISTANCE);
+
+        for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); ++i_node)
+        {
+            if (i_node->GetSolutionStepValue(DISTANCE) < max_neg_distance)
+                max_neg_distance = i_node->GetSolutionStepValue(DISTANCE);
+        }
+
+        if (max_neg_distance < 0)
+            return max_neg_distance;
+        else
+            return 0.0;
+
+        KRATOS_CATCH("")
+    }
+
     double CalculateDistanceFromPlane(const CoordinatesArrayType &rPoint)
     {
 
         return inner_prod(mNormal, rPoint) - inner_prod(mNormal, mCentre);
-    }
-    Vector GetCentre() const
-    {
-        return mCentre;
     }
 
     double GetVolume() const
@@ -611,22 +571,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         return mIntersectedArea;
     }
 
-    double &GetPlaneRadius()
+    double GetPlaneRadius()
     {
         return this->mRadius;
     }
 
-    Vector &GetPlaneNormal()
+    array_1d<double, 3> &GetPlaneNormal()
     {
         return this->mNormal;
     }
 
-    Vector &GetPlaneCentre()
+    array_1d<double, 3> &GetPlaneCentre()
     {
         return this->mCentre;
     }
 
-    void SetPlaneParameters(Vector rCentre, double rRadius, Vector rNormal)
+    void SetPlaneParameters(array_1d<double, 3> &rCentre, double rRadius, array_1d<double, 3> &rNormal)
     {
 
         mCentre = rCentre;
@@ -635,59 +595,75 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         mRefCentre = mCentre;
     }
 
-    void UpdatePositionOfPlaneBasedOnTargetVolume(ModelPart &rModelPart, const double VolTarget, const double MaxRelRes = 1E-6, const unsigned int MaxIterations = 20)
+    void PerformLinearUpdateOfPlanePosition(ModelPart &rModelPart, double old_volume, double old_area)
     {
         KRATOS_TRY;
 
         double vol = CalculateVolume(rModelPart);
         double area = mIntersectedArea;
-        double vol_inter = 0.0;
         array_1d<double, 3> displacement_vector;
         double movement;
-        bool HasDisplacement = rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT);
-
-        ///For checking the nodal normal implementation
-
+        double max_neg_distance = CalculateMaxNegativeDistance(rModelPart);
         double displacement_value = 0.0;
+        std::cout << "Volume before linear update :: " << vol << std::endl;
 
-        if (HasDisplacement)
+        //Linear upate of the plane's position
+
+        displacement_value = old_volume - vol;
+        std::cout << "##### DelVol #####" << displacement_value << std::endl;
+        double avg_area = (old_area + area) * 0.5;
+        if (avg_area <= std::numeric_limits<double>::epsilon())
         {
-            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
-            {
-                displacement_value += MathUtils<double>::Dot((i_node->GetSolutionStepValue(DISPLACEMENT, 0) - i_node->GetSolutionStepValue(DISPLACEMENT, 1)), i_node->FastGetSolutionStepValue(NORMAL));
-            }
-        }
-
-        //Predictor for the plane's position
-
-        if (area <= std::numeric_limits<double>::epsilon())
-        {
-            KRATOS_WARNING("Predicted displacement is Nan") << "The plane position is reinitialzed to :: " << mRefCentre[0] << ", " << mRefCentre[1] << ", " << mRefCentre[2] << std::endl;
+            KRATOS_WARNING("Linear update of displacement is Nan") << "The plane position is reinitialzed to :: " << mRefCentre[0] << ", " << mRefCentre[1] << ", " << mRefCentre[2] << std::endl;
             displacement_value = MathUtils<double>::Dot((mRefCentre - mCentre), mNormal);
         }
 
         else
         {
-            //displacement_value /= area;
-            displacement_value = 0.0;
+
+            displacement_value /= avg_area;
         }
+
+        if (displacement_value < max_neg_distance)
+            displacement_value = 0.0;
 
         displacement_vector = displacement_value * mNormal;
         UpdatePlaneCentre(displacement_vector);
         vol = CalculateVolume(rModelPart);
         area = mIntersectedArea;
-        double vol_residual = VolTarget - vol;
-        double vol_inter_residual = 0.0;
-        double vol_rel_residual = vol_residual / VolTarget;
-        unsigned int iteration_nr = 0;
         movement = displacement_value;
+        std::cout << "Linear Update Performed" << std::endl;
+        std::cout << "Centre :: " << mCentre[0] << ", " << mCentre[1] << ", " << mCentre[2] << std::endl;
+        std::cout << "Volume :: " << vol << std::endl;
+        std::cout << "Movement :: " << movement << std::endl;
 
-        std::cout << "Volume after predictor step :: " << vol << std::endl;
-        std::cout << "Movement after predictor step  :: " << movement << std::endl;
+        KRATOS_CATCH("")
+    }
 
-        // Corrector
+    void UpdatePositionOfPlaneBasedOnTargetVolume(ModelPart &rModelPart, const double VolTarget, const double MaxRelRes = 1E-6, const unsigned int MaxIterations = 50)
+    {
+        KRATOS_TRY;
 
-        /*   if (type == "NewtonRaphson")
+        double vol = CalculateVolume(rModelPart);
+
+        KRATOS_WATCH(vol);
+
+        if (VolTarget > std::numeric_limits<double>::epsilon())
+        {
+            double displacement_value;
+            double area = mIntersectedArea;
+            double vol_inter = 0.0;
+            array_1d<double, 3> displacement_vector;
+            double movement = 0.0;
+
+            double vol_residual = VolTarget - vol;
+            double vol_inter_residual = 0.0;
+            double vol_rel_residual = vol_residual / VolTarget;
+            unsigned int iteration_nr = 0;
+
+            // Corrector
+
+            /*   if (type == "NewtonRaphson")
         {
             while (fabs(vol_rel_residual) >= MaxRelRes && iteration_nr < MaxIterations)
             {
@@ -716,42 +692,67 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         }
 
         else if (type == "LeapFroggingNewton") */
-        // {
-        while (std::fabs(vol_rel_residual) >= MaxRelRes && std::fabs(vol_residual - vol_inter_residual) >= std::numeric_limits<double>::epsilon() && iteration_nr < MaxIterations)
-        {
-            if (area <= std::numeric_limits<double>::epsilon())
-                KRATOS_ERROR << "Intersected area is zero, Leapfrogging Newton method failed. Try with the different initial position of the plane" << std::endl;
+            // {
+            do
+            {
+                /* if (area <= std::numeric_limits<double>::epsilon())
+                {
+                    displacement_value = MathUtils<double>::Dot((mRefCentre - mCentre), mNormal);
+                    displacement_vector = displacement_value * mNormal;
+                    UpdatePlaneCentre(displacement_vector);
+                    vol = CalculateVolume(rModelPart);
+                    area = mIntersectedArea;
+                    vol_residual = VolTarget - vol;
+                    vol_rel_residual = vol_residual / VolTarget;
+                    KRATOS_WARNING("Intersected area is zero or negative") << " The plane centre is reset to (" << mRefCentre[0] << ", " << mRefCentre[1] << ", " << mRefCentre[2] << ")" << std::endl;
+                }   */ 
 
-            displacement_value = vol_residual / area;
-            displacement_vector = displacement_value * mNormal;
-            UpdatePlaneCentre(displacement_vector);
-            vol_inter = CalculateVolume(rModelPart);
-            displacement_vector *= -1;
-            UpdatePlaneCentre(displacement_vector);
-            vol_inter_residual = (VolTarget - vol_inter);
+                // OR break when area is zero
+                if (area <= std::numeric_limits<double>::epsilon())
+                    KRATOS_ERROR << "Intersected area is zero, leap frog newton method failed." << std::endl;
 
-            displacement_value = (vol_residual * vol_residual) / ((vol_residual - vol_inter_residual) * area);
-            displacement_vector = displacement_value * mNormal;
-            UpdatePlaneCentre(displacement_vector);
-            movement += displacement_value;
+                double max_neg_distance = CalculateMaxNegativeDistance(rModelPart);
+                displacement_value = vol_residual / area;
+                if (displacement_value < max_neg_distance)
+                    displacement_value = (vol_residual * std::fabs(max_neg_distance)) / vol;
 
-            vol = CalculateVolume(rModelPart);
-            area = mIntersectedArea;
-            vol_residual = (VolTarget - vol);
-            vol_rel_residual = vol_residual / VolTarget;
+                displacement_vector = displacement_value * mNormal;
+                UpdatePlaneCentre(displacement_vector);
+                vol_inter = CalculateVolume(rModelPart);
+                displacement_vector *= -1;
+                UpdatePlaneCentre(displacement_vector);
+                vol_inter_residual = (VolTarget - vol_inter);
 
-            iteration_nr += 1;
+                if (std::fabs(vol_residual - vol_inter_residual) > std::numeric_limits<double>::epsilon())
+                    displacement_value = (vol_residual * vol_residual) / ((vol_residual - vol_inter_residual) * area);
 
-            std::cout << "Iteration Nr. :: " << iteration_nr << std::endl;
-            std::cout << "Relative Volume residual :: " << vol_rel_residual << std::endl;
-            std::cout << "Movement :: " << movement << std::endl;
-            std::cout << "Centre :: " << mCentre[0] << ", " << mCentre[1] << ", " << mCentre[2] << std::endl;
-            std::cout << "Volume :: " << vol << std::endl;
+                if (displacement_value < max_neg_distance)
+                    displacement_value = (vol_residual * std::fabs(max_neg_distance)) / vol;
+                displacement_vector = displacement_value * mNormal;
+                UpdatePlaneCentre(displacement_vector);
+                movement += displacement_value;
 
-            if (iteration_nr == MaxIterations)
-                KRATOS_WARNING("Max iterations reached. Leap Frogging Newton method didn't converge");
+                vol = CalculateVolume(rModelPart);
+                area = mIntersectedArea;
+                vol_residual = (VolTarget - vol);
+                vol_rel_residual = vol_residual / VolTarget;
+
+                iteration_nr += 1;
+
+                std::cout << "Iteration Nr. :: " << iteration_nr << std::endl;
+                std::cout << "Scaled Volume residual :: " << vol_rel_residual << std::endl;
+                std::cout << "Movement :: " << movement << std::endl;
+                std::cout << "Centre :: " << mCentre[0] << ", " << mCentre[1] << ", " << mCentre[2] << std::endl;
+                std::cout << "Volume :: " << vol << std::endl;
+
+                if (iteration_nr == MaxIterations)
+                    KRATOS_WARNING("Max iterations reached. Leap Frogging Newton method didn't converge");
+            } while ((std::fabs(vol_rel_residual) > MaxRelRes) && (iteration_nr < MaxIterations));
+
+            // }
         }
-        // }
+        else
+            KRATOS_WARNING("NO VOLUME CONSERVATION") << "The target volume is negative or zero." << std::endl;
 
         /*   else
             KRATOS_ERROR << "String specifying NewtonRaphson or LeapFroggingNewton is required as argument" << std::endl; */
@@ -764,98 +765,70 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         KRATOS_TRY;
 
         CalculateVolumeForConditions(rConditionWeakPointersVector, rNodeWeakPointersVector);
-        double vol = GetVolume();
+        double vol = mVolume;
         double area = mIntersectedArea;
 
         double vol_inter = 0.0;
         array_1d<double, 3> displacement_vector;
-        double movement;
-
-        ///For checking the nodal normal implementation
-
-        double displacement_value = 0.0;
-        bool HasDisplacement = rNodeWeakPointersVector.begin()->SolutionStepsDataHas(DISPLACEMENT);
-        if (HasDisplacement)
-        {
-            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
-            {
-
-                displacement_value += MathUtils<double>::Dot((i_node->GetSolutionStepValue(DISPLACEMENT, 0) - i_node->GetSolutionStepValue(DISPLACEMENT, 1)), i_node->FastGetSolutionStepValue(NORMAL));
-            }
-        }
-
-        //Predictor for the plane's position
-        if (area < std::numeric_limits<double>::epsilon())
-        {
-
-            KRATOS_WARNING("Predicted displacement is Nan") << "The plane position is reinitialzed to :: " << mRefCentre[0] << ", " << mRefCentre[1] << ", " << mRefCentre[2] << std::endl;
-            displacement_value = MathUtils<double>::Dot((mRefCentre - mCentre), mNormal);
-        }
-
-        else
-        {
-
-            displacement_value /= area;
-        }
-
-        displacement_vector = displacement_value * mNormal;
-        UpdatePlaneCentre(displacement_vector);
-        CalculateVolumeForConditions(rConditionWeakPointersVector, rNodeWeakPointersVector);
-        vol = GetVolume();
-        area = mIntersectedArea;
+        double movement = 0.0;
         double vol_residual = VolTarget - vol;
         double vol_inter_residual = 0.0;
         double vol_rel_residual = vol_residual / VolTarget;
         unsigned int iteration_nr = 0;
-        movement = displacement_value;
 
-        //std::cout << "Volume after predictor step :: " << vol << std::endl;
-        std::cout << "Movement after predictor step (ref) :: " << movement << std::endl;
-
-        // Corrector
-
-        while (std::fabs(vol_rel_residual) >= MaxRelRes && std::fabs(vol_residual - vol_inter_residual) >= std::numeric_limits<double>::epsilon() && iteration_nr < MaxIterations)
+        if (VolTarget > std::numeric_limits<double>::epsilon())
         {
 
-            if (area <= std::numeric_limits<double>::epsilon())
-                KRATOS_ERROR << "Intersected area is zero, Leapfrogging Newton method failed. Try with the different initial position of the plane" << std::endl;
+            ///For checking the nodal normal implementation
 
-            displacement_value = vol_residual / area;
-            displacement_vector = displacement_value * mNormal;
-            UpdatePlaneCentre(displacement_vector);
-            CalculateVolumeForConditions(rConditionWeakPointersVector, rNodeWeakPointersVector);
-            vol_inter = GetVolume();
-            displacement_vector *= -1;
-            UpdatePlaneCentre(displacement_vector);
-            vol_inter_residual = (VolTarget - vol_inter);
+            double displacement_value = 0.0;
 
-            displacement_value = (vol_residual * vol_residual) / ((vol_residual - vol_inter_residual) * area);
-            displacement_vector = displacement_value * mNormal;
-            UpdatePlaneCentre(displacement_vector);
-            movement += displacement_value;
+            // Corrector
 
-            CalculateVolumeForConditions(rConditionWeakPointersVector, rNodeWeakPointersVector);
-            vol = GetVolume();
-            area = mIntersectedArea;
-            vol_residual = (VolTarget - vol);
-            vol_rel_residual = vol_residual / VolTarget;
+            while (std::fabs(vol_rel_residual) >= MaxRelRes && std::fabs(vol_residual - vol_inter_residual) >= std::numeric_limits<double>::epsilon() && iteration_nr < MaxIterations)
+            {
 
-            iteration_nr += 1;
+                if (area <= std::numeric_limits<double>::epsilon())
+                    KRATOS_ERROR << "Intersected area is zero, Leapfrogging Newton method failed. Try with the different initial position of the plane" << std::endl;
 
-            std::cout << "Iteration Nr. :: " << iteration_nr << std::endl;
-            std::cout << "Relative Volume residual :: " << vol_rel_residual << std::endl;
-            std::cout << "Movement :: " << movement << std::endl;
-            std::cout << "Centre :: " << mCentre[0] << ", " << mCentre[1] << ", " << mCentre[2] << std::endl;
-            std::cout << "Volume :: " << vol << std::endl;
+                displacement_value = vol_residual / area;
+                displacement_vector = displacement_value * mNormal;
+                UpdatePlaneCentre(displacement_vector);
+                CalculateVolumeForConditions(rConditionWeakPointersVector, rNodeWeakPointersVector);
+                vol_inter = GetVolume();
+                displacement_vector *= -1;
+                UpdatePlaneCentre(displacement_vector);
+                vol_inter_residual = (VolTarget - vol_inter);
 
-            if (iteration_nr == MaxIterations)
-                KRATOS_WARNING("Max iterations reached. Leap Frogging Newton method didn't converge");
-        }
-        // }
+                displacement_value = (vol_residual * vol_residual) / ((vol_residual - vol_inter_residual) * area);
+                displacement_vector = displacement_value * mNormal;
+                UpdatePlaneCentre(displacement_vector);
+                movement += displacement_value;
 
-        /*   else
+                CalculateVolumeForConditions(rConditionWeakPointersVector, rNodeWeakPointersVector);
+                vol = GetVolume();
+                area = mIntersectedArea;
+                vol_residual = (VolTarget - vol);
+                vol_rel_residual = vol_residual / VolTarget;
+
+                iteration_nr += 1;
+
+                std::cout << "Iteration Nr. :: " << iteration_nr << std::endl;
+                std::cout << "Relative Volume residual :: " << vol_rel_residual << std::endl;
+                std::cout << "Movement :: " << movement << std::endl;
+                std::cout << "Centre :: " << mCentre[0] << ", " << mCentre[1] << ", " << mCentre[2] << std::endl;
+                std::cout << "Volume :: " << vol << std::endl;
+
+                if (iteration_nr == MaxIterations)
+                    KRATOS_WARNING("Max iterations reached. Leap Frogging Newton method didn't converge");
+            }
+            // }
+
+            /*   else
             KRATOS_ERROR << "String specifying NewtonRaphson or LeapFroggingNewton is required as argument" << std::endl; */
-
+        }
+        else
+            KRATOS_WARNING("NO VOLUME CONSERVATION") << "The target volume is negative or zero." << std::endl;
         KRATOS_CATCH(" ");
     }
 
@@ -865,13 +838,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         mCentre += rDisplacement_vector;
     }
 
-  private:
-    Vector mCentre;
+private:
+    array_1d<double, 3> mCentre;
     double mRadius;
-    Vector mNormal;
-
-    Vector mRefCentre;
-
+    array_1d<double, 3> mNormal;
+    array_1d<double, 3> mRefCentre;
     double mVolume;
     double mIntersectedArea;
 

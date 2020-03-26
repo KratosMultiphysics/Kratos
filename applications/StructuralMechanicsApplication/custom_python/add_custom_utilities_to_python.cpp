@@ -48,9 +48,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         //.def("CalculateVolumeEnclosedByClosedSurface", &VolumeCalcUsingSurfaceUtility::CalculateVolumeEnclosedByClosedSurface)
         .def("CalculateVolume", &VolumeCalculationUnderPlaneUtility::CalculateVolume)
         .def("UpdatePositionOfPlaneBasedOnTargetVolume", &VolumeCalculationUnderPlaneUtility::UpdatePositionOfPlaneBasedOnTargetVolume)
+        .def("PerformLinearUpdateOfPlanePosition", &VolumeCalculationUnderPlaneUtility::PerformLinearUpdateOfPlanePosition)
         .def("SetPlaneParameters", &VolumeCalculationUnderPlaneUtility::SetPlaneParameters)
         .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea)
-        .def("GetCentre", &VolumeCalculationUnderPlaneUtility::GetCentre);
+        .def("GetPlaneCentre", &VolumeCalculationUnderPlaneUtility::GetPlaneCentre);
 
     /* py::class_<VtkOutput>(m, "VtkOutput")
         .def(py::init<ModelPart &, std::string, Parameters>())

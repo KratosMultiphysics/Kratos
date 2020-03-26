@@ -315,8 +315,8 @@ void NodalConcentratedFluidElement::InitializeNonLinearIteration(ProcessInfo &rC
 
     //pGetProperties()->GetValue(CURRENT_FLUID_VOLUME) = VolumeCalculator.GetVolume();
     pGetProperties()->GetValue(FREE_SURFACE_AREA) = VolumeCalculator.GetIntersectedArea();
-    pGetProperties()->GetValue(FREE_SURFACE_CENTRE) = VolumeCalculator.GetCentre();
-    GetGeometry()[0].Coordinates() = VolumeCalculator.GetCentre();
+    pGetProperties()->GetValue(FREE_SURFACE_CENTRE) = VolumeCalculator.GetPlaneCentre();
+    GetGeometry()[0].Coordinates() = VolumeCalculator.GetPlaneCentre();
 
     Vector displacement = GetGeometry()[0].Coordinates() - GetGeometry()[0].GetInitialPosition();
 

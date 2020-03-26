@@ -116,8 +116,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     //hydrostatic Analysis Strategy
 
     py::class_<NewtonRaphsonWithHydrostaticLoadStrategyType, typename NewtonRaphsonWithHydrostaticLoadStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType>(m, "NewtonRaphsonWithHydrostaticLoadStrategy")
-        .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool>())
-        .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool>());
+        .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool, bool>())
+        .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool, bool>());
 
     py::class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())

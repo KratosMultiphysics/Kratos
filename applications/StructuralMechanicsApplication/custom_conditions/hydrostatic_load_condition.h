@@ -152,34 +152,33 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HydrostaticLoadCondition
 
     void CalculateAndSubKpSym(
         Matrix &K,
-        const array_1d<double, 3> &ge,
-        const array_1d<double, 3> &gn,
-        const Matrix &DN_De,
-        const Vector &N,
-        const array_1d<double, 3> &Normal,
+        const array_1d<double, 3> &rGe,
+        const array_1d<double, 3> &rGn,
+        const Matrix &rDN_De,
+        const Vector &rN,
         const double Pressure,
         const double Weight);
 
     void CalculateAndSubKpHydrostatic(
-        Matrix &K,
-        const Vector &N,
-        const array_1d<double, 3> &Normal,
-        const double &rSpecificWeight,
+        Matrix &rK,
+        const Vector &rN,
+        const array_1d<double, 3> &rNormal,
+        const double SpecificWeight,
         const array_1d<double, 3> &rW,
-        const double &Weight);
+        const double Weight);
 
     void CalculateAndSubKpHydrostaticSym(
-        Matrix &K,
-        const Vector &N,
-        const array_1d<double, 3> &Normal,
-        const double &rSpecificWeight,
+        Matrix &rK,
+        const Vector &rN,
+        const array_1d<double, 3> &rNormal,
+        const double SpecificWeight,
         const array_1d<double, 3> &rW,
-        const double &Weight);
+        const double Weight);
 
 
     void DyadicProduct(Matrix &M,
-                       const array_1d<double, 3> &U,
-                       const array_1d<double, 3> &V);
+                       const array_1d<double, 3> &rU,
+                       const array_1d<double, 3> &rV);
 
     unsigned int NumberOfCommonElements(NodeType &rNodeM,
                                         NodeType &rNodeN);

@@ -116,7 +116,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
             self.free_surface_centre, self.initial_free_surface_radius, self.plane_normal)
         self.VolumeCalcUtilty.UpdatePositionOfPlaneBasedOnTargetVolume(
             self.model_part, self.fluid_volume, 1E-6, 20)
-        self.free_surface_centre = self.VolumeCalcUtilty.GetCentre()
+        self.free_surface_centre = self.VolumeCalcUtilty.GetPlaneCentre()
 
         self.nodal_elem.GetNode(0).X = self.free_surface_centre[0]
         self.nodal_elem.GetNode(0).Y = self.free_surface_centre[1]
@@ -161,7 +161,9 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.properties.SetValue(
-            StructuralMechanicsApplication.DO_RANK_ONE_UPDATE, False)
+            StructuralMechanicsApplication.ADD_RHS_FOR_RANK_ONE_UPDATE, False)
+        self.properties.SetValue(
+            StructuralMechanicsApplication.USE_HYDROSTATIC_MATRIX, True)
 
         if(self.interval.IsInInterval(current_time)):
 

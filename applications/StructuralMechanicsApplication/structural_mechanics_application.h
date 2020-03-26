@@ -103,7 +103,7 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2d.h"
-
+#include "custom_constitutive/hyper_elastic_isotropic_incompressible_mooney_rivilin_plane_stress_2d.h"
 // Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
@@ -470,6 +470,7 @@ private:
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
     const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
     const LinearIsotropicDamagePlaneStrain2D mLinearIsotropicDamagePlaneStrain2D;
+    const HyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D  mHyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D;
 
     // Damage and plasticity laws
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
@@ -579,7 +580,7 @@ private:
     const GenericFiniteStrainIsotropicPlasticity <HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>> mHyperElasticIsotropicNeoHookeanPlasticity3DMohrCoulombTresca;
     const GenericFiniteStrainIsotropicPlasticity <HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>> mHyperElasticIsotropicNeoHookeanPlasticity3DTrescaMohrCoulomb;
     const GenericFiniteStrainIsotropicPlasticity <HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>> mHyperElasticIsotropicNeoHookeanPlasticity3DDruckerPragerMohrCoulomb;
-
+    
     /// Damage
     /* Small strain */
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesVonMises;

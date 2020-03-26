@@ -36,6 +36,7 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
+#include "custom_constitutive/hyper_elastic_isotropic_incompressible_mooney_rivilin_plane_stress_2d.h"
 
 // Plastic, damage laws and viscosities
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
@@ -178,6 +179,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< ViscousGeneralizedMaxwell<ElasticIsotropic3D>, typename ViscousGeneralizedMaxwell<ElasticIsotropic3D>::Pointer,  ConstitutiveLaw  >
     (m,"ViscousGeneralizedMaxwell3D").def(py::init<>())
+    ;
+
+    py::class_< HyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D, typename HyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D::Pointer,  ConstitutiveLaw  >
+    (m,"HyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D").def(py::init<>())
     ;
 
 

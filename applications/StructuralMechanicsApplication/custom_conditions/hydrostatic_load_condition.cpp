@@ -88,61 +88,44 @@ HydrostaticLoadCondition::~HydrostaticLoadCondition()
 
 void HydrostaticLoadCondition::CalculateAndSubKpSym(
     Matrix &K,
-    const array_1d<double, 3> &ge,
-    const array_1d<double, 3> &gn,
-    const Matrix &DN_De,
-    const Vector &N,
-    const array_1d<double, 3> &Normal,
+    const array_1d<double, 3> &rGe,
+    const array_1d<double, 3> &rGn,
+    const Matrix &rDN_De,
+    const Vector &rN,
     const double Pressure,
     const double Weight)
 {
     KRATOS_TRY;
 
     Matrix Kij(3, 3);
-    Matrix W_ge(3, 3);
-    Matrix W_ge_(3, 3);
-
-    Matrix W_gn(3, 3);
-    Matrix W_gn_(3, 3);
 
     double coeff;
+    BoundedMatrix<double, 3, 3> cross_tangent_xi, cross_tangent_eta;
     const SizeType number_of_nodes = GetGeometry().size();
+    MakeCrossMatrix(cross_tangent_xi, rGe);
+    MakeCrossMatrix(cross_tangent_eta, rGn);
 
-    DyadicProduct(W_ge, Normal, ge);
-    DyadicProduct(W_ge_, ge, Normal);
-
-    W_ge -= W_ge_;
-
-    DyadicProduct(W_gn, Normal, gn);
-    DyadicProduct(W_gn_, gn, Normal);
-
-    W_gn -= W_gn_;
-
-    for (IndexType m = 0; m < number_of_nodes; m++)
+    for (IndexType m = 0; m < number_of_nodes; ++m)
     {
         const IndexType RowIndex = m * 3;
 
-        for (IndexType n = 0; n < number_of_nodes; n++)
+        for (IndexType n = 0; n < number_of_nodes; ++n)
         {
             const IndexType ColIndex = n * 3;
 
-            coeff = Pressure * DN_De(m, 0) * N[n] * Weight;
+            coeff = Pressure * rN[m] * rDN_De(n, 1) * Weight;
+            noalias(Kij) = coeff * cross_tangent_xi;
 
-            noalias(Kij) = coeff * trans(W_ge);
+            coeff = Pressure * rN[n] * rDN_De(m, 1) * Weight; // sym part
+            Kij -= coeff * cross_tangent_xi;
 
-            coeff = Pressure * DN_De(m, 1) * N[n] * Weight;
+            coeff = Pressure * rN[m] * rDN_De(n, 0) * Weight;
+            Kij -= coeff * cross_tangent_eta;
 
-            noalias(Kij) += coeff * trans(W_gn);
+            coeff = Pressure * rN[n] * rDN_De(m, 0) * Weight; // sym part
+            Kij += coeff * cross_tangent_eta;
 
-            coeff = Pressure * N[m] * DN_De(n, 0) * Weight;
-
-            noalias(Kij) += coeff * W_ge;
-
-            coeff = Pressure * N[m] * DN_De(n, 1) * Weight;
-
-            noalias(Kij) += coeff * W_gn;
-
-            Kij = -0.5 * Kij;
+            Kij *= 0.5;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
             MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
@@ -156,12 +139,12 @@ void HydrostaticLoadCondition::CalculateAndSubKpSym(
 //***********************************************************************************
 
 void HydrostaticLoadCondition::CalculateAndSubKpHydrostatic(
-    Matrix &K,
-    const Vector &N,
-    const array_1d<double, 3> &Normal,
-    const double &rSpecificWeight,
+    Matrix &rK,
+    const Vector &rN,
+    const array_1d<double, 3> &rNormal,
+    const double SpecificWeight,
     const array_1d<double, 3> &rW,
-    const double &Weight)
+    const double Weight)
 {
     KRATOS_TRY
 
@@ -171,19 +154,19 @@ void HydrostaticLoadCondition::CalculateAndSubKpHydrostatic(
 
     /// Tangent stiffness accounting for change in pressure due to deformation.
 
-    for (unsigned int m = 0; m < number_of_nodes; m++)
+    for (unsigned int m = 0; m < number_of_nodes; ++m)
     {
         const unsigned int RowIndex = m * 3;
 
-        for (unsigned int n = 0; n < number_of_nodes; n++)
+        for (unsigned int n = 0; n < number_of_nodes; ++n)
         {
             const unsigned int ColIndex = n * 3;
 
-            coeff = -rSpecificWeight * N[m] * N[n] * Weight;
-            DyadicProduct(Kij, Normal, rW);
+            coeff = -SpecificWeight * rN[m] * rN[n] * Weight;
+            DyadicProduct(Kij, rNormal, rW);
             Kij *= -coeff; // (-ve)because normal  is flipped in the implementation following surface_load_condition
 
-            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
+            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, ColIndex);
         }
     }
 
@@ -194,12 +177,12 @@ void HydrostaticLoadCondition::CalculateAndSubKpHydrostatic(
 //***********************************************************************************
 
 void HydrostaticLoadCondition::CalculateAndSubKpHydrostaticSym(
-    Matrix &K,
-    const Vector &N,
-    const array_1d<double, 3> &Normal,
-    const double &rSpecificWeight,
+    Matrix &rK,
+    const Vector &rN,
+    const array_1d<double, 3> &rNormal,
+    const double SpecificWeight,
     const array_1d<double, 3> &rW,
-    const double &Weight)
+    const double Weight)
 {
     KRATOS_TRY
 
@@ -210,45 +193,44 @@ void HydrostaticLoadCondition::CalculateAndSubKpHydrostaticSym(
 
     /// Tangent stiffness accounting for change in pressure due to deformation.
 
-    for (unsigned int m = 0; m < number_of_nodes; m++)
+    for (unsigned int m = 0; m < number_of_nodes; ++m)
     {
         const unsigned int RowIndex = m * 3;
 
-        for (unsigned int n = 0; n < number_of_nodes; n++)
+        for (unsigned int n = 0; n < number_of_nodes; ++n)
         {
             const unsigned int ColIndex = n * 3;
 
-            coeff = -0.5 * rSpecificWeight * N[m] * N[n] * Weight;
-            DyadicProduct(Kij, Normal, rW);
-            DyadicProduct(Kij_, rW, Normal);
+            coeff = -0.5 * SpecificWeight * rN[m] * rN[n] * Weight;
+            DyadicProduct(Kij, rNormal, rW);
+            DyadicProduct(Kij_, rW, rNormal);
             Kij += Kij_;
             Kij *= -coeff; // because normal is flipped in the implementation following surface_load_condition
 
-            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
+            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, ColIndex);
         }
     }
 
     KRATOS_CATCH("")
 }
 
-
 //***********************************************************************************
 //***********************************************************************************
 
-void HydrostaticLoadCondition::DyadicProduct(Matrix &M, const array_1d<double, 3> &U, const array_1d<double, 3> &V)
+void HydrostaticLoadCondition::DyadicProduct(Matrix &rM, const array_1d<double, 3> &rU, const array_1d<double, 3> &rV)
 {
     KRATOS_TRY;
 
-    if (U.size() == V.size())
+    if (rU.size() == rV.size())
     {
 
-        for (IndexType i = 0; i < U.size(); ++i)
+        for (IndexType i = 0; i < rU.size(); ++i)
         {
 
-            for (IndexType j = 0; j < U.size(); ++j)
+            for (IndexType j = 0; j < rU.size(); ++j)
             {
 
-                M(i, j) = U[i] * V[j];
+                rM(i, j) = rU[i] * rV[j];
             }
         }
     }
@@ -364,7 +346,7 @@ void HydrostaticLoadCondition::CalculateAll(
     array_1d<double, 3> normal;
     MathUtils<double>::UnitCrossProduct(normal, gn, ge); // Should it be UnitCrossProduct(ge,gn)??
 
-    const double intersected_area = pGetProperties()->GetValue(FREE_SURFACE_AREA);
+    //const double intersected_area = pGetProperties()->GetValue(FREE_SURFACE_AREA);
     array_1d<double, 3> w = pGetProperties()->GetValue(FREE_SURFACE_NORMAL);
     double norm_w = norm_2(w);
 
@@ -374,10 +356,9 @@ void HydrostaticLoadCondition::CalculateAll(
         w *= 0;
 
     Vector height_on_nodes(number_of_nodes, 0.0);
-    Vector specific_wt_on_nodes(number_of_nodes, 0.0);
     Vector pressure_on_nodes(number_of_nodes, 0.0);
-
     double specific_wt = pGetProperties()->GetValue(SPECIFIC_WEIGHT);
+
     for (IndexType i = 0; i < height_on_nodes.size(); ++i)
     {
         if (geom[i].SolutionStepsDataHas(DISTANCE))
@@ -388,8 +369,6 @@ void HydrostaticLoadCondition::CalculateAll(
         }
     }
 
-   
-
     if (is_split)
     {
         // Call the divide geometry method
@@ -397,7 +376,7 @@ void HydrostaticLoadCondition::CalculateAll(
         triangle_splitter.GenerateDivision();
         // Calculating actual jacobian
 
-        for (unsigned int i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); i++)
+        for (unsigned int i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); ++i)
         {
 
             IndexedPointGeometryType indexed_subgeom = *(triangle_splitter.mNegativeSubdivisions[i]);
@@ -458,7 +437,7 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
 
     const double specific_wt = pGetProperties()->GetValue(SPECIFIC_WEIGHT);
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
     {
         rSubGeom.GlobalCoordinates(global_coords, integration_points[point_number].Coordinates());
         geom.PointLocalCoordinates(local_coords, global_coords);
@@ -471,7 +450,7 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
 
         // Calculating the pressure on the gauss point
         double pressure = 0.0;
-        for (IndexType ii = 0; ii < number_of_nodes; ii++)
+        for (IndexType ii = 0; ii < number_of_nodes; ++ii)
         {
             pressure += N[ii] * rPressureOnNodes[ii];
         }
@@ -481,26 +460,46 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
         {
             if (fabs(pressure) > std::numeric_limits<double>::epsilon())
             {
-                //CalculateAndSubKpSym(rLeftHandSideMatrix, rGe, rGn, DN_De, N, rNormal, pressure, integration_weight_without_detj);
-                CalculateAndSubKp(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight_without_detj);
+
+                if (pGetProperties()->GetValue(USE_HYDROSTATIC_MATRIX))
+                    CalculateAndSubKpSym(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight_without_detj);
+                else
+                    CalculateAndSubKp(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight_without_detj);
             }
 
-            if (fabs(specific_wt) > std::numeric_limits<double>::epsilon())
+            if ((specific_wt > std::numeric_limits<double>::epsilon()) && pGetProperties()->GetValue(USE_HYDROSTATIC_MATRIX))
+            //if (specific_wt > std::numeric_limits<double>::epsilon())
             {
-
-                CalculateAndSubKpHydrostatic(rLeftHandSideMatrix, N, rNormal, specific_wt, rW, integration_weight);
+                CalculateAndSubKpHydrostaticSym(rLeftHandSideMatrix, N, rNormal, specific_wt, rW, integration_weight);
             }
         }
 
         // RIGHT HAND SIDE VECTOR
-        if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
+        if (CalculateResidualVectorFlag == true)
         {
             if (pressure != 0.0)
             {
+                if (pGetProperties()->GetValue(DO_UPDATE_FROM_DEL_VOL))
+                {
+                    double del_p;
+                    double del_vol = pGetProperties()->GetValue(FLUID_VOLUME) - pGetProperties()->GetValue(CURRENT_FLUID_VOLUME);
+                    double free_surface_area = pGetProperties()->GetValue(FREE_SURFACE_AREA);
+                    double specific_weight = pGetProperties()->GetValue(SPECIFIC_WEIGHT);
+                    if (pGetProperties()->GetValue(FLUID_VOLUME) < std::numeric_limits<double>::epsilon() || free_surface_area < std::numeric_limits<double>::epsilon())
+                        del_p = 0.0;
+                    else
+                        del_p = del_vol * specific_weight / free_surface_area;
+
+                    pressure = pressure + del_p;
+                }
+
                 CalculateAndAddPressureForce(rRightHandSideVector, N, rNormal, pressure, integration_weight, rCurrentProcessInfo);
 
-                 if (pGetProperties()->GetValue(DO_RANK_ONE_UPDATE))
-                    CalculateAndAddPressureForce(rRightHandSideVector, N, rNormal, 1.0, integration_weight, rCurrentProcessInfo); 
+                if (pGetProperties()->GetValue(ADD_RHS_FOR_RANK_ONE_UPDATE))
+                {
+
+                    CalculateAndAddPressureForce(rRightHandSideVector, N, rNormal, 1.0, integration_weight, rCurrentProcessInfo);
+                }
             }
         }
     }

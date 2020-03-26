@@ -21,6 +21,7 @@
 #include "custom_utilities/volume_calculation_under_plane_utility.h"
 #include "includes/gid_io.h"
 #include "utilities/math_utils.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -65,7 +66,7 @@ template <class TSparseSpace,
 class NewtonRaphsonWithHydrostaticLoadStrategy
     : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
@@ -100,7 +101,9 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
-        bool PrintIterations = false)
+        bool LineSearch = false,
+        bool ConserveVolume = false,
+        bool FluidLinearization = true)
 
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                                        pScheme,
@@ -110,14 +113,9 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
                                                                                        CalculateReactions,
                                                                                        ReformDofSetAtEachStep,
                                                                                        MoveMeshFlag),
-          mPrintIterations(PrintIterations)
+          mLineSearch(LineSearch), mConserveVolume(ConserveVolume), mFluidLinearization(FluidLinearization)
 
     {
-        if (PrintIterations)
-        {
-            mPrintIterations = true;
-            InitializeIterationIO();
-        }
     }
 
     // constructor with Builder and Solver
@@ -131,7 +129,9 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
-        bool PrintIterations = false)
+        bool LineSearch = false,
+        bool ConserveVolume = false,
+        bool FluidLinearization = true)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                                        pScheme,
                                                                                        pNewLinearSolver,
@@ -141,15 +141,9 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
                                                                                        CalculateReactions,
                                                                                        ReformDofSetAtEachStep,
                                                                                        MoveMeshFlag),
-          mPrintIterations(PrintIterations)
+          mLineSearch(LineSearch), mConserveVolume(ConserveVolume), mFluidLinearization(FluidLinearization)
 
     {
-
-        if (PrintIterations)
-        {
-            mPrintIterations = true;
-            InitializeIterationIO();
-        }
     }
 
     /**
@@ -166,12 +160,12 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         BaseType::Initialize();
 
         double radius;
-        Vector centre;
-        Vector w;
+        array_1d<double, 3> centre;
+        array_1d<double, 3> w;
         double norm_w;
         VolumeCalculationUnderPlaneUtility plane_updater;
 
-        for (ModelPart::PropertiesContainerType::iterator i_prop = BaseType::GetModelPart().PropertiesBegin(); i_prop != BaseType::GetModelPart().PropertiesEnd(); i_prop++)
+        for (ModelPart::PropertiesContainerType::iterator i_prop = BaseType::GetModelPart().PropertiesBegin(); i_prop != BaseType::GetModelPart().PropertiesEnd(); ++i_prop)
         {
 
             if (i_prop->Has(FREE_SURFACE_RADIUS) && i_prop->Has(FREE_SURFACE_CENTRE) && i_prop->Has(FREE_SURFACE_NORMAL))
@@ -190,6 +184,7 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
                 plane_updater.SetPlaneParameters(centre, radius, w);
                 mVectorOfPlaneUpdaters.push_back(plane_updater);
                 mListOfPropertiesId.push_back(i_prop->Id());
+                mVectorOfWetSubModelPartNames.push_back(i_prop->GetValue(WET_MODEL_PART));
             }
         }
 
@@ -199,10 +194,11 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
     void InitializeSolutionStep() override // for volume varying in time
     {
         KRATOS_TRY;
+        //TODO: for gradually increasing volume the previous time step centre has to reinitialzed to prev step
 
         BaseType::InitializeSolutionStep();
         double volume;
-        for (ModelPart::PropertiesContainerType::iterator i_prop = BaseType::GetModelPart().PropertiesBegin(); i_prop != BaseType::GetModelPart().PropertiesEnd(); i_prop++)
+        for (ModelPart::PropertiesContainerType::iterator i_prop = BaseType::GetModelPart().PropertiesBegin(); i_prop != BaseType::GetModelPart().PropertiesEnd(); ++i_prop)
         {
 
             if (i_prop->Has(FLUID_VOLUME))
@@ -210,6 +206,7 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
             {
                 volume = i_prop->GetValue(FLUID_VOLUME);
                 mVectorOfVolumes.push_back(volume);
+                
             }
         }
 
@@ -217,12 +214,29 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         {
 
             ModelPart::PropertiesIterator i_prop = BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i]);
+            ModelPart &rWet_submodel_part = BaseType::GetModelPart().GetParentModelPart()->GetSubModelPart(mVectorOfWetSubModelPartNames[i]);
+            mVectorOfPlaneUpdaters[i].UpdatePositionOfPlaneBasedOnTargetVolume(rWet_submodel_part, mVectorOfVolumes[i]);
 
-            mVectorOfPlaneUpdaters[i].UpdatePositionOfPlaneBasedOnTargetVolume(BaseType::GetModelPart(), mVectorOfVolumes[i]);
-            //mVectorOfPlaneUpdaters[i].CalculateVolume(BaseType::GetModelPart()); //nav test for Ktang without plane update
             i_prop->SetValue(FREE_SURFACE_CENTRE, mVectorOfPlaneUpdaters[i].GetPlaneCentre());
-
+            i_prop->SetValue(CURRENT_FLUID_VOLUME, mVectorOfPlaneUpdaters[i].GetVolume());
             i_prop->SetValue(FREE_SURFACE_AREA, mVectorOfPlaneUpdaters[i].GetIntersectedArea());
+
+            if (!mFluidLinearization)
+            {
+                i_prop->SetValue(USE_HYDROSTATIC_MATRIX, false);
+
+                /* double specific_weight = i_prop->GetValue(SPECIFIC_WEIGHT);
+
+                for (ModelPart::NodesContainerType::iterator i_node = rWet_submodel_part.NodesBegin(); i_node != rWet_submodel_part.NodesEnd(); ++i_node)
+                {
+
+                    double &pressure = i_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    double height = i_node->FastGetSolutionStepValue(DISTANCE);
+                    pressure = 0.0;
+                    if (height < std::numeric_limits<double>::epsilon())
+                        pressure = height * specific_weight;
+                }*/
+            }
         }
         KRATOS_CATCH("");
     }
@@ -262,11 +276,11 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
 
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
-
-        PerformRankOneUpdate(rA, rDx, rb);
+        if (mFluidLinearization)
+            PerformRankOneUpdate(rA, rDx, rb);
 
         // Debugging info
-        EchoInfo(iteration_number);
+        BaseType::EchoInfo(iteration_number);
 
         // Updating the results stored in the database
         UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -335,10 +349,11 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
                 KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
             }
 
-            PerformRankOneUpdate(rA, rDx, rb);
+            if (mFluidLinearization)
+                PerformRankOneUpdate(rA, rDx, rb);
 
             // Debugging info
-            EchoInfo(iteration_number);
+            BaseType::EchoInfo(iteration_number);
 
             // Updating the results stored in the database
             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -403,6 +418,7 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         TSystemVectorType &rb)
     {
         //Rank one update of volume conserving part
+        double begin_time = OpenMPUtils::GetCurrentTime();
 
         std::cout << "Starting rank one update from different fluid volumes" << std::endl;
         typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
@@ -412,57 +428,92 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
 
         Matrix U_2 = ZeroMatrix(mat_size, number_of_volumes);
         Matrix V = ZeroMatrix(number_of_volumes, mat_size);
+        Vector V_Dx = ZeroVector(number_of_volumes);
         Matrix I = IdentityMatrix(number_of_volumes);
         Matrix mat_inv = ZeroMatrix(number_of_volumes, number_of_volumes);
         Matrix mat = ZeroMatrix(number_of_volumes, number_of_volumes);
         Vector Dx_corr = ZeroVector(mat_size);
-        Matrix A_corr = ZeroMatrix(mat_size, mat_size);
-        double det;
+        Matrix U_2_mat_inv = ZeroMatrix(mat_size, number_of_volumes);
+        /* Matrix A_corr;
+        A_corr.resize(mat_size, mat_size);
+        A_corr.clear(); */
+        double det, intersected_area, specific_wt, coeff;
 
+        Matrix normal_matrix_Af = ZeroMatrix(number_of_volumes, mat_size);
+       
         for (IndexType i = 0; i < number_of_volumes; ++i)
         {
-
+            coeff = 0.0;
             ModelPart::PropertiesIterator i_prop = BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i]);
-            i_prop->SetValue(DO_RANK_ONE_UPDATE, true);
-            double intersected_area = i_prop->GetValue(FREE_SURFACE_AREA);
-            double specific_wt = i_prop->GetValue(SPECIFIC_WEIGHT);
-            double coeff = specific_wt / intersected_area;
             TSystemVectorType Dx_inter = ZeroVector(mat_size);
             TSystemVectorType b_inter = ZeroVector(mat_size);
-            std::cout << "Calculating new RHS from the fluid volume corresponding to the property id ::" << i_prop->Id() << std::endl;
-            p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, Dx_inter, b_inter);
+            TSystemVectorType gamma_byAf_b_inter = ZeroVector(mat_size);
+    
+            if (mVectorOfVolumes[i] > std::numeric_limits<double>::epsilon())
+            {
+
+                i_prop->SetValue(ADD_RHS_FOR_RANK_ONE_UPDATE, true);
+
+                intersected_area = i_prop->GetValue(FREE_SURFACE_AREA);
+                specific_wt = i_prop->GetValue(SPECIFIC_WEIGHT);
+
+                if (intersected_area > std::numeric_limits<double>::epsilon())
+                    coeff = specific_wt / intersected_area;
+              
+                std::cout << "Calculating new RHS from the fluid volume corresponding to the property id ::" << i_prop->Id() << std::endl;
+                p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, Dx_inter, b_inter);
+                
+            }
+
             Dx_inter = Dx_inter - rDx;
             b_inter = b_inter - rb;
-            b_inter *= coeff;
+            noalias(gamma_byAf_b_inter) = coeff * b_inter;
 
-            /* std::cout << "##########Normal#############" << std::endl;
-            mVectorOfPlaneUpdaters[i].CalculateVolume(BaseType::GetModelPart());
-            for (ModelPart::NodeIterator i_node = BaseType::GetModelPart().NodesBegin(); i_node != BaseType::GetModelPart().NodesEnd(); ++i_node)
+            if (intersected_area > std::numeric_limits<double>::epsilon())
             {
-                Vector normal = i_node->FastGetSolutionStepValue(NORMAL);
-                ;
-                std::cout << normal[0] << "," << normal[1] << "," << normal[2] << ",";
-            }
-            std::cout << "\n"; */
-            //debug
+                for (IndexType j = 0; j < mat_size; ++j)
+                {
+                    U_2(j, i) = Dx_inter[j];
+                    V(i, j) = gamma_byAf_b_inter[j];
 
-            for (IndexType j = 0; j < mat_size; ++j)
+                    normal_matrix_Af(i, j) = b_inter[j] / intersected_area;
+                }
+            }
+            else
             {
-                U_2(j, i) = Dx_inter[j];
-                V(i, j) = b_inter[j];
+                for (IndexType j = 0; j < mat_size; ++j)
+                {
+                    U_2(j, i) = Dx_inter[j];
+                    V(i, j) = gamma_byAf_b_inter[j];
+
+                    normal_matrix_Af(i, j) = 0.0;
+                }
             }
 
-            i_prop->SetValue(DO_RANK_ONE_UPDATE, false);
+            i_prop->SetValue(ADD_RHS_FOR_RANK_ONE_UPDATE, false);
+            
         }
 
         noalias(mat) = I + prod(V, U_2);
         MathUtils<double>::InvertMatrix(mat, mat_inv, det);
-        U_2 = prod(U_2, mat_inv);
+        noalias(U_2_mat_inv) = prod(U_2, mat_inv);
         //KRATOS_WATCH(mat_inv);
-        A_corr = prod(U_2, V);
-        noalias(Dx_corr) = -prod(A_corr, rDx);
+        //noalias(A_corr) = prod(U_2_mat_inv, V);
+        //noalias(Dx_corr) = -prod(A_corr, rDx);
+        noalias(V_Dx) = prod(V, rDx);
+        noalias(Dx_corr) =  -prod(U_2_mat_inv,V_Dx);
         std::cout << "Updating Dx due to the contributions from fluid volumes" << std::endl;
         rDx += Dx_corr;
+
+        //For linear plane updates
+        Vector plane_updates = -prod(normal_matrix_Af, rDx);
+        for (IndexType i = 0; i < number_of_volumes; ++i)
+        {
+            mPlaneUpdateDisplacements.push_back(plane_updates[i]);
+        }
+
+    double end_time = OpenMPUtils::GetCurrentTime();
+    KRATOS_INFO("perform_rank_update_time") << end_time - begin_time << std::endl;
 
         //KRATOS_WATCH(rDx); //debug
     }
@@ -481,7 +532,7 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
 
     ///@{
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -501,8 +552,100 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         const bool MoveMesh) override
     {
 
+        typename TSchemeType::Pointer pScheme = this->GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+
+        //compute residual without update
+        double ro = 1.0;
+        if (mLineSearch)
+        {
+            //TSparseSpace::SetToZero(rb);
+            //pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), rb);
+            ro = TSparseSpace::TwoNorm(rb);
+        }
+
+        //compute full step residual
+        double rf = 0.0;
         BaseType::UpdateDatabase(rA, rDx, rb, MoveMesh);
+        UpdateFreeSurface();
+
+        if (mLineSearch)
+        {
+
+            TSparseSpace::SetToZero(rb);
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), rb);
+            rf = TSparseSpace::TwoNorm(rb);
+
+        }
+
+        if (rf / ro > 0.8 && mLineSearch)
+        {
+            std::cout << "################ Line Search Begin " << std::endl;
+
+            TSystemVectorType aux(rb.size()); //TODO: do it by using the space
+            TSparseSpace::Assign(aux, -0.5, rDx);
+
+            //compute half step residual
+            BaseType::UpdateDatabase(rA, aux, rb, MoveMesh); //subtract half Dx to the complete full step residual
+            UpdateFreeSurface();
+            TSparseSpace::SetToZero(rb);
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), rb);
+            double rh = TSparseSpace::TwoNorm(rb);
+
+            //compute optimal (limited to the range 0-1)
+            //parabola is y = a*x^2 + b*x + c -> min/max for
+            //x=0   --> r=ro
+            //x=1/2 --> r=rh
+            //x=1   --> r =
+            //c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
+            //max found if a>0 at the position  xmax = (rf/4 - rh)/(rf - 2*rh);
+            double parabola_a = 2 * rf + 2 * ro - 4 * rh;
+            double parabola_b = 4 * rh - rf - 3 * ro;
+            double xmin = 1e-2;
+            double xmax = 1.0;
+            if (parabola_a > 0) //if parabola has a local minima
+            {
+                xmax = -0.5 * parabola_b / parabola_a; // -b / 2a
+                if (xmax > 1.0)
+                    xmax = 1.0;
+                else if (xmax < xmin)
+                    xmax = xmin;
+            }
+            else //parabola degenerates to either a line or to have a local max. best solution on either extreme
+            {
+                if (rf < ro)
+                    xmax = 1.0;
+                else
+                    xmax = xmin; //should be zero, but otherwise it will stagnate
+            }
+
+            //perform final update
+            TSparseSpace::Assign(aux, xmax - 0.5, rDx); // move from 0.5 to xmax
+            BaseType::UpdateDatabase(rA, aux, rb, MoveMesh);
+            UpdateFreeSurface();
+            std::cout << "x_opt :: " << xmax << std::endl;
+            std::cout << "################ Line Search End ########################## " << std::endl;
+        }
+    }
+
+    void UpdateFreeSurface()
+    {
+
         unsigned int number_of_volumes = mVectorOfPlaneUpdaters.size();
+        double vol, intersected_area;
+        double movement_vol;
+
+        /* Vector old_volume_vector = ZeroVector(number_of_volumes);
+        Vector old_area_vector = ZeroVector(number_of_volumes); F
+        double old_volume;
+
+        for (IndexType i = 0; i < number_of_volumes; ++i)
+        {
+            old_volume = mVectorOfPlaneUpdaters[i].CalculateVolume(
+                BaseType::GetModelPart().GetParentModelPart()->GetSubModelPart(mVectorOfWetSubModelPartNames[i]));
+            old_volume_vector[i] = old_volume;
+            old_area_vector[i] = mVectorOfPlaneUpdaters[i].GetIntersectedArea();
+        } */
 
         for (IndexType i = 0; i < number_of_volumes; ++i)
         {
@@ -510,11 +653,87 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
             ModelPart::PropertiesIterator i_prop = BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i]);
             std::cout << "Target Volume :: " << mVectorOfVolumes[i] << std::endl;
             std::cout << "Property Id :: " << mListOfPropertiesId[i] << std::endl;
-            mVectorOfPlaneUpdaters[i].UpdatePositionOfPlaneBasedOnTargetVolume(BaseType::GetModelPart(), mVectorOfVolumes[i]);
-            //mVectorOfPlaneUpdaters[i].CalculateVolume(BaseType::GetModelPart()); //nav test for Ktang without plane update
+            ModelPart &rWet_submodel_part = BaseType::GetModelPart().GetParentModelPart()->GetSubModelPart(mVectorOfWetSubModelPartNames[i]);
+            vol = i_prop->GetValue(CURRENT_FLUID_VOLUME);
+            intersected_area = i_prop->GetValue(FREE_SURFACE_AREA);
+            if (mConserveVolume)
+            {
+                mVectorOfPlaneUpdaters[i].UpdatePositionOfPlaneBasedOnTargetVolume(rWet_submodel_part, mVectorOfVolumes[i]);
+            }
+
+            else if (!mPlaneUpdateDisplacements.empty())
+            {
+                /* double u_dot_n = -mPlaneUpdateDisplacements[i] * old_area_vector[i];
+                double delta_vol = vol - old_volume_vector[i];
+                KRATOS_WATCH(u_dot_n);
+                KRATOS_WATCH(delta_vol); */
+                /* if (mVectorOfVolumes[i] > std::numeric_limits<double>::epsilon())
+                    mVectorOfPlaneUpdaters[i].PerformLinearUpdateOfPlanePosition(
+                        BaseType::GetModelPart().GetParentModelPart()->GetSubModelPart(mVectorOfWetSubModelPartNames[i]), old_volume_vector[i], old_area_vector[i]);
+                else
+                {
+                    mVectorOfPlaneUpdaters[i].CalculateVolume(
+                        BaseType::GetModelPart().GetParentModelPart()->GetSubModelPart(mVectorOfWetSubModelPartNames[i]));
+                } */
+                movement_vol = 0.0;
+
+                if (i_prop->GetValue(DO_UPDATE_FROM_DEL_VOL))
+                {
+                    if (intersected_area < std::numeric_limits<double>::epsilon() || mVectorOfVolumes[i] < std::numeric_limits<double>::epsilon())
+                        movement_vol = 0.0;
+                    else
+                        movement_vol = (mVectorOfVolumes[i] - vol) / intersected_area;
+                }
+
+                // Based on displacement update, when target vol is zero update is zero (from rank one update) + update due to volume diff
+                double movement = mPlaneUpdateDisplacements[i] + movement_vol;
+
+                std::cout << "########### Linear plane update Begin #########" << std::endl;
+                std::cout << " Volume previous iteration :: " << vol << std::endl;
+                vol = mVectorOfPlaneUpdaters[i].CalculateVolume(rWet_submodel_part);
+
+                // To control the displacement
+                double max_neg_distance = mVectorOfPlaneUpdaters[i].CalculateMaxNegativeDistance(rWet_submodel_part);
+
+                if (movement < max_neg_distance && i_prop->GetValue(DO_UPDATE_FROM_DEL_VOL))
+                {
+
+                    std::cout << " Warning :: Movement is more than the lowest point on the structure, reducing the movement .." << std::endl;
+                    KRATOS_WATCH(mPlaneUpdateDisplacements[i]);
+                    std::cout << " Previous Movement :: " << movement << std::endl;
+                    std::cout << " Max negative distance :: " << max_neg_distance << std::endl;
+                    std::cout << " Previous Movement :: " << movement << std::endl;
+
+                    double reduced_area = vol / (std::fabs(max_neg_distance)+mPlaneUpdateDisplacements[i]);
+                    movement_vol = (mVectorOfVolumes[i] - vol) / reduced_area;
+                    movement = mPlaneUpdateDisplacements[i] + movement_vol;
+                }
+
+                array_1d<double, 3> displacement_vector = mVectorOfPlaneUpdaters[i].GetPlaneNormal() * movement;
+                mVectorOfPlaneUpdaters[i].UpdatePlaneCentre(displacement_vector);
+                std::cout << " Volume before :: " << vol << std::endl;
+                std::cout << " Movement :: " << movement << std::endl;
+                std::cout << " Movement from structural displacement :: " << mPlaneUpdateDisplacements[i] << std::endl;
+                std::cout << " Movement from vol diff :: " << movement_vol << std::endl;
+                std::cout << " Centre :: (" << mVectorOfPlaneUpdaters[i].GetPlaneCentre()[0] << ", " << mVectorOfPlaneUpdaters[i].GetPlaneCentre()[1] << ", " << mVectorOfPlaneUpdaters[i].GetPlaneCentre()[2] << ")" << std::endl;
+                vol = mVectorOfPlaneUpdaters[i].CalculateVolume(rWet_submodel_part);
+                std::cout << " Volume after :: " << vol << std::endl;
+                std::cout << "########### Linear plane update End #########" << std::endl;
+            }
+
+            else
+            {
+                KRATOS_WARNING("NO VOLUME CONSERVATION") << "Prior execution of PerformRankOneUpdate() is requried " << std::endl;
+                std::cout << " Centre :: (" << mVectorOfPlaneUpdaters[i].GetPlaneCentre()[0] << ", " << mVectorOfPlaneUpdaters[i].GetPlaneCentre()[1] << ", " << mVectorOfPlaneUpdaters[i].GetPlaneCentre()[2] << ")" << std::endl;
+                std::cout << " Volume before  :: " << vol << std::endl;
+            }
+
             i_prop->SetValue(FREE_SURFACE_CENTRE, mVectorOfPlaneUpdaters[i].GetPlaneCentre());
             i_prop->SetValue(FREE_SURFACE_AREA, mVectorOfPlaneUpdaters[i].GetIntersectedArea());
+            i_prop->SetValue(CURRENT_FLUID_VOLUME, mVectorOfPlaneUpdaters[i].GetVolume());
         }
+
+        mPlaneUpdateDisplacements.clear();
     }
 
     ///@name Protected Operations
@@ -535,29 +754,34 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
     ///@}
     ///@name Member Variables
     ///@{
-    bool mPrintIterations;
+
+    bool mLineSearch;
+    bool mConserveVolume;
+    bool mFluidLinearization;
     std::vector<VolumeCalculationUnderPlaneUtility> mVectorOfPlaneUpdaters;
     std::vector<double> mVectorOfVolumes;
+    std::vector<std::string> mVectorOfWetSubModelPartNames;
     std::vector<IndexType> mListOfPropertiesId;
     IterationIOPointerType mpIterationIO;
     std::ofstream mResults_writer;
+    std::vector<double> mPlaneUpdateDisplacements;
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    void EchoInfo(const unsigned int IterationNumber) override
+    /* void EchoInfo(const unsigned int IterationNumber) override
     {
         BaseType::EchoInfo(IterationNumber);
 
-        if (mPrintIterations)
+        if (mLineSearch)
         {
             unsigned int node_number = 19;
             KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
@@ -568,9 +792,9 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
             mResults_writer << IterationNumber << "," << BaseType::GetModelPart().GetNode(node_number).FastGetSolutionStepValue(DISPLACEMENT_Z, 0) << "\n";
             mResults_writer.close();
         }
-    }
+    } */
 
-    void InitializeIterationIO()
+    /* void InitializeIterationIO()
     {
         mpIterationIO = Kratos::make_unique<IterationIOType>(
             "Non-linear_Iterations_hydrostatic",
@@ -583,7 +807,7 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         mpIterationIO->WriteMesh(BaseType::GetModelPart().GetMesh());
         mpIterationIO->WriteNodeMesh(BaseType::GetModelPart().GetMesh());
         mpIterationIO->FinalizeMesh();
-    }
+    } */
 
     /**
         * Copy constructor.

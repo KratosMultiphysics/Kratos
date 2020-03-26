@@ -284,6 +284,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(PRESTRESS_AXIS_1)
     KRATOS_REGISTER_VARIABLE(PRESTRESS_AXIS_2)
     KRATOS_REGISTER_VARIABLE(PROJECTION_TYPE_COMBO)
+    KRATOS_REGISTER_VARIABLE(INITIAL_PRESTRESS)
 
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
@@ -399,6 +400,10 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(EFFECTIVE_COMPRESSION_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(EXPONENTIAL_SATURATION_YIELD_STRESS)
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_PLASTIC_STRAIN)
+    KRATOS_REGISTER_VARIABLE(PRINCIPAL_STRESS_1)
+    KRATOS_REGISTER_VARIABLE(PRINCIPAL_STRESS_2)
+    KRATOS_REGISTER_VARIABLE(PRINCIPAL_STRESS_3)
+   
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
@@ -606,7 +611,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2Plasticity3DLaw", mSmallStrainJ2Plasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3D);
-
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D", mHyperElasticIsotropicIncompressibleMooneyRivlinPlaneStress2D);
     // Damage and plasticity
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory", mSmallStrainIsotropicPlasticityFactory);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory", mSmallStrainIsotropicDamageFactory);

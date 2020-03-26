@@ -17,17 +17,16 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
                     {
-                    "mesh_id"                       : 0,
                     "properties_id"                 : 0,
                     "main_model_part_name"               : "Structure",
                     "model_part_name"               : "SurfacePressure3D_hemisphere",
-                    "specific_weight"              : 200.0,
+                    "specific_weight"              : 0.0,
                     "interval"                      : [0.0, 1e30],
                     "local_axes"                    : {},
-                    "fluid_volume"                  : 2.0,
+                    "fluid_volume"                  : 0.0,
                     "centre"                        : [0.0,0.0,0.0],
                     "plane_normal"                  : [0.0,0.0,1.0],
-                    "initial_free_surface_radius"   : 0.0              
+                    "initial_free_surface_radius"   : 0.0
                 
             }
             """
@@ -51,7 +50,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.main_model_part = Model[settings["main_model_part_name"].GetString()]
-        self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
+        #self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.fluid_volume_is_numeric = False
 
         if settings["fluid_volume"].IsNumber():
@@ -82,7 +81,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
         properties_id = settings["properties_id"].GetInt()
 
         self.properties = self.main_model_part.GetProperties()[properties_id]
-
+        self.properties.SetValue(StructuralMechanicsApplication.WET_MODEL_PART,settings["model_part_name"].GetString())
         for cond in self.model_part.Conditions:
             cond.Properties = self.properties
 
@@ -93,74 +92,72 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
  
 
-
+        
         self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_RADIUS, self.initial_free_surface_radius)
         self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, 0.0)
-        self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, self.specific_weight)
+        self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, 0.0)
         self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_NORMAL, self.plane_normal)
         self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE, self.free_surface_centre)
         self.VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(self.free_surface_centre, self.initial_free_surface_radius, self.plane_normal)
      
-        avg_nodes = 10
-        avg_elems = 10
-
+       
         self.VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(self.free_surface_centre, self.initial_free_surface_radius, self.plane_normal)
-
-        neighbhor_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part,avg_elems, avg_nodes)
-
-        neighbhor_finder.Execute()
-
+        vol = self.VolumeCalcUtilty.CalculateVolume(self.model_part)
+        KratosMultiphysics.Logger.PrintInfo("Initial vol ", vol)
+        with open("volumes.csv", "w") as f:
+            f.write("time,volume,area,centre_x,centre_y,centre_z\n")
+              
+        
 
     
     def ExecuteBeforeSolutionLoop(self):
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,1e15)
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.properties.SetValue(
-            StructuralMechanicsApplication.DO_RANK_ONE_UPDATE, False)
-
+            StructuralMechanicsApplication.ADD_RHS_FOR_RANK_ONE_UPDATE, False)
+        self.properties.SetValue(
+            StructuralMechanicsApplication.USE_HYDROSTATIC_MATRIX, True)
+        
         if(self.interval.IsInInterval(current_time)):
-
             self.step_is_active = True
-
+            self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, self.specific_weight)
+            
             if self.fluid_volume_is_numeric:
                 self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)
-                self.VolumeCalcUtilty.UpdatePositionOfPlaneBasedOnTargetVolume(self.model_part, self.fluid_volume, 1E-6,20)
-                self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())
-                        
-       
+                      
             else:
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
                     self.fluid_volume = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
-                    self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)
-                    self.VolumeCalcUtilty.UpdatePositionOfPlaneBasedOnTargetVolume(self.model_part, self.fluid_volume, 1E-6,20)
-                    self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())
-
-                    
+                    self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)                   
                 else: #most general case - space varying function (possibly also time varying)
                     raise RuntimeError("fluid volume cannot vary in space")
-
-                   
-
-
+               
     def ExecuteFinalizeSolutionStep(self):  
-
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if (self.step_is_active):
 
             centre = self.properties.GetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE)
-            fluid_volume = self.properties.GetValue(StructuralMechanicsApplication.FLUID_VOLUME)
+            #fluid_volume = self.properties.GetValue(StructuralMechanicsApplication.FLUID_VOLUME)
             
 
             self.VolumeCalcUtilty.SetPlaneParameters(centre,self.initial_free_surface_radius,self.plane_normal)
             vol = self.VolumeCalcUtilty.CalculateVolume(self.model_part)
             area = self.VolumeCalcUtilty.GetIntersectedArea()
-            
-            print("#######################################")
-            print("Fluid_vol ::", fluid_volume)
-            print("Free Surface Centre :: ", centre)
-            print("Fluid volume :: ", vol)
-            print("Free surface area :: ", area)
-            print("#######################################")
-        
+
+            with open("volumes.csv", "a") as f:
+                f.write(str(current_time)+" , "+ str(vol) +" , "+ str(area)+" , "+ str(centre[0])+" , "+ str(centre[1])+" , "+ str(centre[2])+"\n")
+           
+            KratosMultiphysics.Logger.Print("_____________________________________"+"\n")    
+            KratosMultiphysics.Logger.PrintInfo("Target Volume ", self.fluid_volume)
+            KratosMultiphysics.Logger.PrintInfo("Free Surface Centre ", centre)
+            KratosMultiphysics.Logger.PrintInfo("Fluid volume ", vol)
+            KratosMultiphysics.Logger.PrintInfo("Free surface area ", area)
+            KratosMultiphysics.Logger.Print("______________________________________"+"\n")            
+
             self.step_is_active = False
+        

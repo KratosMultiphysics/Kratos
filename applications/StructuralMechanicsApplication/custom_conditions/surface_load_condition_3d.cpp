@@ -133,9 +133,17 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
             coeff = Pressure * rN[i] * rDN_De(j, 1) * Weight;
             noalias(Kij) = coeff * cross_tangent_xi;
 
-            coeff = Pressure * rN[i] * rDN_De(j, 0) * Weight;
+             /* coeff = Pressure * rN[j] * rDN_De(i, 1) * Weight;  // sym part
+            noalias(Kij) -= coeff * cross_tangent_xi;  */
 
+            coeff = Pressure * rN[i] * rDN_De(j, 0) * Weight;
             noalias(Kij) -= coeff * cross_tangent_eta;
+
+            /* coeff = Pressure * rN[j] * rDN_De(i, 0) * Weight; // sym part
+            noalias(Kij) += coeff * cross_tangent_eta; 
+            
+            Kij *= 0.5;  */
+
 
             // NOTE TAKE CARE: the load correction matrix should be SUBTRACTED not added
             MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, column_index);
@@ -268,6 +276,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         r_geometry.Jacobian(J, point_number, integration_method);
         const double detJ = MathUtils<double>::GeneralizedDet(J);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ);
+        double integration_weight_without_detj = integration_weight / detJ;
         const auto& rN = row(Ncontainer, point_number);
 
         tangent_xi[0]  = J(0, 0);
@@ -290,7 +299,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         if (std::abs(pressure) > std::numeric_limits<double>::epsilon()) {
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag) {
-                CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], rN, pressure, integration_weight);
+                CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], rN, pressure, integration_weight_without_detj);
             }
 
             // RIGHT HAND SIDE VECTOR
@@ -313,6 +322,7 @@ void SurfaceLoadCondition3D::CalculateAll(
                 rRightHandSideVector[base + k] += integration_weight * rN[ii] * gauss_load[k];
             }
         }
+    
     }
 
     KRATOS_CATCH("")
