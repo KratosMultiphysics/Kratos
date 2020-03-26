@@ -1403,7 +1403,7 @@ End Elements
 
 
 
-Begin Conditions Condition3D
+Begin Conditions SurfaceCondition3D3N
 1 0 151 155 177
 2 0 152 151 177
 3 0 105 85 86

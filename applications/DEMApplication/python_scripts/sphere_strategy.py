@@ -35,6 +35,8 @@ class ExplicitStrategy(object):
         self.DEM_parameters = DEM_parameters
         self.mesh_motion = DEMFEMUtilities()
 
+        self.dimension = DEM_parameters["Dimension"].GetInt()
+
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
         else:
@@ -216,6 +218,9 @@ class ExplicitStrategy(object):
         for name in self.all_model_parts.model_parts.keys():
             self.all_model_parts.Get(name).ProcessInfo.SetValue(IS_RESTARTED, self._GetInputType() == 'rest')
 
+        # DIMENSION PARAMETERS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.dimension)
+
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
@@ -233,6 +238,7 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
+        self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, 0.0) # A default value
 
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
@@ -408,6 +414,9 @@ class ExplicitStrategy(object):
 
     def FinalizeSolutionStep(self):
         (self.cplusplus_strategy).FinalizeSolutionStep()
+
+    def Finalize(self):
+        pass
 
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]

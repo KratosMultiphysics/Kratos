@@ -15,12 +15,11 @@
 // External includes
 
 // Project includes
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
+#include "utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
@@ -53,19 +52,7 @@ namespace Kratos
         {
             Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
-            // First we create the nodes
-            rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Now we create the elements
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, {{1,2,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, {{1,3,4}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, {{2,5,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, {{5,6,3}}, p_elem_prop);
+            CppTestsUtilities::Create2DGeometry(rModelPart, "UpdatedLagrangianElement2D3N", false);
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
@@ -80,34 +67,7 @@ namespace Kratos
         {
             Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
-            // First we create the nodes
-            rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-
-            rModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
-
-            // Now we create the elements
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, {{12,10,8,9}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, {{4,6,9,7}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, {{11,7,9,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, {{5,3,8,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, {{4,6,7,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, {{2,3,5,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, {{10,9,6,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, {{7,8,3,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, {{7,8,6,9}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, {{4,1,6,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, {{9,12,11,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, {{3,2,1,6}}, p_elem_prop);
+            CppTestsUtilities::Create3DGeometry(rModelPart, "UpdatedLagrangianElement3D4N", false);
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
@@ -122,54 +82,7 @@ namespace Kratos
         {
             Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
-            // First we create the nodes
-            rModelPart.CreateNewNode(1, 1.0000000000, 0.0000000000, 1.0000000000);
-            rModelPart.CreateNewNode(2, 0.5000000000, 0.0000000000, 1.0000000000);
-            rModelPart.CreateNewNode(3, 1.0000000000, 0.5000000000, 1.0000000000);
-            rModelPart.CreateNewNode(4, 1.0000000000, 0.0000000000, 0.5000000000);
-            rModelPart.CreateNewNode(5, 0.5000000000, 0.0000000000, 0.5000000000);
-            rModelPart.CreateNewNode(6, 1.0000000000, 0.5000000000, 0.5000000000);
-            rModelPart.CreateNewNode(7, 0.5000000000, 0.5000000000, 1.0000000000);
-            rModelPart.CreateNewNode(8, 0.5000000000, 0.5000000000, 0.5000000000);
-            rModelPart.CreateNewNode(9, 0.2019246055, 0.3959160307, 0.6930668948);
-            rModelPart.CreateNewNode(10, 0.7019246055, 0.8959160307, 0.6930668948);
-            rModelPart.CreateNewNode(11, 1.0000000000, 0.0000000000, 0.0000000000);
-            rModelPart.CreateNewNode(12, 0.0000000000, 0.0000000000, 1.0000000000);
-            rModelPart.CreateNewNode(13, 1.0000000000, 1.0000000000, 1.0000000000);
-            rModelPart.CreateNewNode(14, 0.5000000000, 0.0000000000, 0.0000000000);
-            rModelPart.CreateNewNode(15, 1.0000000000, 0.5000000000, 0.0000000000);
-            rModelPart.CreateNewNode(16, 0.5000000000, 1.0000000000, 1.0000000000);
-            rModelPart.CreateNewNode(17, 0.0000000000, 0.5000000000, 1.0000000000);
-            rModelPart.CreateNewNode(18, 0.0000000000, 0.0000000000, 0.5000000000);
-            rModelPart.CreateNewNode(19, 1.0000000000, 1.0000000000, 0.5000000000);
-            rModelPart.CreateNewNode(20, 0.4038492111, 0.7918320615, 0.3861337896);
-            rModelPart.CreateNewNode(21, 0.2019246055, 0.3959160307, 0.1930668948);
-            rModelPart.CreateNewNode(22, 0.5000000000, 0.5000000000, 0.0000000000);
-            rModelPart.CreateNewNode(23, 0.5000000000, 1.0000000000, 0.5000000000);
-            rModelPart.CreateNewNode(24, 0.0000000000, 0.5000000000, 0.5000000000);
-            rModelPart.CreateNewNode(25, 0.2019246055, 0.8959160307, 0.6930668948);
-            rModelPart.CreateNewNode(26, 0.7019246055, 0.8959160307, 0.1930668948);
-            rModelPart.CreateNewNode(27, 0.0000000000, 0.0000000000, 0.0000000000);
-            rModelPart.CreateNewNode(28, 1.0000000000, 1.0000000000, 0.0000000000);
-            rModelPart.CreateNewNode(29, 0.0000000000, 1.0000000000, 1.0000000000);
-            rModelPart.CreateNewNode(30, 0.2019246055, 0.8959160307, 0.1930668948);
-            rModelPart.CreateNewNode(31, 0.5000000000, 1.0000000000, 0.0000000000);
-            rModelPart.CreateNewNode(32, 0.0000000000, 0.5000000000, 0.0000000000);
-            rModelPart.CreateNewNode(33, 0.0000000000, 1.0000000000, 0.5000000000);
-            rModelPart.CreateNewNode(34, 0.0000000000, 1.0000000000, 0.0000000000);
-
-            // Now we create the elements
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 1,  {{27, 11, 28, 13, 14, 15, 22,  8,  6, 19}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 2,  {{34, 12, 27, 20, 24, 18, 32, 30,  9, 21}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 3,  {{27, 34, 20, 28, 32, 30, 21, 22, 31, 26}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 4,  {{34, 20, 28, 29, 30, 26, 31, 33, 25, 23}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 5,  {{34, 20, 29, 12, 30, 25, 33, 24,  9, 17}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 6,  {{20, 27, 28, 13, 21, 22, 26, 10,  8, 19}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 7,  {{28, 20, 13, 29, 26, 10, 19, 23, 25, 16}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 8,  {{20, 13, 29, 12, 10, 16, 25,  9,  7, 17}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 9,  {{27,  1, 11, 13,  5,  4, 14,  8,  3,  6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 10, {{12, 13,  1, 27,  7,  3,  2, 18,  8,  5}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D10N", 11, {{12, 27, 20, 13, 18, 21,  9,  7,  8, 10}}, p_elem_prop);
+            CppTestsUtilities::Create3DQuadraticGeometry(rModelPart, "UpdatedLagrangianElement3D10N", false);
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
@@ -216,7 +129,7 @@ namespace Kratos
 //             GiDIODebugInternalExtrapolation(r_model_part, "1");
 
             const double tolerance = 1.0e-8;
-            auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+            const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
                 KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
@@ -260,7 +173,7 @@ namespace Kratos
 //             GiDIODebugInternalExtrapolation(r_model_part, "2");
 
             const double tolerance = 1.0e-8;
-            auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+            const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
                 KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }
@@ -304,7 +217,7 @@ namespace Kratos
 //             GiDIODebugInternalExtrapolation(r_model_part, "3");
 
             const double tolerance = 1.0e-6;
-            auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+            const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : r_model_part.Nodes()) {
                 KRATOS_CHECK_LESS_EQUAL(std::abs(node.GetValue(this_var) - 1.0), tolerance);
             }

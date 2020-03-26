@@ -17,6 +17,9 @@
             "input_filename" : "PFEMcoupledDEMexample",
             "input_file_label" : 0
         },
+        "material_import_settings"           : {
+            "materials_filename" : "PfemFluidDynamicsMaterials.json"
+        },
         "maximum_pressure_iterations" : 7,
         "velocity_tolerance" : 1e-5,
         "pressure_tolerance" : 1e-5,

@@ -25,6 +25,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "utilities/curve_axis_intersection.h"
 
 namespace Kratos {
 
@@ -35,6 +36,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef typename TSurfaceContainerPointType::value_type NodeType;
+
     /// Geometry as base class.
     typedef Geometry<typename TSurfaceContainerPointType::value_type> BaseType;
 
@@ -44,11 +47,8 @@ public:
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -57,14 +57,22 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
-        : BaseType(pCurve->Points(), &msGeometryData), mpNurbsSurface(pSurface), mpNurbsCurve(pCurve)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
     {
     }
 
-    /// Copy constructor.
+    /// Default constructor
+    NurbsCurveOnSurfaceGeometry()
+        : BaseType(PointsArrayType(), &msGeometryData)
+    {};
+
+    /// Copy constructor
     NurbsCurveOnSurfaceGeometry(NurbsCurveOnSurfaceGeometry const& rOther)
         : BaseType(rOther)
         , mpNurbsSurface(rOther.mpNurbsSurface)
@@ -72,9 +80,9 @@ public:
     {
     }
 
-    /// Copy constructor from a geometry with different point type.
+    /// Copy constructor, with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
-        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
+        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
@@ -132,11 +140,46 @@ public:
     ///@name Operations
     ///@{
 
-    /*typename BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         TSurfaceContainerPointType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
-    }*/
+        KRATOS_ERROR << "NurbsCurveOnSurfaceGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+            << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
+            << std::endl;
+    }
+
+    ///@}
+    ///@name Curve Properties
+    ///@{
+
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the interval of this curve.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 0.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    {
+        auto interval = mpNurbsCurve->DomainInterval();
+        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
+    }
+
+    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
+     * @return vector of interval limitations.
+     */
+    void Spans(std::vector<double>& rSpans,
+        double Start, double End) const
+    {
+        std::vector<double> surface_spans_u;
+        std::vector<double> surface_spans_v;
+        mpNurbsSurface->Spans(surface_spans_u, 0);
+        mpNurbsSurface->Spans(surface_spans_v, 1);
+
+        CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+            rSpans,
+            *this, Start, End,
+            surface_spans_u, surface_spans_v,
+            1e-6);
+    }
 
     ///@}
     ///@name Operation within Global Space

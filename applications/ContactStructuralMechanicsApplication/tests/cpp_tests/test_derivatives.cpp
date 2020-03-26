@@ -480,9 +480,9 @@ namespace Kratos
                 rModelPart.CreateNewNode(8, rModelPart.pGetNode(4)->X(), rModelPart.pGetNode(4)->Y(), rModelPart.pGetNode(4)->Z());
 
                 // Now we create the "conditions"
-                Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_cond_prop);
+                Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_cond_prop);
                 const array_1d<double, 3>& normal_0 = p_cond_0->GetGeometry().UnitNormal(aux_point);
-                Condition::Pointer p_cond0_0 = rModelPart.CreateNewCondition("Condition2D2N", 3, {{5, 6}}, p_cond_prop);
+                Condition::Pointer p_cond0_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{5, 6}}, p_cond_prop);
 
                 p_cond0_0->SetValue(NORMAL, normal_0);
                 p_cond_0->SetValue(NORMAL, normal_0);
@@ -494,9 +494,9 @@ namespace Kratos
                     p_cond_0->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
                 }
 
-                Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("Condition2D2N", 2, {{3, 4}}, p_cond_prop);
+                Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{3, 4}}, p_cond_prop);
                 const array_1d<double, 3>& normal_1 = p_cond_1->GetGeometry().UnitNormal(aux_point);
-                Condition::Pointer p_cond0_1 = rModelPart.CreateNewCondition("Condition2D2N", 4, {{7, 8}}, p_cond_prop);
+                Condition::Pointer p_cond0_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{7, 8}}, p_cond_prop);
 
                 p_cond0_1->SetValue(NORMAL, normal_1);
                 p_cond_1->SetValue(NORMAL, normal_1);
