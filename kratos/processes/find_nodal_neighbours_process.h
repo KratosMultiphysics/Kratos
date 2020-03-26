@@ -4,25 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_FIND_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED )
 #define  KRATOS_FIND_NODAL_NEIGHBOURS_PROCESS_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -52,16 +47,26 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/** 
+ * @class FindNodalNeighboursProcess
+ * @ingroup KratosCore
+ * @brief This method allows to look for neighbours in a triangular or tetrahedral mesh
+ * @details It checks the connectivity of the elements
+ * @author Riccardo Rossi
 */
-class FindNodalNeighboursProcess
+class KRATOS_API(KRATOS_CORE) FindNodalNeighboursProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-
+    
+    /// The index type
+    typedef std::size_t IndexType;
+    
+    /// The size type
+    typedef std::size_t SizeType;
+    
     /// Pointer definition of FindNodalNeighboursProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindNodalNeighboursProcess);
 
@@ -69,25 +74,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-    FindNodalNeighboursProcess(ModelPart& model_part)
-        :   mr_model_part(model_part)
-    {
-        auto& r_comm = model_part.GetCommunicator().GetDataCommunicator();
-        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, model_part);
-        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, model_part);
-
-        KRATOS_WARNING("FindNodalNeighboursProcess") << 
-            R"(please call separetely FindGlobalNodalNeighboursProcess 
-            and FindGlobalNodalElementalNeighboursProcess. 
-            The two calculations are currently independent,
-             hence memory savings can be achieved)" << std::endl;
-    }
-
-    FindNodalNeighboursProcess(ModelPart& model_part, unsigned int avg_elems, unsigned int avg_nodes)
-        : FindNodalNeighboursProcess(model_part)
-    {
-        KRATOS_WARNING("FindNodalNeighboursProcess") << "parameters avg_elems and avg_nodes are currently ignored. This constructor will be removed on the 2 of april 2020" << std::endl;
-    }
+    /**
+     * @brief Default constructor.
+     * @param rModelPart The modelpart to be processed
+    */
+    FindNodalNeighboursProcess(ModelPart& rModelPart);
+    
+    /**
+     * @brief Default constructor (deprecated one)
+     * @param rModelPart The modelpart to be processed
+     * @param AverageElements Expected number of neighbour elements per node.
+     * @param AverageNodes Expected number of neighbour Nodes
+    */
+    FindNodalNeighboursProcess(
+      ModelPart& rModelPart, 
+      const SizeType AverageElements, 
+      const SizeType AverageNodes
+      );
+    
     /// Destructor.
     ~FindNodalNeighboursProcess() override
     {
@@ -103,22 +107,19 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        mpNodeNeighboursCalculator->Execute();
-        mpElemNeighboursCalculator->Execute();
-    }
+    /**
+     * @brief This method esxecutes the neighbour search
+     */
+    void Execute() override;
 
-    void ClearNeighbours()
-    {
-        mpNodeNeighboursCalculator->ClearNeighbours();
-        mpElemNeighboursCalculator->ClearNeighbours();
-    }
+    /**
+     * @brief This method clears the neighbours found
+     */
+    void ClearNeighbours();
 
     ///@}
     ///@name Access
@@ -204,31 +205,14 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-
-    std::unique_ptr<FindGlobalNodalElementalNeighboursProcess> mpElemNeighboursCalculator = nullptr;
-    std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;
+    
+    ModelPart& mrModelPart;                                                                          /// The modelpart to be processed
+    std::unique_ptr<FindGlobalNodalElementalNeighboursProcess> mpElemNeighboursCalculator = nullptr; /// FindGlobalNodalElementalNeighboursProcess pointer 
+    std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;          /// FindGlobalNodalNeighboursProcess pointer 
+    
     ///@}
     ///@name Private Operators
     ///@{
-
-    //******************************************************************************************
-    //******************************************************************************************
-    template< class TDataType > void  AddUniqueWeakPointer
-    (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType> candidate)
-    {
-        auto i = v.begin();
-        auto endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate)->Id())
-        {
-            i++;
-        }
-        if( i == endit )
-        {
-            v.push_back(candidate);
-        }
-
-    }
 
     ///@}
     ///@name Private Operations

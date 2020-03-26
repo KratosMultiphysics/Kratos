@@ -26,7 +26,7 @@ MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
     )
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // The dimensions
@@ -75,9 +75,9 @@ MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters MPCContactSearchWrapperProcess::GetDefaultParameters()
+const Parameters MPCContactSearchWrapperProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "simple_search"                        : false,
         "allocation_size"                      : 1000,
