@@ -47,26 +47,6 @@ typedef BaseFactory< BuilderAndSolverType, LinearSolverType > BuilderAndSolverFa
 typedef SolvingStrategy< SpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 typedef BaseFactory< SolvingStrategyType > StrategyFactoryType;
 
-ConvergenceCriteriaType::Pointer CreateConvergenceCriteria(ConvergenceCriteriaFactoryType& rConvergenceCriteriaFactory, Kratos::Parameters Settings)
-{
-    return rConvergenceCriteriaFactory.Create(Settings);
-}
-
-SchemeType::Pointer CreateScheme(SchemeFactoryType& rSchemeFactory, Kratos::Parameters Settings)
-{
-    return rSchemeFactory.Create(Settings);
-}
-
-BuilderAndSolverType::Pointer CreateBuilderAndSolver(BuilderAndSolverFactoryType& rBuilderAndSolverFactory, typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings)
-{
-    return rBuilderAndSolverFactory.Create(pLinearSolver, Settings);
-}
-
-SolvingStrategyType::Pointer CreateSolvingStrategy(StrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings)
-{
-    return rStrategyFactory.Create(rModelPart, Settings);
-}
-
 void  AddFactoriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -95,7 +75,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     //HERE THE TOOLS TO REGISTER CONVERGENCE CRITERIA
     py::class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer >(m, "ConvergenceCriteriaFactory")
      .def( py::init< >() )
-     .def("Create",CreateConvergenceCriteria)
+     .def("Create",[](ConvergenceCriteriaFactoryType& rConvergenceCriteriaFactory, Kratos::Parameters Settings) {return rConvergenceCriteriaFactory.Create(Settings);})
      .def("Has",&ConvergenceCriteriaFactoryType::Has)
      .def("__str__", PrintObject<ConvergenceCriteriaFactoryType>)
     ;
@@ -104,7 +84,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     //HERE THE TOOLS TO REGISTER SCHEMES
     py::class_<SchemeFactoryType, SchemeFactoryType::Pointer >(m, "SchemeFactory")
      .def( py::init< >() )
-     .def("Create",CreateScheme)
+     .def("Create",[](SchemeFactoryType& rSchemeFactory, Kratos::Parameters Settings) {return rSchemeFactory.Create(Settings);})
      .def("Has",&SchemeFactoryType::Has)
      .def("__str__", PrintObject<SchemeFactoryType>)
     ;
@@ -113,7 +93,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     //HERE THE TOOLS TO REGISTER BUILDER AND SOLVERS
     py::class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer >(m, "BuilderAndSolverFactory")
      .def( py::init< >() )
-     .def("Create",CreateBuilderAndSolver)
+     .def("Create",[](BuilderAndSolverFactoryType& rBuilderAndSolverFactory, typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings) {return rBuilderAndSolverFactory.Create(pLinearSolver, Settings);})
      .def("Has",&BuilderAndSolverFactoryType::Has)
      .def("__str__", PrintObject<BuilderAndSolverFactoryType>)
     ;
@@ -122,7 +102,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     //HERE THE TOOLS TO REGISTER STRATEGIES
     py::class_<StrategyFactoryType, StrategyFactoryType::Pointer >(m, "StrategyFactory")
      .def( py::init< >() )
-     .def("Create",CreateSolvingStrategy)
+     .def("Create",[](StrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rStrategyFactory.Create(rModelPart, Settings);})
      .def("Has",&StrategyFactoryType::Has)
      .def("__str__", PrintObject<StrategyFactoryType>)
     ;
