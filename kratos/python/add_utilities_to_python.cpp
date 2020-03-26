@@ -422,32 +422,6 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     return name;
 }
 
-void RecursiveEnsureModelPartOwnsProperties(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities)
-{
-    rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();
-}
-
-void RecursiveEnsureModelPartOwnsPropertiesWithClear(
-    AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities,
-    const bool RemovePreviousProperties
-    )
-{
-    rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);
-}
-
-void EnsureModelPartOwnsProperties(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities)
-{
-    rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties();
-}
-
-void EnsureModelPartOwnsPropertiesWithClear(
-    AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities,
-    const bool RemovePreviousProperties
-    )
-{
-    rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties(RemovePreviousProperties);
-}
-
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -1144,13 +1118,12 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
 
     // Auxiliar ModelPart Utility
-
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
-        .def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsProperties)
-        .def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsPropertiesWithClear)
-        .def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsProperties)
-        .def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsPropertiesWithClear)
+        .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(); })
+        .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties); })
+        .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties(); })
+        .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties(RemovePreviousProperties); })
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
         .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
