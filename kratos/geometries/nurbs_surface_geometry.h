@@ -254,6 +254,65 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
+    /// Returns the number of spans in DirectionIndex=0:U and DirectionIndex=1:V (which are larger than 0).
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
+    {
+        SizeType knot_span_counter = 0;
+        if (DirectionIndex == 0) {
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::NumberOfKnotSpans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0 and 1." << std::endl;
+        }
+        return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @param return vector of span intervals.
+     * @param index of direction: 0: U; 1: V.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        if (DirectionIndex == 0) {
+            rSpans[0] = mKnotsU[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsU[i + 1];
+                    counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            rSpans[0] = mKnotsV[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsV[i + 1];
+                    counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::Spans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0 and 1." << std::endl;
+        }
+    }
+
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
