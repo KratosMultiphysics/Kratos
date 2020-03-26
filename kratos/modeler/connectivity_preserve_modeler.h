@@ -131,8 +131,8 @@ private:
     ///@name Private member Variables
     ///@{
 
-    IndexType mElementOffset;
-    IndexType mConditionOffset;
+    long unsigned int mElementOffset;
+    long unsigned int mConditionOffset;
 
     ///@}
 
@@ -171,13 +171,16 @@ private:
     ) const;
 
     template <typename TContainer>
-    IndexType GetMaxId(const TContainer& rContainer, const Communicator& rCommunicator) const
+    long unsigned int GetMaxId(
+        const TContainer& rContainer,
+        const Communicator& rCommunicator
+    ) const
     {
         KRATOS_TRY
 
         const int number_of_items = rContainer.size();
 
-        IndexType max_item_id{0}, local_id{0};
+        long unsigned int max_item_id{0}, local_id{0};
         // using customized max reduction since windows doesnt support max reduction in omp
 #pragma omp parallel firstprivate(local_id)
         {
