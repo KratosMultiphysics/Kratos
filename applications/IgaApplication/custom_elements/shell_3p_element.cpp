@@ -387,6 +387,9 @@ namespace Kratos
         double inv_dA = 1 / rActualKinematic.dA;
         double inv_dA3 = 1 / std::pow(rActualKinematic.dA, 3);
 
+        Matrix H = ZeroMatrix(3, 3);
+        CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex));
+
         for (int i = 0; i < number_of_control_points; i++)
         {
             unsigned int index = 3 * i;
@@ -413,9 +416,6 @@ namespace Kratos
                 dn(j, 1) = da3(j, 1) * inv_dA - rActualKinematic.a3_tilde[1] * a3da3la3;
                 dn(j, 2) = da3(j, 2) * inv_dA - rActualKinematic.a3_tilde[2] * a3da3la3;
             }
-
-            Matrix H = ZeroMatrix(3, 3);
-            CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
             // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
             b(0, index)     = 0 - (r_DDN_DDe(0, i) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
