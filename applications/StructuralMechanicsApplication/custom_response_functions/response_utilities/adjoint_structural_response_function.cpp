@@ -58,6 +58,11 @@ namespace Kratos
             mrModelPart.GetProcessInfo()[ADAPT_PERTURBATION_SIZE] = adapt_perturbation_size;
         }
 
+        bool non_linear_primal_analysis = false;
+        if(mResponseSettings.Has("non_linear_primal_analysis"))
+            non_linear_primal_analysis = mResponseSettings["non_linear_primal_analysis"].GetBool();
+        mrModelPart.GetProcessInfo()[NL_PRIMAL_ANALYSIS] = non_linear_primal_analysis;
+
         KRATOS_CATCH("");
     }
 
