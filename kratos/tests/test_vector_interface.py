@@ -31,8 +31,7 @@ class TestVectorInterface(KratosUnittest.TestCase):
             self.assertEqual(it,1.0)
 
         b -= a
-        for i in range(len(b)):
-            self.assertEqual(b[i], d[i])
+        self.assertVectorAlmostEqual(b, d)
 
     def test_list_construction(self):
         a = Vector([1,2,3])
