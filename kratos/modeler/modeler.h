@@ -53,7 +53,9 @@ public:
     ///@{
 
     /// Default constructor.
-    Modeler() {}
+    Modeler(const Parameters ModelerParameters = Parameters())
+        :mParameters(ModelerParameters)
+    {}
 
     /// Destructor.
     virtual ~Modeler() = default;
@@ -101,7 +103,12 @@ public:
     ///@}
 
 private:
+    ///@name Private members
+    ///@{
 
+    const Parameters mParameters;
+
+    ///@}
     ///@name Un accessible methods
     ///@{
 
