@@ -9,7 +9,7 @@ These files are converted to a static website using [MkDocs][1], based on the ou
 
 MD files are easy to write and read in raw form, and can easily be converted to HTML for nicer rendering. It is easy to learn, see e.g. this [tutorial](https://www.markdowntutorial.com/). Several flavors of MD exist, which differ only in some details. GitHub has its own [GitHub Flavored Markdown (GFM)](https://github.github.com/gfm/), which is used to render MD documents found in repositories on the run. PyCharm comes with an automatic rendering tool built in, and I assume many other IDE's too. 
 
-The MD documents for the CoCoNuT documentation must be written in the [Python-Markdown](https://python-markdown.github.io/) flavor, because they are processed by [MkDocs](1). This flavor stays very close to the [reference implementation](reference implementation) of MD. Pay attention to lists: they should be indented with 4 spaces (contrary to GFM). 
+The MD documents for the CoCoNuT documentation must be written in the [Python-Markdown](https://python-markdown.github.io/) flavor, because they are processed by [MkDocs][1]. This flavor stays very close to the [reference implementation](reference implementation) of MD. Pay attention to lists: they should be indented with 4 spaces (contrary to GFM). 
 
 Some important rules for writing MD files for this documentation website:
 
@@ -23,7 +23,7 @@ A note on math in MD. There is no out-of-the-box LaTeX compatibiliy sadly, but b
 *   super and subscripts: `<sup></sup>` and `<sub></sub>`
 *   operators: + - − · / × √ ∘ ∗
 *   other symbols: ∂ Δ	∑ ≤ ≥ ∈
-*   more math symbols: [here](http://www.unics.uni-hannover.de/nhtcapri/mathematics.html) and [here](http://www.alanflavell.org.uk/unicode/unidata22.html)
+*   [more math symbols](http://www.unics.uni-hannover.de/nhtcapri/mathematics.html)
 
 It is also possible to [render LaTeX equations on-the-run](https://alexanderrodin.com/github-latex-markdown/) and importing them as images, but that is quite cumbersome.
 
@@ -32,7 +32,7 @@ It is also possible to [render LaTeX equations on-the-run](https://alexanderrodi
 
 ## Creating a static website with MkDocs
 
-[MkDocs](1) can be installed using pip: 
+[MkDocs][1] can be installed using pip: 
 ```bash
 pip install mkdocs
 ```
