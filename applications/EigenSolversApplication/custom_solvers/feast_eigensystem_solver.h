@@ -70,6 +70,8 @@ class FEASTEigensystemSolver
             "solver_type" : "eigen_feast",
             "symmetric" : true,
             "keep_real_solution" : false,
+            "sort_eigenvalues" : true,
+            "sort_order" : "sr",
             "number_of_eigenvalues" : 0,
             "search_lowest_eigenvalues" : false,
             "search_highest_eigenvalues" : false,
@@ -98,6 +100,11 @@ class FEASTEigensystemSolver
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
             "Manually defined number of eigenvalues will be overwritten to match the defined subspace size" << std::endl;
+
+        const std::string s = mParam["sort_order"].GetString();
+
+        KRATOS_ERROR_IF( !(s=="sr" || s=="sm" || s=="si" || s=="lr" || s=="lm" || s=="li") ) <<
+            "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
 
         const TScalarOut T = {};
         CheckParameters(T);
@@ -222,6 +229,8 @@ class FEASTEigensystemSolver
         tmp_eigenvalues.resize(M, true);
         tmp_eigenvectors.resize(system_size, M, true);
 
+        if( mParam["sort_eigenvalues"].GetBool() )
+            SortEigenvalues(tmp_eigenvalues, tmp_eigenvectors, T);
         RetrieveEigensolution<OutputVectorType, VectorType>(tmp_eigenvalues, rEigenvalues, tmp_eigenvectors, rEigenvectors);
     }
 
@@ -302,6 +311,82 @@ class FEASTEigensystemSolver
     double GetE2(std::complex<double> T)
     {
         return mParam["e_r"].GetDouble();
+    }
+
+    void SortEigenvalues(OutputVectorType &rEigenvalues, FEASTMatrixType &rEigenvectors, double T)
+    {
+        std::string t = mParam["sort_order"].GetString();
+
+        KRATOS_WARNING_IF("FeastEigensystemSolver", t == "si") << "Attempting to sort by imaginary value. Falling back on \"sr\"" << std::endl;
+        KRATOS_WARNING_IF("FeastEigensystemSolver", t == "li") << "Attempting to sort by imaginary value. Falling back on \"lr\"" << std::endl;
+
+        vector<size_t> idx(rEigenvalues.size());
+        iota(idx.begin(), idx.end(), 0);
+
+        if( t == "sr" || t == "si" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return rEigenvalues[i1] < rEigenvalues[i2];});
+        } else if( t == "sm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) < std::abs(rEigenvalues[i2]);});
+        } else if( t == "lr" || t == "li" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return rEigenvalues[i1] > rEigenvalues[i2];});
+        } else if( t == "lm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) > std::abs(rEigenvalues[i2]);});
+        } else {
+            KRATOS_ERROR << "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
+        }
+
+        OutputVectorType tmp_eigenvalues(rEigenvalues.size());
+        FEASTMatrixType tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
+
+        for( size_t i=0; i<rEigenvalues.size(); ++i ) {
+            tmp_eigenvalues[i] = rEigenvalues[idx[i]];
+            column(tmp_eigenvectors, i).swap(column(rEigenvectors, idx[i]));
+        }
+        rEigenvalues.swap(tmp_eigenvalues);
+        rEigenvectors.swap(tmp_eigenvectors);
+    }
+
+    void SortEigenvalues(OutputVectorType &rEigenvalues, FEASTMatrixType &rEigenvectors, std::complex<double> T)
+    {
+        vector<size_t> idx(rEigenvalues.size());
+        iota(idx.begin(), idx.end(), 0);
+
+        const std::string t = mParam["sort_order"].GetString();
+        if( t == "sr" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::real(rEigenvalues[i1]) < std::real(rEigenvalues[i2]);});
+        } else if( t == "sm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) < std::abs(rEigenvalues[i2]);});
+        } else if( t == "si") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::imag(rEigenvalues[i1]) < std::imag(rEigenvalues[i2]);});
+        } else if( t == "lr" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::real(rEigenvalues[i1]) > std::real(rEigenvalues[i2]);});
+        } else if( t == "lm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) > std::abs(rEigenvalues[i2]);});
+        } else if( t == "li") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::imag(rEigenvalues[i1]) > std::imag(rEigenvalues[i2]);});
+        } else {
+            KRATOS_ERROR << "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
+        }
+
+        OutputVectorType tmp_eigenvalues(rEigenvalues.size());
+        FEASTMatrixType tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
+
+        for( size_t i=0; i<rEigenvalues.size(); ++i ) {
+            tmp_eigenvalues[i] = rEigenvalues[idx[i]];
+            column(tmp_eigenvectors, i).swap(column(rEigenvectors, idx[i]));
+        }
+        rEigenvalues.swap(tmp_eigenvalues);
+        rEigenvectors.swap(tmp_eigenvectors);
     }
 
     template<class TVectorType, class TOtherVectorType>
