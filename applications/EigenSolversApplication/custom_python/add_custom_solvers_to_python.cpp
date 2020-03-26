@@ -82,8 +82,23 @@ void register_dense_solver(pybind11::module& m, const std::string& name)
     ;
 }
 
-template<typename EigenSystemSolverType>
 void register_eigensystem_solver(pybind11::module& m, const std::string& name)
+{
+    namespace py = pybind11;
+
+    using Base = LinearSolver<UblasSpace<double, CompressedMatrix, Vector>,
+        UblasSpace<double, Matrix, Vector>>;
+
+    using EigenSystemSolverType = EigensystemSolver<>;
+
+    py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
+        (m, name.c_str())
+        .def(py::init<Parameters>())
+    ;
+}
+
+template<typename EigenSystemSolverType>
+void register_feast_eigensystem_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
@@ -95,6 +110,8 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
         (m, name.c_str())
         .def(py::init<Parameters>())
+        .def("GetEigenvectorSolution", &EigenSystemSolverType::GetEigenvectorSolution)
+        .def("GetEigenvalueSolution", &EigenSystemSolverType::GetEigenvalueSolution)
     ;
 }
 
@@ -189,20 +206,12 @@ void AddCustomSolversToPython(pybind11::module& m)
 
     // --- eigensystem solver
 
-    register_eigensystem_solver<EigensystemSolver<>>(m, "EigensystemSolver");
+    register_eigensystem_solver(m, "EigensystemSolver");
 #if defined USE_FEAST4
-    register_eigensystem_solver<FEASTEigensystemSolver<true, double, double>>(m, "FEASTSymmetricEigensystemSolver");
-
-    typedef FEASTEigensystemSolver<false, double, complex> FEASTGeneralEigenSystemSolverType;
-    typedef LinearSolver<TUblasSparseSpace<double>, TUblasDenseSpace<double>> Base;
-    pybind11::class_<FEASTGeneralEigenSystemSolverType, typename FEASTGeneralEigenSystemSolverType::Pointer, Base >
-        (m, "FEASTGeneralEigensystemSolver")
-        .def(pybind11::init<Parameters>())
-        .def("Solve", &FEASTGeneralEigenSystemSolverType::Solve)
-    ;
-
-    register_eigensystem_solver<FEASTEigensystemSolver<true, complex, complex>>(m, "ComplexFEASTSymmetricEigensystemSolver");
-    register_eigensystem_solver<FEASTEigensystemSolver<false, complex, complex>>(m, "ComplexFEASTGeneralEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<true, double, double>>(m, "FEASTSymmetricEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<false, double, complex>>(m, "FEASTGeneralEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<true, complex, complex>>(m, "ComplexFEASTSymmetricEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<false, complex, complex>>(m, "ComplexFEASTGeneralEigensystemSolver");
 #endif
 }
 

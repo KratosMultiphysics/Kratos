@@ -6,6 +6,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 
+from math import sqrt, isnan
+
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTSymmetricEigensystemSolver'),"FEAST not found, skipping.")
     def test_real_symmetric_gev(self):
@@ -70,11 +72,11 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTGeneralEigensystemSolver'),"FEAST not found, skipping.")
     def test_real_general_gev(self):
 
-        space = KratosMultiphysics.UblasComplexSparseSpace()
+        space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type" : "eigen_feast",
-            "symmetric" : false,
+            "solver_type": "eigen_feast",
+            "symmetric": false,
             "number_of_eigenvalues": 3,
             "e_mid_re": 10.0,
             "e_mid_im": 0.0,
@@ -99,9 +101,9 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             M[i, i] = 1
 
         # create result containers (they will be resized inside the solver)
-        # eigenvalues and vectors of unsymmetric matrices can be complex
-        eigenvalues = KratosMultiphysics.ComplexVector(n)
-        eigenvectors = KratosMultiphysics.ComplexMatrix(n, 1)
+        # eigenvalues and vectors of unsymmetric matrices are required to be real here
+        eigenvalues = KratosMultiphysics.Vector(n)
+        eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
         # Construct the solver
         eigen_solver = eigen_solver_factory.ConstructSolver(settings)
@@ -113,8 +115,72 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         self.assertEqual(eigenvectors.Size1(), 2)
         self.assertEqual(eigenvectors.Size2(), 5)
 
-        self.assertAlmostEqual(eigenvalues[0], 10.5+0.j, 7)
-        self.assertAlmostEqual(eigenvalues[1], 12.0+0.j, 7)
+        self.assertAlmostEqual(eigenvalues[0], 10.5, 7)
+        self.assertAlmostEqual(eigenvalues[1], 12.0, 7)
+
+        for i in range(eigenvalues.Size()):
+            eigenvector = KratosMultiphysics.Vector(n)
+            for j in range(n):
+                eigenvector[j] = eigenvectors[i,j]
+
+            _aux_1 = KratosMultiphysics.Vector(n,0)
+            _aux_2 = KratosMultiphysics.Vector(n,0)
+
+            space.Mult(K,eigenvector,_aux_1)
+            space.Mult(M,eigenvector,_aux_2)
+            _aux_2 *= eigenvalues[i]
+
+            self.assertVectorAlmostEqual(_aux_1, _aux_2)
+
+    @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTGeneralEigensystemSolver'),"FEAST not found, skipping.")
+    def test_real_general_gev_complex_result(self):
+
+        space = KratosMultiphysics.UblasComplexSparseSpace()
+
+        settings = KratosMultiphysics.Parameters('''{
+            "solver_type" : "eigen_feast",
+            "symmetric" : false,
+            "subspace_size" : 2,
+            "e_mid_re": 0.0,
+            "e_mid_im": 0.0,
+            "e_r": 30.0,
+            "echo_level": 0
+         }''')
+
+        K = KratosMultiphysics.CompressedMatrix(2,2)
+        K[0,0] = 1/sqrt(2)
+        K[1,1] = 1
+
+        n = K.Size1()
+
+        M = KratosMultiphysics.CompressedMatrix(n, n)
+        M[0,1] = 1
+        M[1,0] = -1/sqrt(2)
+
+        # create result containers
+        eigenvalues = KratosMultiphysics.Vector(n)
+        eigenvectors = KratosMultiphysics.Matrix(n, 1)
+
+        # Construct the solver
+        eigen_solver = eigen_solver_factory.ConstructSolver(settings)
+
+        with self.assertRaises(RuntimeError):
+            eigen_solver.GetEigenvalueSolution()
+            eigen_solver.GetEigenvectorSolution()
+
+        # Solve
+        eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
+
+        # check, if the invalid solution is nan
+        self.assertTrue(isnan(eigenvalues[0]))
+        self.assertTrue(isnan(eigenvectors[0,0]))
+
+        # retrieve the actual solution
+        c_eigenvalues = eigen_solver.GetEigenvalueSolution()
+        c_eigenvectors = eigen_solver.GetEigenvectorSolution()
+
+        self.assertAlmostEqual(c_eigenvalues[0], 0.0-1.0j, 7)
+        self.assertAlmostEqual(c_eigenvalues[1], 0.0+1.0j, 7)
 
         Kc = KratosMultiphysics.ComplexCompressedMatrix(K)
         Mc = KratosMultiphysics.ComplexCompressedMatrix(M)
@@ -122,14 +188,14 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         for i in range(eigenvalues.Size()):
             eigenvector = KratosMultiphysics.ComplexVector(n)
             for j in range(n):
-                eigenvector[j] = eigenvectors[i,j]
+                eigenvector[j] = c_eigenvectors[i,j]
 
             _aux_1 = KratosMultiphysics.ComplexVector(n,0)
             _aux_2 = KratosMultiphysics.ComplexVector(n,0)
 
             space.Mult(Kc,eigenvector,_aux_1)
             space.Mult(Mc,eigenvector,_aux_2)
-            _aux_2 *= eigenvalues[i]
+            _aux_2 *= c_eigenvalues[i]
 
             self.assertVectorAlmostEqual(_aux_1, _aux_2)
 
@@ -178,6 +244,10 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
         # Solve
         eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
+
+        with self.assertRaises(RuntimeError):
+            eigen_solver.GetEigenvalueSolution()
+            eigen_solver.GetEigenvectorSolution()
 
         for i in range(eigenvalues.Size()):
             eigenvector = KratosMultiphysics.ComplexVector(n)
