@@ -21,6 +21,10 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/small_displacement_surface_load_condition_3d.h"
+#include "custom_conditions/line_load_condition.h"
+#include "custom_conditions/small_displacement_line_load_condition.h"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 
 namespace Kratos
 {
@@ -32,24 +36,21 @@ namespace Kratos
 
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dim = this->GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim * number_of_nodes)
+        if (rResult.size() != dim * number_of_nodes) {
             rResult.resize(dim*number_of_nodes,false);
+        }
 
         const IndexType pos = this->GetGeometry()[0].GetDofPosition(ADJOINT_DISPLACEMENT_X);
 
-        if(dim == 2)
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        if(dim == 2) {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 2;
                 rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
             }
         }
-        else
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        else {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 3;
                 rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
@@ -68,22 +69,19 @@ namespace Kratos
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
-        if (rElementalDofList.size() != num_dofs)
+        if (rElementalDofList.size() != num_dofs) {
             rElementalDofList.resize(num_dofs);
+        }
 
-        if(dimension == 2)
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        if(dimension == 2) {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 2;
                 rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
                 rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
             }
         }
-        else
-        {
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
+        else {
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
                 const IndexType index = i * 3;
                 rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
                 rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
@@ -101,15 +99,16 @@ namespace Kratos
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
-        if (rValues.size() != num_dofs)
+        if (rValues.size() != num_dofs) {
             rValues.resize(num_dofs, false);
+        }
 
-        for (IndexType i = 0; i < number_of_nodes; ++i)
-        {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
             const array_1d<double, 3 > & Displacement = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
             IndexType index = i * dimension;
-            for(IndexType k = 0; k < dimension; ++k)
+            for(IndexType k = 0; k < dimension; ++k) {
                 rValues[index + k] = Displacement[k];
+            }
         }
     }
 
@@ -135,7 +134,8 @@ namespace Kratos
                 rOutput[i] = output_value;
             }
 
-        } else {
+        }
+        else {
             KRATOS_ERROR << "Unsupported output variable." << std::endl;
         }
 
@@ -164,7 +164,8 @@ namespace Kratos
                 rOutput[i] = output_value;
             }
 
-        } else {
+        }
+        else {
             KRATOS_ERROR << "Unsupported output variable." << std::endl;
         }
 
@@ -234,44 +235,30 @@ namespace Kratos
         this->CalculateRightHandSide(RHS, process_info);
 
         if (rDesignVariable == SHAPE_SENSITIVITY) {
-            if ((rOutput.size1() != local_size) || (rOutput.size2() != local_size)) {
-                rOutput.resize(local_size, local_size, false);
+            const std::vector<FiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
+            Vector derived_RHS;
+
+            if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) ) {
+                rOutput.resize(dimension * number_of_nodes, local_size, false);
             }
-            noalias(rOutput) = ZeroMatrix(local_size,local_size);
-            int i_2 = 0;
-            for (auto& node_i : this->GetGeometry())
-            {
-                // Pertubation, gradient analysis and recovery of x
-                node_i.X0() += delta;
-                node_i.X()  += delta;
-                this->CalculateRightHandSide(perturbed_RHS, process_info);
-                row(rOutput, i_2) = (perturbed_RHS - RHS) / delta;
-                node_i.X0() -= delta;
-                node_i.X()  -= delta;
 
-                // Reset the pertubed vector
-                perturbed_RHS = Vector(0);
+            IndexType index = 0;
 
-                // Pertubation, gradient analysis and recovery of y
-                node_i.Y0() += delta;
-                node_i.Y()  += delta;
-                this->CalculateRightHandSide(perturbed_RHS, process_info);
-                row(rOutput, i_2 + 1) = (perturbed_RHS - RHS) / delta;
-                node_i.Y0()-= delta;
-                node_i.Y() -= delta;
+            Vector RHS;
+            pGetPrimalCondition()->CalculateRightHandSide(RHS, process_info);
+            for(auto& node_i : mpPrimalCondition->GetGeometry()) {
+                for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i) {
+                    // Get pseudo-load contribution from utility
+                    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalCondition(), RHS, coord_directions[coord_dir_i],
+                                                                                node_i, delta, derived_RHS, process_info);
 
-                // Reset the pertubed vector
-                perturbed_RHS = Vector(0);
+                    KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
-                // Pertubation, gradient analysis and recovery of z
-                node_i.Z0() += delta;
-                node_i.Z()  += delta;
-                this->CalculateRightHandSide(perturbed_RHS, process_info);
-                row(rOutput, i_2 + 2) = (perturbed_RHS - RHS) / delta;
-                node_i.Z0() -= delta;
-                node_i.Z()  -= delta;
-
-                i_2 += 3;
+                    for(IndexType i = 0; i < derived_RHS.size(); ++i) {
+                        rOutput( (coord_dir_i + index*dimension), i) = derived_RHS[i];
+                    }
+                }
+                index++;
             }
         }
         else if (this->Has(rDesignVariable)) {
@@ -320,8 +307,7 @@ namespace Kratos
 
         // Check dofs
         const GeometryType& r_geom = this->GetGeometry();
-        for (IndexType i = 0; i < r_geom.size(); ++i)
-        {
+        for (IndexType i = 0; i < r_geom.size(); ++i) {
             const auto& r_node = r_geom[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
@@ -366,8 +352,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if ( mpPrimalCondition->GetProperties().Has(rDesignVariable) ) {
-            const double variable_value = mpPrimalCondition->GetProperties()[rDesignVariable];
+        if ( mpPrimalCondition->Has(rDesignVariable) ) {
+            const double variable_value = mpPrimalCondition->GetValue(rDesignVariable);
             return variable_value;
         }
         else {
@@ -401,6 +387,10 @@ namespace Kratos
     // TODO find out what to do with KRATOS_API
     template class AdjointSemiAnalyticBaseCondition<PointLoadCondition>;
     template class AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D>;
+    template class AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D>;
+    template class AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>>;
+    template class AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>>;
+
 
 } // Namespace Kratos
 
