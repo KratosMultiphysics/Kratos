@@ -63,6 +63,7 @@
 /* Adding solid elements */
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/axisym_small_displacement.h"
+#include "custom_elements/z_strain_driven_2p5_small_displacement.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/updated_lagrangian.h"
@@ -87,6 +88,7 @@
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
+#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -389,6 +391,12 @@ private:
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
 
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D3N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D4N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D6N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D8N;
+    const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D9N;
+
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
     const TotalLagrangian mTotalLagrangian2D4N;
@@ -489,6 +497,12 @@ private:
     // Adjoint Conditions
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition2D1N;
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition3D1N;
+    const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D3N;
+    const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D4N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N;
+    const AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>> mAdjointSemiAnalyticLineLoadCondition3D2N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>> mAdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N;
 
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;

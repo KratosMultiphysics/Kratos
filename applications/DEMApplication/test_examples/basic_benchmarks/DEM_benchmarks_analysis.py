@@ -151,8 +151,8 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
         super(DEMBenchmarksAnalysisStage, self).Finalize()
 
-    def FinalizeTimeStep(self, time):
-        super(DEMBenchmarksAnalysisStage, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super(DEMBenchmarksAnalysisStage, self).FinalizeSolutionStep()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi

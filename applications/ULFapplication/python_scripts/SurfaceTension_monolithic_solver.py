@@ -179,7 +179,7 @@ class STMonolithicSolver:
 
             if(domain_size == 2):
                 self.Mesher =  TriGenDropletModeler()
-                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
 

@@ -132,6 +132,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("Check",&Process::Check)
+    .def("GetDefaultParameters",&Process::GetDefaultParameters)
     .def("__str__", PrintObject<Process>)
     ;
 
@@ -160,8 +161,9 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<FindNodalNeighboursProcess, FindNodalNeighboursProcess::Pointer, Process>(m,"FindNodalNeighboursProcess")
-            .def(py::init<ModelPart&, unsigned int, unsigned int>())
+            .def(py::init<ModelPart& >())
     .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
+    .def(py::init<ModelPart&, unsigned int, unsigned int>())
     ;
 
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
