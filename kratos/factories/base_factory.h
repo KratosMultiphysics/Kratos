@@ -52,6 +52,87 @@ namespace Kratos
 ///@{
 
 /**
+ * @class BaseFactoryMethods
+ * @ingroup KratosCore
+ * @brief Here we define some common methods
+ * @details Defines the base class factory methods
+ * @author Vicente Mataix Ferrandiz
+ */
+class BaseFactoryMethods
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of BaseFactoryMethods
+    KRATOS_CLASS_POINTER_DEFINITION(BaseFactoryMethods);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /** Constructor.
+     */
+    explicit BaseFactoryMethods()
+    {
+    }
+
+    /** Destructor.
+     */
+    virtual ~BaseFactoryMethods()
+    {
+    }
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This method checks if the linear class is registered
+     * @return True if registered, false otherwise
+     */
+    virtual bool Has(const std::string& rSolverType) const
+    {
+        KRATOS_ERROR << "Methods must be implemented in the base class" << std::endl;
+        return false;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "BaseFactoryMethods";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << this->Info() << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+//         rOStream << this->Info() << std::endl;
+    }
+};
+
+/**
  * @class BaseFactory
  * @ingroup KratosCore
  * @brief Here we add the functions needed for the registration of class
@@ -62,6 +143,7 @@ namespace Kratos
  */
 template<typename TClass, typename TAuxiliarClass = TClass>
 class BaseFactory
+    : public BaseFactoryMethods
 {
 public:
     ///@name Type Definitions
@@ -107,7 +189,7 @@ public:
      * @brief This method checks if the linear class is registered
      * @return True if registered, false otherwise
      */
-    virtual bool Has(const std::string& rSolverType) const
+    bool Has(const std::string& rSolverType) const override
     {
         return KratosComponents< FactoryType >::Has( rSolverType );
     }
@@ -188,13 +270,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "BaseFactory";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << this->Info() << std::endl;
         const auto factory_components = KratosComponents<FactoryType>::GetComponents();
@@ -204,7 +286,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
 //         rOStream << this->Info() << std::endl;
 //         const auto factory_components = KratosComponents<FactoryType>::GetComponents();
