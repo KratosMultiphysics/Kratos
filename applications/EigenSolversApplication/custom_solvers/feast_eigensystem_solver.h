@@ -69,6 +69,7 @@ class FEASTEigensystemSolver
         {
             "solver_type" : "eigen_feast",
             "symmetric" : true,
+            "keep_real_solution" : false,
             "number_of_eigenvalues" : 0,
             "search_lowest_eigenvalues" : false,
             "search_highest_eigenvalues" : false,
@@ -96,7 +97,7 @@ class FEASTEigensystemSolver
 
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
-            "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
+            "Manually defined number of eigenvalues will be overwritten to match the defined subspace size" << std::endl;
 
         const TScalarOut T = {};
         CheckParameters(T);
@@ -316,12 +317,13 @@ class FEASTEigensystemSolver
         for( size_t i=0; i<rEigenvalues.size(); ++i ) {
             rEigenvalues[i] = std::real(rFeastEigenvalues[i]);
             if( std::abs(std::imag(rFeastEigenvalues[i])) > 1000*std::numeric_limits<double>::epsilon() ) {
-                KRATOS_WARNING("FeastEigensystemSolver") << "Eigenvalue " << i << " has an imaginary part of " << std::imag(rFeastEigenvalues[i]) << std::endl;
+                KRATOS_WARNING("FeastEigensystemSolver") << "Complex eigenvalue detected! eigenvalue[" << i << "] = "
+                    << rFeastEigenvalues[i] << std::endl;
                 complex_result = true;
             }
         }
 
-        if( !complex_result ) {
+        if( !complex_result || mParam["keep_real_solution"].GetBool() ) {
             // copy real parts of eigenvectors to result matrix
             // the eigensolver strategy expects an eigenvector matrix of shape [n_eigenvalues, n_dofs], so FEAST's eigenvector matrix has to be transposed
             if( rEigenvectors.size1() != rFeastEigenvectors.size2() || rEigenvectors.size2() != rFeastEigenvectors.size1() )
@@ -333,7 +335,9 @@ class FEASTEigensystemSolver
                     rEigenvectors(i,j) = std::real(rFeastEigenvectors(j,i));
                 }
             }
-        } else {
+        }
+
+        if( complex_result ) {
             KRATOS_WARNING("FeastEigensystemSolver") << "The computed solution is complex. " <<
                 "Please use GetEigenvectorSolution() and GetEigenvalueSolution() to retrieve the complex result." << std::endl;
 
@@ -349,11 +353,13 @@ class FEASTEigensystemSolver
             OutputVectorType& e = *mpEigenvalueVector;
             e.swap(rFeastEigenvalues);
 
-            // invalidate the double solution
-            rEigenvalues.resize(1, false);
-            rEigenvalues[0] = std::nan("");
-            rEigenvectors.resize(1, 1, false);
-            rEigenvectors(0,0) = std::nan("");
+            if( !mParam["keep_real_solution"].GetBool() ) {
+                // invalidate the double solution
+                rEigenvalues.resize(1, false);
+                rEigenvalues[0] = std::nan("");
+                rEigenvectors.resize(1, 1, false);
+                rEigenvectors(0,0) = std::nan("");
+            }
         }
     }
 
