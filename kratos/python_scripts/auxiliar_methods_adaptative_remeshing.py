@@ -142,6 +142,14 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
                     non_linear_iteration += 1
             self.analysis.OutputSolutionStep()
 
+    def ExecuteInitializeSolutionStep(self):
+        """This function is executed before the InitializeSolutionStep
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        pass
+
     def ExecuteBeforeFinalizeSolutionStep(self):
         """This function is executed before the FinalizeSolutionStep
 
