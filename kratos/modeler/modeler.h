@@ -90,6 +90,35 @@ public:
     {}
 
     ///@}
+    ///@name Modeler Stages after Solving
+    ///@{
+
+    /// Update the analysis model_part after the simulation.
+    void UpdateModelPart(
+        Model& rModel) const
+    {}
+
+    /// Outputs the model_part for external usage.
+    void OutputModelPart(
+        Model & rModel) const
+    {}
+
+    /// Updates the geometry model with the solutions from the analysis.
+    void UpdateSolutionGeometryModel(
+        Model& rModel) const
+    {}
+
+    /// Updates the geometry model.
+    void UpdateGeometryModel(
+        Model& rModel) const
+    {}
+
+    /// Outputs the geometry models for external usage.
+    void OuptutGeometryModel(
+        Model& rModel) const
+    {}
+
+    ///@}
     ///@name Operators
     ///@{
 
