@@ -25,6 +25,134 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
+void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if((rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) && this->GetProperties().Has(PRESTRESS_VECTOR)) {
+        // define working variables
+        ProcessInfo process_info = rCurrentProcessInfo;
+        Vector RHS;
+        Vector RHS_perturbed;
+        int component_index = 0;
+        if (rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) {
+            component_index = 1;
+        }
+
+        // compute unperturbed RHS
+        this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+  
+        // Save property pointer
+        Properties::Pointer p_global_properties = this->pGetPrimalElement()->pGetProperties();
+
+        // Create new property and assign it to the primal element
+        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        this->pGetPrimalElement()->SetProperties(p_local_property);
+
+        auto pre_stress = this->pGetPrimalElement()->GetProperties()[PRESTRESS_VECTOR];
+
+        // Get perturbation size
+        double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= pre_stress[component_index];
+        }
+        KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+
+        // perturb the design variable
+        pre_stress[component_index] += delta;
+        p_local_property->SetValue(PRESTRESS_VECTOR, pre_stress);
+
+        // Compute RHS after perturbation
+        this->pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
+
+        if( (rOutput.size1() != 1) || (rOutput.size2() != RHS.size() ) ) {
+            rOutput.resize(1, RHS.size(), false);
+        }
+
+        // Compute derivative of RHS w.r.t. design variable with finite differences
+        row(rOutput, 0) = (RHS_perturbed - RHS) / delta;
+            
+        // Give element original properties back
+        this->pGetPrimalElement()->SetProperties(p_global_properties);
+    }
+    else {
+        BaseType::CalculateSensitivityMatrix(rDesignVariable, rOutput, rCurrentProcessInfo);
+    }
+    
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
+                                                const Variable<Vector>& rStressVariable, Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if((rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) && this->GetProperties().Has(PRESTRESS_VECTOR)) {
+        // Define working variables
+        Vector stress_vector_undist;
+        Vector stress_vector_dist;
+        int component_index = 0;
+        if (rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) {
+            component_index = 1;
+        }
+ 
+        // Compute stress on GP before perturbation
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+        if (rStressVariable == STRESS_ON_GP) {
+            StressCalculation::CalculateStressOnGP(*(this->pGetPrimalElement()), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+        }
+        else {
+            StressCalculation::CalculateStressOnNode(*(this->pGetPrimalElement()), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+        }
+
+        // Save property pointer
+        Properties::Pointer p_global_properties = this->pGetPrimalElement()->pGetProperties();
+
+        // Create new property and assign it to the primal element
+        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        this->pGetPrimalElement()->SetProperties(p_local_property);
+
+        auto pre_stress = this->pGetPrimalElement()->GetProperties()[PRESTRESS_VECTOR];
+
+        // Get perturbation size
+        double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= pre_stress[component_index];
+        }
+        KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+
+        // perturb the design variable
+        pre_stress[component_index] += delta;
+        p_local_property->SetValue(PRESTRESS_VECTOR, pre_stress);
+
+        // Compute stress on GP after perturbation
+        if (rStressVariable == STRESS_ON_GP) {
+            StressCalculation::CalculateStressOnGP(*(this->pGetPrimalElement()), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
+        }
+        else {
+            StressCalculation::CalculateStressOnNode(*(this->pGetPrimalElement()), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
+        }
+
+        if( (rOutput.size1() != 1) || (rOutput.size2() != stress_vector_undist.size() ) ) {
+            rOutput.resize(1, stress_vector_undist.size(), false);
+        }
+        // Compute derivative of stress w.r.t. design variable with finite differences
+        row(rOutput, 0) = (stress_vector_dist - stress_vector_undist) / delta;
+
+        // Give element original properties back
+        this->pGetPrimalElement()->SetProperties(p_global_properties);
+    }
+    else {
+        BaseType::CalculateStressDesignVariableDerivative(rDesignVariable, rStressVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
 int AdjointFiniteDifferencingMembraneElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

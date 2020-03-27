@@ -121,6 +121,12 @@ public:
             NewId, pGeometry, pProperties);
     }
 
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
+                                        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
