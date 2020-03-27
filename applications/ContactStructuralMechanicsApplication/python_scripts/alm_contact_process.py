@@ -479,7 +479,10 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     else:
                         sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
                     for prop in sub_search_model_part.GetProperties():
-                        prop[KM.FRICTION_COEFFICIENT] = self.contact_settings["friction_coefficients"][key].GetDouble()
+                        if not prop.Has(KM.FRICTION_COEFFICIENT):
+                            prop[KM.FRICTION_COEFFICIENT] = self.contact_settings["friction_coefficients"][key].GetDouble()
+                        else:
+                            KM.Logger.PrintWarning("FRICTION_COEFFICIENT: ", "{:.2e}".format(prop[KM.FRICTION_COEFFICIENT]), " already defined in Properties, please define it as a condition pair property")
 
         # Initialize the ALM parameters
         alm_init_var = CSMA.ALMFastInit(self._get_process_model_part())
