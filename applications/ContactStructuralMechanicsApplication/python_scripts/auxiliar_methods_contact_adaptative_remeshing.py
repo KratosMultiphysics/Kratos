@@ -119,7 +119,7 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
                     computing_model_part.RemoveSubModelPart("ComputingContact")
 
                     # Ensure properties defined
-                    MA.MeshingUtilities.RecursiveEnsureModelPartOwnsProperties(computing_model_part.GetRootModelPart())
+                    KM.AuxiliarModelPartUtilities(computing_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties(True)
 
                     # We create the contact submodelparts
                     computing_model_part.CreateSubModelPart("Contact")
