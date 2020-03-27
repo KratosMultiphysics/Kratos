@@ -13,17 +13,20 @@
 #include <iostream>
 
 #include "testing/testing.h"
+#include "mpi/includes/mpi_data_communicator.h"
 #include "containers/sparse_graph.h"
+#include "containers/distributed_sparse_graph.h"
 #include "includes/key_hash.h"
 
 namespace Kratos {
 namespace Testing {
 
-typedef std::vector<std::vector<std::size_t>> ElementConnectivityType;
-typedef std::unordered_map<std::pair<std::size_t, std::size_t>,
+typedef DistributedSparseGraph::IndexType IndexType;
+typedef std::vector<std::vector<IndexType>> ElementConnectivityType;
+typedef std::unordered_map<std::pair<IndexType, IndexType>,
                           double,
-                          PairHasher<std::size_t, std::size_t>,
-                          PairComparor<std::size_t, std::size_t>
+                          PairHasher<IndexType, IndexType>,
+                          PairComparor<IndexType, IndexType>
                           > MatrixMapType;
 
 ElementConnectivityType ElementConnectivities()
@@ -63,6 +66,20 @@ ElementConnectivityType ElementConnectivities()
         };
 
     return connectivities;
+}
+
+ElementConnectivityType ElementConnectivities(const std::vector<IndexType> bounds)
+{
+    KRATOS_TRY
+    ElementConnectivityType all_connectivities = ElementConnectivities();
+
+    ElementConnectivityType connectivities;
+    for(IndexType i=bounds[0]; i<bounds[1]; ++i){
+            connectivities.push_back(all_connectivities[i]);
+    }
+
+    return connectivities;
+    KRATOS_CATCH("")
 }
 
 MatrixMapType GetReferenceMatrixAsMap()
@@ -110,6 +127,23 @@ MatrixMapType GetReferenceMatrixAsMap()
     return AMap;
 }
 
+MatrixMapType GetReferenceMatrixAsMap(const std::vector<IndexType>& bounds)
+{
+    KRATOS_TRY
+    MatrixMapType all_connectivities = GetReferenceMatrixAsMap();
+    if(bounds[1]>all_connectivities.size())
+        KRATOS_ERROR << "bounds : " << bounds << " exceed the total size : "
+         << all_connectivities.size() << std::endl;
+    MatrixMapType connectivities;
+    for(auto& item : all_connectivities)
+    {
+        if(item.first.first >= bounds[0] && item.first.first<bounds[1])
+            connectivities.insert(item);
+    }
+
+    return connectivities;
+    KRATOS_CATCH("")
+}
 
 template< class TSparseGraphType>
 bool CheckGraph(
@@ -163,34 +197,47 @@ bool CheckCSRGraphArrays(
     return true;
 }
 
-// Basic Type
-KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
+template<class TIndexType>
+std::vector<TIndexType> ComputeBounds( TIndexType N,
+                                TIndexType Ndivisions,
+                                TIndexType current_rank
+                              )
 {
-    const auto connectivities = ElementConnectivities();
-    auto reference_A_map = GetReferenceMatrixAsMap();
+    std::vector<int> partition;
+    OpenMPUtils::DivideInPartitions(N,Ndivisions,partition);
 
-    SparseGraph Agraph;
+    std::vector<TIndexType> bounds{
+            static_cast<TIndexType>(partition[current_rank]),
+            static_cast<TIndexType>(partition[current_rank+1])
+            };
+    return bounds;
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCoreFastSuite)
+{
+    typedef DistributedSparseGraph::IndexType IndexType;
+
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    auto dofs_bounds = ComputeBounds<IndexType>(40, world_size, my_rank);
+    auto reference_A_map = GetReferenceMatrixAsMap(dofs_bounds);
+
+    auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
+    const auto connectivities = ElementConnectivities(el_bounds);
+
+    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
+
     Agraph.Finalize();
 
-    CheckGraph(Agraph, reference_A_map);
-
-    //check serialization
-    StreamSerializer serializer;
-    const std::string tag_string("TestString");
-    serializer.save(tag_string, Agraph);
-    Agraph.Clear();
-    serializer.load(tag_string, Agraph);
-    CheckGraph(Agraph, reference_A_map);
-
-    //check exporting
-    vector<IndexType> row_index, col_index;
-    Agraph.ExportCSRArrays(row_index, col_index);
-
-    CheckCSRGraphArrays(row_index, col_index, reference_A_map);
+    CheckGraph(Agraph.GetLocalGraph(), reference_A_map);
 
 }
+
 
 
 } // namespace Testing

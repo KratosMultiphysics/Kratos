@@ -80,6 +80,20 @@ public:
     /// Destructor.
     virtual ~SparseGraph(){}
 
+    /// Assignment operator. TODO: decide if we do want to allow it
+    SparseGraph& operator=(SparseGraph const& rOther)=delete;
+    // {
+    //     this->AddEntries(rOther.GetGraph());
+    //     return *this;
+    // }
+
+    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
+    ///but i don't know why :-(
+    SparseGraph(const SparseGraph& rOther)
+    {
+        this->AddEntries(rOther);
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -108,6 +122,7 @@ public:
         mGraph[RowIndex].insert(rColBegin, rColEnd);
     }
 
+    //adds a square FEM matrix, identified by rIndices
     template<class TContainerType>
     void AddEntries(const TContainerType& rIndices)
     {
@@ -115,7 +130,7 @@ public:
             mGraph[I].insert(rIndices.begin(), rIndices.end());
     }
 
-    void AddEntries(SparseGraph& rOtherGraph)
+    void AddEntries(const SparseGraph& rOtherGraph)
     {
         for(const auto& item: rOtherGraph.GetGraph())
         {
@@ -125,6 +140,7 @@ public:
 
     void Finalize()
     {
+
     }
 
     const GraphType& GetGraph() const{
@@ -134,7 +150,7 @@ public:
     IndexType ExportCSRArrays(
         vector<IndexType>& rRowIndices,
         vector<IndexType>& rColIndices
-    )
+    ) //TODO: this function should be imported in the CSR matrix interface, not here
     {
         //need to detect the number of rows this way since there may be gaps
         IndexType nrows=0;
@@ -334,11 +350,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    SparseGraph& operator=(SparseGraph const& rOther) = delete;
 
-    /// Copy constructor.
-    SparseGraph(SparseGraph const& rOther) = delete;
 
     ///@}
 
