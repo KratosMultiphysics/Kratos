@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
     array_1d<double, 3> displacement = ZeroVector(3);
     displacement[0] = 1.2;
     displacement[1] = 2.3;
-    displacement[3] = 3.4;
+    displacement[2] = 3.4;
     KRATOS_CHECK_EQUAL(DISPLACEMENT_X.GetValue(displacement), 1.2);
     KRATOS_CHECK_EQUAL(DISPLACEMENT_Y.GetValue(displacement), 2.3);
     KRATOS_CHECK_EQUAL(DISPLACEMENT_Z.GetValue(displacement), 3.4);
