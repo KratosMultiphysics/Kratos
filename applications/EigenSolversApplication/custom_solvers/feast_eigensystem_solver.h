@@ -106,7 +106,7 @@ class FEASTEigensystemSolver
         CheckParameters(T);
     }
 
-    ~FEASTEigensystemSolver() override {}
+    ~FEASTEigensystemSolver() override = default;
 
     /**
      * Solve the generalized eigenvalue problem using FEAST
@@ -122,7 +122,7 @@ class FEASTEigensystemSolver
         DenseMatrixType& rEigenvectors) override
     {
         // settings
-        const size_t system_size = rK.size1();
+        const std::size_t system_size = rK.size1();
         size_t subspace_size;
         const TScalarIn Ti = {};
         const TScalarOut T = {};
@@ -155,15 +155,14 @@ class FEASTEigensystemSolver
         fpm[3] = mParam["max_iteration"].GetInt();
 
         // compute only right eigenvectors
-        if( !TSymmetric )
+        if( !TSymmetric ) {
             fpm[14] = 1;
+        }
 
-        if( mParam["search_lowest_eigenvalues"].GetBool() )
-        {
+        if( mParam["search_lowest_eigenvalues"].GetBool() ) {
             fpm[39] = -1;
         }
-        if( mParam["search_highest_eigenvalues"].GetBool() )
-        {
+        if( mParam["search_highest_eigenvalues"].GetBool() ) {
             fpm[39] = 1;
         }
 
@@ -172,30 +171,26 @@ class FEASTEigensystemSolver
 
         // provide matrices in array form. fortran indices start with 1, must be int
         double* A = reinterpret_cast<double*>(rK.value_data().begin());
-        std::vector<int> IA;
-        IA.reserve(N+1);
-        for( int i=0; i<N+1; ++i )
-        {
+        std::vector<int> IA(N+1);
+        #pragma omp parallel for
+        for( int i=0; i<N+1; ++i ) {
             IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
         }
-        std::vector<int> JA;
-        JA.reserve(IA[N]-1);
-        for( int i=0; i<IA[N]-1; ++i )
-        {
+        std::vector<int> JA(IA[N]-1);
+        #pragma omp parallel for
+        for( int i=0; i<IA[N]-1; ++i ) {
             JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
         }
 
         double* B = reinterpret_cast<double*>(rM.value_data().begin());
-        std::vector<int> IB;
-        IB.reserve(N+1);
-        for( int i=0; i<N+1; ++i )
-        {
+        std::vector<int> IB(N+1);
+        #pragma omp parallel for
+        for( int i=0; i<N+1; ++i ) {
             IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
         }
-        std::vector<int> JB;
-        JB.reserve(IB[N]-1);
-        for( int i=0; i<IB[N]-1; ++i )
-        {
+        std::vector<int> JB(IB[N]-1);
+        #pragma omp parallel for
+        for( int i=0; i<IB[N]-1; ++i ) {
             JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
         }
 
@@ -213,7 +208,7 @@ class FEASTEigensystemSolver
         int info;
 
         // call feast
-        auto feast = CallFeast(Ti, TSymmetric);
+        auto feast = CreateFeast(Ti, TSymmetric);
         feast(&UPLO, &N, A, IA.data(), JA.data(), B, IB.data(), JB.data(), fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
 
         KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output." << std::endl;
@@ -256,7 +251,7 @@ class FEASTEigensystemSolver
 
     typedef void (feast_ptr)(char*, int*, double*, int*, int*, double*, int*, int*, int*, double*, int*, double*, double*, int*, double*, double*, int*, double*, int*);
 
-    std::function<feast_ptr> CallFeast(double T, bool symmetric)
+    std::function<feast_ptr> CreateFeast(double T, bool symmetric)
     {
         using namespace std::placeholders;
 
@@ -267,7 +262,7 @@ class FEASTEigensystemSolver
         }
     }
 
-    std::function<feast_ptr> CallFeast(std::complex<double> T, bool symmetric)
+    std::function<feast_ptr> CreateFeast(std::complex<double> T, bool symmetric)
     {
         using namespace std::placeholders;
 
