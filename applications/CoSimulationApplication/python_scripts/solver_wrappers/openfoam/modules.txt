@@ -1,0 +1,15 @@
+# BEFORE LOADING THESE MODULES: PLEASE COMPILE THE ADAPTED OPENFOAM-SOLVER ("CoCoNuT_XXX"). LOADING THE GCC CAUSES THE OF-COMPILER TO CRASH
+
+# These modules should be loaded for the OpenFOAM-wrapper to work
+# Please first "source modules.txt"
+
+module load GCC/7.3.0-2.30
+module load CMake/3.11.4-GCCcore-7.3.0
+module load Anaconda3-python/5.1.0
+module load PyCharm/2018.1.4
+
+module load OpenFOAM/4.1
+source $FOAM_BASH
+
+export PYTHONPATH=~/git-repository/Kratos:$PYTHONPATH
+

@@ -1,0 +1,1 @@
+EXE = $(FOAM_USER_APPBIN)/CoCoNuT_pimpleFoam
