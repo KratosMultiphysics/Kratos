@@ -102,16 +102,15 @@ void register_feast_eigensystem_solver(pybind11::module& m, const std::string& n
 {
     namespace py = pybind11;
 
-    using DataType = typename EigenSystemSolverType::ValueType;
-    using SparseSpaceType = TUblasSparseSpace<DataType>;
-    using DenseSpaceType = TUblasDenseSpace<DataType>;
+    using DataTypeIn = typename EigenSystemSolverType::ValueTypeIn;
+    using DataTypeOut = typename EigenSystemSolverType::ValueTypeOut;
+    using SparseSpaceType = TUblasSparseSpace<DataTypeIn>;
+    using DenseSpaceType = TUblasDenseSpace<DataTypeOut>;
     using Base = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
         (m, name.c_str())
         .def(py::init<Parameters>())
-        .def("GetEigenvectorSolution", &EigenSystemSolverType::GetEigenvectorSolution)
-        .def("GetEigenvalueSolution", &EigenSystemSolverType::GetEigenvalueSolution)
     ;
 }
 
