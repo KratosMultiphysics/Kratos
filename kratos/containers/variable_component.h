@@ -92,14 +92,14 @@ public:
     ///@{
 
     VariableComponent(const std::string& ComponentName, const std::string& SourceName, int ComponentIndex, const AdaptorType& NewAdaptor)
-        : BaseType(ComponentName, sizeof(DataType), true, NewAdaptor.GetComponentIndex()), mAdaptor(NewAdaptor)
+        : BaseType(ComponentName, sizeof(DataType), true, NewAdaptor.GetComponentIndex()), mpSourceVariable(&NewAdaptor.GetSourceVariable())
     {
         SetKey(GenerateKey(SourceName, sizeof(DataType), true,  ComponentIndex));
     }
 
     /// Copy constructor.
     VariableComponent(const VariableComponent& rOther)
-        : BaseType(rOther), mAdaptor(rOther.mAdaptor) {}
+        : BaseType(rOther), mpSourceVariable(rOther.mpSourceVariable) {}
 
     /// Destructor.
     ~VariableComponent() override {}
@@ -121,22 +121,17 @@ public:
 
     const SourceVariableType& GetSourceVariable() const
     {
-        return mAdaptor.GetSourceVariable();
-    }
-
-    const AdaptorType& GetAdaptor() const
-    {
-        return mAdaptor;
+        return *mpSourceVariable;
     }
 
     DataType& GetValue(SourceType& SourceValue) const
     {
-        return mAdaptor.GetValue(SourceValue);
+        return GetValueByIndex(SourceValue,GetComponentIndex());
     }
 
     const DataType& GetValue(const SourceType& SourceValue) const
     {
-        return mAdaptor.GetValue(SourceValue);
+        return GetValueByIndex(SourceValue,GetComponentIndex());
     }
 
     static VariableComponent const& StaticObject()
@@ -146,7 +141,7 @@ public:
 
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
+        rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
     }
 
     ///@}
@@ -162,14 +157,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
+        buffer << Name() << " component of " <<  GetSourceVariable().Name() << " variable";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
+        rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable";
     }
 
     /// Print object's data.
@@ -201,7 +196,7 @@ protected:
     VariableComponent& operator=(const VariableComponent& rOther)
     {
         BaseType::operator=(rOther);
-        mAdaptor = rOther.mAdaptor;
+        mpSourceVariable = rOther.mpSourceVariable;
     }
 
     ///@}
@@ -237,7 +232,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    TAdaptorType mAdaptor;
+    const SourceVariableType* mpSourceVariable;
 
     ///@}
     ///@name Serialization
@@ -251,6 +246,16 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    DataType& GetValueByIndex(SourceType& rValue, std::size_t index) const
+    {
+        return rValue[index];
+    }
+
+    const DataType& GetValueByIndex(const SourceType& rValue, std::size_t index) const
+    {
+        return rValue[index];
+    }
 
 
     ///@}
