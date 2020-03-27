@@ -192,6 +192,36 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 
 }
 
+// Basic Type
+KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphConstruction, KratosCoreFastSuite)
+{
+    const auto connectivities = ElementConnectivities();
+    auto reference_A_map = GetReferenceMatrixAsMap();
+
+    std::unique_ptr<SparseGraph> pAgraph(nullptr);
+
+    #pragma omp parallel
+    {
+        std::unique_ptr<SparseGraph> plocal_graph(new SparseGraph());
+        #pragma omp for
+        for(unsigned int i=0; i<connectivities.size(); ++i){
+            plocal_graph->AddEntries(connectivities[i]);
+        }
+
+        #pragma omp critical
+        {
+            if(pAgraph == nullptr )
+                pAgraph.swap(plocal_graph);
+            else
+                pAgraph->AddEntries(*plocal_graph);
+        }
+    }
+
+    pAgraph->Finalize();
+
+    CheckGraph(*pAgraph, reference_A_map);
+}
+
 
 } // namespace Testing
 } // namespace Kratos
