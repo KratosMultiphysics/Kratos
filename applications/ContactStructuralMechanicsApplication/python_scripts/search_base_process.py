@@ -465,7 +465,10 @@ class SearchBaseProcess(KM.Process):
                 sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
             else:
                 sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
-            return sub_search_model_part.GetProperties(100 + int(key))
+            if sub_search_model_part.HasProperties(100 + int(key)):
+                return sub_search_model_part.GetProperties(100 + int(key))
+            else:
+                return sub_search_model_part.CreateNewProperties(100 + int(key))
 
     def _set_additional_parameters(self, param):
         """ This sets additional parameters for the search
