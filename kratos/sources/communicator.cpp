@@ -637,17 +637,14 @@ void Communicator::PrintInfo(std::ostream& rOStream) const
     rOStream << Info();
 }
 
-void Communicator::PrintData(std::ostream& rOStream) const
+void Communicator::PrintData(std::ostream& rOStream, std::string const& rPrefixString) const
 {
-    for (IndexType i = 0; i < mLocalMeshes.size(); i++)
-    {
-        rOStream << "    Local Mesh " << i << " : " << std::endl;
-        LocalMesh(i).PrintData(rOStream);
-        rOStream << "    Ghost Mesh " << i << " : " << std::endl;
-        GhostMesh(i).PrintData(rOStream);
-        rOStream << "    Interface Mesh " << i << " : " << std::endl;
-        InterfaceMesh(i).PrintData(rOStream);
-    }
+    rOStream << rPrefixString << "    Local Mesh " << " : " << std::endl;
+    mpLocalMesh->PrintData(rOStream, rPrefixString + "    ");
+    rOStream << rPrefixString << "    Ghost Mesh " << " : " << std::endl;
+    mpGhostMesh->PrintData(rOStream, rPrefixString + "    ");
+    rOStream << rPrefixString << "    Interface Mesh " << " : " << std::endl;
+    mpInterfaceMesh->PrintData(rOStream, rPrefixString + "    ");
 }
 
 } // namespace Kratos
