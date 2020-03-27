@@ -1,4 +1,4 @@
-BOOK:Inertia
+BOOK:Parts
 NUMBER: 1 CONDITION: Body_Part
 CONDTYPE: over group
 GROUPALLOW: surfaces volumes elements
