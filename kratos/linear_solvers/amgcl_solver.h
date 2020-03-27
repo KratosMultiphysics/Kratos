@@ -545,7 +545,7 @@ public:
         int old_ndof = -1;
         int ndof=0;
 
-        if(rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed() == false)
+        if (!rModelPart.IsDistributed())
         {
             unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
             for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
