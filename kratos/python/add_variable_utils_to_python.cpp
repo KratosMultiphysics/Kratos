@@ -27,7 +27,6 @@
 namespace Kratos {
 namespace Python {
 
-
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes
@@ -168,11 +167,9 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
     rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rContainer, Flag, CheckValue);
 }
 
-    void AddVariableUtilsToPython(pybind11::module &m)
+void AddVariableUtilsToPython(pybind11::module &m)
 {
-
     namespace py = pybind11;
-
 
     py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())

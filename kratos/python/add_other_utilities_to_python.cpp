@@ -24,7 +24,6 @@
 #include "processes/process.h"
 #include "includes/global_pointer_variables.h"
 
-
 //Other utilities
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
@@ -62,13 +61,11 @@ void SetOnProcessInfo(
     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
 }
 
-
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
     rTimer.PrintTimingInformation();
 }
-
 
 //mortar
 void ComputeNodesTangentModelPartWithSlipVariable(
@@ -136,9 +133,7 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     return name;
 }
 
-
-
-    void AddOtherUtilitiesToPython(pybind11::module &m)
+void AddOtherUtilitiesToPython(pybind11::module &m)
 {
 
     namespace py = pybind11;
@@ -279,7 +274,6 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
         .def(py::init<>())
         .def("Merge",&MergeVariableListsUtility::Merge)
         ;
-
 
     // VariableRedistributionUtility
     typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
