@@ -247,12 +247,17 @@ private:
     ///@name Private Operations
     ///@{
 
-    DataType& GetValueByIndex(SourceType& rValue, std::size_t index) const
+    /// This is the default function for getting a value by index using operator[]
+    /** It is templated so one can create specialized version of this for types without operator[]
+    **/
+    template<typename TValueType>
+    DataType& GetValueByIndex(TValueType& rValue, std::size_t index) const
     {
         return rValue[index];
     }
 
-    const DataType& GetValueByIndex(const SourceType& rValue, std::size_t index) const
+    template<typename TValueType>
+    const DataType& GetValueByIndex(const TValueType& rValue, std::size_t index) const
     {
         return rValue[index];
     }
