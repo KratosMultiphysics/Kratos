@@ -206,6 +206,12 @@ public:
         return !mIsComponent;
     }
 
+    /// Returns the component index. 
+    /** Please note that this method don't check if it is a component or not.
+     * It uses the key to reterive the compenent index from its first 7 bits.
+     * Component index can be from 0 to 127 at most, because 7 bits are used to store it. 
+     * So in case of normal variables it returns 0 (like being the first componet)
+     **/
     KeyType GetComponentIndex() const {
         constexpr KeyType first_7_bits=127;
         return (mKey & first_7_bits);
