@@ -212,7 +212,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("GetSubProperties", GetSubPropertiesArray1)
     .def("GetSubProperties", GetSubPropertiesArray2)
     .def("SetSubProperties", &Properties::SetSubProperties)
-    .def_property("Data", [](Properties& rProperties) { return rProperties.Data();}, [](Properties& rProperties, DataValueContainer& rData) { rProperties.Data() = rData;})
+    .def_property("Data", [](Properties& rProperties) -> DataValueContainer& { return rProperties.Data();}, [](Properties& rProperties, DataValueContainer& rData) { rProperties.Data() = rData;})
     .def("__str__", PrintObject<Properties>)
     ;
 
