@@ -1,0 +1,6 @@
+/* dynamicCode:
+ * SHA1 = 3ff7f7c0f3ae27d7889404869a7b49e22adab2a7
+ */
+fixedValueFvPatchFieldTemplate.C
+
+LIB = $(PWD)/../platforms/$(WM_OPTIONS)/lib/libswirl_3ff7f7c0f3ae27d7889404869a7b49e22adab2a7

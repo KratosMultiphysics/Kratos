@@ -1,0 +1,36 @@
+{
+    "settings": {
+        "data_structure": "pyKratos"
+    },
+    "solver_wrappers":
+    [
+        {
+            "type": "solver_wrappers.openfoam.OpenFOAM_41",
+            "settings": {
+            	"application" : "CoCoNuT_pimpleFoam",
+                "working_directory" : "test_41_pipeCyclic",
+                "dimensions": 3,
+                "start_time": 0,
+                "physical_start_time":0,
+                "end_time": 10,
+                "dt": 0.1,
+                "boundary_names": ["walls"],
+                "interface_input":
+                {
+   	                "walls_input": "DISPLACEMENT"
+                },
+                "interface_output":
+                {
+                 	"walls_output": ["PRESSURE","WALLSHEARSTRESS"]
+                },
+                "cores": 1,
+                "decomposeMethod": "scotch",
+                "write_interval" : 1,
+                "write_precision": 6,
+                "time_precision": 6,
+                "newtonmax": 10,
+                "newtontol": 1e-08
+            }
+        }
+    ]
+}

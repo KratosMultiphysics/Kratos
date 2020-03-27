@@ -1,0 +1,52 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 4.1
+Exec   : topoSet
+Date   : Jan 10 2020
+Time   : 17:37:42
+Host   : "cfdclu55.ugent.be"
+PID    : 185879
+Case   : /cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create polyMesh for time = 0
+
+Reading topoSetDict
+
+Time = 0
+    mesh not changed.
+Created faceSet f0
+    Applying source patchToFace
+    Adding all faces of patch side1 ...
+    Found matching patch side1 with 400 faces.
+    faceSet f0 now size 400
+Read set faceSet f0 with size 400
+    Applying source boxToFace
+    Adding faces with centre within boxes 1((0 -100 -100) (100 -0.2 100))
+    faceSet f0 now size 250
+Created cellSet c0
+    Applying source faceToCell
+    Adding cells according to faceSet f0 ...
+    cellSet c0 now size 250
+Created faceSet walls
+    Applying source patchToFace
+    Adding all faces of patch walls ...
+    Found matching patch walls with 250 faces.
+    faceSet walls now size 250
+Read set cellSet c0 with size 250
+    Applying source faceToCell
+    Removing cells according to faceSet walls ...
+    cellSet c0 now size 200
+End
+

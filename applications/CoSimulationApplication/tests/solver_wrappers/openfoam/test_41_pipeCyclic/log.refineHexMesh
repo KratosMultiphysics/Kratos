@@ -1,0 +1,53 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 4.1
+Exec   : refineHexMesh c0 -overwrite
+Date   : Jan 10 2020
+Time   : 17:37:42
+Host   : "cfdclu55.ugent.be"
+PID    : 185880
+Case   : /cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+Reading cells to refine from cellSet c0
+
+Read 200 cells to refine from cellSet c0
+
+Reading volScalarField ccz
+Reading volScalarField nut
+Reading volScalarField V
+Reading volScalarField cellDist
+Reading volScalarField ccy
+Reading volScalarField p
+Reading volScalarField ccx
+Reading volScalarField k
+Reading volScalarField epsilon
+Reading volScalarField nuTilda
+Reading volVectorField U
+Using dynamicCode for patch inlet on field U at line 26 in "/cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/0/U.boundaryField.inlet"
+Reading pointVectorField pointDisplacement
+Read mesh:
+    cells:1600
+    faces:5378
+    points:2286
+    cellLevel : min:0 max:1
+    pointLevel : min:0 max:1
+
+Refined from 1600 to 3700 cells.
+
+Writing mesh to 0
+End
+

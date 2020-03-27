@@ -1,0 +1,101 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 4.1
+Exec   : CoCoNuT_pimpleFoam
+Date   : Jan 31 2020
+Time   : 10:27:35
+Host   : "cfdclu55.ugent.be"
+PID    : 16408
+Case   : /cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+Selecting dynamicFvMesh dynamicMotionSolverFvMesh
+Selecting motion solver: displacementLaplacian
+Selecting motion diffusion: quadratic
+Selecting motion diffusion: inverseDistance
+AMI: Creating addressing and weights between 1300 source faces and 250 target faces
+AMI: Patch source sum(weights) min/max/average = 1, 1, 1
+AMI: Patch target sum(weights) min/max/average = 1, 1, 1
+
+PIMPLE: no residual control data found. Calculations will employ 4 corrector loops
+
+Reading field p
+
+Reading field U
+
+Using dynamicCode for patch inlet on field U at line 26 in "/cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/0/U.boundaryField.inlet"
+Reading/calculating face flux field phi
+
+Selecting incompressible transport model Newtonian
+Selecting turbulence model type RAS
+Selecting RAS turbulence model realizableKE
+realizableKECoeffs
+{
+    Cmu             0.09;
+    A0              4;
+    C2              1.9;
+    sigmak          1;
+    sigmaEps        1.2;
+}
+
+No MRF models present
+
+Reading/calculating face velocity Uf
+
+No finite volume options present
+
+Courant Number mean: 0.612001 max: 2.00006
+wallShearStress wallShearStress_walls:
+    processing wall patches: 
+        walls
+
+Courant Number mean: 0.612001 max: 2.00006
+Time = 0.1
+
+GAMG:  Solving for cellDisplacementx, Initial residual = 0, Final residual = 0, No Iterations 0
+GAMG:  Solving for cellDisplacementy, Initial residual = 0, Final residual = 0, No Iterations 0
+GAMG:  Solving for cellDisplacementz, Initial residual = 0, Final residual = 0, No Iterations 0
+AMI: Creating addressing and weights between 1300 source faces and 250 target faces
+AMI: Patch source sum(weights) min/max/average = 1, 1, 1
+AMI: Patch target sum(weights) min/max/average = 1, 1, 1
+PIMPLE: iteration 1
+smoothSolver:  Solving for Ux, Initial residual = 1, Final residual = 0.0406847, No Iterations 2
+smoothSolver:  Solving for Uy, Initial residual = 1, Final residual = 0.0511569, No Iterations 2
+smoothSolver:  Solving for Uz, Initial residual = 1, Final residual = 0.0398423, No Iterations 2
+GAMG:  Solving for p, Initial residual = 1, Final residual = 0.013424, No Iterations 3
+time step continuity errors : sum local = 1.14726e-05, global = -1.85774e-06, cumulative = -1.85774e-06
+PIMPLE: iteration 2
+smoothSolver:  Solving for Ux, Initial residual = 0.142857, Final residual = 0.00806587, No Iterations 2
+smoothSolver:  Solving for Uy, Initial residual = 0.182711, Final residual = 0.0106899, No Iterations 2
+smoothSolver:  Solving for Uz, Initial residual = 0.22028, Final residual = 0.0107596, No Iterations 2
+GAMG:  Solving for p, Initial residual = 0.42237, Final residual = 0.00552102, No Iterations 3
+time step continuity errors : sum local = 1.12673e-05, global = -1.71853e-06, cumulative = -3.57627e-06
+PIMPLE: iteration 3
+smoothSolver:  Solving for Ux, Initial residual = 0.103628, Final residual = 0.00420592, No Iterations 3
+smoothSolver:  Solving for Uy, Initial residual = 0.0976284, Final residual = 0.00620063, No Iterations 2
+smoothSolver:  Solving for Uz, Initial residual = 0.11997, Final residual = 0.00666219, No Iterations 2
+GAMG:  Solving for p, Initial residual = 0.188926, Final residual = 0.00719575, No Iterations 2
+time step continuity errors : sum local = 2.06657e-05, global = 1.62011e-06, cumulative = -1.95617e-06
+PIMPLE: iteration 4
+smoothSolver:  Solving for Ux, Initial residual = 0.208652, Final residual = 0.00338523, No Iterations 1000
+smoothSolver:  Solving for Uy, Initial residual = 0.272316, Final residual = 9.99823e-06, No Iterations 64
+smoothSolver:  Solving for Uz, Initial residual = 0.270741, Final residual = 8.74462e-06, No Iterations 64
+GAMG:  Solving for p, Initial residual = 0.719206, Final residual = 4.43735e-07, No Iterations 15
+time step continuity errors : sum local = 4.44756e-09, global = -2.53481e-10, cumulative = -1.95642e-06
+smoothSolver:  Solving for epsilon, Initial residual = 0.101687, Final residual = 7.24088e-06, No Iterations 9
+smoothSolver:  Solving for k, Initial residual = 1, Final residual = 9.84841e-06, No Iterations 411
+ExecutionTime = 0.78 s  ClockTime = 2 s
+

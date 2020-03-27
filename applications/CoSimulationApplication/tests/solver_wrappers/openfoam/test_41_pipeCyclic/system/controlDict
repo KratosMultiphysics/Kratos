@@ -1,0 +1,76 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     CoCoNuT_pimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10;
+
+deltaT          0.1;
+
+writeControl    timeStep;
+
+writeInterval   1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable false;
+
+adjustTimeStep  no;
+
+functions
+{
+    wallShearStress_walls
+    {
+        type            wallShearStress;
+        libs            ( "libfieldFunctionObjects.so" );
+        patches         ( walls );
+        writeControl    timeStep;
+        writeInterval   1;
+        log             false;
+    }
+    pressure_walls
+    {
+        type            pressure;
+        libs            ( "libfieldFunctionObjects.so" );
+        patches         ( walls );
+        writeControl    timeStep;
+        writeInterval   1;
+        log             false;
+        calcTotal       no;
+        calcCoeff       no;
+        rho             rho;
+    }
+}
+
+
+// ************************************************************************* //

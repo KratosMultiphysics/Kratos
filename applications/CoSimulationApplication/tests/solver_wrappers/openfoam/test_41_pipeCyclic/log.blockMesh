@@ -1,0 +1,235 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 4.1
+Exec   : blockMesh
+Date   : Jan 10 2020
+Time   : 17:37:40
+Host   : "cfdclu55.ugent.be"
+PID    : 185712
+Case   : /cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Creating block mesh from
+    "/cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/system/blockMeshDict"
+Using #calcEntry at line 26 in file "/cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/system/blockMeshDict"
+Using #codeStream with "/cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/dynamicCode/platforms/linux64IccDPInt32Opt/lib/libcodeStream_2c1a7ee7b5369acae9da148f9823fdd8cde6256a.so"
+Invoking "wmake -s libso /cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/dynamicCode/_2c1a7ee7b5369acae9da148f9823fdd8cde6256a"
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/ostream(628): error: no instance of function template "std::__is_convertible_to_basic_ostream_test" matches the argument list
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+            argument types are: (Foam::Ostream *)
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+      decltype(__is_convertible_to_basic_ostream_test
+               ^
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+          detected during:
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+            instantiation of type "std::__do_is_convertible_to_basic_ostream_impl<Foam::Ostream &>" at line 637
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+            instantiation of class "std::__is_convertible_to_basic_ostream_impl<_Tp, void> [with _Tp=Foam::Ostream &]" at line 642
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+            instantiation of class "std::__is_convertible_to_basic_ostream<_Tp> [with _Tp=Foam::Ostream &]" at line 86 of "/cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBaseI.H"
+In file included from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLListBase.H(266),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/SLList.H(36),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UListIO.C(29),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.C(233),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UList.H(484),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/List.H(43),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/HashTable.C(30),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/Istream.H(184),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/token.H(460),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILListIO.C(28),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.C(91),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/UILList.H(383),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/ILList.H(39),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/IDLList.H(35),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/entry.H(45),
+                 from /cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/dictionary.H(53),
+                 from codeStreamTemplate.C(29):
+
+/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/move.h(48): error: identifier "__builtin_addressof" is undefined
+      { return __builtin_addressof(__r); }
+               ^
+          detected during:
+            instantiation of "_Tp *std::__addressof(_Tp &) [with _Tp=std::__make_not_void<char>={char}]" at line 138
+            instantiation of "_Tp *std::addressof(_Tp &) [with _Tp=std::__make_not_void<char>={char}]" at line 142 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/ptr_traits.h"
+            instantiation of "std::pointer_traits<_Tp *>::pointer std::pointer_traits<_Tp *>::pointer_to(std::__make_not_void<_Tp> &) [with _Tp=char]" at line 182 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::pointer std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_local_data() [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>]" at line 422 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string() [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>]" at line 31 of "/cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/stringI.H"
+
+/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/move.h(48): error: identifier "__builtin_addressof" is undefined
+      { return __builtin_addressof(__r); }
+               ^
+          detected during:
+            instantiation of "_Tp *std::__addressof(_Tp &) [with _Tp=std::__make_not_void<const char>={const char}]" at line 138
+            instantiation of "_Tp *std::addressof(_Tp &) [with _Tp=std::__make_not_void<const char>={const char}]" at line 142 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/ptr_traits.h"
+            instantiation of "std::pointer_traits<_Tp *>::pointer std::pointer_traits<_Tp *>::pointer_to(std::__make_not_void<_Tp> &) [with _Tp=const char]" at line 192 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::const_pointer std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_local_data() const [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>]" at line 211 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "bool std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_is_local() const [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>]" at line 220 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>]" at line 228 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.tcc"
+            instantiation of "void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_FwdIterator, _FwdIterator, std::forward_iterator_tag) [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>, _FwdIterator=char *]" at line 236 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct_aux(_InIterator, _InIterator, std::__false_type) [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>, _InIterator=char *]" at line 255 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator) [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>, _InIterator=char *]" at line 440 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const std::__cxx11::basic_string<_CharT, _Traits, _Alloc> &) [with _CharT=char, _Traits=std::char_traits<char>, _Alloc=std::allocator<char>]" at line 36 of "/cfdfile2/lusers/SL6.3/OpenFOAM/OpenFOAM-4.1/src/OpenFOAM/lnInclude/stringI.H"
+
+/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/move.h(48): error: identifier "__builtin_addressof" is undefined
+      { return __builtin_addressof(__r); }
+               ^
+          detected during:
+            instantiation of "_Tp *std::__addressof(_Tp &) [with _Tp=std::__make_not_void<const wchar_t>={const wchar_t}]" at line 138
+            instantiation of "_Tp *std::addressof(_Tp &) [with _Tp=std::__make_not_void<const wchar_t>={const wchar_t}]" at line 142 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/ptr_traits.h"
+            instantiation of "std::pointer_traits<_Tp *>::pointer std::pointer_traits<_Tp *>::pointer_to(std::__make_not_void<_Tp> &) [with _Tp=const wchar_t]" at line 192 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::const_pointer std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_local_data() const [with _CharT=wchar_t, _Traits=std::char_traits<wchar_t>, _Alloc=std::allocator<wchar_t>]" at line 211 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "bool std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_is_local() const [with _CharT=wchar_t, _Traits=std::char_traits<wchar_t>, _Alloc=std::allocator<wchar_t>]" at line 220 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT=wchar_t, _Traits=std::char_traits<wchar_t>, _Alloc=std::allocator<wchar_t>]" at line 647 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::~basic_string() [with _CharT=wchar_t, _Traits=std::char_traits<wchar_t>, _Alloc=std::allocator<wchar_t>]" 
+
+/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/move.h(48): error: identifier "__builtin_addressof" is undefined
+      { return __builtin_addressof(__r); }
+               ^
+          detected during:
+            instantiation of "_Tp *std::__addressof(_Tp &) [with _Tp=std::__make_not_void<wchar_t>={wchar_t}]" at line 138
+            instantiation of "_Tp *std::addressof(_Tp &) [with _Tp=std::__make_not_void<wchar_t>={wchar_t}]" at line 142 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/ptr_traits.h"
+            instantiation of "std::pointer_traits<_Tp *>::pointer std::pointer_traits<_Tp *>::pointer_to(std::__make_not_void<_Tp> &) [with _Tp=wchar_t]" at line 182 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::pointer std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_local_data() [with _CharT=wchar_t, _Traits=std::char_traits<wchar_t>, _Alloc=std::allocator<wchar_t>]" at line 606 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+            instantiation of "std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc &) [with _CharT=wchar_t, _Traits=std::char_traits<wchar_t>, _Alloc=std::allocator<wchar_t>, _InputIterator=wchar_t *, <unnamed>=void]" at line 115 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/ext/string_conversions.h"
+            instantiation of "_String __gnu_cxx::__to_xstring<_String,_CharT>(int (*)(_CharT *, std::size_t={unsigned long}, const _CharT *, __va_list_tag *), std::size_t={unsigned long}, const _CharT *, ...) [with _String=std::__cxx11::wstring, _CharT=wchar_t]" at line 6506 of "/cfdfile2/lusers/SL6.3/EasyBuild/software/GCCcore/7.3.0/bin/../include/c++/7.3.0/bits/basic_string.h"
+
+compilation aborted for codeStreamTemplate.C (code 2)
+make: *** [Make/linux64IccDPInt32Opt/codeStreamTemplate.o] Error 2
+
+
+--> FOAM FATAL IO ERROR: 
+Failed wmake "dynamicCode/_2c1a7ee7b5369acae9da148f9823fdd8cde6256a/platforms/linux64IccDPInt32Opt/lib/libcodeStream_2c1a7ee7b5369acae9da148f9823fdd8cde6256a.so"
+
+
+file: /cfdfile2/data/fm/laurent/git-repository/Kratos/applications/CoSimulationApplication/tests/solver_wrappers/openfoam/test_41_pipeCyclic/system/blockMeshDict from line 17 to line 23.
+
+    From function static void (*Foam::functionEntries::codeStream::getFunction(const Foam::dictionary &, const Foam::dictionary &))(Foam::Ostream &, const Foam::dictionary &)
+    in file db/dictionary/functionEntries/codeStream/codeStream.C at line 175.
+
+FOAM exiting
+
