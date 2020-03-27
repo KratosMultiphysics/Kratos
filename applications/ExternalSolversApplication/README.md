@@ -2,8 +2,6 @@
 
 External Solvers application is the place where interface to third party solvers are located.
 
-**DEPRECATION-WARNING:** The `ExternalSolversApplication` is deprecated and will be replaced by the `EigenSolversApplication` in the future.
-
 In the following list you can find which solvers are currently supported by kratos and links to the library projects or algortihms in which are bases:
 
 ### Direct Solvers
