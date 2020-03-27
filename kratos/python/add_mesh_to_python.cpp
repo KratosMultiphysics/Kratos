@@ -330,7 +330,8 @@ void SetValuesOnIntegrationPointsArray1d(
             KRATOS_ERROR << "expecting a list of array_1d<double,3> " << std::endl;
         }
     }
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );}
+    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+}
 
 template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsVector( TObject& dummy,
