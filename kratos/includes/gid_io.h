@@ -66,7 +66,28 @@ class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
      * Counter of live GidIO instances
      * (to ensure GiD_PostInit and GiD_PostDone are properly called)
      */
-    static int msLiveInstances;
+    static GidIOBase *msLiveInstances;
+    int data;
+
+    // Private constructor so that no objects can be created.
+    GidIOBase() {
+        data = 0;
+    }
+
+    public:
+    static GidIOBase *getInstance() {
+        if (!msLiveInstances)
+        msLiveInstances = new GidIOBase;
+        return msLiveInstances;
+    }
+
+    int getData() {
+        return this -> data;
+    }
+
+    void setData(int data) {
+        this -> data = data;
+    }
 };
 
 /**
@@ -110,11 +131,13 @@ public:
         SetUpMeshContainers();
         SetUpGaussPointContainers();
 
-        if (GidIOBase::msLiveInstances == 0)
+        GidIOBase *msLiveInstances = msLiveInstances->getInstance();
+
+        if (msLiveInstances->getData() == 0)
         {
           GiD_PostInit();
         }
-        GidIOBase::msLiveInstances += 1;
+        msLiveInstances->setData(msLiveInstances->getData() + 1);
     }
 
     ///Destructor.
@@ -128,8 +151,10 @@ public:
             mResultFileOpen = false;
         }
 
-        GidIOBase::msLiveInstances -= 1;
-        if (GidIOBase::msLiveInstances == 0)
+        GidIOBase *msLiveInstances = msLiveInstances->getInstance();
+
+        msLiveInstances->setData(msLiveInstances->getData() - 1);
+        if (msLiveInstances->getData() == 0)
         {
           GiD_PostDone();
         }

@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-    int GidIOBase::msLiveInstances = 0;
+    GidIOBase *GidIOBase::msLiveInstances = 0;
     template class GidIO<GidGaussPointsContainer, GidMeshContainer>;
 }  // namespace Kratos.
 
