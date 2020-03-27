@@ -27,9 +27,6 @@ KratosStatisticsApplication::KratosStatisticsApplication()
 
 void KratosStatisticsApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     KRATOS_INFO("")
         << "    Kratos  ____  _        _   _     _   _\n"
         << "           / ___|| |_ __ _| |_(_)___| |_(_) ___ ___\n"
