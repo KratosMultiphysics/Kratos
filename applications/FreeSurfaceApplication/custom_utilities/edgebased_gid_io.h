@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/gid_io.h"
+#include "includes/gid_gauss_point_container.h"
 #include "includes/deprecated_variables.h"
 #include "free_surface_application.h"
 
@@ -74,8 +75,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
+    void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, int ValueIndex = 0 )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -89,7 +90,7 @@ public:
                         it != mMeshElements.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -103,7 +104,7 @@ public:
                         it != mMeshConditions.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -115,25 +116,24 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index ) override
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex ) override
     {
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index ) override
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex ) override
+    {
+    }
+
+    void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double, 3> >& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, unsigned int ValueIndex ) override
     {
     }
 
 
-    void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
-    {
-    }
-
-
-    void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
+    void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, unsigned int ValueIndex ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -147,7 +147,7 @@ public:
                         it != mMeshElements.end(); ++it )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -163,7 +163,7 @@ public:
                         it != mMeshConditions.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -177,8 +177,8 @@ public:
         }
     }
 
-    void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 ) override
+    void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -192,7 +192,7 @@ public:
                         it != mMeshElements.end(); ++it )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -217,7 +217,7 @@ public:
                         it != mMeshConditions.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];

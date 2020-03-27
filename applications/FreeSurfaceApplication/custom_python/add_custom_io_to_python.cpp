@@ -38,28 +38,28 @@ void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
     dummy.WriteMesh( rThisMesh );
 }
 
-void BoolPrintOnGaussPoints( GidIOType& dummy, const Variable<bool>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void BoolPrintOnGaussPoints( GidIO<>& dummy, const Variable<bool>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void VectorPrintOnGaussPoints( GidIOType& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void VectorPrintOnGaussPoints( GidIO<>& dummy, const Variable<Vector>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void MatrixPrintOnGaussPoints( GidIOType& dummy, const Variable<Matrix>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void MatrixPrintOnGaussPoints( GidIO<>& dummy, const Variable<Matrix>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void (GidIOType::*pointer_to_double_write_nodal_results)(
