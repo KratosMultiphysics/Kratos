@@ -206,6 +206,11 @@ public:
         return !mIsComponent;
     }
 
+    KeyType GetComponentIndex() const {
+        constexpr KeyType first_7_bits=127;
+        return (mKey & first_7_bits);
+    }
+
 
     ///@}
     ///@name Inquiry
