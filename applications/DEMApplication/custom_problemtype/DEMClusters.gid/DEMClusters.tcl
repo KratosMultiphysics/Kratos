@@ -51,4 +51,15 @@ proc CalculateInertia  { } {
 
     set tetra [GiD_Mesh list -element_type {tetrahedra} element]
     W $tetra
+
+
+
+    # 1.- calculate total volume from tetrahedras:
+    # tris: number of triangles
+    #     for each triangle
+    #     triple producto de los vertices de cada uno.
+    #     volume += Determinant(float3x3(vertices[tris[i][0]],vertices[tris[i][1]],vertices[tris[i][2]]));
+    # return volume/6.0;  // since the determinant give 6 times tetra volume
+
+
 }
