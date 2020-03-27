@@ -461,7 +461,10 @@ class SearchBaseProcess(KM.Process):
             return self.main_model_part.GetProperties(id_prop)
         else:
             sub_search_model_part_name = "ContactSub"+key
-            sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
+            if self._get_process_model_part().Has(sub_search_model_part_name):
+                sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
+            else:
+                sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
             return sub_search_model_part.GetProperties(100 + int(key))
 
     def _set_additional_parameters(self, param):
