@@ -474,7 +474,10 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             for key in self.settings["search_model_part"].keys():
                 if self.settings["search_model_part"][key].size() > 0:
                     sub_search_model_part_name = "ContactSub"+key
-                    sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
+                    if self._get_process_model_part().HasSubModelPart(sub_search_model_part_name):
+                        sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
+                    else:
+                        sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
                     for prop in sub_search_model_part.GetProperties():
                         prop[KM.FRICTION_COEFFICIENT] = self.settings["friction_coefficients"][key].GetDouble()
 
