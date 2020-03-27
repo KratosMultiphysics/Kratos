@@ -92,6 +92,12 @@ class FEASTEigensystemSolver
         KRATOS_ERROR_IF( mParam["max_iteration"].GetInt() < 1 ) <<
             "Invalid maximal number of iterations provided" << std::endl;
 
+        KRATOS_ERROR_IF( (mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool())
+            &&  mParam["number_of_eigenvalues"].GetInt() == 0 ) << "Please specify the number of eigenvalues to be found" << std::endl;
+
+        KRATOS_ERROR_IF( mParam["subspace_size"].GetInt() == 0 && mParam["number_of_eigenvalues"].GetInt() == 0 ) <<
+            "Please specify either \"subspace_size\" or \"number_of_eigenvalues\"" << std::endl;
+
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
             "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
