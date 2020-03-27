@@ -204,7 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphConstruction, KratosCoreFastSuite)
     {
         std::unique_ptr<SparseGraph> plocal_graph(new SparseGraph());
         #pragma omp for
-        for(unsigned int i=0; i<connectivities.size(); ++i){
+        for(int i=0; i<connectivities.size(); ++i){
             plocal_graph->AddEntries(connectivities[i]);
         }
 
