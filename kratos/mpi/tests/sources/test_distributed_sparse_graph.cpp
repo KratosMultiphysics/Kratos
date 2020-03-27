@@ -17,6 +17,7 @@
 #include "containers/sparse_graph.h"
 #include "containers/distributed_sparse_graph.h"
 #include "includes/key_hash.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 namespace Testing {
@@ -231,7 +232,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
 
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
-
     Agraph.Finalize();
 
     CheckGraph(Agraph.GetLocalGraph(), reference_A_map);
