@@ -220,7 +220,7 @@ private:
     // Private Operations
     
     template < class TValueType >
-    inline void ThreadSafeNodeWrite(NodeType& rNode, Variable<TValueType> Var, const TValueType Value)
+    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
     {
         rNode.SetLock();
         rNode.FastGetSolutionStepValue(Var) = Value;

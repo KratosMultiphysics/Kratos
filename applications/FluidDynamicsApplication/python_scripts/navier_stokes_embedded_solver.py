@@ -326,8 +326,16 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         if self.__fm_ale_is_active:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
+
+    def AddDofs(self):
+        super(NavierStokesEmbeddedMonolithicSolver, self).AddDofs()
+        if self.__fm_ale_is_active:
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.main_model_part)
 
     def PrepareModelPart(self):
         # Call the base solver PrepareModelPart()
@@ -389,9 +397,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
             number_of_avg_elems = 10
             number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart(),
-                                                                                               number_of_avg_elems,
-                                                                                               number_of_avg_nodes)
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart())
 
         # If required, intialize the FM-ALE utility
         if self.__fm_ale_is_active:

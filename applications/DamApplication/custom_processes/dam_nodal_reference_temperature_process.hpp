@@ -91,7 +91,7 @@ public:
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if(nnodes != 0)
@@ -132,7 +132,7 @@ public:
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
 

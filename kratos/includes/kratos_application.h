@@ -30,7 +30,7 @@
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/linear_master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
 #include "includes/geometrical_object.h"
 
 /* Geometries definition */
@@ -60,13 +60,12 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/quadrature_point_geometry.h"
 
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
- 
-/** 
+
+/**
  * @class KratosApplication
  * @brief This class defines the interface with kernel for all applications in Kratos.
  * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
@@ -81,7 +80,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
-       
+
     /// Pointer definition of KratosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosApplication);
 
@@ -227,7 +226,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
         return *mpGeometries;
     }
-    
+
     KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
@@ -256,7 +255,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     {
         mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
     }
-    
+
     void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
             ElementComponents)
 
@@ -331,7 +330,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         rOStream << "Geometries:" << std::endl;
 
         KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
-        
+
         rOStream << "Elements:" << std::endl;
 
         KratosComponents<Element>().PrintData(rOStream);
@@ -361,7 +360,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@}
     ///@name Protected member Variables
     ///@{
-       
+
     std::string mApplicationName;
 
     // General geometries must be defined
@@ -398,13 +397,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
-    //QuadraturePointGeometry
-    const std::size_t num_nodes = 0;
-    const QuadraturePointGeometry<NodeType, 3, 3> mQuadraturePointGeometryVolume3dPrototype  = QuadraturePointGeometry<NodeType, 3, 3>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 3, 2> mQuadraturePointGeometrySurface3dPrototype = QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 2, 2> mQuadraturePointGeometrySurface2dPrototype = QuadraturePointGeometry<NodeType, 2, 2>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 3, 1> mQuadraturePointGeometryCurve3dPrototype   = QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(num_nodes));
-    const QuadraturePointGeometry<NodeType, 2, 1> mQuadraturePointGeometryCurve2dPrototype   = QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(num_nodes));
 
     // General conditions must be defined
 
@@ -492,7 +484,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
     KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
-    
+
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;

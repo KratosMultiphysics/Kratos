@@ -95,7 +95,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if (nnodes != 0)
@@ -126,7 +126,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
@@ -166,7 +166,7 @@ class DamFixTemperatureConditionProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
