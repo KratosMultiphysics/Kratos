@@ -26,7 +26,6 @@
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
-// #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/brute_force_point_locator.h"
 #include "utilities/deflation_utils.h"
@@ -41,10 +40,6 @@
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/delaunator_utilities.h"
-
-
-
-
 
 namespace Kratos {
 namespace Python {
@@ -109,19 +104,14 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
 }
 
-
-
-
-    void AddGeometricalUtilitiesToPython(pybind11::module &m)
+void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
-
     namespace py = pybind11;
 
     py::class_<DeflationUtils>(m,"DeflationUtils")
         .def(py::init<>())
         .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
         ;
-
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
     typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
@@ -199,7 +189,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("FindCondition", &BruteForcePointLocator::FindCondition)
         ;
 
-
     //isoprinter
     py::class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
         .def(py::init<ModelPart& >() )
@@ -210,18 +199,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("AddSkinConditions", &IsosurfacePrinterApplication::AddSkinConditions)
         .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
         ;
-
-    //bin-based signed distance calculator
-//     py::class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
-//             .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
-//                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
-//             ;
-//
-//     py::class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
-//             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
-//                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
-//             ;
-
 
     //binbased locators
     py::class_< BinBasedFastPointLocator < 2 >, BinBasedFastPointLocator < 2 >::Pointer >(m,"BinBasedFastPointLocator2D")
@@ -265,7 +242,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
-
 
     //embeded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
@@ -312,7 +288,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
         ;
 
-
     //interval utility
     py::class_<IntervalUtility >(m,"IntervalUtility")
         .def(py::init<Parameters >())
@@ -320,7 +295,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
         .def("IsInInterval", &IntervalUtility ::IsInInterval)
         ;
-
 
     //particle convect utility
     py::class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
@@ -335,17 +309,14 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
         .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
         ;
 
-
     // Delaunator utilities
     auto mod_delaunator = m.def_submodule("CreateTriangleMeshFromNodes");
     mod_delaunator.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
-
 
     // GeometricalTransformationUtilities
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
-
 }
 
 } // namespace Python.

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -37,4 +37,4 @@ void  AddOtherUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_OTHER_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_OTHER_UTILITIES_TO_PYTHON_H_INCLUDED  defined
