@@ -64,6 +64,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "friction_coefficients"         : {"0": 0.0,"1": 0.0,"2": 0.0,"3": 0.0,"4": 0.0,"5": 0.0,"6": 0.0,"7": 0.0,"8": 0.0,"9": 0.0},
             "contact_type"                  : "Frictionless",
             "not_normal_update_frictional"  : false,
             "interval"                      : [0.0,"End"],
@@ -468,6 +469,16 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super(ALMContactProcess, self)._initialize_search_conditions()
 
+        # Assign the friction friction_coefficients
+        if self.is_frictional:
+            for key in self.settings["search_model_part"].keys():
+                if self.settings["search_model_part"][key].size() > 0:
+                    sub_search_model_part_name = "ContactSub"+key
+                    sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
+                    for prop in sub_search_model_part.GetProperties():
+                        prop[KM.FRICTION_COEFFICIENT] = self.settings["friction_coefficients"][key].GetDouble()
+
+        # Initialize the ALM parameters
         alm_init_var = CSMA.ALMFastInit(self._get_process_model_part())
         alm_init_var.Execute()
 
