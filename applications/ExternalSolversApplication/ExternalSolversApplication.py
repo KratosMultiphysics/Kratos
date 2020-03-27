@@ -7,5 +7,3 @@ application_name = "KratosExternalSolversApplication"
 application_folder = "ExternalSolversApplication"
 
 KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
-
-IssueDeprecationWarning("", "The ExternalSolversApplication is deprecated and will replaced by the EigenSolversApplication in the future")
