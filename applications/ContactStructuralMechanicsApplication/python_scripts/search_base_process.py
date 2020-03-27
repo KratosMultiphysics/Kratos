@@ -4,12 +4,6 @@ import KratosMultiphysics as KM
 
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-try:
-    import KratosMultiphysics.MeshingApplication as MA
-    meshing_dependencies = True
-except ImportError as e:
-    meshing_dependencies = False
-
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -124,9 +118,8 @@ class SearchBaseProcess(KM.Process):
                 self.main_model_part.RemoveSubModelPart("Contact")
                 self.main_model_part.RemoveSubModelPart("ComputingContact")
 
-                if meshing_dependencies:
-                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.main_model_part)
-                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.main_model_part.GetRootModelPart())
+                KM.AuxiliarModelPartUtilities(self.main_model_part).EnsureModelPartOwnsProperties(True)
+                KM.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).EnsureModelPartOwnsProperties(True)
 
                 # We create the submodelpart
                 self.search_model_part = self.main_model_part.CreateSubModelPart("Contact")
