@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
@@ -148,7 +146,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         neighbour_search.Execute()
 
         # Set and initialize the solution strategy
-        solution_strategy = self.GetSolutionStrategy()
+        solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
@@ -161,27 +159,27 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
-                self.GetLevelSetConvectionProcess().BFECCconvect(
+                self._GetLevelSetConvectionProcess().BFECCconvect(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.VELOCITY,
                     self.settings["bfecc_number_substeps"].GetInt())
             else:
-                self.GetLevelSetConvectionProcess().Execute()
+                self._GetLevelSetConvectionProcess().Execute()
 
             # Recompute the distance field according to the new level-set position
-            self.GetVariationalDistanceProcess().Execute()
+            self._GetVariationalDistanceProcess().Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
 
             # Initialize the solver current step
-            self.GetSolutionStrategy().InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.GetSolutionStrategy().FinalizeSolutionStep()
-            self.GetAccelerationLimitationUtility().Execute()
+            self._GetSolutionStrategy().FinalizeSolutionStep()
+            self._GetAccelerationLimitationUtility().Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
@@ -259,17 +257,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
             KratosMultiphysics.Logger.PrintInfo("Navier Stokes Embedded Solver","Distance function taken from the .mdpa input file.")
 
-    def GetAccelerationLimitationUtility(self):
+    def _GetAccelerationLimitationUtility(self):
         if not hasattr(self, '_acceleration_limitation_utility'):
             self._acceleration_limitation_utility = self.__CreateAccelerationLimitationUtility()
         return self._acceleration_limitation_utility
 
-    def GetLevelSetConvectionProcess(self):
+    def _GetLevelSetConvectionProcess(self):
         if not hasattr(self, '_level_set_convection_process'):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
         return self._level_set_convection_process
 
-    def GetVariationalDistanceProcess(self):
+    def _GetVariationalDistanceProcess(self):
         if not hasattr(self, '_variational_distance_process'):
             self._variational_distance_process = self._CreateVariationalDistanceProcess()
         return self._variational_distance_process

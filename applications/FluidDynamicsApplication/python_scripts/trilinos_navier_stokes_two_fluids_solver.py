@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
@@ -180,7 +178,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()
-        convergence_criterion = self.GetConvergenceCriterion()
+        convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,

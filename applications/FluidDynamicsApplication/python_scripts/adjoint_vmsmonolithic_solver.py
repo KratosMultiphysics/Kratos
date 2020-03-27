@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -114,7 +113,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
     def Initialize(self):
         # Construct and set the solution strategy
-        solution_strategy = self.GetSolutionStrategy()
+        solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # If there is adjoint turbulence model, initialize it

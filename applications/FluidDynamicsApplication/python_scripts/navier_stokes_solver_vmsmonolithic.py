@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -335,7 +333,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.formulation.SetProcessInfo(self.GetComputingModelPart())
 
         # Construct and initialize the solution strategy
-        solution_strategy = self.GetSolutionStrategy()
+        solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
@@ -351,7 +349,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             if hasattr(self, 'time_discretization'):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
-            self.GetSolutionStrategy().InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
             # Perform the turbulence modelling InitializeSolutionStep
             if hasattr(self, "_turbulence_model_solver"):
                 self._turbulence_model_solver.InitializeSolutionStep()

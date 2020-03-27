@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
@@ -171,7 +169,7 @@ class PotentialFlowSolver(FluidSolver):
     def Initialize(self):
         self.ComputeNodalElementalNeighbours()
 
-        solution_strategy = self.GetSolutionStrategy()
+        solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
@@ -229,7 +227,7 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
         elif strategy_type == "non_linear":
-            convergence_criterion = self.GetConvergenceCriterion()
+            convergence_criterion = self._GetConvergenceCriterion()
             solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                 computing_model_part,
                 time_scheme,

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -139,7 +137,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
-        solution_strategy = self.GetSolutionStrategy()
+        solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
@@ -149,7 +147,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         if self._TimeBufferIsInitialized():
             is_converged = super(NavierStokesSolverFractionalStep,self).SolveSolutionStep()
             if self.compute_reactions:
-                self.GetSolutionStrategy().CalculateReactions()
+                self._GetSolutionStrategy().CalculateReactions()
 
             return is_converged
         else:

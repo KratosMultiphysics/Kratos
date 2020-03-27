@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 # from KratosMultiphysics.python_solver import PythonSolver
@@ -28,19 +26,19 @@ class AdjointFluidSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
 
     def InitializeSolutionStep(self):
-        self.GetSolutionStrategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()
         if hasattr(self, "_adjoint_turbulence_model_solver"):
             self._adjoint_turbulence_model_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.GetSolutionStrategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        return self.GetSolutionStrategy().SolveSolutionStep()
+        return self._GetSolutionStrategy().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.GetSolutionStrategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
         self.GetResponseFunction().FinalizeSolutionStep()
 
         if hasattr(self, "_adjoint_turbulence_model_solver"):
@@ -49,7 +47,7 @@ class AdjointFluidSolver(FluidSolver):
         self.GetSensitivityBuilder().UpdateSensitivities()
 
     def Check(self):
-        self.GetSolutionStrategy().Check()
+        self._GetSolutionStrategy().Check()
 
         if hasattr(self, "_adjoint_turbulence_model_solver"):
             self._adjoint_turbulence_model_solver.Check()

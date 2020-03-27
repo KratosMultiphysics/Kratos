@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
@@ -123,7 +121,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def Finalize(self):
-        self.GetSolutionStrategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
