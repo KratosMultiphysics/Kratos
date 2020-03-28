@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosStatisticsApplication import *
 application = KratosStatisticsApplication()
 application_name = "KratosStatisticsApplication"
-application_folder = "StatisticsApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)
