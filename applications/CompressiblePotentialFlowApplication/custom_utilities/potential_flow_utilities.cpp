@@ -163,20 +163,20 @@ array_1d<double, Dim> ComputeTotalVelocity(const Element& rElement, const Proces
     }
     // KRATOS_WATCH(velocity)
 
-    const double velocity_2 = inner_prod(velocity,velocity);
-    const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
-    if(velocity_2 > v_max_2){
-        // if(rElement.Id()==13440){
-        //     KRATOS_WARNING("ComputeTotalVelocity")
-        //     << "Clamping the velocity to " << sqrt(v_max_2) << " m/s from "
-        //     << sqrt(velocity_2) << " m/s in element #" << rElement.Id() << std::endl;
+    // const double velocity_2 = inner_prod(velocity,velocity);
+    // const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+    // if(velocity_2 > v_max_2){
+    //     // if(rElement.Id()==13440){
+    //     //     KRATOS_WARNING("ComputeTotalVelocity")
+    //     //     << "Clamping the velocity to " << sqrt(v_max_2) << " m/s from "
+    //     //     << sqrt(velocity_2) << " m/s in element #" << rElement.Id() << std::endl;
 
-        // }
-        // KRATOS_WARNING("ComputeTotalVelocity")
-        //     << "Clamping the velocity to " << sqrt(v_max_2) << " m/s from "
-        //     << sqrt(velocity_2) << " m/s in element #" << rElement.Id() << std::endl;
-        velocity *= sqrt(v_max_2) / sqrt(velocity_2);
-    }
+    //     // }
+    //     // KRATOS_WARNING("ComputeTotalVelocity")
+    //     //     << "Clamping the velocity to " << sqrt(v_max_2) << " m/s from "
+    //     //     << sqrt(velocity_2) << " m/s in element #" << rElement.Id() << std::endl;
+    //     velocity *= sqrt(v_max_2) / sqrt(velocity_2);
+    // }
     // KRATOS_WATCH(velocity)
 
     return velocity;
@@ -378,9 +378,9 @@ double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const Proce
     const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
 
     if(v_2 - v_max_2 > 1e-6){
-        KRATOS_WARNING("ComputePerturbationLocalSpeedOfSound")
-            << "Clamping the speed of sound squared to " << v_max_2 << " from "
-            << v_2 << " in element #" << rElement.Id() << std::endl;
+        // KRATOS_WARNING("ComputePerturbationLocalSpeedOfSound")
+        //     << "Clamping the speed of sound squared to " << v_max_2 << " from "
+        //     << v_2 << " in element #" << rElement.Id() << std::endl;
         v_2 = v_max_2;
     }
 
@@ -453,9 +453,9 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
     // KRATOS_WATCH(velocitymod)
     const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
     if(velocity_2 - v_max_2 > 1e-6){
-        KRATOS_WARNING("ComputePerturbationLocalMachNumber")
-            << "Clamping the velocity squared to " << v_max_2 << " from "
-            << velocity_2 << " in element #" << rElement.Id() << std::endl;
+        // KRATOS_WARNING("ComputePerturbationLocalMachNumber")
+        //     << "Clamping the velocity squared to " << v_max_2 << " from "
+        //     << velocity_2 << " in element #" << rElement.Id() << std::endl;
         velocity_2 = v_max_2;
     }
     const double velocity_module = sqrt(velocity_2);
@@ -481,7 +481,10 @@ double ComputePerturbationDensity(const Element& rElement, const ProcessInfo& rC
 
     // Computing squares
     const double M_inf_2 = M_inf * M_inf;
-    const double M_2 = local_mach_number * local_mach_number;
+    double M_2 = local_mach_number * local_mach_number;
+    if(M_2 > 3.0){
+        M_2 = 3.0;
+    }
 
     // Computing density according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
     // Aerodynamics, The MIT Press, London
@@ -611,7 +614,14 @@ double ComputeDerivativeMachNumberSquaredWRTVelocitySquared(const Element& rElem
     //     velocity[i] += free_stream_velocity[i];
     // }
     // Computing squares
-    const double v_2 = inner_prod(velocity, velocity);
+    double v_2 = inner_prod(velocity, velocity);
+    const double v_max_2 = ComputeMaximumVelocitySquared<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+    if(v_2 - v_max_2 > 1e-6){
+        // KRATOS_WARNING("ComputeDerivativeMachNumberSquaredWRTVelocitySquared")
+        //     << "Clamping the velocity squared to " << v_max_2 << " from "
+        //     << v_2 << " in element #" << rElement.Id() << std::endl;
+        v_2 = v_max_2;
+    }
     const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = free_stream_mach_number * free_stream_mach_number;
 
