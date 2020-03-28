@@ -64,7 +64,7 @@ if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
+    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication"):
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
         p = subprocess.Popen(
             ["mpiexec", "-np", "2", "python3", "test_StatisticsApplication_mpi.py", "--using-mpi"],
