@@ -190,7 +190,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             if "PureSlip" in contact_type:
                 self.pure_slip = True
             else:
-                self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
+                auxiliar_total_friction_coefficient = 0.0
+                for key in self.settings["search_model_part"].keys():
+                    if self.settings["search_model_part"][key].size() > 0:
+                        auxiliar_total_friction_coefficient += self.contact_settings["friction_coefficients"][key].GetDouble()
+                if auxiliar_total_friction_coefficient < sys.float_info.epsilon:
+                    self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
+                else:
+                    self.pure_slip = False
 
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitialize()
