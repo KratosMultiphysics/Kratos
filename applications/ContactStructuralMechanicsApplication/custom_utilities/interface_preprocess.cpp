@@ -135,10 +135,7 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
 
                 // Now we copy (an remove) the properties we have interest
                 if (mrMainModelPart.Is(SLIP)) { // Only in frictional contact cases
-                    if (p_prop->Has(FRICTION_COEFFICIENT)) {
-                        KRATOS_WARNING("InterfacePreprocessCondition") << "WARNING:: Friction coefficient as property is deprecated, please define by condition pairs. Properties ID: " << p_prop->Id() << std::endl;
-                        CopyProperties(p_prop, p_new_prop, FRICTION_COEFFICIENT);
-                    }
+                    CopyProperties(p_prop, p_new_prop, FRICTION_COEFFICIENT);
                 }
                 CopyProperties(p_prop, p_new_prop, THICKNESS, false);
                 CopyProperties(p_prop, p_new_prop, YOUNG_MODULUS);
