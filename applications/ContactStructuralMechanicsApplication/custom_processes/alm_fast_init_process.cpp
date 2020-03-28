@@ -89,36 +89,35 @@ void ALMFastInit::Execute()
             it_node->SetValue(NODAL_AREA, 0.0);
         }
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
+        // Iterate over submodelparts
+        for (auto& r_sub_model_part : mrThisModelPart.SubModelParts()) {
+            // Now we iterate over the conditions
+            ConditionsArrayType& r_contact_conditions_array = r_sub_model_part.Conditions();
+            const auto it_cond_contact_begin = r_contact_conditions_array.begin();
 
-            auto p_prop = it_cond->pGetProperties();
-            auto& r_geom = it_cond->GetGeometry();
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(r_contact_conditions_array.size()); ++i) {
+                auto it_cond = it_cond_contact_begin + i;
 
-            for (auto& r_node : r_geom) {
-                double& r_nodal_area = r_node.GetValue(NODAL_AREA);
-                #pragma omp atomic
-                r_nodal_area += 1.0;
-            }
+                auto p_prop = it_cond->pGetProperties();
+                auto& r_geom = it_cond->GetGeometry();
 
-            if (p_prop->Has(FRICTION_COEFFICIENT)) {
-                KRATOS_WARNING("ALMFastInit") << "WARNING:: Friction coefficient as property is deprecated, please define by condition pairs. Condition ID: " << it_cond->Id() << std::endl;
-                const double friction_coefficient = p_prop->GetValue(FRICTION_COEFFICIENT);
                 for (auto& r_node : r_geom) {
-                    double& r_friction_coefficient = r_node.GetValue(FRICTION_COEFFICIENT);
+                    double& r_nodal_area = r_node.GetValue(NODAL_AREA);
                     #pragma omp atomic
-                    r_friction_coefficient += friction_coefficient;
+                    r_nodal_area += 1.0;
                 }
-            } else if (it_cond->Has(FRICTION_COEFFICIENT)) {
-                const double friction_coefficient = it_cond->GetValue(FRICTION_COEFFICIENT);
-                for (auto& r_node : r_geom) {
-                    double& r_friction_coefficient = r_node.GetValue(FRICTION_COEFFICIENT);
-                    #pragma omp atomic
-                    r_friction_coefficient += friction_coefficient;
+
+                if (p_prop->Has(FRICTION_COEFFICIENT)) {
+                    const double friction_coefficient = p_prop->GetValue(FRICTION_COEFFICIENT);
+                    for (auto& r_node : r_geom) {
+                        double& r_friction_coefficient = r_node.GetValue(FRICTION_COEFFICIENT);
+                        #pragma omp atomic
+                        r_friction_coefficient += friction_coefficient;
+                    }
+                } else {
+                    KRATOS_WARNING("ALMFastInit") << "WARNING:: Friction coefficient not defined, zero will be considered" << std::endl;
                 }
-            } else {
-                KRATOS_WARNING("ALMFastInit") << "WARNING:: Friction coefficient not defined, zero will be considered" << std::endl;
             }
         }
 
