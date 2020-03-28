@@ -28,7 +28,6 @@
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/brute_force_point_locator.h"
-#include "utilities/deflation_utils.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
@@ -107,11 +106,6 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
-
-    py::class_<DeflationUtils>(m,"DeflationUtils")
-        .def(py::init<>())
-        .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
-        ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
     typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);

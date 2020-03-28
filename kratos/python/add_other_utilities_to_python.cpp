@@ -28,6 +28,7 @@
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/deflation_utils.h"
 #include "utilities/timer.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
@@ -176,6 +177,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("GetConditionNumber", ThisDirectGetConditionNumber)
         ;
 
+    //deflation utilities
+    py::class_<DeflationUtils>(m,"DeflationUtils")
+        .def(py::init<>())
+        .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
+        ;
+
     //timer
     py::class_<Timer >(m,"Timer")
         .def(py::init<>())
@@ -244,7 +251,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
         .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestGiDDebug)
         ;
-
 
     // Mortar utilities
     auto mortar_utilities = m.def_submodule("MortarUtilities");
@@ -447,13 +453,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
         ;
 
-
     //sensitivity builder
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
-
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
@@ -473,7 +477,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeEntities<Condition> );
     entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeEntities<Element> );
     entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeEntities<MasterSlaveConstraint> );
-
 
     // ConstraintUtilities
     auto constraint_utilities = m.def_submodule("ConstraintUtilities");
