@@ -36,12 +36,17 @@ public:
     ///@{
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
     typedef std::vector<std::pair<double, Vector>> TessellationType;
     typedef typename GeometryType::IndexType IndexType;
     typedef typename GeometryType::SizeType SizeType;
 
-private:    // static methods
+    ///@}
+private:
+    ///@name Private Static Methods
+    ///@{
+
     static double DistanceToLine(
         const typename GeometryType::CoordinatesArrayType& rPoint, 
         const typename GeometryType::CoordinatesArrayType& rLineA,
@@ -54,9 +59,9 @@ private:    // static methods
         return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
     }
 
-public:
     ///@}
-    ///@name Life Cycle
+public:
+    ///@name Private Static Methods
     ///@{
 
     /// Conctructor for tessellation of a nurbs curve
@@ -98,16 +103,16 @@ public:
     * @return std::vector<std::pair<double, Vector>> tessellation
     * @see ANurbs library (https://github.com/oberbichler/ANurbs)
     */
-	static TessellationType ComputeTessellation(
+    static TessellationType ComputeTessellation(
         const GeometryType& rGeometry,
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
         const double Tolerance
-        )
+    )
     {
-		TessellationType sample_points;
-		TessellationType points;
+        TessellationType sample_points;
+        TessellationType points;
 
         typename GeometryType::CoordinatesArrayType point;
         typename GeometryType::CoordinatesArrayType result;
@@ -124,7 +129,7 @@ public:
             const double t = normalized_span.GetT0();
             typename GeometryType::CoordinatesArrayType t0;
             t0[0] = span.GetT0();
-            
+
             point = rGeometry.GlobalCoordinates(result, t0);
 
             sample_points.emplace_back(t, point);
@@ -135,13 +140,13 @@ public:
 
         point = rGeometry.GlobalCoordinates(result, t_at_normalized);
 
-		sample_points.emplace_back(1.0, point);
+        sample_points.emplace_back(1.0, point);
 
-		std::sort(std::begin(sample_points), std::end(sample_points),
-			[](std::pair<double, Vector> const& lhs, std::pair<double, Vector> const& rhs) {
-				return std::get<0>(lhs) > std::get<0>(rhs);
-			}
-		);
+        std::sort(std::begin(sample_points), std::end(sample_points),
+            [](std::pair<double, Vector> const& lhs, std::pair<double, Vector> const& rhs) {
+                return std::get<0>(lhs) > std::get<0>(rhs);
+            }
+        );
 
         // compute polyline
 
@@ -149,26 +154,26 @@ public:
 
         while (true) {
             const auto parameter_point_a = sample_points.back();
-			
-			const auto t_a = std::get<0>(parameter_point_a);
-			const auto point_a = std::get<1>(parameter_point_a);
 
-			sample_points.pop_back();
+            const auto t_a = std::get<0>(parameter_point_a);
+            const auto point_a = std::get<1>(parameter_point_a);
 
-			points.emplace_back(DomainInterval.GetParameterAtNormalized(t_a), point_a);
+            sample_points.pop_back();
+
+            points.emplace_back(DomainInterval.GetParameterAtNormalized(t_a), point_a);
 
             if (sample_points.size() == 0) {
                 break;
             }
 
             while (true) {
-				const auto parameter_point_b = sample_points.back();
+                const auto parameter_point_b = sample_points.back();
 
-				const auto t_b = std::get<0>(parameter_point_b);
-				const auto point_b = std::get<1>(parameter_point_b);
+                const auto t_b = std::get<0>(parameter_point_b);
+                const auto point_b = std::get<1>(parameter_point_b);
 
-                double max_distance {0};
-				std::pair<double, Vector> max_point;
+                double max_distance{ 0 };
+                std::pair<double, Vector> max_point;
 
                 for (int i = 1; i <= n; i++) {
                     const double t = NurbsInterval::GetParameterAtNormalized(t_a,
@@ -184,7 +189,7 @@ public:
 
                     if (distance > max_distance) {
                         max_distance = distance;
-                        max_point = {t, point};
+                        max_point = { t, point };
                     }
                 }
 
@@ -192,8 +197,39 @@ public:
                     break;
                 }
 
-				sample_points.push_back(max_point);
+                sample_points.push_back(max_point);
             }
+        }
+
+        return points;
+    }
+
+
+    /* @brief This method returns polygon of this curve with equal curve segments.
+     * @param pGeometry Pointer to the geometry
+     * @param NumberOfPoints The total amount of nodes including start and end node.
+     * @param Start parameter of polygon.
+     * @param End parameter of polygon.
+     */
+    static TessellationType ComputePolygon(
+        const GeometryType& rGeometry,
+        const SizeType NumberOfPoints,
+        const double Start,
+        const double End)
+    {
+        TessellationType points(NumberOfPoints);
+
+        CoordinatesArrayType parameter = ZeroVector(3);
+
+        double length = End - Start;
+        double delta_length = length / (NumberOfPoints - 1);
+
+        // compute sample points
+        for (IndexType i = 0; i < NumberOfPoints; ++i) {
+            parameter[0] = Start + delta_length * i;
+            CoordinatesArrayType result;
+            rGeometry.GlobalCoordinates(result, parameter);
+            points[i] = { parameter[0], result };
         }
 
         return points;
@@ -208,22 +244,12 @@ public:
     }
 
     private:
-    ///@name Private Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Private Member Variables
     ///@{
 
-	TessellationType mTesselation;
+    TessellationType mTesselation;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private Serialization
-    ///@{
 };
 
 } // namespace NurbsCurveTessellation
