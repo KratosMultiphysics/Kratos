@@ -469,7 +469,7 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
-
+}
 
 } // namespace Python.
 } // Namespace Kratos
