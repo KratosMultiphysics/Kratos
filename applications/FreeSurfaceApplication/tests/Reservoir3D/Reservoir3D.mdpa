@@ -7939,7 +7939,7 @@ Begin Elements Element3D4N
 6538 0 825 920 1081 1043
 End Elements
 
-Begin Conditions Condition3D
+Begin Conditions SurfaceCondition3D3N
 1 0 66 37 68
 2 0 47 68 37
 3 0 30 37 66

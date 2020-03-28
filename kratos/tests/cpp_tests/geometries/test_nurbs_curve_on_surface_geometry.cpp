@@ -177,6 +177,77 @@ typedef Node<3> NodeType;
         return NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>>(surface, curve);
     }
 
+    NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>> GenerateReferenceNurbsCOS3dforKnotIntersections()
+    {
+        // Assign the points belonging to the curve
+        PointerVector<Point> points_curve;
+        points_curve.push_back(Point::Pointer(new Point(6, 7, 0)));
+        points_curve.push_back(Point::Pointer(new Point(6, 1, 0)));
+        points_curve.push_back(Point::Pointer(new Point(14, 9, 0)));
+        points_curve.push_back(Point::Pointer(new Point(14, 3, 0)));
+
+        // Assign the curve's knot vector
+        Vector knot_vector_curve = ZeroVector(6);
+        knot_vector_curve[0] = 0.0;
+        knot_vector_curve[1] = 0.0;
+        knot_vector_curve[2] = 0.0;
+        knot_vector_curve[3] = 23.313708498984759;
+        knot_vector_curve[4] = 23.313708498984759;
+        knot_vector_curve[5] = 23.313708498984759;
+
+        // Polynomial degree of the curve
+        int p_curve = 3;
+
+        // Create the 2D embedded curve
+        auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve);
+
+        // Assign the points belonging to the surface
+        PointerVector<Point> points_surface;
+        points_surface.push_back(Point::Pointer(new Point(0, 0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(3.33333333333333, 0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(10, 0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(16.6666666666666, 0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(20, 0, 0)));
+
+        points_surface.push_back(Point::Pointer(new Point(0, 5, 0)));
+        points_surface.push_back(Point::Pointer(new Point(3.33333333333333, 5, 0)));
+        points_surface.push_back(Point::Pointer(new Point(10, 5.0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(16.6666666666666, 5.0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(20, 5, 0)));
+
+        points_surface.push_back(Point::Pointer(new Point(0, 10, 0)));
+        points_surface.push_back(Point::Pointer(new Point(3.3333333333333326, 10, 0)));
+        points_surface.push_back(Point::Pointer(new Point(10, 10.0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(16.6666666666666, 10.0, 0)));
+        points_surface.push_back(Point::Pointer(new Point(20, 10, 0)));
+
+        // Assign the surface's knot vectors
+        Vector knot_vector_u_surface = ZeroVector(7);
+        knot_vector_u_surface[0] = 0.0;
+        knot_vector_u_surface[1] = 0.0;
+        knot_vector_u_surface[2] = 0.0;
+        knot_vector_u_surface[3] = 10.0;
+        knot_vector_u_surface[4] = 20.0;
+        knot_vector_u_surface[5] = 20.0;
+        knot_vector_u_surface[6] = 20.0;
+
+        Vector knot_vector_v_surface = ZeroVector(3);
+        knot_vector_v_surface[0] = 0.0;
+        knot_vector_v_surface[1] = 5.0;
+        knot_vector_v_surface[2] = 10.0;
+
+        // Polynomial degrees
+        int p_surface = 3;
+        int q_surface = 1;
+
+        // Create a 3D surface
+        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
+            q_surface, knot_vector_u_surface, knot_vector_v_surface);
+
+        // Create and return a curve on surface geometry
+        return NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>>(surface, curve);
+    }
+
     ///// Tests
     // Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
     KRATOS_TEST_CASE_IN_SUITE(BSplineCurveOnBSplineSurface, KratosCoreNurbsGeometriesFastSuite) 
@@ -257,5 +328,25 @@ typedef Node<3> NodeType;
         }
     }
 
+    // test intersection with background surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceSpans, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Create a Nurbs curve on a Nurbs surface
+        auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
+
+        std::vector<double> spans;
+
+        curve_on_surface.Spans(spans);
+
+        // Test size
+        KRATOS_CHECK_EQUAL(spans.size(), 5);
+
+        // Compare each value
+        KRATOS_CHECK_NEAR(spans[0], 0, TOLERANCE);
+        KRATOS_CHECK_NEAR(spans[1], 4.02565, 1e-4);
+        KRATOS_CHECK_NEAR(spans[2], 11.6569, 1e-4);
+        KRATOS_CHECK_NEAR(spans[3], 19.2881, 1e-4);
+        KRATOS_CHECK_NEAR(spans[4], 23.3137, 1e-4);
+    }
 } // namespace Testing.
 } // namespace Kratos.

@@ -16,10 +16,6 @@ message( "**** configuring KratosEigenSolversApplication ****" )
 ################### PYBIND11
 include(pybind11Tools)
 
-if( USE_EIGEN_MKL MATCHES ON AND NOT DEFINED ENV{MKLROOT} )
-    message( FATAL_ERROR "MKLROOT not defined" )
-endif()
-
 add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
 
 include_directories(
@@ -28,13 +24,30 @@ include_directories(
 )
 
 if( USE_EIGEN_MKL MATCHES ON )
-    message( "MKLROOT = $ENV{MKLROOT}" )
+    if( DEFINED ENV{MKLROOT} )
+        message( "-- MKLROOT = $ENV{MKLROOT}" )
 
-    if( NOT MSVC )
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+        include_directories( SYSTEM $ENV{MKLROOT}/include )
+
+        link_directories("$ENV{MKLROOT}/lib")
+
+        if( NOT MSVC )
+            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+        endif()
+    elseif( DEFINED ENV{CONDA_PREFIX} )
+        message("-- Found Conda environment: $ENV{CONDA_PREFIX}")
+
+        if( WIN32 )
+            include_directories(SYSTEM $ENV{CONDA_PREFIX}/Library/include)
+            link_directories("$ENV{CONDA_PREFIX}/Library/lib")
+        else()
+            include_directories(SYSTEM $ENV{CONDA_PREFIX}/include)
+            link_directories("$ENV{CONDA_PREFIX}/lib")
+        endif()
+    else()
+        message( FATAL_ERROR "MKLROOT not defined" )
     endif()
 
-    include_directories( $ENV{MKLROOT}/include )
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
