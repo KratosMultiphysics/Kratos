@@ -51,8 +51,6 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
 
 void KratosCompressiblePotentialFlowApplication::Register()
 {
- 	// calling base class register to register Kratos components
-  KratosApplication::Register();
   KRATOS_INFO("") << "Initializing KratosCompressiblePotentialFlowApplication..." << std::endl;
 
   // Register Variables (defined in compressible_potential_flow_application_variables.h)
