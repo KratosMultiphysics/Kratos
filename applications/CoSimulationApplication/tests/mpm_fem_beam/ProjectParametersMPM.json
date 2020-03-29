@@ -73,7 +73,7 @@
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
                 "variable_name"   : "MP_VOLUME_ACCELERATION",
-				"constrained"     : false,
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }
