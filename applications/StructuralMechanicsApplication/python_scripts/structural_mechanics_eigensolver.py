@@ -84,7 +84,7 @@ class EigenSolver(MechanicalSolver):
         else:
             diag_values = self.settings["eigensolver_diagonal_values"]
             if not diag_values.Has("mass_matrix_diagonal_value") or not diag_values.Has("stiffness_matrix_diagonal_value"):
-                err_msg  = 'For the used eigensolver "{}" no defaults for '
+                err_msg  = 'For the used eigensolver "{}" no defaults for '.format(solver_type)
                 err_msg += '"mass_matrix_diagonal_value" and "stiffness_matrix_diagonal_value" exist, '
                 err_msg += 'please specify them under "eigensolver_diagonal_values"'
                 raise Exception(err_msg)
