@@ -32,6 +32,7 @@
 #include "add_mat_variables_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
+#include "add_quaternion_to_python.h"
 #include "add_points_to_python.h"
 #include "add_geometries_to_python.h"
 #include "add_containers_to_python.h"
@@ -90,6 +91,7 @@ PYBIND11_MODULE(Kratos, m)
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddMeshToPython(m);
+    AddQuaternionToPython(m);
 
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
