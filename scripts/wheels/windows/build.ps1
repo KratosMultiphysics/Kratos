@@ -67,10 +67,8 @@ foreach ($python in $pythons){
     echo "Begining build for python $($python)"
     $env:python = $python
 
-    #mkdir c:\wheel
     cd $kratosRoot
     git clean -ffxd
-    $env:hash=$(git show -s --format=%h) #used in version number
     $pythonPath = "$($env:pythonRoot)\$($python)\python.exe"
 
     build $python $pythonPath
