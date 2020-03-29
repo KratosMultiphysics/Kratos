@@ -710,8 +710,6 @@ namespace Kratos
 
     int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
         {
