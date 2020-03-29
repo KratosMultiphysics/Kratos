@@ -153,6 +153,7 @@ void  AddNodeToPython(pybind11::module& m)
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 4> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 6> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 9> > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,Variable<Quaternion<double> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(node_binder);
