@@ -18,7 +18,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
         node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
         node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
-        prop1 = KratosMultiphysics.Properties(1) 
+        prop1 = KratosMultiphysics.Properties(1)
         model_part.AddProperties(prop1)
         elem1 = model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
         elem1.Initialize(model_part.ProcessInfo)
@@ -42,7 +42,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
-        
+
     def test_specifications_utilities_conditions(self):
         current_model = KratosMultiphysics.Model()
 
@@ -51,11 +51,11 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
         node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
         node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
-        prop1 = KratosMultiphysics.Properties(1) 
+        prop1 = KratosMultiphysics.Properties(1)
         model_part.AddProperties(prop1)
-        cond1 = model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         cond1.Initialize(model_part.ProcessInfo)
-        
+
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
@@ -85,12 +85,12 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
         node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
         node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
-        prop1 = KratosMultiphysics.Properties(1) 
+        prop1 = KratosMultiphysics.Properties(1)
         model_part.AddProperties(prop1)
         prop1.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw())
         elem1 = model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, [1,2,3], model_part.GetProperties()[1])
         elem1.Initialize(model_part.ProcessInfo)
-        
+
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
@@ -110,7 +110,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
-        
+
         # Changing the law to get a False check
         prop1.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw())
         elem1.Initialize(model_part.ProcessInfo)
@@ -125,11 +125,11 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
         node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
         node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
-        prop1 = KratosMultiphysics.Properties(1) 
+        prop1 = KratosMultiphysics.Properties(1)
         model_part.AddProperties(prop1)
         cond1 = model_part.CreateNewCondition("SurfaceLoadCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         cond1.Initialize(model_part.ProcessInfo)
-        
+
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
@@ -149,6 +149,6 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()
