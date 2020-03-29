@@ -104,7 +104,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
                 py::arg("builder_and_solver"),
                 py::arg("mass_matrix_diagonal_value"),
                 py::arg("stiffness_matrix_diagonal_value"),
-                py::arg("compute_model_decomposition")=false)
+                py::arg("compute_modal_decomposition")=false)
             ;
 
     // Prebuckling Strategy
