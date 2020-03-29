@@ -126,7 +126,8 @@
                 "model_part_name"             : "Structure",
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
                 "contact_type"                : "FrictionalWithNormalUpdate",
-                "assume_master_slave"         : { "0" : ["Parts_punch"]}
+                "assume_master_slave"         : { "0" : ["Parts_punch"]},
+                "friction_coefficients"       : { "0" : 0.75}
             }
         }
         ],
