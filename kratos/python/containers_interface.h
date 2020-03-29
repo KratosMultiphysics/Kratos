@@ -102,8 +102,8 @@ class PointerVectorGeometriesPythonInterface
 {
 public:
 
-    PointerVectorPythonInterface2() {};
-    virtual ~PointerVectorPythonInterface2() {};
+    PointerVectorGeometriesPythonInterface() {};
+    virtual ~PointerVectorGeometriesPythonInterface() {};
 
     void CreateInterface(pybind11::module& m, std::string ContainerName)
     {
