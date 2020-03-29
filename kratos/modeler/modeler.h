@@ -160,13 +160,15 @@ public:
 
     ///@}
 
-private:
-    ///@name Private members
+protected:
+    ///@name Protected members
     ///@{
 
     const Parameters mParameters;
 
     ///@}
+
+private:
     ///@name Un accessible methods
     ///@{
 
