@@ -134,7 +134,7 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
                 Properties::Pointer p_prop = r_elem.pGetProperties();
 
                 // Now we copy (an remove) the properties we have interest
-                if (mrMainModelPart.Is(SLIP)) { // Only in frictional contact cases
+                if (mrMainModelPart.Is(SLIP) && p_prop->Has(FRICTION_COEFFICIENT)) { // Only in frictional contact cases
                     CopyProperties(p_prop, p_new_prop, FRICTION_COEFFICIENT);
                 }
                 CopyProperties(p_prop, p_new_prop, THICKNESS, false);
