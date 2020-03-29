@@ -176,7 +176,7 @@ public:
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
      * The weight of the penalty terms is given by the member variable mWeight,
-     * set using SetValueOnIntegrationPoints. The periodic variables are read from
+     * set using SetValuesOnIntegrationPoints. The periodic variables are read from
      * the value of PERIODIC_VARIABLES stored in rCurrentProcessInfo.
      * @param rLeftHandSideMatrix Local left hand side matrix (output)
      * @param rRightHandSideVector Local right hand side vector (output)
