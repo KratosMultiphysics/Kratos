@@ -58,6 +58,7 @@ namespace Python
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
