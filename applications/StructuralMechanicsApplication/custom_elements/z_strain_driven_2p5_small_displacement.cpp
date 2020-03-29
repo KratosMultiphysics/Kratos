@@ -142,7 +142,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetValuesOnIntegrationPoints(
             mImposedZStrainVector[point_number] = rValues[point_number];
         }
     } else {
-        BaseType::SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        BaseType::SetValuesOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
