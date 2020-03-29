@@ -64,7 +64,7 @@ function create_application_wheel ($pythonPath, $app) {
 }
 
 foreach ($python in $pythons){
-    echo "Begining build for python $($python)"
+    Write-Host "Begining build for python $($python)"
     $env:python = $python
 
     cd $kratosRoot
@@ -73,8 +73,8 @@ foreach ($python in $pythons){
 
     build $python $pythonPath
 
-    echo "Finished build"
-    echo "Begining wheel construction for python $($python)"
+    Write-Host "Finished build"
+    Write-Host "Begining wheel construction for python $($python)"
 
     create_core_wheel $pythonPath
 
@@ -84,5 +84,5 @@ foreach ($python in $pythons){
         create_application_wheel $pythonPath $app
     }
 
-    echo "Finished wheel construction for python $($python)"
+    Write-Host "Finished wheel construction for python $($python)"
 }
