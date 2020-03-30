@@ -80,7 +80,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
             # We reinitialize if remeshed previously
             if root_model_part.Is(KratosMultiphysics.MODIFIED):
                 self.analysis.ReInitializeSolver()
-            self.ExecuteInitializeSolutionStep()
+            self.ExecuteBeforeInitializeSolutionStep()
             self.analysis.InitializeSolutionStep()
             # We reinitialize if remeshed on the InitializeSolutionStep
             if root_model_part.Is(KratosMultiphysics.MODIFIED):
@@ -144,7 +144,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
                     non_linear_iteration += 1
             self.analysis.OutputSolutionStep()
 
-    def ExecuteInitializeSolutionStep(self):
+    def ExecuteBeforeInitializeSolutionStep(self):
         """This function is executed before the InitializeSolutionStep
 
             Keyword arguments:
