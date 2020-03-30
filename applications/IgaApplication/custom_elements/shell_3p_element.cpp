@@ -116,7 +116,7 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(
-                WorkingSpaceDimension());
+                GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(
                 point_number,
                 kinematic_variables);
