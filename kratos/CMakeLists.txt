@@ -44,6 +44,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/data_value_container.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/integration/integration_point_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_neighbours_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
