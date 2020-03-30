@@ -198,7 +198,12 @@ public:
      */
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        if(IsComponent()) {
+            rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const TDataType* >(pSource) ;
+        }
+        else {
+            rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        }
     }
 
     /**
@@ -253,9 +258,27 @@ public:
         return msStaticObject;
     }
 
+    TDataType& GetValue(void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
+    }
+
+    const TDataType& GetValue(const void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
+    }
+
     ///@}
     ///@name Access
     ///@{
+
+
+    const VariableData& GetSourceVariable() const
+    {   
+        KRATOS_DEBUG_ERROR_IF(IsNotComponent()) << "The source variable is only defined for components" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
+        return *mpSourceVariable;
+    }
 
     /**
      * This method returns the zero value of the variable type
@@ -282,6 +305,12 @@ public:
     {
         std::stringstream buffer;
         buffer << Name() << " variable" <<" #" << static_cast<unsigned int>(Key());
+        if(IsComponent()){
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key()) << " component " << GetComponentIndex() << " of " <<  GetSourceVariable().Name();
+        }
+        else {
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key());
+        }
         return buffer.str();
     }
 
@@ -291,7 +320,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " variable";
+        rOStream << Info();
     }
 
     /// Print object's data.
@@ -353,6 +382,8 @@ private:
     ///@name Member Variables
     ///@{
 
+
+    const VariableData* mpSourceVariable;
     TDataType mZero; // The zero type contains the null value of the current variable type
 
     ///@}
@@ -363,6 +394,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// This is the default function for getting a value by index considering continuous memory indexing
+    /** It is templated so one can create specialized version of this for types with different structure
+    **/
+    template<typename TValueType>
+    TDataType& GetValueByIndex(TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<TDataType*>(pValue + index);
+    }
+
+    template<typename TValueType>
+    const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<const TDataType*>(pValue + index);
+    }
 
     ///@}
     ///@name Serialization
