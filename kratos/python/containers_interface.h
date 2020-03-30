@@ -115,7 +115,7 @@ public:
             .def("__iter__", [](TContainerType& self) {return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0, 1>())
             ;
     }
-}
+};
 
 template< class TContainerType >
 class PointerVectorSetPythonInterface
