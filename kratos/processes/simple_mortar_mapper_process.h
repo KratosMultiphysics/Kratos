@@ -391,6 +391,11 @@ public:
         Execute();
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -943,11 +948,6 @@ private:
      * @note Note that this needs to be done if such modelpart has changed its number of nodes or geometrical objects. This needs to be done even though the mapping instance is deleted since such information is saved in the destination nodes and geometrical objects.
      */
     void UpdateInterface();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Private  Access

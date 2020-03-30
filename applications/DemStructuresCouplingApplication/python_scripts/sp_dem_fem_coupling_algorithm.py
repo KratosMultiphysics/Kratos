@@ -31,6 +31,9 @@ class SPAlgorithm(Algorithm):
 
         self.post_process_step_count = 0
         self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_frequency"].GetInt()
+        self.use_post_process_tool = self.sp_parameters["post_process_tool"]["use_post_process_tool"].GetBool()
+        if not self.use_post_process_tool:
+            self.post_process_frequency = 0
         self.post_process_write_count = self.post_process_frequency
 
     @classmethod
@@ -44,6 +47,7 @@ class SPAlgorithm(Algorithm):
                 "axis"    : [0.0,0.0,1.0]
             },
             "post_process_tool":{
+                "use_post_process_tool": false,
                 "output_frequency": 0
             }
         }""")
@@ -65,16 +69,39 @@ class SPAlgorithm(Algorithm):
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
         # Create Postprocess tool for SP
-        from KratosMultiphysics.DemStructuresCouplingApplication.sand_production_post_process_tool import SandProductionPostProcessTool
-        self.sp_post_process_tool = SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
-                                                                                                    self.dem_solution.spheres_model_part,
-                                                                                                    self.test_number)
+        if self.use_post_process_tool:
+            from KratosMultiphysics.DemStructuresCouplingApplication.sand_production_post_process_tool import SandProductionPostProcessTool
+            self.sp_post_process_tool = SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
+                                                                        self.dem_solution.spheres_model_part,
+                                                                        self.test_number)
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
 
     def InitializeAdditionalProcessInfoVars(self):
         self.dem_solution.spheres_model_part.ProcessInfo.SetValue(Dem.SIGMA_3_AVERAGE, 0.0)
+
+    def _TransferStructuresSkinToDem(self):
+        self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
+        self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
+        # dem_walls_mp = self.dem_solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
+        dem_walls_mp = self.dem_solution.rigid_face_model_part
+        max_prop_id = 0
+        for prop in dem_walls_mp.Properties:
+            if prop.Id > max_prop_id:
+                max_prop_id = prop.Id
+        props = Kratos.Properties(max_prop_id + 1)
+        # NOTE: this should be more general
+        props[Dem.FRICTION] = 0.2
+        props[Dem.WALL_COHESION] = 0.0
+        props[Dem.COMPUTE_WEAR] = False
+        props[Dem.SEVERITY_OF_WEAR] = 0.001
+        props[Dem.IMPACT_WEAR_SEVERITY] = 0.001
+        props[Dem.BRINELL_HARDNESS] = 200.0
+        props[Kratos.YOUNG_MODULUS] = 7e9
+        props[Kratos.POISSON_RATIO] = 0.16
+        dem_walls_mp.AddProperties(props)
+        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(self.skin_mp, dem_walls_mp, props)
 
     def RunSolutionLoop(self):
 
@@ -86,7 +113,7 @@ class SPAlgorithm(Algorithm):
 
         while self.structural_solution.time < self.structural_solution.end_time:
 
-            portion_of_the_force_which_is_new = 0.4
+            portion_of_the_force_which_is_new = 0.1
             DemFem.DemStructuresCouplingUtilities().SmoothLoadTrasferredToFem(self.dem_solution.rigid_face_model_part, portion_of_the_force_which_is_new)
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
@@ -108,13 +135,19 @@ class SPAlgorithm(Algorithm):
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
             if self.test_number == 1 or self.test_number == 2:
-                self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
-                #DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                if self.structural_solution._GetSolver().main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2:
+                    self.outer_walls_model_part = self.model["Structure.LinePressure2D_Outer_line"]
+                else:
+                    self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             elif self.test_number == 3:
-                self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
-                self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
+                if self.structural_solution._GetSolver().main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2:
+                    self.outer_walls_model_part_1 = self.model["Structure.LinePressure2D_Left_line"]
+                    self.outer_walls_model_part_2 = self.model["Structure.LinePressure2D_Bot_line"]
+                else:
+                    self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
+                    self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
                 DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
@@ -183,12 +216,7 @@ class SPAlgorithm(Algorithm):
                     if self.test_number:
                         self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
 
-                self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
-
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
-
-            if self.test_number:
-                self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
             # Write SP data
             if self.IsPostProcessWriteStep():

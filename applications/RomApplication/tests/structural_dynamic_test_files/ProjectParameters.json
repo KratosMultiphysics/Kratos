@@ -24,13 +24,6 @@
         "time_stepping"                      : {
             "time_step" : 0.05
         },
-        "rom_settings": {
-            "nodal_unknowns": [
-                "DISPLACEMENT_X",
-                "DISPLACEMENT_Y"
-            ],
-            "number_of_rom_dofs": 8
-        },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

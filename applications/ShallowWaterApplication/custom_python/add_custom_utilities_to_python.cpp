@@ -93,6 +93,7 @@ namespace Python
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
+        .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
         .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::NodesContainerType>)
         .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ElementsContainerType>)
         .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ConditionsContainerType>)
