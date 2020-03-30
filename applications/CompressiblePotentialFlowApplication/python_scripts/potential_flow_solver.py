@@ -167,7 +167,7 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
-        self.ComputeNodalElementalNeighbours()
+        self._ComputeNodalElementalNeighbours()
 
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -178,7 +178,7 @@ class PotentialFlowSolver(FluidSolver):
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
-    def ComputeNodalElementalNeighbours(self):
+    def _ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call
         data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
         KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(

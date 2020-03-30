@@ -95,19 +95,19 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         super(PotentialFlowAdjointSolver, self).Initialize()
 
         # Initialize the response function and the sensitivity builder
-        self.GetResponseFunction().Initialize()
-        self.GetSensitivityBuilder().Initialize()
+        self._GetResponseFunction().Initialize()
+        self._GetSensitivityBuilder().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
-        self.GetResponseFunction().InitializeSolutionStep()
+        self._GetResponseFunction().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
-        self.GetResponseFunction().FinalizeSolutionStep()
-        self.GetSensitivityBuilder().UpdateSensitivities()
+        self._GetResponseFunction().FinalizeSolutionStep()
+        self._GetSensitivityBuilder().UpdateSensitivities()
 
     @classmethod
     def _GetStrategyType(self):
@@ -116,11 +116,11 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
 
     def _CreateScheme(self):
         # Fake scheme creation to do the solution update
-        response_function = self.GetResponseFunction()
+        response_function = self._GetResponseFunction()
         scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
         return scheme
 
-    def GetResponseFunction(self):
+    def _GetResponseFunction(self):
         if not hasattr(self, '_response_function'):
             self._response_function = self.__CreateResponseFunction()
         return self._response_function
@@ -135,14 +135,14 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
             raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
         return response_function
 
-    def GetSensitivityBuilder(self):
+    def _GetSensitivityBuilder(self):
         if not hasattr(self, '_sensitivity_builder'):
             self._sensitivity_builder = self.__CreateSensitivityBuilder()
         return self._sensitivity_builder
 
     def __CreateSensitivityBuilder(self):
         computing_model_part = self.GetComputingModelPart()
-        response_function = self.GetResponseFunction()
+        response_function = self._GetResponseFunction()
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.sensitivity_settings,
             computing_model_part,
