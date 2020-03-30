@@ -45,7 +45,7 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     c:\7zip\7z.exe x c:\TEMP\boost.zip -o"c:\boost"
 
@@ -93,13 +93,6 @@ RUN powershell.exe -Command \
 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
 
-#Download eigenlib
-RUN powershell.exe -Command \
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-	mkdir c:\eigen; \
-	wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.zip -OutFile c:\temp\eigen.zip; \
-	c:\7zip\7z.exe x c:\temp\eigen.zip -o"c:\eigen"
-
 #set env variables
 ENV CMAKE c:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe
 ENV SEVEN_ZIP c:\\7zip\\7z.exe
@@ -108,7 +101,6 @@ ENV BOOST c:\\boost\\boost_1_69_0
 ENV BLAS c:\\libs\\libblas.lib
 ENV LAPACK c:\\libs\\liblapack.lib
 ENV PYTHONROOT c:\\python
-ENV EIGEN c:\\eigen\\eigen-3.3.7
 
 COPY start.ps1 c:\\scripts\\start.ps1
 
