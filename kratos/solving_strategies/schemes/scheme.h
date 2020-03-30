@@ -966,9 +966,9 @@ public:
         const Element& rElement,
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).EquationId(
+        this->EquationId(
             Element::Pointer(&const_cast<Element&>(rElement)),
             rEquationId,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
@@ -995,9 +995,9 @@ public:
         const Condition& rCondition,
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).Condition_EquationId(
+        this->Condition_EquationId(
             Condition::Pointer(&const_cast<Condition&>(rCondition)),
             rEquationId,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
@@ -1024,9 +1024,9 @@ public:
         const Element& rElement,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).GetElementalDofList(
+        this->GetElementalDofList(
             Element::Pointer(&const_cast<Element&>(rElement)),
             rDofList,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
@@ -1053,9 +1053,9 @@ public:
         const Condition& rCondition,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).GetConditionDofList(
+        this->GetConditionDofList(
             Condition::Pointer(&const_cast<Condition&>(rCondition)),
             rDofList,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
