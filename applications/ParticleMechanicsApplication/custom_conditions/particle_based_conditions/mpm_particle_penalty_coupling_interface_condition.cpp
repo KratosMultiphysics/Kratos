@@ -225,7 +225,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     }
 
     // Set Contact Force
-    this->SetValue(MPC_CONTACT_FORCE, mpc_force);
+    m_contact_force = mpc_force;
 
 }
 
@@ -240,6 +240,40 @@ int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCur
     return 0;
 }
 
+
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_CONTACT_FORCE) {
+        rValues[0] = m_contact_force;
+    }
+    else {
+        MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticlePenaltyCouplingInterfaceCondition::SetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_CONTACT_FORCE) {
+        m_contact_force = rValues[0];
+    }
+    else {
+        MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
 
 } // Namespace Kratos
 
