@@ -124,16 +124,11 @@ class FEASTEigensystemSolver
         const std::size_t system_size = rK.size1();
         size_t subspace_size;
 
-        if( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() )
-        {
+        if( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) {
             subspace_size = 2 * static_cast<size_t>(mParam["number_of_eigenvalues"].GetInt());
-        }
-        else if( mParam["subspace_size"].GetInt() == 0 )
-        {
+        } else if( mParam["subspace_size"].GetInt() == 0 ) {
             subspace_size = 1.5 * static_cast<size_t>(mParam["number_of_eigenvalues"].GetInt());
-        }
-        else
-        {
+        } else {
             subspace_size = static_cast<size_t>(mParam["subspace_size"].GetInt());
         }
 

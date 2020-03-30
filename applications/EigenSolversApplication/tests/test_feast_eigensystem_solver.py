@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 
-from math import sqrt, isnan
+from math import sqrt
 
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTSymmetricEigensystemSolver'),"FEAST not found, skipping.")
