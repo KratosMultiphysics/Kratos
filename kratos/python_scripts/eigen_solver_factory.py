@@ -22,27 +22,27 @@ def ConstructSolver(settings):
     elif solver_type == "eigen_feast":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
-            try:
+            if EiSA.KratosEigenSolversApplication().HasFEAST():
                 if settings.Has("symmetric") and settings["symmetric"].GetBool():
                     eigen_solver = EiSA.FEASTSymmetricEigensystemSolver(settings)
                 else:
                     eigen_solver = EiSA.FEASTGeneralEigensystemSolver(settings)
-            except AttributeError as e:
-                raise Exception("Solver type not found. Possibly FEAST is not included in EigenSolversApplication") from e
-            return eigen_solver
+                return eigen_solver
+            else:
+                raise Exception("FEAST not available in EigenSolversApplication")
         else:
             raise Exception("EigenSolversApplication not available")
     elif solver_type == "eigen_feast_complex":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
-            try:
+            if EiSA.KratosEigenSolversApplication().HasFEAST():
                 if settings.Has("symmetric") and settings["symmetric"].GetBool():
                     eigen_solver = EiSA.ComplexFEASTSymmetricEigensystemSolver(settings)
                 else:
                     eigen_solver = EiSA.ComplexFEASTGeneralEigensystemSolver(settings)
-            except AttributeError as e:
-                raise Exception("Solver type not found. Possibly FEAST is not included in EigenSolversApplication") from e
-            return eigen_solver
+                return eigen_solver
+            else:
+                raise Exception("FEAST not available in EigenSolversApplication")
         else:
             raise Exception("EigenSolversApplication not available")
 
