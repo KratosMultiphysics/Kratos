@@ -88,6 +88,51 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         if self.generate_auxiliar_boundary :
             self.adaptive_utilities.AdaptativeRemeshingDetectBoundary()
 
+    def FinalizeSolutionStep(self):
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
+        """
+        # If we remesh using a process
+        if self.process_remesh == "adaptively" or self.process_remesh == "remesh_loop": # Adaptively remeshing
+            solver = self._GetSolver()
+            computing_model_part = solver.GetComputingModelPart()
+            map_parameters = KM.Parameters("""
+            {
+                "echo_level"                       : 0,
+                "origin_variable_historical"       : false,
+                "destination_variable_historical"  : false,
+                "absolute_convergence_tolerance"   : 1.0e-9,
+                "relative_convergence_tolerance"   : 1.0e-4,
+                "max_number_iterations"            : 10,
+                "origin_variable"                  : "AUGMENTED_NORMAL_CONTACT_PRESSURE",
+                "destination_variable"             : "AUGMENTED_NORMAL_CONTACT_PRESSURE",
+                "integration_order"                : 2
+            }
+            """)
+
+            interface_model_part = computing_model_part.GetSubModelPart("Contact")
+            main_model_part = computing_model_part.GetRootModelPart()
+            main_model_part.RemoveSubModelPart("ComputingContact")
+
+            if interface_model_part.HasSubModelPart("SlaveSubModelPart"):
+                slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
+            else:
+                slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
+                KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE).Execute()
+                KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE).Execute()
+            if interface_model_part.HasSubModelPart("MasterSubModelPart"):
+                master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
+            else:
+                master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
+                KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER).Execute()
+                KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER).Execute()
+
+            mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
+            mortar_mapping.Execute()
+            self.FinalizeSolutionStep()
+        else:
+            super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).FinalizeSolutionStep()
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
