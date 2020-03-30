@@ -134,8 +134,6 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 }
 }  // namespace Python.
 
-template class GidIO<EdgebasedGidGaussPointsContainer,EdgebasedGidMeshContainer>;
-template class GidIO<>;
 
 } // Namespace Kratos
 

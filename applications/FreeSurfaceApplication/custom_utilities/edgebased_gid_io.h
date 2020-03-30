@@ -568,6 +568,8 @@ public:
     const char* mMeshTitle;
 };//class EdgebasedGidMeshContainer
 
+KRATOS_API_EXTERN template class KRATOS_API(FREE_SURFACE_APPLICATION) GidIO<EdgebasedGidGaussPointsContainer,EdgebasedGidMeshContainer>;
+
 }// namespace Kratos.
 
 
