@@ -95,6 +95,8 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
 
+        self.DEM_parameters["problem_name"].SetString("benchmark_" + str(benchmark_number))
+
         super(DEMBenchmarksAnalysisStage, self).__init__(model, DEM_parameters)
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
@@ -149,8 +151,8 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
         super(DEMBenchmarksAnalysisStage, self).Finalize()
 
-    def FinalizeTimeStep(self, time):
-        super(DEMBenchmarksAnalysisStage, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super(DEMBenchmarksAnalysisStage, self).FinalizeSolutionStep()
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi

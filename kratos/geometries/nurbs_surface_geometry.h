@@ -68,10 +68,7 @@ public:
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
     {
-        KRATOS_ERROR_IF(rThisPoints.size() !=
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        CheckAndFitKnotVectors();
     }
 
     /// Conctructor for NURBS surfaces
@@ -89,10 +86,7 @@ public:
         , mKnotsV(rKnotsV)
         , mWeights(rWeights)
     {
-        KRATOS_ERROR_IF(rThisPoints.size() != 
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        CheckAndFitKnotVectors();
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
@@ -258,6 +252,65 @@ public:
     SizeType NumberOfControlPointsV() const
     {
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
+    }
+
+    /// Returns the number of spans in DirectionIndex=0:U and DirectionIndex=1:V (which are larger than 0).
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
+    {
+        SizeType knot_span_counter = 0;
+        if (DirectionIndex == 0) {
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::NumberOfKnotSpans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0 and 1." << std::endl;
+        }
+        return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @param return vector of span intervals.
+     * @param index of direction: 0: U; 1: V.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        if (DirectionIndex == 0) {
+            rSpans[0] = mKnotsU[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsU[i + 1];
+                    counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            rSpans[0] = mKnotsV[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsV[i + 1];
+                    counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::Spans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0 and 1." << std::endl;
+        }
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
@@ -507,6 +560,44 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /*
+    * @brief Checks if the knot vector is coinciding with the number of
+    *        control points and the polynomial degree. If the knot vectors
+    *        have a multiplicity of p+1 in the beginning, it is reduced to p.
+    */
+    void CheckAndFitKnotVectors()
+    {
+        SizeType num_control_points = this->size();
+
+        if (num_control_points !=
+            (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size()))) {
+            if (num_control_points ==
+                (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
+                    * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2))) {
+                Vector KnotsU = ZeroVector(mKnotsU.size() - 2);
+                for (SizeType i = 0; i < mKnotsU.size() - 2; ++i) {
+                    KnotsU[i] = mKnotsU[i + 1];
+                }
+                mKnotsU = KnotsU;
+
+                Vector KnotsV = ZeroVector(mKnotsV.size() - 2);
+                for (SizeType i = 0; i < mKnotsV.size() - 2; ++i) {
+                    KnotsV[i] = mKnotsV[i + 1];
+                }
+                mKnotsV = KnotsV;
+            } else {
+                KRATOS_ERROR
+                    << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl
+                    << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
+                    << ", number of knots u: " << mKnotsU.size() << ", number of knots v: " << mKnotsV.size()
+                    << ", number of control points: " << num_control_points << std::endl
+                    << "Following condition must be achieved: ControlPoints.size() = (KnotsU.size() - P + 1) * (KnotsV.size() - Q + 1)"
+                    << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Private Serialization

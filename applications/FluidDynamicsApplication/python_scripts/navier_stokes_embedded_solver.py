@@ -242,6 +242,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : true,
@@ -325,8 +326,16 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         if self.__fm_ale_is_active:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
+
+    def AddDofs(self):
+        super(NavierStokesEmbeddedMonolithicSolver, self).AddDofs()
+        if self.__fm_ale_is_active:
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.main_model_part)
 
     def PrepareModelPart(self):
         # Call the base solver PrepareModelPart()
@@ -388,9 +397,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
             number_of_avg_elems = 10
             number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart(),
-                                                                                               number_of_avg_elems,
-                                                                                               number_of_avg_nodes)
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart())
 
         # If required, intialize the FM-ALE utility
         if self.__fm_ale_is_active:
@@ -496,8 +503,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         else:
             raise Exception("No fluid elements found in the main model part.")
         # Transfer the obtained properties to the nodes
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 
     def _set_constitutive_law(self):
         ## Construct the constitutive law needed for the embedded element
@@ -539,7 +546,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # Note that the distance modification process is applied to the volume model part
         distance_modification_settings = self.settings["distance_modification_settings"]
         distance_modification_settings.ValidateAndAssignDefaults(self.__GetDistanceModificationDefaultSettings(self.level_set_type))
-        distance_modification_settings["model_part_name"].SetString(self.settings["volume_model_part_name"].GetString())
+        aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
+        distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
         return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
 
     def _get_fm_ale_structure_model_part(self):

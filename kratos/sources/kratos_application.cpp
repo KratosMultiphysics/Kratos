@@ -27,41 +27,11 @@
 #include "includes/geometrical_object.h"
 #include "includes/master_slave_constraint.h"
 
-/* Geometries definition */
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
-#include "geometries/line_3d_2.h"
-#include "geometries/line_3d_3.h"
-#include "geometries/point.h"
-#include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
-#include "geometries/sphere_3d_1.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/triangle_3d_6.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
-#include "geometries/quadrilateral_2d_9.h"
-#include "geometries/quadrilateral_3d_4.h"
-#include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_9.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-#include "geometries/prism_3d_6.h"
-#include "geometries/prism_3d_15.h"
-#include "geometries/hexahedra_3d_8.h"
-#include "geometries/hexahedra_3d_20.h"
-#include "geometries/hexahedra_3d_27.h"
-#include "geometries/quadrature_point_geometry.h"
-
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
 
 namespace Kratos {
-typedef Node<3> NodeType;
-typedef Geometry<NodeType> GeometryType;
 
 KratosApplication::KratosApplication(const std::string ApplicationName)
     : mApplicationName(ApplicationName),
@@ -84,19 +54,6 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mMasterSlaveConstraint(),
       mLinearMasterSlaveConstraint(),
 
-      // Deprecated conditions start
-      mCondition2D( 0, GeometryType::Pointer(new Geometry<NodeType >(GeometryType::PointsArrayType(2)))),
-      mCondition2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
-      mCondition2D3N( 0, GeometryType::Pointer(new Line2D3<NodeType >(GeometryType::PointsArrayType(3)))),
-      mCondition3D( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),  // Note: Could be interesting to change the name to mCondition3D3N (conflict with quadratic line)
-      mCondition3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
-      mCondition3D3N( 0, GeometryType::Pointer(new Line3D3<NodeType >(GeometryType::PointsArrayType(3)))),
-      mCondition3D6N( 0, GeometryType::Pointer(new Triangle3D6<NodeType >(GeometryType::PointsArrayType(6)))),
-      mCondition3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
-      mCondition3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
-      mCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
-      // Deprecated conditions end
-
       // Periodic conditions
       mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mPeriodicConditionEdge( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
@@ -105,13 +62,19 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       // Elements
       mElement2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mElement2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mElement2D6N( 0, GeometryType::Pointer(new Triangle2D6<NodeType >(GeometryType::PointsArrayType(6)))),
       mElement2D4N( 0, GeometryType::Pointer(new Quadrilateral2D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mElement2D8N( 0, GeometryType::Pointer(new Quadrilateral2D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      mElement2D9N( 0, GeometryType::Pointer(new Quadrilateral2D9<NodeType >(GeometryType::PointsArrayType(9)))),
       mElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mElement3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mElement3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mElement3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
       mElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
       mElement3D10N( 0, GeometryType::Pointer(new Tetrahedra3D10<NodeType >(GeometryType::PointsArrayType(10)))),
+      mElement3D15N( 0, GeometryType::Pointer(new Prism3D15<NodeType >(GeometryType::PointsArrayType(15)))),
+      mElement3D20N( 0, GeometryType::Pointer(new Hexahedra3D20<NodeType >(GeometryType::PointsArrayType(20)))),
+      mElement3D27N( 0, GeometryType::Pointer(new Hexahedra3D27<NodeType >(GeometryType::PointsArrayType(27)))),
       mDistanceCalculationElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mDistanceCalculationElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mLevelSetConvectionElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
@@ -133,6 +96,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mpArray1D4VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 4> > > >::pGetComponents()),
       mpArray1D6VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 6> > > >::pGetComponents()),
       mpArray1D9VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 9> > > >::pGetComponents()),
+      mpGeometries(KratosComponents<GeometryType>::pGetComponents()),
       mpElements(KratosComponents<Element>::pGetComponents()),
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
@@ -150,6 +114,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());
+    Serializer::Register("Geometry", GeometryType());
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
     Serializer::Register("Properties", Properties());
@@ -182,20 +147,6 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
     KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
-    //deprecated conditions start
-    KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);
-    KRATOS_REGISTER_CONDITION("Condition2D2N", mCondition2D2N);
-    KRATOS_REGISTER_CONDITION("Condition2D3N", mCondition2D3N);
-    KRATOS_REGISTER_CONDITION("Condition3D",
-        mCondition3D);  // Note: The name could be changed to Condition3D3N (conflict with the quadratic line)
-    KRATOS_REGISTER_CONDITION("Condition3D2N", mCondition3D2N);
-    KRATOS_REGISTER_CONDITION("Condition3D3N", mCondition3D3N);
-    KRATOS_REGISTER_CONDITION("Condition3D6N", mCondition3D6N);
-    KRATOS_REGISTER_CONDITION("Condition3D4N", mCondition3D4N);
-    KRATOS_REGISTER_CONDITION("Condition3D8N", mCondition3D8N);
-    KRATOS_REGISTER_CONDITION("Condition3D9N", mCondition3D9N);
-    //deprecated conditions start
-
     KRATOS_REGISTER_CONDITION("PeriodicCondition", mPeriodicCondition)
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)
     KRATOS_REGISTER_CONDITION("PeriodicConditionCorner", mPeriodicConditionCorner)
@@ -203,13 +154,19 @@ void KratosApplication::RegisterKratosCore() {
     //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
     KRATOS_REGISTER_ELEMENT("Element2D2N", mElement2D2N)
     KRATOS_REGISTER_ELEMENT("Element2D3N", mElement2D3N)
+    KRATOS_REGISTER_ELEMENT("Element2D6N", mElement2D6N)
     KRATOS_REGISTER_ELEMENT("Element2D4N", mElement2D4N)
+    KRATOS_REGISTER_ELEMENT("Element2D8N", mElement2D8N)
+    KRATOS_REGISTER_ELEMENT("Element2D9N", mElement2D9N)
     KRATOS_REGISTER_ELEMENT("Element3D2N", mElement3D2N)
     KRATOS_REGISTER_ELEMENT("Element3D3N", mElement3D3N)
     KRATOS_REGISTER_ELEMENT("Element3D4N", mElement3D4N)
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
+    KRATOS_REGISTER_ELEMENT("Element3D15N", mElement3D15N)
+    KRATOS_REGISTER_ELEMENT("Element3D20N", mElement3D20N)
+    KRATOS_REGISTER_ELEMENT("Element3D27N", mElement3D27N)
 
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex2D3N", mDistanceCalculationElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)
@@ -217,104 +174,34 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D4N", mLevelSetConvectionElementSimplex3D4N)
 
     //Register general geometries:
-
-    //Points:
-    Serializer::Register("Point", Point());
-
-    Point2D<NodeType > Point2DPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("Point2D", Point2DPrototype);
-
-    Point3D<NodeType > Point3DPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("Point3D", Point3DPrototype);
-
-    //Sphere
-    Sphere3D1<NodeType > Sphere3D1Prototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("Sphere3D1", Sphere3D1Prototype);
-
-    //Lines:
-    Line2D2<NodeType > Line2D2Prototype(GeometryType::PointsArrayType(2));
-    Serializer::Register("Line2D2", Line2D2Prototype);
-
-    Line2D3<NodeType > Line2D3Prototype(GeometryType::PointsArrayType(3));
-    Serializer::Register("Line2D3", Line2D3Prototype);
-
-    Line3D2<NodeType > Line3D2Prototype(GeometryType::PointsArrayType(2));
-    Serializer::Register("Line3D2", Line3D2Prototype);
-
-    Line3D3<NodeType > Line3D3Prototype(GeometryType::PointsArrayType(3));
-    Serializer::Register("Line3D3", Line3D3Prototype);
-
-    //Triangles:
-    Triangle2D3<NodeType > Triangle2D3Prototype(GeometryType::PointsArrayType(3));
-    Serializer::Register("Triangle2D3", Triangle2D3Prototype);
-
-    Triangle2D6<NodeType > Triangle2D6Prototype(GeometryType::PointsArrayType(6));
-    Serializer::Register("Triangle2D6", Triangle2D6Prototype);
-
-    Triangle3D3<NodeType > Triangle3D3Prototype(GeometryType::PointsArrayType(3));
-    Serializer::Register("Triangle3D3", Triangle3D3Prototype);
-
-    Triangle3D6<NodeType > Triangle3D6Prototype( GeometryType::PointsArrayType(6));
-    Serializer::Register("Triangle3D6", Triangle3D6Prototype);
-
-    //Quadrilaterals:
-    Quadrilateral2D4<NodeType > Quadrilateral2D4Prototype( GeometryType::PointsArrayType(4));
-    Serializer::Register("Quadrilateral2D4", Quadrilateral2D4Prototype);
-
-    Quadrilateral2D8<NodeType > Quadrilateral2D8Prototype( GeometryType::PointsArrayType(8));
-    Serializer::Register("Quadrilateral2D8", Quadrilateral2D8Prototype);
-
-    Quadrilateral2D9<NodeType > Quadrilateral2D9Prototype( GeometryType::PointsArrayType(9));
-    Serializer::Register("Quadrilateral2D9", Quadrilateral2D9Prototype);
-
-    Quadrilateral3D4<NodeType > Quadrilateral3D4Prototype( GeometryType::PointsArrayType(4));
-    Serializer::Register("Quadrilateral3D4", Quadrilateral3D4Prototype);
-
-    Quadrilateral3D8<NodeType > Quadrilateral3D8Prototype( GeometryType::PointsArrayType(8));
-    Serializer::Register("Quadrilateral3D8", Quadrilateral3D8Prototype);
-
-    Quadrilateral3D9<NodeType > Quadrilateral3D9Prototype( GeometryType::PointsArrayType(9));
-    Serializer::Register("Quadrilateral3D9", Quadrilateral3D9Prototype);
-
-    //Tetrahedra:
-    Tetrahedra3D4<NodeType > Tetrahedra3D4Prototype( GeometryType::PointsArrayType(4));
-    Serializer::Register("Tetrahedra3D4", Tetrahedra3D4Prototype);
-
-    Tetrahedra3D10<NodeType > Tetrahedra3D10Prototype( GeometryType::PointsArrayType(10));
-    Serializer::Register("Tetrahedra3D10", Tetrahedra3D10Prototype);
-
-    //Prisms:
-    Prism3D6<NodeType > Prism3D6Prototype( GeometryType::PointsArrayType(6));
-    Serializer::Register("Prism3D6", Prism3D6Prototype);
-
-    Prism3D15<NodeType > Prism3D15Prototype( GeometryType::PointsArrayType(15));
-    Serializer::Register("Prism3D15", Prism3D15Prototype);
-
-    //Hexahedra:
-    Hexahedra3D8<NodeType > Hexahedra3D8Prototype( GeometryType::PointsArrayType(8));
-    Serializer::Register("Hexahedra3D8", Hexahedra3D8Prototype);
-
-    Hexahedra3D20<NodeType > Hexahedra3D20Prototype( GeometryType::PointsArrayType(20));
-    Serializer::Register("Hexahedra3D20", Hexahedra3D20Prototype);
-
-    Hexahedra3D27<NodeType > Hexahedra3D27Prototype( GeometryType::PointsArrayType(27));
-    Serializer::Register("Hexahedra3D27", Hexahedra3D27Prototype);
-
-    //QuadraturePointGeometry:
-    QuadraturePointGeometry<NodeType, 3> QuadraturePointGeometryVolume3dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometryVolume3d", QuadraturePointGeometryVolume3dPrototype);
-
-    QuadraturePointGeometry< NodeType, 3, 2 > QuadraturePointGeometrySurface3dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometrySurface3d", QuadraturePointGeometrySurface3dPrototype);
-
-    QuadraturePointGeometry< NodeType, 2 > QuadraturePointGeometrySurface2dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometrySurface2d", QuadraturePointGeometrySurface2dPrototype);
-
-    QuadraturePointGeometry< NodeType, 3, 1 > QuadraturePointGeometryCurve3dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometryCurve3d", QuadraturePointGeometryCurve3dPrototype);
-
-    QuadraturePointGeometry< NodeType, 2, 1 > QuadraturePointGeometryCurve2dPrototype(GeometryType::PointsArrayType(1));
-    Serializer::Register("QuadraturePointGeometryCurve2d", QuadraturePointGeometryCurve2dPrototype);
+    // Point register:
+    Serializer::Register("Point", mPointPrototype);
+    
+    // Register + KratosComponents
+    KRATOS_REGISTER_GEOMETRY("Point2D", mPoint2DPrototype);
+    KRATOS_REGISTER_GEOMETRY("Point3D", mPoint3DPrototype);
+    KRATOS_REGISTER_GEOMETRY("Sphere3D1", mSphere3D1Prototype);
+    KRATOS_REGISTER_GEOMETRY("Line2D2", mLine2D2Prototype);
+    KRATOS_REGISTER_GEOMETRY("Line2D3", mLine2D3Prototype);
+    KRATOS_REGISTER_GEOMETRY("Line3D2", mLine3D2Prototype);
+    KRATOS_REGISTER_GEOMETRY("Line3D3", mLine3D3Prototype);
+    KRATOS_REGISTER_GEOMETRY("Triangle2D3", mTriangle2D3Prototype);
+    KRATOS_REGISTER_GEOMETRY("Triangle2D6", mTriangle2D6Prototype);
+    KRATOS_REGISTER_GEOMETRY("Triangle3D3", mTriangle3D3Prototype);
+    KRATOS_REGISTER_GEOMETRY("Triangle3D6", mTriangle3D6Prototype);
+    KRATOS_REGISTER_GEOMETRY("Quadrilateral2D4", mQuadrilateral2D4Prototype);
+    KRATOS_REGISTER_GEOMETRY("Quadrilateral2D8", mQuadrilateral2D8Prototype);
+    KRATOS_REGISTER_GEOMETRY("Quadrilateral2D9", mQuadrilateral2D9Prototype);
+    KRATOS_REGISTER_GEOMETRY("Quadrilateral3D4", mQuadrilateral3D4Prototype);
+    KRATOS_REGISTER_GEOMETRY("Quadrilateral3D8", mQuadrilateral3D8Prototype);
+    KRATOS_REGISTER_GEOMETRY("Quadrilateral3D9", mQuadrilateral3D9Prototype);
+    KRATOS_REGISTER_GEOMETRY("Tetrahedra3D4", mTetrahedra3D4Prototype);
+    KRATOS_REGISTER_GEOMETRY("Tetrahedra3D10", mTetrahedra3D10Prototype);
+    KRATOS_REGISTER_GEOMETRY("Prism3D6", mPrism3D6Prototype);
+    KRATOS_REGISTER_GEOMETRY("Prism3D15", mPrism3D15Prototype);
+    KRATOS_REGISTER_GEOMETRY("Hexahedra3D8", mHexahedra3D8Prototype);
+    KRATOS_REGISTER_GEOMETRY("Hexahedra3D20", mHexahedra3D20Prototype);
+    KRATOS_REGISTER_GEOMETRY("Hexahedra3D27", mHexahedra3D27Prototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);

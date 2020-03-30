@@ -77,6 +77,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -130,7 +131,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

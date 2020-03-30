@@ -8,6 +8,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_solver import AdjointFluidSolver
 
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_turbulence_model_solver import CreateAdjointTurbulenceModel
+
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
 
@@ -47,7 +49,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             "time_stepping"               : {
                 "automatic_time_step" : false,
                 "time_step"           : -0.1
-        }
+            },
+            "adjoint_turbulence_model_solver_settings": {},
+            "consider_periodic_conditions": false
         }""")
 
         default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultSettings())
@@ -56,17 +60,24 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
-
-        self.element_name = "VMSAdjointElement"
-        if self.settings["domain_size"].GetInt() == 2:
-            self.condition_name = "LineCondition"
-        elif self.settings["domain_size"].GetInt() == 3:
-            self.condition_name = "SurfaceCondition"
         self.element_has_nodal_properties = True
 
         # construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+
+        if not self.settings["adjoint_turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
+            # if not empty
+            self._adjoint_turbulence_model_solver = CreateAdjointTurbulenceModel(model, self.settings["adjoint_turbulence_model_solver_settings"])
+            self.element_name = self._adjoint_turbulence_model_solver.GetAdjointElementName()
+            self.condition_name = self._adjoint_turbulence_model_solver.GetAdjointConditionName()
+        else:
+            self.element_name = "VMSAdjointElement"
+            if self.settings["domain_size"].GetInt() == 2:
+                self.condition_name = "LineCondition"
+            elif self.settings["domain_size"].GetInt() == 3:
+                self.condition_name = "SurfaceCondition"
+
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicSolver finished.")
 
@@ -86,7 +97,21 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
+        # Adding variables required for the turbulence modelling
+        if hasattr(self, "_adjoint_turbulence_model_solver"):
+            self._adjoint_turbulence_model_solver.fluid_model_part = self.main_model_part
+            self._adjoint_turbulence_model_solver.AddVariables()
+
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
+
+    def AddDofs(self):
+        super(AdjointVMSMonolithicSolver, self).AddDofs()
+
+        if hasattr(self, "_adjoint_turbulence_model_solver"):
+            self._adjoint_turbulence_model_solver.AddDofs()
 
     def Initialize(self):
 
@@ -103,7 +128,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
+                    self.linear_solver, KratosCFD.PATCH_INDEX)
+        else:
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part,
                                                                      self.time_scheme,
@@ -120,25 +149,13 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        if hasattr(self, "_adjoint_turbulence_model_solver"):
+            self._adjoint_turbulence_model_solver.Initialize()
+
         (self.solver).Initialize()
         (self.response_function).Initialize()
         (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-
-    def _set_physical_properties(self):
-        # Transfer density and (kinematic) viscostity to the nodes
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
-            break
-
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
     def GetResponseFunction(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

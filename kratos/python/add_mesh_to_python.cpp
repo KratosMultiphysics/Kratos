@@ -183,8 +183,9 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
+template< class TObject >
 pybind11::list CalculateOnIntegrationPointsDouble(
-        Element& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<double> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
@@ -196,8 +197,9 @@ pybind11::list CalculateOnIntegrationPointsDouble(
     return result;
 }
 
+template< class TObject >
 pybind11::list CalculateOnIntegrationPointsArray1d(
-        Element& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<array_1d<double, 3>> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
@@ -209,8 +211,9 @@ pybind11::list CalculateOnIntegrationPointsArray1d(
     return result;
 }
 
+template< class TObject >
 pybind11::list CalculateOnIntegrationPointsVector(
-        Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<Vector> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
@@ -222,8 +225,9 @@ pybind11::list CalculateOnIntegrationPointsVector(
     return result;
 }
 
+template< class TObject >
 pybind11::list CalculateOnIntegrationPointsMatrix(
-        Element& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<Matrix> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
@@ -302,19 +306,31 @@ pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
 }
 
 template< class TObject >
-void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, pybind11::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsArray1d(
+    TObject& dummy,
+    const Variable< array_1d<double, 3> >& rVariable,
+    pybind11::list values_list,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
-    std::vector< array_1d<double,3> > values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
+    std::vector< array_1d<double, 3> > values(values_list.size());
+    for (unsigned int i = 0; i < values_list.size(); i++)
     {
-        if(py::isinstance<array_1d<double,3> >(values_list[i]))
-            values[i] = (values_list[i]).cast<array_1d<double,3> >();
-        else
-            KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
+        if (py::isinstance<array_1d<double, 3>>(values_list[i])) {
+            values[i] = (values_list[i]).cast<array_1d<double, 3> >();
+        }
+        else if (py::isinstance<pybind11::list>(values_list[i]) ||
+            py::isinstance<Vector>(values_list[i]))
+        {
+            Vector value = (values_list[i]).cast<Vector>();
+            KRATOS_ERROR_IF(value.size() != 3)
+                << " parsed vector is not of size 3. Size of vector: " << value.size() << std::endl;
+            values[i] = value;
+        }
+        else {
+            KRATOS_ERROR << "expecting a list of array_1d<double,3> " << std::endl;
+        }
     }
-    dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValueOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
 }
 
 template< class TObject >
@@ -489,6 +505,14 @@ void ElementGetSecondDerivativesVector2(Element& dummy,
     dummy.GetSecondDerivativesVector(rOutput,step);
 }
 
+template<class TDataType>
+void ConditionCalculateSensitivityMatrix(Condition& dummy,
+        const Variable<TDataType>& rDesignVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
+}
 
 void  AddMeshToPython(pybind11::module& m)
 {
@@ -589,10 +613,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
+    // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsBool<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
@@ -718,7 +743,12 @@ void  AddMeshToPython(pybind11::module& m)
 
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
-
+    // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Condition>)
+    // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Condition>)
@@ -730,6 +760,8 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
     .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
     .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
+    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<double>)
+    .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<array_1d<double,3> >)
 
 //     .def(VariableIndexingPython<Condition, Variable<int> >())
 //     .def(VariableIndexingPython<Condition, Variable<double> >())
