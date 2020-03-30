@@ -519,8 +519,8 @@ namespace Kratos
 
                 // curvature
                 array_1d<double, 3> dda3 = ZeroVector(3);
-                IndexType dirt = 4 - dirr - dirs;
-                IndexType ddir = dirr - dirs;
+                int dirt = 4 - static_cast<int>(dirr) - static_cast<int>(dirs);
+                int ddir = static_cast<int>(dirr) - static_cast<int>(dirs);
                      if (ddir == -1) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
                 else if (ddir ==  2) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
                 else if (ddir ==  1) dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
