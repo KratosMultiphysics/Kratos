@@ -243,6 +243,19 @@ class FEASTEigensystemSolver
 
     typedef void (feast_ptr)(char*, int*, double*, int*, int*, double*, int*, int*, int*, double*, int*, double*, double*, int*, double*, double*, int*, double*, int*);
 
+    /**
+     * The FEAST functions for symmetric and unsymmetric eigenvalue problems do not have the same signature;
+     * for the symmetric case, the first parameter is a char, the rest are the same for the symmetric and general case.
+     *
+     * Here we define a function pointer with the signature of the symmetric FEAST function (which is longer) and bind
+     * the functions providing all 19 arguments for the symmetric case (dfeast_scsrgv and zfeast_scsrgv) while only the
+     * last 18 arguments for the general case.
+
+     * With these placeholders _1, ..., _N we could change the order of the provided arguments in the call of the function
+     * pointer. Here we omit the first parameters.
+     *
+     * @see https://en.cppreference.com/w/cpp/utility/functional/bind
+     */
     template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
     std::function<feast_ptr> CreateFeast(bool symmetric)
     {
