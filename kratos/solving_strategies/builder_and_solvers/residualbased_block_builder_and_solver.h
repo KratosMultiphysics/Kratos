@@ -1163,7 +1163,7 @@ protected:
 
                 if(element_is_active) {
                     //calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);
@@ -1187,7 +1187,7 @@ protected:
 
                 if(condition_is_active) {
                     //calculate elemental contribution
-                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);

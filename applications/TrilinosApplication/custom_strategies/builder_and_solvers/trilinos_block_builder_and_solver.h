@@ -261,7 +261,7 @@ public:
 
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution,
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
@@ -276,7 +276,7 @@ public:
         // assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(
+            pScheme->CalculateLHSContribution(
                 **it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
@@ -448,7 +448,7 @@ public:
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(**it, RHS_Contribution,
+            pScheme->CalculateRHSContribution(**it, RHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution
@@ -460,7 +460,7 @@ public:
         // assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
-            pScheme->Calculate_RHS_Contribution(
+            pScheme->CalculateRHSContribution(
                 **it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
             // assemble the elemental contribution

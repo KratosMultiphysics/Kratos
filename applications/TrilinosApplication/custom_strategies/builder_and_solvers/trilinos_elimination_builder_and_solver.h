@@ -288,7 +288,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
@@ -303,7 +303,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
@@ -470,7 +470,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
             //calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateRHSContribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
@@ -482,7 +482,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_RHS_Contribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
+            pScheme->CalculateRHSContribution(**it,RHS_Contribution,EquationId,CurrentProcessInfo);
 
             //assemble the elemental contribution
             TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);

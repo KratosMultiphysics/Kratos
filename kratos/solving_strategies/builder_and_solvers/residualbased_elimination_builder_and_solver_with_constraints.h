@@ -1897,7 +1897,7 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
@@ -1917,7 +1917,7 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Calculate_RHS_Contribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);

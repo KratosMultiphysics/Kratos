@@ -292,7 +292,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS(rA, LHS_Contribution, EquationId);
@@ -307,7 +307,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS(rA, LHS_Contribution, EquationId);
@@ -356,7 +356,7 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, EquationId);
@@ -370,7 +370,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, EquationId);
@@ -579,7 +579,7 @@ public:
                 if (element_is_active)
                 {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Assemble the elemental contribution
                     AssembleRHS(rb, RHS_Contribution, EquationId);
@@ -601,7 +601,7 @@ public:
                 if (condition_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
                     AssembleRHS(rb, RHS_Contribution, EquationId);
