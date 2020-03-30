@@ -574,7 +574,7 @@ public:
         }
         else //distribute
         {
-            int system_size = TSparseSpaceType::Size1(rA);
+            const std::size_t system_size = TSparseSpaceType::Size1(rA);
             int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
             unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
             for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
