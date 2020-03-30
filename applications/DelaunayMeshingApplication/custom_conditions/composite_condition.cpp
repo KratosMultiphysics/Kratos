@@ -330,11 +330,11 @@ void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void CompositeCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
-      cn->SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+      cn->SetValuesOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
@@ -342,13 +342,13 @@ void CompositeCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rV
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void CompositeCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void CompositeCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
-      cn->SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+      cn->SetValuesOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
