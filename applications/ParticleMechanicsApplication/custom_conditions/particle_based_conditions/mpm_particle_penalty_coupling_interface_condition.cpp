@@ -257,7 +257,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateOnIntegrationPoints(
     }
 }
 
-void MPMParticlePenaltyCouplingInterfaceCondition::SetValueOnIntegrationPoints(
+void MPMParticlePenaltyCouplingInterfaceCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -270,7 +270,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::SetValueOnIntegrationPoints(
         m_contact_force = rValues[0];
     }
     else {
-        MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(
+        MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
