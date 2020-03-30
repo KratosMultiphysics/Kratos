@@ -831,7 +831,7 @@ public:
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
+    virtual void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -864,7 +864,7 @@ public:
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
+    virtual void CalculateRHSContribution(
         Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -897,7 +897,7 @@ public:
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
+    virtual void CalculateLHSContribution(
         Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -930,7 +930,7 @@ public:
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
+    virtual void CalculateLHSContribution(
         Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
