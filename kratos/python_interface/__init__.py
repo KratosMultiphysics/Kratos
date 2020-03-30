@@ -60,6 +60,14 @@ KratosGlobals = __ModuleInitDetail()
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
     Logger.PrintInfo("", "Importing    " + application_name)
+    Logger.PrintWarning('DEPRECATION-Warning', 'For importing "{}": "_ImportApplicationAsModule" is deprecated, please use "_ImportApplication"'.format(application_name))
+
+    # Add application to kernel
+    Kernel.ImportApplication(application)
+
+def _ImportApplication(application, application_name):
+    Kernel = KratosGlobals.Kernel
+    Logger.PrintInfo("", "Importing    " + application_name)
 
     # Add application to kernel
     Kernel.ImportApplication(application)
