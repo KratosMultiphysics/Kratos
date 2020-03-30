@@ -47,7 +47,7 @@ namespace Kratos
             m_T_vector.resize(r_number_of_integration_points);
 
         KinematicVariables kinematic_variables(
-            WorkingSpaceDimension());
+            GetGeometry().WorkingSpaceDimension());
 
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
