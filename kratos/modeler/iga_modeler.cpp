@@ -205,7 +205,7 @@ namespace Kratos
 
         ElementsContainerType new_element_list;
 
-        KRATOS_TRACE_IF("CreateElements", mEchoLevel > 2)
+        KRATOS_INFO_IF("CreateElements", mEchoLevel > 2)
             << "Creating elements of type " << rElementName
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
@@ -232,7 +232,7 @@ namespace Kratos
 
         ModelPart::ConditionsContainerType new_condition_list;
 
-        KRATOS_TRACE_IF("CreateConditions", mEchoLevel > 2)
+        KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
             << "Creating conditions of type " << rConditionName
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
@@ -258,7 +258,7 @@ namespace Kratos
         std::ifstream infile(data_file_name);
         KRATOS_ERROR_IF_NOT(infile.good()) << "Physics fil: "
             << data_file_name << " cannot be found." << std::endl;
-        KRATOS_TRACE_IF("ReadParamatersFile", mEchoLevel > 3)
+        KRATOS_INFO_IF("ReadParamatersFile", mEchoLevel > 3)
             << "Reading file: \"" << data_file_name << "\"" << std::endl;
 
         std::stringstream buffer;
