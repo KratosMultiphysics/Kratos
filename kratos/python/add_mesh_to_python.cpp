@@ -282,7 +282,7 @@ void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>&
     if(values.size() != integration_points.size())
         KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
 
-    dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 
@@ -330,7 +330,7 @@ void SetValuesOnIntegrationPointsArray1d(
             KRATOS_ERROR << "expecting a list of array_1d<double,3> " << std::endl;
         }
     }
-    dummy.SetValueOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
+    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 template< class TObject >
@@ -366,7 +366,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
         else
             KRATOS_ERROR << "expecting a list of vectors";
     }
-    dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 
@@ -410,7 +410,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
         else
             KRATOS_ERROR << "expecting a list of ConstitutiveLaw::Pointer";
      }
-    dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 void ElementCalculateLocalSystem1(Element& dummy,
@@ -623,6 +623,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix<Element>)
+    // SetValuesOnIntegrationPoints
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
@@ -755,10 +756,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix<Condition>)
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
-    //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
+    // SetValuesOnIntegrationPoints
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
+    //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
     .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
     .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)

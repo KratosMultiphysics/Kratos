@@ -1026,44 +1026,44 @@ public:
      * Specializations of condition must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      * these methods are: OPTIONAL
      */
 
     //SET ON INTEGRATION POINTS - METHODS
 
-    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+    virtual void SetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
                          std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                          std::vector<array_1d<double, 3 > > rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
                          std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
                          std::vector<Matrix>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {

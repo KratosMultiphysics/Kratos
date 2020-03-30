@@ -47,7 +47,13 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
     # muting the output
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-    def test_eigen_with_constraints(self):
+    def test_eigen_with_constraints_block_builder(self):
+        self.execute_test_eigen_with_constraints(use_block_builder=True)
+
+    def test_eigen_with_constraints_elimination_builder(self):
+        self.execute_test_eigen_with_constraints(use_block_builder=False)
+
+    def execute_test_eigen_with_constraints(self, use_block_builder):
         analysis_parameters = KratosMultiphysics.Parameters("""{
             "problem_data"    : {
                 "parallel_type" : "OpenMP",
@@ -66,9 +72,14 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
                     "time_step" : 1.1
                 },
                 "use_computing_model_part" : false,
-                "rotation_dofs"            : true
+                "rotation_dofs"            : true,
+                "block_builder"            : true
             }
         }""")
+
+        analysis_parameters["solver_settings"]["block_builder"].SetBool(use_block_builder)
+        analysis_parameters_with_constraints = analysis_parameters.Clone()
+        analysis_parameters_with_constraints["solver_settings"]["block_builder"].SetBool(True) # Currently the EliminationB&S does not reliably work with constraints
 
         model = KratosMultiphysics.Model()
         analysis = StructuralMechanicsAnalysis(model, analysis_parameters.Clone())
@@ -77,7 +88,7 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
         analysis.Run()
 
         model_with_constraints = KratosMultiphysics.Model()
-        analysis_with_constraints = StructuralMechanicsAnalysisWithConstraints(model_with_constraints, analysis_parameters.Clone())
+        analysis_with_constraints = StructuralMechanicsAnalysisWithConstraints(model_with_constraints, analysis_parameters_with_constraints)
         model_part_with_constraints = model_with_constraints["Structure"]
         SetupSystem(model_part_with_constraints, use_constraints=True)
         analysis_with_constraints.Run()
@@ -98,7 +109,7 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
             eig_vec_mat = node[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
             eig_vec_mat_contr = node_const[StructuralMechanicsApplication.EIGENVECTOR_MATRIX]
 
-            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 12) # Note: this might me too strict depending on the eigenvalue solver (works fine with eigen_eigensystem in compination with the eigen sparse-lu)
+            self.__CompareMatrix(eig_vec_mat, eig_vec_mat_contr, 10) # Note: this might me too strict depending on the eigenvalue solver (works fine with eigen_eigensystem in compination with the eigen sparse-lu)
 
     def __CompareMatrix(self, mat_1, mat_2, tol=7):
         self.assertEqual(mat_1.Size1(), mat_2.Size1())
