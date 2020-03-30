@@ -102,8 +102,7 @@ class FEASTEigensystemSolver
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
             "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
 
-        const TScalarOut T = {};
-        CheckParameters(T);
+        CheckParameters<TScalarOut>();
     }
 
     ~FEASTEigensystemSolver() override = default;
@@ -124,8 +123,6 @@ class FEASTEigensystemSolver
         // settings
         const std::size_t system_size = rK.size1();
         size_t subspace_size;
-        const TScalarIn Ti = {};
-        const TScalarOut T = {};
 
         if( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() )
         {
@@ -196,8 +193,8 @@ class FEASTEigensystemSolver
 
         double epsout;
         int loop;
-        TScalarOut E1 = GetE1(T);
-        double E2 = GetE2(T);
+        TScalarOut E1 = GetE1<TScalarOut>();
+        double E2 = GetE2<TScalarOut>();
         double* Emin = reinterpret_cast<double*>(&E1);
         double* Emax = reinterpret_cast<double*>(&E2);
         int M0 = static_cast<int>(subspace_size);
@@ -208,7 +205,7 @@ class FEASTEigensystemSolver
         int info;
 
         // call feast
-        auto feast = CreateFeast(Ti, TSymmetric);
+        auto feast = CreateFeast<TScalarIn>(TSymmetric);
         feast(&UPLO, &N, A, IA.data(), JA.data(), B, IB.data(), JB.data(), fpm, &epsout, &loop, Emin, Emax, &M0, E, X, &M, res, &info);
 
         KRATOS_ERROR_IF(info < 0 || info > 99) << "FEAST encounterd error " << info << ". Please check FEAST output." << std::endl;
@@ -251,7 +248,8 @@ class FEASTEigensystemSolver
 
     typedef void (feast_ptr)(char*, int*, double*, int*, int*, double*, int*, int*, int*, double*, int*, double*, double*, int*, double*, double*, int*, double*, int*);
 
-    std::function<feast_ptr> CreateFeast(double T, bool symmetric)
+    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
+    std::function<feast_ptr> CreateFeast(bool symmetric)
     {
         using namespace std::placeholders;
 
@@ -262,7 +260,8 @@ class FEASTEigensystemSolver
         }
     }
 
-    std::function<feast_ptr> CreateFeast(std::complex<double> T, bool symmetric)
+    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
+    std::function<feast_ptr> CreateFeast(bool symmetric)
     {
         using namespace std::placeholders;
 
@@ -273,27 +272,32 @@ class FEASTEigensystemSolver
         }
     }
 
-    double GetE1(double T)
+    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
+    double GetE1()
     {
         return mParam["e_min"].GetDouble();
     }
 
-    double GetE2(double T)
-    {
-        return mParam["e_max"].GetDouble();
-    }
-
-    std::complex<double> GetE1(std::complex<double> T)
+    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
+    std::complex<double> GetE1()
     {
         return std::complex<double>(mParam["e_mid_re"].GetDouble(), mParam["e_mid_im"].GetDouble());
     }
 
-    double GetE2(std::complex<double> T)
+    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
+    double GetE2()
+    {
+        return mParam["e_max"].GetDouble();
+    }
+
+    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
+    double GetE2()
     {
         return mParam["e_r"].GetDouble();
     }
 
-    void CheckParameters(double T)
+    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
+    void CheckParameters()
     {
         KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
             "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
@@ -306,7 +310,8 @@ class FEASTEigensystemSolver
             "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
     }
 
-    void CheckParameters(std::complex<double> T)
+    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
+    void CheckParameters()
     {
         KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
             "Invalid search radius provided" << std::endl;
