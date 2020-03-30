@@ -60,9 +60,6 @@ namespace Kratos
 
     void KratosShallowWaterApplication::Register()
     {
-        // Calling base class register to register Kratos components
-        KratosApplication::Register();
-
         std::cout << " KRATOS      |          |   |                        " << std::endl;
         std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
         std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
