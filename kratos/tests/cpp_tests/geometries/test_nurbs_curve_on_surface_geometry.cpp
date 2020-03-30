@@ -250,7 +250,7 @@ typedef Node<3> NodeType;
 
     ///// Tests
     // Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
-    KRATOS_TEST_CASE_IN_SUITE(BSplineCurveOnBSplineSurface, KratosCoreNurbsGeometriesFastSuite) 
+    KRATOS_TEST_CASE_IN_SUITE(BSplineCurveOnSurfaceBSpline, KratosCoreNurbsGeometriesFastSuite) 
     {    
         // Create a B-Spline curve on a B-Spline surface
         auto curve_on_surface = GenerateReferenceBSplineCurveOnBSplineSurface3d();
@@ -273,7 +273,7 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_VECTOR_NEAR(derivatives[2], gradient2, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnNurbsSurface, KratosCoreNurbsGeometriesFastSuite) 
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceNurbs, KratosCoreNurbsGeometriesFastSuite) 
     {
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCurveOnNurbsSurface3d();
@@ -329,7 +329,7 @@ typedef Node<3> NodeType;
     }
 
     // test intersection with background surface
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceSpans, KratosCoreNurbsGeometriesFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceIntersectionSpans, KratosCoreNurbsGeometriesFastSuite)
     {
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
@@ -347,6 +347,56 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[2], 11.6569, 1e-4);
         KRATOS_CHECK_NEAR(spans[3], 19.2881, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137, 1e-4);
+    }
+
+
+    // test integration of curve on surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceCreateIntegrationPoints, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Create a Nurbs curve on a Nurbs surface
+        auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve_on_surface.CreateIntegrationPoints(integration_points);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 20);
+        double length = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            length += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(length, 23.313708498984759, TOLERANCE);
+    }
+
+    // test quadrature points of curve on surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Nurbs curve on a Nurbs surface
+        auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve_on_surface.CreateIntegrationPoints(integration_points);
+
+        typename Geometry<Point>::GeometriesArrayType quadrature_points;
+        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
+
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
+        double length = 0;
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
+                length += quadrature_points[i].IntegrationPoints()[j].Weight();
+            }
+        }
+        KRATOS_CHECK_NEAR(length, 23.313708498984759, TOLERANCE);
+
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[2][0];
+        local_coords[1] = integration_points[2][1];
+        curve_on_surface.GlobalCoordinates(global_coords, local_coords);
+
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[2].Center(), global_coords, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.
