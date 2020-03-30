@@ -7,7 +7,6 @@ import run_cpp_unit_tests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from shell_3p_element_tests import Shell3pElementTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -22,9 +21,7 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        Shell3pElementTests
-    ]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
