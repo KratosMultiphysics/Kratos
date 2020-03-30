@@ -674,8 +674,6 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
-    //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
