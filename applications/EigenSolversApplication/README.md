@@ -60,9 +60,9 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     "echo_level": 1
 }
 ```
-If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex systems (symmetric or unsymmetric). The cmake switch `USE_FEAST4` must be set to `ON` and the location of the compiled FEAST library has to be specified using `FEAST4_ROOT`, e.g.
+If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex systems (symmetric or unsymmetric). The cmake switch `USE_EIGEN_FEAST` must be set to `ON` and the location of the compiled FEAST library has to be specified using `FEAST4_ROOT`, e.g.
 ```batch
--DUSE_FEAST4=ON \
+-DUSE_EIGEN_FEAST=ON \
 -DFEAST4_ROOT=/home/me/compiled/FEAST/4.0 \
 ```
 

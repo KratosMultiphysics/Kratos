@@ -16,11 +16,14 @@
 #include <pybind11/pybind11.h>
 
 // External includes
-#if defined USE_FEAST4
-#define _MKL_SOLVERS_EE_H //exclude MKL's FEAST implementation
-#endif
 
 // Project includes
+
+//MKL implements some of FEAST's function. This define excludes the definitions of MKL's FEAST
+//functions in mkl/include/mkl_solvers_ee.h. Otherwise, some functions are defined multiple times
+#if defined USE_EIGEN_FEAST
+#define _MKL_SOLVERS_EE_H
+#endif
 
 namespace Kratos {
 namespace Python {

@@ -35,7 +35,7 @@
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
 #endif
 
-#if defined USE_FEAST4
+#if defined USE_EIGEN_FEAST
 #include "custom_solvers/feast_eigensystem_solver.h"
 #endif
 
@@ -206,7 +206,7 @@ void AddCustomSolversToPython(pybind11::module& m)
     // --- eigensystem solver
 
     register_eigensystem_solver(m, "EigensystemSolver");
-#if defined USE_FEAST4
+#if defined USE_EIGEN_FEAST
     register_feast_eigensystem_solver<FEASTEigensystemSolver<true, double, double>>(m, "FEASTSymmetricEigensystemSolver");
     register_feast_eigensystem_solver<FEASTEigensystemSolver<false, double, complex>>(m, "FEASTGeneralEigensystemSolver");
     register_feast_eigensystem_solver<FEASTEigensystemSolver<true, complex, complex>>(m, "ComplexFEASTSymmetricEigensystemSolver");
