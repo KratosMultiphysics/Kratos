@@ -60,12 +60,23 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+        # If we remesh using a process
+        solver = self._GetSolver()
+        computing_model_part = solver.GetComputingModelPart()
+        root_model_part = computing_model_part.GetRootModelPart()
+
         while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.time = solver.AdvanceInTime(self.time)
+            # We reinitialize if remeshed previously
+            if root_model_part.Is(KratosMultiphysics.MODIFIED):
+                self.ReInitializeSolver()
             self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()
-            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            # We reinitialize if remeshed on the InitializeSolutionStep
+            if root_model_part.Is(KratosMultiphysics.MODIFIED):
+                self.ReInitializeSolver()
+                self.InitializeSolutionStep()
+            solver.Predict()
+            solver.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
