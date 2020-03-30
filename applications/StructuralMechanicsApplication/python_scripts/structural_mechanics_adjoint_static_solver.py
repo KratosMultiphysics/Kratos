@@ -69,7 +69,13 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 "condition_name_table" :
                 {
                     "PointLoadCondition2D1N"         : "AdjointSemiAnalyticPointLoadCondition2D1N",
-                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N"
+                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N",
+                    "SurfaceLoadCondition3D3N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D3N",
+                    "SurfaceLoadCondition3D4N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D4N",
+                    "SmallDisplacementSurfaceLoadCondition3D3N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N",
+                    "SmallDisplacementSurfaceLoadCondition3D4N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N",
+                    "LineLoadCondition3D2N"                     : "AdjointSemiAnalyticLineLoadCondition3D2N",
+                    "SmallDisplacementLineLoadCondition3D2N"    : "AdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N"
                 },
                 "ignore_conditions" : [
                     "SurfaceCondition3D3N",
