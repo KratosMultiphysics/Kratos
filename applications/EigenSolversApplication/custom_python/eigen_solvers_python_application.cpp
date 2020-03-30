@@ -32,11 +32,25 @@ PYBIND11_MODULE(KratosEigenSolversApplication, m)
            KratosEigenSolversApplication::Pointer,
            KratosApplication>(m, "KratosEigenSolversApplication")
         .def(py::init<>())
-        .def("HasMKL", &KratosEigenSolversApplication::HasMKL)
-        .def("HasFEAST", &KratosEigenSolversApplication::HasFEAST)
         ;
 
     AddCustomSolversToPython(m);
+
+    m.def("HasMKL", [](py::object) {
+#if defined(USE_EIGEN_MKL)
+        return true;
+#else
+        return false;
+#endif
+        });
+
+    m.def("HasFEAST", [](py::object) {
+#if defined(USE_EIGEN_FEAST)
+        return true;
+#else
+        return false;
+#endif
+        });
 }
 
 } // namespace Python

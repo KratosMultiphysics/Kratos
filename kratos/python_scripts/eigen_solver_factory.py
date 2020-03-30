@@ -22,7 +22,7 @@ def ConstructSolver(settings):
     elif solver_type == "eigen_feast":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
-            if EiSA.KratosEigenSolversApplication().HasFEAST():
+            if EiSA.HasFEAST:
                 if settings.Has("symmetric") and settings["symmetric"].GetBool():
                     eigen_solver = EiSA.FEASTSymmetricEigensystemSolver(settings)
                 else:
@@ -35,7 +35,7 @@ def ConstructSolver(settings):
     elif solver_type == "eigen_feast_complex":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
-            if EiSA.KratosEigenSolversApplication().HasFEAST():
+            if EiSA.HasFEAST:
                 if settings.Has("symmetric") and settings["symmetric"].GetBool():
                     eigen_solver = EiSA.ComplexFEASTSymmetricEigensystemSolver(settings)
                 else:

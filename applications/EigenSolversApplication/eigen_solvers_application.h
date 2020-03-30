@@ -79,24 +79,6 @@ public:
     ///@name Inquiry
     ///@{
 
-    constexpr bool HasMKL()
-    {
-#if defined(USE_EIGEN_MKL)
-        return true;
-#else
-        return false;
-#endif
-    }
-
-    constexpr bool HasFEAST()
-    {
-#if defined(USE_EIGEN_FEAST)
-        return true;
-#else
-        return false;
-#endif
-    }
-
     ///@}
     ///@name Input and output
     ///@{
