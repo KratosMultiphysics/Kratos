@@ -374,8 +374,8 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
     if (volumetric_strain>0)
     {
         lame_lambda =  -(young_modulus)/(3*(1+poisson_ratio));
-        double diagonal    = (lame_lambda + lame_mu)/(1e-6);
-        double nondiagonal = (-lame_lambda)/(1e-6);
+        diagonal    = (lame_lambda + lame_mu)/(1e-6);
+        nondiagonal = (-lame_lambda)/(1e-6);
     }
 
     for (unsigned int i = 0; i<3; ++i)
