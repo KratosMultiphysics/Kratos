@@ -137,11 +137,11 @@ public:
     ///@name Access Set Values
     ///@{
 
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > > rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
