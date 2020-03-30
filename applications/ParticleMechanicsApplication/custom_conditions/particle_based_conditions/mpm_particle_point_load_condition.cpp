@@ -179,7 +179,7 @@ namespace Kratos
         m_xg += delta_xg ;
     }
 
-    void MPMParticlePointLoadCondition::SetValueOnIntegrationPoints(
+    void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > > rValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -192,7 +192,7 @@ namespace Kratos
             m_point_load = rValues[0];
         }
         else {
-            MPMParticleBaseLoadCondition::SetValueOnIntegrationPoints(
+            MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(
                 rVariable, rValues, rCurrentProcessInfo);
         }
     }

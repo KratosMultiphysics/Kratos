@@ -48,17 +48,17 @@ namespace Testing
         volume_acceleration[0] = 0.0;
         volume_acceleration[1] = -9.8;
         volume_acceleration[2] = 0.0;
-        pElement->SetValueOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
         std::vector<double> mp_mass_vector = { 1.5 };
-        pElement->SetValueOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
-        pElement->SetValueOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
 
         // For kinetic energy
         array_1d<double, 3> velocity;
         velocity[0] = 1.0;
         velocity[1] = 2.0;
         velocity[2] = 3.0;
-        pElement->SetValueOnIntegrationPoints(MP_VELOCITY, { velocity }, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity }, rModelPart.GetProcessInfo());
 
         // For strain energy
         //Vector mp_cauchy_stress1 = ;
@@ -77,11 +77,11 @@ namespace Testing
         mp_strain[4] = 0.5;
         mp_strain[5] = 0.6;
         std::vector<double> mp_volume_vector = { 2.5 };
-        pElement->SetValueOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
         std::vector<Vector> mp_cauchy_stress_vector = { mp_cauchy_stress };
-        pElement->SetValueOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
         std::vector<Vector> mp_almansi_strain_vector = { mp_strain };
-        pElement->SetValueOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
     }
 
     /**
