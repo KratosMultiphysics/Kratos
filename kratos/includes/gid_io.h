@@ -61,12 +61,11 @@ enum MultiFileFlag {SingleFile, MultipleFiles};
 
 class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
 
-    protected:
+protected:
     /**
      * Counter of live GidIO instances
      * (to ensure GiD_PostInit and GiD_PostDone are properly called)
      */
-    static GidIOBase *msLiveInstances;
     int data;
 
     // Private constructor so that no objects can be created.
@@ -74,20 +73,16 @@ class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
         data = 0;
     }
 
-    public:
-    static GidIOBase *getInstance() {
-        if (!msLiveInstances)
-        msLiveInstances = new GidIOBase;
-        return msLiveInstances;
-    }
+public:
+    static GidIOBase& GetInstance();
 
-    int getData() {
-        return this -> data;
-    }
+    int GetData();
+    void SetData(int data);
 
-    void setData(int data) {
-        this -> data = data;
-    }
+private:
+    static void Create();
+
+    static GidIOBase* mpInstance;
 };
 
 /**
@@ -131,13 +126,13 @@ public:
         SetUpMeshContainers();
         SetUpGaussPointContainers();
 
-        GidIOBase *msLiveInstances = msLiveInstances->getInstance();
+        GidIOBase & gid_io_base = GidIOBase::GetInstance();
 
-        if (msLiveInstances->getData() == 0)
-        {
+        if (gid_io_base.GetData() == 0) {
           GiD_PostInit();
         }
-        msLiveInstances->setData(msLiveInstances->getData() + 1);
+
+        gid_io_base.SetData(gid_io_base.GetData() + 1);
     }
 
     ///Destructor.
@@ -151,11 +146,11 @@ public:
             mResultFileOpen = false;
         }
 
-        GidIOBase *msLiveInstances = msLiveInstances->getInstance();
+        GidIOBase & gid_io_base = GidIOBase::GetInstance();
 
-        msLiveInstances->setData(msLiveInstances->getData() - 1);
-        if (msLiveInstances->getData() == 0)
-        {
+        gid_io_base.SetData(gid_io_base.GetData() - 1);
+
+        if (gid_io_base.GetData() == 0) {
           GiD_PostDone();
         }
     }
