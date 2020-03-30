@@ -33,10 +33,6 @@ namespace Kratos {
         mSurfaceLoadFromDEMCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))) {}
 
     void KratosDemStructuresCouplingApplication::Register() {
-        // Calling base class register to register Kratos components
-
-        KratosApplication::Register();
-
         // STRUCTURAL COUPLING
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEM_SURFACE_LOAD)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKUP_LAST_STRUCTURAL_VELOCITY)

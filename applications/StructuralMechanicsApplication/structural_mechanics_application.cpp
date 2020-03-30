@@ -215,9 +215,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mDisplacementControlCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))){}
 
 void KratosStructuralMechanicsApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     KRATOS_INFO("") << "    KRATOS   ___|  |                   |                   |\n"
                     << "           \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |\n"
                     << "                 | |   |    |   | (    |   |   | |   (   | |\n"

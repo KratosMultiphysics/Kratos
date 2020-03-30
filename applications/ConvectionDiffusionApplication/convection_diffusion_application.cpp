@@ -56,8 +56,6 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mAdjointThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
 void KratosConvectionDiffusionApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") <<
     " KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ " << std::endl <<
     "       / __/ _ || || | | / /__|   |_ _| __| __|" << std::endl <<
