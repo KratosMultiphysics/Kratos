@@ -280,7 +280,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -292,12 +292,12 @@ void MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(const Var
         m_penalty = rValues[0];
     }
     else {
-        MPMParticleBaseDirichletCondition::SetValueOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(
+void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -314,7 +314,7 @@ void MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(
         ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
     }
     else {
-        MPMParticleBaseDirichletCondition::SetValueOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }

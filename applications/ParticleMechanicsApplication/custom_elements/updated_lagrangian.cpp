@@ -1714,13 +1714,13 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& rVa
 ///@name Access Set Values
 ///@{
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1739,11 +1739,11 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<double>& rVar
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1768,11 +1768,11 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<array_1d<doub
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1788,7 +1788,7 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVar
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 

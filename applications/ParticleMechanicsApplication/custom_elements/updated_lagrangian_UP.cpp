@@ -1206,7 +1206,7 @@ void UpdatedLagrangianUP::CalculateOnIntegrationPoints(const Variable<double>& r
     }
 }
 
-void UpdatedLagrangianUP::SetValueOnIntegrationPoints(
+void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -1219,7 +1219,7 @@ void UpdatedLagrangianUP::SetValueOnIntegrationPoints(
         m_mp_pressure = rValues[0];
     }
     else {
-        UpdatedLagrangian::SetValueOnIntegrationPoints(
+        UpdatedLagrangian::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }

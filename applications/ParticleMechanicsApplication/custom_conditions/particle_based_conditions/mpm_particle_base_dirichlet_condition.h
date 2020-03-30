@@ -59,7 +59,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
 
     using MPMParticleBaseCondition::CalculateOnIntegrationPoints;
-    using MPMParticleBaseCondition::SetValueOnIntegrationPoints;
+    using MPMParticleBaseCondition::SetValuesOnIntegrationPoints;
 
     ///@}
     ///@name Life Cycle
@@ -117,7 +117,7 @@ public:
     ///@name Access Set Values
     ///@{
 
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > > rValues,
         const ProcessInfo& rCurrentProcessInfo) override;

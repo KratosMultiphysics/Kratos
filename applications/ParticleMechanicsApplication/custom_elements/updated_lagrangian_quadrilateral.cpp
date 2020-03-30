@@ -1796,13 +1796,13 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
 ///@name Access Set Values
 ///@{
 
-void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+void UpdatedLagrangianQuadrilateral::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void UpdatedLagrangianQuadrilateral::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1821,11 +1821,11 @@ void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+void UpdatedLagrangianQuadrilateral::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1850,11 +1850,11 @@ void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
-void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void UpdatedLagrangianQuadrilateral::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1870,7 +1870,7 @@ void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints(const Variable<
     }
     else
     {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValueOnIntegrationPoints, but is not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
     }
 }
 
