@@ -5,13 +5,13 @@ import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import StructuralMechanicsAnalysisROM
 import json
 
-class StructuralMechanicsAnalysisWithFlush(StructuralMechanicsAnalysisROM):
+class TestStructuralMechanicsStaticHROM(StructuralMechanicsAnalysisROM):
 
     def __init__(self,model,project_parameters):
-        super(StructuralMechanicsAnalysisWithFlush,self).__init__(model,project_parameters)
+        super(TestStructuralMechanicsStaticHROM,self).__init__(model,project_parameters)
 
     def ModifyInitialGeometry(self):
-        super(StructuralMechanicsAnalysisWithFlush,self).ModifyInitialGeometry()
+        super(TestStructuralMechanicsStaticHROM,self).ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
 
         ## Adding the weights to the corresponding elements
@@ -28,16 +28,5 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     with open("ProjectParametersHROM.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    Simulation = StructuralMechanicsAnalysisWithFlush(model,parameters)
+    Simulation = TestStructuralMechanicsStaticHROM(model,parameters)
     Simulation.Run()
-
-
-
-
-
-
-
-
-
-
-

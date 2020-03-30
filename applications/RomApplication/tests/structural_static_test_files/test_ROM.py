@@ -4,6 +4,7 @@ import numpy as np
 import os
 
 from .MainKratosROM import TestStructuralMechanicsStaticROM
+from .MainKratosHROM import TestStructuralMechanicsStaticHROM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
@@ -37,7 +38,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             with open("ProjectParametersHROM.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             model = KratosMultiphysics.Model()
-            Simulation = TestStructuralMechanicsStaticROM(model,parameters)
+            Simulation = TestStructuralMechanicsStaticHROM(model,parameters)
             Simulation.Run()
             computing_model_part = Simulation._solver.GetComputingModelPart()
             dimension = Simulation._GetSolver().settings["domain_size"].GetInt()
@@ -52,6 +53,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
                 UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-1] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)  )**2)
                 DOWN +=  2*NodalArea
             L2 = np.sqrt(UP/DOWN)
+            self.assertLess(L2, 1.0e-4)
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
             kratos_utilities.DeleteDirectoryIfExisting("vtk_output")
