@@ -65,27 +65,27 @@ public:
     ///@{
 
     /// Import geometry models from external input.
-    void ImportGeometryModel(
+    virtual void ImportGeometryModel(
         Model& rModel) const
     {}
 
     /// Prepare or update the geometry model_part.
-    void PrepareGeometryModel(
+    virtual void PrepareGeometryModel(
         Model& rModel) const
     {}
 
     /// Convert the geometry model to analysis suitable models.
-    void GenerateModelPart(
+    virtual void GenerateModelPart(
         Model& rModel) const
     {}
 
     /// Import the model_part from external input.
-    void ImportModelPart(
+    virtual void ImportModelPart(
         Model& rModel) const
     {}
 
     /// Prepare the analysis model_part for the simulation.
-    void PrepareModelPart(
+    virtual void PrepareModelPart(
         Model& rModel) const
     {}
 
@@ -94,27 +94,27 @@ public:
     ///@{
 
     /// Update the analysis model_part after the simulation.
-    void UpdateModelPart(
+    virtual void UpdateModelPart(
         Model& rModel) const
     {}
 
     /// Outputs the model_part for external usage.
-    void OutputModelPart(
+    virtual void OutputModelPart(
         Model & rModel) const
     {}
 
     /// Updates the geometry model with the solutions from the analysis.
-    void UpdateSolutionGeometryModel(
+    virtual void UpdateSolutionGeometryModel(
         Model& rModel) const
     {}
 
     /// Updates the geometry model.
-    void UpdateGeometryModel(
+    virtual void UpdateGeometryModel(
         Model& rModel) const
     {}
 
     /// Outputs the geometry models for external usage.
-    void OuptutGeometryModel(
+    virtual void OuptutGeometryModel(
         Model& rModel) const
     {}
 
