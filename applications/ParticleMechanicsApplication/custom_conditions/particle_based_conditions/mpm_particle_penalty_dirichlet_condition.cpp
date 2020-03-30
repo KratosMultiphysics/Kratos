@@ -292,7 +292,7 @@ void MPMParticlePenaltyDirichletCondition::SetValueOnIntegrationPoints(const Var
         m_penalty = rValues[0];
     }
     else {
-        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
+        MPMParticleBaseDirichletCondition::SetValueOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
