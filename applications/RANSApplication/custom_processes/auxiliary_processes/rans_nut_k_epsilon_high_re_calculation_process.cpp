@@ -53,10 +53,6 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
     KRATOS_CATCH("");
 }
 
-RansNutKEpsilonHighReCalculationProcess::~RansNutKEpsilonHighReCalculationProcess()
-{
-}
-
 int RansNutKEpsilonHighReCalculationProcess::Check()
 {
     KRATOS_TRY

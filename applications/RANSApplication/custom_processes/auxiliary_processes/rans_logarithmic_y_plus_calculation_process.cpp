@@ -68,10 +68,6 @@ RansLogarithmicYPlusCalculationProcess::RansLogarithmicYPlusCalculationProcess(M
     KRATOS_CATCH("");
 }
 
-RansLogarithmicYPlusCalculationProcess::~RansLogarithmicYPlusCalculationProcess()
-{
-}
-
 int RansLogarithmicYPlusCalculationProcess::Check()
 {
     KRATOS_TRY

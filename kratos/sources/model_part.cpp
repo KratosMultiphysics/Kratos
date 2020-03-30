@@ -38,6 +38,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
+    , mGeometries()
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
@@ -1589,6 +1590,74 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
     root_model_part.RemoveConditions(IdentifierFlag);
 }
 
+///@}
+///@name Geometry Container
+///@{
+
+/// Adds a geometry to the geometry container.
+void ModelPart::AddGeometry(
+    typename GeometryType::Pointer pNewGeometry)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->AddGeometry(pNewGeometry);
+    }
+    /// Check if geometry id already used, is done within the geometry container.
+    mGeometries.AddGeometry(pNewGeometry);
+}
+
+
+/// Removes a geometry by id.
+void ModelPart::RemoveGeometry(
+    IndexType GeometryId)
+{
+    mGeometries.RemoveGeometry(GeometryId);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        ++i_sub_model_part)
+        i_sub_model_part->RemoveGeometry(GeometryId);
+}
+
+/// Removes a geometry by name.
+void ModelPart::RemoveGeometry(
+    std::string GeometryName)
+{
+    mGeometries.RemoveGeometry(GeometryName);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        ++i_sub_model_part)
+        i_sub_model_part->RemoveGeometry(GeometryName);
+}
+
+/// Removes a geometry by id from all root and sub model parts.
+void ModelPart::RemoveGeometryFromAllLevels(IndexType GeometryId)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveGeometry(GeometryId);
+        return;
+    }
+
+    RemoveGeometry(GeometryId);
+}
+
+/// Removes a geometry by name from all root and sub model parts.
+void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveGeometry(GeometryName);
+        return;
+    }
+
+    RemoveGeometry(GeometryName);
+}
+
+///@}
+///@name Sub Model Parts
+///@{
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
@@ -1720,6 +1789,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
+    rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
@@ -1763,7 +1833,8 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
-
+    rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
+    
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
@@ -1795,6 +1866,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    rSerializer.save("Geometries", mGeometries);
 
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
 
@@ -1820,6 +1892,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    rSerializer.load("Geometries", mGeometries);
 
     SizeType number_of_submodelparts;
     rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);

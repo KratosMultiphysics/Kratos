@@ -164,8 +164,9 @@ struct gauss_seidel {
             const ptrdiff_t inc = forward ? 1 : -1;
 
             for(ptrdiff_t i = beg; i != end; i += inc) {
-                rhs_type X = rhs[i];
                 val_type D = math::identity<val_type>();
+                rhs_type X;
+                X = rhs[i];
 
                 for (auto a = backend::row_begin(A, i); a; ++a) {
                     ptrdiff_t c = a.col();
@@ -329,8 +330,9 @@ struct gauss_seidel {
                             ptrdiff_t beg = ptr[tid][r];
                             ptrdiff_t end = ptr[tid][r+1];
 
-                            rhs_type   X = rhs[i];
                             value_type D = math::identity<value_type>();
+                            rhs_type X;
+                            X = rhs[i];
 
                             for(ptrdiff_t j = beg; j < end; ++j) {
                                 ptrdiff_t  c = col[tid][j];
