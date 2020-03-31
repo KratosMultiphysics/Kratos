@@ -172,7 +172,7 @@ void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ThermalElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                   std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
@@ -184,7 +184,7 @@ void ThermalElement::SetValueOnIntegrationPoints( const Variable<double>& rVaria
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void ThermalElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                   std::vector<Vector>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
@@ -196,7 +196,7 @@ void ThermalElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVaria
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void ThermalElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                   std::vector<Matrix>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {

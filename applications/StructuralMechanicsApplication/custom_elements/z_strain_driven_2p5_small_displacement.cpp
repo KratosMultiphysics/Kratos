@@ -130,7 +130,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
+void ZStrainDriven2p5DSmallDisplacement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -142,7 +142,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
             mImposedZStrainVector[point_number] = rValues[point_number];
         }
     } else {
-        BaseType::SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        BaseType::SetValuesOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 

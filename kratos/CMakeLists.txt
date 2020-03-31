@@ -142,6 +142,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_vector_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_application_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_quaternion_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp

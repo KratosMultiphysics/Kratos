@@ -10,8 +10,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_ELEMENT_FINITE_DIFFERENCE_UTILITY_H_INCLUDED )
-#define  KRATOS_ELEMENT_FINITE_DIFFERENCE_UTILITY_H_INCLUDED
+#if !defined(KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED )
+#define  KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED
 
 
 // System includes
@@ -27,14 +27,14 @@
 namespace Kratos
 {
 
-/** \brief ElementFiniteDifferenceUtility
+/** \brief FiniteDifferenceUtility
  *
  * This class calculates the derivatives of different element quantities (e.g. RHS, LHS, mass-matrix, ...)
  * with respect to a design variable (e.g. nodal-coordinate, property).
  */
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElementFiniteDifferenceUtility
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteDifferenceUtility
 {
 public:
 
@@ -49,13 +49,51 @@ public:
                                                 Matrix& rOutput,
                                                 ProcessInfo& rCurrentProcessInfo);
 
-    static void CalculateRightHandSideDerivative(Element& rElement,
+    template <typename TElementType>
+    static void CalculateRightHandSideDerivative(TElementType& rElement,
                                                 const Vector& rRHS,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
+        {
+            const IndexType coord_dir =
+                FiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+
+            // define working variables
+            Vector RHS_perturbed;
+
+            if (rOutput.size() != rRHS.size())
+                rOutput.resize(rRHS.size(), false);
+
+            // perturb the design variable
+            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            rNode.Coordinates()[coord_dir] += rPertubationSize;
+
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+            // compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
+
+            // unperturb the design variable
+            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            rNode.Coordinates()[coord_dir] -= rPertubationSize;
+        }
+        else
+        {
+            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            if ( (rOutput.size() != 0) )
+                rOutput.resize(0,false);
+        }
+
+        KRATOS_CATCH("");
+    }
 
     static void CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
@@ -77,12 +115,12 @@ private:
 
     static std::size_t GetCoordinateDirection(const array_1d_component_type& rDesignVariable);
 
-}; // class ElementFiniteDifferenceUtility.
+}; // class FiniteDifferenceUtility.
 
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ELEMENT_FINITE_DIFFERENCE_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED  defined
 
 
