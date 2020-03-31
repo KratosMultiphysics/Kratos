@@ -26,7 +26,7 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
     )
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // The dimensions
@@ -96,9 +96,9 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ContactSearchWrapperProcess::GetDefaultParameters()
+const Parameters ContactSearchWrapperProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "simple_search"                        : false,
         "allocation_size"                      : 1000,

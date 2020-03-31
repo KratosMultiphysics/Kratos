@@ -207,7 +207,7 @@ namespace Kratos
             return *dummy;
         }
 
-        template< typename TSpaceType > 
+        template< typename TSpaceType >
         py::class_< TSpaceType > CreateSpaceInterface(pybind11::module& m, std::string Name)
         {
             py::class_< TSpaceType > binder(m,Name.c_str());
@@ -274,7 +274,7 @@ namespace Kratos
                 .def("Clean", &BaseSchemeType::Clean)
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
-                .def("Check", &BaseSchemeType::Check)
+                .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -313,7 +313,7 @@ namespace Kratos
 	         py::class_< ResidualBasedPseudoStaticDisplacementSchemeType,
                 typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
                 BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
-                .def(py::init< const Variable<double> >() )
+                .def(py::init< const Variable<double>& >() )
                 ;
 
             // Residual Based BDF displacement Scheme Type
@@ -430,6 +430,7 @@ namespace Kratos
                 .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
                 .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
+                .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
                 .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
@@ -459,6 +460,7 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
             .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
 
             //********************************************************************
@@ -514,6 +516,7 @@ namespace Kratos
                 (m,"ResidualBasedLinearStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
                 .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
+                .def("GetScheme", &ResidualBasedLinearStrategyType::GetScheme)
                 .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
                 .def("SetBuilderAndSolver", &ResidualBasedLinearStrategyType::SetBuilderAndSolver)
                 .def("GetSystemMatrix", &ResidualBasedLinearStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)

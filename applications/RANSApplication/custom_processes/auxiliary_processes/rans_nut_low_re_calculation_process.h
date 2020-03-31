@@ -68,7 +68,7 @@ public:
     RansNutLowReCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansNutLowReCalculationProcess() override;
+    ~RansNutLowReCalculationProcess() override = default;
 
     ///@}
     ///@name Operators

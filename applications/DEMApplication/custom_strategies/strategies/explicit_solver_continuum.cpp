@@ -198,10 +198,7 @@ namespace Kratos {
 
             if (is_time_to_search_neighbours) {
 
-                CalculateMaxSearchDistance(); //Modifies r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] // Must be called before the bounding box or it uses non-existent elements
-
-	        if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
-
+                if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
                     BoundingBoxUtility();
                 } else {
                     GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
@@ -211,7 +208,7 @@ namespace Kratos {
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
-                SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
+                SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT], r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR]);
 
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
 
@@ -237,14 +234,10 @@ namespace Kratos {
                 r_process_info[SEARCH_CONTROL] = 1;
             }
 
-            //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-
             if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
             }
-            //}
-
         }
         //Synch this var.
         r_process_info[SEARCH_CONTROL] = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
@@ -414,6 +407,8 @@ namespace Kratos {
         int iteration = 0;
         int maxiteration = 100;
         double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+        added_search_distance = 0.0;
+        double amplification = 1.0;
 
         if(r_model_part.GetCommunicator().MyPID() == 0) {
             KRATOS_WARNING("DEM") << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
@@ -422,18 +417,27 @@ namespace Kratos {
         if (in_coordination_number <= 0.0) {
             KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ", in_coordination_number)
         }
-
         while (fabs(out_coordination_number / in_coordination_number - 1.0) > 1e-3) {
             if (iteration >= maxiteration) break;
             iteration++;
-            if(r_model_part.GetCommunicator().MyPID() == 0) { KRATOS_INFO("DEM") <<" * "<<std::flush; }
             if (out_coordination_number == 0.0) {
                 KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
                 KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
                 break;
             }
-            added_search_distance *= in_coordination_number / out_coordination_number;
-            SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
+
+            double old_amplification = amplification;
+            amplification *= std::sqrt(in_coordination_number / out_coordination_number);
+
+            const double max_factor_between_iterations = 1.1;
+            if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
+            if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
+            if ( amplification < 1.0 ) {
+                iteration = maxiteration;
+                break;
+            }
+
+            SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, amplification);
             SearchNeighbours(); //r_process_info[SEARCH_RADIUS_INCREMENT] will be used inside this function, and it's the variable we are updating in this while
             out_coordination_number = ComputeCoordinationNumber(standard_dev);
         }//while
@@ -442,10 +446,11 @@ namespace Kratos {
 
         if (iteration < maxiteration){
             if(r_model_part.GetCommunicator().MyPID() == 0) {
-                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
+                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an amplification of radius of " << amplification << ". " << "\n" << std::endl;
                 KRATOS_WARNING("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
                 KRATOS_WARNING("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
             }
+            r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
         }
 
         else {
@@ -539,8 +544,9 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
-            double max_sphere = mListOfSphericContinuumParticles[i]->CalculateMaxSearchDistance(has_mpi, r_process_info);
-            if (max_sphere > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sphere;
+            double max_search_distance_for_this_sphere = mListOfSphericContinuumParticles[i]->CalculateMaxSearchDistance(has_mpi, r_process_info);
+            const double ratio_search_distance_versus_radius = max_search_distance_for_this_sphere / mListOfSphericContinuumParticles[i]->GetRadius();
+            if (ratio_search_distance_versus_radius > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = ratio_search_distance_versus_radius;
         }
 
         double maximum_across_threads = 0.0;
@@ -548,24 +554,28 @@ namespace Kratos {
             if (thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
         }
 
-        r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
+        double& ratio = r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR];
 
-        const double ratio = r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] / r_process_info[SEARCH_RADIUS_INCREMENT];
+        if (maximum_across_threads > ratio) {
+            ratio = maximum_across_threads;
+        }
+
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
 
         static unsigned int counter = 0;
-        unsigned int maximum_number_of_prints = 500;
+        unsigned int maximum_number_of_prints = 5;
 
         if ((ratio > max_ratio) && (counter <= maximum_number_of_prints)) {
             KRATOS_INFO("DEM") <<std::endl;
             KRATOS_WARNING("DEM") <<"************************************************************************"<<std::endl;
             KRATOS_WARNING("DEM") <<"WARNING! The automatic extension of the search radius, based on mechanical"<<std::endl;
             KRATOS_WARNING("DEM") <<"reasons, is trying to extend more than "<<max_ratio<<" times the "<<std::endl;
-            KRATOS_WARNING("DEM") <<"previously set search radius!"<<std::endl;
-            KRATOS_WARNING("DEM") <<"Some bonds might break for search reasons instead of mechanical reasons."<<std::endl;
-            KRATOS_WARNING("DEM") <<"The ratio is limited to that value ("<<max_ratio<<" times by the input "<<std::endl;
-            KRATOS_WARNING("DEM") <<"variable 'MaxAmplificationRatioOfSearchRadius'"<<std::endl;
+            KRATOS_WARNING("DEM") <<"original particle radius!"<<std::endl;
+            KRATOS_WARNING("DEM") <<"Some bonds might break for search reasons instead of mechanical reasons from now on"<<std::endl;
+            KRATOS_WARNING("DEM") <<"because the ratio is limited to that value ("<<max_ratio<<" times as introduced by "<<std::endl;
+            KRATOS_WARNING("DEM") <<"the input variable 'MaxAmplificationRatioOfSearchRadius')"<<std::endl;
             KRATOS_WARNING("DEM") <<"************************************************************************"<<std::endl;
+            ratio = max_ratio;
         }
 
         ++counter;

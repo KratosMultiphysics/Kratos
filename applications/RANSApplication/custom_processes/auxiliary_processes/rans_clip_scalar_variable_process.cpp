@@ -50,10 +50,6 @@ RansClipScalarVariableProcess::RansClipScalarVariableProcess(Model& rModel, Para
     KRATOS_CATCH("");
 }
 
-RansClipScalarVariableProcess::~RansClipScalarVariableProcess()
-{
-}
-
 int RansClipScalarVariableProcess::Check()
 {
     KRATOS_TRY

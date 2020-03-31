@@ -32,7 +32,7 @@ class EmpiricalSpringElementProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name"           : "example_part",
-            "computing_model_part_name" : "computing_domain",
+            "computing_model_part_name" : "Structure",
             "node_ids"                  : [1,2],
             "element_id"                : 1,
             "property_id"               : 1,

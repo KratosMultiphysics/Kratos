@@ -40,66 +40,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * Constructor.
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilon<TDim, TNumNodes>::RansEvmKEpsilonEpsilon(IndexType NewId)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>(NewId)
-{
-}
-
-/**
- * Constructor using an array of nodes
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilon<TDim, TNumNodes>::RansEvmKEpsilonEpsilon(IndexType NewId,
-                                                                const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>(
-          NewId, ThisNodes)
-{
-}
-
-/**
- * Constructor using Geometry
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilon<TDim, TNumNodes>::RansEvmKEpsilonEpsilon(IndexType NewId,
-                                                                GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>(
-          NewId, pGeometry)
-{
-}
-
-/**
- * Constructor using Properties
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilon<TDim, TNumNodes>::RansEvmKEpsilonEpsilon(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>(
-          NewId, pGeometry, pProperties)
-{
-}
-
-/**
- * Copy Constructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilon<TDim, TNumNodes>::RansEvmKEpsilonEpsilon(
-    RansEvmKEpsilonEpsilon<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>(rOther)
-{
-}
-
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilon<TDim, TNumNodes>::~RansEvmKEpsilonEpsilon()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

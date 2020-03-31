@@ -40,66 +40,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * Constructor.
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::RansEvmKEpsilonLowReKElement(IndexType NewId)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReKElementData>(NewId)
-{
-}
-
-/**
- * Constructor using an array of nodes
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::RansEvmKEpsilonLowReKElement(
-    IndexType NewId, const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReKElementData>(
-          NewId, ThisNodes)
-{
-}
-
-/**
- * Constructor using Geometry
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::RansEvmKEpsilonLowReKElement(
-    IndexType NewId, GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReKElementData>(
-          NewId, pGeometry)
-{
-}
-
-/**
- * Constructor using Properties
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::RansEvmKEpsilonLowReKElement(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReKElementData>(
-          NewId, pGeometry, pProperties)
-{
-}
-
-/**
- * Copy Constructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::RansEvmKEpsilonLowReKElement(
-    RansEvmKEpsilonLowReKElement<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReKElementData>(rOther)
-{
-}
-
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::~RansEvmKEpsilonLowReKElement()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

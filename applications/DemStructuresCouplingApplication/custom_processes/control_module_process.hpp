@@ -155,45 +155,6 @@ public:
     {
         KRATOS_TRY;
 
-        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-        const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
-
-        if(mRadialDisplacement == true) {
-            ComponentType VarComponentX = KratosComponents< ComponentType >::Get(mVariableNameX);
-            ComponentType VarComponentY = KratosComponents< ComponentType >::Get(mVariableNameY);
-
-            #pragma omp parallel for
-            for(int i = 0; i<NNodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
-                double cos_theta = it->X()/external_radius;
-                double sin_theta = it->Y()/external_radius;
-
-                it->FastGetSolutionStepValue(VarComponentX) += mVelocity * cos_theta * DeltaTime;
-                it->FastGetSolutionStepValue(VarComponentY) += mVelocity * sin_theta * DeltaTime;
-            }
-        } else {
-            ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
-
-            #pragma omp parallel for
-            for(int i = 0; i<NNodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                it->FastGetSolutionStepValue(VarComponent) += mVelocity * DeltaTime;
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-
         const double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
 
         if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
@@ -332,9 +293,39 @@ public:
             }
         }
 
+        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+        const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
+
+        if(mRadialDisplacement == true) {
+            ComponentType VarComponentX = KratosComponents< ComponentType >::Get(mVariableNameX);
+            ComponentType VarComponentY = KratosComponents< ComponentType >::Get(mVariableNameY);
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
+                double cos_theta = it->X()/external_radius;
+                double sin_theta = it->Y()/external_radius;
+
+                it->FastGetSolutionStepValue(VarComponentX) += mVelocity * cos_theta * DeltaTime;
+                it->FastGetSolutionStepValue(VarComponentY) += mVelocity * sin_theta * DeltaTime;
+            }
+        } else {
+            ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                it->FastGetSolutionStepValue(VarComponent) += mVelocity * DeltaTime;
+            }
+        }
+
         KRATOS_CATCH("");
     }
-
 
     /// Turn back information as a string.
     std::string Info() const override
