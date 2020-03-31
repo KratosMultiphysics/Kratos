@@ -211,6 +211,13 @@ namespace SpecificationsUtilities
      */
     bool KRATOS_API(KRATOS_CORE) CheckCompatibleConstitutiveLaws(ModelPart& rModelPart);
 
+    /**
+     * @brief This method returns the documentation provided by the element/condition
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return Parameters containing a resume of all the documentation
+     */
+    Parameters KRATOS_API(KRATOS_CORE) GetDocumention(ModelPart& rModelPart);
+
 }; // namespace SpecificationsUtilities
 }  // namespace Kratos
 #endif /* KRATOS_SPECIFICATIONS_UTILITIES defined */
