@@ -18,7 +18,6 @@ proc InitGIDProject { dir } {
     # }
 }
 
-#-------------------------------------------------------------------------------
 
 proc BeforeMeshGeneration {elementsize} {
     W "execute BeforeMeshGeneration"
@@ -30,7 +29,6 @@ proc AfterMeshGeneration {fail} {
     CalculateInertia
 }
 
-#-------------------------------------------------------------------------------
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
@@ -38,28 +36,26 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     source [file join $problemtypedir file.tcl]
 }
 
-#-------------------------------------------------------------------------------
+proc GenerateOBJFile { } {
+    # Analyze the format of the OBJ and generate the file in GID
+}
 
-proc CalculateInertia  { } { 
-    W "execute CalculateInertia"
-    foreach volume_id [GiD_Geometry list volume 1:end] {
-        set volume_info [GiD_Info list_entities volume $volume_id]
-    }
-    
-    set triangles [GiD_Mesh list -element_type {triangle} element]
-    W $triangles
-
-    set tetra [GiD_Mesh list -element_type {tetrahedra} element]
-    W $tetra
-
-
-
-    # 1.- calculate total volume from tetrahedras:
-    # tris: number of triangles
-    #     for each triangle
-    #     triple producto de los vertices de cada uno.
-    #     volume += Determinant(float3x3(vertices[tris[i][0]],vertices[tris[i][1]],vertices[tris[i][2]]));
-    # return volume/6.0;  // since the determinant give 6 times tetra volume
-
+proc ExecuteSphereTreeAlgorithm { objfilename args} {
+    #makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj
+    # multiple args to be defined: algorithm,...
 
 }
+
+proc CleanSPHFile { sphfilename } {
+    # Delete some lines and columns. 
+    # Follow criteria to delete invalid spheres
+
+}
+
+proc GenerateClusterFile { sphfilename mshfilename} {
+    # Look for a way to edit, compile and execute mesh_to_clu_converter.cpp with the custom filenames
+    # Create cpp executable able to generate cluster file directly from inputs.
+    # Or pass always the same generic sph and msh names. Generate generic cluster filename.
+
+}
+
