@@ -36,7 +36,7 @@ PYBIND11_MODULE(KratosEigenSolversApplication, m)
 
     AddCustomSolversToPython(m);
 
-    m.def("HasMKL", [](py::object) {
+    m.def("HasMKL", []() {
 #if defined(USE_EIGEN_MKL)
         return true;
 #else
@@ -44,7 +44,7 @@ PYBIND11_MODULE(KratosEigenSolversApplication, m)
 #endif
         });
 
-    m.def("HasFEAST", [](py::object) {
+    m.def("HasFEAST", []() {
 #if defined(USE_EIGEN_FEAST)
         return true;
 #else
