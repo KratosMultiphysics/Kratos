@@ -186,7 +186,6 @@ void  AddContainersToPython(pybind11::module& m)
 
     typedef py::class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
-    DataValueBinder.def(py::init<const DataValueContainer&>());
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
     DataValueBinder.def("__str__", PrintObject<DataValueContainer>);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
