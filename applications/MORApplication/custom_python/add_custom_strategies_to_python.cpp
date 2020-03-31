@@ -33,6 +33,7 @@
 #include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_second_order_krylov_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_second_order_irka_strategy.hpp"
+#include "custom_strategies/custom_strategies/modal_analysis_strategy.hpp"
 
 // Builders and solvers
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
@@ -52,8 +53,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     using complex = std::complex<double>;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TUblasSparseSpace<double> SparseSpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
     typedef TUblasSparseSpace<complex> ComplexSpaceType;
     typedef TUblasDenseSpace<complex> ComplexLocalSpaceType;
 
@@ -63,6 +66,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<LocalSpaceType, LocalSpaceType> DenseLinearSolverType;
     typedef LinearSolver<ComplexSpaceType, ComplexLocalSpaceType> ComplexLinearSolverType;
     typedef LinearSolver<ComplexLocalSpaceType, ComplexLocalSpaceType> ComplexDenseLinearSolverType;
+    typedef LinearSolver<SparseSpaceType, ComplexLocalSpaceType> MixedLinearSolverType;
     typedef ComplexLinearSolverType::Pointer ComplexLinearSolverPointer;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef SolvingStrategy< ComplexSpaceType, ComplexLocalSpaceType, ComplexLinearSolverType > BaseComplexSolvingStrategyType;
@@ -90,6 +94,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, SparseSpaceType, LocalSpaceType, false > MorSecondOrderIrkaRealStrategyType;
     typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType, true > MorSecondOrderIrkaComplexStrategyType;
+
+    typedef ModalAnalysisStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType, LocalSpaceType> ModalAnalysisRealInRealOutStrategyType;
+    typedef ModalAnalysisStrategy<SparseSpaceType, LocalSpaceType, MixedLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType> ModalAnalysisRealInComplexOutStrategyType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
@@ -123,7 +130,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("SetEchoLevel", &BaseDenseSolvingStrategyType::SetEchoLevel)
         .def("Solve", &BaseDenseSolvingStrategyType::Solve)
         ;
-    
+
     py::class_< MorSecondOrderRealInRealOutOfflineStrategyType, typename MorSecondOrderRealInRealOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInRealOutOfflineStrategy")
         .def("EchoInfo", &MorSecondOrderRealInRealOutOfflineStrategyType::EchoInfo)
         .def("GetK", &MorSecondOrderRealInRealOutOfflineStrategyType::GetSystemMatrix)
@@ -211,6 +218,22 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, bool, bool >())
         .def("GetBuilderAndSolver", &FrequencyResponseAnalysisStrategyType::GetBuilderAndSolver)
+        ;
+
+    //********************************************************************
+    //***************************MODAL ANALYSIS***************************
+    //********************************************************************
+
+    py::class_< ModalAnalysisRealInRealOutStrategyType, typename ModalAnalysisRealInRealOutStrategyType::Pointer, BaseSolvingStrategyType >(m,"ModalAnalysisRealInRealOutStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, LinearSolverPointer>())
+        .def("GetEigenvalueVector", &ModalAnalysisRealInRealOutStrategyType::GetEigenvalueVector)
+        .def("GetEigenvectorMatrix", &ModalAnalysisRealInRealOutStrategyType::GetEigenvectorMatrix)
+        ;
+
+    py::class_< ModalAnalysisRealInComplexOutStrategyType, typename ModalAnalysisRealInComplexOutStrategyType::Pointer, BaseSolvingStrategyType >(m,"ModalAnalysisRealInComplexOutStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, MixedLinearSolverType::Pointer>())
+        .def("GetEigenvalueVector", &ModalAnalysisRealInComplexOutStrategyType::GetEigenvalueVector)
+        .def("GetEigenvectorMatrix", &ModalAnalysisRealInComplexOutStrategyType::GetEigenvectorMatrix)
         ;
 
     //********************************************************************
