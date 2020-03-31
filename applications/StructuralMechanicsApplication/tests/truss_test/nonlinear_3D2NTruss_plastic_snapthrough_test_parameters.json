@@ -63,6 +63,7 @@
         "Parameters"    : {
             "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "modulus"         : "t",
             "direction"       : [0,1.0,0.0],
             "interval"        : [0.0,15.0]
@@ -74,6 +75,7 @@
         "Parameters"    : {
             "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "modulus"         : "30-t",
             "direction"       : [0,1.0,0.0],
             "interval"        : [15.0,"End"]
