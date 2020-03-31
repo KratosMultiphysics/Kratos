@@ -67,11 +67,13 @@ from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklin
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Eigensolver with different dofs test
+from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
 from test_custom_scipy_base_solver import TestCustomScipyBaseSolver
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
-# Test adjoint elements
+# Test adjoint elements and conditions
 from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
 from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
@@ -86,6 +88,7 @@ from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnal
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisSpringDamperElement as TTestAdjointSensitivityAnalysisSpringDamperElement
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
+from test_adjoint_loading_conditions import TestAdjointLoadingConditions as TTestAdjointLoadingConditions
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -203,6 +206,9 @@ from structural_mechanics_test_factory import RigidEliminationTest as TRigidElim
 from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
 from structural_mechanics_test_factory import RigidSphereFailingExplicit as TRigidSphereFailingExplicit
 
+# 2.5D solid element test
+from structural_mechanics_test_factory import Solid2p5DElementTest as TSolid2p5DElementTest
+
 ##### VALIDATION TESTS #####
 # SPRISM tests
 from structural_mechanics_test_factory import SprismPanTests              as TSprismPanTests
@@ -317,15 +323,17 @@ def AssembleTestSuites():
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithDifferentDofs]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
-    # Adjoint Elements
+    # Adjoint Elements and Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointLoadingConditions]))
     # RVE tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
     # Element damping test
@@ -411,6 +419,8 @@ def AssembleTestSuites():
     nightSuite.addTest(TRigidEliminationTest('test_execution'))
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
     nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
+    # 2.5D solid element test
+    nightSuite.addTest(TSolid2p5DElementTest('test_execution'))
 
     if has_external_solvers_application:
         import KratosMultiphysics.ExternalSolversApplication

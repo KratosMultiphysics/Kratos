@@ -112,8 +112,6 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication()
 
 void KratosPoromechanicsApplication::Register()
 {
-    //Calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosPoromechanicsApplication... " << std::endl;
 
     //Register Elements

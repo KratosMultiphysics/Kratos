@@ -520,6 +520,25 @@ public:
     }
     ///@}
 
+protected:
+
+    ///@name Constructor
+    ///@{
+
+    /// Standard Constructor
+    QuadraturePointGeometry()
+        : BaseType(
+            PointsArrayType(),
+            &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
+    {
+    }
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -561,17 +580,6 @@ private:
         rSerializer.load("GeometryData", mGeometryData);
 
         mGeometryData.SetGeometryDimension(&msGeometryDimension);
-    }
-
-    QuadraturePointGeometry()
-        : BaseType(
-            PointsArrayType(),
-            &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
     }
 
     ///@}

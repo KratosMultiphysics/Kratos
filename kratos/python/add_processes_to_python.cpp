@@ -132,6 +132,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("Check",&Process::Check)
+    .def("GetDefaultParameters",&Process::GetDefaultParameters)
     .def("__str__", PrintObject<Process>)
     ;
 
