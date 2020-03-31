@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosPFEM2Application import *
 application = KratosPFEM2Application()
 application_name = "KratosPFEM2Application"
-application_folder = "PFEM2Application"
 
-KM._ImportApplicationAsModule(application,application_name,application_folder,  __path__)
+KM._ImportApplication(application,application_name)

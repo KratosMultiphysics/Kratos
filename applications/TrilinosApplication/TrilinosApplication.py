@@ -4,6 +4,5 @@ import KratosMultiphysics.mpi # importing the MPI-Core, since the TrilinosApp di
 from KratosTrilinosApplication import *
 application = KratosTrilinosApplication()
 application_name = "KratosTrilinosApplication"
-application_folder = "TrilinosApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

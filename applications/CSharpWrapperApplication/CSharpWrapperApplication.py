@@ -3,6 +3,5 @@ import KratosMultiphysics as KM
 from KratosCSharpWrapperApplication import *
 application = KratosCSharpWrapperApplication()
 application_name = "KratosCSharpWrapperApplication"
-application_folder = "CSharpWrapperApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

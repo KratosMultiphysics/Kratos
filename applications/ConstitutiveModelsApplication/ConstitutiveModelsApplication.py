@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosConstitutiveModelsApplication import *
 application = KratosConstitutiveModelsApplication()
 application_name = "KratosConstitutiveModelsApplication"
-application_folder = "ConstitutiveModelsApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

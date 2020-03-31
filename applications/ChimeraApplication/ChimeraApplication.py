@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosChimeraApplication import *
 application = KratosChimeraApplication()
 application_name = "KratosChimeraApplication"
-application_folder = "ChimeraApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosFemToDemApplication import *
 application = KratosFemToDemApplication()
 application_name = "KratosFemToDemApplication"
-application_folder = "FemToDemApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

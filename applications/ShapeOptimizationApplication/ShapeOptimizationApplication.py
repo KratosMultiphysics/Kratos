@@ -16,6 +16,5 @@ import KratosMultiphysics as KM
 from KratosShapeOptimizationApplication import *
 application = KratosShapeOptimizationApplication()
 application_name = "KratosShapeOptimizationApplication"
-application_folder = "ShapeOptimizationApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

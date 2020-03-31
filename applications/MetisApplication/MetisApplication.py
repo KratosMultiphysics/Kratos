@@ -3,6 +3,5 @@ import KratosMultiphysics as KM
 from KratosMetisApplication import *
 application = KratosMetisApplication()
 application_name = "KratosMetisApplication"
-application_folder = "MetisApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

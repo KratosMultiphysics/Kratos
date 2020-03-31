@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosCoSimulationApplication import *
 application = KratosCoSimulationApplication()
 application_name = "KratosCoSimulationApplication"
-application_folder = "CoSimulationApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosRomApplication import *
 application = KratosRomApplication()
 application_name = "KratosRomApplication"
-application_folder = "RomApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

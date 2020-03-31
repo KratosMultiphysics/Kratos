@@ -10,6 +10,5 @@ from KratosDelaunayMeshingApplication import *
 from KratosPfemFluidDynamicsApplication import *
 application = KratosPfemFluidDynamicsApplication()
 application_name = "KratosPfemFluidDynamicsApplication"
-application_folder = "PfemFluidDynamicsApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

@@ -7,6 +7,5 @@ import KratosMultiphysics.FluidDynamicsApplication
 from KratosCompressiblePotentialFlowApplication import *
 application = KratosCompressiblePotentialFlowApplication()
 application_name = "KratosCompressiblePotentialFlowApplication"
-application_folder = "CompressiblePotentialFlowApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

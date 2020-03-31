@@ -3,6 +3,5 @@ import KratosMultiphysics as KM
 from KratosMeshMovingApplication import *
 application = KratosMeshMovingApplication()
 application_name = "KratosMeshMovingApplication"
-application_folder = "MeshMovingApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

@@ -16,6 +16,5 @@ import KratosMultiphysics as KM
 from KratosIgaApplication import *
 application = KratosIgaApplication()
 application_name = "KratosIgaApplication"
-application_folder = "IgaApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

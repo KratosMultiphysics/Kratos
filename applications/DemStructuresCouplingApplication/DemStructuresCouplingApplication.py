@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosDemStructuresCouplingApplication import *
 application = KratosDemStructuresCouplingApplication()
 application_name = "KratosDemStructuresCouplingApplication"
-application_folder = "DemStructuresCouplingApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

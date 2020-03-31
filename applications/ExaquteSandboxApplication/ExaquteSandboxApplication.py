@@ -5,6 +5,5 @@ import KratosMultiphysics as KM
 from KratosExaquteSandboxApplication import *
 application = KratosExaquteSandboxApplication()
 application_name = "KratosExaquteSandboxApplication"
-application_folder = "ExaquteSandboxApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

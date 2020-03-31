@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosPoromechanicsApplication import *
 application = KratosPoromechanicsApplication()
 application_name = "KratosPoromechanicsApplication"
-application_folder = "PoromechanicsApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

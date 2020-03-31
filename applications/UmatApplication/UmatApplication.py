@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosUmatApplication import *
 application = KratosUmatApplication()
 application_name = "KratosUmatApplication"
-application_folder = "UmatApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

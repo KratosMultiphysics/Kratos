@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosFreeSurfaceApplication import *
 application = KratosFreeSurfaceApplication()
 application_name = "KratosFreeSurfaceApplication"
-application_folder = "FreeSurfaceApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

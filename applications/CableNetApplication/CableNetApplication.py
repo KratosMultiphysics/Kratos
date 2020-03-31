@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosCableNetApplication import *
 application = KratosCableNetApplication()
 application_name = "KratosCableNetApplication"
-application_folder = "CableNetApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

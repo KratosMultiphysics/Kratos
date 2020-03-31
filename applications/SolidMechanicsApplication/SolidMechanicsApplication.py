@@ -9,6 +9,5 @@ import KratosMultiphysics as KM
 from KratosSolidMechanicsApplication import *
 application = KratosSolidMechanicsApplication()
 application_name = "KratosSolidMechanicsApplication"
-application_folder = "SolidMechanicsApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

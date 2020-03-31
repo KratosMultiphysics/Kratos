@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosFluidTransportApplication import *
 application = KratosFluidTransportApplication()
 application_name = "KratosFluidTransportApplication"
-application_folder = "FluidTransportApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)

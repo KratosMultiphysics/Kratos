@@ -6,6 +6,5 @@ import KratosMultiphysics as KM
 from KratosShallowWaterApplication import *
 application = KratosShallowWaterApplication()
 application_name = "KratosShallowWaterApplication"
-application_folder = "ShallowWaterApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplication(application, application_name)
