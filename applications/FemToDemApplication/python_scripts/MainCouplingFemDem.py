@@ -710,7 +710,7 @@ class MainCoupledFemDem_Solution:
                     Elem = self.FEM_Solution.main_model_part.GetElement(Idelem)
                     self.PlotFilesElementsList[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
 
-                    stress_tensor = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
+                    stress_tensor = Elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
                     strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
 
                     damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
