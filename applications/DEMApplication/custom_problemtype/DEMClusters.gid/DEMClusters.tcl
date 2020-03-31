@@ -25,8 +25,15 @@ proc BeforeMeshGeneration {elementsize} {
 
 proc AfterMeshGeneration {fail} {
     W "execute AfterMeshGeneration"
+    # ExtractSurfaceTriangles 
 }
 
+proc ExtractSurfaceTriangles { } {
+    # List of triangles defined by: its vertex and vertex normals
+    #                               faces: ordered vertex ids
+
+    # GenerateOBJFile
+}
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
@@ -36,8 +43,22 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
 proc GenerateOBJFile { } {
     # Analyze the format of the OBJ and generate the file in GID
-    # SUR custom files can also be used with the following format:
+    # The format of the OBJ file is as follows:
 
+    # block 1:surface vertex and vertex normal 
+    # block 2: faces (with ordered vertex):
+
+    # v 987.823009 -583.341002 122.360997
+    # vn 0.329248 0.150250 0.932213
+    # v 979.430974 -499.442995 88.674001
+    # vn 0.689488 0.597651 0.409169
+    # f 18//18 10//10 9//9 
+    # f 18//18 9//9 17//17 
+    # f 19//19 11//11 10//10 
+
+
+
+    # SUR custom files can also be used with the following format:
     # The format of the SUR file is as follows:
     # -The number of vertices
     # -List of vertices with XYZ for position and XYZ for normal
