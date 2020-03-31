@@ -1542,6 +1542,31 @@ namespace Kratos {
         return;
     }
 
+    static inline void GetGiDEulerAngles(const BoundedMatrix<double, 3, 3>& rotation_matrix, array_1d<double, 3>& EulerAngles) {
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        const double two_pi = 3.1415926535897932384626433 * 2.0;
+        if(rotation_matrix(2, 2)<1.0-numerical_limit && rotation_matrix(2, 2)>-1.0+numerical_limit){
+            const double senb=sqrt(1.0-rotation_matrix(2, 2)*rotation_matrix(2, 2));
+            EulerAngles[1]=acos(rotation_matrix(2, 2));
+            EulerAngles[2]=acos(rotation_matrix(1, 2)/senb);
+            if(rotation_matrix(0, 2)/senb<0.0) EulerAngles[2]=two_pi - EulerAngles[2];
+            EulerAngles[0]=acos(-rotation_matrix(2, 1)/senb);
+            if(rotation_matrix(2, 0)/senb<0.0) EulerAngles[0]=two_pi - EulerAngles[0];
+        } else {
+            // fixed a=0.0 (arbitrary)
+            EulerAngles[1]=acos(rotation_matrix(2, 2));
+            EulerAngles[0]=0.0;
+            EulerAngles[2]=acos(rotation_matrix(0, 0));
+            if(-rotation_matrix(1, 0)<0.0) EulerAngles[2]=two_pi - EulerAngles[2];
+        }
+    }
+
+    inline void QuaternionToGiDEulerAngles(const Quaternion<double>& quaternion, array_1d<double, 3>& EulerAngles) {
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3,3);
+        quaternion.ToRotationMatrix(rotation_matrix);
+        GetGiDEulerAngles(rotation_matrix, EulerAngles);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////****************************TRIANGLE - SPHERE INTERSECTION AREA CALCULATION**************************///////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

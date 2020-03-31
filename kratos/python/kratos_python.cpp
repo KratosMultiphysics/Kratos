@@ -30,9 +30,9 @@
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"
 #include "add_mat_variables_to_python.h"
-#include "add_legacy_structural_app_vars_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
+#include "add_quaternion_to_python.h"
 #include "add_points_to_python.h"
 #include "add_geometries_to_python.h"
 #include "add_containers_to_python.h"
@@ -62,6 +62,7 @@
 #include "add_data_communicator_to_python.h"
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
+#include "add_dofs_to_python.h"
 
 namespace Kratos
 {
@@ -86,16 +87,17 @@ PYBIND11_MODULE(Kratos, m)
     AddKernelToPython(m);
     AddContainersToPython(m);
     AddModelPartToPython(m);
+    AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddMeshToPython(m);
+    AddQuaternionToPython(m);
 
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
     AddALEVariablesToPython(m);
     AddC2CVariablesToPython(m);
     AddFSIVariablesToPython(m);
-    AddLegacyStructuralAppVarsToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);

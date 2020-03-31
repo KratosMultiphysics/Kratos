@@ -16,20 +16,19 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
+#include "testing/testing.h"
 
 // Application includes
-#include "tests/test_utils.h"
-#include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_element_data_value_io.h"
+#include "custom_io/hdf5_file_serial.h"
+#include "tests/test_utils.h"
 
 namespace Kratos
 {
 namespace Testing
 {
-
 KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite)
 {
     Parameters file_params(R"(
@@ -43,20 +42,20 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
-    TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}});
+    TestModelPartFactory::CreateModelPart(r_write_model_part,
+                                          {{"Element2D3N"}});
     TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}});
 
     r_read_model_part.SetBufferSize(2);
     r_write_model_part.SetBufferSize(2);
 
-    std::vector<std::string> variables_list = {{"DISPLACEMENT"},
-                                               {"PRESSURE"},
-                                               {"REFINEMENT_LEVEL"},
-                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+    std::vector<std::string> variables_list = {
+        {"DISPLACEMENT"}, {"PRESSURE"}, {"REFINEMENT_LEVEL"}, {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
 
     for (auto& r_element : r_write_model_part.Elements())
     {
-        TestModelPartFactory::AssignDataValueContainer(r_element.Data(), variables_list);
+        TestModelPartFactory::AssignDataValueContainer(
+            r_element.Data(), r_element, variables_list);
     }
 
     Parameters io_params(R"(
@@ -67,12 +66,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
     data_io.WriteElementResults(r_write_model_part.Elements());
-    data_io.ReadElementResults(r_read_model_part.Elements());
+    data_io.ReadElementResults(r_read_model_part.Elements(),
+                               r_read_model_part.GetCommunicator());
 
     for (auto& r_write_element : r_write_model_part.Elements())
     {
-        HDF5::ElementType& r_read_element = r_read_model_part.Elements()[r_write_element.Id()];
-        CompareDataValueContainers(r_read_element.Data(), r_write_element.Data());
+        HDF5::ElementType& r_read_element =
+            r_read_model_part.Elements()[r_write_element.Id()];
+        CompareDataValueContainers(r_read_element.Data(), r_read_element,
+                                   r_write_element.Data(), r_write_element);
     }
 }
 

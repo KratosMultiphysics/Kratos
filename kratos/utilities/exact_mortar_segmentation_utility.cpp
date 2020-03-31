@@ -1167,7 +1167,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
                                     points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
                                     node_counter++;
                                 }
-                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
+                                aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
                                 cond_counter++;
                             }
                         }
@@ -1188,7 +1188,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
                                     points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
                                     node_counter++;
                                 }
-                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
+                                aux_model_part.CreateNewCondition("SurfaceCondition3D3N", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
                                 cond_counter++;
                             }
                         }
