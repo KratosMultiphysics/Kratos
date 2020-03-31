@@ -43,6 +43,8 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
+        docu = KratosMultiphysics.Parameters("""{"Element2D3N"   : "This is a pure geometric element, no computation"}""")
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.GetDocumention(model_part).IsEquivalentTo(docu), True)
 
     def test_specifications_utilities_conditions(self):
         current_model = KratosMultiphysics.Model()
@@ -77,6 +79,8 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
+        docu = KratosMultiphysics.Parameters("""{"SurfaceCondition3D3N"   : "This is a pure geometric condition, no computation"}""")
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.GetDocumention(model_part).IsEquivalentTo(docu), True)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_elements_dependencies(self):
@@ -113,6 +117,8 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
+        docu = KratosMultiphysics.Parameters("""{"SmallDisplacementElement2D3N"   : "This is a pure displacement element"}""")
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.GetDocumention(model_part).IsEquivalentTo(docu), True)
 
         # Changing the law to get a False check
         prop1.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw())
@@ -153,6 +159,8 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
+        docu = KratosMultiphysics.Parameters("""{"SurfaceLoadCondition3D3N"   : "This is a pure displacement condition"}""")
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.GetDocumention(model_part).IsEquivalentTo(docu), True)
 
 if __name__ == '__main__':
     KratosUnittest.main()
