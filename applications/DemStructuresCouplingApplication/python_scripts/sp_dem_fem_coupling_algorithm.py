@@ -148,7 +148,10 @@ class SPAlgorithm(Algorithm):
                 else:
                     self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
                     self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
-                DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
+                # NOTE: The stress printed in this case will also be the SigmaZ, but probably SigmaX is more appropriate
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.structural_solution.time)
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.structural_solution.time)
+                # DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
                 self.dem_solution.time = self.dem_solution.time + self.dem_solution._GetSolver().dt
