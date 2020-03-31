@@ -5,9 +5,9 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.ConstitutiveModelsApplication import *
 
 # Application dependent names and paths
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
 from KratosSolidMechanicsApplication import *
 application = KratosSolidMechanicsApplication()
 application_name = "KratosSolidMechanicsApplication"
 
-KM._ImportApplication(application, application_name)
+_ImportApplication(application, application_name)

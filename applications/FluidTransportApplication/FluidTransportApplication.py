@@ -2,9 +2,9 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
 from KratosFluidTransportApplication import *
 application = KratosFluidTransportApplication()
 application_name = "KratosFluidTransportApplication"
 
-KM._ImportApplication(application, application_name)
+_ImportApplication(application, application_name)

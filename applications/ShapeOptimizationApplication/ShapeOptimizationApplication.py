@@ -12,9 +12,9 @@
 # Imports
 # ------------------------------------------------------------------------------
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
 from KratosShapeOptimizationApplication import *
 application = KratosShapeOptimizationApplication()
 application_name = "KratosShapeOptimizationApplication"
 
-KM._ImportApplication(application, application_name)
+_ImportApplication(application, application_name)
