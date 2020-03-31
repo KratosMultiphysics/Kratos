@@ -214,7 +214,7 @@ public:
         while (is_converged == false &&
                iteration_number++ < BaseType::mMaxIterationNumber)
         {
-            std::cout << std::endl;
+            // std::cout << std::endl;
             KRATOS_INFO("ITERATION NUMBER ") << iteration_number << std::endl;
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
