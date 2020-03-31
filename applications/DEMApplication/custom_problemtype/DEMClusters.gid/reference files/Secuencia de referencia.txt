@@ -1,0 +1,23 @@
+1.- Creacion del objecto OBJ (parecido a una malla de superficie)
+analizar el formato para crear el obj desde gid.
+
+ejecutar el algoritmo del spheretree mediante:
+ •	makeTreeMedial -branch NS -depth 1 -testerLevels 2 
+       -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 
+      -erFact 2 -verify -nopause -eval -expand -merge -burst 
+     -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj
+
+2.- Obtenemos un archivo en formato sph.
+Eliminar las dos primeras filas de ese archivo.
+Eliminar algunas columnas...
+
+
+
+3.- Generar el archivo .MSH desde gid
+Esto deberia ser directo al mallar solo con tetrahedros
+
+
+4.- Generar el Cluster
+A partir del SPH + MSH files, mediante el archivo previamente editado
+mesh_to_clu_converter.cpp , generamos el cluster. 
+
