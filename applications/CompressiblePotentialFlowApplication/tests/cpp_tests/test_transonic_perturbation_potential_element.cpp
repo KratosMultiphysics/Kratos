@@ -323,8 +323,8 @@ GenerateTransonicPerturbationElement(model_part);
 
     // Compute original RHS and LHS
     pElement->CalculateLocalSystem(LHS_original, RHS_original, model_part.GetProcessInfo());
-    KRATOS_WATCH(LHS_original)
-    KRATOS_WATCH(RHS_original)
+    // KRATOS_WATCH(LHS_original)
+    // KRATOS_WATCH(RHS_original)
 
     double delta = 1e-3;
     for(unsigned int i = 0; i < number_of_nodes; i++){
@@ -348,8 +348,8 @@ GenerateTransonicPerturbationElement(model_part);
     }
 
     std::cout.precision(16);
-    KRATOS_WATCH(LHS_analytical)
-    KRATOS_WATCH(LHS_finite_diference)
+    // KRATOS_WATCH(LHS_analytical)
+    // KRATOS_WATCH(LHS_finite_diference)
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
             KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
@@ -397,17 +397,17 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHSSuperS
     find_nodal_neighbours_process.Execute();
     pElement->Initialize(model_part.GetProcessInfo());
 
-    double local_mach_number =
-        PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
-            *pElement, model_part.GetProcessInfo());
+    // double local_mach_number =
+    //     PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
+    //         *pElement, model_part.GetProcessInfo());
 
 
-    double local_mach_number_upstream =
-        PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
-            *pUpstreamElement, model_part.GetProcessInfo());
+    // double local_mach_number_upstream =
+    //     PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
+    //         *pUpstreamElement, model_part.GetProcessInfo());
 
-    KRATOS_WATCH(local_mach_number)
-    KRATOS_WATCH(local_mach_number_upstream)
+    // KRATOS_WATCH(local_mach_number)
+    // KRATOS_WATCH(local_mach_number_upstream)
 
     Vector RHS_original = ZeroVector(number_of_nodes);
     Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
@@ -416,8 +416,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHSSuperS
 
     // Compute original RHS and LHS
     pElement->CalculateLocalSystem(LHS_original, RHS_original, model_part.GetProcessInfo());
-    KRATOS_WATCH(LHS_original)
-    KRATOS_WATCH(RHS_original)
+    // KRATOS_WATCH(LHS_original)
+    // KRATOS_WATCH(RHS_original)
 
     maximum_potential = 500.0;
     minimum_potential = 0.0;
@@ -429,22 +429,22 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHSSuperS
     upstream_potential= {minimum_potential, maximum_potential, minimum_potential};
     AssignPerturbationPotentialsToTransonicElement(*pUpstreamElement, upstream_potential);
 
-    local_mach_number =
-        PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
-            *pElement, model_part.GetProcessInfo());
+    // local_mach_number =
+    //     PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
+    //         *pElement, model_part.GetProcessInfo());
 
 
-    local_mach_number_upstream =
-        PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
-            *pUpstreamElement, model_part.GetProcessInfo());
+    // local_mach_number_upstream =
+    //     PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
+    //         *pUpstreamElement, model_part.GetProcessInfo());
 
-    KRATOS_WATCH(local_mach_number)
-    KRATOS_WATCH(local_mach_number_upstream)
+    // KRATOS_WATCH(local_mach_number)
+    // KRATOS_WATCH(local_mach_number_upstream)
 
     // Compute original RHS and LHS
     pElement->CalculateLocalSystem(LHS_original, RHS_original, model_part.GetProcessInfo());
-    KRATOS_WATCH(LHS_original)
-    KRATOS_WATCH(RHS_original)
+    // KRATOS_WATCH(LHS_original)
+    // KRATOS_WATCH(RHS_original)
 
     // double delta = 1e-3;
     // for(unsigned int i = 0; i < number_of_nodes; i++){
