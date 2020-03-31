@@ -373,6 +373,12 @@ const Parameters BaseLoadCondition::GetSpecifications() const
         "framework"                  : "lagrangian",
         "symmetric_lhs"              : true,
         "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : [],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
         "required_variables"         : ["DISPLACEMENT"],
         "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
         "flags_used"                 : [],
@@ -383,7 +389,9 @@ const Parameters BaseLoadCondition::GetSpecifications() const
             "type"        : [],
             "dimension"   : [],
             "strain_size" : []
-        }})");
+        },
+        "documentation"   : "This is a pure displacement condition"
+    })");
     return specifications;
 }
 
