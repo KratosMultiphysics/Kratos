@@ -9,8 +9,8 @@ import json
 
 class TestStructuralMechanicsDynamicROM(StructuralMechanicsAnalysisROM):
 
-    def __init__(self,model,project_parameters):
-        super(TestStructuralMechanicsDynamicROM,self).__init__(model,project_parameters)
+    def __init__(self,model,project_parameters, element_selector):
+        super(TestStructuralMechanicsDynamicROM,self).__init__(model,project_parameters, element_selector)
         self.selected_time_step_solution_container = []
 
     def FinalizeSolutionStep(self):
@@ -49,5 +49,5 @@ if __name__ == "__main__":
     with open("ProjectParameters.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     model = KratosMultiphysics.Model()
-    Simulation = TestStructuralMechanicsDynamicROM(model,parameters)
+    Simulation = TestStructuralMechanicsDynamicROM(model,parameters, "EmpiricalCubature")
     Simulation.Run()

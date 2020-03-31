@@ -3,15 +3,23 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
+from KratosMultiphysics.RomApplication.RSVDT_Library import rsvdt
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 import json
+import numpy as np
 
 class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
-    def __init__(self,model,project_parameters):
+    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
         super(StructuralMechanicsAnalysisROM,self).__init__(model,project_parameters)
+        if hyper_reduction_element_selector == "EmpiricalCubature":
+            self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
+            self.time_step_residual_matrix_container = []
+        else:
+            self.hyper_reduction_element_selector = hyper_reduction_element_selector
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -44,6 +52,35 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 node.SetValue(romapp.AUX_ID, counter) # Aux ID
                 counter+=1
+
+
+    def ModifyAfterSolverInitialize(self):
+        super(StructuralMechanicsAnalysisROM,self).ModifyAfterSolverInitialize()
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+
+
+    def FinalizeSolutionStep(self):
+        super(StructuralMechanicsAnalysisROM,self).FinalizeSolutionStep()
+
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                print('\n\n\n\nGenerating matrix of residuals')
+                ResMat = self.ResidualUtilityObject.GetResiduals()
+                NP_ResMat = np.array(ResMat, copy=False)
+                self.time_step_residual_matrix_container.append(NP_ResMat)
+
+
+    def Finalize(self):
+        super(StructuralMechanicsAnalysisROM,self).FinalizeSolutionStep()
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container)
+                self.hyper_reduction_element_selector.Run()
+
+
+
 
 
 

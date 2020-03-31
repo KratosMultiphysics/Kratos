@@ -1,3 +1,6 @@
+from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
+from KratosMultiphysics.RomApplication.RSVDT_Library import rsvdt
+
 import numpy as np
 
 try:
@@ -7,12 +10,17 @@ except ImportError as e:
     missing_matplotlib = True
 
 
-class EmpiricalCubatureMethod():
+class EmpiricalCubatureMethod(ElementSelectionStrategy):
+
     def __init__(self, ECM_tolerance = 1e-4, Filter_tolerance = 1e-16 ):
+        super(EmpiricalCubatureMethod,self).__init__()
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
+        self.Name = "EmpiricalCubature"
 
-    def SetUp(self, u, s):
+    def SetUp(self, ResidualSnapshots):
+        super(EmpiricalCubatureMethod,self).SetUp()
+        u , s  = self._ObtainBasis(ResidualSnapshots)
         self.W = np.ones(np.shape(u)[0])
         G = u[...,:] * np.ones(len(s))
         G = G.T
@@ -24,85 +32,81 @@ class EmpiricalCubatureMethod():
         self.ExactNorm = np.linalg.norm(bEXACT)
 
     def Initialize(self):
-        Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
+        super(EmpiricalCubatureMethod,self).Initialize()
+        self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
-        y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
+        self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
         GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
         if self.Filter_tolerance > 0:
             TOL_REMOVE = self.Filter_tolerance * normB
-            rmvpin = np.where(GnormNOONE[y] < TOL_REMOVE)
-            y = np.delete(y,rmvpin)
-
-        z = {}  # Set of intergration points
-        mPOS = 0 # Number of nonzero weights
-        r = self.b # residual vector
-        k = 1 # number of iterations
-        m = len(self.b) # Default number of points
-        nerror = np.linalg.norm(r)/normB
-        H = np.array([]) # Inverse of (Gz.T @ Gz)
-        nerrorACTUAL = nerror
-        return z, mPOS, r, k, m, nerror, H, nerrorACTUAL, y, Gnorm
+            rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
+            self.y = np.delete(self.y,rmvpin)
+        self.z = {}  # Set of intergration points
+        self.mPOS = 0 # Number of nonzero weights
+        self.r = self.b # residual vector
+        self.m = len(self.b) # Default number of points
+        self.nerror = np.linalg.norm(self.r)/normB
+        self.nerrorACTUAL = self.nerror
 
 
     def Calculate(self):
+        super(EmpiricalCubatureMethod,self).Calculate()
 
-        z, mPOS, r, k, m, nerror, H, nerrorACTUAL, y , Gnorm = self.Initialize()
-
-        while nerrorACTUAL > self.ECM_tolerance and mPOS < m and len(y) != 0:
+        k = 1 # number of iterations
+        while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
 
             #Step 1. Compute new point
-            ObjFun = self.G[:,y].T @ r.T
-            ObjFun = ObjFun.T / Gnorm[y]
+            ObjFun = self.G[:,self.y].T @ self.r.T
+            ObjFun = ObjFun.T / self.Gnorm[self.y]
             indSORT = np.argmax(ObjFun)
-            i = y[indSORT]
+            i = self.y[indSORT]
             if k==1:
                 alpha = np.linalg.lstsq(self.G[:, [i]], self.b)[0]
                 H = 1/(self.G[:,i] @ self.G[:,i].T)
             else:
-                H, alpha = self._UpdateWeightsInverse(self.G[:,z],H,self.G[:,i],alpha,r)
+                H, alpha = self._UpdateWeightsInverse(self.G[:,self.z],H,self.G[:,i],alpha)
 
             #Step 3. Move i from set y to set z
             if k == 1:
-                z = i
+                self.z = i
             else:
-                z = np.r_[z,i]
-            y = np.delete(y,indSORT)
+                self.z = np.r_[self.z,i]
+            self.y = np.delete(self.y,indSORT)
 
             # Step 4. Find possible negative weights
             if any(alpha < 0):
                 print("WARNING: NEGATIVE weight found")
                 indexes_neg_weight = np.where(alpha <= 0.)[0]
-                y = np.append(y, (z[indexes_neg_weight]).T)
-                z = np.delete(z, indexes_neg_weight)
+                self.y = np.append(self.y, (self.z[indexes_neg_weight]).T)
+                self.z = np.delete(self.z, indexes_neg_weight)
                 H = self._MultiUpdateInverseHermitian(H, indexes_neg_weight)
-                alpha = H @ (self.G[:, z].T @ self.b)
+                alpha = H @ (self.G[:, self.z].T @ self.b)
                 alpha = alpha.reshape(len(alpha),1)
 
             #Step 6 Update the residual
             if len(alpha)==1:
-                r = self.b - (self.G[:,z] * alpha)
+                self.r = self.b - (self.G[:,self.z] * alpha)
             else:
-                Aux = self.G[:,z] @ alpha
-                r = np.squeeze(self.b - Aux.T)
-            nerror = np.linalg.norm(r) / np.linalg.norm(self.b)  # Relative error (using r and b)
-            nerrorACTUAL = nerror
+                Aux = self.G[:,self.z] @ alpha
+                self.r = np.squeeze(self.b - Aux.T)
+            self.nerror = np.linalg.norm(self.r) / np.linalg.norm(self.b)  # Relative error (using r and b)
+            self.nerrorACTUAL = self.nerror
 
             # STEP 7
-            mPOS = np.size(z)
-            print(f'k = {k}, m = {np.size(z)}, error n(res)/n(b) (%) = {nerror*100},  Actual error % = {nerrorACTUAL*100} ')
+            self.mPOS = np.size(self.z)
+            print(f'k = {k}, m = {np.size(self.z)}, error n(res)/n(b) (%) = {self.nerror*100},  Actual error % = {self.nerrorACTUAL*100} ')
 
             if k == 1:
-                ERROR_GLO = np.array([nerrorACTUAL])
-                NPOINTS = np.array([np.size(z)])
+                ERROR_GLO = np.array([self.nerrorACTUAL])
+                NPOINTS = np.array([np.size(self.z)])
             else:
-                ERROR_GLO = np.c_[ ERROR_GLO , nerrorACTUAL]
-                NPOINTS = np.c_[ NPOINTS , np.size(z)]
+                ERROR_GLO = np.c_[ ERROR_GLO , self.nerrorACTUAL]
+                NPOINTS = np.c_[ NPOINTS , np.size(self.z)]
 
             k = k+1
 
-        self.w = alpha.T * np.sqrt(self.W[z])
-        self.z = z
+        self.w = alpha.T * np.sqrt(self.W[self.z])
 
         print(f'Total number of iterations = {k}')
 
@@ -115,7 +119,7 @@ class EmpiricalCubatureMethod():
 
         return self.G, self.z, self.w
 
-    def _UpdateWeightsInverse(self, A,Aast,a,xold,r):
+    def _UpdateWeightsInverse(self, A,Aast,a,xold):
         c = np.dot(A.T, a)
         d = np.dot(Aast, c).reshape(-1, 1)
         s = np.dot(a.T, a) - np.dot(c.T, d)
@@ -125,7 +129,7 @@ class EmpiricalCubatureMethod():
         else:
             aux2 = np.hstack([np.squeeze(-d.T / s), 1 / s])
         Bast = np.vstack([aux1, aux2])
-        v = np.dot(a.T, r) / s
+        v = np.dot(a.T, self.r) / s
         x = np.vstack([(xold - d * v), v])
         return Bast, x
 
@@ -145,6 +149,20 @@ class EmpiricalCubatureMethod():
             aux2 = np.vstack([aux1[0:neg_index, :], aux1[neg_index + 1:, :], aux1[neg_index, :]])
             invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
         return invH_new
+
+    def _ObtainBasis(self,ResidualSnapshots):
+        ### Building the Snapshot matrix ####
+        for i in range (len(ResidualSnapshots)):
+            if i == 0:
+                SnapshotMatrix = ResidualSnapshots[i]
+            else:
+                SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
+        ### Taking the SVD ###  (randomized and truncated here)
+        DATA = {}
+        DATA['TypeOfSVD'] = 0
+        u,s,_,_=rsvdt(SnapshotMatrix,0,0,0, DATA)
+        return u, s
+
 
 if __name__=='__main__':
 
