@@ -81,7 +81,8 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
             "young_modulus" : 1.0e7,
             "stress_increment_tolerance": 1000.0,
             "update_stiffness": true,
-            "start_time" : 0.0
+            "start_time" : 0.0,
+            "stress_averaging_time": 2.0e-9
         }  )" );
 
     // Now validate agains defaults -- this also ensures no type mismatch
@@ -130,6 +131,8 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     mUpdateStiffness = rParameters["update_stiffness"].GetBool();
     mReactionStressOld = 0.0;
     mStiffness = rParameters["young_modulus"].GetDouble()*mFaceArea/rParameters["compression_length"].GetDouble();
+    mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
+    mVectorOfLastStresses.resize(0);
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
@@ -200,7 +203,9 @@ void ExecuteInitializeSolutionStep()
             FaceReaction -= it->FastGetSolutionStepValue(DemForceVarComponent);
         }
 
-        const double ReactionStress = FaceReaction/mFaceArea;
+        double ReactionStress = FaceReaction/mFaceArea;
+
+        ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
         // Update K if required
         const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
@@ -342,6 +347,8 @@ protected:
     double mStressIncrementTolerance;
     double mStiffness;
     bool mUpdateStiffness;
+    std::vector<double> mVectorOfLastStresses;
+    double mStressAveragingTime;
 
 ///@}
 ///@name Protected member r_variables
@@ -391,6 +398,34 @@ private:
 ///@name Private Operations
 ///@{
 
+double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_reaction) {
+    KRATOS_TRY;
+    int length_of_vector = mVectorOfLastStresses.size();
+    if (length_of_vector == 0) { //only the first time
+        int number_of_steps_for_stress_averaging = (int) (mStressAveragingTime / mrFemModelPart.GetProcessInfo()[DELTA_TIME]);
+        if(number_of_steps_for_stress_averaging < 1) number_of_steps_for_stress_averaging = 1;
+        mVectorOfLastStresses.resize(number_of_steps_for_stress_averaging);
+        KRATOS_INFO("DEM") << " 'number_of_steps_for_stress_averaging' is "<< number_of_steps_for_stress_averaging << std::endl;
+    }
+
+    length_of_vector = mVectorOfLastStresses.size();
+
+    if(length_of_vector > 1) {
+        for(int i=1; i<length_of_vector; i++) {
+            mVectorOfLastStresses[i-1] = mVectorOfLastStresses[i];
+        }
+    }
+    mVectorOfLastStresses[length_of_vector-1] = last_reaction;
+
+    double average = 0.0;
+    for(int i=0; i<length_of_vector; i++) {
+        average += mVectorOfLastStresses[i];
+    }
+    average /= (double) length_of_vector;
+    return average;
+
+    KRATOS_CATCH("");
+}
 
 ///@}
 ///@name Private  Access

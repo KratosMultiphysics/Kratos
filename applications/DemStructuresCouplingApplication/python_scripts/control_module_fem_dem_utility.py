@@ -34,7 +34,8 @@ class ControlModuleFemDemUtility(object):
                 "young_modulus" : 7.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 2.0e-9
             }  """ )
 
             settings.AddEmptyValue("face_area")
@@ -60,7 +61,8 @@ class ControlModuleFemDemUtility(object):
                 "young_modulus" : 7.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 2.0e-9
             }  """ )
 
             top_settings.AddEmptyValue("compression_length")
@@ -88,7 +90,8 @@ class ControlModuleFemDemUtility(object):
                 "young_modulus" : 7.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 2.0e-9
             }  """ )
 
             bot_settings.AddEmptyValue("compression_length")
