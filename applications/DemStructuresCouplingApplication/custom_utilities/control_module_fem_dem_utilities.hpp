@@ -82,7 +82,7 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
             "stress_increment_tolerance": 1000.0,
             "update_stiffness": true,
             "start_time" : 0.0,
-            "stress_averaging_time": 2.0e-9
+            "stress_averaging_time": 1.0e-5
         }  )" );
 
     // Now validate agains defaults -- this also ensures no type mismatch
