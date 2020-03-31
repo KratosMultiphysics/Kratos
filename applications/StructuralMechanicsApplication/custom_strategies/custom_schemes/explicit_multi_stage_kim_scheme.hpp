@@ -271,10 +271,10 @@ public:
         // Auxiliar values
         const Double3DArray zero_array = ZeroVector(3);
         // Initializing the variables
-        VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
+        VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
         const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
         if (has_dof_for_rot_z)
-            VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
+            VariableUtils().SetVariable(MOMENT_RESIDUAL,zero_array,r_nodes);
 
         KRATOS_CATCH("")
     }

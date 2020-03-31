@@ -96,7 +96,7 @@ public:
      */
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
+        const Variable<array_1d<double,3>>& rVariableGradient = DISTANCE_GRADIENT,
         Parameters ThisParameters = Parameters(R"({})")
         );
 

@@ -29,7 +29,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 
@@ -61,7 +61,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 }
@@ -82,7 +82,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 }
@@ -473,9 +473,9 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
+const Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                         : 0.1,
         "maximal_size"                         : 10.0,
@@ -528,7 +528,7 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParameters)
 {
     // Get default variables
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
 
     // In case we have isotropic remeshing (default values)
     const bool default_values = !ThisParameters["anisotropy_remeshing"].GetBool();

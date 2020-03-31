@@ -7,11 +7,12 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
 set( KRATOS_MPI_SOURCES
-   mpi_environment.cpp
    sources/mpi_data_communicator.cpp
-   utilities/parallel_fill_communicator.cpp
+   sources/mpi_manager.cpp
+   utilities/data_communicator_factory.cpp
    utilities/gather_modelpart_utility.cpp
    utilities/mpi_normal_calculation_utilities.cpp;
+   utilities/parallel_fill_communicator.cpp
 )
 
 ## Kratos MPI extension Python interface

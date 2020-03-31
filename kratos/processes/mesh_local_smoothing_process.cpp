@@ -100,7 +100,7 @@ namespace Kratos
 		mMeshQualityNorm = 0.00;
 
 		for (auto i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
-			i_node->Set(NOT_SELECTED);
+			i_node->Set(SELECTED, false);
 
 		for (auto i_element = mrModelPart.ElementsBegin(); i_element != mrModelPart.ElementsEnd(); i_element++) {
 			double quality = i_element->GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
