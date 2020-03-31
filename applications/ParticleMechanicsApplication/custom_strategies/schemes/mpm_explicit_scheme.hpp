@@ -831,7 +831,7 @@ namespace Kratos {
             {
                 KRATOS_TRY
 
-                    pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+                pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
                 pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
                 //pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
 

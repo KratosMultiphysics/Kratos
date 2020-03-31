@@ -524,7 +524,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
             ConditionsArrayType& r_conditions = rModelPart.Conditions();
             ElementsArrayType& r_elements = rModelPart.Elements();
 

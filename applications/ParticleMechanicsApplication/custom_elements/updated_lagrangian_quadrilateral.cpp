@@ -342,7 +342,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force  = this->CalculateVolumeForce( volume_force, Variables );
+        Vector volume_force = mMP.volume_acceleration * mMP.mass;
         this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, mMP.volume );
     }
 
@@ -562,23 +562,19 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddExplicitInternalForces(Vecto
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const array_1d<double, 3>& xg = this->GetValue(MP_COORD);
 
     // Calculate shape function gradients
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, xg);
+    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
     Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De, xg); // parametric gradients
+    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
     mDN_DX = prod(DN_De, InvJ); // cartesian gradients
 
-    const Vector& MP_Stress = this->GetValue(MP_CAUCHY_STRESS_VECTOR);
-    const double& MP_Volume = this->GetValue(MP_VOLUME);
-
     MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(r_geometry,
-        mDN_DX, MP_Stress, MP_Volume, rRightHandSideVector);
+        mDN_DX, mMP.cauchy_stress_vector, mMP.volume, rRightHandSideVector);
 
 
     KRATOS_CATCH("")
@@ -607,13 +603,12 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
 
     // Compute explicit element kinematics, strain is incremented here.
     bool isCompressible = false; // TODO update
-    Vector& rMPStrain = this->GetValue(MP_ALMANSI_STRAIN_VECTOR);
     Matrix& rDeformationGradient = rVariables.F; // TODO  maybe mDeformationGradientF0
     MPMExplicitUtilities::CalculateExplicitKinematics(rGeom, mDN_DX, delta_time,
-        rMPStrain, rDeformationGradient, isCompressible);
-    rVariables.StrainVector = rMPStrain;
+        mMP.almansi_strain_vector, rDeformationGradient, isCompressible);
+    rVariables.StrainVector = mMP.almansi_strain_vector;
     rVariables.F = rDeformationGradient;
-    rVariables.StressVector = this->GetValue(MP_CAUCHY_STRESS_VECTOR);
+    rVariables.StressVector = mMP.cauchy_stress_vector;
 
     if (!isCompressible)
     {
@@ -727,22 +722,6 @@ double& UpdatedLagrangianQuadrilateral::CalculateVolumeChange( double& rVolumeCh
     rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
 
     return rVolumeChange;
-
-    KRATOS_CATCH( "" )
-}
-//************************************CALCULATE VOLUME ACCELERATION*******************
-//************************************************************************************
-
-Vector& UpdatedLagrangianQuadrilateral::CalculateVolumeForce( Vector& rVolumeForce, GeneralVariables& rVariables )
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    rVolumeForce = ZeroVector(dimension);
-    rVolumeForce = mMP.volume_acceleration * mMP.mass;
-
-    return rVolumeForce;
 
     KRATOS_CATCH( "" )
 }
@@ -1006,14 +985,13 @@ void UpdatedLagrangianQuadrilateral::InitializeNonLinearIteration(ProcessInfo& r
     this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
     // Calculate shape function gradients
-    const array_1d<double, 3>& xg = this->GetValue(MP_COORD);
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, xg);
+    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
     Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De, xg); // parametric gradients
+    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
     mDN_DX = prod(DN_De, InvJ); // cartesian gradients
 
     //calculate stress
@@ -1533,7 +1511,6 @@ void UpdatedLagrangianQuadrilateral::AddExplicitContribution(const VectorType& r
         GeometryType& r_geometry = GetGeometry();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const array_1d<double, 3>& xg = this->GetValue(MP_COORD);
 
         for (size_t i = 0; i < number_of_nodes; ++i) {
             size_t index = dimension * i;

@@ -71,29 +71,30 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
         const unsigned int dimension = rGeom.WorkingSpaceDimension();
         bool isUpdateMPPositionFromUpdatedMPVelocity = true;
+        const ProcessInfo& rProcessInfo = ProcessInfo();
 
         // Update the MP Velocity
-        const array_1d<double, 3>& MP_PreviousVelocity = rElement.GetValue(MP_VELOCITY);
-        const array_1d<double, 3>& MP_PreviousAcceleration = rElement.GetValue(MP_ACCELERATION);
+        std::vector<array_1d<double, 3 > > MP_PreviousVelocity;
+        std::vector<array_1d<double, 3 > > MP_PreviousAcceleration; 
         array_1d<double, 3> MP_Velocity = ZeroVector(3);
-
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_PreviousVelocity,rProcessInfo);        
+        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, MP_PreviousAcceleration, rProcessInfo);
         double alpha = 1.0;
 
         if (isCentralDifference)
         {
             alpha = 0.5;
             isUpdateMPPositionFromUpdatedMPVelocity = false;
-        }
 
-        // Advance the predictor velocity
-        for (unsigned int i = 0; i < dimension; i++)
-        {
-            MP_Velocity[i] = MP_PreviousVelocity[i] + (1.0 - alpha) * rDeltaTime * MP_PreviousAcceleration[i];
+            // Advance the predictor velocity
+            for (unsigned int i = 0; i < dimension; i++)
+            {
+                MP_Velocity[i] = MP_PreviousVelocity[0][i] + alpha * rDeltaTime * MP_PreviousAcceleration[0][i];
+            }
         }
-
 
         array_1d<double, 3> delta_xg = ZeroVector(3);
         array_1d<double, 3> MP_Acceleration = ZeroVector(3);
@@ -128,10 +129,11 @@ namespace Kratos
         {
             MP_Velocity[j] += alpha * rDeltaTime * MP_Acceleration[j];
         }
-        rElement.SetValue(MP_VELOCITY, MP_Velocity);
+        rElement.SetValuesOnIntegrationPoints(MP_VELOCITY, { MP_Velocity }, rProcessInfo);
 
         // Update the MP Position
-        const array_1d<double, 3>& xg = rElement.GetValue(MP_COORD);
+        std::vector<array_1d<double, 3 > > xg;
+        rElement.CalculateOnIntegrationPoints(MP_COORD, xg,rProcessInfo);
         if (isUpdateMPPositionFromUpdatedMPVelocity)
         {
             for (unsigned int j = 0; j < dimension; j++)
@@ -139,18 +141,17 @@ namespace Kratos
                 delta_xg[j] = rDeltaTime * MP_Velocity[j];
             }
         }
-        const array_1d<double, 3>& new_xg = xg + delta_xg;
-        rElement.SetValue(MP_COORD, new_xg);
-
+        const array_1d<double, 3>& new_xg = xg[0] + delta_xg;
+        rElement.SetValuesOnIntegrationPoints(MP_COORD, { new_xg }, rProcessInfo);
 
         // Update the MP Acceleration
-        rElement.SetValue(MP_ACCELERATION, MP_Acceleration);
-
+        rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION, { MP_Acceleration },rProcessInfo);
 
         // Update the MP total displacement
-        array_1d<double, 3>& MP_Displacement = rElement.GetValue(MP_DISPLACEMENT);
-        MP_Displacement += delta_xg;
-        rElement.SetValue(MP_DISPLACEMENT, MP_Displacement);
+        std::vector<array_1d<double, 3 > > MP_Displacement;
+        rElement.CalculateOnIntegrationPoints(MP_DISPLACEMENT, MP_Displacement,rProcessInfo);
+        MP_Displacement[0] += delta_xg;
+        rElement.SetValuesOnIntegrationPoints(MP_DISPLACEMENT,MP_Displacement,rProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -165,10 +166,14 @@ namespace Kratos
     {
 
         KRATOS_TRY
-            const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
-        const array_1d<double, 3>& MP_Velocity = rElement.GetValue(MP_VELOCITY);
-        const double& MP_Mass = rElement.GetValue(MP_MASS);
+        const ProcessInfo& rProcessInfo = ProcessInfo();
+
+        std::vector<array_1d<double, 3 > > MP_Velocity;
+        std::vector<double> MP_Mass;
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_Velocity,rProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, MP_Mass, rProcessInfo);
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
@@ -178,7 +183,7 @@ namespace Kratos
             for (unsigned int j = 0; j < dimension; j++)
             {
                 // we need to use the original shape functions here (calculated before the momenta update)
-                r_current_velocity[j] += rN[i] * MP_Mass * MP_Velocity[j] / r_nodal_mass;
+                r_current_velocity[j] += rN[i] * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
             }
         }
 
