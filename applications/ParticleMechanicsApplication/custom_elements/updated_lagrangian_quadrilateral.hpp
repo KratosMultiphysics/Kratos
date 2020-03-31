@@ -417,9 +417,24 @@ public:
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the end of eahc solution step
+     * Called after InitializeSolutionStep at the start of the non-linear iteration
+    */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of each solution step
+     */
+    void FinalizeImplicitSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Called at the end of each solution step
+     */
+    void FinalizeExplicitSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     //************* COMPUTING  METHODS
 
@@ -498,6 +513,11 @@ public:
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -610,6 +630,31 @@ protected:
      */
     bool mFinalizedStep;
 
+    /**
+     * Container to store shape functions over whole timestep
+     */
+    Vector mN;
+
+    /**
+     * Container to store shape function gradients over whole timestep
+     */
+    Matrix mDN_DX;
+
+    /**
+     * Boolean for explicit time integration
+     */
+    bool mIsExplicit = false;
+
+    /**
+     * Boolean for stress update option
+     */
+    bool mIsUSFStressUpdate = false;
+
+    /**
+     * Boolean for central difference explicit time integration
+     */
+    bool mIsCentralDifference = false;
+
 
     ///@}
     ///@name Protected Operators
@@ -677,6 +722,17 @@ protected:
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
+
+    /**
+      * Calculation of the Explicit Internal Forces Vector. Fi = div. sigma
+      */
+    virtual void CalculateAndAddExplicitInternalForces(VectorType& rRightHandSideVector);
+
+    /**
+      * Calculation of the Explicit Stresses from velocity gradient.
+      */
+    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables);
 
 
     /**

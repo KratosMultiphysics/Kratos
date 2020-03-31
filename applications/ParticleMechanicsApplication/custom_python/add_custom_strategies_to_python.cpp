@@ -26,6 +26,7 @@
 //---strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/mpm_residual_based_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/mpm_explicit_strategy.hpp"
 
 
 //---convergence criterias
@@ -33,6 +34,7 @@
 
 //---schemes
 #include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/schemes/mpm_explicit_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 //---builders and solvers
@@ -59,14 +61,22 @@ namespace Python{
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
         typedef MPMResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMResidualBasedNewtonRaphsonStrategyType;
+        typedef MPMExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMExplicitStrategyType;
 
         //custom scheme types
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
+        typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
 
         // MPM Residual Based Bossak Scheme Type
         py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
             .def(py::init < ModelPart&, unsigned int, unsigned int, double, double, bool>())
             .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
+            ;
+
+        // MPM Explicit Scheme Type
+        py::class_< MPMExplicitSchemeType, typename MPMExplicitSchemeType::Pointer, BaseSchemeType >(m, "MPMExplicitScheme")
+            .def(py::init < ModelPart&, const int, const bool>())
+            .def("Initialize", &MPMExplicitSchemeType::Initialize)
             ;
 
         // MPM Residual Based Newton Raphson Strategy Type
@@ -81,6 +91,17 @@ namespace Python{
             .def("GetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
             .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
             .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
+            ;
+
+        // MPM Explicit Strategy Type
+        py::class_< MPMExplicitStrategyType, typename MPMExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m, "MPMExplicitStrategy")
+            .def(py::init< ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
+            .def("SetInitializePerformedFlag", &MPMExplicitStrategyType::SetInitializePerformedFlag)
+            .def("GetInitializePerformedFlag", &MPMExplicitStrategyType::GetInitializePerformedFlag)
+            .def("SetKeepSystemConstantDuringIterations", &MPMExplicitStrategyType::SetKeepSystemConstantDuringIterations)
+            .def("GetKeepSystemConstantDuringIterations", &MPMExplicitStrategyType::GetKeepSystemConstantDuringIterations)
+            .def("SetFinalizeSolutionStepFlag", &MPMExplicitStrategyType::SetFinalizeSolutionStepFlag)
+            .def("GetFinalizeSolutionStepFlag", &MPMExplicitStrategyType::GetFinalizeSolutionStepFlag)
             ;
     }
 
