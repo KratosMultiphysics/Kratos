@@ -26,8 +26,73 @@ extern "C" {
     #include <feast_sparse.h>
 }
 
-namespace Kratos
-{
+namespace Kratos {
+
+namespace { // helpers namespace
+    template<typename TScalar>
+    struct SettingsHelper
+    {
+        SettingsHelper(Parameters SolverParams) : mParam(SolverParams) {};
+
+        Parameters GetDefaultParameters();
+        void CheckParameters();
+        TScalar GetE1();
+        double GetE2();
+        private:
+            Parameters mParam;
+    };
+
+    template<>
+    Parameters SettingsHelper<double>::GetDefaultParameters()
+    {
+        return Parameters(R"({
+
+        })");
+    }
+
+    template<>
+    Parameters SettingsHelper<std::complex<double>>::GetDefaultParameters()
+    {
+        return Parameters(R"({
+
+        })");
+    }
+
+    template<>
+    void SettingsHelper<double>::CheckParameters()
+    {
+        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
+
+        KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
+            "Invalid eigenvalue limits provided" << std::endl;
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
+            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
+    }
+
+    template<>
+    void SettingsHelper<std::complex<double>>::CheckParameters()
+    {
+        KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
+            "Invalid search radius provided" << std::endl;
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
+            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
+    }
+
+    template<> double SettingsHelper<double>::GetE1() {return mParam["e_min"].GetDouble();}
+    template<> std::complex<double> SettingsHelper<std::complex<double>>::GetE1() {return std::complex<double>(mParam["e_mid_re"].GetDouble(), mParam["e_mid_im"].GetDouble());}
+
+    template<>double SettingsHelper<double>::GetE2() {return mParam["e_max"].GetDouble();}
+    template<> double SettingsHelper<std::complex<double>>::GetE2() {return mParam["e_r"].GetDouble();}
+}
 
 template<
     bool TSymmetric,
@@ -81,6 +146,8 @@ class FEASTEigensystemSolver
             "echo_level" : 0
         })");
 
+        default_params.AddMissingParameters(SettingsHelper<TScalarOut>(mParam).GetDefaultParameters());
+
         mParam.ValidateAndAssignDefaults(default_params);
 
         KRATOS_ERROR_IF( mParam["number_of_eigenvalues"].GetInt() < 0 ) <<
@@ -102,7 +169,7 @@ class FEASTEigensystemSolver
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
             "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
 
-        CheckParameters<TScalarOut>();
+        SettingsHelper<TScalarOut>(mParam).CheckParameters();
     }
 
     ~FEASTEigensystemSolver() override = default;
@@ -188,8 +255,8 @@ class FEASTEigensystemSolver
 
         double epsout;
         int loop;
-        TScalarOut E1 = GetE1<TScalarOut>();
-        double E2 = GetE2<TScalarOut>();
+        TScalarOut E1 = SettingsHelper<TScalarOut>(mParam).GetE1();
+        double E2 = SettingsHelper<TScalarOut>(mParam).GetE2();
         double* Emin = reinterpret_cast<double*>(&E1);
         double* Emax = reinterpret_cast<double*>(&E2);
         int M0 = static_cast<int>(subspace_size);
@@ -278,60 +345,6 @@ class FEASTEigensystemSolver
         } else {
             return std::bind(zfeast_gcsrgv, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
         }
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
-    double GetE1()
-    {
-        return mParam["e_min"].GetDouble();
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
-    std::complex<double> GetE1()
-    {
-        return std::complex<double>(mParam["e_mid_re"].GetDouble(), mParam["e_mid_im"].GetDouble());
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
-    double GetE2()
-    {
-        return mParam["e_max"].GetDouble();
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
-    double GetE2()
-    {
-        return mParam["e_r"].GetDouble();
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
-    void CheckParameters()
-    {
-        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
-
-        KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
-            "Invalid eigenvalue limits provided" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
-            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
-    void CheckParameters()
-    {
-        KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
-            "Invalid search radius provided" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
-            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
-
     }
 
 }; // class FEASTEigensystemSolver
