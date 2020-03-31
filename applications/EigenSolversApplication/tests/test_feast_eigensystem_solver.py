@@ -8,8 +8,8 @@ import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 
 from math import sqrt
 
+@KratosUnittest.skipUnless(EigenSolversApplication.HasFEAST(),"FEAST not found in EigenSolversApplication, skipping.")
 class TestFeastEigensystemSolver(KratosUnittest.TestCase):
-    @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTSymmetricEigensystemSolver'),"FEAST not found, skipping.")
     def test_real_symmetric_gev(self):
 
         space = KratosMultiphysics.UblasSparseSpace()
@@ -69,7 +69,6 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
             self.assertVectorAlmostEqual(_aux_1, _aux_2)
 
-    @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTGeneralEigensystemSolver'),"FEAST not found, skipping.")
     def test_real_general_gev(self):
 
         space = KratosMultiphysics.UblasComplexSparseSpace()
@@ -135,7 +134,6 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
             self.assertVectorAlmostEqual(_aux_1, _aux_2)
 
-    @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'FEASTGeneralEigensystemSolver'),"FEAST not found, skipping.")
     def test_real_general_gev_complex_result(self):
 
         space = KratosMultiphysics.UblasComplexSparseSpace()
@@ -190,7 +188,6 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
             self.assertVectorAlmostEqual(_aux_1, _aux_2)
 
-    @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'ComplexFEASTSymmetricEigensystemSolver'),"FEAST not found, skipping.")
     def test_complex_symmetric_gev(self):
 
         space = KratosMultiphysics.UblasComplexSparseSpace()
@@ -250,7 +247,6 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
             self.assertVectorAlmostEqual(_aux_1, _aux_2)
 
-    @KratosUnittest.skipUnless(hasattr(EigenSolversApplication,'ComplexFEASTGeneralEigensystemSolver'),"FEAST not found, skipping.")
     def test_complex_general_gev(self):
 
         space = KratosMultiphysics.UblasComplexSparseSpace()
