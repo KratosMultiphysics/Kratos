@@ -69,6 +69,7 @@ class AnalysisStage(object):
                 break
 
         # Solution loop
+        solver = self._GetSolver()
         while self.KeepAdvancingSolutionLoop():
             self.time = solver.AdvanceInTime(self.time)
             # We reinitialize if remeshed previously
