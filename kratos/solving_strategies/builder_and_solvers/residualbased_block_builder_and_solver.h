@@ -389,7 +389,7 @@ public:
         )
     {
         if(ConstraintUtilities::NumberOfActiveConstraints(rModelPart) > 0) {
-            TSystemVectorType Dxmodified(b.size());
+            TSystemVectorType Dxmodified(rb.size());
 
             InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
 
