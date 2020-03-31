@@ -122,9 +122,6 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
 
 void KratosContactStructuralMechanicsApplication::Register()
 {
-    // Calling base class register to register Kratos components
-    KratosApplication::Register();
-
     // VARIABLES
     // MPC Contact related variables
     KRATOS_REGISTER_VARIABLE( CONSTRAINT_POINTER )                                    // Pointer to the constraint of the condition
