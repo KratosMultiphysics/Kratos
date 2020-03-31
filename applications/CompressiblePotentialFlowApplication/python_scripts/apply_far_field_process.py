@@ -70,15 +70,12 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         self.step = self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        #self.free_stream_mach += 0.01
-        #self.free_stream_mach = self.step / 1.0 * self.free_stream_mach_final
-        #self.free_stream_mach = self.free_stream_mach_final + self.step / 100.0
-        if self.step > 7:
-            self.free_stream_mach += 0.001
-        else:
+
+        if self.step > 1:
             self.free_stream_mach += 0.01
-        # else:
-        #     self.free_stream_mach += 0.01
+            # self.mach_number_limit += 0.01
+            # self.upwinding_factor_constant -= 0.1
+
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
         self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
@@ -90,6 +87,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ApplyFarFieldProcess',' mach_number_limit = ', self.mach_number_limit)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWINDING_FACTOR_CONSTANT,self.upwinding_factor_constant)
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)
         far_field_process.Execute()
 
