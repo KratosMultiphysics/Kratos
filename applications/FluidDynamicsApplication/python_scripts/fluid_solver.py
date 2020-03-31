@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import sys
 
 # Importing the Kratos Library
@@ -23,14 +21,14 @@ class FluidSolver(PythonSolver):
     Depending on the formulation type, derived classes may require to
     override some (or all) the following functions:
 
-    _create_solution_scheme
-    _create_convergence_criterion
-    _create_linear_solver
-    _create_builder_and_solver
-    _create_solution_strategy
+    _CreateScheme
+    _CreateConvergenceCriterion
+    _CreateLinearSolver
+    _CreateBuilderAndSolver
+    _CreateSolutionStrategy
 
     The solution strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_solution_strategy, get_builder_and_solver,
+    using the getter functions _GetSolutionStrategy, _GetBuilderAndSolver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -120,15 +118,15 @@ class FluidSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.get_solution_strategy().InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
         if self._TimeBufferIsInitialized():
-            self.get_solution_strategy().Predict()
+            self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            is_converged = self.get_solution_strategy().SolveSolutionStep()
+            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
             if not is_converged:
                 msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
@@ -139,13 +137,13 @@ class FluidSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.get_solution_strategy().FinalizeSolutionStep()
+            self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def Check(self):
-        self.get_solution_strategy().Check()
+        self._GetSolutionStrategy().Check()
 
     def Clear(self):
-        self.get_solution_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
@@ -232,7 +230,7 @@ class FluidSolver(PythonSolver):
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.get_estimate_dt_utility().EstimateDt()
+            delta_time = self.GetEstimateDtUtility().EstimateDt()
         # User-defined delta time
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
@@ -280,37 +278,37 @@ class FluidSolver(PythonSolver):
         # in case the detection of a restart is changed later
         return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
-    def get_estimate_dt_utility(self):
+    def GetEstimateDtUtility(self):
         if not hasattr(self, '_estimate_dt_utility'):
-            self._estimate_dt_utility = self._create_estimate_dt_utility()
+            self._estimate_dt_utility = self._CreateEstimateDtUtility()
         return self._estimate_dt_utility
 
-    def get_solution_scheme(self):
-        if not hasattr(self, '_solution_scheme'):
-            self._solution_scheme = self._create_solution_scheme()
-        return self._solution_scheme
+    def _GetScheme(self):
+        if not hasattr(self, '_scheme'):
+            self._scheme = self._CreateScheme()
+        return self._scheme
 
-    def get_convergence_criterion(self):
+    def _GetConvergenceCriterion(self):
         if not hasattr(self, '_convergence_criterion'):
-            self._convergence_criterion = self._create_convergence_criterion()
+            self._convergence_criterion = self._CreateConvergenceCriterion()
         return self._convergence_criterion
 
-    def get_linear_solver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
-    def get_builder_and_solver(self):
+    def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
-    def get_solution_strategy(self):
+    def _GetSolutionStrategy(self):
         if not hasattr(self, '_solution_strategy'):
-            self._solution_strategy = self._create_solution_strategy()
+            self._solution_strategy = self._CreateSolutionStrategy()
         return self._solution_strategy
 
-    def _create_estimate_dt_utility(self):
+    def _CreateEstimateDtUtility(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 2:
             estimate_dt_utility = KratosCFD.EstimateDtUtility2D(
@@ -323,13 +321,13 @@ class FluidSolver(PythonSolver):
 
         return estimate_dt_utility
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
@@ -347,21 +345,21 @@ class FluidSolver(PythonSolver):
                 # Bossak time integration scheme
                 if self.settings["time_scheme"].GetString() == "bossak":
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        solution_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             domain_size,
                             KratosCFD.PATCH_INDEX)
                     else:
-                        solution_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size)
                 # BDF2 time integration scheme
                 elif self.settings["time_scheme"].GetString() == "bdf2":
-                    solution_scheme = KratosCFD.GearScheme()
+                    scheme = KratosCFD.GearScheme()
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size)
@@ -373,7 +371,7 @@ class FluidSolver(PythonSolver):
             else:
                 self._turbulence_model_solver.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
-                    solution_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                    scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                                 self.settings["alpha"].GetDouble(),
                                 self.settings["move_mesh_strategy"].GetInt(),
                                 domain_size,
@@ -381,18 +379,18 @@ class FluidSolver(PythonSolver):
                                 self._turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size,
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-        return solution_scheme
+        return scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         if self.settings["time_scheme"].GetString() == "steady":
             convergence_criterion = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -406,8 +404,8 @@ class FluidSolver(PythonSolver):
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
-    def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
                 linear_solver,
@@ -416,12 +414,12 @@ class FluidSolver(PythonSolver):
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         return builder_and_solver
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,

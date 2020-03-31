@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -9,8 +7,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-
+# Import turbulence model solver
 from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_solver import CreateTurbulenceModel
 
 class StabilizedFormulation(object):
@@ -331,23 +328,14 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
-        # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        # If the solver requires an instance of the stabilized formulation class, set the process info variables
+        if hasattr(self, 'formulation'):
+            self.formulation.SetProcessInfo(self.GetComputingModelPart())
 
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # If the solver requires an instance of the stabilized formulation class, set the process info variables
-            if hasattr(self, 'formulation'):
-                self.formulation.SetProcessInfo(self.GetComputingModelPart())
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
+        # Construct and initialize the solution strategy
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
 
         # If there is turbulence modelling, set the new solution strategy as parent strategy
         if hasattr(self, "_turbulence_model_solver"):
@@ -361,7 +349,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             if hasattr(self, 'time_discretization'):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
-            self.get_solution_strategy().InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
             # Perform the turbulence modelling InitializeSolutionStep
             if hasattr(self, "_turbulence_model_solver"):
                 self._turbulence_model_solver.InitializeSolutionStep()

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
@@ -123,63 +121,41 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
     def PrepareModelPart(self):
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self._SetPhysicalProperties()
+        # Call the base solver to do the PrepareModelPart
+        # Note that his also calls the PrepareModelPart of the turbulence model
+        super(TrilinosNavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).PrepareModelPart()
-
+        # Create the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
-
-        if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
         # If there is turbulence modelling, set the Epetra communicator in the turbulence solver
-        # TODO: Check if this needs to be done before creating the strategy
         if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.SetCommunicator(self.get_epetra_communicator())
+            self._turbulence_model_solver.SetCommunicator(self._GetEpetraCommunicator())
 
-        # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # Set the formulation instance process info variables
-            self.formulation.SetProcessInfo(self.GetComputingModelPart())
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
-
-        # If there is turbulence modelling, set the new solution strategy as parent strategy
-        if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.SetParentSolvingStrategy(solution_strategy)
+        # Call the base Initialize() method to create and initialize the strategy
+        super(TrilinosNavierStokesSolverMonolithic, self).Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def Finalize(self):
-        self.get_solution_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.Finalize()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, set the time discretization utility to compute the BDF coefficients
@@ -197,28 +173,28 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 if self.settings["time_scheme"].GetString() == "bossak":
                     # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        solution_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             domain_size,
                             KratosCFD.PATCH_INDEX)
                     else:
-                        solution_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size)
                 # BDF2 time integration scheme
                 elif self.settings["time_scheme"].GetString() == "bdf2":
-                    solution_scheme = TrilinosFluid.TrilinosGearScheme()
+                    scheme = TrilinosFluid.TrilinosGearScheme()
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
+                    scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size)
             else:
                 self._turbulence_model_solver.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
-                    solution_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                    scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             domain_size,
@@ -226,18 +202,18 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    solution_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
+                    scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             domain_size,
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-        return solution_scheme
+        return scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         if self.settings["time_scheme"].GetString() == "steady":
             convergence_criterion = KratosTrilinos.TrilinosResidualCriteria(
                 self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -251,7 +227,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 3:
@@ -259,8 +235,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.get_linear_solver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
@@ -274,12 +250,12 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 trilinos_linear_solver)
         return builder_and_solver
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,

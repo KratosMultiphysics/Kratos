@@ -30,8 +30,6 @@ KratosExaquteSandboxApplication::KratosExaquteSandboxApplication():
 
 void KratosExaquteSandboxApplication::Register()
 {
-     // calling base class register to register Kratos components
-     KratosApplication::Register();
      KRATOS_INFO("") << "Initializing KratosExaquteSandboxApplication..." << std::endl;
 
   KRATOS_REGISTER_VARIABLE( AVERAGED_DIVERGENCE )

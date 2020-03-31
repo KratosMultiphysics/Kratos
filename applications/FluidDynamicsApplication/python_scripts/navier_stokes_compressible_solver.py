@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
@@ -6,7 +5,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 ## Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
@@ -118,31 +116,20 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
     def Initialize(self):
         # Construct and set the solution strategy
-        solution_strategy = self.get_solution_strategy()
+        solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
 
-        # Initialize the solution strategy
-        if not self.is_restarted():
-            # Initialize the solution strategy
-            solution_strategy.Initialize()
-        else:
-            # This try is required in case SetInitializePerformedFlag is not a member of the strategy
-            try:
-                solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
-
-        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        self.get_solution_strategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
 
     def Solve(self):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        self.get_solution_strategy().Solve()
+        self._GetSolutionStrategy().Solve()
 
     def PrepareModelPart(self):
         super(NavierStokesCompressibleSolver,self).PrepareModelPart()
@@ -160,7 +147,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
@@ -171,7 +158,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 KratosMultiphysics.SLIP)
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2
@@ -184,9 +171,9 @@ class NavierStokesCompressibleSolver(FluidSolver):
         else:
             err_msg = "Custom scheme creation is not allowed. Compressible Navier-Stokes elements manage the time integration internally."
             raise Exception(err_msg)
-        return solution_scheme
+        return scheme
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = KratosMultiphysics.ResidualCriteria(
             self.settings["relative_tolerance"].GetDouble(),
             self.settings["absolute_tolerance"].GetDouble())

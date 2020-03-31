@@ -4,8 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
 from KratosMultiphysics.ChimeraApplication import chimera_setup_utils
-# Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
@@ -17,7 +15,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
     def __init__(self, model, custom_settings):
         [self.chimera_settings, self.chimera_internal_parts, custom_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
         super(NavierStokesSolverMonolithicChimera,self).__init__(model,custom_settings)
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithic finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithicChimera finished.")
 
     def AddVariables(self):
         super(NavierStokesSolverMonolithicChimera,self).AddVariables()
@@ -28,7 +26,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_VELOCITY)
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid chimera solver variables added correctly.")
 
     def ImportModelPart(self):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "chimera"):
@@ -57,6 +55,9 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
             self.model,
             self.chimera_internal_parts)
 
+    def GetComputingModelPart(self):
+        return self.main_model_part
+
     def InitializeSolutionStep(self):
         self.chimera_process.ExecuteInitializeSolutionStep()
         super(NavierStokesSolverMonolithicChimera,self).InitializeSolutionStep()
@@ -66,8 +67,8 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
-    def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
         if self.settings["consider_periodic_conditions"].GetBool():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicForChimera Periodic conditions are not implemented in this case .")
             raise NotImplementedError

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
@@ -112,18 +110,18 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
@@ -138,13 +136,13 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         else:
             err_msg = "Custom scheme creation is not allowed. Two-fluids Navier-Stokes elements manage the time integration internally."
             raise Exception(err_msg)
-        return solution_scheme
+        return scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion =  KratosTrilinos.TrilinosUPCriteria(
             self.settings["relative_velocity_tolerance"].GetDouble(),
             self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -153,7 +151,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 3:
@@ -161,8 +159,8 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.get_linear_solver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
@@ -176,12 +174,12 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
                 trilinos_linear_solver)
         return builder_and_solver
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
@@ -193,12 +191,12 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
 
-    def _create_level_set_convection_process(self):
+    def _CreateLevelSetConvectionProcess(self):
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
-        epetra_communicator = self.get_epetra_communicator()
+        epetra_communicator = self._GetEpetraCommunicator()
         if domain_size == 2:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess2D(
                 epetra_communicator,
@@ -214,12 +212,12 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
         return level_set_convection_process
 
-    def _create_variational_distance_process(self):
+    def _CreateVariationalDistanceProcess(self):
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
-        epetra_communicator = self.get_epetra_communicator()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
                 epetra_communicator,

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
@@ -18,7 +16,6 @@ def CreateSolver(model, custom_settings):
     return NavierStokesMPIEmbeddedMonolithicSolver(model, custom_settings)
 
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
-
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -63,7 +60,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
-            "periodic": "periodic",
             "move_mesh_flag": false,
             "formulation": {
                 "element_type": "embedded_element_from_defaults",
@@ -93,9 +89,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
 
-        # TODO: SWITCH THIS ON BY CALLING THE BASE SOLVER CONSTRUCTOR (INSTEAD OF THE BASE ONE) ONCE THIS IS IMPLEMENTED
-        self._fm_ale_is_active = False
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
     def AddVariables(self):
@@ -118,18 +111,18 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Construct MPI the communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            solution_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+            scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
                 domain_size,
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
@@ -144,13 +137,13 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         else:
             err_msg = "Custom scheme creation is not allowed. Embedded Navier-Stokes elements manage the time integration internally."
             raise Exception(err_msg)
-        return solution_scheme
+        return scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion =  KratosTrilinos.TrilinosUPCriteria(
             self.settings["relative_velocity_tolerance"].GetDouble(),
             self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -159,7 +152,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 3:
@@ -167,8 +160,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.get_linear_solver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
@@ -182,12 +175,12 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 trilinos_linear_solver)
         return builder_and_solver
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
@@ -198,3 +191,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
+
+    @classmethod
+    def _FmAleIsActive(self):
+        return False

@@ -95,53 +95,56 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         super(PotentialFlowAdjointSolver, self).Initialize()
 
         # Initialize the response function and the sensitivity builder
-        self.get_response_function().Initialize()
-        self.get_sensitivity_builder().Initialize()
+        self._GetResponseFunction().Initialize()
+        self._GetSensitivityBuilder().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
-        self.get_response_function().InitializeSolutionStep()
+        self._GetResponseFunction().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
-        self.get_response_function().FinalizeSolutionStep()
-        self.get_sensitivity_builder().UpdateSensitivities()
+        self._GetResponseFunction().FinalizeSolutionStep()
+        self._GetSensitivityBuilder().UpdateSensitivities()
 
-    def _get_strategy_type(self):
+    @classmethod
+    def _GetStrategyType(self):
         strategy_type = "linear"
         return strategy_type
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         # Fake scheme creation to do the solution update
-        response_function = self.get_response_function()
-        solution_scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
-        return solution_scheme
+        response_function = self._GetResponseFunction()
+        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(response_function)
+        return scheme
 
-    def get_response_function(self):
+    def _GetResponseFunction(self):
         if not hasattr(self, '_response_function'):
-            self._response_function = self._create_response_function()
+            self._response_function = self.__CreateResponseFunction()
         return self._response_function
 
-    def _create_response_function(self):
+    def __CreateResponseFunction(self):
+        computing_model_part = self.GetComputingModelPart()
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
-                self.main_model_part,
+                computing_model_part,
                 self.response_function_settings)
         else:
             raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
         return response_function
 
-    def get_sensitivity_builder(self):
+    def _GetSensitivityBuilder(self):
         if not hasattr(self, '_sensitivity_builder'):
-            self._sensitivity_builder = self._create_sensitivity_builder()
+            self._sensitivity_builder = self.__CreateSensitivityBuilder()
         return self._sensitivity_builder
 
-    def _create_sensitivity_builder(self):
-        response_function = self.get_response_function()
+    def __CreateSensitivityBuilder(self):
+        computing_model_part = self.GetComputingModelPart()
+        response_function = self._GetResponseFunction()
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.sensitivity_settings,
-            self.main_model_part,
+            computing_model_part,
             response_function)
         return sensitivity_builder

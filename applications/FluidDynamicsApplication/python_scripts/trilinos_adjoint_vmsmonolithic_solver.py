@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 ## Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
@@ -6,7 +5,6 @@ import KratosMultiphysics.mpi as KratosMPI
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
@@ -100,29 +98,29 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            self._epetra_communicator = TrilinosApplication.CreateCommunicator()
         return self._epetra_communicator
 
-    def _create_solution_scheme(self):
-        response_function = self.get_response_function()
+    def _CreateScheme(self):
+        response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
-            solution_scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
+            scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
                 self.settings["scheme_settings"],
                 response_function)
         elif scheme_type == "steady":
-            solution_scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
+            scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
-        return solution_scheme
+        return scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 3:
@@ -130,26 +128,26 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         else:
             guess_row_size = 10*3
         # Construct the Trilinos builder and solver
-        trilinos_linear_solver = self.get_linear_solver()
-        epetra_communicator = self.get_epetra_communicator()
+        trilinos_linear_solver = self._GetLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
         if self.settings["consider_periodic_conditions"].GetBool():
-            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
+            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolverPeriodic(
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver,
                 KratosFluid.PATCH_INDEX)
         else:
-            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
+            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver)
         return builder_and_solver
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        builder_and_solver = self.get_builder_and_solver()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         calculate_reaction_flag = False
         reform_dof_set_at_each_step = False
         calculate_norm_dx_flag = False

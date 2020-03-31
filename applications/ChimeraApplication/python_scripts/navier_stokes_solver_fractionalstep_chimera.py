@@ -31,7 +31,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_VELOCITY)
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid chimera solver variables added correctly.")
 
     def ImportModelPart(self):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "chimera"):
@@ -60,6 +60,9 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
             self.model,
             self.chimera_internal_parts)
 
+    def GetComputingModelPart(self):
+        return self.main_model_part
+
     def InitializeSolutionStep(self):
         self.chimera_process.ExecuteInitializeSolutionStep()
         super(NavierStokesSolverFractionalStepForChimera,self).InitializeSolutionStep()
@@ -69,14 +72,14 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
-    def _create_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         # Create the pressure and velocity linear solvers
         # Note that linear_solvers is a tuple. The first item is the pressure
         # linear solver. The second item is the velocity linear solver.
-        linear_solvers = self.get_linear_solver()
+        linear_solvers = self._GetLinearSolver()
 
         # Create the fractional step settings instance
         # TODO: next part would be much cleaner if we passed directly the parameters to the c++
