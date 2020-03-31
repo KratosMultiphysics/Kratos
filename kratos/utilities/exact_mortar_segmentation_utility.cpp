@@ -1158,7 +1158,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
         IndexType cond_counter = rMainModelPart.NumberOfConditions() + 1;
 
         auto p_prop_slave = aux_model_part.CreateNewProperties(10001);
-        auto p_prop_master = aux_model_part.CreateNewProperties(10002);
+//         auto p_prop_master = aux_model_part.CreateNewProperties(10002);
 
         for (auto& r_cond_slave : rMainModelPart.Conditions()) {
             if (r_cond_slave.IsDefined(SLAVE)) {
