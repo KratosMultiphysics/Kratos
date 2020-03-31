@@ -123,8 +123,6 @@ KratosRANSApplication::KratosRANSApplication()
 
 void KratosRANSApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosRANSApplication..." << std::endl;
 
     KRATOS_REGISTER_VARIABLE(TURBULENT_KINETIC_ENERGY)

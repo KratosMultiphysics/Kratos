@@ -511,14 +511,14 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<doubl
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
 
     KRATOS_TRY;
     if (rValues.size() != NumGauss)
     {
-        KRATOS_THROW_ERROR(std::runtime_error,"Wrong number of input values for DynamicVMS::SetValueOnIntegrationPoints. Expected number of input values is ",NumGauss);
+        KRATOS_THROW_ERROR(std::runtime_error,"Wrong number of input values for DynamicVMS::SetValuesOnIntegrationPoints. Expected number of input values is ",NumGauss);
     }
     KRATOS_CATCH("");
 
