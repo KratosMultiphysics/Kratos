@@ -169,7 +169,8 @@ void MeshElement::AddExplicitContribution(
 
 const Parameters MeshElement::GetSpecifications() const
 {
-    const Parameters specifications = Parameters(R"({        
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : [],
         "framework"                  : "lagrangian",
         "symmetric_lhs"              : true,
         "positive_definite_lhs"      : true,

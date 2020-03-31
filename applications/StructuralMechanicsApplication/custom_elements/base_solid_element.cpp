@@ -1851,7 +1851,8 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 
 const Parameters BaseSolidElement::GetSpecifications() const
 {
-    const Parameters specifications = Parameters(R"({        
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
         "framework"                  : "lagrangian",
         "symmetric_lhs"              : true,
         "positive_definite_lhs"      : true,

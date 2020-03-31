@@ -1356,13 +1356,14 @@ public:
      * @brief This method provides the specifications/requirements of the element
      * @details This can be used to enhance solvers and analysis. The following is an example:
      * {
+        "time_integration"           : [],                                   // NOTE: Options are static, implicit, explicit
         "framework"                  : "eulerian",                           // NOTE: Options are eulerian, lagrangian, ALE
         "symmetric_lhs"              : true,                                 // NOTE: Options are true/false
         "positive_definite_lhs"      : false,                                // NOTE: Options are true/false
         "required_variables"         : ["DISPLACEMENT"],                     // NOTE: Fill with the required variables
         "required_dofs"              : ["DISPLACEMENT_X", "DISPLACEMENT_Y"], // NOTE: Fill with the required dofs
         "flags_used"                 : ["BOUNDARY", "ACTIVE"],               // NOTE: Fill with the flags used
-        "compatible_geometries"      : ["Triangle2D3"],                      // NOTE: Compatible geometries. Options are "Point2D", "Point3D", "Sphere3D1", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle2D3", "Triangle2D6", "Triangle3D3", "Triangle3D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9", "Tetrahedra3D4" , "Tetrahedra3D10" , "Prism3D6" , "Prism3D15" , "Hexahedra3D8" , "Hexahedra3D20" , "Hexahedra3D27" 
+        "compatible_geometries"      : ["Triangle2D3"],                      // NOTE: Compatible geometries. Options are "Point2D", "Point3D", "Sphere3D1", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle2D3", "Triangle2D6", "Triangle3D3", "Triangle3D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9", "Tetrahedra3D4" , "Tetrahedra3D10" , "Prism3D6" , "Prism3D15" , "Hexahedra3D8" , "Hexahedra3D20" , "Hexahedra3D27"
         "is_implicit"                : true,                                 // NOTE: Options are true/false
         "element_integrates_in_time" : true,                                 // NOTE: Options are true/false
         "compatible_constitutive_laws": {
@@ -1375,21 +1376,22 @@ public:
      */
     virtual const Parameters GetSpecifications() const
     {
-        const Parameters specifications = Parameters(R"({        
-        "framework"                  : "lagrangian",
-        "symmetric_lhs"              : false,
-        "positive_definite_lhs"      : false,
-        "required_variables"         : [],
-        "required_dofs"              : [],
-        "flags_used"                 : [],
-        "compatible_geometries"      : [],
-        "is_implicit"                : true,
-        "element_integrates_in_time" : true,
-        "compatible_constitutive_laws": {
-            "type"        : [],
-            "dimension"   : [],
-            "strain_size" : []
-        }})");
+        const Parameters specifications = Parameters(R"({
+            "time_integration"           : [],
+            "framework"                  : "lagrangian",
+            "symmetric_lhs"              : false,
+            "positive_definite_lhs"      : false,
+            "required_variables"         : [],
+            "required_dofs"              : [],
+            "flags_used"                 : [],
+            "compatible_geometries"      : [],
+            "is_implicit"                : true,
+            "element_integrates_in_time" : true,
+            "compatible_constitutive_laws": {
+                "type"        : [],
+                "dimension"   : [],
+                "strain_size" : []
+            }})");
         return specifications;
     }
 

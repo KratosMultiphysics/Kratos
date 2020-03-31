@@ -368,7 +368,8 @@ void BaseLoadCondition::AddExplicitContribution(
 
 const Parameters BaseLoadCondition::GetSpecifications() const
 {
-    const Parameters specifications = Parameters(R"({        
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
         "framework"                  : "lagrangian",
         "symmetric_lhs"              : true,
         "positive_definite_lhs"      : true,
