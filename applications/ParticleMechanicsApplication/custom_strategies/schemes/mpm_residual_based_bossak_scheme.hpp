@@ -225,14 +225,14 @@ public:
             if (!(i->pGetDof(DISPLACEMENT_X)->IsFixed()))
                 r_current_displacement[0] = 0.0;
             else
-                r_current_displacement[0]  = r_previous_displacement[0];
+                r_current_displacement[0]  = r_previous_displacement[0];    //prescribed displacement
 
             if (!(i->pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1] = 0.0;
             else
                 r_current_displacement[1]  = r_previous_displacement[1];
 
-            if (i->HasDofFor(DISPLACEMENT_Z))
+            if (i->HasDofFor(DISPLACEMENT_Z)) 
             {
                 if (!(i->pGetDof(DISPLACEMENT_Z)->IsFixed()))
                     r_current_displacement[2] = 0.0;
