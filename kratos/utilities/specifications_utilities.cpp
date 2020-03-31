@@ -29,22 +29,22 @@ void AddMissingVariables(ModelPart& rModelPart)
 
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         AddMissingVariablesFromSpecifications(rModelPart, specifications, element_name);
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
@@ -52,22 +52,22 @@ void AddMissingVariables(ModelPart& rModelPart)
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         AddMissingVariablesFromSpecifications(rModelPart, specifications, condition_name);
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
@@ -98,7 +98,7 @@ void AddMissingVariablesFromSpecifications(
             if (KratosComponents<Variable<double> >::Has(r_variable_name)) {
                 const Variable<double>& r_variable = KratosComponents<Variable<double>>().Get(r_variable_name);
                 has_variable = rModelPart.HasNodalSolutionStepVariable(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_variable) {
                     r_variable_list.Add(r_variable);
@@ -106,7 +106,7 @@ void AddMissingVariablesFromSpecifications(
             } else if(KratosComponents<Variable<bool> >::Has(r_variable_name)) {
                 const Variable<bool>& r_variable = KratosComponents<Variable<bool>>().Get(r_variable_name);
                 has_variable = rModelPart.HasNodalSolutionStepVariable(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_variable) {
                     r_variable_list.Add(r_variable);;
@@ -114,7 +114,7 @@ void AddMissingVariablesFromSpecifications(
             } else if(KratosComponents<Variable<int> >::Has(r_variable_name)) {
                 const Variable<int>& r_variable = KratosComponents<Variable<int>>().Get(r_variable_name);
                 has_variable = rModelPart.HasNodalSolutionStepVariable(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_variable) {
                     r_variable_list.Add(r_variable);;
@@ -130,7 +130,7 @@ void AddMissingVariablesFromSpecifications(
             } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(r_variable_name)) {
                 const Variable<array_1d<double, 6>>& r_variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(r_variable_name);
                 has_variable = rModelPart.HasNodalSolutionStepVariable(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_variable) {
                     r_variable_list.Add(r_variable);;
@@ -138,7 +138,7 @@ void AddMissingVariablesFromSpecifications(
             } else if(KratosComponents<Variable<Vector > >::Has(r_variable_name)) {
                 const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>().Get(r_variable_name);
                 has_variable = rModelPart.HasNodalSolutionStepVariable(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_variable) {
                     r_variable_list.Add(r_variable);;
@@ -146,7 +146,7 @@ void AddMissingVariablesFromSpecifications(
             } else if(KratosComponents<Variable<Matrix> >::Has(r_variable_name)) {
                 const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>().Get(r_variable_name);
                 has_variable = rModelPart.HasNodalSolutionStepVariable(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_variable) {
                     r_variable_list.Add(r_variable);;
@@ -166,10 +166,10 @@ void AddMissingVariablesFromSpecifications(
             it_node->SetSolutionStepVariablesList(&r_variable_list);
         }
     }
-    
+
     KRATOS_CATCH("")
 }
-    
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -179,22 +179,22 @@ void AddMissingDofs(ModelPart& rModelPart)
 
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         AddMissingDofsFromSpecifications(rModelPart, specifications, element_name);
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
@@ -202,22 +202,22 @@ void AddMissingDofs(ModelPart& rModelPart)
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         AddMissingDofsFromSpecifications(rModelPart, specifications, condition_name);
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
@@ -243,7 +243,7 @@ void AddMissingDofsFromSpecifications(
 
     // First node iterator
     const auto it_node_begin = rModelPart.Nodes().begin();
-    
+
     if (SpecificationsParameters.Has("required_dofs")) {
         const std::vector<std::string>& r_variables = SpecificationsParameters["required_dofs"].GetStringArray();
         for (auto& r_variable_name : r_variables) {
@@ -251,7 +251,7 @@ void AddMissingDofsFromSpecifications(
             if (KratosComponents<Variable<double> >::Has(r_variable_name)) {
                 const Variable<double>& r_variable = KratosComponents<Variable<double>>().Get(r_variable_name);
                 has_dof = it_node_begin->HasDofFor(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_dof) {
                     VariableUtils().AddDof(r_variable, rModelPart);
@@ -259,7 +259,7 @@ void AddMissingDofsFromSpecifications(
             } else if (KratosComponents<Component3VarType>::Has(r_variable_name)) {
                 const Component3VarType& r_variable = KratosComponents<Component3VarType>().Get(r_variable_name);
                 has_dof = it_node_begin->HasDofFor(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_dof) {
                     VariableUtils().AddDof(r_variable, rModelPart);
@@ -267,7 +267,7 @@ void AddMissingDofsFromSpecifications(
             } else if (KratosComponents<Component4VarType>::Has(r_variable_name)) {
                 const Component4VarType& r_variable = KratosComponents<Component4VarType>().Get(r_variable_name);
                 has_dof = it_node_begin->HasDofFor(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_dof) {
                     VariableUtils().AddDof(r_variable, rModelPart);
@@ -275,7 +275,7 @@ void AddMissingDofsFromSpecifications(
             } else if (KratosComponents<Component6VarType>::Has(r_variable_name)) {
                 const Component6VarType& r_variable = KratosComponents<Component6VarType>().Get(r_variable_name);
                 has_dof = it_node_begin->HasDofFor(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_dof) {
                     VariableUtils().AddDof(r_variable, rModelPart);
@@ -283,7 +283,7 @@ void AddMissingDofsFromSpecifications(
             } else if (KratosComponents<Component9VarType>::Has(r_variable_name)) {
                 const Component9VarType& r_variable = KratosComponents<Component9VarType>().Get(r_variable_name);
                 has_dof = it_node_begin->HasDofFor(r_variable);
-                
+
                 // If variable is missign is added to the model part
                 if (!has_dof) {
                     VariableUtils().AddDof(r_variable, rModelPart);
@@ -304,75 +304,185 @@ void AddMissingDofsFromSpecifications(
 void DetermineFlagsUsed(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("flags_used")) {
             const std::vector<std::string>& r_flags_used = specifications["flags_used"].GetStringArray();
             for (auto& r_flag_name : r_flags_used) {
-                KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the element: " << element_name << std::endl; 
+                KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the element: " << element_name << std::endl;
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                 if (specifications.Has("flags_used")) {
                     const std::vector<std::string>& r_flags_used = specifications["flags_used"].GetStringArray();
                     for (auto& r_flag_name : r_flags_used) {
-                        KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the element: " << element_name << std::endl; 
+                        KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the element: " << element_name << std::endl;
                     }
                 }
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("flags_used")) {
             const std::vector<std::string>& r_flags_used = specifications["flags_used"].GetStringArray();
             for (auto& r_flag_name : r_flags_used) {
-                KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the condition: " << condition_name << std::endl; 
+                KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the condition: " << condition_name << std::endl;
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                 if (specifications.Has("flags_used")) {
                     const std::vector<std::string>& r_flags_used = specifications["flags_used"].GetStringArray();
                     for (auto& r_flag_name : r_flags_used) {
-                        KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the condition: " << condition_name << std::endl; 
+                        KRATOS_INFO("SpecificationsUtilities") << "Flag:" << r_flag_name << " is used by the condition: " << condition_name << std::endl;
                     }
                 }
             }
         }
     }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> DetermineTimeIntegration(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    std::unordered_map<std::string, std::size_t> time_integrations_map;
+    std::vector<std::string> time_integrations;
+
+    // Auxiliar classes
+    std::size_t counter = 0;
+
+    // Define specifications
+    Parameters specifications;
+
+    // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
+    const auto& r_elements_array = rModelPart.Elements();
+    if (r_elements_array.size() > 0) {
+        std::string element_name;
+        const auto it_elem_begin = r_elements_array.begin();
+
+        specifications = it_elem_begin->GetSpecifications();
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+        ++counter;
+        if (specifications.Has("time_integration")) {
+            const std::vector<std::string> time_integrations = specifications["time_integration"].GetStringArray();
+            for (auto& r_time_integration : time_integrations) {
+                time_integrations_map.insert(std::pair<std::string, std::size_t>(r_time_integration, 1));
+            }
+        }
+
+        // Now we iterate over all the elements
+        for(std::size_t i = 1; i < r_elements_array.size(); i++) {
+            const auto it_elem_previous = it_elem_begin + i - 1;
+            const auto it_elem_current = it_elem_begin + i;
+
+            if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
+                specifications = it_elem_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+                ++counter;
+                if (specifications.Has("time_integration")) {
+                    const std::vector<std::string> time_integrations = specifications["time_integration"].GetStringArray();
+                    for (auto& r_time_integration : time_integrations) {
+                        if (time_integrations_map.find(r_time_integration) != time_integrations_map.end()) {
+                            time_integrations_map[r_time_integration] += 1;
+                        } else {
+                            time_integrations_map.insert(std::pair<std::string, std::size_t>(r_time_integration, 1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
+    const auto& r_conditions_array = rModelPart.Conditions();
+    if (r_conditions_array.size() > 0) {
+        std::string condition_name;
+        const auto it_cond_begin = r_conditions_array.begin();
+
+        specifications = it_cond_begin->GetSpecifications();
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+        ++counter;
+        if (specifications.Has("time_integration")) {
+            const std::vector<std::string> time_integrations = specifications["time_integration"].GetStringArray();
+            for (auto& r_time_integration : time_integrations) {
+                if (time_integrations_map.find(r_time_integration) != time_integrations_map.end()) {
+                    time_integrations_map[r_time_integration] += 1;
+                } else {
+                    time_integrations_map.insert(std::pair<std::string, std::size_t>(r_time_integration, 1));
+                }
+            }
+        }
+
+        // Now we iterate over all the conditions
+        for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
+            const auto it_cond_previous = it_cond_begin + i - 1;
+            const auto it_cond_current = it_cond_begin + i;
+
+            if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
+                specifications = it_cond_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                ++counter;
+                if (specifications.Has("time_integration")) {
+                    const std::vector<std::string> time_integrations = specifications["time_integration"].GetStringArray();
+                    for (auto& r_time_integration : time_integrations) {
+                        if (time_integrations_map.find(r_time_integration) != time_integrations_map.end()) {
+                            time_integrations_map[r_time_integration] += 1;
+                        } else {
+                            time_integrations_map.insert(std::pair<std::string, std::size_t>(r_time_integration, 1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // We create the final method
+    for (auto& r_time_integration : time_integrations_map) {
+        if (r_time_integration.second == counter) {
+            time_integrations.push_back(r_time_integration.first);
+        }
+    }
+
+    return time_integrations;
 
     KRATOS_CATCH("")
 }
@@ -383,18 +493,18 @@ void DetermineFlagsUsed(ModelPart& rModelPart)
 std::string DetermineFramework(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     std::string framework = "NONE";
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("framework")) {
@@ -403,15 +513,15 @@ std::string DetermineFramework(ModelPart& rModelPart)
                 framework = r_framework;
             } else {
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the element: " << element_name << ". But also the framework: " << framework << " is used" << std::endl; 
+                KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the element: " << element_name << ". But also the framework: " << framework << " is used" << std::endl;
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
@@ -421,19 +531,19 @@ std::string DetermineFramework(ModelPart& rModelPart)
                         framework = r_framework;
                     } else {
                         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                        KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the element: " << element_name << ". But also the framework: " << framework << " is used" << std::endl; 
+                        KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the element: " << element_name << ". But also the framework: " << framework << " is used" << std::endl;
                     }
                 }
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("framework")) {
@@ -442,15 +552,15 @@ std::string DetermineFramework(ModelPart& rModelPart)
                 framework = r_framework;
             } else {
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the condition: " << condition_name << ". But also the framework: " << framework << " is used" << std::endl; 
+                KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the condition: " << condition_name << ". But also the framework: " << framework << " is used" << std::endl;
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
@@ -460,15 +570,15 @@ std::string DetermineFramework(ModelPart& rModelPart)
                         framework = r_framework;
                     } else {
                         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                        KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the condition: " << condition_name << ". But also the framework: " << framework << " is used" << std::endl; 
+                        KRATOS_WARNING("SpecificationsUtilities") << "Framework:" << r_framework << " is used by the condition: " << condition_name << ". But also the framework: " << framework << " is used" << std::endl;
                     }
                 }
             }
         }
     }
-    
+
     return framework;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -478,18 +588,18 @@ std::string DetermineFramework(ModelPart& rModelPart)
 bool DetermineSymmetricLHS(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     bool symmetric = true;
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("symmetric_lhs")) {
@@ -498,19 +608,19 @@ bool DetermineSymmetricLHS(ModelPart& rModelPart)
                 if (symmetric) {
                     symmetric = symmetric_lhs;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-symmetric LHS" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-symmetric LHS" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines symmetric LHS, but at least one element requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines symmetric LHS, but at least one element requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
@@ -520,23 +630,23 @@ bool DetermineSymmetricLHS(ModelPart& rModelPart)
                         if (symmetric) {
                             symmetric = symmetric_lhs;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-symmetric LHS" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-symmetric LHS" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines symmetric LHS, but at least one element requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines symmetric LHS, but at least one element requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("symmetric_lhs")) {
@@ -545,19 +655,19 @@ bool DetermineSymmetricLHS(ModelPart& rModelPart)
                 if (symmetric) {
                     symmetric = symmetric_lhs;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-symmetric LHS" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-symmetric LHS" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines symmetric LHS, but at least one condition requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines symmetric LHS, but at least one condition requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
@@ -567,19 +677,19 @@ bool DetermineSymmetricLHS(ModelPart& rModelPart)
                         if (symmetric) {
                             symmetric = symmetric_lhs;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-symmetric LHS" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-symmetric LHS" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines symmetric LHS, but at least one condition requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines symmetric LHS, but at least one condition requires non-symmetric LHS. Non-symmetric LHS will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     return symmetric;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -589,18 +699,18 @@ bool DetermineSymmetricLHS(ModelPart& rModelPart)
 bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     bool positive_definite = true;
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("positive_definite_lhs")) {
@@ -609,19 +719,19 @@ bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
                 if (positive_definite) {
                     positive_definite = positive_definite_lhs;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-positive definite" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-positive definite" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines positive definite, but at least one element requires non-positive definite. Non-positive definite will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines positive definite, but at least one element requires non-positive definite. Non-positive definite will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
@@ -631,23 +741,23 @@ bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
                         if (positive_definite) {
                             positive_definite = positive_definite_lhs;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-positive definite" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines non-positive definite" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines positive definite, but at least one element requires non-positive definite. Non-positive definite will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines positive definite, but at least one element requires non-positive definite. Non-positive definite will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("positive_definite_lhs")) {
@@ -656,19 +766,19 @@ bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
                 if (positive_definite) {
                     positive_definite = positive_definite_lhs;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-positive definite" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-positive definite" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines positive definite, but at least one condition requires non-positive definite. Non-positive definite will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines positive definite, but at least one condition requires non-positive definite. Non-positive definite will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
@@ -678,19 +788,19 @@ bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
                         if (positive_definite) {
                             positive_definite = positive_definite_lhs;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-positive definite" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines non-positive definite" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines positive definite, but at least one condition requires non-positive definite. Non-positive definite will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines positive definite, but at least one condition requires non-positive definite. Non-positive definite will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     return positive_definite;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -700,22 +810,22 @@ bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
 bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     bool compatible_geometries = true;
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         // Getting geometry type
         const auto& r_geometry = it_elem_begin->GetGeometry();
         const auto& r_geometry_type = r_geometry.GetGeometryType();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("compatible_geometries")) {
@@ -735,20 +845,20 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
                 return false;
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-              
+
                 // Getting geometry type
                 const auto& r_geometry = it_elem_current->GetGeometry();
                 const auto& r_geometry_type = r_geometry.GetGeometryType();
-                
+
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                 if (specifications.Has("compatible_geometries")) {
@@ -771,17 +881,17 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         // Getting geometry type
         const auto& r_geometry = it_cond_begin->GetGeometry();
         const auto& r_geometry_type = r_geometry.GetGeometryType();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("compatible_geometries")) {
@@ -801,20 +911,20 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
                 return false;
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-              
+
                 // Getting geometry type
                 const auto& r_geometry = it_cond_current->GetGeometry();
                 const auto& r_geometry_type = r_geometry.GetGeometryType();
-                
+
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                 if (specifications.Has("compatible_geometries")) {
@@ -837,9 +947,9 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
             }
         }
     }
-    
+
     return compatible_geometries;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -849,18 +959,18 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
 bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     bool implicit_formulation = true;
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("is_implicit")) {
@@ -869,19 +979,19 @@ bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
                 if (implicit_formulation) {
                     implicit_formulation = is_implicit;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines explicit formulation" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines explicit formulation" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines implicit formulation, but at least one element requires explicit formulation. Explicit formulation will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines implicit formulation, but at least one element requires explicit formulation. Explicit formulation will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
@@ -891,23 +1001,23 @@ bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
                         if (implicit_formulation) {
                             implicit_formulation = is_implicit;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines explicit formulation" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines explicit formulation" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines implicit formulation, but at least one element requires explicit formulation. Explicit formulation will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines implicit formulation, but at least one element requires explicit formulation. Explicit formulation will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("is_implicit")) {
@@ -916,19 +1026,19 @@ bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
                 if (implicit_formulation) {
                     implicit_formulation = is_implicit;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines explicit formulation" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines explicit formulation" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines implicit formulation, but at least one condition requires explicit formulation. Explicit formulation will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines implicit formulation, but at least one condition requires explicit formulation. Explicit formulation will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
@@ -938,19 +1048,19 @@ bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
                         if (implicit_formulation) {
                             implicit_formulation = is_implicit;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines explicit formulation" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines explicit formulation" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines implicit formulation, but at least one condition requires explicit formulation. Explicit formulation will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines implicit formulation, but at least one condition requires explicit formulation. Explicit formulation will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     return implicit_formulation;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -960,18 +1070,18 @@ bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
 bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     bool requires_time_integration = true;
-    
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("element_integrates_in_time")) {
@@ -980,19 +1090,19 @@ bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
                 if (requires_time_integration) {
                     requires_time_integration = element_integrates_in_time;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines does not require time integration" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines does not require time integration" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines requires time integration, but at least one element does not require time integration. Explicit formulation will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines requires time integration, but at least one element does not require time integration. Explicit formulation will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
@@ -1002,23 +1112,23 @@ bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
                         if (requires_time_integration) {
                             requires_time_integration = element_integrates_in_time;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines does not require time integration" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines does not require time integration" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines requires time integration, but at least one element does not require time integration. Explicit formulation will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "defines requires time integration, but at least one element does not require time integration. Explicit formulation will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
         std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        
+
         specifications = it_cond_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
         if (specifications.Has("element_integrates_in_time")) {
@@ -1027,19 +1137,19 @@ bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
                 if (requires_time_integration) {
                     requires_time_integration = element_integrates_in_time;
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines does not require time integration" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines does not require time integration" << std::endl;
                 } else {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines requires time integration, but at least one condition does not require time integration. Explicit formulation will be considered" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines requires time integration, but at least one condition does not require time integration. Explicit formulation will be considered" << std::endl;
                 }
             }
         }
-            
+
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
             const auto it_cond_previous = it_cond_begin + i - 1;
             const auto it_cond_current = it_cond_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
@@ -1049,19 +1159,19 @@ bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
                         if (requires_time_integration) {
                             requires_time_integration = element_integrates_in_time;
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines does not require time integration" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines does not require time integration" << std::endl;
                         } else {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines requires time integration, but at least one condition does not require time integration. Explicit formulation will be considered" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "defines requires time integration, but at least one condition does not require time integration. Explicit formulation will be considered" << std::endl;
                         }
                     }
                 }
             }
         }
     }
-    
+
     return requires_time_integration;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1071,27 +1181,27 @@ bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
 bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
 {
     KRATOS_TRY
-    
+
     bool compatible_cl = true;
-    
+
     // Auxiliar things
     std::vector<ConstitutiveLaw::Pointer> cl_vector;
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    ConstitutiveLaw::Features features;    
-    
+    ConstitutiveLaw::Features features;
+
     // Define specifications
     Parameters specifications;
-    
+
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
         std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        
+
         // Getting CL vectors
         cl_vector.clear();
         it_elem_begin->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, cl_vector, r_process_info);
-        
+
         specifications = it_elem_begin->GetSpecifications();
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
         if (specifications.Has("compatible_constitutive_laws")) {
@@ -1105,13 +1215,13 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                     const std::string& r_type = compatible_constitutive_laws_type[i];
                     const std::string& r_dimension = compatible_constitutive_laws_dimension[i];
                     const std::size_t strain_size = compatible_constitutive_laws_strain_size[i];
-                    
+
                     // Getting features
                     p_cl->GetLawFeatures(features);
-                    
+
                     // Getting flag
                     const Flags* p_flag_considered = r_type == "ThreeDimensional" ?  &ConstitutiveLaw::THREE_DIMENSIONAL_LAW : r_type == "PlaneStrain" ? &ConstitutiveLaw::PLANE_STRAIN_LAW : r_type == "PlaneStress" ? &ConstitutiveLaw::PLANE_STRESS_LAW : &ConstitutiveLaw::AXISYMMETRIC_LAW; // NOTE: "Axisymmetric"
-                    
+
                     if (p_cl->GetStrainSize() == strain_size &&
                         p_cl->WorkingSpaceDimension() == string_dimension_map[r_dimension] &&
                         features.mOptions.Is( *p_flag_considered )
@@ -1121,17 +1231,17 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                 }
                 if (!check) {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << " is considering a not compatible CL" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << " is considering a not compatible CL" << std::endl;
                     return false;
                 }
             }
         }
-            
+
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
             const auto it_elem_previous = it_elem_begin + i - 1;
             const auto it_elem_current = it_elem_begin + i;
-            
+
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
@@ -1146,13 +1256,13 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                             const std::string& r_type = compatible_constitutive_laws_type[i];
                             const std::string& r_dimension = compatible_constitutive_laws_dimension[i];
                             const std::size_t strain_size = compatible_constitutive_laws_strain_size[i];
-                            
+
                             // Getting features
                             p_cl->GetLawFeatures(features);
-                            
+
                             // Getting flag
                             const Flags* p_flag_considered = r_type == "ThreeDimensional" ?  &ConstitutiveLaw::THREE_DIMENSIONAL_LAW : r_type == "PlaneStrain" ? &ConstitutiveLaw::PLANE_STRAIN_LAW : r_type == "PlaneStress" ? &ConstitutiveLaw::PLANE_STRESS_LAW : &ConstitutiveLaw::AXISYMMETRIC_LAW; // NOTE: "Axisymmetric"
-                            
+
                             if (p_cl->GetStrainSize() == strain_size &&
                                 p_cl->WorkingSpaceDimension() == string_dimension_map[r_dimension] &&
                                 features.mOptions.Is( *p_flag_considered )
@@ -1162,7 +1272,7 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                         }
                         if (!check) {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << " is considering a not compatible CL" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << " is considering a not compatible CL" << std::endl;
                             return false;
                         }
                     }
@@ -1172,7 +1282,7 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
     }
 
     return compatible_cl;
-    
+
     KRATOS_CATCH("")
 }
 
