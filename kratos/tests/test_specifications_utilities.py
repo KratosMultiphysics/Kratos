@@ -35,6 +35,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
 
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineTimeIntegration(model_part), [])
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
@@ -68,6 +69,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
 
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineTimeIntegration(model_part), [])
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
@@ -103,6 +105,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
 
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineTimeIntegration(model_part), ['explicit', 'static', 'implicit'])
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
@@ -142,6 +145,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
 
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineTimeIntegration(model_part), ['explicit', 'static', 'implicit'])
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
