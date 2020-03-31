@@ -21,12 +21,10 @@ proc InitGIDProject { dir } {
 
 proc BeforeMeshGeneration {elementsize} {
     W "execute BeforeMeshGeneration"
-
 }
 
 proc AfterMeshGeneration {fail} {
     W "execute AfterMeshGeneration"
-    CalculateInertia
 }
 
 
@@ -38,7 +36,18 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
 proc GenerateOBJFile { } {
     # Analyze the format of the OBJ and generate the file in GID
+    # SUR custom files can also be used with the following format:
+
+    # The format of the SUR file is as follows:
+    # -The number of vertices
+    # -List of vertices with XYZ for position and XYZ for normal
+    # -The number of triangles
+    # -List of triangles with i0, i1, i2 (indices of the vertices - zero base)
+    #                        n0, n1, n2 (neighbouring triangles, n0 shares edge
+    #                                    from i0 to i1 etc.)
 }
+
+
 
 proc ExecuteSphereTreeAlgorithm { objfilename args} {
     #makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj
