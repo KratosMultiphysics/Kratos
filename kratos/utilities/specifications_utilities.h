@@ -52,6 +52,26 @@ namespace Kratos
  */
 namespace SpecificationsUtilities
 {
+    /**
+     * @brief This enum defines a "hash" used to identify if implicit/explicit or static time integration is considered
+     */
+    enum class TimeIntegration
+    {
+        Static   = 0,
+        Implicit = 1,
+        Explicit = 2
+    };
+
+    /**
+     * @brief This enum defines a "hash" used to identify if Lagrangian/Eulerian or ALE framework is considered
+     */
+    enum class Framework
+    {
+        Lagrangian = 0,
+        Euler      = 1,
+        ALE        = 2
+    };
+
     // Definition of the map between the geometries in enum and string
     static std::unordered_map<std::string, GeometryData::KratosGeometryType> string_geometry_map = {
         {"generic_type",GeometryData::KratosGeometryType::Kratos_generic_type},
