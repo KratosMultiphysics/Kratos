@@ -62,7 +62,8 @@ public:
                 "young_modulus" : 1.0e7,
                 "stress_increment_tolerance": 1000.0,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 2.0e-9
             }  )" );
 
         // Now validate agains defaults -- this also ensures no type mismatch
@@ -82,6 +83,8 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = rParameters["young_modulus"].GetDouble()*rParameters["face_area"].GetDouble()/rParameters["compression_length"].GetDouble();
+        mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
+        mVectorOfLastStresses.resize(0);
 
         mRadialDisplacement = rParameters["radial_displacement"].GetBool();
         if(mRadialDisplacement == true) {
@@ -212,7 +215,9 @@ public:
                 }
             }
 
-            const double ReactionStress = FaceReaction/FaceArea;
+            double ReactionStress = FaceReaction/FaceArea;
+
+            ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
             // Update K if required
             const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
@@ -365,7 +370,6 @@ protected:
     double mStressIncrementTolerance;
     double mStiffness;
     bool mUpdateStiffness;
-
     bool mRadialDisplacement;
     std::string mVariableNameX;
     std::string mVariableNameY;
@@ -377,6 +381,8 @@ protected:
     std::string mReactionStressVariableNameY;
     std::string mLoadingVelocityVariableNameX;
     std::string mLoadingVelocityVariableNameY;
+    std::vector<double> mVectorOfLastStresses;
+    double mStressAveragingTime;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -387,6 +393,35 @@ private:
 
     /// Copy constructor.
     //ControlModuleProcess(ControlModuleProcess const& rOther);
+
+    double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_reaction) {
+        KRATOS_TRY;
+        int length_of_vector = mVectorOfLastStresses.size();
+        if (length_of_vector == 0) { //only the first time
+            int number_of_steps_for_stress_averaging = (int) (mStressAveragingTime / mrModelPart.GetProcessInfo()[DELTA_TIME]);
+            if(number_of_steps_for_stress_averaging < 1) number_of_steps_for_stress_averaging = 1;
+            mVectorOfLastStresses.resize(number_of_steps_for_stress_averaging);
+            KRATOS_INFO("DEM") << " 'number_of_steps_for_stress_averaging' is "<< number_of_steps_for_stress_averaging << std::endl;
+        }
+
+        length_of_vector = mVectorOfLastStresses.size();
+
+        if(length_of_vector > 1) {
+            for(int i=1; i<length_of_vector; i++) {
+                mVectorOfLastStresses[i-1] = mVectorOfLastStresses[i];
+            }
+        }
+        mVectorOfLastStresses[length_of_vector-1] = last_reaction;
+
+        double average = 0.0;
+        for(int i=0; i<length_of_vector; i++) {
+            average += mVectorOfLastStresses[i];
+        }
+        average /= (double) length_of_vector;
+        return average;
+
+        KRATOS_CATCH("");
+    }
 
 }; // Class ControlModuleProcess
 

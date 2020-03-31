@@ -41,6 +41,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             self.params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
             self.params.AddValue("update_stiffness",settings["update_stiffness"])
             self.params.AddValue("start_time",settings["start_time"])
+            self.params.AddValue("stress_averaging_time",settings["stress_averaging_time"])
             self.components_process_list.append(DemFem.ControlModuleProcess(self.model_part, self.params))
         else:
             if settings["fixed"][0].GetBool() == True:
@@ -60,6 +61,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
                 self.x_params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
                 self.x_params.AddValue("update_stiffness",settings["update_stiffness"])
                 self.x_params.AddValue("start_time",settings["start_time"])
+                self.x_params.AddValue("stress_averaging_time",settings["stress_averaging_time"])
                 self.components_process_list.append(DemFem.ControlModuleProcess(self.model_part, self.x_params))
 
             if settings["fixed"][1].GetBool() == True:
@@ -79,6 +81,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
                 self.y_params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
                 self.y_params.AddValue("update_stiffness",settings["update_stiffness"])
                 self.y_params.AddValue("start_time",settings["start_time"])
+                self.y_params.AddValue("stress_averaging_time",settings["stress_averaging_time"])
                 self.components_process_list.append(DemFem.ControlModuleProcess(self.model_part, self.y_params))
 
             if settings["fixed"][2].GetBool() == True:
@@ -98,6 +101,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
                 self.z_params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
                 self.z_params.AddValue("update_stiffness",settings["update_stiffness"])
                 self.z_params.AddValue("start_time",settings["start_time"])
+                self.z_params.AddValue("stress_averaging_time",settings["stress_averaging_time"])
                 self.components_process_list.append(DemFem.ControlModuleProcess(self.model_part, self.z_params))
 
     def ExecuteInitialize(self):
