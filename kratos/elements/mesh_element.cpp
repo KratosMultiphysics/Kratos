@@ -174,6 +174,12 @@ const Parameters MeshElement::GetSpecifications() const
         "framework"                  : "lagrangian",
         "symmetric_lhs"              : true,
         "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : [],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
         "required_variables"         : [],
         "required_dofs"              : [],
         "flags_used"                 : [],
@@ -184,7 +190,9 @@ const Parameters MeshElement::GetSpecifications() const
             "type"        : [],
             "dimension"   : [],
             "strain_size" : []
-        }})");
+        },
+        "documentation"   : "This is a pure geometric element, no computation"
+    })");
     return specifications;
 }
 
