@@ -230,28 +230,20 @@ class FEASTEigensystemSolver
 
         // provide matrices in array form. fortran indices start with 1, must be int
         double* A = reinterpret_cast<double*>(rK.value_data().begin());
+
         std::vector<int> IA(N+1);
-        #pragma omp parallel for
-        for( int i=0; i<N+1; ++i ) {
-            IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
-        }
+        CreateFortranIndices(rK.index1_data(), IA);
+
         std::vector<int> JA(IA[N]-1);
-        #pragma omp parallel for
-        for( int i=0; i<IA[N]-1; ++i ) {
-            JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
-        }
+        CreateFortranIndices(rK.index2_data(), JA);
 
         double* B = reinterpret_cast<double*>(rM.value_data().begin());
+
         std::vector<int> IB(N+1);
-        #pragma omp parallel for
-        for( int i=0; i<N+1; ++i ) {
-            IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
-        }
+        CreateFortranIndices(rM.index1_data(), IB);
+
         std::vector<int> JB(IB[N]-1);
-        #pragma omp parallel for
-        for( int i=0; i<IB[N]-1; ++i ) {
-            JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
-        }
+        CreateFortranIndices(rM.index2_data(), JB);
 
         double epsout;
         int loop;
@@ -344,6 +336,15 @@ class FEASTEigensystemSolver
             return std::bind(zfeast_scsrgv, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
         } else {
             return std::bind(zfeast_gcsrgv, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19);
+        }
+    }
+
+    template<typename IndexDataType>
+    void CreateFortranIndices(const IndexDataType& rIndexData, std::vector<int>& rFortranIndices)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<static_cast<int>(rFortranIndices.size()); ++i ) {
+            rFortranIndices[i] = static_cast<int>(rIndexData[i]) + 1;
         }
     }
 
