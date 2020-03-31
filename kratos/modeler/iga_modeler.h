@@ -145,7 +145,7 @@ private:
 
     /// Creates elements from geometries
     template<class TIteratorType>
-    static void CreateElements(
+    void CreateElements(
         TIteratorType rGeometriesBegin,
         TIteratorType rGeometriesEnd,
         ModelPart& rDestinationModelPart,
@@ -155,7 +155,7 @@ private:
 
     /// Creates conditions from geometries
     template<class TIteratorType>
-    static void CreateConditions(
+    void CreateConditions(
         TIteratorType rGeometriesBegin,
         TIteratorType rGeometriesEnd,
         ModelPart& rDestinationModelPart,
