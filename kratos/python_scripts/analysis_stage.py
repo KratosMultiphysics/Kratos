@@ -61,23 +61,24 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         # We check of some model part requires reinitialize
-        modified_model_part = False
-        model_part_names = self.model.GetModelPartNames()
-        for model_part_name in model_part_names:
-            if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
-                modified_model_part = True
-                break
+        modified_model = False
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
+                    modified_model = True
+                    break
 
         # Solution loop
         solver = self._GetSolver()
         while self.KeepAdvancingSolutionLoop():
             self.time = solver.AdvanceInTime(self.time)
             # We reinitialize if remeshed previously
-            if modified_model_part:
+            if modified_model:
                 self.ReInitializeSolver()
             self.InitializeSolutionStep()
             # We reinitialize if remeshed on the InitializeSolutionStep
-            if modified_model_part:
+            if modified_model:
                 self.ReInitializeSolver()
                 self.InitializeSolutionStep()
             solver.Predict()
