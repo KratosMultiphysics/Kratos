@@ -10,7 +10,7 @@ class TestFactories(KratosUnittest.TestCase):
         builder_and_solver = KM.BuilderAndSolverFactory().Create(linear_solver, settings)
         self.assertTrue(KM.BuilderAndSolverFactory().Has(settings["name"].GetString()))
         self.assertEqual(builder_and_solver.Info(), name)
-        
+
     def test_ResidualBasedEliminationBuilderAndSolver(self):
         settings = KM.Parameters("""
         {
@@ -26,7 +26,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_BuilderAndSolver(settings, "ResidualBasedEliminationBuilderAndSolverWithConstraints")
-        
+
     def test_ResidualBasedBlockBuilderAndSolver(self):
         settings = KM.Parameters("""
         {
@@ -34,12 +34,12 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_BuilderAndSolver(settings, "ResidualBasedBlockBuilderAndSolver")
-        
+
     def _auxiliary_test_function_ConvergenceCriteria(self, settings, name):
         conv_crit = KM.ConvergenceCriteriaFactory().Create(settings)
         self.assertTrue(KM.ConvergenceCriteriaFactory().Has(settings["name"].GetString()))
         self.assertEqual(conv_crit.Info(), name)
-        
+
     def test_DisplacementCriteria(self):
         settings = KM.Parameters("""
         {
@@ -55,7 +55,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_ConvergenceCriteria(settings, "ResidualCriteria")
-        
+
     def test_And_Criteria(self):
         settings = KM.Parameters("""
         {
@@ -63,7 +63,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_ConvergenceCriteria(settings, "And_Criteria")
-        
+
     def test_Or_Criteria(self):
         settings = KM.Parameters("""
         {
@@ -71,12 +71,12 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_ConvergenceCriteria(settings, "Or_Criteria")
-        
+
     def _auxiliary_test_function_Scheme(self, settings, name):
         scheme = KM.SchemeFactory().Create(settings)
         self.assertTrue(KM.SchemeFactory().Has(settings["name"].GetString()))
         self.assertEqual(scheme.Info(), name)
-        
+
     def test_ResidualBasedIncrementalUpdateStaticScheme(self):
         settings = KM.Parameters("""
         {
@@ -92,7 +92,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedIncrementalUpdateStaticSchemeSlip")
-        
+
     def test_ResidualBasedBossakDisplacementScheme(self):
         settings = KM.Parameters("""
         {
@@ -100,7 +100,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBossakDisplacementScheme")
-        
+
     def test_ResidualBasedNewmarkDisplacementScheme(self):
         settings = KM.Parameters("""
         {
@@ -108,7 +108,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedNewmarkDisplacementScheme")
-        
+
     def test_ResidualBasedPseudoStaticDisplacementScheme(self):
         settings = KM.Parameters("""
         {
@@ -116,7 +116,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedPseudoStaticDisplacementScheme")
-        
+
     def test_ResidualBasedBDFDisplacementScheme(self):
         settings = KM.Parameters("""
         {
@@ -124,7 +124,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFDisplacementScheme")
-        
+
     def test_ResidualBasedBDFCustomScheme(self):
         settings = KM.Parameters("""
         {
@@ -132,14 +132,14 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFCustomScheme")
-        
+
     def _auxiliary_test_function_Strategy(self, settings, name):
         this_model = KM.Model()
         model_part = this_model.CreateModelPart("Main")
         strategy = KM.StrategyFactory().Create(model_part, settings)
         self.assertTrue(KM.StrategyFactory().Has(settings["name"].GetString()))
         self.assertEqual(strategy.Info(), name)
-        
+
     def test_ResidualBasedLinearStrategy(self):
         settings = KM.Parameters("""
         {
@@ -179,7 +179,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Strategy(settings, "ResidualBasedNewtonRaphsonStrategy")
-        
+
     def test_AdaptiveResidualBasedNewtonRaphsonStrategy(self):
         settings = KM.Parameters("""
         {
@@ -199,7 +199,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Strategy(settings, "AdaptiveResidualBasedNewtonRaphsonStrategy")
-        
+
     def test_LineSearchStrategy(self):
         settings = KM.Parameters("""
         {
@@ -219,7 +219,7 @@ class TestFactories(KratosUnittest.TestCase):
         }
         """)
         self._auxiliary_test_function_Strategy(settings, "LineSearchStrategy")
-        
+
     def test_ExplicitStrategy(self):
         settings = KM.Parameters("""
         {
