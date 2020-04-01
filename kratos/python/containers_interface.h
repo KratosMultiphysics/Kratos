@@ -98,26 +98,6 @@ class PointerVectorPythonInterface
 };
 
 template< class TContainerType >
-class PointerVectorGeometriesPythonInterface
-{
-public:
-
-    PointerVectorGeometriesPythonInterface() {};
-    virtual ~PointerVectorGeometriesPythonInterface() {};
-
-    void CreateInterface(pybind11::module& m, std::string ContainerName)
-    {
-        py::class_<TContainerType, typename TContainerType::Pointer  >(m, ContainerName.c_str())
-            .def(py::init<>())
-            .def("__len__", [](TContainerType& self) {return self.size(); })
-            .def("__setitem__", [](TContainerType& self, unsigned int i, typename TContainerType::value_type& value) {self[i] = value; })
-            .def("__getitem__", [](TContainerType& self, unsigned int i) {return self(i); })
-            .def("__iter__", [](TContainerType& self) {return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0, 1>())
-            ;
-    }
-};
-
-template< class TContainerType >
 class PointerVectorSetPythonInterface
 {
 public:
