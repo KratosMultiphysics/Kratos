@@ -55,6 +55,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         super(CoSimulationCoupledSolver, self).__init__(settings, None, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers(models)
+
+        # overwritting the Model created in the BaseClass
+        # CoupledSolvers only forward calls to its solvers
+        # this is done with the ModelAccessor
         self.model = ModelAccessor(self.solver_wrappers)
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()

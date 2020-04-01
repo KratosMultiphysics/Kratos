@@ -9,14 +9,14 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver_name):
-    return FLOWerWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return FLOWerWrapper(settings, model, solver_name)
 
 class FLOWerWrapper(CoSimulationSolverWrapper):
     """This class serves as wrapper for the CFD solver FLOWer
     """
-    def __init__(self, settings, solver_name):
-        super(FLOWerWrapper, self).__init__(settings, solver_name)
+    def __init__(self, settings, model, solver_name):
+        super(FLOWerWrapper, self).__init__(settings, model, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "model_parts_read" : { },

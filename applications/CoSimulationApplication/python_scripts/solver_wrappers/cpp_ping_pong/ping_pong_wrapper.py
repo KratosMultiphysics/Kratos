@@ -10,18 +10,18 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver_name):
-    return PingPongWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return PingPongWrapper(settings, model, solver_name)
 
 class PingPongWrapper(CoSimulationSolverWrapper):
     """This class serves as wrapper for the cpp ping and pong solvers
     """
-    def __init__(self, settings, solver_name):
-        super(PingPongWrapper, self).__init__(settings, solver_name)
+    def __init__(self, settings, model, solver_name):
+        super(PingPongWrapper, self).__init__(settings, model, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "main_model_part_name" : "",
-            "domain_size" : 2,                    
+            "domain_size" : 2,
             "executable_name"  : ""
         }""")
 
