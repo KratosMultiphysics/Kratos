@@ -2,6 +2,7 @@ from KratosMultiphysics.RomApplication.element_selection_strategy import Element
 from KratosMultiphysics.RomApplication.RSVDT_Library import rsvdt
 
 import numpy as np
+import json
 
 try:
     from matplotlib import pyplot as plt
@@ -18,8 +19,9 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
 
-    def SetUp(self, ResidualSnapshots):
+    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements):
         super(EmpiricalCubatureMethod,self).SetUp()
+        self.OriginalNumberOfElements = OriginalNumberOfElements
         u , s  = self._ObtainBasis(ResidualSnapshots)
         self.W = np.ones(np.shape(u)[0])
         G = u[...,:] * np.ones(len(s))
@@ -117,8 +119,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             plt.ylabel('Error %')
             plt.show()
 
-        return self.G, self.z, self.w
-
     def _UpdateWeightsInverse(self, A,Aast,a,xold):
         c = np.dot(A.T, a)
         d = np.dot(Aast, c).reshape(-1, 1)
@@ -162,6 +162,21 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         DATA['TypeOfSVD'] = 0
         u,s,_,_=rsvdt(SnapshotMatrix,0,0,0, DATA)
         return u, s
+
+    def WriteSelectedElements(self):
+        w = np.squeeze(self.w)
+        ### Saving Elements and conditions
+        ElementsAndWeights = {}
+        ElementsAndWeights["Elements"] = {}
+        ElementsAndWeights["Conditions"] = {}
+        for j in range (0,len(self.z)):
+            if self.z[j] <= self.OriginalNumberOfElements-1:
+                ElementsAndWeights["Elements"][int(self.z[j])] = (float(w[j]))
+            else:
+                ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
+        with open('ElementsAndWeights.json', 'w') as f:
+            json.dump(ElementsAndWeights,f, indent=2)
+        print('\n\n Elements and conditions selected have been saved in a json file\n\n')
 
 
 if __name__=='__main__':

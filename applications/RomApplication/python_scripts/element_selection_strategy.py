@@ -17,7 +17,8 @@ class ElementSelectionStrategy():
         """
 
     def WriteSelectedElements(self):
-        """ This method obtains a set of elements and conditions to be used for hyper-reduction
+        """ This method writes to the RomParameters.json file the selected elements and conditions to be used in the hyper-reduction
+        simulation
         """
 
     def Run(self):

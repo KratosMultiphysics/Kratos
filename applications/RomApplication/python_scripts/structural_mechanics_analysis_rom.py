@@ -60,7 +60,6 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
 
-
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAnalysisROM,self).FinalizeSolutionStep()
 
@@ -71,14 +70,13 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 NP_ResMat = np.array(ResMat, copy=False)
                 self.time_step_residual_matrix_container.append(NP_ResMat)
 
-
     def Finalize(self):
         super(StructuralMechanicsAnalysisROM,self).FinalizeSolutionStep()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container)
+                OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
+                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements)
                 self.hyper_reduction_element_selector.Run()
-
 
 
 
