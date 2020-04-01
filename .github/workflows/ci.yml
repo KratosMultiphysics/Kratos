@@ -68,7 +68,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
 
   windows:
@@ -136,4 +136,4 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/run_tests.py -l small -c python
+        python kratos/python_scripts/run_tests.py -l nightly -c python
