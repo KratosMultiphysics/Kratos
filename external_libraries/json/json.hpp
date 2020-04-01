@@ -2328,7 +2328,7 @@ struct iterator_traits<T*, enable_if_t<std::is_object<T>::value>>
 // #include <nlohmann/detail/meta/void_t.hpp>
 
 
-// http://en.cppreference.com/w/cpp/experimental/is_detected
+// https://en.cppreference.com/w/cpp/experimental/is_detected
 namespace nlohmann
 {
 namespace detail
@@ -2861,7 +2861,7 @@ enum class value_t : std::uint8_t
     number_integer,   ///< number value (signed integer)
     number_unsigned,  ///< number value (unsigned integer)
     number_float,     ///< number value (floating-point)
-    discarded         ///< discarded by the the parser callback function
+    discarded         ///< discarded by the parser callback function
 };
 
 /*!
@@ -4250,7 +4250,7 @@ class input_adapter
     {
 #ifndef NDEBUG
         // assertion to check that the iterator range is indeed contiguous,
-        // see http://stackoverflow.com/a/35008842/266378 for more discussion
+        // see https://stackoverflow.com/a/35008842/266378 for more discussion
         const auto is_contiguous = std::accumulate(
                                        first, last, std::pair<bool, int>(true, 0),
                                        [&first](std::pair<bool, int> res, decltype(*first) val)
@@ -5263,7 +5263,7 @@ class binary_reader
 
     @return true if and only if system's byte order is little endian
 
-    @note from http://stackoverflow.com/a/1001328/266378
+    @note from https://stackoverflow.com/a/1001328/266378
     */
     static constexpr bool little_endianess(int num = 1) noexcept
     {
@@ -7983,7 +7983,7 @@ class lexer
     minus    | zero     | any1     | [error]  | [error] | [error] | [error]  | [error]
     zero     | done     | done     | exponent | done    | done    | decimal1 | done
     any1     | any1     | any1     | exponent | done    | done    | decimal1 | done
-    decimal1 | decimal2 | [error]  | [error]  | [error] | [error] | [error]  | [error]
+    decimal1 | decimal2 | decimal2 | [error]  | [error] | [error] | [error]  | [error]
     decimal2 | decimal2 | decimal2 | exponent | done    | done    | done     | done
     exponent | any2     | any2     | [error]  | sign    | sign    | [error]  | [error]
     sign     | any2     | any2     | [error]  | [error] | [error] | [error]  | [error]
@@ -8678,7 +8678,7 @@ namespace detail
 /*!
 @brief syntax analysis
 
-This class implements a recursive decent parser.
+This class implements a recursive descent parser.
 */
 template<typename BasicJsonType>
 class parser
@@ -12155,7 +12155,7 @@ class binary_writer
     {
         std::size_t array_index = 0ul;
 
-        const std::size_t embedded_document_size = std::accumulate(std::begin(value), std::end(value), 0ul, [&array_index](std::size_t result, const typename BasicJsonType::array_t::value_type & el)
+        const std::size_t embedded_document_size = std::accumulate(std::begin(value), std::end(value), std::size_t(0), [&array_index](std::size_t result, const typename BasicJsonType::array_t::value_type & el)
         {
             return result + calc_bson_element_size(std::to_string(array_index++), el);
         });
@@ -12276,7 +12276,7 @@ class binary_writer
     */
     static std::size_t calc_bson_object_size(const typename BasicJsonType::object_t& value)
     {
-        std::size_t document_size = std::accumulate(value.begin(), value.end(), 0ul,
+        std::size_t document_size = std::accumulate(value.begin(), value.end(), std::size_t(0),
                                     [](size_t result, const typename BasicJsonType::object_t::value_type & el)
         {
             return result += calc_bson_element_size(el.first, el.second);
@@ -14694,7 +14694,7 @@ relationship:
 The invariants are checked by member function assert_invariant().
 
 @internal
-@note ObjectType trick from http://stackoverflow.com/a/9860911
+@note ObjectType trick from https://stackoverflow.com/a/9860911
 @endinternal
 
 @see [RFC 7159: The JavaScript Object Notation (JSON) Data Interchange
@@ -21878,7 +21878,7 @@ class basic_json
 
     Uses a JSON pointer to retrieve a reference to the respective JSON value.
     No bound checking is performed. The function does not change the JSON
-    value; no `null` values are created. In particular, the the special value
+    value; no `null` values are created. In particular, the special value
     `-` yields an exception.
 
     @param[in] ptr  JSON pointer to the desired element
