@@ -212,7 +212,7 @@ public:
         typename ContainerType::iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            return *(static_cast<TDataType*>(i->second) + i->first->GetComponentIndex());
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
         
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
@@ -221,7 +221,7 @@ public:
         
         mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
 
-        return *(static_cast<TDataType*>(mData.back().second) + mData.back().first->GetComponentIndex());
+        return *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex());
     }
 
     //TODO: make the variable of the constant version consistent with the one of the "classical" one
@@ -234,7 +234,7 @@ public:
         typename ContainerType::const_iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            return *(static_cast<const TDataType*>(i->second) + i->first->GetComponentIndex());
+            return *(static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
 
         return rThisVariable.Zero();
     }
@@ -262,7 +262,7 @@ public:
         typename ContainerType::iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            *(static_cast<TDataType*>(i->second) + i->first->GetComponentIndex()) = rValue;
+            *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
         else
             mData.push_back(ValueType(&rThisVariable,new TDataType(rValue))); 
     }
