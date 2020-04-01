@@ -146,7 +146,7 @@ static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, do
 
     if (size_read != sizeOfArray) {
         std::stringstream err_msg;
-        err_msg << "The received size for array " << rFileName << " is different from what is expected:";
+        err_msg << "The received size for array \"" << rFileName << "\" is different from what is expected:";
         err_msg << "\n    Expected size: " << sizeOfArray;
         err_msg << "\n    Received size: " << size_read;
         throw std::runtime_error(err_msg.str());
