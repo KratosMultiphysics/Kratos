@@ -420,9 +420,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << std::endl;
         }
 
-        if (desired_coordination_number <= 0.0) {
-            KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ", desired_coordination_number)
-        }
+        KRATOS_ERROR_IF(desired_coordination_number <= 0.0) << "The specified Coordination Number is less or equal to zero, N.C. = " << desired_coordination_number << std::endl;
 
         //STAGE 1, Local Coordination Number
         double tolerance = 0.5;
