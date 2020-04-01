@@ -178,13 +178,16 @@ namespace Kratos
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
             const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
 
-            for (unsigned int j = 0; j < dimension; j++)
+            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
-                // we need to use the original shape functions here (calculated before the momenta update)
-                r_current_velocity[j] += rN[i] * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
+                array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    // we need to use the original shape functions here (calculated before the momenta update)
+                    r_current_velocity[j] += rN[i] * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
+                }
             }
         }
 
