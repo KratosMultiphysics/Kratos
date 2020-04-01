@@ -413,12 +413,10 @@ namespace Kratos {
         added_search_distance = 0.0;
         double amplification = 1.0;
 
-        if(r_model_part.GetCommunicator().MyPID() == 0) {
-            KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
-            KRATOS_INFO_IF("", local_coordination_option) << "Local extension activated. ";
-            KRATOS_INFO_IF("", global_coordination_option) << "Global extension activated. ";
-            KRATOS_INFO("") << std::endl;
-        }
+        KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
+        KRATOS_INFO_IF("", local_coordination_option) << "Local extension activated. ";
+        KRATOS_INFO_IF("", global_coordination_option) << "Global extension activated. ";
+        KRATOS_INFO("") << std::endl;
 
         KRATOS_ERROR_IF(desired_coordination_number <= 0.0) << "The specified Coordination Number is less or equal to zero, N.C. = " << desired_coordination_number << std::endl;
 
