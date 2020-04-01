@@ -72,6 +72,10 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
