@@ -266,9 +266,14 @@ namespace Kratos
 			if (ThisVariable.Key() == 0)
 				KRATOS_THROW_ERROR(std::logic_error,
 					"Adding uninitialize variable to this variable list. Check if all variables are registered before kernel initialization", "");
+					
 
 			if (Has(ThisVariable))
 				return;
+
+			if(ThisVariable.IsComponent()){
+				Add(ThisVariable.GetSourceVariable());
+			}
 
 			mVariables.push_back(&ThisVariable);
 			SetPosition(ThisVariable.Key(), mDataSize);
@@ -368,6 +373,10 @@ namespace Kratos
 
 		bool Has(const VariableData& rThisVariable) const
 		{
+			if(rThisVariable.IsComponent()){
+				return Has(rThisVariable.GetSourceVariable());
+			}
+
 			if (mPositions.empty())
 				return false;
 
