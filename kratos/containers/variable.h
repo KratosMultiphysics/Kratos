@@ -91,10 +91,21 @@ public:
     }
 
     /**
+     * Constructor for creating a compenent of other vairable
+     * @param NewName The name to be assigned to the compoenent
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(const std::string& NewName, TSourceVariableType* pSourceVariable, char ComponentIndex, const TDataType Zero = TDataType())
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex), mZero(Zero)
+    {
+    }
+
+    /**
      * Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    explicit Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
+    Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
 
     /// Destructor.
     ~Variable() override {}
@@ -255,7 +266,8 @@ public:
      */
     static const VariableType& StaticObject()
     {
-        return msStaticObject;
+        const static Variable<TDataType> static_object("NONE");
+        return static_object;
     }
 
     TDataType& GetValue(void* pSource) const
@@ -271,14 +283,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-
-    const VariableData& GetSourceVariable() const
-    {   
-        KRATOS_DEBUG_ERROR_IF(IsNotComponent()) << "The source variable is only defined for components" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
-        return *mpSourceVariable;
-    }
 
     /**
      * This method returns the zero value of the variable type
@@ -376,14 +380,10 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static const VariableType msStaticObject;
-
     ///@}
     ///@name Member Variables
     ///@{
 
-
-    const VariableData* mpSourceVariable;
     TDataType mZero; // The zero type contains the null value of the current variable type
 
     ///@}
@@ -459,9 +459,6 @@ private:
 }; // Class Variable
 
 ///@}
-
-template<class TDataType>
-const Variable<TDataType> Variable<TDataType>::msStaticObject("NONE");
 
 ///@name Type Definitions
 ///@{
