@@ -211,7 +211,7 @@ namespace Kratos {
                 // The first iterator of the array of nodes
                 const auto it_node_begin = rModelPart.NodesBegin();
 
-#pragma omp parallel for schedule(guided,512)
+                #pragma omp parallel for schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                     auto it_node = (it_node_begin + i);
 
@@ -274,9 +274,14 @@ namespace Kratos {
                 // TODO enable parallel again
                 //#pragma omp parallel for schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                    // Current step information "N+1" (before step update).
-                    this->UpdateTranslationalDegreesOfFreedom(it_node_begin + i, disppos, dim);
+                    auto it_node = it_node_begin + i;
+                    if ((it_node)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE, 0))
+                    {
+                        // Current step information "N+1" (before step update).
+                        this->UpdateTranslationalDegreesOfFreedom(it_node, disppos, dim);
+                    }                    
                 } // for Node parallel
+
                 KRATOS_CATCH("")
             }
 
@@ -379,7 +384,7 @@ namespace Kratos {
                 OpenMPUtils::PartitionVector condition_partition;
                 OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), num_threads, condition_partition);
 
-#pragma omp parallel
+                #pragma omp parallel
                 {
                     int k = OpenMPUtils::ThisThread();
                     ConditionsArrayType::iterator condition_begin = rModelPart.Conditions().begin() + condition_partition[k];
@@ -417,10 +422,11 @@ namespace Kratos {
                     ProcessInfo CurrentProcessInfo = r_model_part.GetProcessInfo();
                 BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
                 // LOOP OVER THE GRID NODES PERFORMED FOR CLEAR ALL NODAL INFORMATION
-#pragma omp parallel for
+                #pragma omp parallel for
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                 {
                     auto i = mr_grid_model_part.NodesBegin() + iter;
+                    (i)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE, 0) = false;
 
                     // Variables to be cleaned
                     double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
@@ -460,7 +466,7 @@ namespace Kratos {
                 {
                     const IndexType DisplacementPosition = mr_grid_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
 
-#pragma omp parallel for
+                    #pragma omp parallel for
                     for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                     {
                         auto i = mr_grid_model_part.NodesBegin() + iter;
@@ -522,7 +528,7 @@ namespace Kratos {
                 const auto it_elem_begin = rModelPart.ElementsBegin();
 
                 // Finalizes solution step for all of the elements
-#pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(rElements.size()); ++i) {
                     auto it_elem = it_elem_begin + i;
                     it_elem->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -532,7 +538,7 @@ namespace Kratos {
                 const auto it_cond_begin = rModelPart.ConditionsBegin();
 
                 // Finalizes solution step for all of the conditions
-#pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(rModelPart.Conditions().size()); ++i) {
                     auto it_cond = it_cond_begin + i;
                     it_cond->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -745,7 +751,7 @@ namespace Kratos {
                 // Getting dof position
                 const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
 
-#pragma omp parallel for schedule(guided,512)
+                #pragma omp parallel for schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                     // Current step information "N+1" (before step update).
                     auto it_node = it_node_begin + i;
