@@ -415,9 +415,9 @@ namespace Kratos {
 
         if(r_model_part.GetCommunicator().MyPID() == 0) {
             KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
-           KRATOS_INFO_IF("", local_coordination_option) KRATOS_INFO("") << "Local extension activated." << std::endl;
-            if(global_coordination_option) KRATOS_INFO("") << "Global extension activated. ";
-            KRATOS_INFO("DEM") << std::endl;
+            KRATOS_INFO_IF("", local_coordination_option) << "Local extension activated. ";
+            KRATOS_INFO_IF("", global_coordination_option) << "Global extension activated. ";
+            KRATOS_INFO("") << std::endl;
         }
 
         KRATOS_ERROR_IF(desired_coordination_number <= 0.0) << "The specified Coordination Number is less or equal to zero, N.C. = " << desired_coordination_number << std::endl;
@@ -432,7 +432,7 @@ namespace Kratos {
                 iteration++;
                 if (current_coordination_number == 0.0) {
                     KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
-                    KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
+                    KRATOS_ERROR << "The specified tangency method is not supported for this problem, please use absolute value instead" << std::endl;
                     break;
                 }
 
@@ -440,7 +440,7 @@ namespace Kratos {
                 mNumberOfThreads = OpenMPUtils::GetNumThreads();
                 total_error.resize(mNumberOfThreads);
 
-                //#pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(mListOfSphericContinuumParticles.size()); ++i) {
                     const std::size_t neighbour_elements_size = mListOfSphericContinuumParticles[i]->mNeighbourElements.size();
                     const double old_amplification = mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor;
@@ -481,7 +481,7 @@ namespace Kratos {
                 iteration++;
                 if (current_coordination_number == 0.0) {
                     KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
-                    KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
+                    KRATOS_ERROR << "The specified tangency method is not supported for this problem, please use absolute value instead" << std::endl;
                     break;
                 }
 
@@ -514,7 +514,7 @@ namespace Kratos {
         else {
             if(r_model_part.GetCommunicator().MyPID() == 0) {
                 KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << current_coordination_number << ". " << "\n" << std::endl;
-                KRATOS_THROW_ERROR(std::runtime_error, "Please use a Absolute tolerance instead ", " ")
+                KRATOS_ERROR << "Please use a Absolute tolerance instead " << std::endl;
                 //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
             }
         }
