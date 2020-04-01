@@ -93,28 +93,11 @@ public:
     ///@name Modeler Stages after Solving
     ///@{
 
-    /// Update the analysis model_part after the simulation.
-    virtual void UpdateModelPart(
-        Model& rModel) const
-    {}
-
-    /// Outputs the model_part for external usage.
-    virtual void OutputModelPart(
-        Model & rModel) const
-    {}
-
-    /// Updates the geometry model with the solutions from the analysis.
-    virtual void UpdateSolutionGeometryModel(
-        Model& rModel) const
-    {}
-
-    /// Updates the geometry model.
-    virtual void UpdateGeometryModel(
-        Model& rModel) const
-    {}
-
-    /// Outputs the geometry models for external usage.
-    virtual void OuptutGeometryModel(
+    /* Updates the analysis model_part, maps information from
+       the analzsis model_part to the geometry model_part or
+       updates the geometry model_part after the simulation.
+    */
+    virtual void UpdateModel(
         Model& rModel) const
     {}
 
