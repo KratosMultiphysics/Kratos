@@ -386,7 +386,7 @@ namespace Kratos
         double inv_dA = 1 / rActualKinematic.dA;
         double inv_dA3 = 1 / std::pow(rActualKinematic.dA, 3);
 
-        for (int i = 0; i < number_of_control_points; i++)
+        for (IndexType i = 0; i < number_of_control_points; i++)
         {
             IndexType index = 3 * i;
             //first line
