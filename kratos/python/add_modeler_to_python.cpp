@@ -34,12 +34,17 @@ namespace Python
 
 namespace py = pybind11;
 
-void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
+void GenerateModelPart1(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
 {
     GM.GenerateModelPart(origin_model_part, destination_model_part,
                          KratosComponents<Element>::Get(rElementName),
                          KratosComponents<Condition>::Get(rConditionName));
 
+}
+
+void GenerateModelPart2(Modeler& GM, Model& rModel)
+{
+    GM.GenerateModelPart(rModel);
 }
 
 void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string& rElementName, const std::string& rConditionName)
@@ -69,7 +74,16 @@ void  AddModelerToPython(pybind11::module& m)
 {
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
-    .def("GenerateModelPart",&GenerateModelPart)
+    .def(py::init<>(const Parameters))
+    // Modeler Stages
+    .def("ImportGeometryModel", &ImportGeometryModel)
+    .def("PrepareGeometryModel", &PrepareGeometryModel)
+    .def("GenerateModelPart", GenerateModelPart2)
+    .def("ImportModelPart", &ImportModelPart)
+    .def("PrepareModelPart", &PrepareModelPart)
+    .def("UpdateModel", &UpdateModel)
+    // Additional Old Functions
+    .def("GenerateModelPart",GenerateModelPart1)
     .def("GenerateMesh",&GenerateMesh)
     .def("GenerateNodes",&Modeler::GenerateNodes)
     .def("__str__", PrintObject<Modeler>)
