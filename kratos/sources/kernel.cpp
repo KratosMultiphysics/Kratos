@@ -33,6 +33,8 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << GetVersionString() << std::endl;
 
+    std::cout << "    Output of \"__cplusplus\": " << __cplusplus << std::endl;
+
     PrintParallelismSupportInfo();
 
     if (!IsImported("KratosMultiphysics")) {
