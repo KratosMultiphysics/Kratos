@@ -179,7 +179,9 @@ public:
 
     KeyType Key() const
     {
-        return mKey;
+        KeyType key = mKey;// >> 8;
+        key &= 0xFFFFFFFF00;
+        return key;
     }
 
     /// NOTE: This function is for internal use and not
@@ -215,6 +217,13 @@ public:
     KeyType GetComponentIndex() const {
         constexpr KeyType first_7_bits=127;
         return (mKey & first_7_bits);
+    }
+
+    const VariableData& GetSourceVariable() const
+    {   
+        KRATOS_DEBUG_ERROR_IF(IsNotComponent()) << "The source variable is only defined for components" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
+        return *mpSourceVariable;
     }
 
 
@@ -278,6 +287,7 @@ protected:
         mName = rOtherVariable.mName;
         mKey = rOtherVariable.mKey;
         mSize = rOtherVariable.mSize;
+        mpSourceVariable = rOtherVariable.mpSourceVariable;
         mIsComponent = rOtherVariable.mIsComponent;
 
         return *this;
@@ -287,8 +297,11 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-    /// Constructor.
-    VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false, char ComponentIndex = 0);
+    /// Constructor for variables.
+    VariableData(const std::string& NewName, std::size_t NewSize);
+
+    /// Constructor for variables components.
+    VariableData(const std::string& NewName, std::size_t NewSize, const VariableData* pSourceVariable, char ComponentIndex);
 
 
     /** default constructor is to be used only with serialization due to the fact that
@@ -309,8 +322,10 @@ private:
 
     std::size_t mSize;
 
-    bool mIsComponent;
+    const VariableData* mpSourceVariable;
 
+    bool mIsComponent;
+    
     ///@}
     ///@name Private Operations
     ///@{
