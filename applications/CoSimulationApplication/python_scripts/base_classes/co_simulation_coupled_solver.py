@@ -25,7 +25,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     - Snychronization of Input and Output
     - Handles the coupling sequence
     """
-    def __init__(self, settings, solver_name):
+    def __init__(self, settings, models, solver_name):
         # perform some initial checks
         if not settings.Has("coupling_sequence"):
             err_msg  = 'No "coupling_sequence" was specified for coupled solver\n'
@@ -47,9 +47,14 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
             raise Exception(err_msg)
 
-        super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
+        if not isinstance(models, dict) and not models is None:
+            err_msg  = 'A coupled solver can either be passed a dict of Models\n'
+            err_msg += 'or None, got object of type "{}"'.format(type(models))
+            raise Exception(err_msg)
 
-        self.solver_wrappers = self.__CreateSolverWrappers()
+        super(CoSimulationCoupledSolver, self).__init__(settings, None, solver_name)
+
+        self.solver_wrappers = self.__CreateSolverWrappers(models)
         self.model = ModelAccessor(self.solver_wrappers)
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
@@ -293,11 +298,15 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Check()
 
-    def __CreateSolverWrappers(self):
+    def __CreateSolverWrappers(self, models):
         # first create all solvers
         solvers = {}
         for solver_name, solver_settings in self.settings["solvers"].items():
-            solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
+            if models == None:
+                solver_model = None
+            else:
+                solver_model = models.get(solver_name) # returns None if "solver_name" is not in models
+            solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_model, solver_name)
 
         # then order them according to the coupling-loop
         solvers_map = OrderedDict()
@@ -313,6 +322,12 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                 err_msg += '"{}" of type "{}"\n'.format(self.name, self._ClassName())
                 err_msg += 'but not used in the "coupling_sequence"!'
                 raise Exception(err_msg)
+
+        if models != None:
+            for solver_name in models.keys():
+                if solver_name not in solvers_map:
+                    raise Exception('A Model was given for solver "{}" but this solver does not exist!'.format(solver_name))
+
 
         return solvers_map
 
@@ -395,7 +410,8 @@ class ModelAccessor(object):
         if key == "":
             raise Exception("No solver_name was specified!")
         elif key.count('.') == 0:
-            raise Exception("No model_part_name was specified!")
+            # if only the solver name was given then return the Model itself
+            return self.solver_wrappers[splitted_key[0]].model
 
         solver_name, model_part_name = key.split('.', 1)
         # note that model_part_name can still include solver-names in a multicoupling scenario
