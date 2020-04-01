@@ -102,8 +102,6 @@ KratosDamApplication::KratosDamApplication()
 
 void KratosDamApplication::Register()
 {
-    //Calling base class register to register Kratos components
-    KratosApplication::Register();
     std::cout << "Initializing KratosDamApplication... " << std::endl;
 
     //Register Elements

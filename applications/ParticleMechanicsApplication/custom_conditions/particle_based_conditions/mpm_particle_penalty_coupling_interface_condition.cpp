@@ -189,9 +189,8 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
 
     // Prepare variables
     GeneralVariables Variables;
-    const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
     const double & r_mpc_area = this->GetIntegrationWeight();
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
 
     // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);
@@ -212,13 +211,11 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
-        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
-        const double normal_force = MathUtils<double>::Dot(mpc_force,unit_normal_vector);
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            mpc_force = -1.0 * normal_force * unit_normal_vector;
+            mpc_force = -1.0 * normal_force * m_unit_normal;
         else
             mpc_force = ZeroVector(3);
     }
@@ -228,7 +225,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     }
 
     // Set Contact Force
-    this->SetValue(MPC_CONTACT_FORCE, mpc_force);
+    m_contact_force = mpc_force;
 
 }
 
@@ -243,6 +240,40 @@ int MPMParticlePenaltyCouplingInterfaceCondition::Check( const ProcessInfo& rCur
     return 0;
 }
 
+
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_CONTACT_FORCE) {
+        rValues[0] = m_contact_force;
+    }
+    else {
+        MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticlePenaltyCouplingInterfaceCondition::SetValuesOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_CONTACT_FORCE) {
+        m_contact_force = rValues[0];
+    }
+    else {
+        MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
 
 } // Namespace Kratos
 
