@@ -26,7 +26,7 @@
 
 #include "custom_elements/acoustic_element.h"
 #include "custom_conditions/displacement_output_condition.h"
-#include "custom_conditions/acoustic_structure_line_condition.h"
+#include "custom_conditions/acoustic_structure_coupling_condition.h"
 
 namespace Kratos {
 
@@ -185,7 +185,9 @@ private:
     // const Elem3D   mElem3D;
     // typedef DISPLACEMENT dt;
     const DisplacementOutputCondition mDisplacementOutputCondition3D1N;
-    const AcousticStructureLineCondition<2> mAcousticStructureLineCondition2D2N;
+    const AcousticStructureCouplingCondition<2> mAcousticStructureCouplingCondition2D2N;
+    const AcousticStructureCouplingCondition<3> mAcousticStructureCouplingCondition3D4N;
+    const AcousticStructureCouplingCondition<3> mAcousticStructureCouplingCondition3D3N;
 
     ///@}
     ///@name Private Operators

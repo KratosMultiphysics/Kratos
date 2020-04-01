@@ -25,9 +25,11 @@
 
 #include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/point_3d.h"
+#include "geometries/triangle_3d_3.h"
 
 
 namespace Kratos {
@@ -42,7 +44,9 @@ KratosMORApplication::KratosMORApplication():
 
       // conditions
       mDisplacementOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
-      mAcousticStructureLineCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2))))
+      mAcousticStructureCouplingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+      mAcousticStructureCouplingCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4)))),
+      mAcousticStructureCouplingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
     {}
 
 void KratosMORApplication::Register()
@@ -68,7 +72,9 @@ void KratosMORApplication::Register()
 
 
   KRATOS_REGISTER_CONDITION("DisplacementOutputCondition3D1N", mDisplacementOutputCondition3D1N)
-  KRATOS_REGISTER_CONDITION("AcousticStructureLineCondition2D2N", mAcousticStructureLineCondition2D2N)
+  KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition2D2N", mAcousticStructureCouplingCondition2D2N)
+  KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition3D4N", mAcousticStructureCouplingCondition3D4N)
+  KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition3D3N", mAcousticStructureCouplingCondition3D3N)
 
 
 }

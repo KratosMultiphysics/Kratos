@@ -10,8 +10,8 @@
 //
 
 // System includes
-#if !defined(KRATOS_ACOUSTIC_STRUCTURE_LINE_CONDITION_H_INCLUDED )
-#define  KRATOS_ACOUSTIC_STRUCTURE_LINE_CONDITION_H_INCLUDED
+#if !defined(KRATOS_ACOUSTIC_STRUCTURE_COUPLING_CONDITION_H_INCLUDED )
+#define  KRATOS_ACOUSTIC_STRUCTURE_COUPLING_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -44,7 +44,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class AcousticStructureLineCondition
+ * @class AcousticStructureCouplingCondition
  * @ingroup StructuralMechanicsApplication
  * @brief This class is the responsible to add the contributions of the RHS and LHS of the line loads of the structure
  * @details It allows to consider different types of pressure and line loads
@@ -52,7 +52,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<std::size_t TDim>
-class AcousticStructureLineCondition
+class AcousticStructureCouplingCondition
     : public Condition
 {
 public:
@@ -80,28 +80,28 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    /// Counted pointer of AcousticStructureLineCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AcousticStructureLineCondition );
+    /// Counted pointer of AcousticStructureCouplingCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AcousticStructureCouplingCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor using an array of nodes
-    AcousticStructureLineCondition(
+    AcousticStructureCouplingCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    AcousticStructureLineCondition(
+    AcousticStructureCouplingCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
-    ~AcousticStructureLineCondition() override;
+    ~AcousticStructureCouplingCondition() override;
 
     ///@}
     ///@name Operators
@@ -296,7 +296,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "AcousticStructureLineCondition #" << Id();
+        buffer << "AcousticStructureCouplingCondition #" << Id();
         return buffer.str();
     }
 
@@ -304,7 +304,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AcousticStructureLineCondition #" << Id();
+        rOStream << "AcousticStructureCouplingCondition #" << Id();
     }
 
     /// Print object's data.
@@ -401,7 +401,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    AcousticStructureLineCondition() {};
+    AcousticStructureCouplingCondition() {};
 
     ///@}
 
@@ -437,12 +437,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AcousticStructureLineCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AcousticStructureCouplingCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AcousticStructureLineCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AcousticStructureCouplingCondition );
     }
 
     ///@}
@@ -450,15 +450,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //AcousticStructureLineCondition& operator=(const AcousticStructureLineCondition& rOther);
+    //AcousticStructureCouplingCondition& operator=(const AcousticStructureCouplingCondition& rOther);
 
     /// Copy constructor.
-    //AcousticStructureLineCondition(const AcousticStructureLineCondition& rOther);
+    //AcousticStructureCouplingCondition(const AcousticStructureCouplingCondition& rOther);
 
 
     ///@}
 
-}; // Class AcousticStructureLineCondition
+}; // Class AcousticStructureCouplingCondition
 
 ///@}
 ///@name Type Definitions
@@ -472,11 +472,11 @@ private:
 /// input stream function
 template<std::size_t TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-        AcousticStructureLineCondition<TDim>& rThis);
+        AcousticStructureCouplingCondition<TDim>& rThis);
 /// output stream function
 template<std::size_t TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-        const AcousticStructureLineCondition<TDim>& rThis)
+        const AcousticStructureCouplingCondition<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -489,6 +489,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ACOUSTIC_STRUCTURE_LINE_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_ACOUSTIC_STRUCTURE_COUPLING_CONDITION_H_INCLUDED  defined
 
 

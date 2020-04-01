@@ -16,9 +16,8 @@
 
 
 // Project includes
-#include "custom_conditions/acoustic_structure_line_condition.h"
+#include "custom_conditions/acoustic_structure_coupling_condition.h"
 #include "utilities/math_utils.h"
-// #include "utilities/beam_math_utilities.hpp"
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 #include "includes/checks.h"
@@ -30,7 +29,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template<std::size_t TDim>
-AcousticStructureLineCondition<TDim>::AcousticStructureLineCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+AcousticStructureCouplingCondition<TDim>::AcousticStructureCouplingCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -40,7 +39,7 @@ AcousticStructureLineCondition<TDim>::AcousticStructureLineCondition( IndexType 
 /***********************************************************************************/
 
 template<std::size_t TDim>
-AcousticStructureLineCondition<TDim>::AcousticStructureLineCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+AcousticStructureCouplingCondition<TDim>::AcousticStructureCouplingCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
 }
@@ -49,40 +48,40 @@ AcousticStructureLineCondition<TDim>::AcousticStructureLineCondition( IndexType 
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Condition::Pointer AcousticStructureLineCondition<TDim>::Create(
+Condition::Pointer AcousticStructureCouplingCondition<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<AcousticStructureLineCondition<TDim>>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<AcousticStructureCouplingCondition<TDim>>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Condition::Pointer AcousticStructureLineCondition<TDim>::Create(
+Condition::Pointer AcousticStructureCouplingCondition<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<AcousticStructureLineCondition<TDim>>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AcousticStructureCouplingCondition<TDim>>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Condition::Pointer AcousticStructureLineCondition<TDim>::Clone (
+Condition::Pointer AcousticStructureCouplingCondition<TDim>::Clone (
     IndexType NewId,
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_intrusive<AcousticStructureLineCondition<TDim>>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<AcousticStructureCouplingCondition<TDim>>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -95,7 +94,7 @@ Condition::Pointer AcousticStructureLineCondition<TDim>::Clone (
 /***********************************************************************************/
 
 template<std::size_t TDim>
-AcousticStructureLineCondition<TDim>::~AcousticStructureLineCondition()
+AcousticStructureCouplingCondition<TDim>::~AcousticStructureCouplingCondition()
 {
 }
 
@@ -108,7 +107,7 @@ AcousticStructureLineCondition<TDim>::~AcousticStructureLineCondition()
  * @param rCurrentProcessInfo The current process info instance
  */
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::EquationIdVector(
+void AcousticStructureCouplingCondition<TDim>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo
     )
@@ -147,22 +146,19 @@ void AcousticStructureLineCondition<TDim>::EquationIdVector(
             rResult[i + dim * number_of_nodes] = GetGeometry()[i].GetDof(PRESSURE,pos_p).EquationId();
         }
     }
-    std::cout << "condition equation id vector\n";
-    KRATOS_WATCH(rResult)
+
     KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::GetDofList(
+void AcousticStructureCouplingCondition<TDim>::GetDofList(
     DofsVectorType& ElementalDofList,
     ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY
-
-    std::cout << "GetDofListGetDofListGetDofListGetDofListGetDofListGetDofList!\n";
 
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim =  GetGeometry().WorkingSpaceDimension();
@@ -207,7 +203,7 @@ void AcousticStructureLineCondition<TDim>::GetDofList(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::GetValuesVector(
+void AcousticStructureCouplingCondition<TDim>::GetValuesVector(
     Vector& rValues,
     int Step
     )
@@ -219,7 +215,7 @@ void AcousticStructureLineCondition<TDim>::GetValuesVector(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::GetFirstDerivativesVector(
+void AcousticStructureCouplingCondition<TDim>::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
     )
@@ -231,7 +227,7 @@ void AcousticStructureLineCondition<TDim>::GetFirstDerivativesVector(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::GetSecondDerivativesVector(
+void AcousticStructureCouplingCondition<TDim>::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
     )
@@ -240,7 +236,7 @@ void AcousticStructureLineCondition<TDim>::GetSecondDerivativesVector(
 }
 
 template<std::size_t TDim>
-int AcousticStructureLineCondition<TDim>::Check( const ProcessInfo& rCurrentProcessInfo )
+int AcousticStructureCouplingCondition<TDim>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
@@ -268,7 +264,7 @@ int AcousticStructureLineCondition<TDim>::Check( const ProcessInfo& rCurrentProc
 /***********************************************************************************/
 
 template<std::size_t TDim>
-double AcousticStructureLineCondition<TDim>::GetIntegrationWeight(
+double AcousticStructureCouplingCondition<TDim>::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const SizeType PointNumber,
     const double detJ
@@ -281,7 +277,7 @@ double AcousticStructureLineCondition<TDim>::GetIntegrationWeight(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::CalculateRightHandSide(
+void AcousticStructureCouplingCondition<TDim>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo
     )
@@ -298,7 +294,7 @@ void AcousticStructureLineCondition<TDim>::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::CalculateLocalSystem(
+void AcousticStructureCouplingCondition<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo
@@ -315,7 +311,7 @@ void AcousticStructureLineCondition<TDim>::CalculateLocalSystem(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::CalculateMassMatrix(
+void AcousticStructureCouplingCondition<TDim>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo
     )
@@ -332,7 +328,7 @@ void AcousticStructureLineCondition<TDim>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::CalculateDampingMatrix(
+void AcousticStructureCouplingCondition<TDim>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo
     )
@@ -344,7 +340,7 @@ void AcousticStructureLineCondition<TDim>::CalculateDampingMatrix(
 
 
 template<std::size_t TDim>
-void AcousticStructureLineCondition<TDim>::CalculateAll(
+void AcousticStructureCouplingCondition<TDim>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -431,7 +427,7 @@ void AcousticStructureLineCondition<TDim>::CalculateAll(
 /***********************************************************************************/
 
 template<>
-void AcousticStructureLineCondition<2>::GetLocalAxis1(
+void AcousticStructureCouplingCondition<2>::GetLocalAxis1(
     array_1d<double, 3>& rLocalAxis,
     const Matrix& rJacobian
     ) const
@@ -445,7 +441,7 @@ void AcousticStructureLineCondition<2>::GetLocalAxis1(
 /***********************************************************************************/
 
 template<>
-void AcousticStructureLineCondition<3>::GetLocalAxis1(
+void AcousticStructureCouplingCondition<3>::GetLocalAxis1(
     array_1d<double, 3>& rLocalAxis,
     const Matrix& rJacobian
     ) const
@@ -459,7 +455,7 @@ void AcousticStructureLineCondition<3>::GetLocalAxis1(
 /***********************************************************************************/
 
 template<>
-void AcousticStructureLineCondition<2>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis, const Matrix& rJacobian) const
+void AcousticStructureCouplingCondition<2>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis, const Matrix& rJacobian) const
 {
     rLocalAxis[0] = 0.0;
     rLocalAxis[1] = 0.0;
@@ -470,7 +466,7 @@ void AcousticStructureLineCondition<2>::GetLocalAxis2(array_1d<double, 3>& rLoca
 /***********************************************************************************/
 
 template<>
-void AcousticStructureLineCondition<3>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis, const Matrix& rJacobian) const
+void AcousticStructureCouplingCondition<3>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis, const Matrix& rJacobian) const
 {
     rLocalAxis[0] = rJacobian(0, 1);
     rLocalAxis[1] = rJacobian(1, 1);
@@ -480,8 +476,8 @@ void AcousticStructureLineCondition<3>::GetLocalAxis2(array_1d<double, 3>& rLoca
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AcousticStructureLineCondition<2>;
-template class AcousticStructureLineCondition<3>;
+template class AcousticStructureCouplingCondition<2>;
+template class AcousticStructureCouplingCondition<3>;
 
 } // Namespace Kratos
 
