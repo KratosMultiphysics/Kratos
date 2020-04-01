@@ -49,6 +49,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
         self.solver_wrappers = self.__CreateSolverWrappers()
+        self.model = ModelAccessor(self.solver_wrappers)
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
@@ -341,6 +342,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         return solver_cosim_details
 
+
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
@@ -377,3 +379,24 @@ def GetOutputDataDefaults():
         "after_data_transfer_operations"  : [],
         "interval"                        : [0.0, 1e30]
     }""")
+
+
+class ModelAccessor(object):
+    """Intermediate class for redirecting the access to the Models
+    to the solvers of the CoupledSolver
+    """
+    def __init__(self, solver_wrappers):
+        self.solver_wrappers = solver_wrappers
+
+    def __getitem__(self, key):
+        splitted_key = key.split('.')
+
+        if key == "":
+            raise Exception("No solver_name was specified!")
+        elif key.count('.') == 0:
+            raise Exception("No model_part_name was specified!")
+
+        solver_name, model_part_name = key.split('.', 1)
+        # note that model_part_name can still include solver-names in a multicoupling scenario
+
+        return self.solver_wrappers[solver_name].model[model_part_name]
