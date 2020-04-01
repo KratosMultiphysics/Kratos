@@ -6,6 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
+from KratosMultiphysics.CoSimulationApplication.helpers.dummy_solver_wrapper import DummySolverWrapper
 
 
 class TestCoupledSolverGetSolver(KratosUnittest.TestCase):
@@ -368,6 +369,28 @@ class TestCoupledSolverCouplingInterfaceDataAccess(KratosUnittest.TestCase):
 
 
 class TestCoupledSolverPassingModel(KratosUnittest.TestCase):
+    def test_pass_model_to_solver_wrapper(self):
+        # CoSim contains only one SolverWrapper (not really CoSimulation...)
+        params = KM.Parameters("""{
+            "solver_wrapper_settings": {
+                "time_step" : 1.0,
+                "domain_size" : 1,
+                "main_model_part_name" : "dummy"
+            }
+        }""")
+
+        solver_without_outside_model = DummySolverWrapper(params, None, "dummy_2")
+        self.assertIsInstance(solver_without_outside_model.model, KM.Model)
+
+        outside_model = KM.Model()
+        solver = DummySolverWrapper(params, outside_model, "dummy")
+        self.assertIs(outside_model, solver.model)
+
+        with self.assertRaisesRegex(Exception, 'A solver wrapper can either be passed a Model\nor None, got object of type'):
+            DummySolverWrapper(params, "wrongtype", "dummy")
+
+
+
     def test_pass_model_zero_levels(self):
         # CoSim contains only one SolverWrapper (not really CoSimulation...)
         params = KM.Parameters("""{
@@ -471,6 +494,9 @@ class TestCoupledSolverPassingModel(KratosUnittest.TestCase):
 
         with self.assertRaisesRegex(Exception, 'A coupled solver can either be passed a dict of Models\nor None, got object of type'):
             co_sim_analysis = CoSimulationAnalysis(params, structure_model)
+
+        with self.assertRaisesRegex(Exception, 'A solver wrapper can either be passed a Model\nor None, got object of type'): # this throws in the SolverWrapper
+            co_sim_analysis = CoSimulationAnalysis(params, {"structure": "structure_model"})
 
         with self.assertRaisesRegex(Exception, 'A Model was given for solver "wrong_name" but this solver does not exist!'):
             co_sim_analysis = CoSimulationAnalysis(params, {"wrong_name": structure_model})
