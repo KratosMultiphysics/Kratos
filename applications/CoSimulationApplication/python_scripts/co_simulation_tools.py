@@ -30,55 +30,6 @@ def SettingsTypeCheck(settings):
         raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")
 
 
-def AddEchoLevelToSettings(settings, echo_level):
-    echo_level_params = KM.Parameters("""{
-        "echo_level" : %d
-    }""" % echo_level)
-    settings.AddMissingParameters(echo_level_params)
-
-
-def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
-    predictors = []
-    for predictor_settings in predictor_settings_list:
-        solver = solvers[predictor_settings["solver"].GetString()]
-        AddEchoLevelToSettings(predictor_settings, parent_echo_level)
-        predictors.append(CreatePredictor(predictor_settings, solver))
-    return predictors
-
-def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_echo_level):
-    convergence_accelerators = []
-    for conv_acc_settings in convergence_accelerator_settings_list:
-        solver = solvers[conv_acc_settings["solver"].GetString()]
-        AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
-        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver))
-
-    return convergence_accelerators
-
-def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_echo_level):
-    convergence_criteria = []
-    for conv_crit_settings in convergence_criterion_settings_list:
-        solver = solvers[conv_crit_settings["solver"].GetString()]
-        AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
-
-    return convergence_criteria
-
-def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_echo_level):
-    coupling_operations = {}
-    for coupling_operation_name, coupling_operation_settings in coupling_operations_settings_dict.items():
-        AddEchoLevelToSettings(coupling_operation_settings, parent_echo_level)
-        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers)
-
-    return coupling_operations
-
-def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_echo_level):
-    data_transfer_operators = {}
-    for data_transfer_operators_name, data_transfer_operators_settings in data_transfer_operators_settings_dict.items():
-        AddEchoLevelToSettings(data_transfer_operators_settings, parent_echo_level)
-        data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_settings)
-
-    return data_transfer_operators
-
 def AllocateHistoricalVariablesFromCouplingData(data_list, model, solver_name):
     '''This function retrieves the historical variables that are needed for the ModelParts from the
     specified CouplingInterfaceDatas and allocates them on the ModelParts
