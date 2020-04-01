@@ -28,7 +28,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            const unsigned int dimension = rGeom.WorkingSpaceDimension();
+            std::cout << "for fint rMPStress = " << rMPStress << std::endl;
+
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3); //PJW, needed for explicit force
 
@@ -56,6 +58,7 @@ namespace Kratos
                 rRightHandSideVector[dimension * i + 2] -= nodal_force_internal_normal[2]; //minus sign, internal forces
             }
         }
+
         KRATOS_CATCH("")
     }
 
@@ -73,7 +76,7 @@ namespace Kratos
 
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const unsigned int dimension = rGeom.WorkingSpaceDimension();
-        bool isUpdateMPPositionFromUpdatedMPVelocity = true;
+        bool isUpdateMPPositionFromUpdatedMPVelocity = true; // should normally be true. this reduces energy lost from kinematic aliasing
         const ProcessInfo& rProcessInfo = ProcessInfo();
 
         // Update the MP Velocity
@@ -82,18 +85,18 @@ namespace Kratos
         array_1d<double, 3> MP_Velocity = ZeroVector(3);
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_PreviousVelocity,rProcessInfo);        
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, MP_PreviousAcceleration, rProcessInfo);
-        double alpha = 1.0;
+        double gamma = 1.0; // 0.5 for central difference, 1.0 for forward euler
 
         if (isCentralDifference)
         {
-            alpha = 0.5;
+            gamma = 0.5;
             isUpdateMPPositionFromUpdatedMPVelocity = false;
+        }
 
-            // Advance the predictor velocity
-            for (unsigned int i = 0; i < dimension; i++)
-            {
-                MP_Velocity[i] = MP_PreviousVelocity[0][i] + alpha * rDeltaTime * MP_PreviousAcceleration[0][i];
-            }
+        // Advance the predictor velocity
+        for (unsigned int i = 0; i < dimension; i++)
+        {
+            MP_Velocity[i] = MP_PreviousVelocity[0][i] + (1.0 - gamma) * rDeltaTime * MP_PreviousAcceleration[0][i];
         }
 
         array_1d<double, 3> delta_xg = ZeroVector(3);
@@ -124,10 +127,13 @@ namespace Kratos
             }
         }
 
+        // Update the MP Acceleration
+        rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION, { MP_Acceleration }, rProcessInfo);
+
         // Update the MP Velocity corrector
         for (unsigned int j = 0; j < dimension; j++)
         {
-            MP_Velocity[j] += alpha * rDeltaTime * MP_Acceleration[j];
+            MP_Velocity[j] += gamma * rDeltaTime * MP_Acceleration[j];
         }
         rElement.SetValuesOnIntegrationPoints(MP_VELOCITY, { MP_Velocity }, rProcessInfo);
 
@@ -143,9 +149,6 @@ namespace Kratos
         }
         const array_1d<double, 3>& new_xg = xg[0] + delta_xg;
         rElement.SetValuesOnIntegrationPoints(MP_COORD, { new_xg }, rProcessInfo);
-
-        // Update the MP Acceleration
-        rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION, { MP_Acceleration },rProcessInfo);
 
         // Update the MP total displacement
         std::vector<array_1d<double, 3 > > MP_Displacement;

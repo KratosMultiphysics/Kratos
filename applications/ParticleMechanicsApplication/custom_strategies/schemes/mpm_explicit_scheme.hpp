@@ -316,7 +316,7 @@ namespace Kratos {
 
                 } // for DomainSize
 
-                // We need to set updated grid velocity here if we are using the USL or USF formulation
+                // We need to set updated grid velocity here if we are using the USL formulation
                 if (mStressUpdateOption == 1)
                 {
                     array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
