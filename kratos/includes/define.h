@@ -140,9 +140,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name) \
     KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_X;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Y;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Z;
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_X;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Y;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Z;
 
 #ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
@@ -155,18 +155,18 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
   KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_X;\
-  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Y;\
-  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Z;
+  KRATOS_API(application) extern Kratos::Variable<double> name##_X;\
+  KRATOS_API(application) extern Kratos::Variable<double> name##_Y;\
+  KRATOS_API(application) extern Kratos::Variable<double> name##_Z;
 
 #ifdef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #endif
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name) \
     KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_XX;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_YY;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_XY;
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_XX;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_YY;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_XY;
 
 #ifdef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
@@ -179,9 +179,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
   KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_XX;\
-  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_YY;\
-  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_XY;
+  KRATOS_API(application) extern Kratos::Variable<double> name##_XX;\
+  KRATOS_API(application) extern Kratos::Variable<double> name##_YY;\
+  KRATOS_API(application) extern Kratos::Variable<double> name##_XY;
 
 #ifdef KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS
@@ -293,14 +293,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::array_1d<double, 3>(Kratos::ZeroVector(3))); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, &name, 0); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, &name, 1); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, &name, 2);
 
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
@@ -314,14 +314,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3)); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, &name, 0); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, &name, 1); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, &name, 2);
 
 #ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
