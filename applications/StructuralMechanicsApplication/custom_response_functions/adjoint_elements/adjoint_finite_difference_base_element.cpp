@@ -16,7 +16,7 @@
 // Project includes
 #include "adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
-#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
@@ -320,7 +320,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
 
     // Get pseudo-load from utility
-    ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
+    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
@@ -350,7 +350,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     if( rDesignVariable == SHAPE_SENSITIVITY )
     {
-        const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
+        const std::vector<FiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
         Vector derived_RHS;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
@@ -365,7 +365,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
                 // Get pseudo-load contribution from utility
-                ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, coord_directions[coord_dir_i],
+                FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, coord_directions[coord_dir_i],
                                                                             node_i, delta, derived_RHS, process_info);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;

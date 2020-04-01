@@ -21,9 +21,8 @@
 #include "includes/define.h"
 #if defined EIGEN_USE_MKL_ALL
 #include "eigen_pardiso_ldlt_solver.h"
-#else // defined EIGEN_USE_MKL_ALL
-#include "eigen_sparse_lu_solver.h"
 #endif // defined EIGEN_USE_MKL_ALL
+#include "eigen_sparse_lu_solver.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
@@ -62,6 +61,7 @@ class EigensystemSolver
             "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 1,
             "normalize_eigenvectors": false,
+            "use_mkl_if_available": true,
             "max_iteration": 1000,
             "tolerance": 1e-6,
             "echo_level": 1
@@ -176,13 +176,19 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
+        Kratos::unique_ptr<DirectSolverWrapperBase> p_solver;
+
         #if defined USE_EIGEN_MKL
-        EigenPardisoLDLTSolver<double> solver;
+        if (mParam["use_mkl_if_available"].GetBool()) {
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenPardisoLDLTSolver<double>>>();
+        } else {
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
+        }
         #else  // defined USE_EIGEN_MKL
-        EigenSparseLUSolver<double> solver;
+        p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
         #endif // defined USE_EIGEN_MKL
 
-        solver.Compute(a);
+        p_solver->Compute(a);
 
         int iteration = 0;
 
@@ -195,7 +201,7 @@ class EigensystemSolver
 
             for (int j = 0; j != nc; ++j) {
                 tmp = r.col(j);
-                solver.Solve(tmp, tt);
+                p_solver->Solve(tmp, tt);
 
                 for (int i = j; i != nc; ++i) {
                     ar(i, j) = r.col(i).dot(tt);
@@ -262,7 +268,7 @@ class EigensystemSolver
 
         for (int i = 0; i != nroot; ++i) {
             tmp = r.col(i);
-            solver.Solve(tmp, eigvecs.row(i));
+            p_solver->Solve(tmp, eigvecs.row(i));
             eigvecs.row(i).normalize();
         }
 
@@ -306,6 +312,34 @@ class EigensystemSolver
     void PrintData(std::ostream &rOStream) const override
     {
     }
+
+private:
+
+    struct DirectSolverWrapperBase
+    {
+        typedef Eigen::Map<const Eigen::SparseMatrix<double, Eigen::RowMajor, int>> MatrixMapType;
+        typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenVectorType;
+        typedef Eigen::Ref<const EigenVectorType> ConstVectorRefType;
+        typedef Eigen::Ref<EigenVectorType> VectorRefType;
+
+        virtual ~DirectSolverWrapperBase() = default;
+        virtual void Compute(MatrixMapType a) = 0;
+        virtual void Solve(ConstVectorRefType b, VectorRefType x) = 0;
+    };
+
+    template<class TSolver>
+    struct DirectSolverWrapper : DirectSolverWrapperBase
+    {
+        typedef DirectSolverWrapperBase BaseType;
+        typedef typename BaseType::MatrixMapType MatrixMapType;
+        typedef typename BaseType::VectorRefType VectorRefType;
+        typedef typename BaseType::ConstVectorRefType ConstVectorRefType;
+
+        void Compute(MatrixMapType a) override {mSolver.Compute(a);}
+        void Solve(ConstVectorRefType b, VectorRefType x) override {mSolver.Solve(b, x);}
+        private:
+            TSolver mSolver;
+    };
 
 }; // class EigensystemSolver
 
