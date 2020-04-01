@@ -1,5 +1,6 @@
 from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
 from KratosMultiphysics.RomApplication.RSVDT_Library import rsvdt
+import KratosMultiphysics
 
 import numpy as np
 import json
@@ -19,8 +20,9 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
 
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements):
+    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, computing_model_part):
         super(EmpiricalCubatureMethod,self).SetUp()
+        self.computing_model_part = computing_model_part
         self.OriginalNumberOfElements = OriginalNumberOfElements
         u , s  = self._ObtainBasis(ResidualSnapshots)
         self.W = np.ones(np.shape(u)[0])
@@ -177,7 +179,66 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         with open('ElementsAndWeights.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
         print('\n\n Elements and conditions selected have been saved in a json file\n\n')
+        self._CreateHyperReducedModelPart()
 
+
+
+    def _CreateHyperReducedModelPart(self):
+        current_model = KratosMultiphysics.Model()
+        hyper_reduced_model_part_help = current_model.CreateModelPart("Helping")
+
+        with open('ElementsAndWeights.json') as f:
+            HR_data = json.load(f)
+            for key in HR_data["Elements"].keys():
+                for node in self.computing_model_part.GetElement(int(key)+1).GetNodes():
+                    hyper_reduced_model_part_help.AddNode(node,0)
+            for key in HR_data["Conditions"].keys():
+                for node in self.computing_model_part.GetCondition(int(key)+1).GetNodes():
+                    hyper_reduced_model_part_help.AddNode(node,0)
+
+        # The HROM model part. It will include two sub-model parts. One for caculation, another one for visualization
+        HROM_Model_Part =  current_model.CreateModelPart("HROM_Model_Part")
+
+        # Building the COMPUTE_HROM submodel part
+        hyper_reduced_model_part = HROM_Model_Part.CreateSubModelPart("COMPUTE_HROM")
+
+        with open('ElementsAndWeights.json') as f:
+            HR_data = json.load(f)
+            for originalSubmodelpart in self.computing_model_part.SubModelParts:
+                hyperReducedSubmodelpart = hyper_reduced_model_part.CreateSubModelPart(originalSubmodelpart.Name)
+                print(f'originalSubmodelpart.Name {originalSubmodelpart.Name}')
+                print(f'originalSubmodelpart.Elements {len(originalSubmodelpart.Elements)}')
+                print(f'originalSubmodelpart.Conditions {len(originalSubmodelpart.Conditions)}')
+                for originalNode in originalSubmodelpart.Nodes:
+                    if originalNode in hyper_reduced_model_part_help.Nodes:
+                        hyperReducedSubmodelpart.AddNode(originalNode,0)
+                ## More eficient way to implement this is possible
+                for originalElement in originalSubmodelpart.Elements:
+                    for key in HR_data["Elements"].keys():
+                        if originalElement.Id == int(key)+1:
+                            hyperReducedSubmodelpart.AddElement(originalElement,0)
+                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the element with the Id {originalElement.Id} is assigned the key {key}')
+                for originalCondition in originalSubmodelpart.Conditions:
+                    for key in HR_data["Conditions"].keys():
+                        if originalCondition.Id == int(key)+1:
+                            hyperReducedSubmodelpart.AddCondition(originalCondition,0)
+                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
+
+
+        # Building the VISUALIZE_HROM submodel part
+        print('Adding skin for visualization...')
+        hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
+        for condition in self.computing_model_part.Conditions:
+            for node in condition.GetNodes():
+                hyper_reduced_model_part2.AddNode(node, 0)
+            hyper_reduced_model_part2.AddCondition(condition, 0)
+        for node in self.computing_model_part.Nodes:
+            hyper_reduced_model_part2.AddNode(node, 0)
+
+        ## Creating the mdpa file using ModelPartIO object
+        print('About to print ...')
+        KratosMultiphysics.ModelPartIO("Hyper_Reduced_Model_Part", KratosMultiphysics.IO.WRITE| KratosMultiphysics.IO.MESH_ONLY ).WriteModelPart(HROM_Model_Part)
+        print('\nHyper_Reduced_Model_Part.mdpa created!\n')
 
 if __name__=='__main__':
 
