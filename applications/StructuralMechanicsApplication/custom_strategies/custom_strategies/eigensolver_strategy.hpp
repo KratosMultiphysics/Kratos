@@ -402,6 +402,9 @@ public:
 
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
+
+        pScheme->InitializeNonLinIteration(rModelPart, rMassMatrix, b, b); // arguments except ModelPart are unused in Scheme.
+
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
         if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
             this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
@@ -424,6 +427,8 @@ public:
         if (matrix_contains_dirichlet_dofs) {
             this->ApplyDirichletConditions(rStiffnessMatrix, mStiffnessMatrixDiagonalValue);
         }
+
+        pScheme->FinalizeNonLinIteration(rModelPart, rMassMatrix, b, b); // arguments except ModelPart are unused in Scheme.
 
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
