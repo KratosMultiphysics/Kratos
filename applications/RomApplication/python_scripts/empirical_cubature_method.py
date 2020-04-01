@@ -20,9 +20,9 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
 
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, computing_model_part):
+    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
         super(EmpiricalCubatureMethod,self).SetUp()
-        self.computing_model_part = computing_model_part
+        self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
         u , s  = self._ObtainBasis(ResidualSnapshots)
         self.W = np.ones(np.shape(u)[0])
@@ -193,15 +193,20 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
     def _CreateHyperReducedModelPart(self):
         current_model = KratosMultiphysics.Model()
-        hyper_reduced_model_part_help = current_model.CreateModelPart("Helping")
+        computing_model_part = current_model.CreateModelPart("main")
+        model_part_io = KratosMultiphysics.ModelPartIO(self.ModelPartName)
+        model_part_io.ReadModelPart(computing_model_part)
+        hyper_reduced_model_part_help =   current_model.CreateModelPart("Helping")
+
+
 
         with open('ElementsAndWeights.json') as f:
             HR_data = json.load(f)
             for key in HR_data["Elements"].keys():
-                for node in self.computing_model_part.GetElement(int(key)+1).GetNodes():
+                for node in computing_model_part.GetElement(int(key)+1).GetNodes():
                     hyper_reduced_model_part_help.AddNode(node,0)
             for key in HR_data["Conditions"].keys():
-                for node in self.computing_model_part.GetCondition(int(key)+1).GetNodes():
+                for node in computing_model_part.GetCondition(int(key)+1).GetNodes():
                     hyper_reduced_model_part_help.AddNode(node,0)
 
         # The HROM model part. It will include two sub-model parts. One for caculation, another one for visualization
@@ -212,7 +217,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
         with open('ElementsAndWeights.json') as f:
             HR_data = json.load(f)
-            for originalSubmodelpart in self.computing_model_part.SubModelParts:
+            for originalSubmodelpart in computing_model_part.SubModelParts:
                 hyperReducedSubmodelpart = hyper_reduced_model_part.CreateSubModelPart(originalSubmodelpart.Name)
                 print(f'originalSubmodelpart.Name {originalSubmodelpart.Name}')
                 print(f'originalSubmodelpart.Elements {len(originalSubmodelpart.Elements)}')
@@ -236,11 +241,11 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         # Building the VISUALIZE_HROM submodel part
         print('Adding skin for visualization...')
         hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
-        for condition in self.computing_model_part.Conditions:
+        for condition in computing_model_part.Conditions:
             for node in condition.GetNodes():
                 hyper_reduced_model_part2.AddNode(node, 0)
             hyper_reduced_model_part2.AddCondition(condition, 0)
-        for node in self.computing_model_part.Nodes:
+        for node in computing_model_part.Nodes:
             hyper_reduced_model_part2.AddNode(node, 0)
 
         ## Creating the mdpa file using ModelPartIO object

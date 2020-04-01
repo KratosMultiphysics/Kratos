@@ -75,8 +75,8 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
-                computing_model_part = self._solver.GetComputingModelPart()
-                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, computing_model_part)
+                ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
+                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
                 self.hyper_reduction_element_selector.Run()
 
 
