@@ -11,8 +11,8 @@ if not CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     raise ImportError("The StructuralMechanicsApplication is not available!")
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-def Create(settings, solver_name):
-    return StructuralMechanicsWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return StructuralMechanicsWrapper(settings, model, solver_name)
 
 class StructuralMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the StructuralMechanicsApplication of Kratos"""

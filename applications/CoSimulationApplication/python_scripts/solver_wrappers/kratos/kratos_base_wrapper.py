@@ -10,15 +10,15 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from importlib import import_module
 
-def Create(settings, solver_name):
-    return KratosBaseWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return KratosBaseWrapper(settings, model, solver_name)
 
 class KratosBaseWrapper(CoSimulationSolverWrapper):
     """This class serves as basis for the kratos-wrappers
     It uses the AnalysisStage as black-box interface to Kratos
     """
-    def __init__(self, settings, solver_name):
-        super(KratosBaseWrapper, self).__init__(settings, solver_name)
+    def __init__(self, settings, model, solver_name):
+        super(KratosBaseWrapper, self).__init__(settings, model, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):

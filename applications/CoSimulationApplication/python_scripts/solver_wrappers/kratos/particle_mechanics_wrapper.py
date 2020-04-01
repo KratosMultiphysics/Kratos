@@ -16,8 +16,8 @@ from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis
 # Other imports
 import math
 
-def Create(settings, solver_name):
-    return ParticleMechanicsWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return ParticleMechanicsWrapper(settings, model, solver_name)
 
 class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the ParticleMechanicsApplication of Kratos"""
