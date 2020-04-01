@@ -179,10 +179,10 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                     ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
         else:
         #Only one element found !
-            if z <= OriginalNumberOfElements-1:
-                ElementsAndWeights["Elements"][int(z)] = (float(w))
+            if self.z <= self.OriginalNumberOfElements-1:
+                ElementsAndWeights["Elements"][int(self.z)] = (float(w))
             else:
-                ElementsAndWeights["Conditions"][int(z)-OriginalNumberOfElements] = (float(w))
+                ElementsAndWeights["Conditions"][int(self.z)-self.OriginalNumberOfElements] = (float(w))
 
         with open('ElementsAndWeights.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
