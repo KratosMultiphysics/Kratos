@@ -236,7 +236,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # writting a file with the wrong size, this should throw a proper error
         with open(array_file_name, 'w') as array_file:
             array_file.write(str(array_size+2)+"\n")
-        with self.assertRaisesRegex(RuntimeError, 'The received size for array "{}" is different from what is expected:'.format(array_file_name)):
+        with self.assertRaisesRegex(RuntimeError, 'The received size for array \"{}\" is different from what is expected:'.format(array_file_name)):
             fct_ptr_to_test(array_name, len(array_to_receive), array_to_receive)
 
         # manually remove file since the call above throws
