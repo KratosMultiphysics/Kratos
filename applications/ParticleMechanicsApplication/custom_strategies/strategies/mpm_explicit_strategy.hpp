@@ -286,7 +286,7 @@ namespace Kratos
                     pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
                     if (BaseType::mRebuildLevel > 0)
-                    { // TODO: Right now is computed in the Initialize() because is always zero, the option to set the RebuildLevel should be added in the constructor or in some place
+                    { 
                         ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
                         ElementsArrayType& r_elements = r_model_part.Elements();
                         const auto it_elem_begin = r_elements.begin();
@@ -530,14 +530,14 @@ namespace Kratos
 
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
             Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
-            // TODO re-enable parallel
-            //#pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
+            
+            #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
             for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
                 auto it_cond = r_conditions.begin() + i;
                 pScheme->Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
             }
 
-            //#pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
+            #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
             for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                 auto it_elem = r_elements.begin() + i;
                 pScheme->Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);

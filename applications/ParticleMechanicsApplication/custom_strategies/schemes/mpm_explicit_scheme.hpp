@@ -271,8 +271,7 @@ namespace Kratos {
                 // Getting dof position
                 const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
 
-                // TODO enable parallel again
-                //#pragma omp parallel for schedule(guided,512)
+                #pragma omp parallel for schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                     auto it_node = it_node_begin + i;
                     if ((it_node)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE, 0))
@@ -520,7 +519,6 @@ namespace Kratos {
 
                 if (mStressUpdateOption == 2)
                 {
-                    // TODO maybe move to strategy so we can use the base scheme function
                     PerformModifiedUpdateStressLastMapping(rCurrentProcessInfo, rModelPart, rElements);
                 }
 
