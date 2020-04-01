@@ -4,7 +4,9 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
-
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
+from KratosMultiphysics.CoSimulationApplication.helpers.dummy_solver_wrapper import DummySolverWrapper
 
 class TestCoupledSolverGetSolver(KratosUnittest.TestCase):
 
