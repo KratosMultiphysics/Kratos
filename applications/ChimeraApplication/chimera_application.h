@@ -53,7 +53,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosChimeraApplication : public KratosApplication {
+class KRATOS_API(CHIMERA_APPLICATION) KratosChimeraApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{
