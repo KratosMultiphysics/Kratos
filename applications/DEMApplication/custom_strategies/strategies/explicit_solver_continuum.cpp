@@ -415,7 +415,7 @@ namespace Kratos {
 
         if(r_model_part.GetCommunicator().MyPID() == 0) {
             KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
-            if(local_coordination_option) KRATOS_INFO("") << "Local extension activated. ";
+           KRATOS_INFO_IF("", local_coordination_option) KRATOS_INFO("") << "Local extension activated." << std::endl;
             if(global_coordination_option) KRATOS_INFO("") << "Global extension activated. ";
             KRATOS_INFO("DEM") << std::endl;
         }
