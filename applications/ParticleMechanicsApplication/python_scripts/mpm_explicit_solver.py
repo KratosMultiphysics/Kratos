@@ -41,9 +41,6 @@ class MPMExplicitSolver(MPMSolver):
         grid_model_part.AddNodalSolutionStepVariable(KratosParticle.IS_ACTIVE_MPM_EXPLICIT_NODE)
 
         scheme_type = self.settings["scheme_type"].GetString()
-        grid_model_part.AddNodalSolutionStepVariable(KratosParticle.MIDDLE_VELOCITY) # we may not need this
-        #if(scheme_type == "central_differences"):
-        #    grid_model_part.AddNodalSolutionStepVariable(ParticleMechanicsApplication.MIDDLE_VELOCITY)
         KratosMultiphysics.Logger.PrintInfo("::[MPMExplicitSolver]:: ", "Variables are all added.")
 
     ### Protected functions ###

@@ -91,7 +91,7 @@ namespace Kratos
             isUpdateMPPositionFromUpdatedMPVelocity = false;
         }
 
-        // Advance the predictor velocity
+        // Advance the material point predictor velocity
         for (unsigned int i = 0; i < dimension; i++)
         {
             MP_Velocity[i] = MP_PreviousVelocity[0][i] + (1.0 - gamma) * rDeltaTime * MP_PreviousAcceleration[0][i];

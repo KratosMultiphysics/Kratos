@@ -302,10 +302,10 @@ namespace Kratos {
                 array_1d<double, 3>& r_nodal_momenta = itCurrentNode->FastGetSolutionStepValue(NODAL_MOMENTUM);
                 array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-                double alpha = 1.0;
+                double gamma = 1.0;
                 if (mIsCentralDifference)
                 {
-                    alpha = 0.5; // factor since we are only adding the corrector here
+                    gamma = 0.5; // factor since we are only adding the central difference corrector here
                 }
 
                 for (IndexType j = 0; j < DomainSize; j++) {
@@ -315,7 +315,7 @@ namespace Kratos {
                     }
                     else
                     {
-                        r_nodal_momenta[j] += alpha * mTime.Delta * r_current_residual[j];
+                        r_nodal_momenta[j] += gamma * mTime.Delta * r_current_residual[j];
                     }
 
                 } // for DomainSize
@@ -349,7 +349,7 @@ namespace Kratos {
                 OpenMPUtils::PartitionVector element_partition;
                 OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), num_threads, element_partition);
 
-#pragma omp parallel
+                #pragma omp parallel
                 {
                     int k = OpenMPUtils::ThisThread();
                     ElementsArrayType::iterator element_begin = rModelPart.Elements().begin() + element_partition[k];
@@ -460,7 +460,7 @@ namespace Kratos {
                 // Extrapolate from Material Point Elements and Conditions
                 Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
-                // If we are updating stress first (USF), calculate nodal velocities from momenta and apply BCs
+                // If we are updating stress first (USF and central difference), calculate nodal velocities from momenta and apply BCs
                 if (mStressUpdateOption == 0 || mIsCentralDifference)
                 {
                     const IndexType DisplacementPosition = mr_grid_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
@@ -469,28 +469,32 @@ namespace Kratos {
                     for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                     {
                         auto i = mr_grid_model_part.NodesBegin() + iter;
-                        const SizeType DomainSize = CurrentProcessInfo[DOMAIN_SIZE];
-                        double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                        array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                        array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
 
-                        std::array<bool, 3> fix_displacements = { false, false, false };
-                        fix_displacements[0] = (i->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-                        fix_displacements[1] = (i->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
-                        if (DomainSize == 3)
-                            fix_displacements[2] = (i->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
-
-                        if (nodal_mass > numerical_limit)
+                        if ((i)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE))
                         {
-                            for (IndexType j = 0; j < DomainSize; j++)
+                            const SizeType DomainSize = CurrentProcessInfo[DOMAIN_SIZE];
+                            double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                            array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                            array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
+
+                            std::array<bool, 3> fix_displacements = { false, false, false };
+                            fix_displacements[0] = (i->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
+                            fix_displacements[1] = (i->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
+                            if (DomainSize == 3)
+                                fix_displacements[2] = (i->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
+
+                            if (nodal_mass > numerical_limit)
                             {
-                                if (fix_displacements[j])
+                                for (IndexType j = 0; j < DomainSize; j++)
                                 {
-                                    nodal_velocity[j] = 0.0;
-                                }
-                                else
-                                {
-                                    nodal_velocity[j] = nodal_momentum[j] / nodal_mass;
+                                    if (fix_displacements[j])
+                                    {
+                                        nodal_velocity[j] = 0.0;
+                                    }
+                                    else
+                                    {
+                                        nodal_velocity[j] = nodal_momentum[j] / nodal_mass;
+                                    }
                                 }
                             }
                         }
