@@ -68,7 +68,7 @@ namespace SpecificationsUtilities
     enum class Framework
     {
         Lagrangian = 0,
-        Euler      = 1,
+        Eulerian      = 1,
         ALE        = 2
     };
 
