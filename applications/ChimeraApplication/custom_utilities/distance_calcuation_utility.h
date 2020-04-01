@@ -34,7 +34,7 @@ namespace Kratos
 
 /// Utility for calculating the Distance on a given modelpart
 template <int TDim>
-class KRATOS_API(CHIMERA_APPLICATION) ChimeraDistanceCalculationUtility
+class ChimeraDistanceCalculationUtility
 {
 public:
     ///@name Type Definitions
