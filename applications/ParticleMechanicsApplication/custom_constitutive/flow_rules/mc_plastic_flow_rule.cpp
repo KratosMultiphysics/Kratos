@@ -164,7 +164,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping(
    
     if (volumetric_strain>0.0)
     {
-        DeltaPrincipalStress = 0.0;
+        //DeltaPrincipalStress = 0.0;
     }
     // Updated the PrincipalStrain vector
     BoundedMatrix<double,3,3> inv_elastic_matrix = ZeroMatrix(3,3);
@@ -340,7 +340,7 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
         const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
         diagonal = lame_lambda + 2 * lame_mu;
         nondiagonal = lame_lambda;
-    }
+    } 
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -370,13 +370,13 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
     double diagonal    = (lame_lambda + lame_mu)/(lame_mu*(3.0*lame_lambda+2.0*lame_mu));
     double nondiagonal = (-lame_lambda)/( 2.0*lame_mu*(3.0*lame_lambda + 2.0*lame_mu));
 
-    const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
-    if (volumetric_strain>0)
-    {
-        lame_lambda =  -(young_modulus)/(3*(1+poisson_ratio));
-        diagonal    = (lame_lambda + lame_mu)/(1e-6);
-        nondiagonal = (-lame_lambda)/(1e-6);
-    }
+    //const auto volumetric_strain = mMainStrain[0] + mMainStrain[1] + mMainStrain[2];
+    //if (volumetric_strain>0)
+    //{
+        //lame_lambda =  -(young_modulus)/(3*(1+poisson_ratio));
+        //diagonal    = (lame_lambda + lame_mu)/(1e-6);
+        //nondiagonal = (-lame_lambda)/(1e-6);
+    //}
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -410,7 +410,7 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
         const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
         diagonal = lame_lambda + 2 * lame_mu;
         nondiagonal = lame_lambda;
-    }
+    } 
 
     for (unsigned int i = 0; i<3; ++i)
     {
