@@ -236,7 +236,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # writting a file with the wrong size, this should throw a proper error
         with open(array_file_name, 'w') as array_file:
             array_file.write(str(array_size+2)+"\n")
-        with self.assertRaisesRegex(RuntimeError, 'The received size for array "{}" is different from what is expected:\n    Expected size: {}\n    Received size: {}'.format(array_file_name, array_size, array_size+2).replace("\\", "\\\\")):
+        with self.assertRaisesRegex(RuntimeError, 'The received size for array "{}" is different from what is expected:\n    Expected size: {}\n    Received size: {}'.format(array_file_name, array_size, array_size+2)):
             fct_ptr_to_test(array_name, len(array_to_receive), array_to_receive)
 
         # manually remove file since the call above throws
@@ -327,13 +327,13 @@ def FillModelPart(model_part):
         node.SetSolutionStepValue(KM.ROTATION, GetROTATIONValue(node_id))
 
 def GetSignalFileName(signal_name):
-    return os.path.join(communication_folder, "EMPIRE_signal_" + signal_name + ".dat") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_signal_" + signal_name + ".dat" # this is hardcoded in C++
 
 def GetDataFieldFileName(data_field_name):
-    return os.path.join(communication_folder, "EMPIRE_datafield_" + data_field_name + ".dat") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_datafield_" + data_field_name + ".dat" # this is hardcoded in C++
 
 def GetMeshFileName(mesh_name):
-    return os.path.join(communication_folder, "EMPIRE_mesh_" + mesh_name + ".vtk") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_mesh_" + mesh_name + ".vtk" # this is hardcoded in C++
 
 
 if __name__ == '__main__':
