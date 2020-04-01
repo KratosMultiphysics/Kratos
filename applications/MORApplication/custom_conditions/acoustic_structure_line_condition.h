@@ -20,10 +20,6 @@
 // Project includes
 #include "includes/condition.h"
 #include "includes/variables.h"
-//TODO remove this!
-// #include "../../StructuralMechanicsApplication/structural_mechanics_application_variables.h"
-// #include "mor_application_variables.h"
-// #include "custom_conditions/base_load_condition.h"
 
 namespace Kratos
 {
@@ -183,25 +179,25 @@ public:
         int Step = 0
         ) override;
 
-    // /**
-    //  * @brief Sets on rValues the nodal velocities
-    //  * @param rValues The values of velocities
-    //  * @param Step The step to be computed
-    //  */
-    // void GetFirstDerivativesVector(
-    //     Vector& rValues,
-    //     int Step = 0
-    //     ) override;
+    /**
+     * @brief Sets on rValues the nodal velocities
+     * @param rValues The values of velocities
+     * @param Step The step to be computed
+     */
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+        ) override;
 
-    // /**
-    //  * @brief Sets on rValues the nodal accelerations
-    //  * @param rValues The values of accelerations
-    //  * @param Step The step to be computed
-    //  */
-    // void GetSecondDerivativesVector(
-    //     Vector& rValues,
-    //     int Step = 0
-    //     ) override;
+    /**
+     * @brief Sets on rValues the nodal accelerations
+     * @param rValues The values of accelerations
+     * @param Step The step to be computed
+     */
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+        ) override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -247,19 +243,6 @@ public:
         ProcessInfo& rCurrentProcessInfoO
         ) override;
 
-    //  /**
-    //   * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable.
-    //   * @param rRHSVector input variable containing the RHS vector to be assembled
-    //   * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-    //   * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
-    //   * @param rCurrentProcessInfo The current process info instance
-    //  */
-    // void AddExplicitContribution(const VectorType& rRHS,
-    //     const Variable<VectorType>& rRHSVariable,
-    //     Variable<array_1d<double,3> >& rDestinationVariable,
-    //     const ProcessInfo& rCurrentProcessInfo
-    //     ) override;
-
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
@@ -273,7 +256,6 @@ public:
      */
     virtual bool HasRotDof() const
     {
-        std::cout << "HASROTDOFFFFFFFFFFFFFFFFFFFF\n";
         return (GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2); //Z????
     }
 
@@ -295,30 +277,6 @@ public:
             return dim+1;
         }
     }
-
-    // /**
-    //  * @brief Get on rVariable a array_1d Value
-    //  * @param rVariable Internal values
-    //  * @param rCurrentProcessInfo The current process information
-    //  * @param rOutput The values of interest (array_1d)
-    //  */
-    // void GetValueOnIntegrationPoints(
-    //     const Variable<array_1d<double, 3>>& rVariable,
-    //     std::vector<array_1d<double, 3>>& rOutput,
-    //     const ProcessInfo& rCurrentProcessInfo
-    //     ) override;
-
-    // /**
-    //  * @brief Calculate a array_1d Variable
-    //  * @param rVariable Internal values
-    //  * @param rCurrentProcessInfo The current process information
-    //  * @param rOutput The values of interest (array_1d)
-    //  */
-    // void CalculateOnIntegrationPoints(
-    //     const Variable<array_1d<double, 3>>& rVariable,
-    //     std::vector< array_1d<double, 3>>& rOutput,
-    //     const ProcessInfo& rCurrentProcessInfo
-    //     ) override;
 
     ///@}
     ///@name Access
@@ -409,41 +367,6 @@ protected:
         const double detJ
         ) const;
 
-    // /**
-    //  * @brief This method adds the local contribution of the pressure to the LHS matrix
-    //  * @param rK The local LHS contribution
-    //  * @param rTangentXi The axis direction
-    //  * @param rDN_De The local gradient of the geometry
-    //  * @param rN The shape function of the current integration point
-    //  * @param Pressure The pressure to be applied
-    //  * @param Weight The integration contribution
-    //  */
-    // void CalculateAndSubKp(
-    //     Matrix& rK,
-    //     const array_1d<double, 3>& rTangentXi,
-    //     const Matrix& rDN_De,
-    //     const Vector& rN,
-    //     const double Pressure,
-    //     const double IntegrationWeight
-    //     ) const;
-
-    // /**
-    //  * @brief This method adds the pressure contribution to the RHS
-    //  * @param rResidualVector The local contribution to the RHS
-    //  * @param rN The corresponding shape function
-    //  * @param rNormal The normal to the geometry surface
-    //  * @param Pressure The pressure to be applied
-    //  * @param Weight The integration contribution
-    //  * @param rCurrentProcessInfo The current instance of process info
-    //  */
-    // void CalculateAndAddPressureForce(
-    //     VectorType& rRightHandSideVector,
-    //     const Vector& rN,
-    //     const array_1d<double, 3>& rNormal,
-    //     const double Pressure,
-    //     const double IntegrationWeight
-    //     ) const;
-
     /**
      * @brief This method provides the local axis
      * @param rLocalAxis The local axis
@@ -458,16 +381,9 @@ protected:
      * @brief This method provides the local axis
      * @param rLocalAxis The local axis
      */
-    void GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const;
-
-    /**
-     * @brief This method provides the cross tangent matrix
-     * @param rCrossTangentMatrix The cross tangent matrix
-     * @param rTangentXi The axis direction
-     */
-    void GetCrossTangentMatrix(
-        BoundedMatrix<double, TDim, TDim>& rCrossTangentMatrix,
-        const array_1d<double, 3>& rTangentXi
+    void GetLocalAxis2(
+        array_1d<double, 3>& rLocalAxis,
+        const Matrix& rJacobian
         ) const;
 
     ///@}
