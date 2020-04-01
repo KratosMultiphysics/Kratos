@@ -91,8 +91,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    VariableComponent(const std::string& ComponentName, const std::string& SourceName, int ComponentIndex, const AdaptorType& NewAdaptor)
-        : BaseType(ComponentName, sizeof(DataType), true, NewAdaptor.GetComponentIndex()), mpSourceVariable(&NewAdaptor.GetSourceVariable())
+    VariableComponent(const std::string& ComponentName, const std::string& SourceName, char ComponentIndex, const AdaptorType& NewAdaptor)
+        : BaseType(ComponentName, sizeof(DataType),&NewAdaptor.GetSourceVariable(), NewAdaptor.GetComponentIndex()), mpSourceVariable(&NewAdaptor.GetSourceVariable())
     {
         SetKey(GenerateKey(SourceName, sizeof(DataType), true,  ComponentIndex));
     }
@@ -136,7 +136,8 @@ public:
 
     static VariableComponent const& StaticObject()
     {
-        return msStaticObject;
+        static const VariableComponent<TAdaptorType> static_object("NONE", "NONE", 0, TAdaptorType::StaticObject());
+        return static_object;
     }
 
     void Print(const void* pSource, std::ostream& rOStream) const override
@@ -284,9 +285,6 @@ private:
 }; // Class VariableComponent
 
 ///@}
-
-template<class TAdaptorType>
-const VariableComponent<TAdaptorType> VariableComponent<TAdaptorType>::msStaticObject("NONE", "NONE", 0, TAdaptorType::StaticObject());
 
 ///@name Type Definitions
 ///@{
