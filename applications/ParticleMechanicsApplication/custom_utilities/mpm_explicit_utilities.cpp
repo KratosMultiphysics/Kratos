@@ -28,8 +28,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            std::cout << "for fint rMPStress = " << rMPStress << std::endl;
-
         const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3); //PJW, needed for explicit force
@@ -155,7 +153,7 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_DISPLACEMENT, MP_Displacement,rProcessInfo);
         MP_Displacement[0] += delta_xg;
         rElement.SetValuesOnIntegrationPoints(MP_DISPLACEMENT,MP_Displacement,rProcessInfo);
-
+        
         KRATOS_CATCH("")
     }
 
