@@ -112,7 +112,9 @@ public:
 
     static VectorComponentAdaptor const& StaticObject()
     {
-        return msStaticObject;
+
+        static VectorComponentAdaptor const static_object = VectorComponentAdaptor<TVectorType>(VectorComponentAdaptor<TVectorType>::SourceVariableType::StaticObject(), 0);
+        return static_object;
     }
 
     ///@}
@@ -204,8 +206,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static VectorComponentAdaptor const msStaticObject;
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -250,9 +250,6 @@ private:
 }; // Class VectorComponentAdaptor
 
 ///@}
-
-template<class TVectorType>
-const VectorComponentAdaptor<TVectorType> VectorComponentAdaptor<TVectorType>::msStaticObject = VectorComponentAdaptor<TVectorType>(VectorComponentAdaptor<TVectorType>::SourceVariableType::StaticObject(), 0);
 
 ///@name Type Definitions
 ///@{
