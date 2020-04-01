@@ -442,7 +442,7 @@ namespace Kratos {
 
                 //#pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(mListOfSphericContinuumParticles.size()); ++i) {
-                    const size_t neighbour_elements_size = mListOfSphericContinuumParticles[i]->mNeighbourElements.size();
+                    const std::size_t neighbour_elements_size = mListOfSphericContinuumParticles[i]->mNeighbourElements.size();
                     const double old_amplification = mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor;
                     double adapted_to_skin_or_not_skin_desired_cn = desired_coordination_number;
                     if(mListOfSphericContinuumParticles[i]->IsSkin()) {
