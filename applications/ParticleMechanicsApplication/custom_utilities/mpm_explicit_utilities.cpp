@@ -30,37 +30,56 @@ namespace Kratos
 
         const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
-        array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3); //PJW, needed for explicit force
+        array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
 
         // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
-        // TODO extend to 3D
+        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            //f_x = V*(s_xx*dNdX + s_xy*dNdY)
-            nodal_force_internal_normal[0] = rMPVolume *
-                (rMPStress[0] * rDN_DX(i, 0) +
-                    rMPStress[2] * rDN_DX(i, 1));
-
-            //f_x = V*(s_yy*dNdX + s_xy*dNdX)
-            nodal_force_internal_normal[1] = rMPVolume *
-                (rMPStress[1] * rDN_DX(i, 1) +
-                    rMPStress[2] * rDN_DX(i, 0));
-
-
-            rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
-            rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
-
-            if (dimension == 3)
+            // f_i = V * Sum_j [s_ij N_,j]
+            if (dimension == 2)
             {
-                KRATOS_ERROR << "NOT IMPLEMENTED YET";
-                // TODO add in third dimension here
-                //f_x = V*(s_yy*dNdX + s_xy*dNdX)
+                // StressVec = s00 s11  s01
+                // Index        0   1   2 
+
+                //f_x = V*(s_xx*dNdX + s_xy*dNdY)
+                nodal_force_internal_normal[0] = rMPVolume *
+                    (rMPStress[0] * rDN_DX(i, 0) +
+                        rMPStress[2] * rDN_DX(i, 1));
+
+                //f_y = V*(s_yy*dNdY + s_yx*dNdX)
                 nodal_force_internal_normal[1] = rMPVolume *
                     (rMPStress[1] * rDN_DX(i, 1) +
                         rMPStress[2] * rDN_DX(i, 0));
+            }
+            else
+            {
+                // StressVec = s00 s11 s22   s01   s12   s02
+                // Index        0   1   2     3     4      5
+
+                //f_x = V*(s_xx*dNdX + s_xy*dNdY + s_xz*dNdZ)
+                nodal_force_internal_normal[0] = rMPVolume *
+                    (rMPStress[0] * rDN_DX(i, 0) +
+                        rMPStress[3] * rDN_DX(i, 1) +
+                        rMPStress[5] * rDN_DX(i, 2));
+
+                //f_y = V*(s_yy*dNdY + s_yx*dNdX + s_yz*dNdZ)
+                nodal_force_internal_normal[1] = rMPVolume *
+                    (rMPStress[1] * rDN_DX(i, 1) +
+                        rMPStress[3] * rDN_DX(i, 0) +
+                        rMPStress[4] * rDN_DX(i, 2));
+
+                //f_z = V*(s_zz*dNdZ + s_zx*dNdX + s_zy*dNdY)
+                nodal_force_internal_normal[2] = rMPVolume *
+                    (rMPStress[2] * rDN_DX(i, 2) +
+                        rMPStress[5] * rDN_DX(i, 0) +
+                        rMPStress[4] * rDN_DX(i, 1));
 
                 rRightHandSideVector[dimension * i + 2] -= nodal_force_internal_normal[2]; //minus sign, internal forces
             }
+
+            rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
+            rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
         }
 
         KRATOS_CATCH("")
@@ -242,36 +261,48 @@ namespace Kratos
             (prod(spinTensor, rateOfDeformation)) * rDeltaTime +
             prod((rateOfDeformation * rDeltaTime), spinTensor);
 
-        // TODO extend to 3D
         rMPStrain(0) += jaumannRate(0, 0) * rDeltaTime; //e_xx
         rMPStrain(1) += jaumannRate(1, 1) * rDeltaTime; //e_yy
-        rMPStrain(2) += 2.0 * jaumannRate(0, 1) * rDeltaTime; //e_xy
 
-        if (dimension == 3)
+        if (dimension == 2)
         {
-            KRATOS_ERROR << "NOT IMPLEMENTED YET";
-        }
+            rMPStrain(2) += 2.0 * jaumannRate(0, 1) * rDeltaTime; //e_xy
+        }        
+        else
+        {
+            rMPStrain(2) += jaumannRate(2, 2) * rDeltaTime; //e_zz
+
+            rMPStrain(3) += 2.0 * jaumannRate(0, 1) * rDeltaTime; //e_xy
+            rMPStrain(4) += 2.0 * jaumannRate(1, 2) * rDeltaTime; //e_yz
+            rMPStrain(5) += 2.0 * jaumannRate(0, 2) * rDeltaTime; //e_xz
+        }  
 
         // Model compressibility
-        rDeformationGradientIncrement = IdentityMatrix(dimension, dimension);
+        rDeformationGradientIncrement = IdentityMatrix(dimension);
         if (isCompressible)
         {
-            Matrix strainIncrement = ZeroMatrix(dimension, dimension);
+            Matrix strainIncrement = ZeroMatrix(dimension);
 
-            strainIncrement(0, 0) = rMPStrain(0);
-            strainIncrement(1, 1) = rMPStrain(1);
-            strainIncrement(0, 1) = rMPStrain(2) / 2.0;
-            strainIncrement(1, 0) = rMPStrain(2) / 2.0;
+            strainIncrement(0, 0) = rMPStrain(0); //e_xx
+            strainIncrement(1, 1) = rMPStrain(1); //e_yy
 
-            if (dimension == 3)
+            if (dimension == 2)
             {
-                strainIncrement(2, 2) = rMPStrain(0);
-                strainIncrement(0, 0) = rMPStrain(0);
-                strainIncrement(0, 0) = rMPStrain(0);
-                strainIncrement(0, 0) = rMPStrain(0);
-                strainIncrement(0, 0) = rMPStrain(0);
-                strainIncrement(0, 0) = rMPStrain(0);
-                KRATOS_ERROR << "NOT IMPLEMENTED YET";
+                strainIncrement(0, 1) = rMPStrain(2) / 2.0; //e_xy
+                strainIncrement(1, 0) = rMPStrain(2) / 2.0; //e_yx
+            }
+            else
+            {
+                strainIncrement(2, 2) = rMPStrain(2); //e_zz
+
+                strainIncrement(0, 1) = rMPStrain(3) / 2.0; //e_xy
+                strainIncrement(1, 0) = rMPStrain(3) / 2.0; //e_yx
+                
+                strainIncrement(1, 2) = rMPStrain(4) / 2.0; //e_yz
+                strainIncrement(2, 1) = rMPStrain(4) / 2.0; //e_zy
+
+                strainIncrement(0, 2) = rMPStrain(5) / 2.0; //e_xz
+                strainIncrement(2, 0) = rMPStrain(5) / 2.0; //e_zx
             }
 
             rDeformationGradientIncrement += strainIncrement;
