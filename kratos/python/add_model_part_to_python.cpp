@@ -86,7 +86,7 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
+Element::Pointer ModelPartCreateNewElement1(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
 
@@ -95,6 +95,11 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
     }
 
     return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
+}
+
+Element::Pointer ModelPartCreateNewElement2(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+{
+    return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);
 }
 
 Condition::Pointer ModelPartCreateNewCondition1(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
@@ -1021,7 +1026,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
-        .def("CreateNewElement", ModelPartCreateNewElement)
+        .def("CreateNewElement", ModelPartCreateNewElement1)
+        .def("CreateNewElement", ModelPartCreateNewElement2)
         .def("CreateNewCondition", ModelPartCreateNewCondition1)
         .def("CreateNewCondition", ModelPartCreateNewCondition2)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
