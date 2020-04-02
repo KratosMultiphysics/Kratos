@@ -333,9 +333,15 @@ void AcousticStructureCouplingCondition<TDim>::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    if(rDampingMatrix.size1() != 0) {
-        rDampingMatrix.resize(0, 0, false);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if( rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size ) {
+        rDampingMatrix.resize(mat_size, mat_size, false);
     }
+
+    noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
 }
 
 
@@ -381,8 +387,7 @@ void AcousticStructureCouplingCondition<TDim>::CalculateAll(
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
         const Matrix& Ncontainer = r_geometry.ShapeFunctionsValues(integration_method);
 
-        Matrix J0(dimension, dimension);
-        Matrix J(dimension, 1);
+        Matrix J(dimension, r_geometry.LocalSpaceDimension());
         array_1d<double, 3> tangent_xi, tangent_eta;
         array_1d<double, 3> normal;
 
@@ -413,8 +418,8 @@ void AcousticStructureCouplingCondition<TDim>::CalculateAll(
                     }
                 }
             }
-
         }
+
         if( CalculateMassMatrixFlag ) {
             rLeftHandSideMatrix = trans(rLeftHandSideMatrix);
         }
