@@ -29,7 +29,7 @@ namespace Kratos
 {
 
     /// Constructor for variables.
-	VariableData::VariableData(const std::string& NewName, std::size_t NewSize) : mName(NewName), mKey(0), mSize(NewSize), mpSourceVariable(nullptr), mIsComponent(false) {
+	VariableData::VariableData(const std::string& NewName, std::size_t NewSize) : mName(NewName), mKey(0), mSize(NewSize), mpSourceVariable(this), mIsComponent(false) {
         mKey = GenerateKey(mName, mSize, mIsComponent, 0);
     }
 
