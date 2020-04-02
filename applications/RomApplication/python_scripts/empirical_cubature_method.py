@@ -162,7 +162,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         ### Taking the SVD ###  (randomized and truncated here)
         DATA = {}
         DATA['TypeOfSVD'] = 0
-        u,s,_,_=rsvdt(SnapshotMatrix,1e-6,0,0, DATA)
+        u,s,_,_=rsvdt(SnapshotMatrix,0,0,0, DATA)
         return u, s
 
     def WriteSelectedElements(self):
@@ -171,24 +171,24 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         ElementsAndWeights = {}
         ElementsAndWeights["Elements"] = {}
         ElementsAndWeights["Conditions"] = {}
-        if isinstance(self.z, list):
+        #Only one element found !
+        if type(self.z)==np.int64:
+            if self.z <= self.OriginalNumberOfElements-1:
+                ElementsAndWeights["Elements"][int(self.z)] = (float(w))
+            else:
+                ElementsAndWeights["Conditions"][int(self.z)-self.OriginalNumberOfElements] = (float(w))
+        #Many elements found
+        else:
             for j in range (0,len(self.z)):
                 if self.z[j] <= self.OriginalNumberOfElements-1:
                     ElementsAndWeights["Elements"][int(self.z[j])] = (float(w[j]))
                 else:
                     ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
-        else:
-        #Only one element found !
-            if self.z <= self.OriginalNumberOfElements-1:
-                ElementsAndWeights["Elements"][int(self.z)] = (float(w))
-            else:
-                ElementsAndWeights["Conditions"][int(self.z)-self.OriginalNumberOfElements] = (float(w))
 
         with open('ElementsAndWeights.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
         print('\n\n Elements and conditions selected have been saved in a json file\n\n')
         self._CreateHyperReducedModelPart()
-
 
 
     def _CreateHyperReducedModelPart(self):
