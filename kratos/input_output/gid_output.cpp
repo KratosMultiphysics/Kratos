@@ -24,6 +24,32 @@
 
 namespace Kratos
 {
+GidIOBase& GidIOBase::GetInstance()
+{
+    if (mpInstance == nullptr) {
+        Create();
+    }
+
+    return *mpInstance;
+}
+
+void GidIOBase::Create() {
+    static GidIOBase sGidIOBase;
+    mpInstance = &sGidIOBase;
+}
+
+int GidIOBase::GetData() {
+    return this -> data;
+}
+
+void GidIOBase::SetData(int data) {
+    this -> data = data;
+}
+
+GidIOBase* GidIOBase::mpInstance = nullptr;
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<class TGaussPointContainer, class TMeshContainer>
 GidIO<TGaussPointContainer, TMeshContainer>::GidIO(
@@ -46,11 +72,12 @@ GidIO<TGaussPointContainer, TMeshContainer>::GidIO(
     SetUpMeshContainers();
     SetUpGaussPointContainers();
 
-    if (GidIOBase::msLiveInstances == 0)
-    {
+    GidIOBase& r_gid_io_base = GidIOBase::GetInstance();
+
+    if (r_gid_io_base.GetData() == 0){
         GiD_PostInit();
     }
-    GidIOBase::msLiveInstances += 1;
+    r_gid_io_base.SetData(r_gid_io_base.GetData() + 1);
 }
 
 /***********************************************************************************/
@@ -61,15 +88,16 @@ GidIO<TGaussPointContainer, TMeshContainer>::~GidIO()
 {
     Timer::PrintTimingInformation();
 
-    if ( mResultFileOpen )
-    {
+    if ( mResultFileOpen ) {
         GiD_fClosePostResultFile( mResultFile );
         mResultFileOpen = false;
     }
 
-    GidIOBase::msLiveInstances -= 1;
-    if (GidIOBase::msLiveInstances == 0)
-    {
+    GidIOBase& r_gid_io_base = GidIOBase::GetInstance();
+
+    r_gid_io_base.SetData(r_gid_io_base.GetData() - 1);
+
+    if (r_gid_io_base.GetData() == 0) {
         GiD_PostDone();
     }
 }
@@ -1403,6 +1431,7 @@ void GidIO<TGaussPointContainer, TMeshContainer>::PrintOnGaussPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class GidIO<GidGaussPointsContainer, GidMeshContainer>;
+// GidIO default instantiation
+template class GidIO<GidGaussPointsContainer,GidMeshContainer>;
 
 } // namespace Kratos.

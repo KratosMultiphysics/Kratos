@@ -70,12 +70,28 @@ enum MultiFileFlag {SingleFile, MultipleFiles};
 class KRATOS_API(KRATOS_CORE) GidIOBase
     : public IO
 {
-    protected:
+protected:
     /**
      * Counter of live GidIO instances
      * (to ensure GiD_PostInit and GiD_PostDone are properly called)
      */
-    static int msLiveInstances;
+    int data;
+
+    // Private constructor so that no objects can be created.
+    GidIOBase() {
+        data = 0;
+    }
+
+public:
+    static GidIOBase& GetInstance();
+
+    int GetData();
+    void SetData(int data);
+
+private:
+    static void Create();
+
+    static GidIOBase* mpInstance;
 };
 
 /**
