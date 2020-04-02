@@ -144,24 +144,22 @@ private:
     ///@{
 
     /// Creates elements from geometries
-    template<class TIteratorType>
     void CreateElements(
-        TIteratorType rGeometriesBegin,
-        TIteratorType rGeometriesEnd,
+        typename GeometriesArrayType::iterator rGeometriesBegin,
+        typename GeometriesArrayType::iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties);
+        PropertiesPointerType pProperties) const;
 
     /// Creates conditions from geometries
-    template<class TIteratorType>
     void CreateConditions(
-        TIteratorType rGeometriesBegin,
-        TIteratorType rGeometriesEnd,
+        typename GeometriesArrayType::iterator rGeometriesBegin,
+        typename GeometriesArrayType::iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties);
+        PropertiesPointerType pProperties) const;
 
     ///@}
     ///@name Utility

@@ -127,8 +127,8 @@ namespace Kratos
         for (SizeType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
-            //rQuadraturePointGeometryList[i].CreateQuadraturePointGeometries(
-            //    geometries, shape_function_derivatives_order);
+            rQuadraturePointGeometryList[i].CreateQuadraturePointGeometries(
+                geometries, shape_function_derivatives_order);
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
@@ -138,7 +138,7 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Elements().size() > 0)
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                this->CreateElements<typename GeometriesArrayType::iterator>(
+                this->CreateElements(
                     geometries.begin(), geometries.end(),
                     rModelPart, name, id, PropertiesPointerType());
             }
@@ -147,7 +147,7 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                this->CreateConditions<typename GeometriesArrayType::iterator>(
+                this->CreateConditions(
                     geometries.begin(), geometries.end(),
                     rModelPart, name, id, PropertiesPointerType());
             }
@@ -192,14 +192,13 @@ namespace Kratos
     ///@name Generate Elements and Conditions
     ///@{
 
-    template<class TIteratorType>
     void IgaModeler::CreateElements(
-        TIteratorType rGeometriesBegin,
-        TIteratorType rGeometriesEnd,
+        typename GeometriesArrayType::iterator rGeometriesBegin,
+        typename GeometriesArrayType::iterator rGeometriesEnd,
         ModelPart& rModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties)
+        PropertiesPointerType pProperties) const
     {
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
 
@@ -219,14 +218,13 @@ namespace Kratos
         rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
     }
 
-    template<class TIteratorType>
     void IgaModeler::CreateConditions(
-        TIteratorType rGeometriesBegin,
-        TIteratorType rGeometriesEnd,
+        typename GeometriesArrayType::iterator rGeometriesBegin,
+        typename GeometriesArrayType::iterator rGeometriesEnd,
         ModelPart& rModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties)
+        PropertiesPointerType pProperties) const
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
