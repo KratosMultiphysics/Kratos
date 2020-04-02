@@ -335,10 +335,10 @@ namespace Kratos
 			mDofReactions[DofIndex] = pThisDofReaction;
 		}
 
-		// IndexType Index(IndexType VariableKey) const
-		// {
-		// 	return GetPosition(VariableKey);
-		// }
+		IndexType Index(IndexType VariableKey) const
+		{
+			return GetPosition(VariableKey);
+		}
 
 		template<class TDataType>
 		IndexType Index(Variable<TDataType> const& ThisVariable) const
