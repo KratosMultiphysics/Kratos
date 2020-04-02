@@ -203,9 +203,9 @@ public:
                     first_derivative_name.substr(0, first_derivative_name.size() - 2);
                     std::string second_derivative_name = (*(mSecondArrayDerivatives.begin() + 2 * i))->Name();
                     second_derivative_name.substr(0, second_derivative_name.size() - 2);
-                    mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name + "_Z"));
-                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name + "_Z"));
-                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name + "_Z"));
+                    mArrayVariable.push_back(&KratosComponents< Variable<double>>::Get(variable_name + "_Z"));
+                    mFirstArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(first_derivative_name + "_Z"));
+                    mSecondArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(second_derivative_name + "_Z"));
                 }
             } else {
                 KRATOS_ERROR << "DOMAIN_SIZE can onbly be 2 or 3. It is: " << domain_size << std::endl;
@@ -467,9 +467,9 @@ protected:
     std::vector<const Variable<double>*> mDoubleVariable;                         /// The double variables
     std::vector<const Variable<double>*> mFirstDoubleDerivatives;                 /// The first derivative double variable to compute
     std::vector<const Variable<double>*> mSecondDoubleDerivatives;                /// The second derivative double variable to compute
-    std::vector<const VariableComponent<ComponentType>*> mArrayVariable;          /// The array variables to compute
-    std::vector<const VariableComponent<ComponentType>*> mFirstArrayDerivatives;  /// The first derivative array variable to compute
-    std::vector<const VariableComponent<ComponentType>*> mSecondArrayDerivatives; /// The second derivative array variable to compute
+    std::vector<const Variable<double>*> mArrayVariable;          /// The array variables to compute
+    std::vector<const Variable<double>*> mFirstArrayDerivatives;  /// The first derivative array variable to compute
+    std::vector<const Variable<double>*> mSecondArrayDerivatives; /// The second derivative array variable to compute
 
     ///@}
     ///@name Protected Operators
@@ -638,20 +638,20 @@ private:
                 mSecondDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(second_derivative_name));
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 // Components
-                mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X"));
-                mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y"));
+                mArrayVariable.push_back(&KratosComponents< Variable<double>>::Get(variable_name+"_X"));
+                mArrayVariable.push_back(&KratosComponents< Variable<double>>::Get(variable_name+"_Y"));
                 if (mDomainSize == 3)
-                    mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z"));
+                    mArrayVariable.push_back(&KratosComponents< Variable<double>>::Get(variable_name+"_Z"));
 
-                mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_X"));
-                mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Y"));
+                mFirstArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(first_derivative_name+"_X"));
+                mFirstArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(first_derivative_name+"_Y"));
                 if (mDomainSize == 3)
-                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Z"));
+                    mFirstArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(first_derivative_name+"_Z"));
 
-                mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
-                mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
+                mSecondArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(second_derivative_name+"_X"));
+                mSecondArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(second_derivative_name+"_Y"));
                 if (mDomainSize == 3)
-                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
+                    mSecondArrayDerivatives.push_back(&KratosComponents< Variable<double>>::Get(second_derivative_name+"_Z"));
             } else {
                 KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
             }
