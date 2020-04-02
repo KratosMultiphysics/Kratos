@@ -369,7 +369,7 @@ void RunResidualSensitivityTest(
     for (int i_dim = 0; i_dim < domain_size; ++i_dim)
     {
         std::function<void(Matrix&, TElementType&, ProcessInfo&)> calculate_sensitivities =
-            [CalculateElementResidualVectorSensitivity, i_dim, domain_size,
+            [CalculateElementResidualVectorSensitivity, i_dim,
              DerivativesOffset](Matrix& rDimSensitivities, TElementType& rElement,
                                 ProcessInfo& rCurrentProcessInfo) {
                 Matrix sensitivities;
