@@ -179,7 +179,7 @@ set( KRATOS_VERSION_SOURCES
 ## Kratos testing engine soruces
 file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp)
 
-## Kratos I/o sources
+## Kratos I/O sources
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
 
 ## Kratos tests sources. Enabled by default
