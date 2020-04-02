@@ -60,18 +60,11 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        # We check of some model part requires reinitialize
-        modified_model = False
-        if hasattr(self, 'model'):
-            model_part_names = self.model.GetModelPartNames()
-            for model_part_name in model_part_names:
-                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
-                    modified_model = True
-                    break
-
+        
         # Solution loop
         solver = self._GetSolver()
         while self.KeepAdvancingSolutionLoop():
+            modified_model = self.__CheckIfModelIsModified()
             self.time = solver.AdvanceInTime(self.time)
             # We reinitialize if remeshed previously
             if modified_model:
@@ -388,3 +381,15 @@ class AnalysisStage(object):
                 warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
                 warn_msg += 'the state of convergence from "SolveSolutionStep"'
                 IssueDeprecationWarning("AnalysisStage", warn_msg)
+                
+    def __CheckIfModelIsModified(self):
+        # We check of some model part requires reinitialize
+        modified_model = False
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
+                    modified_model = True
+                    break
+        
+        return modified_model
