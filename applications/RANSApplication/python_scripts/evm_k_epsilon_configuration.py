@@ -18,9 +18,9 @@ else:
 
 class TurbulenceKEpsilonConfiguration(
         TurbulenceEddyViscosityModelConfiguration):
-    def __init__(self, model, model_part, parameters):
+    def __init__(self, model_part, parameters):
         super(TurbulenceKEpsilonConfiguration, self).__init__(
-            model, model_part, parameters)
+            model_part, parameters)
 
         self.turbulence_model_process = None
 
@@ -60,7 +60,7 @@ class TurbulenceKEpsilonConfiguration(
             self.model_elements_list = [
                 "RansEvmKEpsilonK", "RansEvmKEpsilonEpsilon"
             ]
-            if (self.fluid_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]==2):    
+            if (self.fluid_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]==2):
                 self.model_conditions_list = [
                     "LineCondition", "RansEvmKEpsilonEpsilonWall"
                 ]
