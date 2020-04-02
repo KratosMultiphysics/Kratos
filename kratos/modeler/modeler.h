@@ -90,31 +90,31 @@ public:
     {}
 
     ///@}
-    ///@name Modeler Stages after Solving
+    ///@name Modeler Stages at Solving
     ///@{
 
-    /// Update the analysis model_part after the simulation.
-    virtual void UpdateModelPart(
+    /* Updates the model, maps information from the analysis model_part
+       to the geometry model_part or updates the geometry model_part at
+       initialize solution step.
+    */
+    virtual void UpdateModelInitializeSolutionStep(
         Model& rModel) const
     {}
 
-    /// Outputs the model_part for external usage.
-    virtual void OutputModelPart(
-        Model & rModel) const
-    {}
-
-    /// Updates the geometry model with the solutions from the analysis.
-    virtual void UpdateSolutionGeometryModel(
+    /* Updates the model, maps information from the analysis model_part
+       to the geometry model_part or updates the geometry model_part at
+       Finalize solution step.
+    */
+    virtual void UpdateModelFinalizeSolutionStep(
         Model& rModel) const
     {}
 
-    /// Updates the geometry model.
-    virtual void UpdateGeometryModel(
-        Model& rModel) const
-    {}
+    ///@}
+    ///@name Modeler Stages at Finalize
+    ///@{
 
-    /// Outputs the geometry models for external usage.
-    virtual void OuptutGeometryModel(
+    /// Finalizes the model, special outputs
+    virtual void FinalizeModel(
         Model& rModel) const
     {}
 
