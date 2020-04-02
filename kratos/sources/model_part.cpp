@@ -971,10 +971,8 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     //add the new element
     GetMesh(ThisIndex).AddElement(p_element);
 
-    KRATOS_WATCH("Hello")
     return p_element;
     KRATOS_CATCH("")
-
 }
 
 /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.

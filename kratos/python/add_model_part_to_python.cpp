@@ -88,7 +88,6 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
 
 Element::Pointer ModelPartCreateNewElement1(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
-    KRATOS_WATCH("ModelPartCreateNewElement1")
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
 
     for(unsigned int i = 0; i < NodeIdList.size(); i++) {
@@ -98,16 +97,9 @@ Element::Pointer ModelPartCreateNewElement1(ModelPart& rModelPart, const std::st
     return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
 }
 
-Element::Pointer ModelPartCreateNewElement2(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, ModelPart::GeometryType::Pointer pNewGeometry, ModelPart::PropertiesType::Pointer pProperties)
+Element::Pointer ModelPartCreateNewElement2(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
 {
-    KRATOS_WATCH("ModelPartCreateNewElement2")
-    typename ModelPart::GeometryType::Pointer pGeometry;
-
-    // for(unsigned int i = 0; i < NodeIdList.size(); i++) {
-    //     pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
-    // }
-
-    return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);
+    return rModelPart.CreateNewElement(ElementName, Id, pNewGeometry, pProperties);
 }
 
 Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
