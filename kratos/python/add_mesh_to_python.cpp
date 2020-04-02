@@ -57,39 +57,6 @@ typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
-array_1d<double,3> GetNormalFromCondition(
-    Condition& dummy,
-    CoordinatesArrayType& LocalCoords
-    )
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
-        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
-    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
-}
-
-array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
-        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
-    CoordinatesArrayType LocalCoords;
-    LocalCoords.clear();
-    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
-}
-
-double GetAreaFromCondition( Condition& dummy )
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetArea\" is deprecated, please "
-        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
-    return( dummy.GetGeometry().Area() );
-}
-
-double GetAreaFromElement( Element& dummy )
-{
-    KRATOS_WARNING_FIRST_N("Element-Python Interface", 10) << "\"GetArea\" is deprecated, please "
-        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
-    return( dummy.GetGeometry().Area() );
-}
-
 Properties::Pointer GetPropertiesFromElement( Element& pelem )
 {
     return( pelem.pGetProperties() );
@@ -534,7 +501,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
-    .def("GetArea", GetAreaFromElement ) // deprecated, to be removed (see warning in function)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
@@ -666,6 +632,7 @@ void  AddMeshToPython(pybind11::module& m)
 
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
+
     // CalculateOnIntegrationPoints
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
@@ -678,9 +645,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
-    .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
-    .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
     .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<double>)
     .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<array_1d<double,3> >)
 
