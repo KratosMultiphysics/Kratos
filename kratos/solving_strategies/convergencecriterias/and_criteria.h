@@ -94,7 +94,7 @@ public:
     explicit And_Criteria(Kratos::Parameters Settings)
         :BaseType()
     {
-        // We check if the criterias are defined
+        // We check if the criterion are defined
         if (Settings.Has("first_criterion_settings") && Settings.Has("second_criterion_settings")) {
             mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings["first_criterion_settings"]);
             mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings["second_criterion_settings"]);
