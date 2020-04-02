@@ -211,7 +211,7 @@ public:
 #endif
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
             return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
         
 #ifdef KRATOS_DEBUG
@@ -233,7 +233,7 @@ public:
         
         typename ContainerType::const_iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
             return *(static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
 
         return rThisVariable.Zero();
@@ -261,7 +261,7 @@ public:
 #endif
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
             *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
         else
             mData.push_back(ValueType(&rThisVariable,new TDataType(rValue))); 
@@ -276,7 +276,7 @@ public:
     {
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
         {
             i->first->Delete(i->second);
             mData.erase(i);
@@ -304,12 +304,12 @@ public:
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())) != mData.end());
+        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())) != mData.end());
     }
 
     template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().Key())) != mData.end());
+        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().SourceKey())) != mData.end());
     }
 
     bool IsEmpty() const
@@ -397,7 +397,7 @@ private:
         explicit IndexCheck(std::size_t I) : mI(I) {}
         bool operator()(const ValueType& I)
         {
-            return I.first->Key() == mI;
+            return I.first->SourceKey() == mI;
         }
     };
 
