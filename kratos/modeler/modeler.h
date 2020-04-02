@@ -61,6 +61,12 @@ public:
     /// Destructor.
     virtual ~Modeler() = default;
 
+    /// Creates the Modeler Pointer
+    virtual Pointer Create(const Parameters ModelParameters) const
+    {
+        return Kratos::make_shared<Modeler>(ModelParameters);
+    }
+
     ///@}
     ///@name Modeler Stages at Initialize
     ///@{
