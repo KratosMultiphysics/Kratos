@@ -46,7 +46,10 @@ KratosMORApplication::KratosMORApplication():
       mDisplacementOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mAcousticStructureCouplingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
       mAcousticStructureCouplingCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4)))),
-      mAcousticStructureCouplingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
+      mAcousticStructureCouplingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+      mAcousticRobinConcition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+      mAcousticRobinConcition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+      mAcousticRobinConcition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4))))
     {}
 
 void KratosMORApplication::Register()
@@ -66,15 +69,19 @@ void KratosMORApplication::Register()
   KRATOS_REGISTER_VARIABLE( REAL_PRESSURE )
   KRATOS_REGISTER_VARIABLE( IMAG_PRESSURE )
 
+  // elements
   KRATOS_REGISTER_ELEMENT("AcousticElement2D4N", mAcousticElement2D4N)
   KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
   KRATOS_REGISTER_ELEMENT("AcousticElement3D8N", mAcousticElement3D8N)
 
-
+  // conditions
   KRATOS_REGISTER_CONDITION("DisplacementOutputCondition3D1N", mDisplacementOutputCondition3D1N)
   KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition2D2N", mAcousticStructureCouplingCondition2D2N)
   KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition3D4N", mAcousticStructureCouplingCondition3D4N)
   KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition3D3N", mAcousticStructureCouplingCondition3D3N)
+  KRATOS_REGISTER_CONDITION("AcousticRobinCondition2D2N", mAcousticRobinConcition2D2N)
+  KRATOS_REGISTER_CONDITION("AcousticRobinCondition3D3N", mAcousticRobinConcition3D3N)
+  KRATOS_REGISTER_CONDITION("AcousticRobinCondition3D4N", mAcousticRobinConcition3D4N)
 
 
 }
