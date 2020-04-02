@@ -19,11 +19,3 @@ class PotentialFlowAnalysis(AnalysisStage):
             return adjoint_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
         else:
             raise Exception("Solver type '"+str(self.project_parameters["solver_settings"]["solver_type"].GetString())+"' not added. Please specify an available solver")
-
-    def RunSolutionLoop(self):
-        self.InitializeSolutionStep()
-        self._GetSolver().Predict()
-        self._GetSolver().SolveSolutionStep()
-        self.FinalizeSolutionStep()
-        self.OutputSolutionStep()
-
