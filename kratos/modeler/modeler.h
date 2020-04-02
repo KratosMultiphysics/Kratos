@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -16,45 +16,25 @@
 #define  KRATOS_MODELER_H_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "spatial_containers/spatial_containers.h"
 
 
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Modeler to interact with ModelParts.
+/* The modeler is designed to interact, create and update
+   the ModelPart of the analyses after and at certain steps.
 */
 class Modeler
 {
@@ -68,85 +48,79 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    //typedef ModelPart::GeometricalDataContainerType GeometricalDataContainerType;
-
-    //typedef GeometricalDataContainerType::GeometricalDataType GeometricalDataType;
-
-    //typedef ModelPart::GeometryType GeometryType;
-
-    //typedef ModelPart::GeometriesContainerType GeometriesContainerType;
-
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Modeler() {}
+    Modeler(const Parameters ModelerParameters = Parameters())
+        :mParameters(ModelerParameters)
+    {}
 
     /// Destructor.
-    virtual ~Modeler() {}
+    virtual ~Modeler() = default;
 
+    ///@}
+    ///@name Modeler Stages at Initialize
+    ///@{
+
+    /// Import geometry models from external input.
+    virtual void ImportGeometryModel(
+        Model& rModel) const
+    {}
+
+    /// Prepare or update the geometry model_part.
+    virtual void PrepareGeometryModel(
+        Model& rModel) const
+    {}
+
+    /// Convert the geometry model to analysis suitable models.
+    virtual void GenerateModelPart(
+        Model& rModel) const
+    {}
+
+    /// Import the model_part from external input.
+    virtual void ImportModelPart(
+        Model& rModel) const
+    {}
+
+    /// Prepare the analysis model_part for the simulation.
+    virtual void PrepareModelPart(
+        Model& rModel) const
+    {}
+
+    ///@}
+    ///@name Modeler Stages at Solving
+    ///@{
+
+    /* Updates the model, maps information from the analysis model_part
+       to the geometry model_part or updates the geometry model_part at
+       initialize solution step.
+    */
+    virtual void UpdateModelInitializeSolutionStep(
+        Model& rModel) const
+    {}
+
+    /* Updates the model, maps information from the analysis model_part
+       to the geometry model_part or updates the geometry model_part at
+       Finalize solution step.
+    */
+    virtual void UpdateModelFinalizeSolutionStep(
+        Model& rModel) const
+    {}
+
+    ///@}
+    ///@name Modeler Stages at Finalize
+    ///@{
+
+    /// Finalizes the model, special outputs
+    virtual void FinalizeModel(
+        Model& rModel) const
+    {}
 
     ///@}
     ///@name Operators
     ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-
-    /*	  void CollapsePoints(ModelPart& rThisModelPart, double Tolerance)
-    {
-      double distance;
-      Point3D<Node<3> >::Pointer p_founded_point;
-
-      GeometriesContainerType& geometries = rThisModelPart.Geometries();
-      GeometriesContainerType::PointsArrayType& r_points_array = geometries.Points();
-
-      if(geometries.NumberOfGeometries() == 0)
-    	  return;
-
-      for(GeometriesContainerType::GeometryIterator i_geometry = geometries.GeometriesBegin() ;
-    	  i_geometry != geometries.GeometriesEnd() ; i_geometry++)
-      {
-      // At this moment a brute force search is used
-    	  for(GeometryType::iterator i_point = i_geometry->begin() ; i_point != i_geometry->end() ; i_point++)
-    	  {
-    		  bool founded = false;
-    		  for(GeometriesContainerType::PointIterator j_point = r_points_array.begin() ;
-    			  j_point != r_points_array.end() ; j_point++)
-    		  {
-    			distance = j_point->Distance(*i_point);
-    			if(distance < Tolerance)
-    			{
-    				founded = true;
-    				p_founded_point = *(j_point.base());
-    				break;
-    			}
-    		  }
-    		  if(founded)
-    		  {
-    			  *(i_point.base()) = p_founded_point->pGetPoint(0);
-    		  }
-    		  else
-    		  {
-    			  r_points_array.push_back(Point3D<Node<3> >(*(i_point.base())));
-    		  }
-    	  }
-      }
-
-    }
-    */
-
-
-//	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
-//	  {
-//		  KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
-//	  }
-//
 
     virtual void GenerateModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
@@ -162,16 +136,6 @@ public:
     {
         KRATOS_ERROR << "This modeler CAN NOT be used for node generation." << std::endl;
     }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -194,82 +158,17 @@ public:
     {
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected members
     ///@{
 
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
+    const Parameters mParameters;
 
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -279,21 +178,13 @@ private:
     /// Copy constructor.
     Modeler(Modeler const& rOther);
 
-
     ///@}
 
 }; // Class Modeler
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -310,7 +201,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
