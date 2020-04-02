@@ -1021,14 +1021,14 @@ private:
     inline SizeType LocalOffset(VariableData const & rThisVariable) const
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        return mpVariablesList->Index(rThisVariable);
+        return mpVariablesList->Index(rThisVariable.SourceKey());
     }
 
     inline BlockType* Position(VariableData const & rThisVariable) const
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
+        return mpCurrentPosition + mpVariablesList->Index(rThisVariable.SourceKey());
     }
 
     inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
@@ -1036,7 +1036,7 @@ private:
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((ThisIndex + 1) > mQueueSize) << "Trying to access data from step " << ThisIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
-        return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
+        return Position(ThisIndex) + mpVariablesList->Index(rThisVariable.SourceKey());
     }
 
     inline BlockType* Position() const
