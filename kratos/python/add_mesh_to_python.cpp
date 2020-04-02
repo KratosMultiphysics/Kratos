@@ -142,6 +142,20 @@ void ConditionCalculateLocalSystemStandard( Condition& dummy,
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
+void ConditionCalculateMassMatrixStandard( Condition& dummy,
+                                                Matrix& rMassMatrix,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
+}
+
+void ConditionCalculateDampingMatrixStandard( Condition& dummy,
+                                                Matrix& rDampingMatrix,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateDampingMatrix(rDampingMatrix,rCurrentProcessInfo);
+}
+
 void ConditionInitialize(Condition& dummy,
                        const ProcessInfo& rCurrentProcessInfo)
 {
@@ -770,6 +784,8 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Initialize", &ConditionInitialize)
     .def("Initialize", &ConditionInitializeOld)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
+    .def("CalculateMassMatrix", &ConditionCalculateMassMatrixStandard)
+    .def("CalculateDampingMatrix", &ConditionCalculateDampingMatrixStandard)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
     ;
