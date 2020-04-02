@@ -45,6 +45,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class EntitiesEraseProcessFlags
+{
+public:
+    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
+    KRATOS_DEFINE_LOCAL_FLAG(ERASE_ALL_ENTITIES);     /// If the flag will be assigned (this means removing all entities of the model part)
+};
+
 /**
  * @class EntitiesEraseProcess
  * @ingroup KratosCore
@@ -64,10 +72,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
-    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
-    KRATOS_DEFINE_LOCAL_FLAG(ERASE_ALL_ENTITIES);     /// If the flag will be assigned (this means removing all entities of the model part)
-
     /// Pointer definition of EntitiesEraseProcess
     KRATOS_CLASS_POINTER_DEFINITION(EntitiesEraseProcess);
 
@@ -82,7 +86,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = REMOVE_FROM_ALL_LEVELS.AsFalse() | ERASE_ALL_ENTITIES.AsFalse()
+        Flags Options = EntitiesEraseProcessFlags::REMOVE_FROM_ALL_LEVELS.AsFalse() | EntitiesEraseProcessFlags::ERASE_ALL_ENTITIES.AsFalse()
         );
 
     /**
@@ -246,15 +250,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-template<class TEntity>
-KRATOS_API(KRATOS_CORE) const Kratos::Flags EntitiesEraseProcess<TEntity>::REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0));
-template<class TEntity>
-KRATOS_API(KRATOS_CORE) const Kratos::Flags EntitiesEraseProcess<TEntity>::ERASE_ALL_ENTITIES(Kratos::Flags::Create(1));
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TEntity>
