@@ -586,6 +586,7 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
 
     GeometryType& rGeom = GetGeometry();
     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+    bool isCompressible = rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE);
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -602,7 +603,6 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
     // Compute explicit element kinematics, strain is incremented here.
-    bool isCompressible = false; // TODO update
     Matrix& rDeformationGradient = rVariables.F; // TODO  maybe mDeformationGradientF0
     MPMExplicitUtilities::CalculateExplicitKinematics(rGeom, mDN_DX, delta_time,
         mMP.almansi_strain_vector, rDeformationGradient, isCompressible);

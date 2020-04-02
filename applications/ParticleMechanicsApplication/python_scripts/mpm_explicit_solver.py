@@ -52,6 +52,10 @@ class MPMExplicitSolver(MPMSolver):
         if (self.settings["pressure_dofs"].GetBool()):
             block_size += 1
 
+        # Check whether compressibility is considered
+        isCompressible = self.settings["compressible"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, isCompressible)
+
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
         isCentralDifference = False
