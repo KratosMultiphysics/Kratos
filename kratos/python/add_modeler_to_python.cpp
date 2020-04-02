@@ -73,11 +73,8 @@ void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin
 
 void  AddModelerToPython(pybind11::module& m)
 {
-    py::class_<ModelerFactory, ModelerFactory::Pointer >(m, "ModelerFactory")
-        .def(py::init< >())
-        .def("Create", &ModelerFactory::Create)
-        .def("Has", &ModelerFactory::Has)
-        ;
+    m.def("Create", &ModelerFactory::Create);
+    m.def("Has", &ModelerFactory::Has);
 
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
