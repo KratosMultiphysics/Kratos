@@ -1247,6 +1247,12 @@ public:
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /** Inserts a condition in the current mesh.
+     */
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName,
+            IndexType Id, typename GeometryType::Pointer pGeometry,
+            PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
     {
