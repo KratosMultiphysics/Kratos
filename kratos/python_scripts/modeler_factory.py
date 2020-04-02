@@ -31,12 +31,12 @@ class KratosModelerFactory(object):
                 full_module_name = kratos_module_name + "." + python_module_name
                 python_module = import_module(full_module_name)
 
-                p = python_module.Factory(modeler_item, self.Model)
+                p = python_module.Factory(modeler_item)
                 constructed_modelers.append( p )
 
             else: # for user-defined modelers
                 python_module = import_module(python_module_name)
-                p = python_module.Factory(modeler_item, self.Model)
+                p = python_module.Factory(modeler_item)
                 constructed_modelers.append( p )
 
         return constructed_modelers
