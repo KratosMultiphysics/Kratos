@@ -1,5 +1,3 @@
-﻿from __future__ import print_function, absolute_import, division
-
 from __future__ import print_function, absolute_import, division
 
 import os
@@ -660,7 +658,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-                    
+
     def test_add_methods(self):
         # This method checks all the "GetXXX" Methods if they throw an error
         tmp = Parameters("""{}""")
