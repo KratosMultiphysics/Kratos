@@ -4,11 +4,13 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
+from KratosMultiphysics.CoSimulationApplication.helpers.dummy_solver_wrapper import DummySolverWrapper
 
+class TestCoupledSolverGetSolver(KratosUnittest.TestCase):
 
-class TestCoSimulationAnalysis(KratosUnittest.TestCase):
-
-    def test_GetSolver_one_level(self):
+    def test_GetSolver_zero_levels(self):
         # CoSim contains only one SolverWrapper (not really CoSimulation...)
         params = KM.Parameters("""{
             "problem_data" : {
@@ -33,9 +35,10 @@ class TestCoSimulationAnalysis(KratosUnittest.TestCase):
 
         top_level_solver_wrapper = co_sim_analysis._GetSolver()
 
+        self.assertIsInstance(top_level_solver_wrapper, CoSimulationSolverWrapper)
         self.assertEqual(top_level_solver_wrapper.name, "my_dummy_solver")
 
-    def test_GetSolver_two_levels(self):
+    def test_GetSolver_one_level(self):
         params = KM.Parameters("""{
             "problem_data" : {
                 "problem_name" : "coupling_solver_top_level",
@@ -47,11 +50,6 @@ class TestCoSimulationAnalysis(KratosUnittest.TestCase):
             },
             "solver_settings" : {
                 "type"        : "coupled_solvers.gauss_seidel_weak",
-                "solver_wrapper_settings": {
-                    "time_step" : 1.0,
-                    "domain_size" : 1,
-                    "main_model_part_name" : "dummy"
-                },
                 "coupling_sequence" : [{
                     "name": "structure",
                     "output_data_list": [],
@@ -101,12 +99,17 @@ class TestCoSimulationAnalysis(KratosUnittest.TestCase):
         structural_solver_wrapper = co_sim_analysis._GetSolver("structure")
         aux_structural_solver_wrapper = co_sim_analysis._GetSolver("aux_structure")
 
+        self.assertIsInstance(top_level_solver_wrapper, CoSimulationCoupledSolver)
+        self.assertIsInstance(fluid_solver_wrapper, CoSimulationSolverWrapper)
+        self.assertIsInstance(structural_solver_wrapper, CoSimulationSolverWrapper)
+        self.assertIsInstance(aux_structural_solver_wrapper, CoSimulationSolverWrapper)
+
         self.assertEqual(top_level_solver_wrapper.name, "coupling_solver_top_level")
         self.assertEqual(fluid_solver_wrapper.name, "fluid")
         self.assertEqual(structural_solver_wrapper.name, "structure")
         self.assertEqual(aux_structural_solver_wrapper.name, "aux_structure")
 
-    def test_GetSolver_three_levels(self):
+    def test_GetSolver_two_levels(self):
         params = KM.Parameters("""{
             "problem_data" : {
                 "problem_name" : "coupling_solver_top_level",
@@ -135,11 +138,6 @@ class TestCoSimulationAnalysis(KratosUnittest.TestCase):
                 "solvers" : {
                     "fsi": {
                         "type"        : "coupled_solvers.gauss_seidel_weak",
-                        "solver_wrapper_settings": {
-                            "time_step" : 1.0,
-                            "domain_size" : 1,
-                            "main_model_part_name" : "dummy"
-                        },
                         "coupling_sequence" : [{
                             "name": "structure",
                             "output_data_list": [],
@@ -191,6 +189,14 @@ class TestCoSimulationAnalysis(KratosUnittest.TestCase):
         fsi_fluid_solver_wrapper      = fsi_solver_wrapper._GetSolver("fluid")
         fsi_structural_solver_wrapper = fsi_solver_wrapper._GetSolver("structure")
 
+        self.assertIsInstance(top_level_solver_wrapper, CoSimulationCoupledSolver)
+        self.assertIsInstance(controller_solver_wrapper, CoSimulationSolverWrapper)
+        self.assertIsInstance(fsi_solver_wrapper, CoSimulationCoupledSolver)
+        self.assertIsInstance(fluid_solver_wrapper, CoSimulationSolverWrapper)
+        self.assertIsInstance(structural_solver_wrapper, CoSimulationSolverWrapper)
+        self.assertIsInstance(fsi_fluid_solver_wrapper, CoSimulationSolverWrapper)
+        self.assertIsInstance(fsi_structural_solver_wrapper, CoSimulationSolverWrapper)
+
         self.assertEqual(top_level_solver_wrapper.name, "coupling_solver_top_level")
 
         self.assertEqual(controller_solver_wrapper.name, "controller")
@@ -201,6 +207,9 @@ class TestCoSimulationAnalysis(KratosUnittest.TestCase):
 
         self.assertEqual(fsi_fluid_solver_wrapper.name, "fluid")
         self.assertEqual(fsi_structural_solver_wrapper.name, "structure")
+
+        self.assertIs(fluid_solver_wrapper, fsi_fluid_solver_wrapper)
+        self.assertIs(structural_solver_wrapper, fsi_structural_solver_wrapper)
 
 
 if __name__ == '__main__':
