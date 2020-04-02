@@ -277,6 +277,7 @@ void AcousticRobinCondition::CalculateDampingMatrix(
     if( rDampingMatrix.size1() != number_of_nodes || rDampingMatrix.size2() != number_of_nodes ) {
         rDampingMatrix.resize(number_of_nodes, number_of_nodes, false);
     }
+    noalias(rDampingMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
 
     // Reading integration points and local gradients
     const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
