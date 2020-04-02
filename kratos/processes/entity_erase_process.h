@@ -45,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class EntitiesEraseProcessFlags
+class KRATOS_API(KRATOS_CORE) EntitiesEraseProcessFlags
 {
 public:
     // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
