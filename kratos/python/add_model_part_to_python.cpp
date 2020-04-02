@@ -97,7 +97,7 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
     return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
 }
 
-Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
+Condition::Pointer ModelPartCreateNewCondition1(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
 
@@ -106,6 +106,11 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
     }
 
     return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
+}
+
+Condition::Pointer ModelPartCreateNewCondition2(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+{
+    return rModelPart.CreateNewCondition(ConditionName, Id, pGeometry, pProperties);
 }
 
 
@@ -1017,7 +1022,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
         .def("CreateNewElement", ModelPartCreateNewElement)
-        .def("CreateNewCondition", ModelPartCreateNewCondition)
+        .def("CreateNewCondition", ModelPartCreateNewCondition1)
+        .def("CreateNewCondition", ModelPartCreateNewCondition2)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
