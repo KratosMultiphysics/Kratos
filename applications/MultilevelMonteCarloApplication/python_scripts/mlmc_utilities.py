@@ -29,9 +29,9 @@ from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_util
 import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
 
 # Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 # Import cpickle to pickle the serializer
 try:

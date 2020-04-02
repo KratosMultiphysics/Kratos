@@ -123,13 +123,14 @@ void CableElement3D2N::UpdateInternalForces(
     ProcessInfo temp_process_information;
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
     Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
-    mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
-
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
     const double normal_force =
-        ((temp_internal_stresses[3] + prestress) * l * A) / L0;
+        ((temp_stress[0] + prestress) * l * A) / L0;
 
 
     mIsCompressed = false;
@@ -144,6 +145,31 @@ void CableElement3D2N::UpdateInternalForces(
     rInternalForces = ZeroVector(msLocalSize);
     noalias(rInternalForces) = prod(transformation_matrix, f_local);
     KRATOS_CATCH("");
+}
+
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE){
+        TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
+}
+
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) || (rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)){
+        TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
 }
 
 void CableElement3D2N::save(Serializer& rSerializer) const

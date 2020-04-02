@@ -9,8 +9,6 @@
 
 namespace Kratos {
 
-    void DEM_KDEM_with_damage::Initialize(SphericContinuumParticle* element) {}
-
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_with_damage::Clone() const {
         DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_with_damage(*this));
         return p_clone;
@@ -344,6 +342,11 @@ namespace Kratos {
             }
         } else {
             equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
+
+            if(equiv_tg_of_fri_ang < 0.0) {
+                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+            }
+
             maximum_frictional_shear_force = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
 
             if (maximum_frictional_shear_force < 0.0) maximum_frictional_shear_force = 0.0;

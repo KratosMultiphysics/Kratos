@@ -30,6 +30,7 @@
 // Outputs
 #include "input_output/vtk_output.h"
 #include "input_output/unv_output.h"
+#include "input_output/cad_json_input.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -311,7 +312,7 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
         .def(py::init< ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
-        .def("PrintOutput", &VtkOutput::PrintOutput)
+        .def("PrintOutput", &VtkOutput::PrintOutput, py::arg("output_filename")="")
         .def_static("GetDefaultParameters", &VtkOutput::GetDefaultParameters)
         ;
 
@@ -323,6 +324,15 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
+        ;
+
+    // Import of CAD models to the model part
+    py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")
+        .def(py::init<const std::string &>())
+        .def(py::init<const std::string&, std::size_t>())
+        .def(py::init<Parameters>())
+        .def(py::init<Parameters, std::size_t>())
+        .def("ReadModelPart", &CadJsonInput<>::ReadModelPart)
         ;
 }
 }  // namespace Python.

@@ -229,6 +229,11 @@ public:
      */
      virtual void ResetContactOperators();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -357,11 +362,6 @@ protected:
      * @return CheckGap: The equivalent enum
      */
     CheckGap ConvertCheckGap(const std::string& str);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access
@@ -562,21 +562,6 @@ private:
         ModelPart& rModelPart,
         const std::string& rName
         );
-
-    /**
-     * @brief The whole model part name
-     * @param rModelPart The model part of interest
-     * @param rName The name of interest
-     */
-    static inline void GetWholeModelPartName(
-        const ModelPart& rModelPart,
-        std::string& rName
-        )
-    {
-        rName = rModelPart.Name() + "." + rName;
-        if (rModelPart.IsSubModelPart())
-            GetWholeModelPartName(*rModelPart.GetParentModelPart(), rName);
-    }
 
     /**
      * @brief Calculates the minimal distance between one node and its center

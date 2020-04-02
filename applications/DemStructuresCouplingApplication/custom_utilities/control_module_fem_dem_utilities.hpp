@@ -76,12 +76,12 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
             "initial_velocity" : 0.0,
             "limit_velocity" : 1.0,
             "velocity_factor" : 1.0,
-            "compression_length" : 0.0,
+            "compression_length" : 1.0,
+            "face_area": 1.0,
             "young_modulus" : 1.0e7,
             "stress_increment_tolerance": 1000.0,
             "update_stiffness": true,
-            "start_time" : 0.0,
-            "face_area": 1.0
+            "start_time" : 0.0
         }  )" );
 
     // Now validate agains defaults -- this also ensures no type mismatch
@@ -120,18 +120,18 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     }
     mTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
     mVelocity = rParameters["initial_velocity"].GetDouble();
-    Variable<double> DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
+    const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
     mrDemModelPart[DemVelocityVar] = mVelocity;
     mLimitVelocity = rParameters["limit_velocity"].GetDouble();
     mVelocityFactor = rParameters["velocity_factor"].GetDouble();
-    mCompressionLength = rParameters["compression_length"].GetDouble();
-    mYoungModulus = rParameters["young_modulus"].GetDouble();
     mStartTime = rParameters["start_time"].GetDouble();
     mFaceArea = rParameters["face_area"].GetDouble();
     mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
     mUpdateStiffness = rParameters["update_stiffness"].GetBool();
     mReactionStressOld = 0.0;
-    mStiffness = mYoungModulus/mCompressionLength;
+    mStiffness = rParameters["young_modulus"].GetDouble()*mFaceArea/rParameters["compression_length"].GetDouble();
+
+    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
     KRATOS_CATCH("");
 }
@@ -167,28 +167,6 @@ void ExecuteInitialize()
 
 // Before FEM and DEM solution
 void ExecuteInitializeSolutionStep()
-{
-    KRATOS_TRY;
-
-    const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
-    ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-    ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
-    const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
-
-    #pragma omp parallel for
-    for(int i = 0; i<NNodes; i++)
-    {
-        ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-        it->FastGetSolutionStepValue(VarComponent) += mVelocity * DeltaTime;
-    }
-
-    KRATOS_CATCH("");
-}
-
-// After FEM and DEM solution
-void ExecuteFinalizeSolutionStep()
 {
     const double CurrentTime = mrFemModelPart.GetProcessInfo()[TIME];
 
@@ -263,7 +241,7 @@ void ExecuteFinalizeSolutionStep()
             }
         }
 
-        Variable<double> DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
+        const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
         mrDemModelPart[DemVelocityVar] = mVelocity;
 
         // Output of TARGET_STRESS and REACTION_STRESS (only printed at the FEM nodes).
@@ -281,6 +259,23 @@ void ExecuteFinalizeSolutionStep()
             // it->FastGetSolutionStepValue(ReactionStressVarComponent) = pTargetStressTable->GetValue(CurrentTime)-ReactionStress;
             it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
         }
+
+        mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
+
+    }
+
+    const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+    ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
+    const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
+
+    #pragma omp parallel for
+    for(int i = 0; i<NNodes; i++)
+    {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+        it->FastGetSolutionStepValue(VarComponent) += mVelocity * DeltaTime;
     }
 }
 
@@ -341,8 +336,6 @@ protected:
     double mVelocity;
     double mLimitVelocity;
     double mVelocityFactor;
-    double mCompressionLength;
-    double mYoungModulus;
     double mStartTime;
     double mFaceArea;
     double mReactionStressOld;
