@@ -23,5 +23,6 @@
 // Project includes
 #include "input_output/gid_output.h"
 
+KRATOS_DEPRECATED_MESSAGE("Include deprecated, please use input_output/gid_output.h")
 
 #endif // KRATOS_GID_IO_BASE_H_INCLUDED  defined
