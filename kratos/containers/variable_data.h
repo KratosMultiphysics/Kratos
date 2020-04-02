@@ -177,11 +177,21 @@ public:
     ///@name Access
     ///@{
 
-    KeyType Key() const
+    KeyType HashKey() const
     {
         KeyType key = mKey;// >> 8;
         key &= 0xFFFFFFFF00;
         return key;
+    }
+
+    KeyType Key() const
+    {
+        return mKey;
+    }
+
+    KeyType SourceKey() const
+    {
+        return mpSourceVariable->mKey;
     }
 
     /// NOTE: This function is for internal use and not
