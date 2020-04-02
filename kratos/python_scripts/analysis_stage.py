@@ -137,6 +137,10 @@ class AnalysisStage(object):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
         """
+        # Finalizes the model, special outputs.
+        for modeler in self._GetListOfModelers():
+            modeler.FinalizeModel(self.model)
+
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
@@ -149,6 +153,10 @@ class AnalysisStage(object):
         (for each step) BEFORE solving the solution step.
         """
         self.PrintAnalysisStageProgressInformation()
+
+        # updates, modifies and maps within the models.
+        for modeler in self._GetListOfModelers():
+            modeler.UpdateModelInitializeSolutionStep(self.model)
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
@@ -163,11 +171,11 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
         """
-        self._GetSolver().FinalizeSolutionStep()
-        
-        # Update the model after simulation.
+        # updates, modifies and maps within the models.
         for modeler in self._GetListOfModelers():
-            modeler.UpdateModel(self.model)
+            modeler.UpdateModelFinalizeSolutionStep(self.model)
+
+        self._GetSolver().FinalizeSolutionStep()
 
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
