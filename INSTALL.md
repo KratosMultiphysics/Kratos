@@ -1,6 +1,7 @@
 # Contents
+* [Kratos Dependencies](#kratos-dependencies)
 * [Basic Configuration](#basic-configuration)
-* [Adding Applications](#basic-configuration)
+* [Adding Applications](#adding-applications)
 * [Adding Kratos to Path](#adding-kratos-to-path)
 * [Examples](#examples)
   * [Linux](#linux)
@@ -16,6 +17,23 @@
     * [Metis](#metis)
     * [Trilinos](#trilinos)
 * [Applications](#applications)
+
+## Kratos Dependencies 
+* Python3-dev
+* G++
+* Fortran compiler
+* CMake
+* Boost
+* LIBBLAS and LIBLAPACK 
+
+The command below will install all the packages needed. It will allow you to compile with python2 or python3 so you will be able to chose later (we recommend python3)
+
+```Shell
+sudo apt-get install python-dev python3-dev gcc g++ gfortran libblas-dev liblapack-dev cmake libboost-all-dev
+```
+Newer versions of boost can be downloaded in:
+
+http://www.boost.org/users/download/. 
 
 
 ## Basic Configuration
@@ -85,7 +103,12 @@ set PATH=%PATH%;C:/Kratos/bin/Release/libs
 
 ## Examples
 
-This examples are also located in
+These examples are also located [in the /scripts folder](https://github.com/KratosMultiphysics/Kratos/tree/master/scripts). You can simply create your own copy:
+
+```Shell
+cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh 
+```
+
 
 ### Linux
 
@@ -331,6 +354,11 @@ Specifies if the metis version is 5 or greater (OFF by default).
 Root directory for Metis library
 
 #### Trilinos
+On Ubuntu 18.04, the following command installs the necessary files:
+
+```Shell
+sudo apt-get install trilinos-all-dev
+```
 
 `-DTRILINOS_ROOT=String`
 
