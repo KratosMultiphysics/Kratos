@@ -75,13 +75,17 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
     .def(py::init<const Parameters>())
-    // Modeler Stages
+    // Modeler Stages Initialize
     .def("ImportGeometryModel", &Modeler::ImportGeometryModel)
     .def("PrepareGeometryModel", &Modeler::PrepareGeometryModel)
     .def("GenerateModelPart", GenerateModelPart2)
     .def("ImportModelPart", &Modeler::ImportModelPart)
     .def("PrepareModelPart", &Modeler::PrepareModelPart)
-    .def("UpdateModel", &Modeler::UpdateModel)
+    // Modeler Stages Solution Loop
+    .def("UpdateModelInitializeSolutionStep", &Modeler::UpdateModelInitializeSolutionStep)
+    .def("UpdateModelFinalizeSolutionStep", &Modeler::UpdateModelFinalizeSolutionStep)
+    // Modeler Stages Finalize
+    .def("FinalizeModel", &Modeler::FinalizeModel)
     // Additional Old Functions
     .def("GenerateModelPart", GenerateModelPart1)
     .def("GenerateMesh",&GenerateMesh)
