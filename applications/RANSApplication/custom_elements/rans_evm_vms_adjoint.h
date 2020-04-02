@@ -49,29 +49,21 @@ public:
 
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
-    typedef Element::IndexType IndexType;
+    using IndexType = Element::IndexType;
 
-    typedef Element::SizeType SizeType;
+    using SizeType = Element::SizeType;
 
-    typedef Element::NodeType NodeType;
+    using NodeType = Element::NodeType;
 
-    typedef Element::GeometryType GeometryType;
+    using GeometryType = Element::GeometryType;
 
-    typedef Element::PropertiesType PropertiesType;
+    using PropertiesType = Element::PropertiesType;
 
-    typedef Element::NodesArrayType NodesArrayType;
+    using NodesArrayType = Element::NodesArrayType;
 
-    typedef Element::VectorType VectorType;
+    using ShapeFunctionDerivativesType = BoundedMatrix<double, TNumNodes, TDim>;
 
-    typedef Element::MatrixType MatrixType;
-
-    typedef Element::DofsVectorType DofsVectorType;
-
-    typedef Element::EquationIdVectorType EquationIdVectorType;
-
-    typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
-
-    typedef VMSAdjointElement<TDim> BaseType;
+    using BaseType = VMSAdjointElement<TDim>;
 
     using BaseType::CalculateFirstDerivativesLHS;
 

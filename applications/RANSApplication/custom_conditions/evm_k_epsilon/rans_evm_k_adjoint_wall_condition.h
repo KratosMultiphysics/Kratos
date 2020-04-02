@@ -66,49 +66,40 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKAdjointWallCondition);
 
     /// base type: an GeometricalObject that automatically has a unique number
-    typedef Element BaseType;
+    using BaseType = Condition;
 
     /// definition of node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
      */
-    typedef Properties PropertiesType;
+    using PropertiesType = Properties;
 
     /// definition of the geometry type with given NodeType
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    using EquationIdVectorType = std::vector<std::size_t>;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using DofsVectorType = std::vector<Dof<double>::Pointer>;
 
     /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
-    typedef GeometryData GeometryDataType;
-
-    typedef BoundedMatrix<double, TDim, TDim> BoundedMatrixDD;
-
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes> BoundedMatrixNN;
-
-    typedef BoundedVector<double, TNumNodes> BoundedVectorN;
+    // overriden methods
+    using BaseType::CalculateSensitivityMatrix;
+    using BaseType::CalculateFirstDerivativesLHS;
+    using BaseType::CalculateLeftHandSide;
 
     ///@}
     ///@name Life Cycle

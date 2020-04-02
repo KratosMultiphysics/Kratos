@@ -73,29 +73,36 @@ public:
 
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
-    typedef Element::IndexType IndexType;
+    using BaseType = Condition;
 
-    typedef Element::SizeType SizeType;
+    using IndexType = Element::IndexType;
 
-    typedef Element::GeometryType GeometryType;
+    using SizeType = Element::SizeType;
 
-    typedef Element::PropertiesType PropertiesType;
+    using GeometryType = Element::GeometryType;
 
-    typedef Element::NodesArrayType NodesArrayType;
+    using PropertiesType = Element::PropertiesType;
 
-    typedef Element::VectorType VectorType;
+    using NodesArrayType = Element::NodesArrayType;
 
-    typedef std::array<double, TFluidLocalSize> ArrayType;
+    using VectorType = Element::VectorType;
 
-    typedef Element::MatrixType MatrixType;
+    using ArrayType = std::array<double, TFluidLocalSize>;
 
-    typedef Element::DofsVectorType DofsVectorType;
+    using MatrixType = Element::MatrixType;
 
-    typedef std::array<Dof<double>::Pointer, TFluidLocalSize> DofsArrayType;
+    using DofsVectorType = Element::DofsVectorType;
 
-    typedef Element::EquationIdVectorType EquationIdVectorType;
+    using DofsArrayType = std::array<Dof<double>::Pointer, TFluidLocalSize>;
 
-    typedef std::array<std::size_t, TFluidLocalSize> EquationIdArrayType;
+    using EquationIdVectorType = Element::EquationIdVectorType;
+
+    using EquationIdArrayType = std::array<std::size_t, TFluidLocalSize>;
+
+    // overriden methods
+    using BaseType::CalculateFirstDerivativesLHS;
+    using BaseType::CalculateSensitivityMatrix;
+    using BaseType::CalculateLeftHandSide;
 
     ///@}
     ///@name Life Cycle
