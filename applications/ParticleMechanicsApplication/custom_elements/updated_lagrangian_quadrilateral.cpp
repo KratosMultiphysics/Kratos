@@ -602,22 +602,30 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
-    // Compute explicit element kinematics, strain is incremented here.
-    Matrix& rDeformationGradient = rVariables.F; // TODO  maybe mDeformationGradientF0
-    MPMExplicitUtilities::CalculateExplicitKinematics(rGeom, mDN_DX, delta_time,
-        mMP.almansi_strain_vector, rDeformationGradient, isCompressible);
-    rVariables.StrainVector = mMP.almansi_strain_vector;
-    rVariables.F = rDeformationGradient;
-    rVariables.StressVector = mMP.cauchy_stress_vector;
 
-    if (!isCompressible)
+    // Compute explicit element kinematics, strain is incremented here.
+    MPMExplicitUtilities::CalculateExplicitKinematics(rGeom, mDN_DX, delta_time,
+        mMP.almansi_strain_vector, rVariables.F, isCompressible);
+    rVariables.StressVector = mMP.cauchy_stress_vector;
+    rVariables.StrainVector = mMP.almansi_strain_vector;
+
+    // Update gradient deformation
+    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
+    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
+    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
+    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
+    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
+    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
+    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
+
+    // Update MP volume
+    if (isCompressible)
     {
-        // TODO  fix thisup
-        rVariables.F = mDeformationGradientF0;
-        rVariables.detF = mDeterminantF0;
-        rVariables.F0 = mDeformationGradientF0;
-        rVariables.detF0 = mDeterminantF0;
+        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
+        mMP.volume = mMP.mass / mMP.density;
     }
+
+
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     rVariables.DN_DX = mDN_DX;

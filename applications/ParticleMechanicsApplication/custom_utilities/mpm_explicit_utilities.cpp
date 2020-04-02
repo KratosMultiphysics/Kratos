@@ -50,9 +50,15 @@ namespace Kratos
             rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
             rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
 
-            if (dimension > 2)
+            if (dimension == 3)
             {
+                KRATOS_ERROR << "NOT IMPLEMENTED YET";
                 // TODO add in third dimension here
+                //f_x = V*(s_yy*dNdX + s_xy*dNdX)
+                nodal_force_internal_normal[1] = rMPVolume *
+                    (rMPStress[1] * rDN_DX(i, 1) +
+                        rMPStress[2] * rDN_DX(i, 0));
+
                 rRightHandSideVector[dimension * i + 2] -= nodal_force_internal_normal[2]; //minus sign, internal forces
             }
         }
@@ -202,12 +208,12 @@ namespace Kratos
         const Matrix& rDN_DX,
         const double rDeltaTime,
         Vector& rMPStrain,
-        Matrix& rDeformationGradient,
+        Matrix& rDeformationGradientIncrement,
         const bool& isCompressible)
     {
         KRATOS_TRY
 
-            const SizeType dimension = rGeom.WorkingSpaceDimension();
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
 
 
@@ -226,7 +232,6 @@ namespace Kratos
             }
         }
 
-
         //Calculate rate of deformation and spin tensors
         Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
         Matrix spinTensor = velocityGradient - rateOfDeformation;
@@ -242,14 +247,34 @@ namespace Kratos
         rMPStrain(1) += jaumannRate(1, 1) * rDeltaTime; //e_yy
         rMPStrain(2) += 2.0 * jaumannRate(0, 1) * rDeltaTime; //e_xy
 
+        if (dimension == 3)
+        {
+            KRATOS_ERROR << "NOT IMPLEMENTED YET";
+        }
 
         // Model compressibility
+        rDeformationGradientIncrement = IdentityMatrix(dimension, dimension);
         if (isCompressible)
         {
-            Matrix I = IdentityMatrix(dimension);
-            Matrix updatedDeformationGradient = prod((I + rDeltaTime * velocityGradient),
-                rDeformationGradient);
-            rDeformationGradient = updatedDeformationGradient;
+            Matrix strainIncrement = ZeroMatrix(dimension, dimension);
+
+            strainIncrement(0, 0) = rMPStrain(0);
+            strainIncrement(1, 1) = rMPStrain(1);
+            strainIncrement(0, 1) = rMPStrain(2) / 2.0;
+            strainIncrement(1, 0) = rMPStrain(2) / 2.0;
+
+            if (dimension == 3)
+            {
+                strainIncrement(2, 2) = rMPStrain(0);
+                strainIncrement(0, 0) = rMPStrain(0);
+                strainIncrement(0, 0) = rMPStrain(0);
+                strainIncrement(0, 0) = rMPStrain(0);
+                strainIncrement(0, 0) = rMPStrain(0);
+                strainIncrement(0, 0) = rMPStrain(0);
+                KRATOS_ERROR << "NOT IMPLEMENTED YET";
+            }
+
+            rDeformationGradientIncrement += strainIncrement;
         }
 
         KRATOS_CATCH("")
