@@ -61,7 +61,7 @@ void ImposeZStrainProcess::ExecuteInitializeSolutionStep()
         {
             imposed_z_strain_vector[GPoint] = mThisParameters["z_strain_value"].GetDouble();
         }
-        itElem->SetValueOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
+        itElem->SetValuesOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
     }
 
     KRATOS_CATCH("");

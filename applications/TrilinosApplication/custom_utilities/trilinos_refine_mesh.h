@@ -996,7 +996,7 @@ protected:
          double area_child  = geom_child.Area();
          values[0][4]       = (area_child/area_father) * values[0][4];
          */
-        child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
 
     }
 

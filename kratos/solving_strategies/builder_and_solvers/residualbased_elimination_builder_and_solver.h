@@ -181,7 +181,7 @@ public:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(r_conditions_array.size());
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const auto it_elem_begin = r_elements_array.begin();
         const auto it_cond_begin = r_conditions_array.begin();
 
@@ -239,7 +239,6 @@ public:
 #else
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
 #endif
-
                     // Clean local elemental memory
                     pScheme->CleanMemory(*(it_cond.base()));
                 }
@@ -282,7 +281,7 @@ public:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(r_conditions_array.size());
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const auto it_elem_begin = r_elements_array.begin();
         const auto it_cond_begin = r_conditions_array.begin();
 
@@ -309,6 +308,7 @@ public:
                 if (element_is_active) {
                     // Calculate elemental contribution
                     pScheme->Calculate_LHS_Contribution(*(it_elem.base()), LHS_Contribution, equation_id, r_current_process_info);
+
 
                     // Assemble the elemental contribution
                     AssembleLHS(rA, LHS_Contribution, equation_id);
@@ -374,7 +374,7 @@ public:
         // Getting the array of the conditions
         const int nconditions = static_cast<int>(r_conditions_array.size());
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const auto it_elem_begin = r_elements_array.begin();
         const auto it_cond_begin = r_conditions_array.begin();
 
@@ -605,7 +605,7 @@ public:
         // Getting the array of the conditions
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Contributions to the system
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -646,7 +646,7 @@ public:
                 bool condition_is_active = true;
                 if (it_cond->IsDefined(ACTIVE))
                     condition_is_active = it_cond->Is(ACTIVE);
-
+              
                 if (condition_is_active) {
                     // Calculate elemental contribution
                     pScheme->Condition_Calculate_RHS_Contribution(*(it_cond.base()), RHS_Contribution, equation_id, r_current_process_info);
@@ -682,8 +682,8 @@ public:
         const int nelements = static_cast<int>(r_elements_array.size());
 
         DofsVectorType elemental_dof_list;
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+      
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         SizeType nthreads = OpenMPUtils::GetNumThreads();
 
@@ -700,7 +700,7 @@ public:
             auto it_elem = r_elements_array.begin() + i;
             const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-            // gets list of Dof involved on every element
+            // Gets list of Dof involved on every element
             pScheme->GetElementalDofList(*(it_elem.base()), elemental_dof_list, r_current_process_info);
 
             dofs_aux_list[this_thread_id].insert(elemental_dof_list.begin(), elemental_dof_list.end());
@@ -1082,7 +1082,7 @@ protected:
         #pragma omp parallel firstprivate(ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
             std::vector<std::unordered_set<IndexType> > temp_indexes(equation_size);
@@ -1124,6 +1124,7 @@ protected:
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = it_cond_begin + i_cond;
                 pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
