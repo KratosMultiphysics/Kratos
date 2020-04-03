@@ -10,7 +10,7 @@
 
 
 #if !defined(KRATOS_MODELER_FACTORY_H_INCLUDED )
-#define  KRATOS_MODELER_H_INCLUDED
+#define  KRATOS_MODELER_FACTORY_H_INCLUDED
 
 
 // System includes
@@ -53,5 +53,5 @@ namespace ModelerFactory
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODELER_H_INCLUDED  defined
+#endif // KRATOS_MODELER_FACTORY_H_INCLUDED  defined
 
