@@ -38,7 +38,6 @@ class MPMExplicitSolver(MPMSolver):
         # Adding explicit variables
         grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
-        grid_model_part.AddNodalSolutionStepVariable(KratosParticle.IS_ACTIVE_MPM_EXPLICIT_NODE)
 
         scheme_type = self.settings["scheme_type"].GetString()
         KratosMultiphysics.Logger.PrintInfo("::[MPMExplicitSolver]:: ", "Variables are all added.")

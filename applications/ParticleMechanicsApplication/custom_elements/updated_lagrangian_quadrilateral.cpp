@@ -967,7 +967,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
 
         r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE, 0) = true;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
 

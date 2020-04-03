@@ -277,7 +277,7 @@ namespace Kratos {
                 #pragma omp parallel for schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                     auto it_node = it_node_begin + i;
-                    if ((it_node)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE, 0))
+                    if ((it_node)->Is(ACTIVE))
                     {
                         // Current step information "N+1" (before step update).
                         this->UpdateTranslationalDegreesOfFreedom(it_node, disppos, dim);
@@ -428,7 +428,6 @@ namespace Kratos {
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                 {
                     auto i = mr_grid_model_part.NodesBegin() + iter;
-                    (i)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE, 0) = false;
 
                     // Variables to be cleaned
                     double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
@@ -473,7 +472,7 @@ namespace Kratos {
                     {
                         auto i = mr_grid_model_part.NodesBegin() + iter;
 
-                        if ((i)->FastGetSolutionStepValue(IS_ACTIVE_MPM_EXPLICIT_NODE))
+                        if ((i)->Is(ACTIVE))
                         {
                             const SizeType DomainSize = CurrentProcessInfo[DOMAIN_SIZE];
                             double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);

@@ -48,7 +48,7 @@ namespace MPMSearchElementUtility
         const double Tolerance)
     {
         ProcessInfo& rProcessInfo = rBackgroundGridModelPart.GetProcessInfo();
-        bool isExplicit = rProcessInfo.GetValue(IS_EXPLICIT);
+        bool isExplicit = rProcessInfo.Has(IS_EXPLICIT);
 
         // Reset elements to inactive
         #pragma omp parallel for
