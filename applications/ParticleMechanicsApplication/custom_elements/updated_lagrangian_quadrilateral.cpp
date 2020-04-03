@@ -1088,8 +1088,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
             }
             else
             {
-                // MUSL velocity field has already been computed. Therefore do not calculate stresses this time 
-                // and the nodal velocities are already updated.
+                // MUSL velocity field has already been computed. Therefore only calculate stresses this time. 
                 mapGridToParticles = false;
             }
         }
