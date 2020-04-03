@@ -831,7 +831,7 @@ public:
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
+    virtual void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -864,7 +864,7 @@ public:
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
+    virtual void CalculateRHSContribution(
         Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -897,7 +897,7 @@ public:
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
+    virtual void CalculateLHSContribution(
         Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -930,7 +930,7 @@ public:
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
+    virtual void CalculateLHSContribution(
         Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -958,10 +958,24 @@ public:
 
     /**
      * @brief This method gets the eqaution id corresponding to the current element
-     * @param pCurrentElement The element to compute
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rElement The element to compute
+     * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void EquationId(
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        this->EquationId(
+            Element::Pointer(&const_cast<Element&>(rElement)),
+            rEquationId,
+            const_cast<ProcessInfo&>(rCurrentProcessInfo)
+        ); // TODO remove this after the transition period and uncomment the following
+        // rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void EquationId(
         Element::Pointer pCurrentElement,
         Element::EquationIdVectorType& EquationId,
@@ -973,10 +987,24 @@ public:
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rCondition The condition to compute
+     * @param rEquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void EquationId(
+        const Condition& rCondition,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        this->Condition_EquationId(
+            Condition::Pointer(&const_cast<Condition&>(rCondition)),
+            rEquationId,
+            const_cast<ProcessInfo&>(rCurrentProcessInfo)
+        ); // TODO remove this after the transition period and uncomment the following
+        // rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void Condition_EquationId(
         Condition::Pointer pCurrentCondition,
         Element::EquationIdVectorType& EquationId,
@@ -996,9 +1024,9 @@ public:
         const Element& rElement,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).GetElementalDofList(
+        this->GetElementalDofList(
             Element::Pointer(&const_cast<Element&>(rElement)),
             rDofList,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
@@ -1025,9 +1053,9 @@ public:
         const Condition& rCondition,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).GetConditionDofList(
+        this->GetConditionDofList(
             Condition::Pointer(&const_cast<Condition&>(rCondition)),
             rDofList,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
