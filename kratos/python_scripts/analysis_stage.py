@@ -76,7 +76,7 @@ class AnalysisStage(object):
         """
         
         ## Initialize Modelers
-        self.__CreateListOfModelers()
+        self._list_of_modelers = self._CreateModelers(self._GetOrderOfModelers())
 
         # Import geometry models from external input.
         for modeler in self._GetListOfModelers():
@@ -297,12 +297,6 @@ class AnalysisStage(object):
                     list_of_modelers += factory.ConstructListOfModelers(value) # Does this work? or should it be processes[name]
 
         return list_of_modelers
-
-    def __CreateListOfModelers(self):
-        """This function creates the modelers and the output-modelers
-        """
-        order_modelers = self._GetOrderOfModelers()
-        self._list_of_modelers        = self._CreateModelers(order_modelers)
 
     ### Processes
     def _GetListOfProcesses(self):
