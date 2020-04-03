@@ -51,7 +51,7 @@ class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnitt
                             self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
                         # Array variable
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 # X-component
                                 values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_X"]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
