@@ -106,12 +106,6 @@ public:
     ///@name Operations
     ///@{
 
-    // ==============================================================================
-    void Initialize()
-    {
-        //not needed because only semi-analytical sensitivity analysis is implemented yet
-    }
-
     // --------------------------------------------------------------------------
     double CalculateValue()
     {
