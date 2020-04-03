@@ -834,6 +834,7 @@ class ResidualBasedNewtonRaphsonStrategy
                     //NOTE: this is initialzed to - the value of dx prediction
                     double dx_value = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
                     TSparseSpace::SetLocalValue(dx_prediction, it_dof->EquationId(), dx_value);
+                    it_dof->GetSolutionStepValue() = it_dof->GetSolutionStepValue(1);
                 }
 
                 //Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
@@ -857,7 +858,16 @@ class ResidualBasedNewtonRaphsonStrategy
 
                 //put back the prediction into the database
                 //UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
-                TSparseSpace::UnaliasedAdd(rDx, 1.00, dx_prediction);
+                //TSparseSpace::UnaliasedAdd(rDx, 1.00, dx_prediction);
+                #pragma omp parallel for
+                for(int i=0; i<static_cast<int>(r_dof_set.size()); ++i)
+                {
+                    auto it_dof = r_dof_set.begin() + i;
+                    it_dof->GetSolutionStepValue() += dx_prediction[it_dof->EquationId()];
+		}
+                if (BaseType::MoveMeshFlag()){
+                    BaseType::MoveMesh();
+                }
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
             }
