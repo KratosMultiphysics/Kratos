@@ -45,8 +45,8 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-bool Kernel::IsImported(std::string ApplicationName) const {
-    if (GetApplicationsList().find(ApplicationName) !=
+bool Kernel::IsImported(const std::string& rApplicationName) const {
+    if (GetApplicationsList().find(rApplicationName) !=
         GetApplicationsList().end())
         return true;
     else
@@ -59,7 +59,7 @@ bool Kernel::IsDistributedRun() {
 
 void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication) {
     if (IsImported(pNewApplication->Name()))
-        KRATOS_ERROR << "importing more than once the application : "
+        KRATOS_ERROR << "Importing more than once the application : "
                      << pNewApplication->Name() << std::endl;
 
     pNewApplication->Register();
