@@ -92,7 +92,7 @@ void SlidingCableElement3D::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void SlidingCableElement3D::Initialize()
+void SlidingCableElement3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
