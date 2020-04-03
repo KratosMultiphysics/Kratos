@@ -282,13 +282,6 @@ namespace Kratos
 
                     // Initial operations ... things that are constant over the Solution Step
                     pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-                    if (BaseType::mRebuildLevel > 0)
-                    { 
-                        ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
-                        ElementsArrayType& r_elements = r_model_part.Elements();
-                        const auto it_elem_begin = r_elements.begin();
-                    }
                 }
 
             mSolutionStepIsInitialized = true;
