@@ -38,6 +38,7 @@ class MPMSolver(PythonSolver):
             "domain_size"     : -1,
             "echo_level"      : 0,
             "time_stepping"   : { },
+            "time_integration_method"   : "implicit",
             "analysis_type"   : "non_linear",
             "grid_model_import_settings" : {
                 "input_type"     : "mdpa",

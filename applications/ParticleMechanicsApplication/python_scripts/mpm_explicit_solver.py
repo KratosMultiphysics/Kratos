@@ -23,6 +23,7 @@ class MPMExplicitSolver(MPMSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "time_integration_method"   : "explicit",
             "scheme_type"   : "forward_euler",
             "stress_update" : "USL"
         }""")
