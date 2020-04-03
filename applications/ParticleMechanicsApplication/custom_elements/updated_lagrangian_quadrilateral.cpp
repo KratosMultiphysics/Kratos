@@ -304,8 +304,8 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
 
     if (!mIsExplicit)
     {
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables, rCurrentProcessInfo);
@@ -985,27 +985,30 @@ void UpdatedLagrangianQuadrilateral::InitializeNonLinearIteration(ProcessInfo& r
     // This needs to occur after all particles are mapped to the grid, but before the momenta update.
 
     KRATOS_TRY
+    
+        if (mIsExplicit)
+        {
+            mIsUSFStressUpdate = true;
 
-    mIsUSFStressUpdate = true;
+            // Create and initialize element variables:
+            GeneralVariables Variables;
+            this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-    // Create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+            // Calculate shape function gradients
+            Matrix Jacobian;
+            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+            Matrix InvJ;
+            double detJ;
+            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+            Matrix DN_De;
+            this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+            mDN_DX = prod(DN_De, InvJ); // cartesian gradients
 
-    // Calculate shape function gradients
-    Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
-    Matrix InvJ;
-    double detJ;
-    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
-    mDN_DX = prod(DN_De, InvJ); // cartesian gradients
+            //calculate stress
+            this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
 
-    //calculate stress
-    this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
-
-    this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+            this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+        }
 
     KRATOS_CATCH("")
 }
