@@ -124,8 +124,6 @@ namespace Kratos
         {
             KRATOS_TRY
 
-                std::cout << "\n\n MPMExplicitStrategy MADE SS \n\n" << std::endl;
-
             mKeepSystemConstantDuringIterations = false;
 
             // Set flags to start correcty the calculations
