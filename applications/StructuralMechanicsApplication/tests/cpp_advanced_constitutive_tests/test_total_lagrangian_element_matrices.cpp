@@ -143,7 +143,7 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
     (*p_prop)[RAYLEIGH_ALPHA] = 0.02;
     (*p_prop)[RAYLEIGH_BETA] = 0.03;
     rModelPart.GetElement(1).Check(r_process_info);
-    rModelPart.GetElement(1).Initialize();
+    rModelPart.GetElement(1).Initialize(r_process_info);
     rModelPart.GetElement(1).InitializeSolutionStep(r_process_info);
     rModelPart.GetElement(1).InitializeNonLinearIteration(r_process_info);
     KRATOS_CATCH("");
