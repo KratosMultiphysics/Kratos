@@ -105,7 +105,7 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosCoreFastSuite)
         {
-            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_REQUIRES_APPLICATION("StructuralMechanicsApplication") << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -147,7 +147,7 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosCoreFastSuite)
         {
-            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_REQUIRES_APPLICATION("StructuralMechanicsApplication") << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -189,7 +189,7 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessQuadTetra, KratosCoreFastSuite)
         {
-            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_REQUIRES_APPLICATION("StructuralMechanicsApplication") << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
