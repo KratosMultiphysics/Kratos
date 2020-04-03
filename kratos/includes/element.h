@@ -875,7 +875,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        AddExplicitContribution(rRHSVector, rRHSVariable, const_cast<Variable<double >&>(rDestinationVariable), rCurrentProcessInfo); // TODO remove this after the transition period
         KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
@@ -886,7 +885,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        const auto& r_destination_variable = rDestinationVariable;
+        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
@@ -898,24 +898,24 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddExplicitContribution(
-        const VectorType& rRHS,
+        const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        AddExplicitContribution(rRHS, rRHSVariable, const_cast<Variable<array_1d<double,3>>&>(rDestinationVariable), rCurrentProcessInfo); // TODO remove this after the transition period
          KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddExplicitContribution(
-        const VectorType& rRHS,
+        const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-         KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        const auto& r_destination_variable = rDestinationVariable;
+        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
@@ -933,7 +933,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        AddExplicitContribution(rLHSMatrix, rLHSVariable, const_cast<Variable<Matrix>&>(rDestinationVariable), rCurrentProcessInfo); // TODO remove this after the transition period
          KRATOS_ERROR << "Base element class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
@@ -944,7 +943,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-         KRATOS_ERROR << "Base element class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        const auto& r_destination_variable = rDestinationVariable;
+        this->AddExplicitContribution(rLHSMatrix, rLHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
