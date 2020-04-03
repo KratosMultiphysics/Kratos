@@ -26,7 +26,7 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ) : mrModelPart(rModelPart),
         mThisParameters(ThisParameters)
 {
-    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
+    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }
 
 /***********************************************************************************/
@@ -324,13 +324,13 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
-/***********************************************************************************/
-/***********************************************************************************/
 template<SizeType TDim>
-Parameters SkinDetectionProcess<TDim>::GetDefaultSettings() const
+const Parameters SkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "name_auxiliar_model_part"              : "SkinModelPart",
         "name_auxiliar_condition"               : "Condition",
