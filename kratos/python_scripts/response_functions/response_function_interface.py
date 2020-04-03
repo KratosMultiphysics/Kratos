@@ -1,16 +1,16 @@
 class ResponseFunctionInterface(object):
     """
-    This response function interface provides a unique interface for all possible ways 
+    This response function interface provides a unique interface for all possible ways
     to calculate the value and gradient of a response.
-    
+
     The interface is designed to be used in e.g. optimization, where the value and gradient
-    of a response is required, however the exact method of gradient calculation is of 
-    secondary importance. 
-    
+    of a response is required, however the exact method of gradient calculation is of
+    secondary importance.
+
     This might be done using e.g. adjoint sensitivity analysis capabilities of Kratos,
     or even a simple finite differencing method.
-    
-    (Do not confuse this class with the kratos/response_functions/adjoint_response_function.h, 
+
+    (Do not confuse this class with the kratos/response_functions/adjoint_response_function.h,
     which is an implementation detail for the adjoint sensitivity analysis in Kratos)
     """
 

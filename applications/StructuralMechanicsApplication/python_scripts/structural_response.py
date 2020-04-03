@@ -210,7 +210,7 @@ class MassResponseFunction(ResponseFunctionInterface):
 
     def GetNodalGradient(self, variable):
         if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
-            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))  
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
@@ -241,7 +241,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
 
-        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool() 
+        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool()
 
         # Create the adjoint solver
         adjoint_parameters = self._GetAdjointParameters()
