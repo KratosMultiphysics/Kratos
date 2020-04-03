@@ -43,8 +43,5 @@ class KratosModelerFactory(object):
 
 
 ################# C++ MODELERS ###################
-def Factory(settings, Model):
-    if(settings["modeler_name"].GetString() == "IgaModeler"):
-        return KM.IgaModeler(settings["Parameters"])
-
-    raise Exception("Modeler ", settings["modeler_name"].GetString(), " not found ",)
+def Factory(settings):
+    return ModelerFactory.Create(settings["modeler_name"].GetString(), settings["Parameters"])
