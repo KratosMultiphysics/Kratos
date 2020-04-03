@@ -145,34 +145,6 @@ public:
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
 
     //************* COMPUTING  METHODS
 
