@@ -51,7 +51,7 @@ public:
     typedef Node<3> NodeType;
 
     /// Definition of array component
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
