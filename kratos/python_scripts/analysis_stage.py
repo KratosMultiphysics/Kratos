@@ -301,8 +301,8 @@ class AnalysisStage(object):
     def __CreateListOfModelers(self):
         """This function creates the modelers and the output-modelers
         """
-        order_modelers_initialization = self._GetOrderOfModelersInitialization()
-        self._list_of_modelers        = self._CreateModelers("modelers", order_modelers_initialization)
+        order_modelers = self._GetOrderOfModelers()
+        self._list_of_modelers        = self._CreateModelers("modelers", order_modelers)
 
     ### Processes
     def _GetListOfProcesses(self):
