@@ -58,9 +58,11 @@ namespace Kratos
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
             // Initialize Elements
             for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         void Create3DModelPartForExtrapolation(ModelPart& rModelPart)
@@ -73,9 +75,11 @@ namespace Kratos
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
             // Initialize Elements
             for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         void CreateQuadratic3DModelPartForExtrapolation(ModelPart& rModelPart)
@@ -88,9 +92,11 @@ namespace Kratos
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
             // Initialize Elements
             for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         /**
