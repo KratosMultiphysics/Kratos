@@ -21,6 +21,11 @@ namespace Kratos
 {
 namespace EntitiesUtilities
 {
+
+template<> KRATOS_API(KRATOS_CORE) PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
+template<> KRATOS_API(KRATOS_CORE) PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
+template<> KRATOS_API(KRATOS_CORE) PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
+
 void InitializeAllEntities(ModelPart& rModelPart)
 {
     KRATOS_TRY
@@ -62,9 +67,5 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template KRATOS_API(KRATOS_CORE) PointerVectorSet<Element, IndexedObject>& GetEntities<Element>(ModelPart& rModelPart);
-template KRATOS_API(KRATOS_CORE) PointerVectorSet<Condition, IndexedObject>& GetEntities<Condition>(ModelPart& rModelPart);
-template KRATOS_API(KRATOS_CORE) PointerVectorSet<MasterSlaveConstraint, IndexedObject>& GetEntities<MasterSlaveConstraint>(ModelPart& rModelPart);
-    
 } // namespace EntitiesUtilities
 } // namespace Kratos
