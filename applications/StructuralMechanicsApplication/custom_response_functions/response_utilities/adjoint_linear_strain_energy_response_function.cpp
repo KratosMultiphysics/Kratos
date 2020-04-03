@@ -27,7 +27,7 @@ namespace Kratos
     {
     }
 
-    void AdjointLinearStrainEnergyResponseFunction::Initialize()
+    void AdjointLinearStrainEnergyResponseFunction::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -39,13 +39,13 @@ namespace Kratos
         for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
         {
             auto it = mrModelPart.ElementsBegin() + i;
-            it->Initialize();
+            it->Initialize(rCurrentProcessInfo);
         }
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(mrModelPart.Conditions().size()); ++i)
         {
             auto it = mrModelPart.ConditionsBegin() + i;
-            it->Initialize();
+            it->Initialize(rCurrentProcessInfo);
         }
 
         KRATOS_CATCH("");

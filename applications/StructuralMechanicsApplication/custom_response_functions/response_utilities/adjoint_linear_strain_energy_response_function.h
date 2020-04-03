@@ -77,7 +77,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
