@@ -58,6 +58,9 @@ public:
     // Counted pointer of MPMParticleBaseDirichletCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
 
+    using MPMParticleBaseCondition::CalculateOnIntegrationPoints;
+    using MPMParticleBaseCondition::SetValuesOnIntegrationPoints;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -67,11 +70,13 @@ public:
     {};
 
     // Constructor using an array of nodes
-    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry ):MPMParticleBaseCondition(NewId,pGeometry)
+    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+        : MPMParticleBaseCondition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):MPMParticleBaseCondition(NewId,pGeometry,pProperties)
+    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+        : MPMParticleBaseCondition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
@@ -100,87 +105,45 @@ public:
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Inquiry
+    ///@name Access Set Values
     ///@{
 
+    void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
 
 protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+    array_1d<double, 3> m_displacement;
+
+    array_1d<double, 3> m_imposed_displacement;
+    array_1d<double, 3> m_imposed_velocity;
+    array_1d<double, 3> m_imposed_acceleration;
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Calculate Shape Function Values in a given point
-     */
+    /// Calculate Shape Function Values in a given point
     Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -196,16 +159,11 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
     }
 
+    ///@}
+
 }; // class MPMParticleBaseDirichletCondition.
 
 ///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 } // namespace Kratos.
 

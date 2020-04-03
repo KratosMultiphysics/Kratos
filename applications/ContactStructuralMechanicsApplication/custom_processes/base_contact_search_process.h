@@ -286,9 +286,7 @@ protected:
     std::string mConditionName;                       /// The name of the condition to be created
     PointVector mPointListDestination;                /// A list that contents the all the points (from nodes) from the modelpart
 
-    Properties::Pointer mpPairedProperties = nullptr; ///
-
-    Flags mOptions;                                   /// Local flags
+    Properties::Pointer mpPairedProperties = nullptr; /// This is the paired properties (unique for the given potential pair)
 
     ///@}
     ///@name Protected Operators
