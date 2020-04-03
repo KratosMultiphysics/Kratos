@@ -11,7 +11,7 @@
         "ale_boundary_parts"     : ["Body2D_Body"],
         "mesh_motion_solver_settings"                     :{
             "solver_type" : "structural_similarity",
-            "mesh_motion_linear_solver_settings" : {
+            "linear_solver_settings" : {
                 "solver_type"             : "ExternalSolversApplication.super_lu"
             },
             "reform_dofs_each_step" : false,
