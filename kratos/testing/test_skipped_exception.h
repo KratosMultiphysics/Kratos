@@ -14,11 +14,14 @@
 #ifndef KRATOS_TEST_SKIPPED_EXCEPTION_H_INCLUDED
 #define KRATOS_TEST_SKIPPED_EXCEPTION_H_INCLUDED
 
+// System includes
 #include <stdexcept>
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <vector>
+
+// External includes
 
 // Project includes
 #include "includes/exception.h"
@@ -77,6 +80,17 @@ public:
     TestSkippedException& operator << (const char * rString);
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief This checks if the given application is imported
+     * @param rApplicationName The name of the application
+     * @return True if imported, false otherwhise
+     */
+    static bool ApplicationIsImported(const std::string& rApplicationName);
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -101,11 +115,15 @@ public:
 #define KRATOS_SKIP_TEST throw TestSkippedException("Test Skipped: ", KRATOS_CODE_LOCATION)
 
 #define KRATOS_SKIP_TEST_IF(conditional) \
-    if (conditional)                 \
+    if (conditional)                     \
     throw TestSkippedException("Test Skipped: ", KRATOS_CODE_LOCATION)
 
 #define KRATOS_SKIP_TEST_IF_NOT(conditional) \
-    if (!(conditional))                  \
+    if (!(conditional))                      \
+    throw TestSkippedException("Test Skipped: ", KRATOS_CODE_LOCATION)
+
+#define KRATOS_SKIP_TEST_IF_REQUIRES_APPLICATION(ApplicationName)      \
+    if (!TestSkippedException::ApplicationIsImported(ApplicationName)) \
     throw TestSkippedException("Test Skipped: ", KRATOS_CODE_LOCATION)
 
 ///@}

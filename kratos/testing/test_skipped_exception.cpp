@@ -11,8 +11,13 @@
 //
 //
 
+// System includes
 #include <sstream>
 
+// External includes
+
+// Project includes
+#include "includes/kernel.h"
 #include "testing/test_skipped_exception.h"
 
 namespace Kratos
@@ -53,6 +58,11 @@ TestSkippedException& TestSkippedException::operator << (const char * rString)
 {
     Exception::operator<<(rString);
     return *this;
+}
+
+bool TestSkippedException::ApplicationIsImported(const std::string& rApplicationName)
+{
+    return Kernel().IsImported(rApplicationName);
 }
 
 std::string TestSkippedException::Info() const
