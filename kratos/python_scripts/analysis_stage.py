@@ -281,9 +281,10 @@ class AnalysisStage(object):
         """
         list_of_modelers = []
 
-        factory = KratosModelerFactory(self.model)
-
         if self.project_parameters.Has("modelers"):
+            from KratosMultiphysics.modeler_factory import KratosModelerFactory
+            factory = KratosModelerFactory()
+
             modelers_params = self.project_parameters[parameter_name]
 
             # first initialize the modelers that depend on the order
