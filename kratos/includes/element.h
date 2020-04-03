@@ -325,17 +325,15 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Element*>(this)->GetValuesVector(values, Step); // TODO remove this after the transition period and uncomment the following
-        // if (values.size() != 0) {
-        //     values.resize(0, false);
-        // }
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const auto& r_const_this = *this;
+        r_const_this.GetValuesVector(values, Step);
     }
 
     /**
@@ -343,17 +341,15 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Element*>(this)->GetFirstDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
-        // if (values.size() != 0) {
-        //     values.resize(0, false);
-        // }
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const auto& r_const_this = *this;
+        r_const_this.GetFirstDerivativesVector(values, Step);
     }
 
     /**
@@ -361,17 +357,15 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Element*>(this)->GetSecondDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
-        // if (values.size() != 0) {
-        //     values.resize(0, false);
-        // }
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const auto& r_const_this = *this;
+        r_const_this.GetSecondDerivativesVector(values, Step);
     }
 
     /**
