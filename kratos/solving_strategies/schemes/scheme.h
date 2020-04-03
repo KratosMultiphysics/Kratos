@@ -968,12 +968,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->EquationId(
-            Element::Pointer(&const_cast<Element&>(rElement)),
-            rEquationId,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void EquationId(
@@ -997,12 +992,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->Condition_EquationId(
-            Condition::Pointer(&const_cast<Condition&>(rCondition)),
-            rEquationId,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void Condition_EquationId(
@@ -1026,12 +1016,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->GetElementalDofList(
-            Element::Pointer(&const_cast<Element&>(rElement)),
-            rDofList,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rElement.GetDofList(rDofList, rCurrentProcessInfo);
+        rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void GetElementalDofList(
@@ -1055,11 +1040,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->GetConditionDofList(
-            Condition::Pointer(&const_cast<Condition&>(rCondition)),
-            rDofList,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
         rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
