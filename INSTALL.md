@@ -1,5 +1,11 @@
 # Contents
 * [Kratos Dependencies](#kratos-dependencies)
+  * [Kratos Core Dependencies](#kratos-core-dependencies)
+  * [Specific Application Dependencies](#specific-application-dependencies)
+    * [ExternalSolversApplication](#externalsolversapplication)
+    * [HDF5Application](#hdf5application)
+    * [MetisApplication](#metisapplication)
+    * [TrilinosApplication](#trilinosapplication)
 * [Basic Configuration](#basic-configuration)
 * [Adding Applications](#adding-applications)
 * [Adding Kratos to Path](#adding-kratos-to-path)
@@ -18,22 +24,39 @@
     * [Trilinos](#trilinos)
 * [Applications](#applications)
 
-## Kratos Dependencies 
-* Python3-dev
-* G++
-* Fortran compiler
-* CMake
-* Boost
-* LIBBLAS and LIBLAPACK 
+## Kratos Dependencies
 
-The command below will install all the packages needed. It will allow you to compile with python2 or python3 so you will be able to chose later (we recommend python3)
+### Kratos Core Dependencies
+  This are the basic dependecies needed to compile the Kratos Core and most of the applications. 
+  * Python3-dev
+  * C++11 compioler
+  * CMake
+  * Boost
 
-```Shell
-sudo apt-get install python-dev python3-dev gcc g++ gfortran libblas-dev liblapack-dev cmake libboost-all-dev
-```
-Newer versions of boost can be downloaded in:
+- Linux installation
 
-http://www.boost.org/users/download/. 
+   The command below will install all the packages needed.
+
+   ```Shell
+   sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
+   ```
+   Newer versions of boost can be downloaded in:
+
+   http://www.boost.org/users/download/. 
+
+-  Windows installation
+
+   TO-DO
+### Specific Application Dependencies
+In this section, the applications that require specific dependencies are listed.  
+#### ExternalSolversApplication
+The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ExternalSolversApplication/README.md)
+#### HDF5Application
+The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/HDF5Application/README.md)
+#### MetisApplication
+The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MetisApplication/README.md)
+#### TrilinosApplication
+The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/TrilinosApplication/README.md)
 
 
 ## Basic Configuration
