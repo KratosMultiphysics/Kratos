@@ -115,8 +115,8 @@ namespace Kratos
 
     void TestBarElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
 
@@ -133,8 +133,8 @@ namespace Kratos
 
     void TestBarElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
 
@@ -150,7 +150,7 @@ namespace Kratos
     //*********************************DISPLACEMENT***************************************//
     //************************************************************************************//
 
-    void TestBarElement::GetValuesVector( Vector& rValues, int Step )
+    void TestBarElement::GetValuesVector( Vector& rValues, int Step ) const
     {
         //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
         if ( rValues.size() != 4 )
@@ -166,7 +166,7 @@ namespace Kratos
     //************************************VELOCITY****************************************//
     //************************************************************************************//
 
-    void TestBarElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+    void TestBarElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
     {
         //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
         if ( rValues.size() != 4 )
@@ -181,7 +181,7 @@ namespace Kratos
     //*********************************ACCELERATION***************************************//
     //************************************************************************************//
 
-    void TestBarElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+    void TestBarElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
     {
         //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
         if ( rValues.size() != 4 )
@@ -197,7 +197,7 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
-    void TestBarElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
 
         KRATOS_TRY;
@@ -216,7 +216,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void TestBarElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         // Resizing as needed the RHS
         const unsigned int system_size = 4;
@@ -232,7 +232,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void TestBarElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         // Resizing as needed the LHS
         const unsigned int system_size = 4;
@@ -277,7 +277,7 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
-    void TestBarElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -325,7 +325,7 @@ namespace Kratos
 
     void TestBarElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -340,7 +340,7 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
-    int TestBarElement::Check( const ProcessInfo& rCurrentProcessInfo )
+    int TestBarElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY
 
@@ -356,7 +356,7 @@ namespace Kratos
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
-            Node<3>& rnode = this->GetGeometry()[i];
+            const Node<3>& rnode = this->GetGeometry()[i];
 
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
