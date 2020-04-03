@@ -25,9 +25,11 @@
 #include "includes/kratos_application.h"
 
 #include "custom_elements/acoustic_element.h"
-#include "custom_conditions/displacement_output_condition.h"
-#include "custom_conditions/acoustic_structure_coupling_condition.h"
+
+#include "custom_conditions/acoustic_load_condition.h"
 #include "custom_conditions/acoustic_robin_condition.h"
+#include "custom_conditions/acoustic_structure_coupling_condition.h"
+#include "custom_conditions/displacement_output_condition.h"
 
 namespace Kratos {
 
@@ -185,13 +187,17 @@ private:
     const AcousticElement mAcousticElement3D8N;
 
     // Conditions
-    const DisplacementOutputCondition mDisplacementOutputCondition3D1N;
-    const AcousticStructureCouplingCondition<2> mAcousticStructureCouplingCondition2D2N;
-    const AcousticStructureCouplingCondition<3> mAcousticStructureCouplingCondition3D4N;
-    const AcousticStructureCouplingCondition<3> mAcousticStructureCouplingCondition3D3N;
+    const AcousticLoadCondition mAcousticLoadConcition2D2N;
+    const AcousticLoadCondition mAcousticLoadConcition3D3N;
+    const AcousticLoadCondition mAcousticLoadConcition3D4N;
     const AcousticRobinCondition mAcousticRobinConcition2D2N;
     const AcousticRobinCondition mAcousticRobinConcition3D3N;
     const AcousticRobinCondition mAcousticRobinConcition3D4N;
+    const AcousticStructureCouplingCondition<2> mAcousticStructureCouplingCondition2D2N;
+    const AcousticStructureCouplingCondition<3> mAcousticStructureCouplingCondition3D4N;
+    const AcousticStructureCouplingCondition<3> mAcousticStructureCouplingCondition3D3N;
+
+    const DisplacementOutputCondition mDisplacementOutputCondition3D1N;
 
     ///@}
     ///@name Private Operators
