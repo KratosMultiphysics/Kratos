@@ -92,7 +92,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
-                        values_vector = mp.GetValuesOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
+                        values_vector = mp.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
                         value = values_vector[0]
 
                         if (variable_type == "Double" or variable_type == "Component"):
