@@ -73,3 +73,21 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ## install targets
 install(TARGETS KratosMultilevelMonteCarloCore DESTINATION libs )
 install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
+
+############################################################################
+#####
+#####        XMC (Uncertainty Quantification library)
+#####
+############################################################################
+INCLUDE ( ExternalProject )
+
+OPTION ( DOWNLOAD_XMC "Download and build automatically XMC." ON )
+
+IF ( DOWNLOAD_XMC )
+
+  EXTERNALPROJECT_ADD ( XMC
+    GIT_REPOSITORY https://gitlab.com/RiccardoRossi/exaqute-xmc
+    GIT_TAG 999d5695b2a84fc6f952434b21df03d239dec3d8
+    )
+
+ENDIF()
