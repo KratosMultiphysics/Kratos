@@ -156,7 +156,10 @@ void CreateConditions(
     std::unordered_set<IndexType>& rNodesInTheSkin,
     const std::string& rConditionName) const override;
 
-Parameters GetDefaultSettings() const override;
+/**
+ * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+ */
+const Parameters GetDefaultParameters() const override;
 
 ///@}
 

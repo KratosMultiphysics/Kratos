@@ -14,6 +14,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         ## Material model part definition
         material_point_model_part = current_model.CreateModelPart("dummy_name")
         material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        self.process_info = material_point_model_part.ProcessInfo
 
         ## Initial material model part definition
         initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
@@ -164,9 +165,9 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         material_point_model_part = current_model.GetModelPart("dummy_name")
         grid_model_part           = current_model.GetModelPart("Background_Grid")
 
-        # Apply  before search
+        # Apply before search
         for mpm in material_point_model_part.Elements:
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, [new_coordinate], self.process_info)
 
         # Search element
         KratosParticle.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
@@ -285,7 +286,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False)
 
-        new_coordinate = [1.31967, 1.85246, 1.0]
+        new_coordinate = [1.31967, 1.85246, 0.1]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
@@ -349,7 +350,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False, is_fine=True)
 
-        new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-7]
+        new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-8]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 

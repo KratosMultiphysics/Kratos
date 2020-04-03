@@ -249,10 +249,10 @@ protected:
      */
     void SetUpAdditionalSubModelParts(const ModelPart& rAuxiliaryModelPart);
 
-    /// Auxiliar function to get default settings.
-    /** It is defined as virtual so that it can be overriden by derived classes
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    virtual Parameters GetDefaultSettings() const;
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Protected  Access
