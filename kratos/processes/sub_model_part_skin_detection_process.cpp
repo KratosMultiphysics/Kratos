@@ -19,7 +19,7 @@ namespace Kratos
 template<SizeType TDim>
 SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
-    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
+    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultParameters())
 {
     KRATOS_TRY;
 
@@ -96,13 +96,14 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 }
 
 template<SizeType TDim>
-Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
+const Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
-    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultSettings();
+    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultParameters();
     defaults.AddEmptyValue("selection_criteria");
     defaults["selection_criteria"].SetString("");
     defaults.AddValue("selection_settings", Parameters("{}"));
-    return defaults;
+    const Parameters const_defaults(defaults);
+    return const_defaults;
 }
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
