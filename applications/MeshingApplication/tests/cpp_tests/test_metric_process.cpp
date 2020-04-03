@@ -290,7 +290,7 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             CppTestsUtilities::Create2DGeometry(r_model_part, "SmallDisplacementElement2D3N", false);
 
@@ -352,7 +352,7 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             CppTestsUtilities::Create3DGeometry(r_model_part, "SmallDisplacementElement3D4N", false);
 
