@@ -104,7 +104,7 @@ Condition::Pointer DisplacementControlCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection() const
+Variable<double>* DisplacementControlCondition::GetDisplacementInDirection() const
 {
     KRATOS_TRY
 
@@ -132,7 +132,7 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection() const
+Variable<double>* DisplacementControlCondition::GetPointLoadInDirection() const
 {
     KRATOS_TRY
 

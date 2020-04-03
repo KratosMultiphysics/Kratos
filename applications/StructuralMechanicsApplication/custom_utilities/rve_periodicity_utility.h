@@ -61,7 +61,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
     typedef Node<3> NodeType;
 
     /// Definition of the component of variable type
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> VariableComponentType;
 
     ///@}
     ///@name Life Cycle
