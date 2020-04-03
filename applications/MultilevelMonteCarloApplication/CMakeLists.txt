@@ -85,20 +85,20 @@ INCLUDE ( ExternalProject )
 OPTION ( DOWNLOAD_XMC "Download automatically XMC." ON )
 
 IF ( DOWNLOAD_XMC )
+	EXTERNALPROJECT_ADD ( XMC
+		PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries"
+		SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC"
+		GIT_REPOSITORY https://gitlab.com/RiccardoRossi/exaqute-xmc
+		GIT_TAG 999d5695b2a84fc6f952434b21df03d239dec3d8
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND ""
+		INSTALL_COMMAND ""
+		)
+	## install python files
+	get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-  EXTERNALPROJECT_ADD ( XMC
-    PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries"
-    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC"
-    GIT_REPOSITORY https://gitlab.com/RiccardoRossi/exaqute-xmc
-    GIT_TAG 999d5695b2a84fc6f952434b21df03d239dec3d8
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-    )
-  
-  ## install python files
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME} )
-
+ELSE ( )
+	MESSAGE ( STATUS "Manual installation of XMC" )
 
 ENDIF()
