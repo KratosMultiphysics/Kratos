@@ -361,7 +361,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
         KRATOS_CHECK_DOUBLE_EQUAL(coords_to_check[i], coords_exp[i]);
 
     // Test if the "Create" function returns the correct object
-    KRATOS_CHECK_EQUAL(typeid(*p_ref_interface_info), typeid(*interface_info_container[0][0]));
+    const auto& r_arg_1 = *p_ref_interface_info;
+    const auto& r_arg_2 = *interface_info_container[0][0];
+    KRATOS_CHECK_EQUAL(typeid(r_arg_1), typeid(r_arg_2));
 
     /////
     // now we "update" the Interface and then check again
@@ -548,7 +550,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
     // Test if the correct object type was created
-    KRATOS_CHECK_EQUAL(typeid(*r_info_1), typeid(*p_ref_nearest_neighbor_info));
+    const auto& r_arg_1 = *r_info_1;
+    const auto& r_arg_2 = *p_ref_nearest_neighbor_info;
+    KRATOS_CHECK_EQUAL(typeid(r_arg_1), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, KratosMappingApplicationSerialTestSuite)
