@@ -87,7 +87,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera Periodic conditions are not implemented in this case .")
             raise NotImplementedError
         else:
-            fractional_step_settings = KratosChimera.FractionalStepSettings(
+            fractional_step_settings = KratosChimera.FractionalStepSettingsChimera(
                 computing_model_part,
                 domain_size,
                 self.settings["time_order"].GetInt(),
