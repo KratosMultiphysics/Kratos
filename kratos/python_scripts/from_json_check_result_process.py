@@ -173,7 +173,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 self.__check_values(elem.Id, "Element", value[gp], value_json, variable_name)
                         # Array variable
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 for gp in range(gauss_point_number):
                                     for component_index, component in enumerate(["_X", "_Y", "_Z"]):
                                         values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name+component][str(gp)]
