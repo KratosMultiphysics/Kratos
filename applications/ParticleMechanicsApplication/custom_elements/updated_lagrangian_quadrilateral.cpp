@@ -560,8 +560,6 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddExplicitInternalForces(Vecto
     KRATOS_TRY
 
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     // Calculate shape function gradients
     Matrix Jacobian;
