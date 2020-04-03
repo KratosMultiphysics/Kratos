@@ -1,7 +1,5 @@
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-
 try:
     import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 except ImportError as e:
