@@ -870,6 +870,21 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(check, loaded_parameters.WriteJsonString())
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_name + ".rest"))
 
+    def test_json_write_read(self):
+        tmp = Parameters(defaults)
+
+        file_name = "auxiliar_json.json"
+
+        # Create json file
+        tmp.WriteJSONFile(file_name)
+
+        # Read json file
+        tmp_2 = Parameters()
+        tmp_2.ReadJSONFile(file_name)
+
+        self.assertEqual(tmp.WriteJsonString(), tmp_2.WriteJsonString())
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_name))
+
     def test_get_string_array_valid(self):
         tmp = Parameters("""{
             "parameter": ["foo", "bar"]
