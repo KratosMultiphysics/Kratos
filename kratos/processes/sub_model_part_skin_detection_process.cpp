@@ -19,7 +19,7 @@ namespace Kratos
 template<SizeType TDim>
 SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
-    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
+    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultParameters())
 {
     KRATOS_TRY;
 
@@ -59,6 +59,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
     const std::string& rConditionName) const
 {
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
+    const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
     // Create the auxiliar conditions
     for (auto& map : rInverseFaceMap) {
@@ -87,7 +88,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
             auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, condition_nodes, p_prop);
             rSkinModelPart.AddCondition(p_cond);
             p_cond->Set(INTERFACE, true);
-            p_cond->Initialize();
+            p_cond->Initialize(r_process_info);
 
             for (auto& index : nodes_face)
                 rNodesInTheSkin.insert(index);
@@ -96,13 +97,14 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 }
 
 template<SizeType TDim>
-Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
+const Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
-    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultSettings();
+    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultParameters();
     defaults.AddEmptyValue("selection_criteria");
     defaults["selection_criteria"].SetString("");
     defaults.AddValue("selection_settings", Parameters("{}"));
-    return defaults;
+    const Parameters const_defaults(defaults);
+    return const_defaults;
 }
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters

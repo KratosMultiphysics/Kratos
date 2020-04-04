@@ -43,9 +43,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSui
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}},
-                                          {{"Condition2D2N"}});
+                                          {{"LineCondition2D2N"}});
     TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}},
-                                          {{"Condition2D2N"}});
+                                          {{"LineCondition2D2N"}});
 
     r_read_model_part.SetBufferSize(2);
     r_write_model_part.SetBufferSize(2);

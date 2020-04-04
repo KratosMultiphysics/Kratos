@@ -105,7 +105,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.mesh_file.write("\" dimension 3 ElemType Point Nnode 1\n")
         self.mesh_file.write("Coordinates\n")
         for mpm in self.model_part.Elements:
-            coord = mpm.GetValue(KratosParticle.MP_COORD)
+            coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
             self.mesh_file.write("{} {} {} {}\n".format( mpm.Id, coord[0], coord[1], coord[2]))
         self.mesh_file.write("End Coordinates\n")
         self.mesh_file.write("Elements\n")
@@ -215,7 +215,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
             self.result_file.write("Values\n")
             for mpm in self.model_part.Elements:
-                print_variable = mpm.GetValue(variable)
+                print_variable = mpm.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
                 # Check whether variable is a scalar or vector
                 if isinstance(print_variable, float) or isinstance(print_variable, int):
                     print_size = 1

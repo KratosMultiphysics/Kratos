@@ -26,7 +26,7 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ) : mrModelPart(rModelPart),
         mThisParameters(ThisParameters)
 {
-    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
+    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }
 
 /***********************************************************************************/
@@ -49,10 +49,14 @@ void SkinDetectionProcess<TDim>::Execute()
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     HashMapVectorIntType& rInverseFaceMap,
-    HashMapVectorIntIdsType& rPropertiesFaceMap) const
+    HashMapVectorIntIdsType& rPropertiesFaceMap
+    ) const
 {
     // Auxiliar values
     auto& r_elements_array = mrModelPart.Elements();
@@ -146,6 +150,9 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SizeType TDim>
 ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
 {
@@ -170,25 +177,31 @@ ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
     return mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     ModelPart& rAuxiliaryModelPart,
     HashMapVectorIntType& rInverseFaceMap,
-    HashMapVectorIntIdsType& rPropertiesFaceMap)
+    HashMapVectorIntIdsType& rPropertiesFaceMap
+    )
 {
     // The auxiliar name of the condition
-    const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
+    const std::string& r_name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
-    if (TDim == 3 && name_condition == "Condition") {
+    if (TDim == 3 && r_name_condition == "Condition") {
         pre_name = "Surface";
+    } else if (TDim == 2 && r_name_condition == "Condition") {
+        pre_name = "Line";
     }
-    const std::string base_name = pre_name + name_condition;
+    const std::string base_name = pre_name + r_name_condition;
 
     // The number of conditions
-    ConditionsArrayType& condition_array = mrModelPart.GetRootModelPart().Conditions();
-    const auto& it_begin = condition_array.begin();
-    for(IndexType i = 0; i < condition_array.size(); ++i)
-        (it_begin + i)->SetId(i + 1);
+    ConditionsArrayType& r_condition_array = mrModelPart.GetRootModelPart().Conditions();
+    const auto it_cond_begin = r_condition_array.begin();
+    for(IndexType i = 0; i < r_condition_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
@@ -205,13 +218,17 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
+        auto it_node = it_node_begin + i;
         it_node->Set(INTERFACE, true);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::CreateConditions(
@@ -224,31 +241,35 @@ void SkinDetectionProcess<TDim>::CreateConditions(
 {
 
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
+    const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
     // Create the auxiliar conditions
-    for (auto& map : rInverseFaceMap) {
+    for (auto& r_map : rInverseFaceMap) {
         condition_id += 1;
 
-        const VectorIndexType& nodes_face = map.second;
+        const VectorIndexType& nodes_face = r_map.second;
 
-        Properties::Pointer p_prop;
-        const IndexType property_id = rPropertiesFaceMap[map.first];
+        Properties::Pointer p_prop = nullptr;
+        const IndexType property_id = rPropertiesFaceMap[r_map.first];
          if (rMainModelPart.RecursivelyHasProperties(property_id)) {
              p_prop = rMainModelPart.pGetProperties(property_id);
          } else {
              p_prop = rMainModelPart.CreateNewProperties(property_id);
          }
 
-        for (auto& index : nodes_face)
-            rNodesInTheSkin.insert(index);
+        for (auto& r_index : nodes_face)
+            rNodesInTheSkin.insert(r_index);
 
         const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
         auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
         rSkinModelPart.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
-        p_cond->Initialize();
+        p_cond->Initialize(r_process_info);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& rAuxiliaryModelPart)
@@ -263,13 +284,13 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
         for (auto& cond : rAuxiliaryModelPart.Conditions()) {
             auto& geom = cond.GetGeometry();
 
-            for (auto& node : geom) {
-                auto set = conditions_nodes_ids_map.find(node.Id());
+            for (auto& r_node : geom) {
+                auto set = conditions_nodes_ids_map.find(r_node.Id());
                 if(set != conditions_nodes_ids_map.end()) {
-                    conditions_nodes_ids_map[node.Id()].insert(cond.Id());
+                    conditions_nodes_ids_map[r_node.Id()].insert(cond.Id());
                 } else {
                     std::unordered_set<IndexType> cond_index_ids ( {cond.Id()} );;
-                    conditions_nodes_ids_map.insert({node.Id(), cond_index_ids});
+                    conditions_nodes_ids_map.insert({r_node.Id(), cond_index_ids});
                 }
             }
         }
@@ -294,12 +315,12 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
 
                     auto set = conditions_nodes_ids_map.find(it_node->Id());
                     if(set != conditions_nodes_ids_map.end()) {
-                        for (auto& cond_id : conditions_nodes_ids_map[it_node->Id()]) {
-                            auto& r_condition = mrModelPart.GetCondition(cond_id);
+                        for (auto& r_cond_id : conditions_nodes_ids_map[it_node->Id()]) {
+                            auto& r_condition = mrModelPart.GetCondition(r_cond_id);
                             auto& geom = r_condition.GetGeometry();
                             bool has_nodes = true;
-                            for (auto& node : geom) {
-                                if (!sub_model_part.GetMesh().HasNode(node.Id())) {
+                            for (auto& r_node : geom) {
+                                if (!sub_model_part.GetMesh().HasNode(r_node.Id())) {
                                     has_nodes = false;
                                     break;
                                 }
@@ -322,13 +343,13 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
-/***********************************************************************************/
-/***********************************************************************************/
 template<SizeType TDim>
-Parameters SkinDetectionProcess<TDim>::GetDefaultSettings() const
+const Parameters SkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "name_auxiliar_model_part"              : "SkinModelPart",
         "name_auxiliar_condition"               : "Condition",
@@ -340,6 +361,7 @@ Parameters SkinDetectionProcess<TDim>::GetDefaultSettings() const
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<SizeType TDim>
 ModelPart& SkinDetectionProcess<TDim>::GetModelPart() const
 {
@@ -356,6 +378,7 @@ Parameters SkinDetectionProcess<TDim>::GetSettings() const
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<SizeType TDim>
 SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ModelPart& rModelPart,
