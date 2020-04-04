@@ -63,6 +63,7 @@
 
 // Modelers
 #include "modeler/modeler.h"
+#include "modeler/iga_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -470,6 +471,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     // Modeler
     const Modeler mModeler;
+    const IgaModeler mIgaModeler = IgaModeler(Parameters());
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
