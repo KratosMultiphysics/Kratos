@@ -34,7 +34,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class KRATOS_API(KRATOS_CORE) IgaModeler
-    : Modeler
+    : public Modeler
 {
 public:
     ///@name Type Definitions
@@ -60,11 +60,11 @@ public:
     ///@{
 
     /// Default constructor.
-    IgaModeler(const Parameters ModelerParameters)
+    IgaModeler(const Parameters ModelerParameters = Parameters())
         : Modeler(ModelerParameters)
         , mEchoLevel(
-            mParameters.Has("EchoLevel")
-            ? mParameters["EchoLevel"].GetInt()
+            ModelerParameters.Has("EchoLevel")
+            ? ModelerParameters["EchoLevel"].GetInt()
             : 0)
     {
     }
@@ -167,16 +167,6 @@ private:
 
     Parameters ReadParamatersFile(
         const std::string& rDataFileName);
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    IgaModeler& operator=(IgaModeler const& rOther);
-
-    /// Copy constructor.
-    IgaModeler(IgaModeler const& rOther);
 
     ///@}
 

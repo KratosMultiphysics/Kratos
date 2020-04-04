@@ -21,17 +21,23 @@ namespace Kratos
     void IgaModeler::GenerateModelPart(
         Model& rModel) const
     {
-        ModelPart& origin_model_part = rModel.GetModelPart(mParameters["origin_model_part"].GetString());
-        ModelPart& destination_model_part = rModel.GetModelPart(mParameters["destination_model_part"].GetString());
+        KRATOS_ERROR_IF_NOT(mParameters.Has("cad_model_part_name"))
+            << "Missing \"cad_model_part\" section" << std::endl;
+        ModelPart& cad_model_part = rModel.GetModelPart(mParameters["cad_model_part_name"].GetString());
+        KRATOS_ERROR_IF_NOT(mParameters.Has("analysis_model_part_name"))
+            << "Missing \"analysis_model_part_name\" section" << std::endl;
+        ModelPart& analysis_model_part = rModel.GetModelPart(mParameters["analysis_model_part_name"].GetString());
 
-        const std::string& rDataFileName = mParameters["physics_file_name"].GetString();
+        const std::string& rDataFileName = mParameters.Has("physics_file_name")
+            ? mParameters["physics_file_name"].GetString()
+            : "physics.iga.json";
 
-        const Parameters iga_physics_parameters = Parameters();/* =
-            this->ReadParamatersFile(rDataFileName);*/
+        const Parameters iga_physics_parameters = Parameters();// =
+            //ReadParamatersFile(rDataFileName);
 
         CreateIntegrationDomain(
-            origin_model_part,
-            destination_model_part,
+            cad_model_part,
+            analysis_model_part,
             iga_physics_parameters);
     }
 
@@ -249,8 +255,8 @@ namespace Kratos
         const std::string& rDataFileName)
     {
         // Check if rDataFileName ends with ".cad.json" and add it if needed.
-        const std::string data_file_name = (rDataFileName.compare(rDataFileName.size() - 9, 9, ".cad.json") != 0)
-            ? rDataFileName + ".cad.json"
+        const std::string data_file_name = (rDataFileName.compare(rDataFileName.size() - 9, 9, ".iga.json") != 0)
+            ? rDataFileName + ".iga.json"
             : rDataFileName;
 
         std::ifstream infile(data_file_name);
