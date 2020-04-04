@@ -31,15 +31,8 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 {
     KRATOS_TRY
 
-    Parameters default_parameters( R"(
-    {
-        "model_part_name" : "MODEL_PART_NAME",
-        "mesh_id"         : 0,
-        "variable_name"   : "VARIABLE_NAME",
-        "value"           : 1.0
-    }  )" );
-
     // Validate against defaults -- this ensures no type mismatch
+    const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mMeshId       = rParameters["mesh_id"].GetInt();
@@ -81,6 +74,22 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParameters() const
+{
+    const Parameters default_parameters( R"(
+    {
+        "model_part_name" : "MODEL_PART_NAME",
+        "mesh_id"         : 0,
+        "variable_name"   : "VARIABLE_NAME",
+        "value"           : 1.0
+    }  )" );
+    return default_parameters;
 }
 
 /***********************************************************************************/
