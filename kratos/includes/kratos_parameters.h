@@ -373,8 +373,21 @@ public:
     ///@name Operations
     ///@{
 
-    //generates a clone of the current document
+    /**
+     * @brief Generates a clone of the current document
+     * @return A clone of the given Parameters
+     */
     Parameters Clone();
+
+    /**
+     * @brief This reads a JSON file from a given filename
+     */
+    void ReadJSONFile(const std::string& rFileName);
+
+    /**
+     * @brief This writes the current Parameters to a JSON file
+     */
+    void WriteJSONFile(const std::string& rFileName);
 
     /**
      * @brief This method returns a string with the corresponding text to the equivalent *.json file
