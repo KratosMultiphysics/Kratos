@@ -444,6 +444,7 @@ void NodalConcentratedElement::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         double& r_nodal_mass = GetGeometry()[0].GetValue(NODAL_MASS);
+        #pragma omp atomic
         r_nodal_mass += GetValue(NODAL_MASS);
     }
 
@@ -538,5 +539,4 @@ void NodalConcentratedElement::load( Serializer& rSerializer )
 }
 
 } // Namespace Kratos
-
 
