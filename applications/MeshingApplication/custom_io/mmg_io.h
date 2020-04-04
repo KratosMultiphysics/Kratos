@@ -270,7 +270,7 @@ private:
     Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
     Flags mOptions;                              /// Configuration flags
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;    /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmgUtilities;     /// The MMG utilities class
 
     ///@}
     ///@name Private Operators
