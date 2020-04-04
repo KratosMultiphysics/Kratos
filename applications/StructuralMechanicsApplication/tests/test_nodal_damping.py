@@ -25,7 +25,6 @@ class NodalDampingTests(KratosUnittest.TestCase):
             mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
-    time_array,disp_array = [],[]
     def _solve(self,mp):
 
         #define a minimal newton raphson dynamic solver
