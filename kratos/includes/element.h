@@ -267,6 +267,14 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  const ProcessInfo& rCurrentProcessInfo) const
+    {
+        const_cast<Element*>(this)->EquationIdVector(rResult, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rResult.size() != 0) {
+        //     rResult.resize(0);
+        // }
+    }
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
