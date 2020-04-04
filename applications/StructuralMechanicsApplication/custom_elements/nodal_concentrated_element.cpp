@@ -484,6 +484,7 @@ void NodalConcentratedElement::AddExplicitContribution(
         }
     } else if (rDestinationVariable == NODAL_INERTIA) {
         double& r_nodal_mass = GetGeometry()[0].GetValue(NODAL_MASS);
+        #pragma omp atomic
         r_nodal_mass += GetValue(NODAL_MASS);
         // no contribution for GetGeometry()[0].GetValue(NODAL_INERTIA);
     }
@@ -539,4 +540,3 @@ void NodalConcentratedElement::load( Serializer& rSerializer )
 }
 
 } // Namespace Kratos
-
