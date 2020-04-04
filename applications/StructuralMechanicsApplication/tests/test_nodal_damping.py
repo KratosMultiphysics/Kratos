@@ -6,8 +6,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt, atan, cos, exp
 
-import matplotlib.pyplot as plt
-
 class NodalDampingTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
