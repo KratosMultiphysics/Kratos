@@ -728,21 +728,21 @@ public:
 
         // Checks for all of the elements
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
+        for(int i=0; i<static_cast<int>(rModelPart.NumberOfElements()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->Check(r_current_process_info);
         }
 
         // Checks for all of the conditions
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
+        for(int i=0; i<static_cast<int>(rModelPart.NumberOfConditions()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->Check(r_current_process_info);
         }
 
         // Checks for all of the constraints
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); i++) {
+        for(int i=0; i<static_cast<int>(rModelPart.NumberOfMasterSlaveConstraints()); i++) {
             auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
             it_constraint->Check(r_current_process_info);
         }
