@@ -63,14 +63,20 @@ public:
     IgaModeler(const Parameters ModelerParameters = Parameters())
         : Modeler(ModelerParameters)
         , mEchoLevel(
-            ModelerParameters.Has("EchoLevel")
-            ? ModelerParameters["EchoLevel"].GetInt()
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
             : 0)
     {
     }
 
     /// Destructor.
     virtual ~IgaModeler() = default;
+
+    /// Creates the Modeler Pointer
+    Modeler::Pointer Create(const Parameters ModelParameters) const override
+    {
+        return Kratos::make_shared<IgaModeler>(ModelParameters);
+    }
 
     ///@}
     ///@name Stages
@@ -166,7 +172,7 @@ private:
     ///@{
 
     Parameters ReadParamatersFile(
-        const std::string& rDataFileName);
+        const std::string& rDataFileName) const;
 
     ///@}
 

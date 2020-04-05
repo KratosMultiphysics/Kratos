@@ -32,8 +32,7 @@ namespace Kratos
             ? mParameters["physics_file_name"].GetString()
             : "physics.iga.json";
 
-        const Parameters iga_physics_parameters = Parameters();// =
-            //ReadParamatersFile(rDataFileName);
+        const Parameters iga_physics_parameters = ReadParamatersFile(rDataFileName);
 
         CreateIntegrationDomain(
             cad_model_part,
@@ -82,7 +81,7 @@ namespace Kratos
 
         // Generate the list of geometries, which are needed, here.
         GeometriesArrayType geometry_list;
-        GetCadGeometryList(geometry_list, rModelPart, rParameters);
+        GetCadGeometryList(geometry_list, rCadModelPart, rParameters);
 
         if (!rParameters.Has("geometry_type")) {
             CreateQuadraturePointGeometries(
@@ -105,7 +104,7 @@ namespace Kratos
     }
 
     void IgaModeler::CreateQuadraturePointGeometries(
-        GeometriesArrayType& rQuadraturePointGeometryList,
+        GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters) const
     {
@@ -127,13 +126,14 @@ namespace Kratos
 
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
             << "Creating " << name << "s of type: " << type
-            << " for " << rQuadraturePointGeometryList.size() << " geometries"
+            << " for " << rGeometryList.size() << " geometries"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
-        for (SizeType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
+        for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
+            KRATOS_WATCH("here")
             GeometriesArrayType geometries;
-            rQuadraturePointGeometryList[i].CreateQuadraturePointGeometries(
+            rGeometryList[i].CreateQuadraturePointGeometries(
                 geometries, shape_function_derivatives_order);
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
@@ -252,7 +252,7 @@ namespace Kratos
 
     /// Reads in a json formatted file and returns its KratosParameters instance.
     Parameters IgaModeler::ReadParamatersFile(
-        const std::string& rDataFileName)
+        const std::string& rDataFileName) const
     {
         // Check if rDataFileName ends with ".cad.json" and add it if needed.
         const std::string data_file_name = (rDataFileName.compare(rDataFileName.size() - 9, 9, ".iga.json") != 0)
