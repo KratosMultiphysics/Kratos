@@ -268,14 +268,6 @@ namespace Kratos
                 if (mSolutionStepIsInitialized == false)
                 {
                     typename TSchemeType::Pointer pScheme = GetScheme();
-
-                    ModelPart& r_model_part = BaseType::GetModelPart();
-
-                    Vector dummy_vector;
-                    TSystemVectorType rDx = TSystemVectorType();
-                    TSystemVectorType rb = TSystemVectorType();
-
-
                     TSystemMatrixType mA = TSystemMatrixType();
                     TSystemVectorType mDx = TSystemVectorType();
                     TSystemVectorType mb = TSystemVectorType();
