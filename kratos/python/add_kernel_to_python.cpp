@@ -123,7 +123,7 @@ void AddKernelToPython(pybind11::module& m)
         .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){ self.Initialize();
         /*RegisterInPythonApplicationVariables(App);*/ }) //&Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)
-        .def("IsImported", &Kernel::IsImported)
+        .def_static("IsImported", &Kernel::IsImported)
         .def_static("IsDistributedRun", &Kernel::IsDistributedRun)
         .def("HasFlag", HasFlag)
         .def("GetFlag", GetFlag)
