@@ -371,7 +371,7 @@ public:
      * @return Zero means  all ok
      */
 
-    int Check(ModelPart& rModelPart) override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY;
 
