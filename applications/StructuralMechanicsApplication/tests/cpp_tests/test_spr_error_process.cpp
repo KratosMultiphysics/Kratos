@@ -64,9 +64,11 @@ namespace Kratos
                 }
             }
 
+            const auto& const_process_info = this_model_part.GetProcessInfo();
+
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize(process_info);
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(const_process_info);
+                ielem.InitializeSolutionStep(const_process_info);
             }
 
             // Compute error
@@ -112,9 +114,11 @@ namespace Kratos
                 }
             }
 
+            const auto& const_process_info = this_model_part.GetProcessInfo();
+
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize(process_info);
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(const_process_info);
+                ielem.InitializeSolutionStep(const_process_info);
             }
 
             // Compute error
