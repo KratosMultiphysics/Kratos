@@ -114,7 +114,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
      * @param rApplicationName The name of the application of interest
      * @return True if imported, false otherwise
      */
-    bool IsImported(const std::string& rApplicationName) const;
+    static bool IsImported(const std::string& rApplicationName);
 
     /**
      * @brief This method returns if the current instance is distributed or not
