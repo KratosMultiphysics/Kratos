@@ -74,7 +74,7 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        
+
         ## Initialize Modelers
         self._list_of_modelers = self._CreateModelers(self._GetOrderOfModelers())
 
@@ -285,7 +285,7 @@ class AnalysisStage(object):
             from KratosMultiphysics.modeler_factory import KratosModelerFactory
             factory = KratosModelerFactory()
 
-            modelers_params = self.project_parameters[parameter_name]
+            modelers_params = self.project_parameters["modelers"]
 
             # first initialize the modelers that depend on the order
             for modelers_names in initialization_order:
