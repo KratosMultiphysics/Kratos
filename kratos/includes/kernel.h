@@ -117,7 +117,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     static bool IsImported(const std::string& rApplicationName);
 
     /**
-     * @brief This method returns if the current instance is distributed or not
+     * @brief This method returns if Kratos is running distributed or not
      * @return True if distributed, false otherwise
      */
     static bool IsDistributedRun();
