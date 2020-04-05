@@ -681,20 +681,9 @@ class ExplicitStrategy(object):
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
-        if properties.Has(PARTICLE_FRICTION):
-            self.Procedures.KratosPrintWarning("---------------------------------------------------")
-            self.Procedures.KratosPrintWarning("  WARNING: Property PARTICLE_FRICTION is deprecated ")
-            self.Procedures.KratosPrintWarning("  since April 11th, 2018, replace with FRICTION")
-            self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
-            self.Procedures.KratosPrintWarning("---------------------------------------------------")
-            properties[FRICTION] = properties[PARTICLE_FRICTION]
-        if properties.Has(WALL_FRICTION):
-            self.Procedures.KratosPrintWarning("-------------------------------------------------")
-            self.Procedures.KratosPrintWarning("  WARNING: Property WALL_FRICTION is deprecated")
-            self.Procedures.KratosPrintWarning("  since April 11th, 2018, replace with FRICTION")
-            self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
-            self.Procedures.KratosPrintWarning("-------------------------------------------------")
-            properties[FRICTION] = properties[WALL_FRICTION]
+        if properties.Has(FRICTION):
+            properties[STATIC_FRICTION] = properties[FRICTION]
+            properties[DYNAMIC_FRICTION] = properties[FRICTION]
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

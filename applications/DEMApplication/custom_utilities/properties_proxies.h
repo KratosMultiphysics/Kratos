@@ -51,6 +51,14 @@ namespace Kratos {
         double* pGetTgOfFrictionAngle();
         void    SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
 
+        double  GetTgOfStaticFrictionAngle();
+        double* pGetTgOfStaticFrictionAngle();
+        void    SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
+
+        double  GetTgOfDynamicFrictionAngle();
+        double* pGetTgOfDynamicFrictionAngle();
+        void    SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle);
+
         double  GetCoefficientOfRestitution();
         double* pGetCoefficientOfRestitution();
         void    SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution);
@@ -117,6 +125,8 @@ namespace Kratos {
         double* mRollingFriction;
         double* mRollingFrictionWithWalls;
         double* mTgOfFrictionAngle;
+        double* mTgOfStaticFrictionAngle;
+        double* mTgOfDynamicFrictionAngle;
         double* mCoefficientOfRestitution;
         double* mLnOfRestitCoeff;
         double* mDensity;

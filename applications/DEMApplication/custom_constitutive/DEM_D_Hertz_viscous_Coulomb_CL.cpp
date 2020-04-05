@@ -231,12 +231,12 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        const double my_tg_of_static_friction_angle        = element->GetProperties()[PARTICLE_STATIC_FRICTION_COEF];
-        const double neighbour_tg_of_static_friction_angle = neighbour->GetProperties()[PARTICLE_STATIC_FRICTION_COEF];
+        const double my_tg_of_static_friction_angle        = element->GetTgOfStaticFrictionAngle();
+        const double neighbour_tg_of_static_friction_angle = neighbour->GetProperties()[STATIC_FRICTION];
         const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
-        const double my_tg_of_dynamic_friction_angle        = element->GetProperties()[PARTICLE_DYNAMIC_FRICTION_COEF];
-        const double neighbour_tg_of_dynamic_friction_angle = neighbour->GetProperties()[PARTICLE_DYNAMIC_FRICTION_COEF];
+        const double my_tg_of_dynamic_friction_angle        = element->GetTgOfDynamicFrictionAngle();
+        const double neighbour_tg_of_dynamic_friction_angle = neighbour->GetProperties()[DYNAMIC_FRICTION];
         const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
 
         if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
@@ -299,17 +299,14 @@ namespace Kratos {
                                                                 Condition* const wall) {
 
         const double my_mass    = element->GetMass();
+        const double gamma = element->GetProperties()[DAMPING_GAMMA];
+        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
 
-        const double my_gamma    = element->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = wall->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
+        ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
+        ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];
 
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(my_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(my_mass * mKt);
-
-        ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-        ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
