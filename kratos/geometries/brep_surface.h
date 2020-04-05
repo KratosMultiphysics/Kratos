@@ -70,6 +70,7 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     static constexpr IndexType SURFACE_INDEX = -1;
 
