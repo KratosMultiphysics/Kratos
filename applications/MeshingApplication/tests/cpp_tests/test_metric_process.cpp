@@ -304,9 +304,11 @@ namespace Kratos
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
+
             for (auto& ielem : r_model_part.Elements()) {
-                ielem.Initialize();
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(r_const_process_info);
+                ielem.InitializeSolutionStep(r_const_process_info);
             }
 
             // Set DISPLACEMENT_X and other variables
@@ -367,9 +369,11 @@ namespace Kratos
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
+
             for (auto& ielem : r_model_part.Elements()) {
-                ielem.Initialize();
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(r_const_process_info);
+                ielem.InitializeSolutionStep(r_const_process_info);
             }
 
             // Set DISPLACEMENT_X and other variables
