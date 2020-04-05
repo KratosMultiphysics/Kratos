@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 
 # Check if Trilinos has been imported to set the have_trilinos flag
-if (KratosMultiphysics.Kernel().IsImported("TrilinosApplication")):
+if (KratosMultiphysics.Kernel.IsImported("TrilinosApplication")):
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
     have_trilinos = True
 else:

@@ -62,7 +62,7 @@ TestSkippedException& TestSkippedException::operator << (const char * rString)
 
 bool TestSkippedException::ApplicationIsImported(const std::string& rApplicationName)
 {
-    return Kernel().IsImported(rApplicationName);
+    return Kernel::IsImported(rApplicationName);
 }
 
 std::string TestSkippedException::Info() const
