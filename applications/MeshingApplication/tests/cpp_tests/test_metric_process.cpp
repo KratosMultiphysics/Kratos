@@ -304,7 +304,7 @@ namespace Kratos
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
             for (auto& ielem : r_model_part.Elements()) {
-                ielem.Initialize();
+                ielem.Initialize(process_info);
                 ielem.InitializeSolutionStep(process_info);
             }
 
@@ -366,7 +366,7 @@ namespace Kratos
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
             for (auto& ielem : r_model_part.Elements()) {
-                ielem.Initialize();
+                ielem.Initialize(process_info);
                 ielem.InitializeSolutionStep(process_info);
             }
 
