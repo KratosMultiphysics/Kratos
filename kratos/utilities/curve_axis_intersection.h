@@ -90,7 +90,7 @@ namespace Kratos
             double& rMax,
             double Parameter)
         {
-            for (IndexType i = 0; i < rAxis.size(); ++i) {
+            for (IndexType i = 0; i < rAxis.size() - 1; ++i) {
                 KRATOS_DEBUG_ERROR_IF(i == rAxis.size() - 1)
                     << "Point of polygon not within the axis boundaries. Axis are: "
                     << rAxis << ". Searched parameter is: " << Parameter << std::endl;
