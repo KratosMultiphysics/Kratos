@@ -289,6 +289,20 @@ public:
         KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+    }
+
     ///@name Shape Function
     ///@{
 
