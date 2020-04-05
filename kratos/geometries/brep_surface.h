@@ -317,6 +317,20 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->CreateIntegrationPoints(
+            rIntegrationPoints);
+    }
+
     ///@name Shape Function
     ///@{
 
