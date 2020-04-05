@@ -722,11 +722,6 @@ public:
      */
     virtual int Check(const ModelPart& rModelPart) const
     {
-        return const_cast<Scheme&>(*this).Check(const_cast<ModelPart&>(rModelPart)); // TODO remove this after the transition period and move the implementation from the non-const version of this function here
-    }
-
-    virtual int Check(ModelPart& rModelPart)
-    {
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -745,8 +740,23 @@ public:
             it_cond->Check(r_current_process_info);
         }
 
+        // Checks for all of the constraints
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); i++) {
+            auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
+            it_constraint->Check(r_current_process_info);
+        }
+
         return 0;
         KRATOS_CATCH("");
+    }
+
+    virtual int Check(ModelPart& rModelPart)
+    {
+        // calling the const version for backward compatibility
+        const Scheme& r_const_this = *this;
+        const ModelPart& r_const_model_part = rModelPart;
+        return r_const_this.Check(r_const_model_part);
     }
 
     /**
