@@ -174,12 +174,6 @@ namespace Kratos
 
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
-        void GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function checks if self weight is present
