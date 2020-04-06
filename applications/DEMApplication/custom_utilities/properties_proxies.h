@@ -47,10 +47,6 @@ namespace Kratos {
         double* pGetRollingFrictionWithWalls();
         void    SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 
-        double  GetTgOfFrictionAngle();
-        double* pGetTgOfFrictionAngle();
-        void    SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
-
         double  GetTgOfStaticFrictionAngle();
         double* pGetTgOfStaticFrictionAngle();
         void    SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
@@ -124,7 +120,6 @@ namespace Kratos {
         double* mPoisson;
         double* mRollingFriction;
         double* mRollingFrictionWithWalls;
-        double* mTgOfFrictionAngle;
         double* mTgOfStaticFrictionAngle;
         double* mTgOfDynamicFrictionAngle;
         double* mCoefficientOfRestitution;

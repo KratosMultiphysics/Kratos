@@ -235,7 +235,6 @@ namespace Kratos {
         double tau_strength = 0.0;
         static bool first_time_entered = true;
         int damage_process = 0;
-        double equiv_tg_of_fri_ang;
         double maximum_frictional_shear_force = 0.0;
         const unsigned int sphere_id = 22222222;
         const std::string filename = "tangential_forces_damage.txt";
