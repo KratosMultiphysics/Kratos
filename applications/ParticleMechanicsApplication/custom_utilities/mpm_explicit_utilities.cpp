@@ -250,53 +250,27 @@ namespace Kratos
         Matrix jaumannRate = rateOfDeformation -
             (prod(spinTensor, rateOfDeformation)) * rDeltaTime +
             prod((rateOfDeformation * rDeltaTime), spinTensor);
+        Matrix strainIncrement = rDeltaTime * jaumannRate;
 
-        rMPStrain(0) += jaumannRate(0, 0) * rDeltaTime; //e_xx
-        rMPStrain(1) += jaumannRate(1, 1) * rDeltaTime; //e_yy
-
+        // Apply strain increment to strain vector
+        rMPStrain(0) += strainIncrement(0, 0); //e_xx
+        rMPStrain(1) += strainIncrement(1, 1); //e_yy
         if (dimension == 2)
         {
-            rMPStrain(2) += 2.0 * jaumannRate(0, 1) * rDeltaTime; //e_xy
+            rMPStrain(2) += 2.0 * strainIncrement(0, 1); //e_xy
         }        
         else
         {
-            rMPStrain(2) += jaumannRate(2, 2) * rDeltaTime; //e_zz
+            rMPStrain(2) += strainIncrement(2, 2) * rDeltaTime; //e_zz
 
-            rMPStrain(3) += 2.0 * jaumannRate(0, 1) * rDeltaTime; //e_xy
-            rMPStrain(4) += 2.0 * jaumannRate(1, 2) * rDeltaTime; //e_yz
-            rMPStrain(5) += 2.0 * jaumannRate(0, 2) * rDeltaTime; //e_xz
+            rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
+            rMPStrain(4) += 2.0 * strainIncrement(1, 2); //e_yz
+            rMPStrain(5) += 2.0 * strainIncrement(0, 2); //e_xz
         }  
 
         // Model compressibility
         rDeformationGradientIncrement = IdentityMatrix(dimension);
-        if (isCompressible)
-        {
-            Matrix strainIncrement = ZeroMatrix(dimension);
-
-            strainIncrement(0, 0) = rMPStrain(0); //e_xx
-            strainIncrement(1, 1) = rMPStrain(1); //e_yy
-
-            if (dimension == 2)
-            {
-                strainIncrement(0, 1) = rMPStrain(2) / 2.0; //e_xy
-                strainIncrement(1, 0) = rMPStrain(2) / 2.0; //e_yx
-            }
-            else
-            {
-                strainIncrement(2, 2) = rMPStrain(2); //e_zz
-
-                strainIncrement(0, 1) = rMPStrain(3) / 2.0; //e_xy
-                strainIncrement(1, 0) = rMPStrain(3) / 2.0; //e_yx
-                
-                strainIncrement(1, 2) = rMPStrain(4) / 2.0; //e_yz
-                strainIncrement(2, 1) = rMPStrain(4) / 2.0; //e_zy
-
-                strainIncrement(0, 2) = rMPStrain(5) / 2.0; //e_xz
-                strainIncrement(2, 0) = rMPStrain(5) / 2.0; //e_zx
-            }
-
-            rDeformationGradientIncrement += strainIncrement;
-        }
+        if (isCompressible) rDeformationGradientIncrement += strainIncrement;
 
         KRATOS_CATCH("")
     }
