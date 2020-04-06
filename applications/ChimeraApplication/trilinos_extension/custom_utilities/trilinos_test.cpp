@@ -10,7 +10,7 @@
 #include "Epetra_Vector.h"
 #include "EpetraExt_MatrixMatrix.h"
 #include "Epetra_FEVector.h"
-
+#include <Epetra_Time.h>
 #include "EpetraExt_CrsMatrixIn.h"
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
@@ -21,12 +21,25 @@
 #include <sstream>
 #include <fstream>
 
-#define PRINT() std::cout<<"Rank : "<<mpi_rank
+#define PRINT() std::cout<<"Rank "<<mpi_rank<<" : "
+
+
+Epetra_FECrsMatrix* create_epetra_crsmatrix(int numProcs,
+                                          int localProc,
+                                          int local_n,
+                                          bool callFillComplete = true,
+                                          bool symmetric = true,
+                                          int factor = 1);
+
+
+int time_matrix_matrix_multiply(Epetra_Comm& Comm,
+                                bool verbose);
 
 int main(int argc, char *argv[])
 {
     // Initializing MPI and making epetra comm
     (void)MPI_Init(&argc, &argv);
+    int ierr;
     Epetra_MpiComm comm(MPI_COMM_WORLD);
 
     // Get current rank and a total num process
@@ -34,108 +47,357 @@ int main(int argc, char *argv[])
     const int mpi_size = comm.NumProc();
     const int local_elements_per_rank = 5;
     const int num_over_lapping_elems = 0;
-    const int total_num_local_elems = local_elements_per_rank+num_over_lapping_elems;
-    std::vector<int> my_local_elements;
+    int total_num_local_elems = local_elements_per_rank
+    +num_over_lapping_elems;
+    const int total_global_rows = local_elements_per_rank * mpi_size;
+    std::vector<int> my_local_rows;
     for(int i=0; i<local_elements_per_rank; ++i)
     {
-        my_local_elements.emplace_back( (mpi_rank*local_elements_per_rank)+i );
+        my_local_rows.emplace_back( (mpi_rank*local_elements_per_rank)+i );
     }
     //defining a map as needed
-    const Epetra_Map local_map(-1, my_local_elements.size(), my_local_elements.data(), 0, comm);
+    // const Epetra_Map local_row_map_a(-1, my_local_rows.size(), my_local_rows.data(), 0, comm);
+    const Epetra_Map local_row_map_a(total_global_rows, total_num_local_elems, 0, comm);
 
-    // Making the EpetraFE vector 10x1
-    Epetra_FEVector epetra_vector(local_map);
-
-    std::vector<double> values(total_num_local_elems, 0.0);
-    for(int i=0; i<total_num_local_elems; ++i)
-    {
-        values[i] = (mpi_rank+1)*total_num_local_elems+i;
-    }
-    std::vector<int> ids;
-    for(int i=0; i<total_num_local_elems; ++i)
-    {
-        ids.emplace_back( (mpi_rank*local_elements_per_rank)+i );
-    }
+    // std::vector<int> my_local_cols;
+    // for(int i=0; i<local_elements_per_rank*mpi_size; ++i)
+    // {
+    //     my_local_cols.emplace_back( i );
+    // }
+    // const Epetra_Map local_col_map_a(-1, my_local_cols.size(), my_local_cols.data(), 0, comm);
     comm.Barrier();
+    int nnz_per_row = 9;
 
-    // Assembling the vector
-    int ierr = epetra_vector.SumIntoGlobalValues(ids.size(), ids.data(), values.data());
-    if(ierr != 0) PRINT()<<" Epetra failure found : "<< ierr<<std::endl;
-    ierr = epetra_vector.GlobalAssemble();
-    if(ierr != 0) PRINT()<<" Epetra failure found : "<< ierr<<std::endl;
-
-    // Making dummy epetra matrix (square) 10x10
-    Epetra_FECrsGraph a_graph(Copy, local_map, 10);
-    // Fill the graph
-    ierr = a_graph.InsertGlobalIndices(ids.size(), ids.data(), ids.size(), ids.data());
-    ierr = a_graph.GlobalAssemble();
-    // use the graph to make the matrix
-    Epetra_FECrsMatrix mat_a(Copy,a_graph);
+    // // Making dummy epetra matrix (square) 10x10
+    // Epetra_FECrsGraph a_graph(Copy, local_row_map_a, local_col_map_a, 10);
+    // // Fill the graph
+    // ierr = a_graph.InsertGlobalIndices(my_local_rows.size(), my_local_rows.data(), my_local_cols.size(), my_local_cols.data());
+    // ierr = a_graph.GlobalAssemble();
+    // // use the graph to make the matrix
+    // Epetra_FECrsMatrix mat_a(Copy,a_graph);
+    Epetra_FECrsMatrix mat_a(Copy, local_row_map_a, nnz_per_row);
     if(mpi_rank == 0){
-        std::vector<double> diag_values{2, 5.50, 2.111};
-        std::vector<int> col_indices{1,8,5};
-        mat_a.ReplaceGlobalValues(5, col_indices.size(), diag_values.data(), col_indices.data());
-    }
-    // mat_a.PutScalar(1.0);
-    mat_a.GlobalAssemble();
+        int global_row = 0;
+        int index = 0;
+        std::vector<double> values{2.0, 5.50, 2.111};
+        std::vector<int> col_indices{7,5,8};
+        mat_a.ReplaceGlobalValues(8, col_indices.size(), values.data(), col_indices.data());
 
+        global_row = 8;
+        for(const auto col : col_indices){
+            mat_a.InsertGlobalValues(global_row, 1, &values[index], &col);
+            ++index;
+        }
+        index = 0;
+
+        std::vector<double> values2{3.3, 1.50, 5.111,6.11,8.45};
+        std::vector<int> col_indices2{0,2,4,6,7};
+        global_row = 2;
+        for(const auto col : col_indices2){
+            mat_a.InsertGlobalValues(global_row, 1, &values2[index], &col);
+            ++index;
+        }
+        index = 0;
+
+
+        std::vector<double> values3{3.3, 1.50, 5.111};
+        std::vector<int> col_indices3{1,2,4};
+        global_row = 4;
+        for(const auto col : col_indices3){
+            mat_a.InsertGlobalValues(global_row, 1, &values3[index], &col);
+            ++index;
+        }
+        index = 0;
+    }
+    if(mpi_rank == 1){
+        int global_row = 0;
+        int index = 0;
+
+        std::vector<double> values{2.0, 5.50, 2.111};
+        std::vector<int> col_indices{5,7,8};
+        global_row = 7;
+        for(const auto col : col_indices){
+            mat_a.InsertGlobalValues(global_row, 1, &values[index], &col);
+            ++index;
+        }
+        index = 0;
+
+
+        std::vector<double> values2{3.3, 1.50, 5.111, 2.11, 8.24, 9.45};
+        std::vector<int> col_indices2{6,5,8, 0, 2, 3};
+        global_row = 9;
+        for(const auto col : col_indices2){
+            mat_a.InsertGlobalValues(global_row, 1, &values[index], &col);
+            ++index;
+        }
+        index = 0;
+    }
+    // mat_a.FillComplete();
     {
         EpetraExt::RowMatrixToMatrixMarketFile("amat.mm", mat_a);
     }
+    PRINT()<<"Setup of matrix A finished !"<<std::endl;
 
-    // Making dummy epetra matrix (rectangle) 10x2
-    std::vector<int> row_elems = my_local_elements;
-    std::vector<int> col_elems{0,1};
-    const Epetra_Map row_map(-1, row_elems.size(), row_elems.data(), 0, comm);
-    const Epetra_Map col_map(-1, col_elems.size(), col_elems.data(), 0, comm);
+    // // Making dummy epetra matrix 10x10
+    // std::vector<int> my_local_rows_b = my_local_rows;
+    // std::vector<int> my_local_cols_b{1,2,4,5,6,7,8};
+    // const Epetra_Map local_row_map_b(-1, my_local_rows_b.size(), my_local_rows_b.data(), 0, comm);
+    if(mpi_rank == 0)
+        total_num_local_elems-=2;
+    if(mpi_rank == 1)
+        total_num_local_elems+=2;
 
-    Epetra_FECrsGraph b_graph(Copy, row_map, 10);
-    ierr = b_graph.InsertGlobalIndices(ids.size(), ids.data(), col_elems.size(), col_elems.data());
-    ierr = b_graph.GlobalAssemble();
-    std::cout<<"b_graph "<<b_graph<<std::endl;
+    const Epetra_Map local_row_map_b(total_global_rows, total_num_local_elems, 0, comm);
+    // const Epetra_Map local_col_map_b(-1, my_local_cols_b.size(), my_local_cols_b.data(), 0, comm);
 
-    Epetra_FECrsMatrix mat_b(Copy,b_graph);
-    mat_b.FillComplete();
+    // Epetra_FECrsGraph b_graph(Copy, local_row_map_b, local_col_map_b, 10);
+    // ierr = b_graph.InsertGlobalIndices(my_local_rows_b.size(), my_local_rows_b.data(), my_local_cols_b.size(), my_local_cols_b.data());
+    // ierr = b_graph.GlobalAssemble();
+
+    // Epetra_FECrsMatrix mat_b(Copy,b_graph);
+    Epetra_FECrsMatrix mat_b(Copy, local_row_map_b, nnz_per_row);
     if(mpi_rank == 1){
-        std::vector<double> diag_valuesb{2, 0.50};
-        std::vector<int> col_indicesb{0,1};
-        mat_b.ReplaceGlobalValues(5, 2, diag_valuesb.data(), col_indicesb.data());
-    }
-    mat_b.GlobalAssemble();
+        int global_row = 0;
+        int index = 0;
+        std::vector<double> values{2.0, 5.50, 2.111};
+        std::vector<int> col_indices{5,6,8};
 
+        global_row = 6;
+        for(const auto col : col_indices){
+            mat_b.InsertGlobalValues(global_row, 1, &values[index], &col);
+            ++index;
+        }
+        index = 0;
+
+        std::vector<double> values2{3.3, 1.50};
+        std::vector<int> col_indices2{5,7};
+        global_row = 8;
+        for(const auto col : col_indices2){
+            mat_b.InsertGlobalValues(global_row, 1, &values2[index], &col);
+            ++index;
+        }
+        index = 0;
+    }
+
+    if(mpi_rank == 0){
+        int global_row = 0;
+        int index = 0;
+        std::vector<double> values{2.0, 5.50, 2.111};
+        std::vector<int> col_indices{5,6,8};
+        global_row = 5;
+        for(const auto col : col_indices){
+            mat_b.InsertGlobalValues(global_row, 1, &values[index], &col);
+            ++index;
+        }
+        index = 0;
+
+        std::vector<double> values2{3.3, 1.50, 5.111};
+        std::vector<int> col_indices2{1,2,4};
+        global_row = 2;
+        for(const auto col : col_indices2){
+            mat_b.InsertGlobalValues(global_row, 1, &values2[index], &col);
+            ++index;
+        }
+        index = 0;
+
+
+        std::vector<double> values3{3.3, 1.50, 5.111};
+        std::vector<int> col_indices3{1,2,4};
+        global_row = 4;
+        for(const auto col : col_indices3){
+            mat_b.InsertGlobalValues(global_row, 1, &values3[index], &col);
+            ++index;
+        }
+        index = 0;
+    }
+
+    mat_b.FillComplete();
     {
         EpetraExt::RowMatrixToMatrixMarketFile("bmat.mm", mat_b);
     }
+    PRINT()<<"Setup of matrix B finished !"<<std::endl;
 
-    // Now multiplying c = a*b
-    Epetra_FECrsMatrix mat_c(Copy,local_map, 1);
-    // c <- A*B
-    EpetraExt::MatrixMatrix::Multiply(mat_a, false, mat_b, false, mat_c, true);
+    // Now multiplying c = b'*a
+    Epetra_FECrsMatrix mat_c(Copy,mat_b.RowMap(), 0);
+    // c <- B'*A
+    ierr = EpetraExt::MatrixMatrix::Multiply(mat_b, true, mat_a, false, mat_c, false, true);
+    PRINT()<<"Error when multiplying B'A is : "<<ierr<<std::endl;
     mat_c.FillComplete();
-    mat_c.GlobalAssemble();
-
     {
         EpetraExt::RowMatrixToMatrixMarketFile("cmat.mm", mat_c);
     }
-
-    Epetra_FEVector vec_x(local_map);
-    Epetra_FEVector vec_y(local_map);
-    if(mpi_rank == 0){
-        std::vector<double> vals = {1.0,1.0,1.0,1.0};
-        std::vector<int> ids = {1,4,5,8};
-        vec_x.ReplaceGlobalValues(ids.size(), ids.data(), vals.data());
+    PRINT()<<"Setup of matrix C finished !"<<std::endl;
+    // d <- C*B
+    PRINT()<<" ONE "<<std::endl;
+    Epetra_FECrsMatrix mat_d(Copy, mat_b.RowMap(), 0);
+    ierr = EpetraExt::MatrixMatrix::Multiply(mat_c, false, mat_b, false, mat_d, false, true);
+    PRINT()<<"Error when multiplying C*B is : "<<ierr<<std::endl;
+    // mat_d.FillComplete();
+    {
+        EpetraExt::RowMatrixToMatrixMarketFile("dmat.mm", mat_a);
     }
-    vec_x.GlobalAssemble();
+    PRINT()<<"Setup of matrix D finished !"<<std::endl;
 
-    EpetraExt::MultiVectorToMatrixMarketFile("xvec.mm", vec_x);
-
-    mat_a.Multiply(false, vec_x, vec_y);
-
-    EpetraExt::MultiVectorToMatrixMarketFile("yvec.mm", vec_y);
-
-    vec_y.GlobalAssemble();
+    // ierr = time_matrix_matrix_multiply(comm, true);
 
     // MPI_Finalize after you are done using MPI.
     (void) MPI_Finalize ();
     return 0;
+}
+
+Epetra_FECrsMatrix* create_epetra_crsmatrix(int numProcs,
+                                          int localProc,
+                                          int local_n,
+                                          bool callFillComplete,
+                                          bool symmetric,
+                                          int factor)
+{
+  (void)localProc;
+#ifdef EPETRA_MPI
+  Epetra_MpiComm comm(MPI_COMM_WORLD);
+#else
+  Epetra_SerialComm comm;
+#endif
+  int global_num_rows = numProcs*local_n;
+
+  Epetra_Map rowmap(global_num_rows, local_n, 0, comm);
+
+  int nnz_per_row = 9;
+  Epetra_FECrsMatrix* matrix =
+    new Epetra_FECrsMatrix(Copy, rowmap, nnz_per_row);
+
+  // Add  rows one-at-a-time
+  double negOne = -1.0;
+  double posTwo = 2.0;
+  double val_L = symmetric ? negOne : -0.5;
+
+  for (int i=0; i<local_n; i++) {
+    int GlobalRow = matrix->GRID(i);
+    int RowLess1 = GlobalRow - 1*factor;
+    int RowPlus1 = GlobalRow + 1*factor;
+    int RowLess5 = GlobalRow - 5*factor;
+    int RowPlus5 = GlobalRow + 5*factor;
+    int RowLess9 = GlobalRow - 9*factor;
+    int RowPlus9 = GlobalRow + 9*factor;
+    int RowLess24 = GlobalRow - 24*factor;
+    int RowPlus24 = GlobalRow + 24*factor;
+    int RowLess48 = GlobalRow - 48*factor;
+    int RowPlus48 = GlobalRow + 48*factor;
+
+//    if (!symmetric) RowLess5 -= 2;
+
+    if (RowLess48>=0) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &val_L, &RowLess48);
+    }
+    if (RowLess24>=0) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &val_L, &RowLess24);
+    }
+    if (RowLess9>=0) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &val_L, &RowLess9);
+    }
+    if (RowLess5>=0) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &val_L, &RowLess5);
+    }
+    if (RowLess1>=0) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &val_L, &RowLess1);
+    }
+    if (RowPlus1<global_num_rows) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &negOne, &RowPlus1);
+    }
+    if (RowPlus5<global_num_rows) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &negOne, &RowPlus5);
+    }
+    if (RowPlus9<global_num_rows) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &negOne, &RowPlus9);
+    }
+    if (RowPlus24<global_num_rows) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &negOne, &RowPlus24);
+    }
+    if (RowPlus48<global_num_rows) {
+      matrix->InsertGlobalValues(GlobalRow, 1, &negOne, &RowPlus48);
+    }
+
+    matrix->InsertGlobalValues(GlobalRow, 1, &posTwo, &GlobalRow);
+  }
+
+  if (callFillComplete) {
+    int err = matrix->FillComplete();
+    if (err != 0) {
+      std::cout << "create_epetra_matrix: error in matrix.FillComplete()"
+         <<std::endl;
+    }
+  }
+
+  return(matrix);
+}
+
+int time_matrix_matrix_multiply(Epetra_Comm& Comm, bool verbose)
+{
+
+  const int magic_num = 3000;
+  // 2009/02/23: rabartl: If you are going to do a timing test you need to
+  // make this number adjustable form the command-line and you need to put in
+  // a real test that compares against hard numbers for pass/fail.
+
+  int localn = magic_num/Comm.NumProc();
+
+  Epetra_FECrsMatrix* A = create_epetra_crsmatrix(Comm.NumProc(),
+                                                Comm.MyPID(),
+                                                localn);
+
+  Epetra_FECrsMatrix* B = create_epetra_crsmatrix(Comm.NumProc(),
+                                                Comm.MyPID(),
+                                                localn,
+                                                true, false, 2);
+
+    {
+        EpetraExt::RowMatrixToMatrixMarketFile("amat.mm", *A);
+        EpetraExt::RowMatrixToMatrixMarketFile("bmat.mm", *B);
+    }
+
+  Epetra_FECrsMatrix* C = new Epetra_FECrsMatrix(Copy, A->RowMap(), 0);
+  Epetra_FECrsMatrix* D = new Epetra_FECrsMatrix(Copy, C->RowMap(), 0);
+
+  Epetra_Time timer(Comm);
+  double start_time = timer.WallTime();
+
+  int err = EpetraExt::MatrixMatrix::Multiply(*B, true, *A, false, *C);
+
+  if (err != 0) {
+    std::cout << "B'*A returned err=="<<err<<std::endl;
+    return(err);
+  }
+
+  int globaln = localn*Comm.NumProc();
+  if (verbose) {
+    std::cout << "size: " << globaln << "x"<<globaln<<", C = B'*A, time: "
+       << timer.WallTime()-start_time << std::endl;
+  }
+
+  C->FillComplete();
+
+  start_time = timer.WallTime();
+
+  err = EpetraExt::MatrixMatrix::Multiply(*C, false, *B, false, *D);
+
+  if (err != 0) {
+    std::cout << "C*A returned err=="<<err<<std::endl;
+    return(err);
+  }
+  D->FillComplete();
+
+  if (verbose) {
+    std::cout << "size: " << globaln << "x"<<globaln<<", D = C*A, time: "
+       << timer.WallTime()-start_time << std::endl;
+  }
+
+    {
+        EpetraExt::RowMatrixToMatrixMarketFile("cmat.mm", *C);
+        EpetraExt::RowMatrixToMatrixMarketFile("dmat.mm", *D);
+    }
+
+  delete C;
+  delete D;
+
+  return(err);
 }
