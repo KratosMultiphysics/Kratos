@@ -64,8 +64,8 @@ def AssembleTestSuites():
 
 
     ################################################################################
-    # nightSuite = suites['nightly'] # These tests are executed in the nightly build
-    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+    nightSuite = suites['nightly'] # These tests are executed in the nightly build
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
 
     # nightSuite.addTests(smallSuite)
 
@@ -79,7 +79,7 @@ def AssembleTestSuites():
     ################################################################################
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    # allSuite.addTests(nightSuite) # already contains the smallSuite
+    allSuite.addTests(nightSuite) # already contains the smallSuite
     allSuite.addTests(validationSuite)
 
     return suites
