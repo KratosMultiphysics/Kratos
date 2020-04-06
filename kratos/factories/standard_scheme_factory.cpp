@@ -55,13 +55,13 @@ namespace Kratos
         static auto ResidualBasedBDFCustomSchemeFactory= StandardSchemeFactory<BaseSchemeType, ResidualBasedBDFCustomSchemeType>();
 
         // Registration of convergence solvers
-        KRATOS_REGISTER_SCHEME("static", ResidualBasedIncrementalUpdateStaticSchemeFactory);
-        KRATOS_REGISTER_SCHEME("static_slip", ResidualBasedIncrementalUpdateStaticSchemeSlipFactory);
-        KRATOS_REGISTER_SCHEME("bossak", ResidualBasedBossakDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME("newmark", ResidualBasedNewmarkDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME("pseudo_static", ResidualBasedPseudoStaticDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME("bdf_displacement", ResidualBasedBDFDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME("bdf", ResidualBasedBDFCustomSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeSlipFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedBossakDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedNewmarkDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedPseudoStaticDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedBDFDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedBDFCustomSchemeFactory);
     };
 } // Namespace Kratos
 

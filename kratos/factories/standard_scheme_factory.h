@@ -56,6 +56,7 @@ template <typename TSchemeType, typename TCustomSchemeType>
 class StandardSchemeFactory
     : public BaseFactory<TSchemeType>
 {
+public:
     ///@name Type Definitions
     ///@{
 
@@ -63,10 +64,17 @@ class StandardSchemeFactory
     typedef TSchemeType SchemeType;
 
     ///@}
-protected:
-
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method returns the name of the class stored
+     * @return The name of the class stored (as defined in settings)
+     */
+    std::string Name() const override
+    {
+        return TCustomSchemeType::Name();
+    }
 
     /**
      * @brief This method is an auxiliar method to create a new convergence criteria
