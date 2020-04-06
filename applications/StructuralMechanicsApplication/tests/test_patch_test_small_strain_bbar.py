@@ -113,43 +113,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-        ##define a minimal newton raphson solver
-        #linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        #builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        #scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        #convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-
-        #max_iters = 20
-        #compute_reactions = True
-        #reform_step_dofs = True
-        #calculate_norm_dx = False
-        #move_mesh_flag = True
-        #if (linear):
-            #strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
-                                                                            #scheme,
-                                                                            #linear_solver,
-                                                                            #builder_and_solver,
-                                                                            #compute_reactions,
-                                                                            #reform_step_dofs,
-                                                                            #calculate_norm_dx,
-                                                                            #move_mesh_flag)
-
-        #else:
-            #strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                            #scheme,
-                                                                            #linear_solver,
-                                                                            #convergence_criterion,
-                                                                            #builder_and_solver,
-                                                                            #max_iters,
-                                                                            #compute_reactions,
-                                                                            #reform_step_dofs,
-                                                                            #move_mesh_flag)
-        #strategy.SetEchoLevel(0)
-
-        strategy.Check()
-        strategy.Solve()
-
-
     def _check_results(self,mp,A,b):
 
         ##check that the results are exact on the nodes
