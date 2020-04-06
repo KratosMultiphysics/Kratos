@@ -26,11 +26,11 @@ namespace Kratos
 
         // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
         // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
+        const SizeType number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
         
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (IndexType i = 0; i < number_of_nodes; i++)
         {
             // f_i = V * Sum_j [s_ij N_,j]
             if (dimension == 2)
@@ -93,8 +93,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        const SizeType number_of_nodes = rGeom.PointsNumber();
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
         bool isUpdateMPPositionFromUpdatedMPVelocity = true; // should normally be true. this reduces energy lost from kinematic aliasing
         const ProcessInfo& rProcessInfo = ProcessInfo();
 
@@ -104,22 +104,21 @@ namespace Kratos
         array_1d<double, 3> MP_Velocity = ZeroVector(3);
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_PreviousVelocity,rProcessInfo);        
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, MP_PreviousAcceleration, rProcessInfo);
-        double gamma = 1.0; // 0.5 for central difference, 1.0 for forward euler
-
-        if (isCentralDifference) {
-            gamma = 0.5;
-            isUpdateMPPositionFromUpdatedMPVelocity = false;
-        }
+        const double gamma = (isCentralDifference)
+            ? 0.5
+            : 1.0; // 0.5 for central difference, 1.0 for forward euler
+        if (isCentralDifference) isUpdateMPPositionFromUpdatedMPVelocity = false;
+        
 
         // Advance the material point predictor velocity
-        for (unsigned int i = 0; i < dimension; i++) {
+        for (IndexType i = 0; i < dimension; i++) {
             MP_Velocity[i] = MP_PreviousVelocity[0][i] + (1.0 - gamma) * rDeltaTime * MP_PreviousAcceleration[0][i];
         }
 
         array_1d<double, 3> delta_xg = ZeroVector(3);
         array_1d<double, 3> MP_Acceleration = ZeroVector(3);
 
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (IndexType i = 0; i < number_of_nodes; i++)
         {
             const double nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
 
@@ -129,7 +128,7 @@ namespace Kratos
                 const array_1d<double, 3>& r_current_residual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
                 const array_1d<double, 3>& r_middle_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-                for (unsigned int j = 0; j < dimension; j++)
+                for (IndexType j = 0; j < dimension; j++)
                 {
                     MP_Acceleration[j] += rN[i] * r_current_residual[j] / nodal_mass;
                     if (isCentralDifference)
@@ -148,7 +147,7 @@ namespace Kratos
         rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION, { MP_Acceleration }, rProcessInfo);
 
         // Update the MP Velocity corrector
-        for (unsigned int j = 0; j < dimension; j++)
+        for (IndexType j = 0; j < dimension; j++)
         {
             MP_Velocity[j] += gamma * rDeltaTime * MP_Acceleration[j];
         }
@@ -159,7 +158,7 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_COORD, xg,rProcessInfo);
         if (isUpdateMPPositionFromUpdatedMPVelocity)
         {
-            for (unsigned int j = 0; j < dimension; j++)
+            for (IndexType j = 0; j < dimension; j++)
             {
                 delta_xg[j] = rDeltaTime * MP_Velocity[j];
             }
@@ -185,8 +184,8 @@ namespace Kratos
         Vector& rN)
     {
         KRATOS_TRY
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
+        const SizeType number_of_nodes = rGeom.PointsNumber();
         const ProcessInfo& rProcessInfo = ProcessInfo();
 
         std::vector<array_1d<double, 3 > > MP_Velocity;
@@ -194,14 +193,14 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_Velocity,rProcessInfo);
         rElement.CalculateOnIntegrationPoints(MP_MASS, MP_Mass, rProcessInfo);
 
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (IndexType i = 0; i < number_of_nodes; i++)
         {
             const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
 
             if (r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
                 array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-                for (unsigned int j = 0; j < dimension; j++)
+                for (IndexType j = 0; j < dimension; j++)
                 {
                     // we need to use the original shape functions here (calculated before the momenta update)
                     r_current_velocity[j] += rN[i] * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
@@ -228,7 +227,6 @@ namespace Kratos
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
 
-
         //Calculate velocity gradients
         Matrix velocityGradient = Matrix(dimension, dimension, 0.0);
         for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
@@ -247,7 +245,6 @@ namespace Kratos
         //Calculate rate of deformation and spin tensors
         Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
         Matrix spinTensor = velocityGradient - rateOfDeformation;
-
 
         //Calculate objective Jaumann strain rate
         Matrix jaumannRate = rateOfDeformation -
