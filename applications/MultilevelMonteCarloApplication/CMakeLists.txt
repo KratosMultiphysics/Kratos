@@ -79,10 +79,10 @@ install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 #####        PyCOMPSs (Distributed Computation library)
 #####
 ############################################################################
-
 # Install pycompss mockup library
 if(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
-    kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/pycompss KratosMultiphysics/${CURRENT_DIR_NAME} )
+	message ( STATUS "Automatic installation of PyCOMPSs mockup library" )
+        kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/pycompss KratosMultiphysics/${CURRENT_DIR_NAME} )
 else (USING_PYCOMPSS)
 	message ( STATUS "Manual installation of PyCOMPSs" )
 endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
@@ -94,8 +94,9 @@ endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 ############################################################################
 # reference: https://cmake.org/cmake/help/git-stage/module/ExternalProject.html
 INCLUDE ( ExternalProject )
-
-if (NOT INCLUDE_XMC)
+# Install XMC library
+if (NOT DEFINED XMC_INCLUDE_DIR)
+	message ( STATUS "Automatic installation of XMC library" )
 	EXTERNALPROJECT_ADD ( XMC
 		PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries"
 		SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC"
@@ -107,11 +108,9 @@ if (NOT INCLUDE_XMC)
 		)
 	## install python files
 	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME} )
-
-elseif (INCLUDE_XMC)
-	message ( STATUS "Manual installation of XMC" )
+else (NOT DEFINED XMC_INCLUDE_DIR)
+	message ( STATUS "Manual installation of XMC from source directory: ${XMC_INCLUDE_DIR}" )
 	INCLUDE_DIRECTORIES(${XMC_INCLUDE_DIR})
         ## install python files
 	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${XMC_INCLUDE_DIR} KratosMultiphysics/${CURRENT_DIR_NAME} )
-
-endif(NOT INCLUDE_XMC)
+endif(NOT DEFINED XMC_INCLUDE_DIR)
