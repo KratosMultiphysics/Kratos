@@ -71,7 +71,7 @@
             "process_name"  : "ComputeForcesOnNodesProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.Body2D_Body",
-                "create_output_file": true
+                "create_output_file": false
             }
         },{
             "python_module" : "fix_vector_variable_process",
