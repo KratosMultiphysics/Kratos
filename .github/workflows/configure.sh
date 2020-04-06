@@ -39,6 +39,7 @@ add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
 
 # Clean
 clear
@@ -69,6 +70,6 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DMMGS_LIBRARY="/usr/local/lib/libmmgs.so"
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1 && \
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
 
