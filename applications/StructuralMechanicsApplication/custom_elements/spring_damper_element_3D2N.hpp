@@ -134,13 +134,6 @@ public:
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
 
     //************* COMPUTING  METHODS
 
@@ -153,8 +146,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-			      VectorType& rRightHandSideVector, 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+			      VectorType& rRightHandSideVector,
 			      ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -184,7 +177,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -193,7 +186,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -298,4 +291,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined 
+#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined

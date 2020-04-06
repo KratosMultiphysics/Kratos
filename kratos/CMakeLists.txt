@@ -1,5 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
+
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp
@@ -42,6 +44,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/data_value_container.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/integration/integration_point_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_neighbours_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
@@ -99,6 +102,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -138,6 +142,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_vector_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_application_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_quaternion_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
@@ -195,7 +200,7 @@ target_compile_definitions(KratosVersion PRIVATE
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
-target_link_libraries(KratosCore PUBLIC gidpost)
+target_link_libraries(KratosCore PUBLIC gidpost triangle)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 target_compile_definitions(KratosCore PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
@@ -229,6 +234,7 @@ if(USE_COTIRE MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosVersion)
     cotire(KratosCore)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)

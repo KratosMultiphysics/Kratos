@@ -261,7 +261,7 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-    int Check(ModelPart& rModelPart) override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY;
 
@@ -407,7 +407,7 @@ protected:
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
@@ -430,26 +430,26 @@ protected:
      * @param rM The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-    template <typename TObjectType>
+    template <class TObjectType>
     void TemplateAddDynamicsToRHS(
-        TObjectType rObject,
+        TObjectType& rObject,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rObject->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
+            rObject.GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, mVector.dot2un0[this_thread]);
         }
 
         // Adding damping contribution
         if (rD.size1() != 0) {
-            rObject->GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
+            rObject.GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rD, mVector.dotun0[this_thread]);
         }
     }
@@ -457,41 +457,41 @@ protected:
     /**
      * @brief It adds the dynamic RHS contribution of the elements
      * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
-     * @param pElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Element::Pointer pElement,
+        Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        TemplateAddDynamicsToRHS<Element::Pointer>(pElement, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
+        TemplateAddDynamicsToRHS<Element>(rElement, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
     }
 
     /**
      * @brief It adds the dynamic RHS contribution of the condition
      *  \f[ RHS = f_{ext} - \ddot{u}_{n0} \mathbf{M} + \dot{u}_{n0} \mathbf{D} + u_{n0} \mathbf{K} \f]
-     * @param pCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Condition::Pointer pCondition,
+        Condition& rCondition,
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        TemplateAddDynamicsToRHS<Condition::Pointer>(pCondition, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
+        TemplateAddDynamicsToRHS<Condition>(rCondition, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
     }
 
     ///@}

@@ -46,7 +46,7 @@ class TestCase(TestCase):
         absolute and relative difference
 
         If the two objects compare equal then they will automatically
-        compare relative almost equal. ''' 
+        compare relative almost equal. '''
 
         if first == second:
             # shortcut
@@ -67,16 +67,34 @@ class TestCase(TestCase):
         raise self.failureException(msg)
 
     def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
-        self.assertEqual(vector1.Size(), vector2.Size())
+        def GetErrMsg(mismatch_idx):
+            err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(mismatch_idx)
+            err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
+            yield err_msg
+
+        self.assertEqual(vector1.Size(), vector2.Size(), msg="\nCheck failed because vector arguments do not have the same size")
         for i in range(vector1.Size()):
-            self.assertAlmostEqual(vector1[i], vector2[i], prec)
+            self.assertAlmostEqual(vector1[i], vector2[i], prec, msg=GetErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        self.assertEqual(matrix1.Size2(), matrix2.Size2())
+        def GetDimErrMsg():
+            err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
+            err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
+            err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
+            yield err_msg
+
+        def GetValErrMsg(idx_1, idx_2):
+            err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(idx_1, idx_2)
+            err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
+            yield err_msg
+
+        dimensions_match = (matrix1.Size1() == matrix2.Size1() and matrix1.Size2() == matrix2.Size2())
+        self.assertTrue(dimensions_match, msg=GetDimErrMsg())
+
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
+
 
 @contextmanager
 def SupressConsoleOutput():
