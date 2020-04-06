@@ -695,6 +695,10 @@ public:
     {
         // Formulate the system vectors A, b, dx
         ResizeAndInitializeSystemVectors(pScheme, rpA, rpDx, rpb, rModelPart);
+
+        // Formulate the constraint transformation matrix T
+        ConstructMasterSlaveConstraintsStructure(rModelPart);
+
     }
 
     //**************************************************************************
@@ -898,6 +902,118 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Function Calculates sparsity pattern of the T matrix used for applying constraints
+     * @param rModelPart The model part of the problem to solve
+     */
+    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
+    {
+        if (mGlobalNumConstraints > 0) {
+            TSparseSpace::Clear(mpT);
+            TSparseSpace::Clear(mpConstantVector);
+            IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+            std::vector<int> local_eq_ids;
+            local_eq_ids.reserve(number_of_local_dofs);
+            // generate map - use the "temp" array here
+            for (IndexType i = 0; i != number_of_local_dofs; i++)
+                local_eq_ids.push_back( mFirstMyId + i );
+
+            std::sort(local_eq_ids.begin(), local_eq_ids.end());
+
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // Constraint initial iterator
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            std::map<IndexType, std::set<IndexType>> indices;
+
+            Element::EquationIdVectorType slave_ids;
+            Element::EquationIdVectorType master_ids;
+
+            for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+                auto it_const = it_const_begin + i_const;
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = it_const->IsDefined(ACTIVE) ? it_const->Is(ACTIVE) : true;
+                if(constraint_is_active) {
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids) {
+                        indices[id_i].insert(master_ids.begin(), master_ids.end());
+                    }
+                    mMasterIds.insert(mMasterIds.end(), master_ids.begin(), master_ids.end());
+                }
+            }
+            mSlaveIds.clear();
+            std::sort( mMasterIds.begin(), mMasterIds.end() );
+            mMasterIds.erase( unique( mMasterIds.begin(), mMasterIds.end() ), mMasterIds.end() );
+            for(const auto& slave_masters_pair : indices){
+                mSlaveIds.push_back(slave_masters_pair.first);
+            }
+            for(const auto& local_eq_id:local_eq_ids)
+                indices[local_eq_id].insert(local_eq_id);
+
+            // Count the row sizes
+            std::size_t nnz = 10; // This is a guess. This means each slave has some number of masters
+            const Epetra_Map row_map(-1, local_eq_ids.size(), local_eq_ids.data(), 0, mrComm);
+
+            std::set<IndexType> column_eq_ids_set;
+            for(auto& slave_masters_pair : indices){
+                for (auto it = slave_masters_pair.second.begin(); it != slave_masters_pair.second.end(); ++it) {
+                    column_eq_ids_set.insert(*it);
+                }
+            }
+
+            std::vector<int> col_eq_ids_vector(column_eq_ids_set.begin(), column_eq_ids_set.end());
+            column_eq_ids_set.clear();
+            const Epetra_Map col_map(-1, col_eq_ids_vector.size(), col_eq_ids_vector.data(), 0, mrComm);
+            Epetra_FECrsGraph t_graph(Copy, row_map, col_map, nnz);
+            col_eq_ids_vector.clear();
+            // Actually inserting indices into the graph
+            int slave_eq_id = 0;
+            for(auto& slave_masters_pair : indices){
+                slave_eq_id = slave_masters_pair.first;
+                std::vector<int> master_eq_ids(slave_masters_pair.second.begin(), slave_masters_pair.second.end());
+
+                int ierr = t_graph.InsertGlobalIndices(1, &slave_eq_id, master_eq_ids.size(), master_eq_ids.data());
+                KRATOS_ERROR_IF(ierr < 0)
+                    << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
+                    << std::endl;
+
+                slave_masters_pair.second.clear(); //deallocating the memory
+            }
+
+
+            // The diagonal values everywhere except at the slaves
+            for(const auto& eq_id : local_eq_ids)
+            {
+                if(indices.count(eq_id) == 0)
+                {
+                    int ierr = t_graph.InsertGlobalIndices(1, &eq_id, 1, &eq_id);
+                    KRATOS_ERROR_IF(ierr < 0)
+                        << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
+                        << std::endl;
+                }
+            }
+
+            int ierr = t_graph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0)
+                << ": Epetra failure in Graph.GlobalAssemble. Error code: " << ierr
+                << std::endl;
+
+            // generate a new matrix pointer according to this graph
+            TSystemMatrixPointerType p_new_t =
+                TSystemMatrixPointerType(new TSystemMatrixType(Copy, t_graph));
+            mpT.swap(p_new_t);
+
+            TSystemVectorPointerType p_new_Cvec =
+                TSystemVectorPointerType(new TSystemVectorType(row_map));
+            mpConstantVector.swap(p_new_Cvec);
+
+        }
+    }
 
     ///@}
     ///@name Protected  Access
