@@ -95,3 +95,12 @@ class SlipBoundaryTest(ParticleMechanicsTestFactory):
 ### Explicit time integration tests
 class ExplicitOscillatingPointUSLTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/oscillating_point/usl_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointUSFTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/usf_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointMUSLTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/musl_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointCentralDifferenceTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/central_difference_explicit_oscillating_point_test"
