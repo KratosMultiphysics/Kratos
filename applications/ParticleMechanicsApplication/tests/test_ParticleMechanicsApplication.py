@@ -28,6 +28,9 @@ from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStati
 
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
+from particle_mechanics_test_factory import ExplicitOscillatingPointUSLTest as TExplicitOscillatingPointUSLTest
+
+
 
 # Import from Test Factories (with different analysis flows)
 from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
@@ -97,6 +100,8 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
+    nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
+    
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
