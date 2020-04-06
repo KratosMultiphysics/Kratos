@@ -156,6 +156,54 @@ public:
     ///@name Operations
     ///@{
 
+
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Getting process info
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+        // Computing constraints
+        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
+        for (int k = 0; k < n_constraints; ++k) {
+            auto it = constraints_begin + k;
+            it->InitializeSolutionStep(r_process_info);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Getting process info
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+        // Computing constraints
+        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
+        for (int k = 0; k < n_constraints; ++k) {
+            auto it = constraints_begin + k;
+            it->FinalizeSolutionStep(r_process_info);
+        }
+    }
+
+
     /**
      * @brief Function to perform the build the system matrix and the residual
      * vector
