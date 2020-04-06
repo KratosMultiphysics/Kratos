@@ -245,7 +245,7 @@ public:
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            const bool element_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
+            const bool element_is_active = (*it)->IsDefined(ACTIVE) ? (*it)->Is(ACTIVE) : true;
 
             if (element_is_active) {
                 // calculate elemental contribution
@@ -269,7 +269,7 @@ public:
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
+            const bool condition_is_active = (*it)->IsDefined(ACTIVE) ? (*it)->Is(ACTIVE) : true;
             if (condition_is_active) {
                 // calculate elemental contribution
                 pScheme->CalculateSystemContributions(
@@ -319,7 +319,7 @@ public:
 
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            const bool element_is_active = (*it)->IsDefined(ACTIVE) ? (*it)->Is(ACTIVE) : true;
             if(element_is_active){
                 pScheme->CalculateLHSContribution(**it, LHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
@@ -336,7 +336,7 @@ public:
 
         // assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
-            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            const bool condition_is_active = (*it)->IsDefined(ACTIVE) ? (*it)->Is(ACTIVE) : true;
             if(condition_is_active){
                 // calculate elemental contribution
                 pScheme->CalculateLHSContribution(
@@ -512,7 +512,7 @@ public:
         // assemble all elements
         for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
             // calculate elemental Right Hand Side Contribution
-            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            const bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
                 pScheme->CalculateRHSContribution(**it_elem, RHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
@@ -526,7 +526,7 @@ public:
         // assemble all conditions
         for (auto it_cond = rModelPart.Conditions().ptr_begin(); it_cond < rModelPart.Conditions().ptr_end(); it_cond++) {
             // calculate condition contribution
-            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            const bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
                 pScheme->CalculateRHSContribution(**it_cond, RHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
@@ -568,7 +568,7 @@ public:
 
         // Taking dofs of elements
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            const bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
                 pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
                 for (typename DofsVectorType::iterator i_dof = dof_list.begin();
@@ -580,7 +580,7 @@ public:
         // Taking dofs of conditions
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            const bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
                 pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
                 for (typename DofsVectorType::iterator i_dof = dof_list.begin();
@@ -593,7 +593,7 @@ public:
         // Gets the array of constraints from the modeler
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
         for (auto it_const = r_constraints_array.ptr_begin(); it_const != r_constraints_array.ptr_end(); ++it_const) {
-            bool constraint_is_active = (*it_const)->IsDefined(ACTIVE) ? (*it_const)->Is(ACTIVE) : true;
+            const bool constraint_is_active = (*it_const)->IsDefined(ACTIVE) ? (*it_const)->Is(ACTIVE) : true;
             // Gets list of Dof involved on every element
             if(constraint_is_active){
                 (*it_const)->GetDofList(dof_list, second_dof_list, r_current_process_info);
@@ -722,7 +722,7 @@ public:
 
             // assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-                bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+                const bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
                 if(element_is_active){
                     pScheme->EquationId(**it_elem, equation_ids_vector,
                                         r_current_process_info);
@@ -748,7 +748,7 @@ public:
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-                bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+                const bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
                 if(condition_is_active){
                     pScheme->EquationId(
                         **it_cond, equation_ids_vector, r_current_process_info);
@@ -1060,16 +1060,6 @@ private:
         const int global_num_constraints = r_data_comm.SumAll(local_num_constraints);
         return global_num_constraints;
     }
-
-    //**************************************************************************
-    //**************************************************************************
-    void AssembleLHS_CompleteOnFreeRows(TSystemMatrixType& rA,
-                                        LocalSystemMatrixType& rLHS_Contribution,
-                                        Element::EquationIdVectorType& rEquationId)
-    {
-        KRATOS_ERROR << "This method is not implemented for Trilinos";
-    }
-
     ///@}
     ///@name Private  Access
     ///@{
