@@ -97,15 +97,6 @@ public:
         const bool NonHistoricalVariable = false
         );
 
-    /// Default constructor. (component)
-    ComputeNodalGradientProcess(
-        ModelPart& rModelPart,
-        const ComponentType& rOriginVariable,
-        const Variable<array_1d<double,3> >& rGradientVariable,
-        const Variable<double>& rAreaVariable = NODAL_AREA,
-        const bool NonHistoricalVariable = false
-        );
-
     /// Destructor.
     ~ComputeNodalGradientProcess() override
     {
@@ -224,10 +215,9 @@ private:
     ///@{
 
     ModelPart& mrModelPart;                                           /// The main model part
-    std::vector<const Variable<double>*> mpOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<const ComponentType*> mpOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
     const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
-    const Variable<double>* mpAreaVariable;                           /// The auxiliar area variable
+    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
 
     ///@}
