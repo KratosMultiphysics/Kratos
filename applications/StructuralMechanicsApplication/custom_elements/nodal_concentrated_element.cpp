@@ -219,51 +219,6 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
         rValues[2] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Z, Step );
 }
 
-//************* STARTING - ENDING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-void NodalConcentratedElement::Initialize()
-{
-    KRATOS_TRY;
-
-    KRATOS_CATCH( "" );
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void NodalConcentratedElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    KRATOS_CATCH( "" );
-}
-
-////************************************************************************************
-////************************************************************************************
-void NodalConcentratedElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void NodalConcentratedElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
-    KRATOS_CATCH( "" );
-}
 
 //************* COMPUTING  METHODS
 //************************************************************************************

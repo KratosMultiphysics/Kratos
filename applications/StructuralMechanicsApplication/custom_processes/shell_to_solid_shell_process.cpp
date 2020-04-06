@@ -548,8 +548,9 @@ template<SizeType TNumNodes>
 void ShellToSolidShellProcess<TNumNodes>::InitializeElements()
 {
     ElementsArrayType& element_array = mrThisModelPart.Elements();
+    const auto& r_process_info = mrThisModelPart.GetProcessInfo();
     for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->Initialize();
+        (element_array.begin() + i)->Initialize(r_process_info);
 }
 
 /***********************************************************************************/

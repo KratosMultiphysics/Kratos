@@ -132,11 +132,6 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) override;
 
-    void Initialize() override
-    {
-        mpPrimalElement->Initialize();
-    }
-
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->Initialize(rCurrentProcessInfo);
