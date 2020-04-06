@@ -299,7 +299,7 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;                        /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmgUtilities;                         /// The MMG utilities class
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
