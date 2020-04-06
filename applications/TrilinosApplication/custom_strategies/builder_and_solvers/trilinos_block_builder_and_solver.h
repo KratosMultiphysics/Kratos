@@ -551,7 +551,7 @@ public:
         // Gets the array of elements from the modeler
         ElementsArrayType& r_elements_array =
             rModelPart.GetCommunicator().LocalMesh().Elements();
-        DofsVectorType dof_list;
+        DofsVectorType dof_list, second_dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
@@ -562,19 +562,38 @@ public:
 
         // Taking dofs of elements
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
-                 i_dof != dof_list.end(); ++i_dof)
-                temp_dofs_array.push_back(*i_dof);
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            if(element_is_active){
+                pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
+                for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                    i_dof != dof_list.end(); ++i_dof)
+                    temp_dofs_array.push_back(*i_dof);
+            }
         }
 
         // Taking dofs of conditions
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
-                 i_dof != dof_list.end(); ++i_dof)
-                temp_dofs_array.push_back(*i_dof);
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            if(condition_is_active){
+                pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
+                for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                    i_dof != dof_list.end(); ++i_dof)
+                    temp_dofs_array.push_back(*i_dof);
+            }
+        }
+
+
+        // Gets the array of constraints from the modeler
+        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        for (auto it_const = r_constraints_array.ptr_begin(); it_const != r_constraints_array.ptr_end(); ++it_const) {
+            bool constraint_is_active = (*it_const)->IsDefined(ACTIVE) ? (*it_const)->Is(ACTIVE) : true;
+            // Gets list of Dof involved on every element
+            if(constraint_is_active){
+                (*it_const)->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                temp_dofs_array.insert(dof_list.begin(), dof_list.end());
+                temp_dofs_array.insert(second_dof_list.begin(), second_dof_list.end());
+            }
         }
 
         temp_dofs_array.Unique();
