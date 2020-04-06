@@ -100,9 +100,7 @@ public:
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
         BaseType::GetModelPart(), element_type);
 
-    typedef typename Kratos::VariableComponent<
-        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>
-        VarComponent;
+    typedef Variable<double> VarComponent;
 
     mpbuilder_and_solver_x = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedEliminationBuilderAndSolverComponentwise<
