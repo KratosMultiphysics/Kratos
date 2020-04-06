@@ -341,13 +341,15 @@ namespace Kratos {
                 }
             }
         } else {
-            equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
+            double equiv_tg_of_static_fri_ang = 0.5 * (element1->GetTgOfStaticFrictionAngle() + element2->GetTgOfStaticFrictionAngle());
+            double equiv_tg_of_dynamic_fri_ang = 0.5 * (element1->GetTgOfDynamicFrictionAngle() + element2->GetTgOfDynamicFrictionAngle());
 
-            if(equiv_tg_of_fri_ang < 0.0) {
+            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
             }
 
-            maximum_frictional_shear_force = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+            double maximum_frictional_shear_force = equiv_tg_of_static_fri_ang * LocalElasticContactForce[2];
+            if (current_tangential_force_module > maximum_frictional_shear_force) maximum_frictional_shear_force = equiv_tg_of_dynamic_fri_ang * LocalElasticContactForce[2];
 
             if (maximum_frictional_shear_force < 0.0) maximum_frictional_shear_force = 0.0;
 
