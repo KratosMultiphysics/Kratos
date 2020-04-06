@@ -956,6 +956,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    /**
+     * @brief Function Calculates the total number of constraints across all the MPI ranks
+     * @param rModelPart The model part of the problem to solve
+     * @out   Total Number of constraints across all the MPI ranks
+     */
+    int GetGlobalNumberOfConstraints(ModelPart& rModelPart)
+    {
+        const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        const int local_num_constraints = rModelPart.MasterSlaveConstraints().size();
+        const int global_num_constraints = r_data_comm.SumAll(local_num_constraints);
+        return global_num_constraints;
+    }
 
     //**************************************************************************
     //**************************************************************************
