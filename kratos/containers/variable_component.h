@@ -16,15 +16,11 @@
 #if !defined(KRATOS_VARIABLE_COMPONENT_H_INCLUDED )
 #define  KRATOS_VARIABLE_COMPONENT_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -101,8 +97,7 @@ public:
         const AdaptorType& rNewAdaptor,
         const VariableComponentType* pTimeDerivativeVariable = nullptr
         )
-        : BaseType(rComponentName, sizeof(DataType),&rNewAdaptor.GetSourceVariable(), rNewAdaptor.GetComponentIndex()), mpSourceVariable(&NewAdaptor.GetSourceVariable()),
-          mAdaptor(rNewAdaptor),
+        : BaseType(rComponentName, sizeof(DataType),&rNewAdaptor.GetSourceVariable(), rNewAdaptor.GetComponentIndex()), mpSourceVariable(&rNewAdaptor.GetSourceVariable()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
         SetKey(GenerateKey(rSourceName, sizeof(DataType), true, ComponentIndex));
@@ -247,7 +242,6 @@ private:
     ///@{
 
     static const VariableComponent  msStaticObject;
-
 
     ///@}
     ///@name Member Variables
