@@ -51,10 +51,10 @@ namespace Kratos
         static auto ExplicitStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ExplicitStrategyType>();
 
         // Registration of strategies
-        KRATOS_REGISTER_STRATEGY("linear_strategy", ResidualBasedLinearStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("newton_raphson_strategy", ResidualBasedNewtonRaphsonStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("adaptative_newton_raphson_strategy", AdaptiveResidualBasedNewtonRaphsonStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("line_search_strategy", LineSearchStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("explicit_strategy", ExplicitStrategyFactory);
+        KRATOS_REGISTER_STRATEGY(ResidualBasedLinearStrategyFactory);
+        KRATOS_REGISTER_STRATEGY(ResidualBasedNewtonRaphsonStrategyFactory);
+        KRATOS_REGISTER_STRATEGY(AdaptiveResidualBasedNewtonRaphsonStrategyFactory);
+        KRATOS_REGISTER_STRATEGY(LineSearchStrategyFactory);
+        KRATOS_REGISTER_STRATEGY(ExplicitStrategyFactory);
     };
 } // Namespace Kratos
