@@ -504,25 +504,29 @@ public:
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
-        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
+        for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
             // calculate elemental Right Hand Side Contribution
-            pScheme->CalculateRHSContribution(**it, RHS_Contribution,
-                                                equation_ids_vector, r_current_process_info);
-
-            // assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            if(element_is_active){
+                pScheme->CalculateRHSContribution(**it_elem, RHS_Contribution,
+                                                    equation_ids_vector, r_current_process_info);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            }
         }
 
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
-        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
-            // calculate elemental contribution
-            pScheme->CalculateRHSContribution(
-                **it, RHS_Contribution, equation_ids_vector, r_current_process_info);
-
-            // assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+        for (auto it_cond = rModelPart.Conditions().ptr_begin(); it_cond < rModelPart.Conditions().ptr_end(); it_cond++) {
+            // calculate condition contribution
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            if(condition_is_active){
+                pScheme->CalculateRHSContribution(**it_cond, RHS_Contribution,
+                                                    equation_ids_vector, r_current_process_info);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            }
         }
 
         // finalizing the assembly
