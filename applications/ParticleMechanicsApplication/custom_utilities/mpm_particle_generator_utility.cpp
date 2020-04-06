@@ -581,6 +581,9 @@ namespace MPMParticleGeneratorUtility
                         // Get new condition
                         const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
 
+                        // Check Normal direction
+                        if (flip_normal_direction) mpc_normal *= -1.0;
+
                         // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
                         for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
@@ -590,16 +593,14 @@ namespace MPMParticleGeneratorUtility
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
-
+                            
                             // Loop over the nodes of the grid condition
                             for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
                                 for ( unsigned int j = 0; j < r_geometry.size(); j ++){
                                     mpc_xg[dimension] = mpc_xg[dimension] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dimension];
                                 }
                             }
-
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
+                            
 
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the second loop below
@@ -693,10 +694,10 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                        }
+                        } 
 
                         last_condition_id += r_geometry.size();
-                    }
+                    } 
                 }
             }
         }
