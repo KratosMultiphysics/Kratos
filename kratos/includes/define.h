@@ -502,14 +502,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, variable_derivative) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::array_1d<double, 3>(Kratos::ZeroVector(3)), &variable_derivative); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0), &variable_derivative##_X); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, #name, 0, &variable_derivative##_X); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1), &variable_derivative##_Y); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, #name, 1, &variable_derivative##_Y); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2), &variable_derivative##_Z);
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, #name, 2, &variable_derivative##_Z);
 
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
@@ -523,14 +523,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, variable_derivative) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3), &variable_derivative); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0), &variable_derivative##_XX); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, #name, 0, &variable_derivative##_XX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1), &variable_derivative##_YY); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, #name, 1, &variable_derivative##_YY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2), &variable_derivative##_XY);
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, #name, 2, &variable_derivative##_XY);
 
 #ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
@@ -544,23 +544,23 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, variable_derivative) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::zero_vector<double>(6), &variable_derivative); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 0), &variable_derivative##_XX); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, #name, 0, &variable_derivative##_XX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 1), &variable_derivative##_YY); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, #name, 1, &variable_derivative##_YY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 2), &variable_derivative##_ZZ); \
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, #name, 2, &variable_derivative##_ZZ); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
-                  component4(#component4, #name, 3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 3), &variable_derivative##_XY); \
+    /*const*/ Kratos::Variable<double> \
+                  component4(#component4, #name, 3, &variable_derivative##_XY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
-                  component5(#component5, #name, 4, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 4), &variable_derivative##_YZ); \
+    /*const*/ Kratos::Variable<double> \
+                  component5(#component5, #name, 4, &variable_derivative##_YZ); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> > > \
-                  component6(#component6, #name, 5, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(name, 5), &variable_derivative##_XZ);
+    /*const*/ Kratos::Variable<double> \
+                  component6(#component6, #name, 5, &variable_derivative##_XZ);
 
 #ifdef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
@@ -574,17 +574,17 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, variable_derivative) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::zero_vector<double>(4), &variable_derivative); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 0), &variable_derivative##_XX); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, #name, 0, &variable_derivative##_XX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 1), &variable_derivative##_XY); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, #name, 1, &variable_derivative##_XY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 2), &variable_derivative##_YX); \
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, #name, 2, &variable_derivative##_YX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> > > \
-                  component4(#component4, #name, 3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(name, 3), &variable_derivative##_YY);
+    /*const*/ Kratos::Variable<double> \
+                  component4(#component4, #name, 3, &variable_derivative##_YY);
 
 #ifdef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
@@ -598,32 +598,32 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, component7, component8, component9, variable_derivative) \
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::zero_vector<double>(9), &variable_derivative); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 0), &variable_derivative##_XX); \
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, #name, 0, &variable_derivative##_XX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 1), &variable_derivative##_XY); \
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, #name, 1, &variable_derivative##_XY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 2), &variable_derivative##_XZ); \
+    /*const*/ Kratos::Variable<double> \
+                  component3(#component3, #name, 2, &variable_derivative##_XZ); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component4(#component4, #name, 3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 3), &variable_derivative##_YX); \
+    /*const*/ Kratos::Variable<double> \
+                  component4(#component4, #name, 3, &variable_derivative##_YX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component5(#component5, #name, 4, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 4), &variable_derivative##_YY); \
+    /*const*/ Kratos::Variable<double> \
+                  component5(#component5, #name, 4, &variable_derivative##_YY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component6(#component6, #name, 5, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 5), &variable_derivative##_YZ); \
+    /*const*/ Kratos::Variable<double> \
+                  component6(#component6, #name, 5, &variable_derivative##_YZ); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component7(#component7, #name, 6, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 6), &variable_derivative##_ZX); \
+    /*const*/ Kratos::Variable<double> \
+                  component7(#component7, #name, 6, &variable_derivative##_ZX); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component8(#component8, #name, 7, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 7), &variable_derivative##_ZY); \
+    /*const*/ Kratos::Variable<double> \
+                  component8(#component8, #name, 7, &variable_derivative##_ZY); \
 \
-    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> > > \
-                  component9(#component9, #name, 8, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(name, 8), &variable_derivative##_ZZ);
+    /*const*/ Kratos::Variable<double> \
+                  component9(#component9, #name, 8, &variable_derivative##_ZZ);
 
 #ifdef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
