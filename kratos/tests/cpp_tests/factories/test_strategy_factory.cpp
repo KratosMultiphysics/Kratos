@@ -64,7 +64,7 @@ namespace Kratos
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_strategy->Info()), "ResidualBasedLinearStrategy");
+            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ResidualBasedLinearStrategy");
         }
 
         /**
@@ -89,7 +89,7 @@ namespace Kratos
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_strategy->Info()), "ResidualBasedNewtonRaphsonStrategy");
+            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ResidualBasedNewtonRaphsonStrategy");
         }
 
         /**
@@ -114,7 +114,7 @@ namespace Kratos
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_strategy->Info()), "AdaptiveResidualBasedNewtonRaphsonStrategy");
+            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "AdaptiveResidualBasedNewtonRaphsonStrategy");
         }
 
         /**
@@ -139,7 +139,7 @@ namespace Kratos
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_strategy->Info()), "LineSearchStrategy");
+            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "LineSearchStrategy");
         }
 
         /**
@@ -164,7 +164,7 @@ namespace Kratos
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_strategy->Info()), "ExplicitStrategy");
+            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ExplicitStrategy");
         }
 
     } // namespace Testing

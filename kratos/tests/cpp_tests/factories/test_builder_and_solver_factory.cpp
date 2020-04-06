@@ -50,7 +50,7 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = nullptr;
             Parameters this_parameters = Parameters(R"({"name" : "elimination_builder_and_solver"})");
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactoryType().Create(p_solver, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_builder_and_solver->Info()), "ResidualBasedEliminationBuilderAndSolver");
+            KRATOS_CHECK_STRING_EQUAL(p_builder_and_solver->Info(), "ResidualBasedEliminationBuilderAndSolver");
         }
 
         /**
@@ -61,7 +61,7 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = nullptr;
             Parameters this_parameters = Parameters(R"({"name" : "elimination_builder_and_solver_with_constraints"})");
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactoryType().Create(p_solver, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_builder_and_solver->Info()), "ResidualBasedEliminationBuilderAndSolverWithConstraints");
+            KRATOS_CHECK_STRING_EQUAL(p_builder_and_solver->Info(), "ResidualBasedEliminationBuilderAndSolverWithConstraints");
         }
 
         /**
@@ -72,7 +72,7 @@ namespace Kratos
             LinearSolverType::Pointer p_solver = nullptr;
             Parameters this_parameters = Parameters(R"({"name" : "block_builder_and_solver"})");
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactoryType().Create(p_solver, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_builder_and_solver->Info()), "ResidualBasedBlockBuilderAndSolver");
+            KRATOS_CHECK_STRING_EQUAL(p_builder_and_solver->Info(), "ResidualBasedBlockBuilderAndSolver");
         }
 
     } // namespace Testing

@@ -48,7 +48,7 @@ namespace Kratos
         {
             Parameters this_parameters = Parameters(R"({"name" : "displacement_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_conv_criteria->Info()), "DisplacementCriteria");
+            KRATOS_CHECK_STRING_EQUAL(p_conv_criteria->Info(), "DisplacementCriteria");
         }
 
         /**
@@ -58,7 +58,7 @@ namespace Kratos
         {
             Parameters this_parameters = Parameters(R"({"name" : "residual_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_conv_criteria->Info()), "ResidualCriteria");
+            KRATOS_CHECK_STRING_EQUAL(p_conv_criteria->Info(), "ResidualCriteria");
         }
 
         /**
@@ -68,7 +68,7 @@ namespace Kratos
         {
             Parameters this_parameters = Parameters(R"({"name" : "and_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_conv_criteria->Info()), "And_Criteria");
+            KRATOS_CHECK_STRING_EQUAL(p_conv_criteria->Info(), "And_Criteria");
         }
 
         /**
@@ -78,7 +78,7 @@ namespace Kratos
         {
             Parameters this_parameters = Parameters(R"({"name" : "or_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
-            KRATOS_CHECK_STRING_EQUAL((p_conv_criteria->Info()), "Or_Criteria");
+            KRATOS_CHECK_STRING_EQUAL(p_conv_criteria->Info(), "Or_Criteria");
         }
 
     } // namespace Testing
