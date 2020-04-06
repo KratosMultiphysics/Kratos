@@ -1015,6 +1015,66 @@ protected:
         }
     }
 
+    virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        TSparseSpace::SetToZero(*mpT);
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Vector containing the localization in the system of the different terms
+        DofsVectorType slave_dof_list, master_dof_list;
+
+        // Contributions to the system
+        Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
+        Vector constant_vector = LocalSystemVectorType(0);
+
+        // Vector containing the localization in the system of the different terms
+        EquationIdVectorType slave_equation_ids, master_equation_ids;
+
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        std::set<IndexType> slave_eq_ids_set;
+
+        // We clear the set
+        mInactiveSlaveEqIDs.clear();
+
+        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            // Detect if the constraint is active or not. If the user did not make any choice the constraint
+            // It is active by default
+            bool constraint_is_active = it_const->IsDefined(ACTIVE) ? it_const->Is(ACTIVE) : true;
+            if (constraint_is_active) {
+                it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                slave_eq_ids_set.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+                // Assemble transformation matrix
+                AssembleTMatrixContribution(*mpT, transformation_matrix, slave_equation_ids, master_equation_ids);
+                // Assemble the constant vector
+                TSparseSpace::AssembleRHS(*mpConstantVector, constant_vector, slave_equation_ids);
+            } else { // Taking into account inactive constraints
+                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                mInactiveSlaveEqIDs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+            }
+        }
+
+        // All other Dofs except slaves
+        double value = 1.0;
+        for(auto const dof : mDofSet){
+            int eq_id = dof.EquationId();
+            int my_rank = rModelPart.GetCommunicator().MyPID();
+            if(my_rank == dof.GetSolutionStepValue(PARTITION_INDEX))
+                if(slave_eq_ids_set.count(eq_id)==0){ // Its a master
+                    mpT->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
+                }
+        }
+
+        mpT->GlobalAssemble();
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
