@@ -55,8 +55,6 @@ def AssembleTestSuites():
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
     ### Adding the self-contained tests
-    smallSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
-    smallSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
@@ -75,6 +73,8 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
+    nightSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    nightSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
