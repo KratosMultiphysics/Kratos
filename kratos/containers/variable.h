@@ -127,7 +127,12 @@ public:
      * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
+    Variable(const VariableType& rOtherVariable) :
+        VariableData(rOtherVariable),
+        mZero(rOtherVariable.mZero),
+        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    {
+    }
 
     /// Destructor.
     ~Variable() override {}
