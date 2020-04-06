@@ -10,10 +10,6 @@
 //  Main authors:    Peter Wilson
 //
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "custom_utilities/mpm_explicit_utilities.h"
 
@@ -28,12 +24,12 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
+        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
         const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
-
-        // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
-        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
+        
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             // f_i = V * Sum_j [s_ij N_,j]
@@ -110,15 +106,13 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, MP_PreviousAcceleration, rProcessInfo);
         double gamma = 1.0; // 0.5 for central difference, 1.0 for forward euler
 
-        if (isCentralDifference)
-        {
+        if (isCentralDifference) {
             gamma = 0.5;
             isUpdateMPPositionFromUpdatedMPVelocity = false;
         }
 
         // Advance the material point predictor velocity
-        for (unsigned int i = 0; i < dimension; i++)
-        {
+        for (unsigned int i = 0; i < dimension; i++) {
             MP_Velocity[i] = MP_PreviousVelocity[0][i] + (1.0 - gamma) * rDeltaTime * MP_PreviousAcceleration[0][i];
         }
 
@@ -190,7 +184,6 @@ namespace Kratos
         Element& rElement,
         Vector& rN)
     {
-
         KRATOS_TRY
         const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();

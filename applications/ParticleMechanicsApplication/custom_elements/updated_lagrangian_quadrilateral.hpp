@@ -416,24 +416,16 @@ public:
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called after InitializeSolutionStep at the start of the non-linear iteration
-    */
+    /// Called after InitializeSolutionStep at the start of the non-linear iteration
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called at the end of each solution step
-     */
+    /// Called at the end of each solution step
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called at the end of each solution step
-     */
+    /// Called at the end of each solution step
     void FinalizeImplicitSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Called at the end of each solution step
-     */
+    /// Called at the end of each solution step
     void FinalizeExplicitSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     //************* COMPUTING  METHODS
@@ -630,29 +622,19 @@ protected:
      */
     bool mFinalizedStep;
 
-    /**
-     * Container to store shape functions over whole timestep
-     */
+    /// Container to store shape functions over whole timestep
     Vector mN;
 
-    /**
-     * Container to store shape function gradients over whole timestep
-     */
+    /// Container to store shape function gradients over whole timestep
     Matrix mDN_DX;
 
-    /**
-     * Boolean for explicit time integration
-     */
+    /// Boolean for explicit time integration
     bool mIsExplicit = false;
 
-    /**
-     * Boolean for stress update option
-     */
+    /// Boolean for stress update option
     bool mIsUSFStressUpdate = false;
 
-    /**
-     * Boolean for central difference explicit time integration
-     */
+    /// Boolean for central difference explicit time integration
     bool mIsCentralDifference = false;
 
 
@@ -723,17 +705,12 @@ protected:
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
 
-    /**
-      * Calculation of the Explicit Internal Forces Vector. Fi = div. sigma
-      */
+    /// Calculation of the Explicit Internal Forces Vector. Fi = div. sigma
     virtual void CalculateAndAddExplicitInternalForces(VectorType& rRightHandSideVector);
 
-    /**
-      * Calculation of the Explicit Stresses from velocity gradient.
-      */
+    /// Calculation of the Explicit Stresses from velocity gradient.
     virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
         GeneralVariables& rVariables);
-
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law

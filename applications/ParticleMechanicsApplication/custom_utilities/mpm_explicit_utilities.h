@@ -13,16 +13,10 @@
 #if !defined(KRATOS_MPM_EXPLICIT_UTILITIES)
 #define KRATOS_MPM_EXPLICIT_UTILITIES
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/model_part.h"
 #include "includes/element.h"
 #include "includes/variables.h"
-
-
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -48,9 +42,6 @@ namespace Kratos
         typedef ModelPart::NodesContainerType NodesArrayType;
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
-
-        // Reference https://github.com/KratosMultiphysics/Kratos/blob/MPM/explicit_time_int2/applications/ParticleMechanicsApplication/custom_elements/updated_lagrangian_quadrilateral.cpp
-
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalcuateAndAddExplicitInternalForce(GeometryType& rGeom,
             const Matrix& rDN_DX, const Vector& rMPStress, const double& rMPVolume, Vector& rRightHandSideVector);

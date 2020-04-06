@@ -29,27 +29,6 @@
 #include "custom_utilities/mpm_explicit_utilities.h"
 
 namespace Kratos {
-
-    ///@name Kratos Globals
-    ///@{
-
-    ///@}
-    ///@name Type Definitions
-    ///@{
-
-    ///@}
-
-    ///@name  Enum's
-    ///@{
-
-    ///@}
-    ///@name  Functions
-    ///@{
-
-    ///@}
-    ///@name Kratos Classes
-    ///@{
-
     /**
      * @class MPMExplicitScheme
      * @ingroup KratosParticle
@@ -108,10 +87,6 @@ namespace Kratos {
             /// The definition of the numerical limit
             static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
 
-            ///@}
-            ///@name Life Cycle
-            ///@{
-
             /**
              * @brief Default constructor.
              * @details The MPMExplicitScheme method
@@ -153,13 +128,8 @@ namespace Kratos {
                 std::cout << " explicit time integration scheme " << std::endl;
             }
 
-            /** Destructor.
-            */
+            /// Destructor.
             virtual ~MPMExplicitScheme() {}
-
-            ///@}
-            ///@name Operators
-            ///@{
 
             /**
              * Clone
@@ -178,7 +148,7 @@ namespace Kratos {
                 KRATOS_TRY
 
                     ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
+                // TODO cleanup
                 // Preparing the time values for the first step (where time = initial_time +
                 // dt)
                 mTime.Current = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
@@ -306,8 +276,7 @@ namespace Kratos {
                 array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 double gamma = 1.0;
-                if (mIsCentralDifference)
-                {
+                if (mIsCentralDifference) {
                     gamma = 0.5; // factor since we are only adding the central difference corrector here
                 }
 
@@ -316,8 +285,7 @@ namespace Kratos {
                         r_nodal_momenta[j] = 0.0;
                         r_current_residual[j] = 0.0;
                     }
-                    else
-                    {
+                    else {
                         r_nodal_momenta[j] += gamma * mTime.Delta * r_current_residual[j];
                     }
 
@@ -340,10 +308,9 @@ namespace Kratos {
             }
 
 
-            /**
-            This is the place to initialize the elements.
-            This is intended to be called just once when the strategy is initialized
-             */
+            
+            /** This is the place to initialize the elements.
+            This is intended to be called just once when the strategy is initialized */
             void InitializeElements(ModelPart& rModelPart) override
             {
                 KRATOS_TRY
@@ -506,12 +473,9 @@ namespace Kratos {
             }
 
 
-            //*******************************************************FinalizeNonLinIteration********************
-            //***************************************************************************
-            /**
-            Function called once at the end of a solution step, after convergence is reached if
-            an iterative process is needed
-             */
+            
+            /** Function called once at the end of a solution step, after convergence is reached if
+            an iterative process is needed */
             void FinalizeSolutionStep(
                 ModelPart& rModelPart,
                 TSystemMatrixType& A,
@@ -605,7 +569,6 @@ namespace Kratos {
             }
 
 
-
             void InitializeNonLinIteration(ModelPart& r_model_part,
                 TSystemMatrixType& A,
                 TSystemVectorType& Dx,
@@ -653,13 +616,6 @@ namespace Kratos {
             {
                 (rCurrentElement)->InitializeNonLinearIteration(CurrentProcessInfo);
             }
-
-            //***************************************************************************
-            //***************************************************************************
-
-            //***************************************************************************
-            //***************************************************************************
-
 
             //***************************************************************************
             //***************************************************************************
@@ -843,97 +799,35 @@ namespace Kratos {
 
                 pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
                 pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-                //pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
 
                 KRATOS_CATCH("")
             }
 
-
-            /*@} */
-            /**@name Operations */
-            /*@{ */
-            /*@} */
-            /**@name Access */
-            /*@{ */
-            /*@} */
-            /**@name Inquiry */
-            /*@{ */
-            /*@} */
-            /**@name Friends */
-            /*@{ */
-
         protected:
-            /**@name Static Member Variables */
-            /*@{ */
-            /*@} */
-            /**@name Member Variables */
-            /*@{ */
-
+            /// @name Member Variables
             struct DeltaTimeParameters {
                 double PredictionLevel; // 0, 1, 2 // NOTE: Should be a integer?
                 double Maximum;         // Maximum delta time
                 double Fraction;        // Fraction of the delta time
             };
 
-            /**
-             * @brief This struct contains the details of the time variables
-             */
+            /// @brief This struct contains the details of the time variables
             struct TimeVariables {
                 double PreviousMiddle; // n-1/2
                 double Previous;       // n
                 double Middle;         // n+1/2
                 double Current;        // n+1
-
                 double Delta;          // Time step
             };
 
-            ///@name Protected static Member Variables
-            ///@{
-
+            /// Protected static Member Variables
+            // TODO check if this is needed
             TimeVariables mTime;            /// This struct contains the details of the time variables
-
             ModelPart& mr_grid_model_part;
-
             const int mStressUpdateOption; // 0 = USF, 1 = USL, 2 = MUSL
             const bool mIsCentralDifference;
 
-            /*@} */
-            /**@name Protected Operators*/
-            /*@{ */
-
-            /*@} */
-            /**@name Protected Operations*/
-            /*@{ */
-            /*@} */
-            /**@name Protected  Access */
-            /*@{ */
-            /*@} */
-            /**@name Protected Inquiry */
-            /*@{ */
-            /*@} */
-            /**@name Protected LifeCycle */
-            /*@{ */
         private:
-            /**@name Static Member Variables */
-            /*@{ */
-            /*@} */
-            /**@name Member Variables */
-            /*@{ */
-            /*@} */
-            /**@name Private Operators*/
-            /*@{ */
-            /*@} */
-            /**@name Private Operations*/
-            /*@{ */
-            /*@} */
-            /**@name Private  Access */
-            /*@{ */
-            /*@} */
-            /**@name Private Inquiry */
-            /*@{ */
-            /*@} */
-            /**@name Unaccessible methods */
-            /*@{ */
     }; /* Class MPMExplicitScheme */
 }  /* namespace Kratos.*/
 

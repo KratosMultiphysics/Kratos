@@ -24,7 +24,6 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
-
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // Application includes
@@ -32,33 +31,7 @@
 
 namespace Kratos
 {
-
-    /**@name Kratos Globals */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Type Definitions */
-    /*@{ */
-
-    /*@} */
-
-
-    /**@name  Enum's */
-    /*@{ */
-
-
-    /*@} */
-    /**@name  Functions */
-    /*@{ */
-
-
-
-    /*@} */
-    /**@name Kratos Classes */
-    /*@{ */
-
-    /// Short class definition.
+/// Short class definition.
 /**
  * @class MPMExplicitStrategy
  * @ingroup ParticleMechanicsApplciation
@@ -73,9 +46,6 @@ namespace Kratos
         : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
-        /**@name Type Definitions */
-        /*@{ */
-        /** Counted pointer of ClassName */
         KRATOS_CLASS_POINTER_DEFINITION(MPMExplicitStrategy);
 
         typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -105,11 +75,6 @@ namespace Kratos
 
         typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-
-        /*@} */
-        /**@name Life Cycle
-         */
-         /*@{ */
         MPMExplicitStrategy(
             ModelPart& model_part,
             typename TSchemeType::Pointer pScheme,
@@ -142,17 +107,13 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        /** Destructor.
-         */
+        /// Destructor.
         virtual ~MPMExplicitStrategy()
         {
         }
 
-        /** Destructor.
-         */
 
          //Set and Get Scheme ... containing Builder, Update and other
-
         void SetScheme(typename TSchemeType::Pointer pScheme)
         {
             mpScheme = pScheme;
@@ -211,15 +172,7 @@ namespace Kratos
             BaseType::mEchoLevel = Level;
         }
 
-        //*********************************************************************************
-        /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-        //*********************************************************************************
-        /**
-        Initialize members
-         */
-         //**********************************************************************
-
-
+        /// Initialize members
         void Initialize() override
         {
             KRATOS_TRY
@@ -284,11 +237,7 @@ namespace Kratos
         }
 
 
-        //*********************************************************************************
-        /**
-        the problem of interest is solved
-         */
-         //**********************************************************************
+        /// the problem of interest is solved
         bool SolveSolutionStep() override
         {
             typename TSchemeType::Pointer pScheme = GetScheme();
@@ -314,8 +263,6 @@ namespace Kratos
             return true;
         }
 
-        //*********************************************************************************
-
         //**********************************************************************
         //**********************************************************************
 
@@ -327,21 +274,6 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        /*@} */
-        /**@name Operators
-         */
-         /*@{ */
-
-         /*@} */
-         /**@name Operations */
-         /*@{ */
-
-
-         /*@} */
-         /**@name Access */
-
-         /*@{ */
-
         void SetKeepSystemConstantDuringIterations(bool value)
         {
             mKeepSystemConstantDuringIterations = value;
@@ -352,63 +284,9 @@ namespace Kratos
             return mKeepSystemConstantDuringIterations;
         }
 
-
-        /*@} */
-        /**@name Inquiry */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Friends */
-        /*@{ */
-
-
-        /*@} */
-
     private:
-        /**@name Protected static Member Variables */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Protected member Variables */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Protected Operators*/
-        /*@{ */
-
-
-        /*@} */
-        /**@name Protected Operations*/
-        /*@{ */
-
-
-
-        /*@} */
-        /**@name Protected  Access */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Protected Inquiry */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Protected LifeCycle */
-        /*@{ */
-
-
-
-        /*@} */
 
     protected:
-        /**@name Static Member Variables */
-        /*@{ */
-
-
         /*@} */
         /**@name Member Variables */
         /*@{ */
@@ -427,34 +305,22 @@ namespace Kratos
          */
         bool mReformDofSetAtEachStep;
 
-        /**
-        Flag telling if it is needed or not to compute the reactions
-
-        default = true
-         */
+        /// Flag telling if it is needed or not to compute the reactions, default = true
         bool mCalculateReactionsFlag;
 
         bool mSolutionStepIsInitialized;
 
         bool mInitializeWasPerformed;
 
-        //flag to allow keeping system matrix constant during iterations
+        /// flag to allow keeping system matrix constant during iterations
         bool mKeepSystemConstantDuringIterations;
 
-        //flag to allow to not finalize the solution step, so the historical variables are not updated
+        /// flag to allow to not finalize the solution step, so the historical variables are not updated
         bool mFinalizeSolutionStep;
 
-        /*@} */
-        /**@name Private Operators*/
-        /*@{ */
         //**********************************************************************
         //**********************************************************************
 
-
-
-
-        //**********************************************************************
-        //**********************************************************************
         void FinalizeSolutionStep() override
         {
             KRATOS_TRY
@@ -555,7 +421,7 @@ namespace Kratos
             const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
 
             // Iterating nodes
-#pragma omp parallel for firstprivate(force_residual, moment_residual), schedule(guided,512)
+            #pragma omp parallel for firstprivate(force_residual, moment_residual), schedule(guided,512)
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                 auto it_node = it_node_begin + i;
 
@@ -596,46 +462,11 @@ namespace Kratos
             }
         }
 
-
-
-        /*@} */
-        /**@name Private Operations*/
-        /*@{ */
-
-
-        /*@} */
-        /**@name Private  Access */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Private Inquiry */
-        /*@{ */
-
-
-        /*@} */
-        /**@name Un accessible methods */
-        /*@{ */
-
-        /** Copy constructor.
-         */
+        /// Copy constructor
         MPMExplicitStrategy(const MPMExplicitStrategy& Other)
         {
         };
+    }; // Class MPMExplicitStrategy
+}; // namespace Kratos
 
-
-        /*@} */
-
-    }; /* Class MPMExplicitStrategy */
-
-    /*@} */
-
-    /**@name Type Definitions */
-    /*@{ */
-
-
-    /*@} */
-
-}; /* namespace Kratos.*/
-
-#endif /* KRATOS_MPM_EXPLICIT_STRATEGY  defined */
+#endif // KRATOS_MPM_EXPLICIT_STRATEGY  defined
