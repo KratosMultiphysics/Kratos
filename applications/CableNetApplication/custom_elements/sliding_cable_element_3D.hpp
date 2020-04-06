@@ -102,7 +102,7 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
@@ -174,12 +174,6 @@ namespace Kratos
 
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
-        void GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function checks if self weight is present
