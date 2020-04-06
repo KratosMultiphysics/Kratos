@@ -347,13 +347,6 @@ void ElementInitialize(Element& dummy,
     dummy.Initialize(rCurrentProcessInfo);
 }
 
-void ElementInitializeOld(Element& dummy)
-{
-    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
-    ProcessInfo tmp_process_info;
-    dummy.Initialize(tmp_process_info);
-}
-
 template<class TDataType>
 void ElementCalculateSensitivityMatrix(Element& dummy,
         const Variable<TDataType>& rDesignVariable,
@@ -543,7 +536,6 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &ElementInitialize)
-    .def("Initialize", &ElementInitializeOld)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("__str__", PrintObject<Element>)
     ;
