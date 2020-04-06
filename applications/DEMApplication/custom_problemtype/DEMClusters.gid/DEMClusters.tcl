@@ -2,12 +2,13 @@
 
 proc InitGIDProject { dir } {
 
-    # Create buttons for calculate mass, center of mass and inertia later on.
-    # if { [GidUtils::IsTkDisabled] eq 0} {
-    #     GiDMenu::Create "Sphere Cluster Creation" PRE
-    #     GiDMenu::InsertOption "Sphere Cluster Creation" [list "Inertia"] 0 PRE "GidOpenConditions \"Inertia\"" "" ""
-    #     GiDMenu::UpdateMenus
-    # }
+    # Create buttons to insert algorithm values
+    if { [GidUtils::IsTkDisabled] eq 0} {
+        GiDMenu::Create "Sphere Cluster Creation" PRE
+        #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenProblemData" "" ""
+        GiDMenu::UpdateMenus
+    }
 
     # Load the application scripts
     set scripts_dir [file join $dir .. .. ]
@@ -42,6 +43,12 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
     # Write file
     source [file join $problemtypedir file.tcl]
+
+    # TODO: move out and create a button to call this. Do not depend on proc BeforeRunCalculation
+    # WriteSphereTreeParameters.json
+    set TableDict [lindex $MDPAOutput 1]
+    source [file join $problemtypedir SphereTreeParameters.tcl]
+    WriteSphereTreeParameters $basename $dir $problemtypedir $TableDict
 }
 
 proc GenerateOBJFile { } {
@@ -71,7 +78,7 @@ proc GenerateOBJFile { } {
     #                                    from i0 to i1 etc.)
 }
 
-proc call_makeTreeMedial {objfilename} {
+proc call_SphereTree {objfilename} {
     # set output [exec makeTreeMedial file_name.obj]
     # set output_full [exec makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj]
     # puts $output
@@ -94,7 +101,7 @@ proc call_makeTreeMedial {objfilename} {
     # TODO: pass arguments from GiD somehow: 
     # example calls:
     # ##  use medial algorithms without optimiser
-    # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -nopause -expand -merge %1
+    # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -expand -merge %1
 
     # ##  use medial algorithms using optimiser for top level
     # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -nopause -expand -merge -optimise simplex -maxOptLevel 1 %1
@@ -115,7 +122,7 @@ proc call_makeTreeMedial {objfilename} {
 
 
 proc GenerateSPHFileFromOBJFile { objfilename } {
-    call_makeTreeMedial objfilename
+    call_SphereTree objfilename
 }
 
 proc CleanSPHFile { sphfilename } {
