@@ -93,9 +93,10 @@ public:
 
     /**
      * @brief This method checks if the linear class is registered
+     * @param rClassName The nanme of the class
      * @return True if registered, false otherwise
      */
-    virtual bool Has(const std::string& rSolverType) const
+    virtual bool Has(const std::string& rClassName) const
     {
         KRATOS_ERROR << "Methods must be implemented in the base class" << std::endl;
         return false;
@@ -187,11 +188,12 @@ public:
 
     /**
      * @brief This method checks if the linear class is registered
+     * @param rClassName The nanme of the class
      * @return True if registered, false otherwise
      */
-    bool Has(const std::string& rSolverType) const override
+    bool Has(const std::string& rClassName) const override
     {
-        return KratosComponents< FactoryType >::Has( rSolverType );
+        return KratosComponents< FactoryType >::Has( rClassName );
     }
 
     /**
