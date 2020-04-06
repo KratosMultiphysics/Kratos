@@ -319,28 +319,34 @@ public:
 
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            pScheme->CalculateLHSContribution(**it, LHS_Contribution,
-                                                equation_ids_vector, r_current_process_info);
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            if(element_is_active){
+                pScheme->CalculateLHSContribution(**it, LHS_Contribution,
+                                                    equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
 
-            // clean local elemental memory
-            pScheme->CleanMemory(**it);
+                // clean local elemental memory
+                pScheme->CleanMemory(**it);
+            }
         }
 
         LHS_Contribution.resize(0, 0, false);
 
         // assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
-            // calculate elemental contribution
-            pScheme->CalculateLHSContribution(
-                **it, LHS_Contribution, equation_ids_vector, r_current_process_info);
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            if(condition_is_active){
+                // calculate elemental contribution
+                pScheme->CalculateLHSContribution(
+                    **it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
+                // assemble the elemental contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            }
             // TODO CleanMemory is missing
+            pScheme->CleanMemory(**it);
         }
 
         // finalizing the assembly
@@ -716,48 +722,54 @@ public:
 
             // assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-                pScheme->EquationId(**it_elem, equation_ids_vector,
-                                    r_current_process_info);
+                bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+                if(element_is_active){
+                    pScheme->EquationId(**it_elem, equation_ids_vector,
+                                        r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
-                IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                    temp[num_active_indices] = equation_ids_vector[i];
-                    num_active_indices += 1;
-                }
+                    // filling the list of active global indices (non fixed)
+                    IndexType num_active_indices = 0;
+                    for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
+                        temp[num_active_indices] = equation_ids_vector[i];
+                        num_active_indices += 1;
+                    }
 
-                if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    if (num_active_indices != 0) {
+                        int ierr = Agraph.InsertGlobalIndices(
+                            num_active_indices, temp.data(), num_active_indices, temp.data());
+                        KRATOS_ERROR_IF(ierr < 0)
+                            << ": Epetra failure in Graph.InsertGlobalIndices. "
+                            "Error code: "
+                            << ierr << std::endl;
+                    }
+                    std::fill(temp.begin(), temp.end(), 0);
                 }
-                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-                pScheme->EquationId(
-                    **it_cond, equation_ids_vector, r_current_process_info);
+                bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+                if(condition_is_active){
+                    pScheme->EquationId(
+                        **it_cond, equation_ids_vector, r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
-                IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                    temp[num_active_indices] = equation_ids_vector[i];
-                    num_active_indices += 1;
-                }
+                    // filling the list of active global indices (non fixed)
+                    IndexType num_active_indices = 0;
+                    for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
+                        temp[num_active_indices] = equation_ids_vector[i];
+                        num_active_indices += 1;
+                    }
 
-                if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    if (num_active_indices != 0) {
+                        int ierr = Agraph.InsertGlobalIndices(
+                            num_active_indices, temp.data(), num_active_indices, temp.data());
+                        KRATOS_ERROR_IF(ierr < 0)
+                            << ": Epetra failure in Graph.InsertGlobalIndices. "
+                            "Error code: "
+                            << ierr << std::endl;
+                    }
+                    std::fill(temp.begin(), temp.end(), 0);
                 }
-                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // finalizing graph construction
