@@ -104,28 +104,6 @@ namespace Kratos {
                 mStressUpdateOption(StressUpdateOption),
                 mIsCentralDifference(isCentralDifference)
             {
-                std::cout << "Initializing MPM ";
-                if (mIsCentralDifference){
-                    std::cout << "central difference";
-                }
-                else{
-                    std::cout << "forward Euler (";
-                    switch (mStressUpdateOption){
-                    case 0:
-                        std::cout << "USF)";
-                        break;
-                    case 1:
-                        std::cout << "USL)";
-                        break;
-                    case 2:
-                        std::cout << "MUSL)";
-                        break;
-                    default:
-                        KRATOS_ERROR << "Invalid MPM explicit scheme constructed." << std::endl;
-                        break;
-                    }
-                }
-                std::cout << " explicit time integration scheme " << std::endl;
             }
 
             /// Destructor.
