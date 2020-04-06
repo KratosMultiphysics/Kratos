@@ -106,6 +106,7 @@
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "modulus"         : "100.5*t",
                 "direction"       : [0.0,-1.0,0.0],
+                "constrained"     : false,
                 "interval"        : [0.0,"End"]
             }
         }],
@@ -129,7 +130,7 @@
 			    "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
 				"gauss_points_check_variables" : [],
 				"input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_test_results.json",
-				"model_part_name"               : "Parts_Solid_Auto1",
+				"model_part_name"               : "Structure.Parts_Solid_Auto1",
 				"time_frequency"                : 1.0
 			}
 		}]
@@ -143,7 +144,7 @@
 			"output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
 			"gauss_points_output_variables" : [],
 			"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_tests_results.json",
-			"model_part_name"               : "Parts_Solid_Auto1",
+			"model_part_name"               : "Structure.Parts_Solid_Auto1",
 			"time_frequency"                : 1.0
 		}
 	}],
@@ -154,7 +155,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "coupled_problem",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
