@@ -911,6 +911,14 @@ protected:
     int mFirstMyId;
     int mLastMyId;
 
+    // For constraints
+    TSystemMatrixPointerType mpT;
+    TSystemMatrixPointerType mpL;
+    TSystemVectorPointerType mpConstantVector; /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds; /// The equation ids of the master
+    std::set<int> mInactiveSlaveEqIDs; /// The set containing the inactive slave dofs
+
     ///@}
     ///@name Protected Operators
     ///@{
