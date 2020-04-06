@@ -40,13 +40,28 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
+
+        
+
+        # Get updated model_part
+        self.model = Model
+        model_part_name = settings["model_part_name"].GetString()
+        if (model_part_name.startswith('Initial_MPM_Material.')):
+            model_part_name = model_part_name.replace('Initial_MPM_Material.','')
+        self.mpm_material_model_part_name = "MPM_Material." + model_part_name
+        # The actual initial velocity application occurs after the submodelpart is
+        # transferred from the initial MPM material to the MPM material in the particle
+        # generator utility. Therefore we change the prefix from initial MPM material
+        # to MPM material. 
+
         # Default settings
-        self.model_part = Model[settings["model_part_name"].GetString()]
         self.modulus = settings["modulus"].GetDouble()
         self.velocity_direction = settings["direction"].GetVector()
         self.velocity = self.modulus * self.velocity_direction
 
     def ExecuteBeforeSolutionLoop(self):
         # Assign velocity to MP after solver.Initialize() - only apply once at the beginning!
-        for element in self.model_part.Elements:
-            element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],self.model_part.ProcessInfo)
+        model_part = self.model[self.mpm_material_model_part_name]
+        # the model part is identified here, AFTER it has been transferred to the MPM_material part!
+        for element in model_part.Elements:
+            element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)
