@@ -41,7 +41,7 @@ def GetInputParameters():
     elif benchmark_number in listDISclRK:
         file_name = "ProjectParametersDISclRK.json"
     elif benchmark_number in listGeneric:
-            file_name = "ProjectParametersDEMGeneric.json"
+        file_name = "ProjectParametersDEMGeneric.json"
     else:
         Logger.PrintInfo("DEM",'Benchmark number does not exist')
         sys.exit()

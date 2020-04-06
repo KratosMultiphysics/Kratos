@@ -682,6 +682,11 @@ class ExplicitStrategy(object):
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
         if properties.Has(FRICTION):
+            self.Procedures.KratosPrintWarning("-------------------------------------------------")
+            self.Procedures.KratosPrintWarning("  WARNING: Property FRICTION is deprecated since April 6th, 2020, ")
+            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION and DYNAMIC_FRICTION")
+            self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
+            self.Procedures.KratosPrintWarning("-------------------------------------------------")
             properties[STATIC_FRICTION] = properties[FRICTION]
             properties[DYNAMIC_FRICTION] = properties[FRICTION]
 

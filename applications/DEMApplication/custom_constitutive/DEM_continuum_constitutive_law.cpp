@@ -28,14 +28,8 @@ namespace Kratos {
     }
 
     void DEMContinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
-        if(!pProp->Has(FRICTION)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(FRICTION) = 0.0;
-        }
         if(!pProp->Has(STATIC_FRICTION)) {
-            if(!pProp->Has(FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
                 KRATOS_WARNING("DEM")<<std::endl;
                 KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
                 KRATOS_WARNING("DEM")<<std::endl;
@@ -46,7 +40,7 @@ namespace Kratos {
             }
         }
         if(!pProp->Has(DYNAMIC_FRICTION)) {
-            if(!pProp->Has(FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
                 KRATOS_WARNING("DEM")<<std::endl;
                 KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
                 KRATOS_WARNING("DEM")<<std::endl;

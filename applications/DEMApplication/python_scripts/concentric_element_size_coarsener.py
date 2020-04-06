@@ -8,19 +8,19 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 def ComputeMeanRadiusOfThisParticle(x, y, z, fine_radius):
 
     distance_to_origin = math.sqrt(x*x + y*y)
-    
+
     specimen_type = 1 # 1: CTW16, # 2: CTW10
     if specimen_type == 1:
         max_distance_for_fine_radius = 0.00762
     else:
         max_distance_for_fine_radius = 0.01651
-    
+
     slope = 0.01
     if distance_to_origin < max_distance_for_fine_radius:
         radius = fine_radius
     else:
         radius = fine_radius + slope * (distance_to_origin - max_distance_for_fine_radius)
-        
+
     return radius
 
 class ElementSizeModifier(DEMAnalysisStage):
@@ -47,7 +47,8 @@ class ElementSizeModifier(DEMAnalysisStage):
                 "tolerance": 0.001
             },
             "material_settings":{
-            "friction": 0.0,
+            "static_friction": 0.0,
+            "dynamic_friciton": 0.0,
             "young_modulus": 5.0e7,
             "density_for_artificial_concentric_weight": 2500
             }
@@ -55,7 +56,8 @@ class ElementSizeModifier(DEMAnalysisStage):
         """)
         self.size_modifier_parameters.ValidateAndAssignDefaults(default_input_parameters)
         self.eraser_counter = 0
-        self.list_of_frictions_at_start = []
+        self.list_of_static_frictions_at_start = []
+        self.list_of_dynamic_frictions_at_start = []
         self.list_of_young_modulus_at_start = []
         self.list_of_coefficients_of_restittution_at_start = []
         self.list_of_damping_gammas_at_start = []
@@ -72,12 +74,14 @@ class ElementSizeModifier(DEMAnalysisStage):
         self._SaveInitialRadiusOfAllParticles()
         self._GetDeviationFromMeanSizeOfAllParticles()
         for props in self.spheres_model_part.Properties:
-            self.list_of_frictions_at_start.append(props[DEM.FRICTION])
-            props.SetValue(DEM.FRICTION, self.size_modifier_parameters["material_settings"]["friction"].GetDouble())
+            self.list_of_static_frictions_at_start.append(props[DEM.STATIC_FRICTION])
+            props.SetValue(DEM.STATIC_FRICTION, self.size_modifier_parameters["material_settings"]["static_friction"].GetDouble())
+            self.list_of_dynamic_frictions_at_start.append(props[DEM.DYNAMIC_FRICTION])
+            props.SetValue(DEM.DYNAMIC_FRICTION, self.size_modifier_parameters["material_settings"]["dynamic_friciton"].GetDouble())
             self.list_of_young_modulus_at_start.append(props[KratosMultiphysics.YOUNG_MODULUS])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.size_modifier_parameters["material_settings"]["young_modulus"].GetDouble())
             self.list_of_coefficients_of_restittution_at_start.append(props[DEM.COEFFICIENT_OF_RESTITUTION])
-            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())            
+            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())
 
     def InitializeSolutionStep(self):
         super(ElementSizeModifier, self).InitializeSolutionStep()
@@ -94,7 +98,8 @@ class ElementSizeModifier(DEMAnalysisStage):
     def Finalize(self):
         counter = 0
         for props in self.spheres_model_part.Properties:
-            props.SetValue(DEM.FRICTION, self.list_of_frictions_at_start[counter])
+            props.SetValue(DEM.STATIC_FRICTION, self.list_of_static_frictions_at_start[counter])
+            props.SetValue(DEM.DYNAMIC_FRICTION, self.list_of_dynamic_frictions_at_start[counter])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.list_of_young_modulus_at_start[counter])
             props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.list_of_young_modulus_at_start[counter])
             counter += 1
