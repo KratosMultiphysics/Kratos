@@ -26,7 +26,8 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
         ):mThisModelPart(rThisModelPart),
           mVariableGradient(rVariableGradient)
 {
-    ThisParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+    const Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
