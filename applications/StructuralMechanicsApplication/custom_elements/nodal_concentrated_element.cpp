@@ -442,10 +442,12 @@ void NodalConcentratedElement::AddExplicitContribution(
 {
     KRATOS_TRY;
 
+    const auto& rconst_this = *this;
+
     if (rDestinationVariable == NODAL_MASS) {
         double& r_nodal_mass = GetGeometry()[0].GetValue(NODAL_MASS);
         #pragma omp atomic
-        r_nodal_mass += GetValue(NODAL_MASS);
+        r_nodal_mass += rconst_this.GetValue(NODAL_MASS);
     }
 
     KRATOS_CATCH("")
@@ -462,6 +464,7 @@ void NodalConcentratedElement::AddExplicitContribution(
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType local_size = dimension*number_of_nodes;
+    const auto& rconst_this = *this;
 
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
@@ -485,7 +488,7 @@ void NodalConcentratedElement::AddExplicitContribution(
     } else if (rDestinationVariable == NODAL_INERTIA) {
         double& r_nodal_mass = GetGeometry()[0].GetValue(NODAL_MASS);
         #pragma omp atomic
-        r_nodal_mass += GetValue(NODAL_MASS);
+        r_nodal_mass += rconst_this.GetValue(NODAL_MASS);
         // no contribution for GetGeometry()[0].GetValue(NODAL_INERTIA);
     }
 
