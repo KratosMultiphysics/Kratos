@@ -10,7 +10,7 @@
 
 
 #if !defined(KRATOS_MODELER_FACTORY_H_INCLUDED )
-#define  KRATOS_MODELER_H_INCLUDED
+#define  KRATOS_MODELER_FACTORY_H_INCLUDED
 
 
 // System includes
@@ -31,13 +31,13 @@ namespace ModelerFactory
 {
 
     /// Checks if the modeler is registered
-    bool ModelerFactory::Has(const std::string& ModelerName) const
+    bool Has(const std::string& ModelerName)
     {
         return KratosComponents< Modeler >::Has(ModelerName);
     }
 
     /// Checks if the modeler is registered
-    typename Modeler::Pointer ModelerFactory::Create(const std::string& ModelerName, const Parameters ModelParameters)
+    typename Modeler::Pointer Create(const std::string& ModelerName, const Parameters ModelParameters)
     {
         KRATOS_ERROR_IF_NOT(Has(ModelerName))
             << "Trying to construct a modeler: "
@@ -53,5 +53,5 @@ namespace ModelerFactory
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODELER_H_INCLUDED  defined
+#endif // KRATOS_MODELER_FACTORY_H_INCLUDED  defined
 
