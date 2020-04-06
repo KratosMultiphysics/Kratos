@@ -203,6 +203,16 @@ public:
         }
     }
 
+    /**
+     * @brief This function is intended to be called at the end of the solution
+     *      step to clean up memory storage not needed
+     */
+    void Clear() override
+    {
+        BaseType::Clear();
+        TSparseSpace::Clear(mpT);
+    }
+
 
     /**
      * @brief Function to perform the build the system matrix and the residual
@@ -961,7 +971,6 @@ protected:
 
     // For constraints
     TSystemMatrixPointerType mpT;
-    TSystemMatrixPointerType mpL;
     TSystemVectorPointerType mpConstantVector; /// This is vector containing the rigid movement of the constraint
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
