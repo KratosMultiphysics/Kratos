@@ -26,27 +26,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
         ):mThisModelPart(rThisModelPart),
           mVariableGradient(rVariableGradient)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "minimal_size"                         : 0.1,
-        "maximal_size"                         : 1.0,
-        "sizing_parameters":
-        {
-            "reference_variable_name"          : "DISTANCE",
-            "boundary_layer_max_distance"      : 1.0,
-            "interpolation"                    : "constant"
-        },
-        "enforce_current"                      : true,
-        "anisotropy_remeshing"                 : true,
-        "anisotropy_parameters":
-        {
-            "reference_variable_name"              : "DISTANCE",
-            "hmin_over_hmax_anisotropic_ratio"      : 1.0,
-            "boundary_layer_max_distance"           : 1.0,
-            "interpolation"                         : "linear"
-        }
-    })" );
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
@@ -264,6 +244,36 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
 
 
     return size;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters ComputeLevelSetSolMetricProcess<TDim>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "minimal_size"                         : 0.1,
+        "maximal_size"                         : 1.0,
+        "sizing_parameters":
+        {
+            "reference_variable_name"          : "DISTANCE",
+            "boundary_layer_max_distance"      : 1.0,
+            "interpolation"                    : "constant"
+        },
+        "enforce_current"                      : true,
+        "anisotropy_remeshing"                 : true,
+        "anisotropy_parameters":
+        {
+            "reference_variable_name"              : "DISTANCE",
+            "hmin_over_hmax_anisotropic_ratio"      : 1.0,
+            "boundary_layer_max_distance"           : 1.0,
+            "interpolation"                         : "linear"
+        }
+    })" );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/
