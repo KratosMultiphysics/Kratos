@@ -177,6 +177,7 @@ void KratosApplication::RegisterKratosCore() {
 
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
+    KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
 
     //Register general geometries:
     // Point register:
