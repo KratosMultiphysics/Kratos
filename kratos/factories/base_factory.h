@@ -92,6 +92,16 @@ public:
     ///@{
 
     /**
+     * @brief This method returns the name of the class stored
+     * @return The name of the class stored (as defined in settings)
+     */
+    virtual std::string Name() const
+    {
+        KRATOS_ERROR << "Methods must be implemented in the base class" << std::endl;
+        return "";
+    }
+
+    /**
      * @brief This method checks if the linear class is registered
      * @param rClassName The nanme of the class
      * @return True if registered, false otherwise
@@ -387,32 +397,32 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Strate
 #ifdef KRATOS_REGISTER_STRATEGY
 #undef KRATOS_REGISTER_STRATEGY
 #endif
-#define KRATOS_REGISTER_STRATEGY(name, reference) \
-    KratosComponents<StrategyFactoryType>::Add(name, reference);
+#define KRATOS_REGISTER_STRATEGY(reference) \
+    KratosComponents<StrategyFactoryType>::Add(reference.Name(), reference);
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<BuilderAndSolverFactoryType>;
 
 #ifdef KRATOS_REGISTER_BUILDER_AND_SOLVER
 #undef KRATOS_REGISTER_BUILDER_AND_SOLVER
 #endif
-#define KRATOS_REGISTER_BUILDER_AND_SOLVER(name, reference) \
-    KratosComponents<BuilderAndSolverFactoryType>::Add(name, reference);
+#define KRATOS_REGISTER_BUILDER_AND_SOLVER(reference) \
+    KratosComponents<BuilderAndSolverFactoryType>::Add(reference.Name(), reference);
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<SchemeFactoryType>;
 
 #ifdef KRATOS_REGISTER_SCHEME
 #undef KRATOS_REGISTER_SCHEME
 #endif
-#define KRATOS_REGISTER_SCHEME(name, reference) \
-    KratosComponents<SchemeFactoryType>::Add(name, reference);
+#define KRATOS_REGISTER_SCHEME(reference) \
+    KratosComponents<SchemeFactoryType>::Add(reference.Name(), reference);
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConvergenceCriteriaFactoryType>;
 
 #ifdef KRATOS_REGISTER_CONVERGENCE_CRITERIA
 #undef KRATOS_REGISTER_CONVERGENCE_CRITERIA
 #endif
-#define KRATOS_REGISTER_CONVERGENCE_CRITERIA(name, reference) \
-    KratosComponents<ConvergenceCriteriaFactoryType>::Add(name, reference);
+#define KRATOS_REGISTER_CONVERGENCE_CRITERIA(reference) \
+    KratosComponents<ConvergenceCriteriaFactoryType>::Add(reference.Name(), reference);
 
 }  // namespace Kratos.
 
