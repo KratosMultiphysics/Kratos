@@ -249,6 +249,15 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "residual_criteria";
+    }
+
     ///@}
     ///@name Operations
     ///@{
