@@ -167,16 +167,14 @@ public:
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
+        mGlobalNumConstraints = GetGlobalNumberOfConstraints(rModelPart);
         // Getting process info
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
         // Computing constraints
-        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
-        for (int k = 0; k < n_constraints; ++k) {
-            auto it = constraints_begin + k;
-            it->InitializeSolutionStep(r_process_info);
+        auto r_constraints_array = rModelPart.MasterSlaveConstraints();
+        for (auto it = r_constraints_array.ptr_begin(); it != r_constraints_array.ptr_end(); ++it) {
+            (*it)->InitializeSolutionStep(r_process_info);
         }
 
         KRATOS_CATCH("")
@@ -194,12 +192,9 @@ public:
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
         // Computing constraints
-        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
-        for (int k = 0; k < n_constraints; ++k) {
-            auto it = constraints_begin + k;
-            it->FinalizeSolutionStep(r_process_info);
+        auto r_constraints_array = rModelPart.MasterSlaveConstraints();
+        for (auto it = r_constraints_array.ptr_begin(); it != r_constraints_array.ptr_end(); ++it) {
+            (*it)->FinalizeSolutionStep(r_process_info);
         }
     }
 
@@ -1010,6 +1005,7 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::set<int> mInactiveSlaveEqIDs; /// The set containing the inactive slave dofs
+    IndexType mGlobalNumConstraints;
 
     ///@}
     ///@name Protected Operators
