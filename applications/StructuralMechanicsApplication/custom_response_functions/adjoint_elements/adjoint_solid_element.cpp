@@ -148,10 +148,10 @@ Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::Initialize()
+void AdjointSolidElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    mPrimalElement.Initialize();
+    mPrimalElement.Initialize(rCurrentProcessInfo);
     this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     KRATOS_CATCH("");
 }

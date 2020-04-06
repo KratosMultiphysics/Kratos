@@ -8,19 +8,19 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 def ComputeMeanRadiusOfThisParticle(x, y, z, fine_radius):
 
     distance_to_origin = math.sqrt(x*x + y*y)
-    
+
     specimen_type = 1 # 1: CTW16, # 2: CTW10
     if specimen_type == 1:
         max_distance_for_fine_radius = 0.00762
     else:
         max_distance_for_fine_radius = 0.01651
-    
+
     slope = 0.01
     if distance_to_origin < max_distance_for_fine_radius:
         radius = fine_radius
     else:
         radius = fine_radius + slope * (distance_to_origin - max_distance_for_fine_radius)
-        
+
     return radius
 
 class ElementSizeModifier(DEMAnalysisStage):
@@ -65,6 +65,9 @@ class ElementSizeModifier(DEMAnalysisStage):
         project_parameters["GravityZ"].SetDouble(0.0)
         project_parameters["OutputFileType"].SetString("Ascii")
         project_parameters["MaxTimeStep"].SetDouble(self.size_modifier_parameters["time_step"].GetDouble())
+        total_needed_time = self.size_modifier_parameters["initiation_time"].GetDouble() + self.size_modifier_parameters["process_duration"].GetDouble()
+        if project_parameters["FinalTime"].GetDouble() < total_needed_time:
+            project_parameters["FinalTime"].SetDouble(total_needed_time)
         super(ElementSizeModifier, self).__init__(model, project_parameters)
 
     def Initialize(self):
@@ -77,7 +80,7 @@ class ElementSizeModifier(DEMAnalysisStage):
             self.list_of_young_modulus_at_start.append(props[KratosMultiphysics.YOUNG_MODULUS])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.size_modifier_parameters["material_settings"]["young_modulus"].GetDouble())
             self.list_of_coefficients_of_restittution_at_start.append(props[DEM.COEFFICIENT_OF_RESTITUTION])
-            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())            
+            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())
 
     def InitializeSolutionStep(self):
         super(ElementSizeModifier, self).InitializeSolutionStep()
@@ -103,13 +106,14 @@ class ElementSizeModifier(DEMAnalysisStage):
     def _GetDeviationFromMeanSizeOfAllParticles(self):
         min_radius = (self.size_modifier_parameters["max_diameter_of_particles"].GetDouble())/ 2.0
         max_radius = (self.size_modifier_parameters["min_diameter_of_particles"].GetDouble())/ 2.0
+        mean_radius_of_particles = 0.5 * self.size_modifier_parameters["mean_diameter_of_particles"].GetDouble()
         radius_standard_deviation = self.size_modifier_parameters["standard_deviation"].GetDouble() / 2.0
 
-        distribution = stats.truncnorm(min_radius / radius_standard_deviation, max_radius / radius_standard_deviation, loc=0.0, scale=radius_standard_deviation)
+        distribution = stats.truncnorm((min_radius - mean_radius_of_particles)/ radius_standard_deviation, (max_radius - mean_radius_of_particles) / radius_standard_deviation, loc=mean_radius_of_particles, scale=radius_standard_deviation)
 
         for node in self.spheres_model_part.Nodes:
             random_radius = distribution.rvs(1)
-            deviation = random_radius[0] - node.GetSolutionStepValue(KratosMultiphysics.RADIUS)
+            deviation = random_radius[0] - mean_radius_of_particles
             node.SetValue(DEM.DEVIATION, deviation)
 
     def _SaveInitialRadiusOfAllParticles(self):
