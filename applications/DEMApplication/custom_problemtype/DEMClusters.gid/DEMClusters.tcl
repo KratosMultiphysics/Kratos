@@ -25,10 +25,13 @@ proc BeforeMeshGeneration {elementsize} {
 
 proc AfterMeshGeneration {fail} {
     W "execute AfterMeshGeneration"
-    # ExtractSurfaceTriangles 
+    ExtractSurfaceTriangles 
 }
 
 proc ExtractSurfaceTriangles { } {
+    set all_mesh [GiD_EntitiesLayers get Layer0 all_mesh]
+    W $all_mesh
+    # If <over> is all_mesh then is obtained a list with 2 sublists: node id's and element id's
     # List of triangles defined by: its vertex and vertex normals
     #                               faces: ordered vertex ids
 
@@ -42,6 +45,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 }
 
 proc GenerateOBJFile { } {
+    
     # Analyze the format of the OBJ and generate the file in GID
     # The format of the OBJ file is as follows:
 
@@ -57,7 +61,6 @@ proc GenerateOBJFile { } {
     # f 19//19 11//11 10//10 
 
 
-
     # SUR custom files can also be used with the following format:
     # The format of the SUR file is as follows:
     # -The number of vertices
@@ -68,12 +71,51 @@ proc GenerateOBJFile { } {
     #                                    from i0 to i1 etc.)
 }
 
+proc call_makeTreeMedial {objfilename} {
+    # set output [exec makeTreeMedial file_name.obj]
+    # set output_full [exec makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj]
+    # puts $output
+
+    set argv {makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj}
+    set program [lindex $argv 0]
+    set arguments [lrange $argv 1 end]
+    #spawn $program {*}$arguments
+    set output [exec $program {*}$arguments]
+    puts $output
+
+    # If $argv is foo bar baz, then
+    # spawn [lindex $argv 0] [lrange $argv 1 end]
+    # will invoke foo with 1 argument: "bar baz"
+    # spawn [lindex $argv 0] {*}[lrange $argv 1 end]
+    # will invoke foo with 2 arguments: "bar" and "baz"
 
 
-proc ExecuteSphereTreeAlgorithm { objfilename args} {
-    #makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj
-    # multiple args to be defined: algorithm,...
 
+    # TODO: pass arguments from GiD somehow: 
+    # example calls:
+    # ##  use medial algorithms without optimiser
+    # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -nopause -expand -merge %1
+
+    # ##  use medial algorithms using optimiser for top level
+    # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -nopause -expand -merge -optimise simplex -maxOptLevel 1 %1
+
+    # ##  use spawn algorithm
+    # makeTreeSpawn -branch 8 -depth 3 -testerLevels 2 -numCover 10000 -minCover 5 -nopause %1
+
+    # ##  use grid algorithm
+    # makeTreeGrid  -branch 8 -depth 3 -testerLevels 2 -numCover 10000 -minCover 5 -nopause  %1
+
+    # ##  use Hubbard's algorithm
+    # makeTreeHubbard  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause  %1
+
+    # ##  use octree algorithm
+    # makeTreeOctree -depth 3 -nopause %1
+
+}
+
+
+proc GenerateSPHFileFromOBJFile { objfilename } {
+    call_makeTreeMedial objfilename
 }
 
 proc CleanSPHFile { sphfilename } {
