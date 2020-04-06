@@ -4,7 +4,6 @@ import KratosMultiphysics
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
 # Other imports
-import numpy as np
 import json
 import os
 
@@ -78,9 +77,6 @@ class SDoFStaticSolver(object):
                 #outputs results
                 results_sdof_static.write(str(self.dx) + "\n")
 
-    def Predict(self):
-        return
-
     def AdvanceInTime(self, current_time):
         self.time = 0.0
         return self.time
@@ -116,7 +112,7 @@ class SDoFStaticSolver(object):
             raise Exception("Identifier is unknown!")
 
 def ValidateAndAssignDefaults(defaults, settings, recursive=False):
-    for key, val in settings.items():
+    for key in settings.items():
         # check if the current entry also exists in the defaults
         if not key in defaults.keys():
             err_msg  = 'The item with name "' + key + '" is present in this '

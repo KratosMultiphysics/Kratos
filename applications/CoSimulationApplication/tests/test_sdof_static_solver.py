@@ -1,10 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.sdof.sdof_static_solver import SDoFStaticSolver
-from KratosMultiphysics.CoSimulationApplication.solver_wrappers.sdof.static_sdof_solver_wrapper import Create as CreateSDofStaticSolverWrapper
 
 import os
 import numpy as np
@@ -25,6 +23,7 @@ class TestSdofStaticSolver(KratosUnittest.TestCase):
         self.end_time = 1.0
         self.time = 0.0
 
+    @classmethod
     def tearDown(self):
         kratos_utilities.DeleteFileIfExisting("result.dat")
 

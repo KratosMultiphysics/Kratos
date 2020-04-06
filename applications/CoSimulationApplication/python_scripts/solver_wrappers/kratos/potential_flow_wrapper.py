@@ -1,12 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 if not CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication"):
     raise ImportError("The CompressiblePotentialFlowApplication is not available!")
-import KratosMultiphysics.CompressiblePotentialFlowApplication
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
