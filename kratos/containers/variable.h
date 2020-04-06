@@ -129,6 +129,26 @@ public:
     }
 
     /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const VariableType* pTimeDerivativeVariable,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+    {
+    }
+
+    /**
      * Copy constructor.
      * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
