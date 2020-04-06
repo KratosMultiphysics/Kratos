@@ -35,13 +35,14 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super(KinematicConstraintsTestSolution, self).FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
-                if time > 0.18 and time < 0.2:
+                if self.time > 0.18 and self.time < 0.2:
                     expected_value = 0.0
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
@@ -54,20 +55,20 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
-                elif time > 0.31999 and time < 0.32:
+                elif self.time > 0.31999 and self.time < 0.32:
                     expected_value = -1.179
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
 
             if node.Id == 2:
-                if time > 0.25 and time < 0.3:
-                    expected_value = -10.0 * time
+                if self.time > 0.25 and self.time < 0.3:
+                    expected_value = -10.0 * self.time
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                if time > 0.59999 and time < 0.6:
+                if self.time > 0.59999 and self.time < 0.6:
                     expected_value = -1.962
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
 
             if node.Id == 3:
-                if time < 0.1:
+                if self.time < 0.1:
                     expected_value = -5.0
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
@@ -81,7 +82,7 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     expected_value = -10.0
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
             if node.Id == 4:
-                if time > 0.22 and time < 0.25:
+                if self.time > 0.22 and self.time < 0.25:
                     expected_value = 0.2192
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
 

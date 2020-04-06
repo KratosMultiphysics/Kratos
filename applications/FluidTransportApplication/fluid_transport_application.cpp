@@ -57,8 +57,6 @@ KratosFluidTransportApplication::KratosFluidTransportApplication():
 
 void KratosFluidTransportApplication::Register()
 {
- 	// calling base class register to register Kratos components
- 	KratosApplication::Register();
  	std::cout << "Initializing KratosFluidTransportApplication... " << std::endl;
 
     KRATOS_REGISTER_VARIABLE(PECLET);

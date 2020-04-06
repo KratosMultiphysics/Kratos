@@ -132,9 +132,9 @@ public:
 
     void GetValuesVector(Vector& values, int Step = 0) override;
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->Initialize();
+        mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override

@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "utilities/condition_number_utility.h"
 
 /* Element include */
 #include "geometries/line_2d_2.h"
@@ -102,9 +103,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -201,9 +202,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -309,6 +310,36 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.000000000)/rA(5,5)), tolerance);
 
+            // Testing scale
+            Parameters parameters = Parameters(R"(
+            {
+                "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
+                "silent_warnings"                    : false
+            })" );
+            r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
+            BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+
+            const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
+
+            KRATOS_CHECK(rA.size1() == 6);
+            KRATOS_CHECK(rA.size2() == 6);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(0,0) - 2069000000.000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(1,1) - 2.26648e+10)/rA_scale(1,1)), 1.0e-4);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(2,2) - 4138000000.000000000)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(2,4) - -2069000000.000000000)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(3,3) - 2.26648e+10)/rA_scale(3,3)), 1.0e-4);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(4,2) - -2069000000.000000000)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(5,5) - 2.26648e+10)/rA_scale(5,5)), 1.0e-4);
+
+            SparseSpaceType::MatrixType copy_A(rA);
+            const double condition_number_not_scale = ConditionNumberUtility().GetConditionNumber(copy_A);
+            SparseSpaceType::MatrixType copy_A_scale(rA_scale);
+            const double condition_number_scale = ConditionNumberUtility().GetConditionNumber(copy_A_scale);
+
+            KRATOS_CHECK_RELATIVE_NEAR(condition_number_not_scale, 5.41671e+09, 1.0e-5);
+            KRATOS_CHECK_RELATIVE_NEAR(condition_number_scale, 28.6791, 1.0e-5);
+            KRATOS_CHECK_LESS_EQUAL(condition_number_scale, condition_number_not_scale);
         }
 
         /**

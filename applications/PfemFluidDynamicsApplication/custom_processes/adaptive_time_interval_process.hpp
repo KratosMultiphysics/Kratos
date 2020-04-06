@@ -112,13 +112,29 @@ public:
 		double updatedTimeInterval = rCurrentProcessInfo[DELTA_TIME];
 		double deltaTimeToNewMilestone = initialTimeInterval;
 		double minimumTimeInterval = initialTimeInterval * 0.0001;
-
 		rCurrentProcessInfo.SetValue(PREVIOUS_DELTA_TIME, currentTimeInterval);
-		rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED, false);
 
 		bool milestoneTimeReached = true;
 		bool increaseTimeInterval = true;
-		bool timeIntervalReduced = false;
+		bool timeIntervalReduced = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+
+		unsigned int &stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
+
+		if (stepsWithChangedDt == 2)
+		{
+			if (timeIntervalReduced == false)
+			{
+				stepsWithChangedDt = 0;
+				// std::cout << " 2 steps with the same reduced step " << stepsWithChangedDt << std::endl;
+			}
+			else
+			{
+				stepsWithChangedDt = 1;
+				// std::cout << " 2 steps with the same reduced step  but I have reduced the dt again" << stepsWithChangedDt << std::endl;
+			}
+		}
+		timeIntervalReduced = false;
+		rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED, false);
 
 		double tolerance = 0.0001;
 		updatedTime -= initialTimeInterval;
@@ -158,6 +174,11 @@ public:
 		else
 		{
 			milestoneTimeReached = false;
+			double ratioInitialTime=fabs(updatedTimeInterval-initialTimeInterval*0.5)/(initialTimeInterval*0.5);
+			if(ratioInitialTime<0.05){
+				updatedTimeInterval=initialTimeInterval*0.5;;
+				// std::cout<<"I clean the initial time interval ("<<updatedTimeInterval<<") because not so different from an half of the initial one="<<initialTimeInterval<<std::endl;
+			};
 			rCurrentProcessInfo.SetValue(DELTA_TIME, updatedTimeInterval);
 		}
 
@@ -172,18 +193,20 @@ public:
 				{
 					// the time step is reduced if during a time step a node moves more than its mean distance with respect to its neighbors
 					CheckNodalCriterionForTimeStepReduction(updatedTimeInterval, increaseTimeInterval, timeIntervalReduced);
-					if (timeIntervalReduced == false)
-					{
-						// the time step is reduced if there can be some element inversion
-						CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
-					}
+					// if (timeIntervalReduced == false)
+					// {
+					// 	// the time step is reduced if there can be some element inversion
+					// 	CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
+					// }
 				}
 			}
 
 			// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
-			if (increaseTimeInterval == true && initialTimeInterval > (1.0 + tolerance) * updatedTimeInterval && badVelocityConvergence == false)
+			if (stepsWithChangedDt == 0 && increaseTimeInterval == true && initialTimeInterval > (1.0 + tolerance) * updatedTimeInterval && badVelocityConvergence == false)
 			{
-				IncreaseTimeInterval(updatedTimeInterval, deltaTimeToNewMilestone, tolerance, increaseTimeInterval);
+				if(increaseTimeInterval == true && (stepsWithChangedDt == 0  || stepsWithChangedDt == 2)){
+					IncreaseTimeInterval(updatedTimeInterval, deltaTimeToNewMilestone, tolerance, increaseTimeInterval);
+				}
 			}
 			else
 			{
@@ -218,7 +241,20 @@ public:
 		{
 			KRATOS_INFO("AdaptiveTimeIntervalProcess") << "current time " << updatedTime << " time step: new  " << newTimeInterval << " previous " << currentTimeInterval << " initial  " << initialTimeInterval << std::endl;
 		}
-
+		if (stepsWithChangedDt == 0 && timeIntervalReduced == true)
+		{
+			stepsWithChangedDt += 1;
+		}
+		if (stepsWithChangedDt == 1 && timeIntervalReduced == false)
+		{
+			stepsWithChangedDt += 1;
+		}
+		if ((stepsWithChangedDt == 0  || stepsWithChangedDt == 1) && increaseTimeInterval == true && timeIntervalReduced == false)
+		{
+			// std::cout << " stepsWithChangedDt due to increase time Interval " << std::endl;
+			stepsWithChangedDt += 1;
+		}
+		// std::cout << " stepsWithChangedDt: " << stepsWithChangedDt << std::endl;
 		KRATOS_CATCH("");
 	};
 

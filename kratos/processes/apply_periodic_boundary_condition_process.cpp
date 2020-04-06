@@ -27,27 +27,8 @@ ApplyPeriodicConditionProcess::ApplyPeriodicConditionProcess(ModelPart &rMasterM
                                 Parameters Settings) : Process(Flags()), mrMasterModelPart(rMasterModelPart),
                                 mrSlaveModelPart(rSlaveModelPart), mParameters(Settings)
 {
-    Parameters default_parameters(R"(
-                                        {
-                                            "variable_names":[],
-                                            "transformation_settings":{
-                                                "rotation_settings":{
-                                                    "center":[0,0,0],
-                                                    "axis_of_rotation":[0.0,0.0,0.0],
-                                                    "angle_degree":0.0
-                                                },
-                                                "translation_settings":{
-                                                    "dir_of_translation":[0.0,0.0,0.0],
-                                                    "magnitude":0.0
-                                                }
-                                            },
-                                            "search_settings":{
-                                                "max_results":100000,
-                                                "tolerance": 1E-6
-                                            }
-                                        }  )");
-
     // Initializing
+    const Parameters default_parameters = this->GetDefaultParameters();
     mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mCenterOfRotation = mParameters["transformation_settings"]["rotation_settings"]["center"].GetVector();
@@ -127,6 +108,30 @@ void ApplyPeriodicConditionProcess::ExecuteInitialize()
     */
 void ApplyPeriodicConditionProcess::ExecuteInitializeSolutionStep()
 {
+}
+
+const Parameters ApplyPeriodicConditionProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters(R"(
+    {
+        "variable_names":[],
+        "transformation_settings":{
+            "rotation_settings":{
+                "center":[0,0,0],
+                "axis_of_rotation":[0.0,0.0,0.0],
+                "angle_degree":0.0
+            },
+            "translation_settings":{
+                "dir_of_translation":[0.0,0.0,0.0],
+                "magnitude":0.0
+            }
+        },
+        "search_settings":{
+            "max_results":100000,
+            "tolerance": 1E-6
+        }
+    }  )");
+    return default_parameters;
 }
 
 /**
@@ -243,7 +248,7 @@ template <int TDim>
 void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
                                                                                         const std::string& rVarName )
 {
-    const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
+    const VariableType& r_var = KratosComponents<VariableType>::Get(rVarName);
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");

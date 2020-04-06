@@ -36,7 +36,7 @@ namespace Kratos
         if(rResult.size() != local_size)
             rResult.resize(local_size,false);                           // False says not to preserve existing storage!!
         
-        GeometryType& rGeom = GetGeometry();
+        const GeometryType& rGeom = GetGeometry();
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -57,7 +57,7 @@ namespace Kratos
         if(rConditionDofList.size() != local_size)
             rConditionDofList.resize(local_size);
 
-        GeometryType& rGeom = GetGeometry();
+        const GeometryType& rGeom = GetGeometry();
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
