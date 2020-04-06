@@ -40,6 +40,7 @@ add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 
 # Clean
 clear
