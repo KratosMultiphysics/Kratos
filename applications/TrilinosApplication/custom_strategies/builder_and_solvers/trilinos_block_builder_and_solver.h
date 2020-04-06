@@ -34,6 +34,7 @@
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "Epetra_Vector.h"
+#include "EpetraExt_MatrixMatrix.h"
 
 #define START_TIMER(label, rank) \
     if (mrComm.MyPID() == rank)  \
@@ -108,6 +109,7 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
+    typedef typename Element::EquationIdVectorType EquationIdVectorType;
 
     /// Epetra definitions
     typedef Epetra_MpiComm EpetraCommunicatorType;
@@ -235,7 +237,7 @@ public:
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         // vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType equation_ids_vector;
+        EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         // assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
@@ -310,7 +312,7 @@ public:
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         // vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType equation_ids_vector;
+        EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
@@ -502,7 +504,7 @@ public:
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         // vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType equation_ids_vector;
+        EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
@@ -927,8 +929,8 @@ protected:
             const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
             std::map<IndexType, std::set<IndexType>> indices;
 
-            Element::EquationIdVectorType slave_ids;
-            Element::EquationIdVectorType master_ids;
+            EquationIdVectorType slave_ids;
+            EquationIdVectorType master_ids;
 
             for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                 auto it_const = it_const_begin + i_const;
@@ -1018,14 +1020,13 @@ protected:
     virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
-
         TSparseSpace::SetToZero(*mpT);
 
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Vector containing the localization in the system of the different terms
-        DofsVectorType slave_dof_list, master_dof_list;
+         Element::DofsVectorType slave_dof_list, master_dof_list;
 
         // Contributions to the system
         Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
@@ -1061,7 +1062,7 @@ protected:
 
         // All other Dofs except slaves
         double value = 1.0;
-        for(auto const dof : mDofSet){
+        for(auto const dof : BaseType::mDofSet){
             int eq_id = dof.EquationId();
             int my_rank = rModelPart.GetCommunicator().MyPID();
             if(my_rank == dof.GetSolutionStepValue(PARTITION_INDEX))
@@ -1073,6 +1074,61 @@ protected:
         mpT->GlobalAssemble();
 
         KRATOS_CATCH("")
+    }
+
+    void ApplyConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb) override
+    {
+        if (mGlobalNumConstraints > 0) {
+            // We make T and L matrices and C vector
+            BuildMasterSlaveConstraints(rModelPart);
+            {// To be able to clear res_b automatically.
+                TSystemVectorType res_b(rb.Map());
+                const double zero = 0.0;
+                TSparseSpace::TransposeMult(*mpT, rb, res_b);
+                res_b.GlobalAssemble();
+                // Apply diagonal values on slaves
+                for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
+                    const int slave_equation_id = mSlaveIds[i];
+                    if (mInactiveSlaveEqIDs.find(slave_equation_id) == mInactiveSlaveEqIDs.end()) {
+                        res_b.ReplaceGlobalValues(1, &slave_equation_id, &zero);
+                    }
+                }
+                TSparseSpace::Copy(res_b, rb);
+            }
+            int err = 0;
+
+            // First we do aux = T'A
+            { // To delete aux_mat
+                TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
+                err = EpetraExt::MatrixMatrix::Multiply(*mpT, true, rA, false, aux_mat, false);
+                KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
+                aux_mat.FillComplete();
+                { // To delete mod_a
+                    TSystemMatrixType mod_a(Copy, aux_mat.RowMap(), 0);
+                    // Now we do A = aux*T
+                    err = EpetraExt::MatrixMatrix::Multiply(aux_mat, false, *mpT, false, mod_a, false);
+                    KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(aux*A) not successful !"<<std::endl;
+                    const double inf_norm_a = rA.NormInf();
+                    // Apply diagonal values on slaves
+                    for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
+                        const int slave_equation_id = mSlaveIds[i];
+                        if (mInactiveSlaveEqIDs.find(slave_equation_id) == mInactiveSlaveEqIDs.end()) {
+                            err = mod_a.ReplaceGlobalValues(slave_equation_id, 1, &inf_norm_a, &slave_equation_id);
+                            if(err > 0){ // This means that the indices do not exist and we need to insert.
+                                err = mod_a.InsertGlobalValues(slave_equation_id, 1, &inf_norm_a, &slave_equation_id);
+                                KRATOS_ERROR_IF(err < 0)<<"Error in : InsertGlobalValues !"<<std::endl;
+                            }
+                        }
+                    }
+                    mod_a.GlobalAssemble();
+                    TSparseSpace::Copy(mod_a, rA);
+                }
+            }
+        }
     }
 
     ///@}
@@ -1131,7 +1187,7 @@ private:
             // create and fill the graph of the matrix --> the temp array is
             // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
-            Element::EquationIdVectorType equation_ids_vector;
+            EquationIdVectorType equation_ids_vector;
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // assemble all elements
@@ -1245,6 +1301,38 @@ private:
         const int local_num_constraints = rModelPart.MasterSlaveConstraints().size();
         const int global_num_constraints = r_data_comm.SumAll(local_num_constraints);
         return global_num_constraints;
+    }
+
+    inline static void AssembleTMatrixContribution(
+        TSystemMatrixType& rMatrix,
+        LocalSystemMatrixType& rContribution,
+        EquationIdVectorType& rRowEquationIds,
+        EquationIdVectorType& rColEquationIds
+    )
+    {
+        //size Epetra vectors
+        Epetra_IntSerialDenseVector row_indices(rRowEquationIds.size());
+        Epetra_IntSerialDenseVector col_indices(rColEquationIds.size());
+        Epetra_SerialDenseMatrix values(rRowEquationIds.size(), rColEquationIds.size());
+
+        //fill epetra vectors
+        int loc_i = 0;
+        for (unsigned int i = 0; i < rRowEquationIds.size(); ++i)
+        {
+            row_indices[loc_i] = rRowEquationIds[i];
+
+            int loc_j = 0;
+            for (unsigned int j = 0; j < rColEquationIds.size(); ++j)
+            {
+                col_indices[loc_j] = rColEquationIds[j];
+                values(loc_i, loc_j) = rContribution(i, j);
+                ++loc_j;
+            }
+            ++loc_i;
+        }
+
+        int ierr = rMatrix.SumIntoGlobalValues(row_indices, col_indices, values);
+        if(ierr != 0) KRATOS_ERROR<<"Epetra failure found"<<std::endl;
     }
     ///@}
     ///@name Private  Access
