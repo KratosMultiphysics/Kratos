@@ -76,15 +76,26 @@ install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 
 ############################################################################
 #####
+#####        PyCOMPSs (Distributed Computation library)
+#####
+############################################################################
+
+# Install pycompss mockup library
+if(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
+    kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/pycompss KratosMultiphysics/${CURRENT_DIR_NAME} )
+else (USING_PYCOMPSS)
+	message ( STATUS "Manual installation of PyCOMPSs" )
+endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
+
+############################################################################
+#####
 #####        XMC (Uncertainty Quantification library)
 #####
 ############################################################################
 # reference: https://cmake.org/cmake/help/git-stage/module/ExternalProject.html
 INCLUDE ( ExternalProject )
 
-OPTION ( DOWNLOAD_XMC "Download automatically XMC." ON )
-
-IF ( DOWNLOAD_XMC )
+if (NOT INCLUDE_XMC)
 	EXTERNALPROJECT_ADD ( XMC
 		PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries"
 		SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC"
@@ -95,10 +106,12 @@ IF ( DOWNLOAD_XMC )
 		INSTALL_COMMAND ""
 		)
 	## install python files
-	get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-ELSE ( )
-	MESSAGE ( STATUS "Manual installation of XMC" )
+elseif (INCLUDE_XMC)
+	message ( STATUS "Manual installation of XMC" )
+	INCLUDE_DIRECTORIES(${XMC_INCLUDE_DIR})
+        ## install python files
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${XMC_INCLUDE_DIR} KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-ENDIF()
+endif(NOT INCLUDE_XMC)
