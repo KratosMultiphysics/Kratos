@@ -32,7 +32,7 @@ from particle_mechanics_test_factory import ExplicitOscillatingPointUSLTest as T
 from particle_mechanics_test_factory import ExplicitOscillatingPointUSFTest as TExplicitOscillatingPointUSFTest
 from particle_mechanics_test_factory import ExplicitOscillatingPointMUSLTest as TExplicitOscillatingPointMUSLTest
 from particle_mechanics_test_factory import ExplicitOscillatingPointCentralDifferenceTest as TExplicitOscillatingPointCentralDifferenceTest
-
+from particle_mechanics_test_factory import ExplicitOscillatingPointYCompressibleTest as TExplicitOscillatingPointYCompressibleTest
 
 
 # Import from Test Factories (with different analysis flows)
@@ -88,25 +88,26 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
 
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
-
+    
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticLineLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-
+    
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
-
+    
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-
+    
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-
+    
     nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointUSFTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointMUSLTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointCentralDifferenceTest('test_execution'))
+    nightSuite.addTest(TExplicitOscillatingPointYCompressibleTest('test_execution'))
     
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
