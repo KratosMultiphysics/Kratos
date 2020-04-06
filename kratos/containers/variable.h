@@ -113,12 +113,18 @@ public:
 
     /**
      * @brief Constructor for creating a component of other variable
-     * @param NewName The name to be assigned to the compoenent
+     * @param rNewName The name to be assigned to the compoenent
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
     template<typename TSourceVariableType>
-    explicit Variable(const std::string& NewName, TSourceVariableType* pSourceVariable, char ComponentIndex, const TDataType Zero = TDataType())
-        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex), mZero(Zero)
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero)
     {
     }
 
