@@ -184,15 +184,15 @@ public:
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         // assemble all elements
-        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
+        for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            const bool element_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
 
             if (element_is_active) {
                 // calculate elemental contribution
                 pScheme->CalculateSystemContributions(
-                    *(it), LHS_Contribution, RHS_Contribution,
+                    *(it_elem), LHS_Contribution, RHS_Contribution,
                     equation_ids_vector, r_current_process_info);
 
                 // assemble the elemental contribution
@@ -200,7 +200,7 @@ public:
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
-                pScheme->CleanMemory(*(it));
+                pScheme->CleanMemory(*(it_elem));
             }
         }
 
@@ -208,14 +208,15 @@ public:
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
-        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
+        for (auto it_cond = rModelPart.Conditions().ptr_begin(); it_cond < rModelPart.Conditions().ptr_end(); it_cond++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+
             if (condition_is_active) {
                 // calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(
-                    *(it), LHS_Contribution, RHS_Contribution,
+                    *(it_cond), LHS_Contribution, RHS_Contribution,
                     equation_ids_vector, r_current_process_info);
 
                 // assemble the condition contribution
@@ -223,7 +224,7 @@ public:
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
-                pScheme->CleanMemory(*(it));
+                pScheme->CleanMemory(*(it_cond));
             }
         }
 
@@ -260,27 +261,31 @@ public:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
-        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            pScheme->Calculate_LHS_Contribution(*(it), LHS_Contribution,
-                                                equation_ids_vector, r_current_process_info);
+        for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
 
-            // assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*(it));
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            if(element_is_active){
+                pScheme->Calculate_LHS_Contribution(*(it_elem), LHS_Contribution,
+                                                    equation_ids_vector, r_current_process_info);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                // clean local elemental memory
+                pScheme->CleanMemory(*(it_elem));
+            }
         }
 
         LHS_Contribution.resize(0, 0, false);
 
         // assemble all conditions
-        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
+        for (auto it_cond = rModelPart.Conditions().ptr_begin(); it_cond < rModelPart.Conditions().ptr_end(); it_cond++) {
             // calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(
-                *(it), LHS_Contribution, equation_ids_vector, r_current_process_info);
-
-            // assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            if(condition_is_active){
+                pScheme->Condition_Calculate_LHS_Contribution(
+                    *(it_cond), LHS_Contribution, equation_ids_vector, r_current_process_info);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            }
         }
 
         // finalizing the assembly
@@ -444,25 +449,29 @@ public:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
-        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
+        for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
             // calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(*(it), RHS_Contribution,
-                                                equation_ids_vector, r_current_process_info);
-
-            // assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            if(element_is_active){
+                pScheme->Calculate_RHS_Contribution(*(it_elem), RHS_Contribution,
+                                                    equation_ids_vector, r_current_process_info);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            }
         }
 
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
-        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
+        for (auto it_cond = rModelPart.Conditions().ptr_begin(); it_cond < rModelPart.Conditions().ptr_end(); it_cond++) {
             // calculate elemental contribution
-            pScheme->Condition_Calculate_RHS_Contribution(
-                *(it), RHS_Contribution, equation_ids_vector, r_current_process_info);
-
-            // assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            if(condition_is_active){
+                pScheme->Condition_Calculate_RHS_Contribution(
+                    *(it_cond), RHS_Contribution, equation_ids_vector, r_current_process_info);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            }
         }
 
         // finalizing the assembly
@@ -487,7 +496,7 @@ public:
         // Gets the array of elements from the modeler
         ElementsArrayType& r_elements_array =
             rModelPart.GetCommunicator().LocalMesh().Elements();
-        DofsVectorType dof_list;
+        DofsVectorType dof_list, second_dof_list;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
@@ -498,20 +507,39 @@ public:
 
         // Taking dofs of elements
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            pScheme->GetElementalDofList(*(it_elem), dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
-                 i_dof != dof_list.end(); ++i_dof)
-                temp_dofs_array.push_back(*i_dof);
+            bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+            if(element_is_active){
+                pScheme->GetElementalDofList(*(it_elem), dof_list, r_current_process_info);
+                for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                    i_dof != dof_list.end(); ++i_dof)
+                    temp_dofs_array.push_back(*i_dof);
+            }
         }
 
         // Taking dofs of conditions
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            pScheme->GetConditionDofList(*(it_cond), dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
-                 i_dof != dof_list.end(); ++i_dof)
-                temp_dofs_array.push_back(*i_dof);
+            bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+            if(condition_is_active){
+                pScheme->GetConditionDofList(*(it_cond), dof_list, r_current_process_info);
+                for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                    i_dof != dof_list.end(); ++i_dof)
+                    temp_dofs_array.push_back(*i_dof);
+            }
         }
+
+
+        // Gets the array of constraints from the modeler
+        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+        for (int i = 0; i < number_of_constraints; ++i) {
+            auto it_const = r_constraints_array.begin() + i;
+            // Gets list of Dof involved on every element
+            it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+            temp_dofs_array.insert(dof_list.begin(), dof_list.end());
+            temp_dofs_array.insert(second_dof_list.begin(), second_dof_list.end());
+        }
+
 
         temp_dofs_array.Unique();
         BaseType::mDofSet = temp_dofs_array;
@@ -633,48 +661,54 @@ public:
 
             // assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-                pScheme->EquationId(*(it_elem), equation_ids_vector,
-                                    r_current_process_info);
+                bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
+                if(element_is_active){
+                    pScheme->EquationId(*(it_elem), equation_ids_vector,
+                                        r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
-                IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                    temp[num_active_indices] = equation_ids_vector[i];
-                    num_active_indices += 1;
-                }
+                    // filling the list of active global indices (non fixed)
+                    IndexType num_active_indices = 0;
+                    for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
+                        temp[num_active_indices] = equation_ids_vector[i];
+                        num_active_indices += 1;
+                    }
 
-                if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    if (num_active_indices != 0) {
+                        int ierr = Agraph.InsertGlobalIndices(
+                            num_active_indices, temp.data(), num_active_indices, temp.data());
+                        KRATOS_ERROR_IF(ierr < 0)
+                            << ": Epetra failure in Graph.InsertGlobalIndices. "
+                            "Error code: "
+                            << ierr << std::endl;
+                    }
+                    std::fill(temp.begin(), temp.end(), 0);
                 }
-                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-                pScheme->Condition_EquationId(
-                    *(it_cond), equation_ids_vector, r_current_process_info);
+                bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
+                if(condition_is_active){
+                    pScheme->Condition_EquationId(
+                        *(it_cond), equation_ids_vector, r_current_process_info);
 
-                // filling the list of active global indices (non fixed)
-                IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                    temp[num_active_indices] = equation_ids_vector[i];
-                    num_active_indices += 1;
-                }
+                    // filling the list of active global indices (non fixed)
+                    IndexType num_active_indices = 0;
+                    for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
+                        temp[num_active_indices] = equation_ids_vector[i];
+                        num_active_indices += 1;
+                    }
 
-                if (num_active_indices != 0) {
-                    int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
+                    if (num_active_indices != 0) {
+                        int ierr = Agraph.InsertGlobalIndices(
+                            num_active_indices, temp.data(), num_active_indices, temp.data());
+                        KRATOS_ERROR_IF(ierr < 0)
+                            << ": Epetra failure in Graph.InsertGlobalIndices. "
+                            "Error code: "
+                            << ierr << std::endl;
+                    }
+                    std::fill(temp.begin(), temp.end(), 0);
                 }
-                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // finalizing graph construction
@@ -826,7 +860,6 @@ public:
         // loop over all dofs to find the fixed ones
         std::vector<int> global_ids(BaseType::mDofSet.size());
         std::vector<int> is_dirichlet(BaseType::mDofSet.size());
-
         IndexType i = 0;
         for (const auto& dof : BaseType::mDofSet) {
             const int global_id = dof.EquationId();
@@ -838,9 +871,7 @@ public:
         // here we construct and fill a vector "fixed local" which cont
         Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
         Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
-
         Epetra_Import dirichlet_importer(rA.ColMap(), fixed_local.Map());
-
         // defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed(rA.ColMap());
 
@@ -879,7 +910,6 @@ public:
                 }
             }
         }
-
         KRATOS_CATCH("");
     }
 
