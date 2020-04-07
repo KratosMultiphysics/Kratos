@@ -102,6 +102,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         node1.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[1,0,0])
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.SYSTEM_DAMPING_RATIO, damping)
 
+        mass1.Initialize(mp.ProcessInfo)
+        mass2.Initialize(mp.ProcessInfo)
+
         return mp
 
     @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
