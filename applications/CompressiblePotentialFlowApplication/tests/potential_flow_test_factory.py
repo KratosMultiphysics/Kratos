@@ -83,6 +83,10 @@ class PotentialFlowTests(UnitTest.TestCase):
         file_name = "naca0012_small_transonic"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_transonic_test"
+    def test_Naca0012SmallPerturbationCompressible(self):
+        file_name = "naca0012_small_perturbation_compressible"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_perturbation_compressible_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
