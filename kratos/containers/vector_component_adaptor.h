@@ -72,6 +72,8 @@ public:
 
     typedef Variable<TVectorType>  SourceVariableType;
 
+    typedef VectorComponentAdaptor<TVectorType> AdaptorType;
+
     ///@}
     ///@name Life Cycle
     ///@{

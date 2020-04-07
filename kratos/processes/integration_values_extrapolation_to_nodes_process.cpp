@@ -38,16 +38,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     Parameters ThisParameters
     ) : mrModelPart(rMainModelPart)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"            : "",
-        "echo_level"                 : 0,
-        "area_average"               : true,
-        "average_variable"           : "NODAL_AREA",
-        "list_of_variables"          : [],
-        "extrapolate_non_historical" : true
-    })");
-
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mEchoLevel = ThisParameters["echo_level"].GetInt();
@@ -58,11 +49,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     mpAverageVariable = &(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString()));
 
     // We get the list of variables
-    const SizeType n_variables = ThisParameters["list_of_variables"].size();
-
-    for (IndexType p_var = 0; p_var < n_variables; ++p_var){
-        const std::string& r_variable_name = ThisParameters["list_of_variables"].GetArrayItem(p_var).GetString();
-
+    for (const std::string& r_variable_name : ThisParameters["list_of_variables"].GetStringArray()){
         if (KratosComponents<Variable<double>>::Has(r_variable_name)){
             mDoubleVariable.push_back(&(KratosComponents< Variable<double>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<array_1d<double, 3> >>::Has(r_variable_name)) {
@@ -285,6 +272,23 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
             if (mExtrapolateNonHistorical) data.Erase(*p_var);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters IntegrationValuesExtrapolationToNodesProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"            : "",
+        "echo_level"                 : 0,
+        "area_average"               : true,
+        "average_variable"           : "NODAL_AREA",
+        "list_of_variables"          : [],
+        "extrapolate_non_historical" : true
+    })" );
+    return default_parameters;
 }
 
 /***********************************************************************************/

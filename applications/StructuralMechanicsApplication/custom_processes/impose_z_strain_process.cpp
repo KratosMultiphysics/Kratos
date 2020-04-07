@@ -19,13 +19,7 @@ ImposeZStrainProcess::ImposeZStrainProcess(
     ):mrThisModelPart(rThisModelPart),
       mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"             : "please_specify_model_part_name",
-        "z_strain_value": 0.01
-    })" );
-
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 }
 
 /***********************************************************************************/
@@ -61,10 +55,24 @@ void ImposeZStrainProcess::ExecuteInitializeSolutionStep()
         {
             imposed_z_strain_vector[GPoint] = mThisParameters["z_strain_value"].GetDouble();
         }
-        itElem->SetValueOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
+        itElem->SetValuesOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters ImposeZStrainProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name" : "please_specify_model_part_name",
+        "z_strain_value"  : 0.01
+    })" );
+
+    return default_parameters;
 }
 
 // class ImposeZStrainProcess

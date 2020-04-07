@@ -171,20 +171,20 @@ public:
                               PropertiesType::Pointer pProperties) const override;
 
     /// Check input to ensure that it makes sense.
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
      * The weight of the penalty terms is given by the member variable mWeight,
-     * set using SetValueOnIntegrationPoints. The periodic variables are read from
+     * set using SetValuesOnIntegrationPoints. The periodic variables are read from
      * the value of PERIODIC_VARIABLES stored in rCurrentProcessInfo.
      * @param rLeftHandSideMatrix Local left hand side matrix (output)
      * @param rRightHandSideVector Local right hand side vector (output)
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
@@ -192,7 +192,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns RHS values for the penalized dofs.
     /**
@@ -200,7 +200,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -210,7 +210,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -218,10 +218,10 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+                    const ProcessInfo& CurrentProcessInfo) const override;
 
     /// Returns the values of the unknowns for each node
-    void GetValuesVector(Vector& Values, int Step = 0) override;
+    void GetValuesVector(Vector& Values, int Step = 0) const override;
 
     ///@}
     ///@name Conditional Data
