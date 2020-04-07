@@ -6,19 +6,6 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
-
-# Import the tests or test_classes to create the suites
-
 ##### SELF-CONTAINED TESTS #####
 from bfecc_convection_test import BFECCConvectionTest
 from source_term_test import SourceTermTest
