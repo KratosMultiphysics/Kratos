@@ -58,12 +58,6 @@ def ConstructSolver(settings):
         eigen_solver = KM.PowerIterationHighestEigenvalueSolver( settings, linear_solver)
     elif solver_type == "rayleigh_quotient_iteration_eigenvalue_solver":
         eigen_solver = KM.RayleighQuotientIterationEigenvalueSolver( settings, linear_solver)
-    elif solver_type == "FEAST" or solver_type == "feast":
-        if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-            import KratosMultiphysics.ExternalSolversApplication as ExSA
-            eigen_solver = ExSA.FEASTSolver(settings, linear_solver)
-        else:
-            raise Exception("ExternalSolversApplication not available")
     else:
         raise Exception("Solver type not found. Asking for :" + solver_type)
 

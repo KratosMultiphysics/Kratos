@@ -19,8 +19,7 @@ def __DeprecatedApplicationImport(solver_type):
             "super_lu",
             "super_lu_iterative",
             "pastix",
-            "pastix_complex",
-            "feast"
+            "pastix_complex"
         ],
         "EigenSolversApplication" : [
             "sparse_lu",
@@ -83,8 +82,7 @@ def __CheckIfSolverTypeIsDeprecated(config):
         "SuperLUSolver"          : "super_lu",
         "SuperLUIterativeSolver" : "super_lu_iterative",
         "PastixSolver"           : "pastix",
-        "PastixComplexSolver"    : "pastix_complex",
-        "FEASTSolver"            : "feast"
+        "PastixComplexSolver"    : "pastix_complex"
     })
 
     # solvers from EigenSolversApp
