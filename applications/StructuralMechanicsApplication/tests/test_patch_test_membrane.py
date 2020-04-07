@@ -191,7 +191,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
                 "solver_type" : "skyline_lu_factorization"
             },
             "scheme_settings" : {
-                "name"          : "static"
+                "name"          : "static_scheme"
             },
             "convergence_criteria_settings" : {
                 "name"               : "residual_criteria",
@@ -222,7 +222,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
                 "solver_type" : "skyline_lu_factorization"
             },
             "scheme_settings" : {
-                "name"          : "bossak",
+                "name"          : "bossak_scheme",
                 "damp_factor_m" : -0.3
             },
             "convergence_criteria_settings" : {

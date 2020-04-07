@@ -103,7 +103,7 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
                 "solver_type" : "skyline_lu_factorization"
             },
             "scheme_settings" : {
-                "name"          : "static"
+                "name"          : "static_scheme"
             },
             "builder_and_solver_settings" : {
                 "name" : "block_builder_and_solver"

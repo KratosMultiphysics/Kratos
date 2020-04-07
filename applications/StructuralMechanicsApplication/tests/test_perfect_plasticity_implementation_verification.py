@@ -193,7 +193,7 @@ def _solve(mp):
             "solver_type" : "skyline_lu_factorization"
         },
         "scheme_settings" : {
-            "name"          : "static"
+            "name"          : "static_scheme"
         },
         "convergence_criteria_settings" : {
             "name"               : "residual_criteria",
