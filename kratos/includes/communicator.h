@@ -206,6 +206,14 @@ public:
 
     virtual int TotalProcesses() const;
 
+    SizeType GlobalNumberOfNodes() const;
+
+    SizeType GlobalNumberOfElements() const;
+
+    SizeType GlobalNumberOfConditions() const;
+
+    SizeType GlobalNumberOfMasterSlaveConstraints() const;
+
     SizeType GetNumberOfColors() const;
 
     void SetNumberOfColors(SizeType NewNumberOfColors);
