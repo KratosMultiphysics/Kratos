@@ -80,7 +80,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedIncrementalUpdateStaticScheme(self):
         settings = KM.Parameters("""
         {
-            "name" : "static"
+            "name" : "static_scheme"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedIncrementalUpdateStaticScheme")
@@ -88,7 +88,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedIncrementalUpdateStaticSchemeSlip(self):
         settings = KM.Parameters("""
         {
-            "name" : "static_slip"
+            "name" : "static_slip_scheme"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedIncrementalUpdateStaticSchemeSlip")
@@ -96,7 +96,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedBossakDisplacementScheme(self):
         settings = KM.Parameters("""
         {
-            "name" : "bossak"
+            "name" : "bossak_scheme"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBossakDisplacementScheme")
@@ -104,7 +104,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedNewmarkDisplacementScheme(self):
         settings = KM.Parameters("""
         {
-            "name" : "newmark"
+            "name" : "newmark_scheme"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedNewmarkDisplacementScheme")
@@ -112,7 +112,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedPseudoStaticDisplacementScheme(self):
         settings = KM.Parameters("""
         {
-            "name" : "pseudo_static", "rayleigh_beta_variable" : "PRESSURE"
+            "name" : "pseudo_static_scheme", "rayleigh_beta_variable" : "PRESSURE"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedPseudoStaticDisplacementScheme")
@@ -120,7 +120,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedBDFDisplacementScheme(self):
         settings = KM.Parameters("""
         {
-            "name" : "bdf_displacement"
+            "name" : "bdf_displacement_scheme"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFDisplacementScheme")
@@ -128,7 +128,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ResidualBasedBDFCustomScheme(self):
         settings = KM.Parameters("""
         {
-            "name" : "bdf"
+            "name" : "bdf_scheme"
         }
         """)
         self._auxiliary_test_function_Scheme(settings, "ResidualBasedBDFCustomScheme")
