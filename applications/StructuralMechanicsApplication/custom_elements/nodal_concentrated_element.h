@@ -297,6 +297,22 @@ public:
     /** TODO: TO BE REMOVED NON CONST VERSIONS **/
 
     /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     */
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side

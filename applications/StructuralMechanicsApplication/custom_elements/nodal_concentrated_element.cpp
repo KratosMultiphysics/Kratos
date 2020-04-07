@@ -869,6 +869,29 @@ void NodalConcentratedElement::CalculateDampingMatrix(
 
     KRATOS_CATCH( "" );
 }
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::GetDofList(
+    DofsVectorType& rElementalDofList,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->GetDofList(rElementalDofList, r_const_current_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->EquationIdVector(rResult, r_const_current_process_info);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
