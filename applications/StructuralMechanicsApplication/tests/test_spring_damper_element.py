@@ -10,6 +10,11 @@ from math import sqrt, sin, cos, pi, exp, atan
 
 from KratosMultiphysics import kratos_utilities as kratos_utils
 eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
+if eigen_solvers_application_available:
+    import KratosMultiphysics.EigenSolversApplication as EiSA
+    feast_available = EiSA.HasFEAST()
+else:
+    feast_available = False
 
 class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
@@ -297,7 +302,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
 
-    @KratosUnittest.skipUnless(eigen_solvers_application_available,"Missing required application: EigenSolversApplication")
+    @KratosUnittest.skipUnless(feast_available,"FEAST is missing")
     def test_undamped_mdof_system_eigen(self):
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_mdof_system(current_model)
