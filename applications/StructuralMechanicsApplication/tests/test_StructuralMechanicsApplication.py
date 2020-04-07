@@ -10,9 +10,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os, subprocess
 
 has_eigen_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
-    has_eigen_solvers_application = True
-else:
-    has_eigen_solvers_application = False
 
 # Import the tests or test_classes to create the suits
 
