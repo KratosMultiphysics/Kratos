@@ -72,6 +72,7 @@ class MPMExplicitSolver(MPMSolver):
             else:
                 err_msg = "The requested stress update \"" + stress_update + "\" is not available!\n"
                 err_msg += "Available options are: \"USF\", \"USL\",\"MUSL\""
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, StressUpdateOption)
         elif(scheme_type == "central_difference" or scheme_type == "Central_Difference"):
             isCentralDifference = True
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, True)
@@ -82,9 +83,7 @@ class MPMExplicitSolver(MPMSolver):
 
         is_dynamic = self._IsDynamic()
 
-        return KratosParticle.MPMExplicitScheme( grid_model_part,
-                                                 StressUpdateOption,
-                                                 isCentralDifference)
+        return KratosParticle.MPMExplicitScheme( grid_model_part)
 
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()

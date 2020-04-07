@@ -95,13 +95,10 @@ namespace Kratos {
              * @param DeltaTimePredictionLevel The prediction level
              */
             MPMExplicitScheme(
-                ModelPart& grid_model_part,
-                const int StressUpdateOption,
-                const bool isCentralDifference
+                ModelPart& grid_model_part
                 )
                 : Scheme<TSparseSpace, TDenseSpace>(),
-                mr_grid_model_part(grid_model_part),
-                mStressUpdateOption(StressUpdateOption)
+                mr_grid_model_part(grid_model_part)
             {
             }
 
@@ -271,7 +268,7 @@ namespace Kratos {
                 } // for DomainSize
 
                 // We need to set updated grid velocity here if we are using the USL formulation
-                if (mStressUpdateOption == 1)
+                if (r_current_process_info.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 1)
                 {
                     array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
                     r_current_velocity.clear();
@@ -409,7 +406,7 @@ namespace Kratos {
                 Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
                 // If we are updating stress first (USF and central difference), calculate nodal velocities from momenta and apply BCs
-                if (mStressUpdateOption == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
                 {
                     const IndexType DisplacementPosition = mr_grid_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
 
@@ -466,7 +463,7 @@ namespace Kratos {
                     ElementsArrayType& rElements = rModelPart.Elements();
                 const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-                if (mStressUpdateOption == 2)
+                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 2)
                 {
                     PerformModifiedUpdateStressLastMapping(rCurrentProcessInfo, rModelPart, rElements);
                 }
@@ -559,7 +556,7 @@ namespace Kratos {
 
                     // This calculates the stresses before momenta update.
                     // Used for USF and Central Difference method
-                    if (mStressUpdateOption == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+                    if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
                     {
                         ElementsArrayType& pElements = r_model_part.Elements();
                         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -805,7 +802,6 @@ namespace Kratos {
             // TODO check if this is needed
             TimeVariables mTime;            /// This struct contains the details of the time variables
             ModelPart& mr_grid_model_part;
-            const int mStressUpdateOption; // 0 = USF, 1 = USL, 2 = MUSL
 
         private:
     }; /* Class MPMExplicitScheme */

@@ -75,7 +75,7 @@ namespace Python{
 
         // MPM Explicit Scheme Type
         py::class_< MPMExplicitSchemeType, typename MPMExplicitSchemeType::Pointer, BaseSchemeType >(m, "MPMExplicitScheme")
-            .def(py::init < ModelPart&, const int, const bool>())
+            .def(py::init < ModelPart& >())
             .def("Initialize", &MPMExplicitSchemeType::Initialize)
             ;
 

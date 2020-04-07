@@ -628,13 +628,6 @@ protected:
     /// Container to store shape function gradients over whole timestep
     Matrix mDN_DX;
 
-    /// Boolean for explicit time integration
-    bool mIsExplicit = false;
-
-    /// Boolean for stress update option
-    bool mIsUSFStressUpdate = false;
-
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -667,7 +660,8 @@ protected:
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
-                                    const double& rIntegrationWeight);
+                                    const double& rIntegrationWeight,
+                                    ProcessInfo& rCurrentProcessInfo);
 
 
     /**

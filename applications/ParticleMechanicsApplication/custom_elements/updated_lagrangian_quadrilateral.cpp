@@ -302,7 +302,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     Flags &ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    if (!mIsExplicit)
+    if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
     {
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -343,7 +343,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     {
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = mMP.volume_acceleration * mMP.mass;
-        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, mMP.volume );
+        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, mMP.volume, rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
@@ -464,7 +464,12 @@ void UpdatedLagrangianQuadrilateral::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight)
+void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
+    LocalSystemComponents& rLocalSystem, 
+    GeneralVariables& rVariables, 
+    Vector& rVolumeForce, 
+    const double& rIntegrationWeight,
+    ProcessInfo& rCurrentProcessInfo)
 {
     // Contribution of the internal and external forces
     if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangianQuadrilateral::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
@@ -499,7 +504,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(LocalSystemComponents& r
         // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
         this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-        if (mIsExplicit)
+        if (rCurrentProcessInfo.Has(IS_EXPLICIT))
         {
             // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
             this->CalculateAndAddExplicitInternalForces(rRightHandSideVector);
@@ -909,9 +914,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, mMP.xg);
     mN = Variables.N;
-
     mFinalizedStep = false;
-    mIsExplicit = rCurrentProcessInfo.Has(IS_EXPLICIT);
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -919,7 +922,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
     // TODO, We should never retrieve previous nodal values in MPM. The below should be mapping particle accelerations to the grid.
-    if (!mIsExplicit)
+    if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
     {
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
@@ -983,10 +986,8 @@ void UpdatedLagrangianQuadrilateral::InitializeNonLinearIteration(ProcessInfo& r
 
     KRATOS_TRY
     
-        if (mIsExplicit)
+        if (rCurrentProcessInfo.Has(IS_EXPLICIT) && rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
         {
-            mIsUSFStressUpdate = true;
-
             // Create and initialize element variables:
             GeneralVariables Variables;
             this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
@@ -1017,7 +1018,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep(ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-        if (!mIsExplicit)
+        if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
         {
             FinalizeImplicitSolutionStep(rCurrentProcessInfo);
         }
@@ -1071,8 +1072,9 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
     bool calculateStresses = true;
     GeometryType& rGeom = GetGeometry();
 
-    if (mIsUSFStressUpdate)
+    if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
     {
+        // USF stresses already calculated
         calculateStresses = false;
     }
     else
@@ -1123,7 +1125,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
         mFinalizedStep = true;
     }
 
-    if (mIsUSFStressUpdate)
+    if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
     {
         mFinalizedStep = true;
     }
