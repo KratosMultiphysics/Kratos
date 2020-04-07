@@ -225,7 +225,7 @@ public:
             if (!(i->pGetDof(DISPLACEMENT_X)->IsFixed()))
                 r_current_displacement[0] = 0.0;
             else
-                r_current_displacement[0]  = r_previous_displacement[0];
+                r_current_displacement[0]  = r_previous_displacement[0];    //prescribed displacement
 
             if (!(i->pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1] = 0.0;
