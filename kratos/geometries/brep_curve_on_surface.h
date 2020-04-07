@@ -70,6 +70,7 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -239,6 +240,21 @@ public:
     }
 
     ///@}
+    ///@name Curve Properties
+    ///@{
+
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the interval of this curve.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 0.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    {
+        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
@@ -274,6 +290,44 @@ public:
         KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points on the
+     *        curve on surface of this geometry.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives) override
+    {
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives);
+    }
+
+    ///@}
     ///@name Shape Function
     ///@{
 

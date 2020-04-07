@@ -445,7 +445,7 @@ public:
         TSystemVectorType& rb = *mpb;
         DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
 
-        // Initializing the parameters of the Newton-Raphson cicle
+        // Initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
@@ -518,8 +518,7 @@ public:
 
             is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         }
-
-        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Starting Nonlinear iteration"<<std::endl;
+        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3 && !is_converged) << "Starting Nonlinear iteration"<<std::endl;
 
         // Iteration Loop
         while (is_converged == false &&

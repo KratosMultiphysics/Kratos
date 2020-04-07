@@ -36,7 +36,6 @@
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
-#include "custom_processes/move_rotor_process.h"
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "spaces/ublas_space.h"
@@ -119,12 +118,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
     (m, "IntegrationPointStatisticsProcess")
     .def(py::init<Model&, Parameters::Pointer>())
-    ;
-
-    py::class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>
-    (m,"MoveRotorProcess")
-    .def(py::init < ModelPart&, const double, const double, const double, const double, const double, const unsigned int >())
-    .def(py::init< ModelPart&, Parameters& >())
     ;
 
     py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>

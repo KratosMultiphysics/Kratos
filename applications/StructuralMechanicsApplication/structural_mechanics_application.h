@@ -88,6 +88,7 @@
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
+#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -496,6 +497,12 @@ private:
     // Adjoint Conditions
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition2D1N;
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition3D1N;
+    const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D3N;
+    const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D4N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N;
+    const AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>> mAdjointSemiAnalyticLineLoadCondition3D2N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>> mAdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N;
 
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;

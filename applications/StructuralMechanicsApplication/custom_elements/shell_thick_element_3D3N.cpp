@@ -142,7 +142,7 @@ Element::Pointer ShellThickElement3D3N::Create(IndexType NewId,
             pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 
-void ShellThickElement3D3N::Initialize()
+void ShellThickElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -151,7 +151,7 @@ void ShellThickElement3D3N::Initialize()
     KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes"
                                             << points_number << std::endl;
 
-    BaseShellElement::Initialize();
+    BaseShellElement::Initialize(rCurrentProcessInfo);
 
     mpCoordinateTransformation->Initialize();
 
