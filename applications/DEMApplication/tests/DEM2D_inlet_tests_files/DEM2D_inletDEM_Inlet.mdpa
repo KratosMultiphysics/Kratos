@@ -6,7 +6,8 @@ Begin Properties 1 // Inlet group: Particle injectors Auto1
     PARTICLE_DENSITY 25000.0
     YOUNG_MODULUS 1e6
     POISSON_RATIO 0.20
-    FRICTION 0.577350269189494
+    STATIC_FRICTION 0.577350269189494
+    DYNAMIC_FRICTION 0.577350269189494
     COEFFICIENT_OF_RESTITUTION 0.2
     PARTICLE_MATERIAL 2
     ROLLING_FRICTION 0.01
@@ -44,7 +45,7 @@ Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Au
        163
     End SubModelPartNodes
   End SubModelPart
-  
+
   Begin SubModelPart Inlet_Particle_injectors_Auto2 // Group Particle injectors Auto2 // Subtree Inlet
     Begin SubModelPartData
         PROPERTIES_ID 1
