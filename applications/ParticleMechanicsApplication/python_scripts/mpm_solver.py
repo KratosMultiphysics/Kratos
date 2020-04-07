@@ -382,6 +382,8 @@ class MPMSolver(PythonSolver):
 
     def _CreateSolutionStrategy(self):
         # this is for implicit only. explicit is implemented in derived mpm_explicit_solver
+        grid_model_part = self.GetGridModelPart();
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()

@@ -47,8 +47,8 @@ namespace MPMSearchElementUtility
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
-        ProcessInfo& rProcessInfo = rBackgroundGridModelPart.GetProcessInfo();
-        bool isExplicit = rProcessInfo.Has(IS_EXPLICIT);
+        const ProcessInfo& rProcessInfo = rBackgroundGridModelPart.GetProcessInfo();
+        const bool isExplicit = rProcessInfo.GetValue(IS_EXPLICIT);
 
         // Reset elements to inactive
         #pragma omp parallel for

@@ -302,7 +302,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     Flags &ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
+    if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT))
     {
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -504,9 +504,11 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
         // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
         this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-        if (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
         {
-            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT)) this->CalculateAndAddExplicitInternalForces(rRightHandSideVector);
+            GeometryType& r_geometry = GetGeometry();
+            MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(r_geometry,
+                mDN_DX, mMP.cauchy_stress_vector, mMP.volume, rRightHandSideVector);
         }
         else
         {
@@ -559,17 +561,6 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddInternalForces(VectorType& r
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianQuadrilateral::CalculateAndAddExplicitInternalForces(VectorType& rRightHandSideVector)
-{
-    KRATOS_TRY
-
-    GeometryType& r_geometry = GetGeometry();
-
-    MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(r_geometry,
-        mDN_DX, mMP.cauchy_stress_vector, mMP.volume, rRightHandSideVector);
-
-    KRATOS_CATCH("")
-}
 
 void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, GeneralVariables& rVariables)
 {
@@ -918,7 +909,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
 
-    if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
+    if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT))
     {
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
@@ -980,7 +971,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep(ProcessInfo& rCurrentP
     KRATOS_TRY
 
         // FinalizeSolutionStep for explicit time integration is done in the scheme
-        if (!rCurrentProcessInfo.Has(IS_EXPLICIT)) 
+        if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT)) 
         {
             // Create and initialize element variables:
             GeneralVariables Variables;
@@ -1034,7 +1025,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
     mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
     mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
-    if (!rCurrentProcessInfo.Has(IS_EXPLICIT)) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
+    if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT)) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 }
 
 //************************************************************************************

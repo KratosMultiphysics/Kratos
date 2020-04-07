@@ -691,9 +691,6 @@ protected:
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
 
-    /// Calculation of the Explicit Internal Forces Vector. Fi = div. sigma
-    virtual void CalculateAndAddExplicitInternalForces(VectorType& rRightHandSideVector);
-
     /// Calculation of the Explicit Stresses from velocity gradient.
     virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
         GeneralVariables& rVariables);
