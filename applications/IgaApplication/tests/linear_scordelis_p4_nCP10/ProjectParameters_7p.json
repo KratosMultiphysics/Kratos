@@ -16,7 +16,7 @@
 		"model_import_settings": {
 			"input_type": "json",
 			"input_filename": "geometry",
-			"physics_filename": "physics_5p.json"
+			"physics_filename": "physics_7p.json"
 		},
 		"computing_model_part_name": "iga_computing_model_part",
 		"material_import_settings": {

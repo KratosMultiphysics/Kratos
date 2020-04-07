@@ -7,9 +7,30 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
-//                   Riccardo Rossi
-//
+//  Main authors:    Michael Loibl (michael.loibl@unibw.de)
+//                   based on the work of Ralf Echter (7p linear), Bastian Oesterle (5p non-linear) and 
+//                      A. Usta (7p non-linear, master thesis at the University of Stuttgart) on a 
+//                      hierarchic shell formulation
+/**
+    * Description:
+    * Isogeometric hierarchic Reissner-Mindlin shell element parameterized by 7 parameters (7p)
+    * The 7 parameters: three translations (u,v,w), three components of the shear difference vector 
+    *   (w_1,w_2, w_3) and w_bar
+    * The 7p element takes shear deformations and thickness changes into account according to the 3D 
+    *   shell theory.
+    * The hierarchy means that the shell element builds on top of the Reissner-Mindlin 
+    *   (iga_shell_5p_element) and the Kirchhoff-Love shell element (iga_shell_3p_element) in the sense 
+    *   that the existing equations remain unchanged and additional terms are added. This remains a 
+    *   theoretical idea in the case of the 7p shell and is not reflected in the concrete implementation.
+    * 
+    * Implementation:
+    * So far there are no new parameters defined, instead ROTATION_X = w_1 and ROTATION_Y = w_2.
+    * The implementation was not revised w.r.t. style, comments and naming.
+    * 
+    * Attention:
+    * In the last version of this element, there were still open questions and problems. For further 
+    *   information please do not hesitate to contact the author.
+*/
 
 
 // System includes

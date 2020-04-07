@@ -1,6 +1,6 @@
 {
 	"problem_data": {
-		"problem_name": "Scordelis-Lo-Roof(p=4, n_CP=10) - 3p_kratos",
+		"problem_name": "Plate(L_t=1000) - 3p_kratos",
 		"model_part_name": "IgaModelPart",
 		"echo_level": 0,
 		"parallel_type": "OpenMP",
@@ -16,11 +16,11 @@
 		"model_import_settings": {
 			"input_type": "json",
 			"input_filename": "geometry",
-			"physics_filename": "physics_5p.json"
+			"physics_filename": "physics.json"
 		},
 		"computing_model_part_name": "iga_computing_model_part",
 		"material_import_settings": {
-			"materials_filename": "materials_5p.json"
+			"materials_filename": "materials.json"
 		},
 		"time_stepping": {
 			"time_step": 0.1
@@ -58,7 +58,7 @@
 				"kratos_module": "IgaApplication",
 				"python_module": "iga_output_integration_domain_process",
 				"Parameters": {
-					"output_file_name": "Scordelis-Lo-Roof(p=4, n_CP=10) - 3p_kratos_0_integrationdomain.json",
+					"output_file_name": "Plate(L_t=1000) - 3p_kratos_0_integrationdomain.json",
 					"model_part_name": "IgaModelPart",
 					"output_geometry_elements": true,
 					"output_geometry_conditions": false,
@@ -73,7 +73,7 @@
 					"mesh_id": 0,
 					"model_part_name": "IgaModelPart.Support_3",
 					"variable_name": "DISPLACEMENT",
-					"value": [0, null, 0],
+					"value": [null, null, 0],
 					"interval": [0, "End"]
 				}
 			}, {
@@ -82,7 +82,25 @@
 					"mesh_id": 0,
 					"model_part_name": "IgaModelPart.Support_4",
 					"variable_name": "DISPLACEMENT",
-					"value": [0, null, 0],
+					"value": [null, null, 0],
+					"interval": [0, "End"]
+				}
+			}, {
+				"python_module": "assign_vector_variable_process",
+				"Parameters": {
+					"mesh_id": 0,
+					"model_part_name": "IgaModelPart.Support_5",
+					"variable_name": "DISPLACEMENT",
+					"value": [null, null, 0],
+					"interval": [0, "End"]
+				}
+			}, {
+				"python_module": "assign_vector_variable_process",
+				"Parameters": {
+					"mesh_id": 0,
+					"model_part_name": "IgaModelPart.Support_6",
+					"variable_name": "DISPLACEMENT",
+					"value": [null, null, 0],
 					"interval": [0, "End"]
 				}
 			}
@@ -92,16 +110,28 @@
 				"python_module": "assign_vector_variable_to_conditions_process",
 				"Parameters": {
 					"mesh_id": 0,
-					"model_part_name": "Load_5",
+					"model_part_name": "Load_7",
 					"variable_name": "SURFACE_LOAD",
-					"value": [0, 0, -90],
+					"value": [0, 0, -8.0],
 					"interval": [0, "End"]
 				}
 			}
 		]
 	},
 	"output_processes": {
-		"output_process_list": [
+		"output_process_list": [{
+				"kratos_module": "IgaApplication",
+				"python_module": "iga_output_process",
+				"Parameters": {
+					"nodal_results": ["DISPLACEMENT","ROTATION","W_BAR"],
+					"integration_point_results": [],
+					"output_file_name": "Plate(L_t=1000) - 3p_kratos_0.post.res",
+					"model_part_name": "StructuralAnalysis",
+					"file_label": "step",
+					"output_control_type": "time",
+					"output_frequency": 0.1
+				}
+			}
 		]
 	}
 }

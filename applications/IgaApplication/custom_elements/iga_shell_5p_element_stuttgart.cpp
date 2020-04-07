@@ -7,16 +7,31 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Michael Loibl
-//
+//  Main authors:    Michael Loibl (michael.loibl@unibw.de)
+//                   based on the work of Ralf Echter and Bastian Oesterle on a hierarchic shell formulation
+/**
+    * Description:
+    * Isogeometric hierarchic Reissner-Mindlin shell element parameterized by 5 parameters (5p)
+    * The 5 parameters: three translations (u,v,w) and two parameters (w_1,w_2) building the hierarchic shear 
+    *   difference vector
+    * The 5p element takes shear deformations into account according to the Reissner-Mindlin shell theory.
+    * The hierarchy means that the shell element builds on top of the Kirchhoff-Love shell element 
+    *   (iga_shell_3p_element) in the sense that the existing equations remain unchanged and additional terms are 
+    *   added.
+    * 
+    * Implementation:
+    * Alternative implementation (the main implementation was the iga_shell_5p_element) where the concept of the code is the closest related to the code internally provided by the University of Stuttgart (Oesterle).
+    * So far there are no new parameters defined, instead ROTATION_X = w_1 and ROTATION_Y = w_2.
+    * The implementation was not revised w.r.t. style, comments and naming.
+    * 
+    * Attention:
+    * In the last version of this element, there were still open questions and problems. For further information please do not hesitate to contact the author.
+*/
 
 
 // System includes
-#include "utilities/math_utils.h"
 
 // External includes
-#include <iostream>     // MLout
-#include <fstream>      // MLout
 
 // Project includes
 #include "custom_elements/iga_shell_5p_element_stuttgart.h"
@@ -133,11 +148,6 @@ namespace Kratos
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.S);
             }
         }
-
-        // performance check
-        double stop_calculate_element = OpenMPUtils::GetCurrentTime();
-        if(Id()==10)
-            KRATOS_WATCH(stop_calculate_element - start_calculate_element)
         KRATOS_CATCH("");
     }
 

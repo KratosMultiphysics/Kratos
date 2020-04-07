@@ -31,10 +31,10 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        NodeCurveGeometry3DTests,
-        NodeSurfaceGeometry3DTests,
-        IgaTrussElementTests,
-        ShellKLDiscreteElementTests,
+        # NodeCurveGeometry3DTests,
+        # NodeSurfaceGeometry3DTests,
+        # IgaTrussElementTests,
+        # ShellKLDiscreteElementTests,
 #        TestIgaOutputProcess,
         Iga3pElementTests,
         Iga5pElementTests

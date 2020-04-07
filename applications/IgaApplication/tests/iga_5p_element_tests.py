@@ -23,6 +23,7 @@ class Iga5pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[1], rotation_results[1], 10)
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
 
+    # thick simply supported beam under dead load, geometrically non-linear computation
     def test_nonlinear_beam_thick(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/nonlinear_beam_thick_p2_nCP22")
@@ -53,6 +54,7 @@ class Iga5pElementTests(KratosUnittest.TestCase):
         
         os.chdir(current_directory)
 
+    # thick simply supported beam under dead load, geometrically linear computed
     def test_linear_beam_thick(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/linear_beam_thick_p4_nCP5")
@@ -72,6 +74,7 @@ class Iga5pElementTests(KratosUnittest.TestCase):
         
         os.chdir(current_directory)
 
+    # Scoredlis-Lo-Roof under dead load, geometrically linear computed
     def test_linear_scordelis(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/linear_scordelis_p4_nCP10")
@@ -99,7 +102,9 @@ class Iga5pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
 
         os.chdir(current_directory)
-            
+
+    # thick simply supported beam under dead load, geometrically non-linear computed, review of computation of 
+    #   internal forces        
     def test_nonlinear_beam_internal_forces(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/nonlinear_beam_thick_sd_p3_nCP83")

@@ -26,6 +26,7 @@ class Iga7pElementTests(KratosUnittest.TestCase):
         w_bar = node.GetSolutionStepValue(Iga.W_BAR)
         self.assertAlmostEqual(w_bar, w_bar_result, 10)
 
+    # thick simply supported beam under dead load, geometrically linear computed, Poisson's ratio = 0
     def test_linear_beam_thick(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/linear_beam_thick_p4_nCP5")
@@ -46,6 +47,7 @@ class Iga7pElementTests(KratosUnittest.TestCase):
         
         os.chdir(current_directory)
 
+    # simply supported quadratic plate, geometrically linear computed, Poisson's ratio != 0 
     def test_linear_plate(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/linear_plate_Lt5_p2_nCP12")
@@ -66,6 +68,7 @@ class Iga7pElementTests(KratosUnittest.TestCase):
         
         os.chdir(current_directory)
 
+    # Scordelis-Lo-Roof, geometrically linear computed, Poisson's ratio != 0
     def test_linear_scordelis(self):
         current_directory = os.getcwd()
         os.chdir(current_directory + "/applications/IgaApplication/tests/linear_scordelis_p4_nCP10")

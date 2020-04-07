@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Michael Loibl
-//                   based on the work of Ralf Echter and Bastian Oesterle
+//  Main authors:    Michael Loibl (michael.loibl@unibw.de)
+//                   based on the work of Ralf Echter and Bastian Oesterle on a hierarchic shell formulation
 /**
 * Description:
 * Isogeometric hierarchic Reissner-Mindlin shell element parameterized by 5 parameters (5p)
@@ -21,11 +21,13 @@
 * 
 * Implementation:
 * So far there are no new parameters defined, instead ROTATION_X = w_1 and ROTATION_Y = w_2.
+*
+* Attention:
+* In the last version of this element, there were still open questions and problems. For further information please do not hesitate to contact the author.
 */
 
 
 // System includes
-#include "utilities/math_utils.h" // ML (out?)
 
 // External includes
 
@@ -484,26 +486,25 @@ namespace Kratos
         Matrix& rF,
         double& rdetF)
     {
-        /* - Initialisieren aller gesuchten Groessen  */
-        rF.resize(3, 3);           // Deformationsgradient
+        // Initialization
+        rF.resize(3, 3);
         rF = ZeroMatrix(3, 3);
-        rdetF = 0.0;                 // Determinante des Deformationsgradienten
+        rdetF = 0.0;
 
-        // Covariant Metric
-        array_1d<double, 3> G_ab = ZeroVector(3);
+        // Covariant metric
+        array_1d<double, 3> G_ab(3, 0.0);
         G_ab[0] = pow(mInitialMetric.a1[0], 2) + pow(mInitialMetric.a1[1], 2) + pow(mInitialMetric.a1[2], 2);
         G_ab[1] = pow(mInitialMetric.a2[0], 2) + pow(mInitialMetric.a2[1], 2) + pow(mInitialMetric.a2[2], 2);
         G_ab[2] = mInitialMetric.a1[0] * mInitialMetric.a2[0] + mInitialMetric.a1[1] * mInitialMetric.a2[1] 
             + mInitialMetric.a1[2] * mInitialMetric.a2[2];
-        // Contravariant Metric
-        array_1d<double, 3> G_ab_con = ZeroVector(3);
+        // Contravariant metric
+        array_1d<double, 3> G_ab_con(3, 0.0);
         double inv_detG_ab = 1.0 / (G_ab[0] * G_ab[1] - G_ab[2] * G_ab[2]);
         G_ab_con[0] = inv_detG_ab * G_ab[1];
         G_ab_con[2] = -inv_detG_ab * G_ab[2];
         G_ab_con[1] = inv_detG_ab * G_ab[0];
         // Contravariant base vectors
-        array_1d<double, 3> G1_con = ZeroVector(3);
-        array_1d<double, 3> G2_con = ZeroVector(3);
+        array_1d<double, 3> G1_con(3, 0.0), G2_con(3, 0.0);
         G1_con = rG1 * G_ab_con[0] + rG2 * G_ab_con[2];
         G2_con = rG1 * G_ab_con[2] + rG2 * G_ab_con[1];
     
@@ -525,20 +526,17 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        array_1d<double, 5> strain_vector = ZeroVector(5);
-        array_1d<double, 5> strain_vector_RM = ZeroVector(5);
+        array_1d<double, 5> strain_vector(5, 0.0), strain_vector_reissner_mindlin(5, 0.0);
         
         // Strain computation in curvilinear space
         CalculateStrain(strain_vector, rActualMetric.a_ab, rActualMetric.curvature);
-        CalculateStrainReissnerMindlin(strain_vector_RM, rw, rDw_D1, rDw_D2, rActualMetric.a1, rActualMetric.a2);
-        rThisConstitutiveVariables.E = strain_vector + strain_vector_RM;
+        CalculateStrainReissnerMindlin(strain_vector_reissner_mindlin, rw, rDw_D1, rDw_D2, rActualMetric.a1, rActualMetric.a2);
+        rThisConstitutiveVariables.E = strain_vector + strain_vector_reissner_mindlin;
 
         // Strain transformation to local Cartesian Space with VoigtSize 6 because ConstitutiveLaw is 3D
         ConstitutiveVariables constitutive_variables(6);
         TransformationCurvilinearStrainSize5ToCartesianStrainSize6(rThisConstitutiveVariables.E, constitutive_variables.E);
 
-        if(rThisConstitutiveVariables.E.size() != 5 || constitutive_variables.E.size()!= 6)
-            KRATOS_WATCH("Strain size not correct.")
         //Constitutive Matrix D
         rValues.SetStrainVector(constitutive_variables.E); //this is the input parameter
         rValues.SetStressVector(constitutive_variables.S);    //this is an ouput parameter
@@ -546,12 +544,12 @@ namespace Kratos
 
         mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
         // static condensation of  sigma_33
-        unsigned int index_i = 0;
-        for (unsigned int i = 0; i < 6; i++)
+        IndexType index_i = 0;
+        for (IndexType i = 0; i < 6; i++)
         {
             if (i != 2){
-                unsigned int index_j = 0;
-                for (unsigned int j = 0; j < 6; j++ ){
+                IndexType index_j = 0;
+                for (IndexType j = 0; j < 6; j++ ){
                     if (j != 2){
                         rThisConstitutiveVariables.D(index_i, index_j) += constitutive_variables.D(i, j) - 
                             constitutive_variables.D(i, 2) * constitutive_variables.D(2, j) 
@@ -585,13 +583,13 @@ namespace Kratos
         rStrainVector[0] = 0.5 * (ra_ab[0] - mInitialMetric.a_ab[0]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[0] - rCurvature[0]);
         rStrainVector[1] = 0.5 * (ra_ab[1] - mInitialMetric.a_ab[1]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[1] - rCurvature[1]);
         rStrainVector[2] = 0.5 * (ra_ab[2] - mInitialMetric.a_ab[2]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[2] - rCurvature[2]);
-        // the other entries are (remain) zero (KL)
+        // the other entries are (remain) zero (Kirchhoff-Love)
         
         KRATOS_CATCH("")
     }
 
     void IgaShell5pElement::CalculateStrainReissnerMindlin(
-        array_1d<double, 5>& rStrainVectorRM,
+        array_1d<double, 5>& rStrainVectorReissnerMindlin,
         const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
@@ -600,11 +598,11 @@ namespace Kratos
     {
         double thickness = GetProperties().GetValue(THICKNESS);
                 
-        rStrainVectorRM[0] = mZeta * thickness/2.0 * inner_prod(rDw_D1, ra1);
-        rStrainVectorRM[1] = mZeta * thickness/2.0 * inner_prod(rDw_D2, ra2);
-        rStrainVectorRM[2] = mZeta * thickness/2.0 * 0.5 * (inner_prod(rDw_D1, ra2) + inner_prod(rDw_D2, ra1));
-        rStrainVectorRM[3] = 0.5 * inner_prod(rw, ra2);
-        rStrainVectorRM[4] = 0.5 * inner_prod(rw, ra1);
+        rStrainVectorReissnerMindlin[0] = mZeta * thickness/2.0 * inner_prod(rDw_D1, ra1);
+        rStrainVectorReissnerMindlin[1] = mZeta * thickness/2.0 * inner_prod(rDw_D2, ra2);
+        rStrainVectorReissnerMindlin[2] = mZeta * thickness/2.0 * 0.5 * (inner_prod(rDw_D1, ra2) + inner_prod(rDw_D2, ra1));
+        rStrainVectorReissnerMindlin[3] = 0.5 * inner_prod(rw, ra2);
+        rStrainVectorReissnerMindlin[4] = 0.5 * inner_prod(rw, ra1);
     }
 
     void IgaShell5pElement::TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
@@ -641,13 +639,13 @@ namespace Kratos
         SizeType mat_size = number_of_control_points * 5;
 
         // membrane part
-        for (unsigned int r = 0; r < mat_size; r++)
+        for (IndexType r = 0; r < mat_size; r++)
         {
             // local node number kr and dof direction dirr
             int kr = r / 5;
             int dirr = r % 5;
 
-            array_1d<double, 3> dE_curvilinear = ZeroVector(3);
+            array_1d<double, 3> dE_curvilinear(3, 0.0);
             // "if" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
             if (dirr == 0 || dirr == 1 || dirr == 2)
             {
@@ -656,13 +654,13 @@ namespace Kratos
                 dE_curvilinear[1] = DN_De(kr, 1)*rActualMetric.a2(dirr);
                 dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rActualMetric.a2(dirr) + rActualMetric.a1(dirr)*DN_De(kr, 1));
             }
-            // calculated with simplified mInitialTransConToCar (ML)
-            rB(0, r) += mInitialTransConToCar(0, 0) * dE_curvilinear[0] + mInitialTransConToCar(0, 1)*dE_curvilinear[1] 
-                + mInitialTransConToCar(0, 2)*dE_curvilinear[2] ;
+            // calculated with simplified mInitialTransConToCar
+            rB(0, r) += mInitialTransConToCar(0, 0) * dE_curvilinear[0] + mInitialTransConToCar(0, 1) * dE_curvilinear[1] 
+                + mInitialTransConToCar(0, 2) * dE_curvilinear[2] ;
             rB(1, r) += mInitialTransConToCar(1, 0) * dE_curvilinear[0] + mInitialTransConToCar(1, 1) * dE_curvilinear[1] 
                 + mInitialTransConToCar(1, 2) * dE_curvilinear[2];
-            rB(2, r) += mInitialTransConToCar(2, 0)*dE_curvilinear[0] + mInitialTransConToCar(2, 1)*dE_curvilinear[1] 
-                + mInitialTransConToCar(2, 2)*dE_curvilinear[2];
+            rB(2, r) += mInitialTransConToCar(2, 0) * dE_curvilinear[0] + mInitialTransConToCar(2, 1) * dE_curvilinear[1] 
+                + mInitialTransConToCar(2, 2) * dE_curvilinear[2];
 
             // all other entries of rB are (remain) zero
             
@@ -747,14 +745,13 @@ namespace Kratos
             Vector S_g3dg3lg3_3 = ZeroVector(mat_size_KL);
             Matrix S_dn = ZeroMatrix(3, mat_size_KL);
             // first variation of strain and curvature w.r.t. dof
-            for (int r = 0; r < mat_size_KL; r++)
+            for (IndexType r = 0; r < mat_size_KL; r++)
             {
                 // local node number kr and dof direction dirr
-                int kr = r / 3;
-                int dirr = r % 3;
+                unsigned int kr = r / 3;
+                unsigned int dirr = r % 3;
 
-                array_1d<double, 3> S_dg_1 = ZeroVector(3);
-                array_1d<double, 3> S_dg_2 = ZeroVector(3);
+                array_1d<double, 3> S_dg_1(3, 0.0), S_dg_2(3, 0.0);
                 S_dg_1(dirr) = DN_De(kr, 0);
                 S_dg_2(dirr) = DN_De(kr, 1);
 
@@ -772,27 +769,27 @@ namespace Kratos
             }
 
             // second variation of strain and curvature w.r.t. dofs
-            for (int r = 0; r < mat_size_KL; r++)
+            for (IndexType r = 0; r < mat_size_KL; r++)
             {
                 // local node number kr and dof direction dirr
-                int kr = r / 3;
-                int dirr = r % 3;
+                unsigned int kr = r / 3;
+                unsigned int dirr = r % 3;
 
-                for (int s = 0; s <= r; s++)
+                for (IndexType s = 0; s <= r; s++)
                 {               
                     // local node number ks and dof direction dirs
-                    int ks = s / 3;
-                    int dirs = s % 3;
+                    unsigned int ks = s / 3;
+                    unsigned int dirs = s % 3;
 
                     // strain
-                    array_1d<double, 3> ddE_cu = ZeroVector(3);
+                    array_1d<double, 3> ddE_cu(3, 0.0);
                     if (dirr == dirs)
                     {
                         ddE_cu[0] = DN_De(kr, 0)*DN_De(ks, 0);
                         ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
                         ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
 
-                        // calculated with simplified mInitialTransConToCar (ML)
+                        // calculated with reduced mInitialTransConToCar
                         second_variations_KL.B11(r, s) += mInitialTransConToCar(0, 0) * ddE_cu[0];
                         second_variations_KL.B22(r, s) += mInitialTransConToCar(1, 0) * ddE_cu[0] + mInitialTransConToCar(1, 1) * ddE_cu[1]
                             + mInitialTransConToCar(1, 2) * ddE_cu[2];
@@ -800,9 +797,9 @@ namespace Kratos
                     }
 
                     // curvature
-                    array_1d<double, 3> ddg3 = ZeroVector(3);
-                    int dirt = 4 - dirr - dirs;
-                    int ddir = dirr - dirs;
+                    array_1d<double, 3> ddg3(3, 0.0);
+                    unsigned int dirt = 4 - dirr - dirs;
+                    unsigned int ddir = dirr - dirs;
                     if (ddir == -1)      ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
                     else if (ddir == 2) ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
                     else if (ddir == 1) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
@@ -814,20 +811,20 @@ namespace Kratos
 
                     double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
 
-                    array_1d<double, 3> ddn = ZeroVector(3);
+                    array_1d<double, 3> ddn(3, 0.0);
                     ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[0];
                     ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[1];
                     ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[2];
 
-                    array_1d<double, 3> ddK_cu = ZeroVector(3);
-                    ddK_cu[0] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)  // MLFÄ
+                    array_1d<double, 3> ddK_cu(3, 0.0);
+                    ddK_cu[0] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
                         + rActualMetric.H(0, 0)*ddn[0] + rActualMetric.H(1, 0)*ddn[1] + rActualMetric.H(2, 0)*ddn[2]);
-                    ddK_cu[1] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)  // MLFÄ
+                    ddK_cu[1] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
                         + rActualMetric.H(0, 1)*ddn[0] + rActualMetric.H(1, 1)*ddn[1] + rActualMetric.H(2, 1)*ddn[2]);
-                    ddK_cu[2] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)  // MLFÄ
+                    ddK_cu[2] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
                         + rActualMetric.H(0, 2)*ddn[0] + rActualMetric.H(1, 2)*ddn[1] + rActualMetric.H(2, 2)*ddn[2]);
 
-                    // calculated with simplified mInitialTransConToCar (ML)
+                    // calculated with reduced mInitialTransConToCar
                     second_variations_KL.B11(r, s) += mInitialTransConToCar(0, 0) * ddK_cu[0];
                     second_variations_KL.B22(r, s) += mInitialTransConToCar(1, 0) * ddK_cu[0] + mInitialTransConToCar(1, 1) * ddK_cu[1] 
                         + mInitialTransConToCar(1, 2) * ddK_cu[2];
@@ -842,8 +839,8 @@ namespace Kratos
                 }
             }
 
-            // transfer KL-second-variations to RM-second-variations
-            for (unsigned int r = 0; r < mat_size; r++) {
+            // transfer Kirchhoff-Love-second-variations to Reissner-Mindlin-second-variations
+            for (IndexType r = 0; r < mat_size; r++) {
                 unsigned int kr = r / 5;
                 unsigned int dirr = r % 5;
                 unsigned int r_KL = kr * 3 + dirr;
@@ -910,7 +907,7 @@ namespace Kratos
             dE_cur[0] += 0.5 * (Dw_Dr(0, r) * rActualMetric.a2(0) + Dw_Dr(1, r) * rActualMetric.a2(1) + Dw_Dr(2, r) * rActualMetric.a2(2));
             dE_cur[1] += 0.5 * (Dw_Dr(0, r) * rActualMetric.a1(0) + Dw_Dr(1, r) * rActualMetric.a1(1) + Dw_Dr(2, r) * rActualMetric.a1(2));
             
-            // calculated with the simplified mInitialTransConToCar (ML)
+            // calculated with the reduced mInitialTransConToCar
             rB(3, r) += mInitialTransConToCar(3, 3) * dE_cur[0] + mInitialTransConToCar(3, 4) * dE_cur[1];
             rB(4, r) += mInitialTransConToCar(4, 4) * dE_cur[1];
             // the other entries are (remain) zero
@@ -953,7 +950,7 @@ namespace Kratos
             dK_cu[1] += inner_prod(DDw_DD2r, rActualMetric.a2);
             dK_cu[2] += 0.5 * (inner_prod(DDw_DD1r, rActualMetric.a2) + inner_prod(DDw_DD2r, rActualMetric.a1));
 
-            // calculated with simplified mInitialTransConToCar (ML)
+            // calculated with reduced mInitialTransConToCar
             rB(0, r) += mZeta * thickness / 2.0 * mInitialTransConToCar(0, 0) * dK_cu[0];
             rB(1, r) += mZeta * thickness / 2.0 * (mInitialTransConToCar(1, 0) * dK_cu[0] + mInitialTransConToCar(1, 1) * dK_cu[1] 
                 + mInitialTransConToCar(1, 2) * dK_cu[2]);
@@ -1004,7 +1001,7 @@ namespace Kratos
                     ddE_cu[0] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.a2);
                     ddE_cu[1] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.a1);
 
-                    // calculated with simplified mInitialTransConToCar (ML)
+                    // calculated with reduced mInitialTransConToCar
                     rSecondVariations.B23(r, s) += mInitialTransConToCar(3, 3) * ddE_cu[0] + mInitialTransConToCar(3, 4) * ddE_cu[1];
                     rSecondVariations.B13(r, s) += mInitialTransConToCar(4, 4) * ddE_cu[1];
                     if (r != s){
@@ -1077,7 +1074,7 @@ namespace Kratos
                     ddK_cu[1] += mZeta * thickness / 2.0 * inner_prod(DDDw_DDD2rs, rActualMetric.a2);
                     ddK_cu[2] += mZeta * thickness / 2.0 * 0.5 * (inner_prod(DDDw_DDD1rs, rActualMetric.a2) + inner_prod(DDDw_DDD2rs, rActualMetric.a1));
 
-                    // calculated with simplified mInitialTransConToCar (ML)
+                    // calculated with reduced mInitialTransConToCar
                     rSecondVariations.B11(r, s) += mInitialTransConToCar(0, 0) * ddK_cu[0];
                     rSecondVariations.B22(r, s) += mInitialTransConToCar(1, 0) * ddK_cu[0] + mInitialTransConToCar(1, 1) * ddK_cu[1]
                         + mInitialTransConToCar(1, 2) * ddK_cu[2];
@@ -1102,21 +1099,20 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // Create constitutive law parameters:
+        // Create constitutive law parameters
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        // Set constitutive law flags:
+        // Set constitutive law flags
         Flags& ConstitutiveLawOptions = Values.GetOptions();
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         
         // shear difference vector
-        array_1d<double, 3> w = ZeroVector(3);
+        array_1d<double, 3> w(3, 0.0);
         // derivatives of the shear difference vector
-        array_1d<double, 3> Dw_D1 = ZeroVector(3);
-        array_1d<double, 3> Dw_D2 = ZeroVector(3);
+        array_1d<double, 3> Dw_D1(3, 0.0), Dw_D2(3, 0.0);
         // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
-        array_1d<double, 2> w_alpha = ZeroVector(2);
+        array_1d<double, 2> w_alpha(2, 0.0);
         // derivatives of the components w_alpha
         Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
 
@@ -1132,7 +1128,7 @@ namespace Kratos
         double thickness = GetProperties().GetValue(THICKNESS);
 
         // the Gauss-Points start from bottom to top
-        for (unsigned int Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
+        for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
         {
             mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
@@ -1143,7 +1139,7 @@ namespace Kratos
             CalculateActualBaseVectorsLinearised(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
             CalculateDeformationGradient(G1, G2, g1, g2, g3, F, detF);
             
-            // TransformationMatrices
+            // Transformation matrices
             Matrix initial_trans_car_to_cov = ZeroMatrix(5, 5);
             Matrix actual_trans_cov_to_car = ZeroMatrix(5, 5);
             CalculateTransformationMatrixInitialTransConToCar(G1_con, G2_con);
@@ -1159,7 +1155,7 @@ namespace Kratos
             stress_pk2_cov[Gauss_index] = prod(initial_trans_car_to_cov, stress_pk2_cart[Gauss_index]);
             stress_cau_cov[Gauss_index] = stress_pk2_cov[Gauss_index] / detF;
             stress_cau_cart[Gauss_index] = prod(actual_trans_cov_to_car, stress_cau_cov[Gauss_index]);
-        }   // loop GP,t
+        }   // loop GP_thickness
     
         // Cauchy stress at midspan
         array_1d<double, 5> stress_cau_cart_mid;
@@ -1228,21 +1224,19 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_control_points = GetGeometry().size();
+        SizeType number_of_control_points = GetGeometry().size();
 
         if (rResult.size() != 5 * number_of_control_points)
             rResult.resize(5 * number_of_control_points, false);
 
-        // const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-
-        for (unsigned int i = 0; i < number_of_control_points; ++i) {
-            const unsigned int index = i * 5;
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            IndexType index = i * 5;
             rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
-            // ROTATION_Y = w_2 (second component of hierarchic shear difference vector) (ML)
+            // ROTATION_Y = w_2 (second component of hierarchic shear difference vector)
             rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
             rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
         }
@@ -1256,20 +1250,19 @@ namespace Kratos
     )
     {
         KRATOS_TRY
-        // KRATOS_WATCH("GetDofList")
 
-        const unsigned int number_of_control_points = GetGeometry().size();
+        SizeType number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(5 * number_of_control_points);
 
-        for (unsigned int i = 0; i < number_of_control_points; ++i) {
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
-            // ROTATION_Y = w_2 (second component of hierarchic shear difference vector) (ML)
+            // ROTATION_Y = w_2 (second component of hierarchic shear difference vector)
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
         }

@@ -18,7 +18,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** 3D Shell with hierarchical shear vector (7p). Optimized for Isogeometric Analysis by Echter et al..
+/** Isogeometric hierarchic Reissner-Mindlin shell element parameterized by 5 parameters (5p)
 */
 class IgaShell5pElementStuttgart
     : public BaseDiscreteElement

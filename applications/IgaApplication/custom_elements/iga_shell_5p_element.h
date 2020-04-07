@@ -122,12 +122,12 @@ public:
     ) override;
 
     /**
-    * This function provides the place to perform checks on the completeness of the input.
-    * It is designed to be called only once (or anyway, not often) typically at the beginning
-    * of the calculations, so to verify that nothing is missing from the input
-    * or that no common error is found.
-    * @param rCurrentProcessInfo
-    */
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     std::string Info() const override
@@ -142,7 +142,6 @@ public:
     }
 
     /// Print information about this object.
-
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "KLElement #" << Id();
@@ -221,8 +220,8 @@ private:
     };
 
     /**
-    * Internal variables used in the constitutive equations
-    */
+     * Internal variables used in the constitutive equations
+     */
     struct ConstitutiveVariables
     {
         Vector E; //strain
@@ -242,8 +241,8 @@ private:
     };
 
     /**
-    * Internal variables used in the constitutive equations
-    */
+     * Internal variables used in the constitutive equations
+     */
     struct SecondVariations
     {
         Matrix B11;
@@ -271,10 +270,7 @@ private:
         {
             KRATOS_TRY
 
-            if (B11.size1() != rSecondVariations.B11.size1()){
-                KRATOS_WATCH("Addition of SecondVariations of different size.")     // ML
-                KRATOS_ERROR << "Addition of SecondVariations of different size." << std::endl;
-            }
+            KRATOS_ERROR_IF(B11.size1() != rSecondVariations.B11.size1()) << "Addition of SecondVariations of different size." << std::endl;
             
             unsigned int mat_size = B11.size1();
             SecondVariations second_variations(mat_size);
@@ -321,7 +317,6 @@ private:
             }
             else
             {
-                KRATOS_WATCH("Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points.")     // ML
                 KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
             }
             
@@ -445,6 +440,8 @@ private:
      * @brief Calculates deformation gradient F for a Gauss point
      * @param rG1, rG2 = base vectors of the shell body of the reference configuration (G3=A3)
      * @param rg1, rg2, rg3 = base vectors of the shell body of the actual configuration
+     * @param rF = deformation gradient
+     * @param rdetF = determinant of deformation gradient
      */
     void CalculateDeformationGradient(
         const array_1d<double, 3> rG1,
@@ -456,12 +453,15 @@ private:
         double& rdetF);
 
     /**
-    * This functions updates the constitutive variables
-    * @param rActualMetric: The actual metric
-    * @param rThisConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
+        * @brief This functions updates the constitutive variables.
+        * @param rActualMetric = actual metric
+        * @param rw = shear difference vector
+        * @param rDw_D1 = derivative of shear difference vector w.r.t. theta1
+        * @param rDw_D2 = derivative of shear difference vector w.r.t. theta2
+        * @param rThisConstitutiveVariables = The constitutive variables to be calculated
+        * @param rValues = The constitutive law parameters
+        * @param ThisStressMeasure = The stress measure considered
+        */
     void CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
         const Vector& rw,
@@ -471,19 +471,32 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
+    /**
+     * @brief This method calculates the strain according to the Kirchhoff-Love theory
+     * @param ra_ab = covariant metric
+     */
     void CalculateStrain(
         array_1d<double, 5>& rStrainVector,
         const Vector& ra_ab,
         const Vector& rCurvature);
 
+    /**
+     * @brief This method calculates the additional strain components according to the Reissner-Mindlin theory
+     * @param rw = shear difference vector
+     * @param rDw_D1, rDw_D2 = derivative of the shear difference vector w.r.t. theta1 respecitvely theta2
+     * @param ra1, ra2 = first repecitvely second covariant base vector of the actual configuration
+     */
     void CalculateStrainReissnerMindlin(
-        array_1d<double, 5>& rStrainVectorRM,
+        array_1d<double, 5>& rStrainVectorReissnerMindlin,
         const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& ra1,
         const Vector& ra2);
 
+    /**
+     * @brief This method performs a transformation of a curvilinear strain vector with Voigt size 5 to a Cartesian strain vector with Voigt size 6
+     */
     void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
         const Vector& rCurvilinearStrain,
         Vector& rCartesianStrain);
