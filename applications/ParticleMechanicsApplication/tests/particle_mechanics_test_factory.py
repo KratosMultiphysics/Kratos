@@ -107,3 +107,6 @@ class ExplicitOscillatingPointCentralDifferenceTest(ParticleMechanicsTestFactory
 
 class ExplicitOscillatingPointYCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/oscillating_point/explicit_oscillating_point_Y_compressible_test"
+
+class ExplicitOscillatingPointGravityTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/explicit_oscillating_point_gravity_test"
