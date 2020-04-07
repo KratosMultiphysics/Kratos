@@ -165,21 +165,11 @@ MatrixMapType GetReferenceMatrixAsMap()
     return AMap;
 }
 
+template< class TGraphType>
 bool CheckGraph(
-        const SparseContiguousRowGraph& rAgraph,
+        const TGraphType& rAgraph,
         const MatrixMapType& rReferenceGraph)
 {
-    //check that all entries in Agraph are also in reference_A_map
-    const auto& rgraph = rAgraph.GetGraph();
-    for(IndexType I = 0; I<rgraph.size();++I)
-    {
-        for(auto J : rgraph[I] )
-        {
-            if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
-                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
-        }
-    }
-
     for(auto it=rAgraph.begin(); it!=rAgraph.end(); ++it)
     {
         const auto I = it.GetRowIndex();
@@ -189,44 +179,6 @@ bool CheckGraph(
                 KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
         }
     }
-
-    //check that all the entries of reference_A_map are also in Agraph
-    for(unsigned int I=0; I<rgraph.size(); ++I)
-    {
-        for(auto J : rgraph[I])
-            if(rgraph[I].find(J) == rgraph[I].end())
-                 KRATOS_ERROR << "Entry " << I << "," << J << " is in the reference graph but not in Agraph"  << std::endl;
-    }
-
-    return true;
-}
-
-bool CheckGraph(
-        const SparseGraph& rAgraph,
-        const MatrixMapType& rReferenceGraph)
-{
-    //check that all entries in Agraph are also in reference_A_map
-    const auto& rgraph = rAgraph.GetGraph();
-    for(const auto& item : rgraph)
-    {
-        const auto I = item.first;
-        for(auto J : item.second )
-        {
-            if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
-                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
-        }
-    }
-
-    for(auto it=rAgraph.begin(); it!=rAgraph.end(); ++it)
-    {
-        const auto I = it.GetRowIndex();
-        for(auto J : *it )
-        {
-            if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
-                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
-        }
-    }
-
 
     //check that all the entries of reference_A_map are also in Agraph
     for(const auto& item : rReferenceGraph)
@@ -298,13 +250,13 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 {
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
-KRATOS_WATCH(__LINE__)
+
     SparseGraph Agraph;
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
-KRATOS_WATCH(__LINE__)
+
     Agraph.Finalize();
-KRATOS_WATCH(__LINE__)
+
     CheckGraph(Agraph, reference_A_map);
 
     //check serialization
@@ -385,7 +337,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 {
     const IndexType block_size = 4;
     const IndexType nodes_in_elem = 4;
-    const IndexType nel = 1e6;
+    const IndexType nel = 1e2;
     const IndexType ndof = nel/6;
     const IndexType standard_dev = 100;
     auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
@@ -394,7 +346,6 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
     auto pAgraph = AssembleGraph<SparseGraph>(connectivities, ndof*block_size);
     double end_graph = OpenMPUtils::GetCurrentTime();
 
-    pAgraph->Finalize();
     std::cout << "SparseGraph time = " << end_graph-start_graph << std::endl;
 }
 
@@ -402,7 +353,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
 {
     const IndexType block_size = 4;
     const IndexType nodes_in_elem = 4;
-    const IndexType nel = 1e6;
+    const IndexType nel = 1e2;
     const IndexType ndof = nel/6;
     const IndexType standard_dev = 100;
     auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);

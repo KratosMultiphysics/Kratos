@@ -110,6 +110,11 @@ public:
         return false;
     }
 
+    const GraphType::mapped_type& operator[](const IndexType& Key) const
+    {
+		return (mGraph.find(Key))->second;
+    }
+
     void Clear()
     {
         mGraph.clear();

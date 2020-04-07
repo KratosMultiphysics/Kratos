@@ -113,10 +113,15 @@ public:
 
     bool Has(const IndexType I, const IndexType J) const
     {
-        const auto& row_it = mGraph[I];
-        if((row_it->second).find(J) != (row_it->second).end())
+        const auto& row = mGraph[I];
+        if(row.find(J) != row.end())
             return true;
         return false;
+    }
+
+    const GraphType::value_type& operator[](const IndexType& Key) const
+    {
+		return mGraph[Key];
     }
 
     inline IndexType LocalIndex(const IndexType GlobalIndex) const{

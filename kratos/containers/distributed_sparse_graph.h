@@ -79,7 +79,9 @@ public:
     /// Default constructor.
     DistributedSparseGraph(const std::vector<IndexType> limits,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
-    : mLocalBounds(limits), mrComm(rComm)
+    : mLocalBounds(limits),
+      mLocalGraph(), //limits[1]-limits[0]),
+      mrComm(rComm)
     {
 
         auto all_limits = mrComm.AllGather(mLocalBounds);
@@ -216,11 +218,11 @@ public:
 
     void AddEntries(SparseGraph& rOtherGraph)
     {
-        //TODO
-        for(const auto& item: rOtherGraph.GetGraph())
-        {
-            AddEntries(item.first, item.second);
-        }
+//TODO
+        // for(unsigned int i=0; i<rOtherGraph.GetGraph().size(); ++i)
+        // {
+        //     AddEntries(i, rOtherGraph.GetGraph()[i]);
+        // }
     }
 
     void Finalize()
@@ -232,17 +234,17 @@ public:
         auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrComm);
 
         //sendrecv data
-        for(auto color : colors)
-        {
-            if(color >= 0) //-1 would imply no communication
-            {
-                //TODO: this can be made nonblocking
-                auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+        // for(auto color : colors)
+        // {
+        //     if(color >= 0) //-1 would imply no communication
+        //     {
+        //         //TODO: this can be made nonblocking
+        //         auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
 
-                // SparseGraph recv_graph;
-                mLocalGraph.AddEntries(recv_graph);
-            }
-        }
+        //         // SparseGraph recv_graph;
+        //         mLocalGraph.AddEntries(recv_graph);
+        //     }
+        // }
     }
 
     const LocalGraphType& GetLocalGraph() const{
