@@ -85,13 +85,15 @@ namespace Kratos
     /***********************************************************************************/
 
     void MPMExplicitUtilities::UpdateGaussPointExplicit(
-        const double& rDeltaTime,
-        const bool& isCentralDifference,
+        const ProcessInfo& rCurrentProcessInfo,
         Element& rElement,
         Vector& rN)
     {
         KRATOS_TRY
 
+
+        const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
+        const bool& isCentralDifference = rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE);
         GeometryType& rGeom = rElement.GetGeometry();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
@@ -171,7 +173,7 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_DISPLACEMENT, MP_Displacement,rProcessInfo);
         MP_Displacement[0] += delta_xg;
         rElement.SetValuesOnIntegrationPoints(MP_DISPLACEMENT,MP_Displacement,rProcessInfo);
-        
+
         KRATOS_CATCH("")
     }
 

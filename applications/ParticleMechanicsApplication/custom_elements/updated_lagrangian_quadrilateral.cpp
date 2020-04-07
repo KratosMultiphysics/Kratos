@@ -325,7 +325,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
         // Update MP_density
         mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
     }
-    else
+    else if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
     {
         rLocalSystem.CalculationFlags.Set(UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX, false);
     }
@@ -506,8 +506,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
 
         if (rCurrentProcessInfo.Has(IS_EXPLICIT))
         {
-            // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-            this->CalculateAndAddExplicitInternalForces(rRightHandSideVector);
+            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT)) this->CalculateAndAddExplicitInternalForces(rRightHandSideVector);
         }
         else
         {
@@ -918,7 +917,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
-    // TODO, We should never retrieve previous nodal values in MPM. The below should be mapping particle accelerations to the grid.
+
     if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
     {
         for (unsigned int j = 0; j < number_of_nodes; j++)
@@ -953,7 +952,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
         // be the initial particle acceleration mapped to the grid.
-        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+        if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         {
             const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
             for (unsigned int j = 0; j < dimension; j++)
@@ -980,108 +979,40 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep(ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-        if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
+        // FinalizeSolutionStep for explicit time integration is done in the scheme
+        if (!rCurrentProcessInfo.Has(IS_EXPLICIT)) 
         {
-            FinalizeImplicitSolutionStep(rCurrentProcessInfo);
+            // Create and initialize element variables:
+            GeneralVariables Variables;
+            this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+            // Create constitutive law parameters:
+            ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions = Values.GetOptions();
+
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+            // Compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+            // Set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(Variables, Values);
+
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
+
+            // Call the element internal variables update
+            this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+
+            mFinalizedStep = true;
         }
-        else
-        {
-            FinalizeExplicitSolutionStep(rCurrentProcessInfo);
-        }
+        
     KRATOS_CATCH("")
 }
 
-
-void UpdatedLagrangianQuadrilateral::FinalizeImplicitSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // Create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-    // Set constitutive law flags:
-    Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-    // Compute element kinematics B, F, DN_DX ...
-    this->CalculateKinematics(Variables, rCurrentProcessInfo);
-
-    // Set general variables to constitutivelaw parameters
-    this->SetGeneralVariables(Variables,Values);
-
-    // Call the constitutive law to update material variables
-    mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
-
-    // Call the element internal variables update
-    this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-
-    mFinalizedStep = true;
-
-    KRATOS_CATCH( "" )
-}
-
-void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    bool mapGridToParticles = true;
-    bool calculateStresses = true;
-    GeometryType& rGeom = GetGeometry();
-
-    if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
-    {
-        // USF stresses already calculated
-        calculateStresses = false;
-    }
-    else
-    {
-        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
-        {
-            if (!rCurrentProcessInfo.GetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED))
-            {
-                // MUSL nodal velocity field has not been computed. Therefore we do not calculate stresses this time.
-                // We need to map the updated particle velocities back to the nodes.
-                calculateStresses = false;
-            }
-            else
-            {
-                // MUSL velocity field has already been computed. Therefore only calculate stresses this time. 
-                mapGridToParticles = false;
-            }
-        }
-    }
-
-    if (mapGridToParticles)
-    {
-        std::vector<bool> dummy;
-        this->CalculateOnIntegrationPoints(EXPLICIT_MAP_GRID_TO_MP, dummy, rCurrentProcessInfo);
-    }
-
-    if (calculateStresses)
-    {
-        std::vector<bool> dummy;
-        this->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
-
-        mFinalizedStep = true;
-    }
-
-    if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
-    {
-        mFinalizedStep = true;
-    }
-
-    KRATOS_CATCH("")
-
-}
-
-
-////************************************************************************************
 ////************************************************************************************
 
 void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
@@ -1909,21 +1840,21 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
 
     if (rVariable == CALCULATE_EXPLICIT_MP_STRESS) 
     {
+        // TODO collapse these
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
         this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
         this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-
         rValues[0] = true;
     }
     else if (rVariable == EXPLICIT_MAP_GRID_TO_MP) 
     {
-        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo[DELTA_TIME], 
-            rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE), *this, mN);
-        // If we are doing MUSL, map updated particle velocities back to the grid
-        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED)) 
-            MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, mN);
-
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this, mN);
+        rValues[0] = true;
+    }
+    else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
+    {
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, mN);
         rValues[0] = true;
     }
     else

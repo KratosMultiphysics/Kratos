@@ -419,12 +419,6 @@ public:
     /// Called at the end of each solution step
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Called at the end of each solution step
-    void FinalizeImplicitSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-    /// Called at the end of each solution step
-    void FinalizeExplicitSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
     //************* COMPUTING  METHODS
 
 

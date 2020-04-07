@@ -73,8 +73,10 @@ class MPMExplicitSolver(MPMSolver):
                 err_msg = "The requested stress update \"" + stress_update + "\" is not available!\n"
                 err_msg += "Available options are: \"USF\", \"USL\",\"MUSL\""
             grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, StressUpdateOption)
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
         elif(scheme_type == "central_difference" or scheme_type == "Central_Difference"):
             isCentralDifference = True
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, 0)
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, True)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
