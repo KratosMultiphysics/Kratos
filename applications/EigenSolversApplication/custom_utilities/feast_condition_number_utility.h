@@ -103,21 +103,20 @@ public:
         {
             "solver_type"                : "eigen_feast",
             "symmetric"                  : true,
+            "number_of_eigenvalues"      : 3,
+            "search_lowest_eigenvalues"  : true,
+            "search_highest_eigenvalues" : false,
             "e_min"                      : 0.0,
             "e_max"                      : 1.0,
-            "echo_level"                 : 0,
-            "number_of_eigenvalues"      : 3,
-            "subspace_size"              : 0,
-            "search_lowest_eigenvalues"  : true,
-            "search_highest_eigenvalues" : false
+            "echo_level"                 : 0
         })");
 
         const std::size_t size_matrix = InputMatrix.size1();
 
         const double normA = TSparseSpace::TwoNorm(InputMatrix);
 
-        this_params["e_max"].SetDouble(normA/1000.0);
-//         this_params["e_min"].SetDouble(-normA/1000.0);
+        this_params["e_max"].SetDouble(normA);
+        this_params["e_min"].SetDouble(-normA);
 //         this_params["number_of_eigenvalues"].SetInt(size_matrix * 2/3 - 1);
 //         this_params["subspace_size"].SetInt(3/2 * size_matrix + 1);
         SparseMatrixType copy_matrix = InputMatrix;
