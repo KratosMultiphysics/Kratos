@@ -387,10 +387,11 @@ public:
         ModelPart& rModelPart
     )
     {
-        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
-        if(global_num_constraints > 0) {
+        KRATOS_INFO_ALL_RANKS("SystemSolveWithPhysics !! ")<<mGlobalNumConstraints<<std::endl;
+        if(mGlobalNumConstraints > 0) {
             TSparseSpace::SetToZero(rDx);
             TSystemVectorType dx_mod(rb.Map());
+            KRATOS_INFO_ALL_RANKS("SystemSolveWithPhysics !!")<<std::endl;
             InternalSystemSolveWithPhysics(rA, dx_mod, rb, rModelPart);
             //recover solution of the original problem
             // TODO: Sparse matrix vector multiplication to get Dx
@@ -420,10 +421,10 @@ public:
         KRATOS_TRY
 
         TSystemVectorPointerType p_Dx; /// The increment in the solution
-        TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
-        TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
+        TSystemVectorPointerType p_b;  /// The RHS vector of the system of equations
+        TSystemMatrixPointerType p_A;  /// The LHS matrix of the system of equations
 
-        BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
+        ResizeAndInitializeSystemVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
         TSparseSpace::Copy(*p_A, rA);
         TSparseSpace::Copy(*p_Dx, rDx);
         TSparseSpace::Copy(*p_b, rb);
@@ -439,8 +440,7 @@ public:
         if (BaseType::GetEchoLevel() > 0)
             STOP_TIMER("Build", 0)
 
-        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
-        if(global_num_constraints > 0) {
+        if(mGlobalNumConstraints > 0) {
             if (BaseType::GetEchoLevel() > 0) START_TIMER("ApplyConstraints", 0);
             ApplyConstraints(pScheme, rModelPart, rA, rb);
             if (BaseType::GetEchoLevel() > 0) STOP_TIMER("ApplyConstraints", 0);
@@ -598,6 +598,7 @@ public:
 
         // Gets the array of constraints from the modeler
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        KRATOS_INFO_ALL_RANKS("r_const_array size : ")<<r_constraints_array.size()<<std::endl;
         for (auto it_const = r_constraints_array.ptr_begin(); it_const != r_constraints_array.ptr_end(); ++it_const) {
             const bool constraint_is_active = (*it_const)->IsDefined(ACTIVE) ? (*it_const)->Is(ACTIVE) : true;
             // Gets list of Dof involved on every element
@@ -1014,7 +1015,7 @@ protected:
                 << std::endl;
 
             // generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_t =
+            TSystemMatrixPointerType p_new_t = 
                 TSystemMatrixPointerType(new TSystemMatrixType(Copy, t_graph));
             mpT.swap(p_new_t);
 
@@ -1028,8 +1029,6 @@ protected:
     virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
-        TSparseSpace::SetToZero(*mpT);
-
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -1057,6 +1056,7 @@ protected:
             if (constraint_is_active) {
                 it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                 it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+
                 slave_eq_ids_set.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 // Assemble transformation matrix
                 AssembleTMatrixContribution(*mpT, transformation_matrix, slave_equation_ids, master_equation_ids);
@@ -1069,16 +1069,14 @@ protected:
         }
 
         // All other Dofs except slaves
-        double value = 1.0;
+        const int my_rank = rModelPart.GetCommunicator().MyPID();
+        const double value = 1.0;
         for(auto const dof : BaseType::mDofSet){
-            int eq_id = dof.EquationId();
-            int my_rank = rModelPart.GetCommunicator().MyPID();
-            if(my_rank == dof.GetSolutionStepValue(PARTITION_INDEX))
-                if(slave_eq_ids_set.count(eq_id)==0){ // Its a master
+            const int eq_id = dof.EquationId();
+            if(slave_eq_ids_set.count(eq_id)==0) // Its a master
+                if(my_rank == dof.GetSolutionStepValue(PARTITION_INDEX))
                     mpT->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
-                }
         }
-
         mpT->GlobalAssemble();
 
         KRATOS_CATCH("")
@@ -1091,6 +1089,7 @@ protected:
         TSystemVectorType& rb) override
     {
         if (mGlobalNumConstraints > 0) {
+            KRATOS_INFO_ALL_RANKS("Applying Constraints ")<<std::endl;
             // We make T and L matrices and C vector
             BuildMasterSlaveConstraints(rModelPart);
             {// To be able to clear res_b automatically.
