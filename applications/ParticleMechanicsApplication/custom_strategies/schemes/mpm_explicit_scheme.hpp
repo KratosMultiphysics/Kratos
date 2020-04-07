@@ -461,7 +461,7 @@ namespace Kratos {
                 KRATOS_TRY
 
                     ElementsArrayType& rElements = rModelPart.Elements();
-                const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+                ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
                 if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 2)
                 {
@@ -493,7 +493,7 @@ namespace Kratos {
 
             //***************************************************************************
             //***************************************************************************
-            void PerformModifiedUpdateStressLastMapping(const ProcessInfo& rCurrentProcessInfo, ModelPart& rModelPart, ElementsArrayType& rElements)
+            void PerformModifiedUpdateStressLastMapping(ProcessInfo& rCurrentProcessInfo, ModelPart& rModelPart, ElementsArrayType& rElements)
             {
                 // MUSL stress update. This works by projecting the updated particle
                 // velocity back to the nodes. The nodal velocity field is then
@@ -502,18 +502,14 @@ namespace Kratos {
                 // We need to call 'FinalizeSolutionStep' twice. 
                 // First, to update the particles and then aggregate the new particle velocities on the grid.
                 // Second, to calculate the stresses from the grid velocity
-                for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
-                {
-                    auto i = mr_grid_model_part.NodesBegin() + iter;
-                    (i)->SetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED, false);
-                }
-
+                rCurrentProcessInfo.SetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED, false);
 
                 // Call each particle and aggregate the nodal velocity field
                 for (ElementsArrayType::iterator it = rElements.begin(); it != rElements.end(); ++it)
                 {
                     (it)->FinalizeSolutionStep(rCurrentProcessInfo);
                 }
+                rCurrentProcessInfo.SetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED, true);
 
 
                 // Reapply dirichlet BCs to MUSL velocity field

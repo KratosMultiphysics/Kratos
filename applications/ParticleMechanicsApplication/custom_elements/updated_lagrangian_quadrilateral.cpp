@@ -1079,9 +1079,9 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
     }
     else
     {
-        if (rGeom[0].Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
+        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
         {
-            if (!rGeom[0].GetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED))
+            if (!rCurrentProcessInfo.GetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED))
             {
                 // MUSL nodal velocity field has not been computed. Therefore we do not calculate stresses this time.
                 // We need to map the updated particle velocities back to the nodes.
@@ -1104,10 +1104,9 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
         MPMExplicitUtilities::UpdateGaussPointExplicit(rGeom, delta_time, isCentralDifference, *this, mN);
 
         // If we are doing MUSL, map updated particle velocities back to the grid
-        if (rGeom[0].Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
+        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
         {
             MPMExplicitUtilities::CalculateMUSLGridVelocity(rGeom, *this, mN);
-            rGeom[0].SetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED, true);
         }
     }
 
