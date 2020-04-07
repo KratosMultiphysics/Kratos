@@ -159,27 +159,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if solver_type == "feast" or solver_type == "FEAST":
-            eigen_system_settings = KM.Parameters("""
-            {
-                "eigen_system_settings" : {
-                    "solver_type"                : "feast",
-                    "print_feast_output"         : false,
-                    "perform_stochastic_estimate": true,
-                    "solve_eigenvalue_problem"   : true,
-                    "lambda_min"                 : 0.0,
-                    "lambda_max"                 : 4.0e5,
-                    "number_of_eigenvalues"      : 2,
-                    "search_dimension"           : 15,
-                    "linear_solver_settings": {
-                        "solver_type": "skyline_lu_complex"
-                    }
-                }
-            }
-            """)
-            self.mass_matrix_diagonal_value = 1.0
-            self.stiffness_matrix_diagonal_value = -1.0
-        elif solver_type == "eigen_feast":
+        if solver_type == "eigen_feast":
             eigen_system_settings = KM.Parameters("""
             {
                 "eigen_system_settings" : {
