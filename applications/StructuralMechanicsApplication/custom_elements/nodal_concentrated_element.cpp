@@ -853,6 +853,71 @@ void NodalConcentratedElement::CalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NodalConcentratedElement::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, r_const_current_process_info);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->CalculateRightHandSide(rRightHandSideVector, r_const_current_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->CalculateLeftHandSide(rLeftHandSideMatrix, r_const_current_process_info);
+}
+
+//*************************COMPUTE DELTA POSITION*************************************
+/***********************************************************************************/
+
+void NodalConcentratedElement::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->CalculateMassMatrix(rMassMatrix, r_const_current_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const ProcessInfo& r_const_current_process_info = rCurrentProcessInfo;
+    this->CalculateDampingMatrix(rDampingMatrix, r_const_current_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::size_t NodalConcentratedElement::ComputeSizeOfSystem() const
 {
     SizeType system_size = 0;
