@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "includes/variables.h"
 
 
 namespace Kratos {

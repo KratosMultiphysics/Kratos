@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_flags.h"
 
 namespace Kratos
 {

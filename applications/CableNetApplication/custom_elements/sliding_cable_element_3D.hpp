@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_flags.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -139,6 +137,7 @@ namespace Kratos
 
         double GetPK2PrestressValue() const
         {
+            // TODO move this to the cpp then the include of "structural_mechanics_application_variables.h" can be moved to the cpp tpp
             double prestress = 0.00;
             if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
                 prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];

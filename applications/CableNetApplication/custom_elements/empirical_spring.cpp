@@ -16,11 +16,11 @@
 
 // Project includes
 #include "custom_elements/empirical_spring.hpp"
-#include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "cable_net_application_variables.h"
 #include "includes/checks.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "includes/variables.h"
 
 
 namespace Kratos {

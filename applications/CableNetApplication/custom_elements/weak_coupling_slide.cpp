@@ -20,6 +20,7 @@
 #include "custom_elements/weak_coupling_slide.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
