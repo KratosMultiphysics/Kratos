@@ -566,19 +566,8 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddExplicitInternalForces(Vecto
 
     GeometryType& r_geometry = GetGeometry();
 
-    // Calculate shape function gradients
-    Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
-    Matrix InvJ;
-    double detJ;
-    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
-    mDN_DX = prod(DN_De, InvJ); // cartesian gradients
-
     MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(r_geometry,
         mDN_DX, mMP.cauchy_stress_vector, mMP.volume, rRightHandSideVector);
-
 
     KRATOS_CATCH("")
 }
@@ -627,8 +616,6 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
         mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
         mMP.volume = mMP.mass / mMP.density;
     }
-
-
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     rVariables.DN_DX = mDN_DX;
@@ -911,10 +898,20 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     GeneralVariables Variables;
 
-    // Calculating shape function
+    mFinalizedStep = false;
+
+    // Calculating shape function and gradients
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, mMP.xg);
     mN = Variables.N;
-    mFinalizedStep = false;
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    Matrix DN_De;
+    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+    mDN_DX = prod(DN_De, InvJ); // cartesian gradients
+    
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -1106,10 +1103,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
     mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
     mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
-    if (!rCurrentProcessInfo.Has(IS_EXPLICIT))
-    {
-        this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
-    }
+    if (!rCurrentProcessInfo.Has(IS_EXPLICIT)) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -1913,41 +1907,22 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == CALCULATE_EXPLICIT_MP_STRESS) {
-
-        // Create and initialize element variables:
+    if (rVariable == CALCULATE_EXPLICIT_MP_STRESS) 
+    {
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-        // Calculate shape function gradients
-        Matrix Jacobian;
-        Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
-        Matrix InvJ;
-        double detJ;
-        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-        Matrix DN_De;
-        this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
-        mDN_DX = prod(DN_De, InvJ); // cartesian gradients
-
-        //calculate stress
         this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
         this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
 
         rValues[0] = true;
     }
-    else if (rVariable == EXPLICIT_MAP_GRID_TO_MP) {
-
-        const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-
-        // Map grid to particle       
-        bool isCentralDifference = rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE);
-        MPMExplicitUtilities::UpdateGaussPointExplicit(delta_time, isCentralDifference, *this, mN);
-
+    else if (rVariable == EXPLICIT_MAP_GRID_TO_MP) 
+    {
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo[DELTA_TIME], 
+            rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE), *this, mN);
         // If we are doing MUSL, map updated particle velocities back to the grid
-        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
-        {
+        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED)) 
             MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, mN);
-        }
 
         rValues[0] = true;
     }
