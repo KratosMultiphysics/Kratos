@@ -278,6 +278,7 @@ namespace MPMParticleGeneratorUtility
 
         double mpc_area = 0.0;
         double mpc_penalty_factor = 0.0;
+        bool mpc_fix_dof = false;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
@@ -326,6 +327,7 @@ namespace MPMParticleGeneratorUtility
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
+                        const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
@@ -520,6 +522,8 @@ namespace MPMParticleGeneratorUtility
                             mpc_imposed_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
+                        if (i->Has(FIX_DOF))
+                            mpc_fix_dof = i->GetValue(FIX_DOF);
 
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
@@ -529,37 +533,59 @@ namespace MPMParticleGeneratorUtility
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
                             if(!is_interface){
-                                if (domain_size==2){
-                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3)
-                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
-                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                //penalty condition
+                                if (boundary_condition_type==1){
+                                    if (domain_size==2){
+                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                                            condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
+                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                                            condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                    }
+                                    else if (domain_size==3){
+                                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
+                                            condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
+                                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
+                                            condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                                    }
                                 }
-                                else if (domain_size==3){
-                                    if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
-                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
-                                    else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
-                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                                //fixdof condition
+                                else if (boundary_condition_type==3){
+                                    if (domain_size==2){
+                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition2D3N";
+                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition2D4N";
+                                    }
+                                    else if (domain_size==3){
+                                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition3D4N";
+                                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition3D8N";
+                                    }
                                 }
                             }
                             else{
-                                if (domain_size==2){
-                                    if (background_geo_type == GeometryData::Kratos_Triangle2D3)
-                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
-                                    else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
-                                }
-                                else if (domain_size==3){
-                                    if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
-                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
-                                    else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
-                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D8N";
+                                if (boundary_condition_type==1){
+                                    if (domain_size==2){
+                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                                            condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
+                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                                            condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
+                                    }
+                                    else if (domain_size==3){
+                                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
+                                            condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
+                                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
+                                            condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D8N";
+                                    }
                                 }
                             }
                         }
 
                         // Get new condition
                         const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
+                        // Check Normal direction
+                        if (flip_normal_direction) mpc_normal *= -1.0;
 
                         // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
@@ -578,8 +604,7 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
 
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
+                            
 
                             ProcessInfo process_info = ProcessInfo();
 
@@ -600,9 +625,16 @@ namespace MPMParticleGeneratorUtility
                                 p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
-
-                                std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
-                                p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                                
+                                if (boundary_condition_type == 1){
+                                    std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                                    p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                                }
+                                else if (boundary_condition_type == 3){
+                                    std::vector<bool> mpc_fix_dof_vector = { mpc_fix_dof };
+                                    p_condition->SetValuesOnIntegrationPoints(FIX_DOF, mpc_fix_dof_vector, process_info);
+                                }
+                                
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -628,9 +660,6 @@ namespace MPMParticleGeneratorUtility
                             if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
                             const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
                             if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
-
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
 
                             // Create new material point condition
                             new_condition_id = last_condition_id + j;
@@ -660,8 +689,14 @@ namespace MPMParticleGeneratorUtility
                                 p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
 
-                                std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
-                                p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                                if (boundary_condition_type == 1){
+                                    std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                                    p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                                }
+                                else if (boundary_condition_type == 3){
+                                    std::vector<bool> mpc_fix_dof_vector = { mpc_fix_dof };
+                                    p_condition->SetValuesOnIntegrationPoints(FIX_DOF, mpc_fix_dof_vector, process_info);
+                                }
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
