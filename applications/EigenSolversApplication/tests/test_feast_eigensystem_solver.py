@@ -16,7 +16,6 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
 
         settings = KratosMultiphysics.Parameters('''{
             "solver_type": "eigen_feast",
-            "symmetric": true,
             "number_of_eigenvalues": 3,
             "search_lowest_eigenvalues": true,
             "e_min": 0.0,
