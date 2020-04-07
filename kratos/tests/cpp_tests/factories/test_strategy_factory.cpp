@@ -54,7 +54,7 @@ namespace Kratos
                                                             "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
-                                                            "name" : "static"
+                                                            "name" : "static_scheme"
                                                         },
                                                         "convergence_criteria_settings" : {
                                                             "name" : "displacement_criteria"
@@ -79,7 +79,7 @@ namespace Kratos
                                                             "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
-                                                            "name" : "static"
+                                                            "name" : "static_scheme"
                                                         },
                                                         "convergence_criteria_settings" : {
                                                             "name" : "displacement_criteria"
@@ -104,7 +104,7 @@ namespace Kratos
                                                             "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
-                                                            "name" : "static"
+                                                            "name" : "static_scheme"
                                                         },
                                                         "convergence_criteria_settings" : {
                                                             "name" : "displacement_criteria"
@@ -129,7 +129,7 @@ namespace Kratos
                                                             "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
-                                                            "name" : "static"
+                                                            "name" : "static_scheme"
                                                         },
                                                         "convergence_criteria_settings" : {
                                                             "name" : "displacement_criteria"
@@ -154,7 +154,7 @@ namespace Kratos
                                                             "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
-                                                            "name" : "static"
+                                                            "name" : "static_scheme"
                                                         },
                                                         "convergence_criteria_settings" : {
                                                             "name" : "displacement_criteria"
