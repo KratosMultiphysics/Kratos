@@ -7,7 +7,7 @@ import run_cpp_unit_tests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 try:
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
     missing_external_dependencies = False
     missing_application = ''
 except ImportError as e:
