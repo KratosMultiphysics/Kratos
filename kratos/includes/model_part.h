@@ -1072,7 +1072,7 @@ public:
     
     /** Inserts an element in the current mesh.
      */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, typename GeometryType::Pointer pGetGeometry, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, typename GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
     
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
