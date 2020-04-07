@@ -373,45 +373,33 @@ public:
                      << std::endl;
     }
 
+
     /**
      * @brief This is a call to the linear system solver
      * @param A The LHS matrix
      * @param Dx The Unknowns vector
      * @param b The RHS vector
      */
-    void SystemSolveWithPhysics(TSystemMatrixType& rA,
-                                TSystemVectorType& rDx,
-                                TSystemVectorType& rb,
-                                ModelPart& rModelPart)
+    void SystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        ModelPart& rModelPart
+    )
     {
-        KRATOS_TRY
-
-        double norm_b;
-        if (TSparseSpace::Size(rb) != 0)
-            norm_b = TSparseSpace::TwoNorm(rb);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00) {
-            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
-                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
-
-            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
-        }
-        else {
+        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
+        if(global_num_constraints > 0) {
             TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING(
-                "TrilinosResidualBasedBlockBuilderAndSolver")
-                << "ATTENTION! setting the RHS to zero!" << std::endl;
+            TSystemVectorType dx_mod(rb.Map());
+            InternalSystemSolveWithPhysics(rA, dx_mod, rb, rModelPart);
+            //recover solution of the original problem
+            // TODO: Sparse matrix vector multiplication to get Dx
+            TSparseSpace::Mult(*mpT, dx_mod, rDx);
+        } else {
+            InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
-
-        // prints informations about the current time
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
-            << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-        KRATOS_CATCH("")
     }
+
 
     /**
      * @brief Function to perform the building and solving phase at the same time.
@@ -1180,6 +1168,42 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void InternalSystemSolveWithPhysics(TSystemMatrixType &rA,
+                                TSystemVectorType &rDx,
+                                TSystemVectorType &rb,
+                                ModelPart &rModelPart)
+    {
+        KRATOS_TRY
+
+        double norm_b;
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
+        else
+            norm_b = 0.00;
+
+        if (norm_b != 0.00)
+        {
+            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
+                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
+
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(rDx);
+            KRATOS_WARNING(
+                "TrilinosResidualBasedBlockBuilderAndSolver")
+                << "ATTENTION! setting the RHS to zero!" << std::endl;
+        }
+
+        // prints informations about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
+            << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     void ResizeAndInitializeSystemVectors(typename TSchemeType::Pointer pScheme,
                                     TSystemMatrixPointerType& rpA,
