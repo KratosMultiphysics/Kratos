@@ -25,6 +25,7 @@ from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLine
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
 
 from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from particle_mechanics_test_factory import FixDofImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TFixDofImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
@@ -94,6 +95,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
 
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TFixDofImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
