@@ -47,7 +47,7 @@ namespace Kratos
             m_T_vector.resize(r_number_of_integration_points);
 
         KinematicVariables kinematic_variables(
-            WorkingSpaceDimension());
+            GetGeometry().WorkingSpaceDimension());
 
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
@@ -116,7 +116,7 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(
-                WorkingSpaceDimension());
+                GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(
                 point_number,
                 kinematic_variables);
@@ -223,7 +223,6 @@ namespace Kratos
 
         //base vector 3 normalized
         noalias(rKinematicVariables.a3) = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
-
 
         //GetCovariantMetric
         rKinematicVariables.a_ab_covariant[0] = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2) + pow(rKinematicVariables.a1[2], 2);
@@ -387,9 +386,12 @@ namespace Kratos
         double inv_dA = 1 / rActualKinematic.dA;
         double inv_dA3 = 1 / std::pow(rActualKinematic.dA, 3);
 
-        for (int i = 0; i < number_of_control_points; i++)
+        Matrix H = ZeroMatrix(3, 3);
+        CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex));
+
+        for (IndexType i = 0; i < number_of_control_points; i++)
         {
-            unsigned int index = 3 * i;
+            IndexType index = 3 * i;
             //first line
             da3(0, 0) =  0;
             da3(0, 1) = -r_DN_De(0, i) * rActualKinematic.a2[2] + r_DN_De(1, i) * rActualKinematic.a1[2];
@@ -405,7 +407,7 @@ namespace Kratos
             da3(2, 1) =  r_DN_De(0, i) * rActualKinematic.a2[0] - r_DN_De(1, i) * rActualKinematic.a1[0];
             da3(2, 2) =  0;
 
-            for (unsigned int j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; j++)
             {
                 double a3da3la3 = (rActualKinematic.a3_tilde[0] * da3(j, 0) + rActualKinematic.a3_tilde[1] * da3(j, 1) + rActualKinematic.a3_tilde[2] * da3(j, 2)) * inv_dA3;
 
@@ -413,9 +415,6 @@ namespace Kratos
                 dn(j, 1) = da3(j, 1) * inv_dA - rActualKinematic.a3_tilde[1] * a3da3la3;
                 dn(j, 2) = da3(j, 2) * inv_dA - rActualKinematic.a3_tilde[2] * a3da3la3;
             }
-
-            Matrix H = ZeroMatrix(3, 3);
-            CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
             // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
             b(0, index)     = 0 - (r_DDN_DDe(0, i) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
@@ -468,11 +467,11 @@ namespace Kratos
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
         // first variation of strain and curvature w.r.t. dof
-        for (int r = 0; r < mat_size; r++)
+        for (IndexType r = 0; r < mat_size; r++)
         {
             // local node number kr and dof direction dirr
-            int kr = r / 3;
-            int dirr = r % 3;
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
 
             array_1d<double, 3> S_dg_1 = ZeroVector(3);
             array_1d<double, 3> S_dg_2 = ZeroVector(3);
@@ -493,17 +492,17 @@ namespace Kratos
         }
 
         // second variation of strain and curvature w.r.t. dofs
-        for (int r = 0; r < mat_size; r++)
+        for (IndexType r = 0; r < mat_size; r++)
         {
             // local node number kr and dof direction dirr
-            int kr = r / 3;
-            int dirr = r % 3;
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
 
-            for (int s = 0; s <= r; s++)
+            for (IndexType s = 0; s <= r; s++)
             {
                 // local node number ks and dof direction dirs
-                int ks = s / 3;
-                int dirs = s % 3;
+                IndexType ks = s / 3;
+                IndexType dirs = s % 3;
 
                 // strain
                 array_1d<double, 3> ddE_cu = ZeroVector(3);
@@ -520,8 +519,8 @@ namespace Kratos
 
                 // curvature
                 array_1d<double, 3> dda3 = ZeroVector(3);
-                int dirt = 4 - dirr - dirs;
-                int ddir = dirr - dirs;
+                int dirt = 4 - static_cast<int>(dirr) - static_cast<int>(dirs);
+                int ddir = static_cast<int>(dirr) - static_cast<int>(dirs);
                      if (ddir == -1) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
                 else if (ddir ==  2) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
                 else if (ddir ==  1) dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
@@ -576,12 +575,12 @@ namespace Kratos
         const Vector& rSD,
         const double IntegrationWeight)
     {
-        const int number_of_control_points = GetGeometry().size();
-        const int mat_size = number_of_control_points * 3;
+        const SizeType number_of_control_points = GetGeometry().size();
+        const SizeType mat_size = number_of_control_points * 3;
 
-        for (int n = 0; n < mat_size; n++)
+        for (IndexType n = 0; n < mat_size; n++)
         {
-            for (int m = 0; m <= n; m++)
+            for (IndexType m = 0; m <= n; m++)
             {
                 double nm = (rSD[0] * rSecondVariationsStrain.B11(n, m)
                     + rSD[1] * rSecondVariationsStrain.B22(n, m)
@@ -602,16 +601,16 @@ namespace Kratos
         Vector& rValues,
         int Step)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const SizeType number_of_control_points = GetGeometry().size();
+        const SizeType mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
 
-        for (unsigned int i = 0; i < number_of_control_points; ++i)
+        for (IndexType i = 0; i < number_of_control_points; ++i)
         {
             const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const int index = i * 3;
+            IndexType index = i * 3;
 
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
@@ -623,15 +622,15 @@ namespace Kratos
         Vector& rValues,
         int Step)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const SizeType number_of_control_points = GetGeometry().size();
+        const SizeType mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
 
-        for (unsigned int i = 0; i < number_of_control_points; ++i) {
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
             const array_1d<double, 3 >& velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-            const unsigned int index = i * 3;
+            const IndexType index = i * 3;
 
             rValues[index] = velocity[0];
             rValues[index + 1] = velocity[1];
@@ -643,15 +642,15 @@ namespace Kratos
         Vector& rValues,
         int Step)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const SizeType number_of_control_points = GetGeometry().size();
+        const SizeType mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
 
-        for (unsigned int i = 0; i < number_of_control_points; ++i) {
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
             const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            const unsigned int index = i * 3;
+            const IndexType index = i * 3;
 
             rValues[index] = acceleration[0];
             rValues[index + 1] = acceleration[1];
@@ -671,10 +670,10 @@ namespace Kratos
         if (rResult.size() != 3 * number_of_control_points)
             rResult.resize(3 * number_of_control_points, false);
 
-        const SizeType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+        const IndexType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const SizeType index = i * 3;
+            const IndexType index = i * 3;
             rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
@@ -710,8 +709,6 @@ namespace Kratos
 
     int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
         {
@@ -741,7 +738,7 @@ namespace Kratos
         Hessian.resize(working_space_dimension, working_space_dimension);
         Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
 
-        for (size_t k = 0; k < number_of_points; k++)
+        for (IndexType k = 0; k < number_of_points; k++)
         {
             const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
 
