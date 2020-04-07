@@ -143,14 +143,14 @@ NodalConcentratedElement::~NodalConcentratedElement()
 
 void NodalConcentratedElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rElementalDofList.size() != system_size )
         rElementalDofList.resize( system_size );
@@ -186,14 +186,14 @@ void NodalConcentratedElement::GetDofList(
 
 void NodalConcentratedElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rResult.size() != system_size )
         rResult.resize( system_size, false );
@@ -233,7 +233,7 @@ void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rValues.size() != system_size )
         rValues.resize( system_size, false );
@@ -276,7 +276,7 @@ void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int S
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rValues.size() != system_size )
         rValues.resize( system_size, false );
@@ -318,7 +318,7 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rValues.size() != system_size )
         rValues.resize( system_size, false );
@@ -355,7 +355,7 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::Initialize()
+void NodalConcentratedElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -457,7 +457,7 @@ void NodalConcentratedElement::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -469,7 +469,7 @@ void NodalConcentratedElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -481,7 +481,7 @@ void NodalConcentratedElement::InitializeNonLinearIteration( ProcessInfo& rCurre
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -493,7 +493,7 @@ void NodalConcentratedElement::FinalizeNonLinearIteration( ProcessInfo& rCurrent
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -506,22 +506,21 @@ void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::PrivateCalculateLocalSystem(
+void NodalConcentratedElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-
     KRATOS_TRY;
 
     /* Calculate elemental system */
 
     // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
-    this->PrivateCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
     // Compute LHS
-    this->PrivateCalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -529,30 +528,7 @@ void NodalConcentratedElement::PrivateCalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    PrivateCalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void NodalConcentratedElement::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    PrivateCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::PrivateCalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -560,7 +536,7 @@ void NodalConcentratedElement::PrivateCalculateRightHandSide(
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the RHS
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rRightHandSideVector.size() != system_size )
         rRightHandSideVector.resize( system_size, false );
@@ -621,24 +597,13 @@ void NodalConcentratedElement::PrivateCalculateRightHandSide(
 
 void NodalConcentratedElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    PrivateCalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::PrivateCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rLeftHandSideMatrix.size1() != system_size )
         rLeftHandSideMatrix.resize( system_size, system_size, false );
@@ -740,7 +705,7 @@ void NodalConcentratedElement::AddExplicitContribution(
     auto& r_geom = this->GetGeometry();
     const auto& r_prop = this->GetProperties();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     Vector damping_residual_contribution = ZeroVector(system_size);
 
@@ -750,7 +715,7 @@ void NodalConcentratedElement::AddExplicitContribution(
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
         Matrix damping_matrix = ZeroMatrix(system_size, system_size);
-        this->PrivateCalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
+        this->CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
 
         // Current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
@@ -796,17 +761,6 @@ void NodalConcentratedElement::AddExplicitContribution(
 
 void NodalConcentratedElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    PrivateCalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::PrivateCalculateMassMatrix(
-    MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -814,7 +768,7 @@ void NodalConcentratedElement::PrivateCalculateMassMatrix(
 
     // Lumped (by definition)
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     if ( rMassMatrix.size1() != system_size )
         rMassMatrix.resize( system_size, system_size, false );
@@ -857,17 +811,6 @@ void NodalConcentratedElement::PrivateCalculateMassMatrix(
 
 void NodalConcentratedElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    PrivateCalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NodalConcentratedElement::PrivateCalculateDampingMatrix(
-    MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -877,7 +820,7 @@ void NodalConcentratedElement::PrivateCalculateDampingMatrix(
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const SizeType system_size = ComputeSizeOfSystem();
+    const SizeType system_size = this->ComputeSizeOfSystem();
 
     // 0.-Initialize the DampingMatrix:
     rDampingMatrix = ZeroMatrix( system_size, system_size );
@@ -910,7 +853,7 @@ void NodalConcentratedElement::PrivateCalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::size_t NodalConcentratedElement::ComputeSizeOfSystem()
+std::size_t NodalConcentratedElement::ComputeSizeOfSystem() const
 {
     SizeType system_size = 0;
 
@@ -1010,5 +953,3 @@ void NodalConcentratedElement::load( Serializer& rSerializer )
 }
 
 } // Namespace Kratos
-
-

@@ -106,6 +106,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -148,16 +149,16 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -174,36 +175,39 @@ public:
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
 
     //************* COMPUTING  METHODS
+
+    /**
+     * @brief It is called to initialize the element if the element needs to perform any operation before any calculation is done
+     * @details The elemental variables will be initialized and set using this method
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to initialize the solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to initialize the NL iteration
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to finalize the solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to finalize the NL iteration
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
@@ -214,7 +218,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -225,7 +229,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -236,7 +240,7 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -277,7 +281,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -287,7 +291,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -337,7 +341,7 @@ protected:
      * @brief This method computes the actual size of the system of equations
      * @return This method returns the size of the system of equations
      */
-    std::size_t ComputeSizeOfSystem();
+    std::size_t ComputeSizeOfSystem() const;
 
     ///@}
     ///@name Protected  Access
@@ -369,65 +373,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
-      * @details Private method to use const ProcessInfo
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void PrivateCalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /**
-      * @brief This is called during the assembling process in order to calculate the elemental damping matrix
-      * @details Private method to use const ProcessInfo
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void PrivateCalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /**
-     * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
-     * @details Private method to use const ProcessInfo
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void PrivateCalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /**
-     * @brief This calculates just the RHS
-     * @details Private method to use const ProcessInfo
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void PrivateCalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /**
-     * @brief This calculates just the LHS
-     * @details Private method to use const ProcessInfo
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void PrivateCalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        );
 
     ///@}
     ///@name Private  Access
