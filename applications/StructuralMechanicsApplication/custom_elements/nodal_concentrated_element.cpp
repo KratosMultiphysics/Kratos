@@ -826,7 +826,7 @@ void NodalConcentratedElement::CalculateDampingMatrix(
 
     //Check, if Rayleigh damping is available; use nodal damping, if not
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING) ) {
-        StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo), system_size);
+        StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rCurrentProcessInfo, system_size);
     } else {
         // We get the reference
         const auto& rconst_this = *this;
