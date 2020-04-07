@@ -1062,29 +1062,14 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
 
     if (mapGridToParticles)
     {
-        const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-
-        // Map grid to particle       
-        bool isCentralDifference = rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE);
-        MPMExplicitUtilities::UpdateGaussPointExplicit(rGeom, delta_time, isCentralDifference, *this, mN);
-
-        // If we are doing MUSL, map updated particle velocities back to the grid
-        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
-        {
-            MPMExplicitUtilities::CalculateMUSLGridVelocity(rGeom, *this, mN);
-        }
+        std::vector<bool> dummy;
+        this->CalculateOnIntegrationPoints(EXPLICIT_MAP_GRID_TO_MP, dummy, rCurrentProcessInfo);
     }
 
     if (calculateStresses)
     {
-        // Create and initialize element variables:
-        GeneralVariables Variables;
-        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-        //calculate stress
-        this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
-
-        this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+        std::vector<bool> dummy;
+        this->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
 
         mFinalizedStep = true;
     }
@@ -1929,6 +1914,7 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
         rValues.resize(1);
 
     if (rVariable == CALCULATE_EXPLICIT_MP_STRESS) {
+
         // Create and initialize element variables:
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
@@ -1946,6 +1932,22 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
         //calculate stress
         this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
         this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+
+        rValues[0] = true;
+    }
+    else if (rVariable == EXPLICIT_MAP_GRID_TO_MP) {
+
+        const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+
+        // Map grid to particle       
+        bool isCentralDifference = rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE);
+        MPMExplicitUtilities::UpdateGaussPointExplicit(delta_time, isCentralDifference, *this, mN);
+
+        // If we are doing MUSL, map updated particle velocities back to the grid
+        if (rCurrentProcessInfo.Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
+        {
+            MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, mN);
+        }
 
         rValues[0] = true;
     }

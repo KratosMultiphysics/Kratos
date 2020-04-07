@@ -47,11 +47,11 @@ namespace Kratos
             const Matrix& rDN_DX, const Vector& rMPStress, const double& rMPVolume, Vector& rRightHandSideVector);
 
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(GeometryType& rGeom,
-            const double& rDeltaTime, const bool& isCentralDifference, Element& rElement, Vector& rN);
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const double& rDeltaTime, 
+            const bool& isCentralDifference, Element& rElement, Vector& rN);
 
 
-        void CalculateMUSLGridVelocity(GeometryType& rGeom, Element& rElement, Vector& rN);
+        void CalculateMUSLGridVelocity(Element& rElement, Vector& rN);
 
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(GeometryType& rGeom,

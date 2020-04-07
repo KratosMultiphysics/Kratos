@@ -85,7 +85,6 @@ namespace Kratos
     /***********************************************************************************/
 
     void MPMExplicitUtilities::UpdateGaussPointExplicit(
-        GeometryType& rGeom,
         const double& rDeltaTime,
         const bool& isCentralDifference,
         Element& rElement,
@@ -93,6 +92,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        GeometryType& rGeom = rElement.GetGeometry();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         bool isUpdateMPPositionFromUpdatedMPVelocity = true; // should normally be true. this reduces energy lost from kinematic aliasing
@@ -179,11 +179,12 @@ namespace Kratos
     /***********************************************************************************/
 
     void MPMExplicitUtilities::CalculateMUSLGridVelocity(
-        GeometryType& rGeom,
         Element& rElement,
         Vector& rN)
     {
         KRATOS_TRY
+
+        GeometryType& rGeom = rElement.GetGeometry();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         const ProcessInfo& rProcessInfo = ProcessInfo();
