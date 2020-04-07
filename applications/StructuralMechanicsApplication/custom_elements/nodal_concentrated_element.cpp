@@ -703,14 +703,13 @@ void NodalConcentratedElement::AddExplicitContribution(
     KRATOS_TRY;
 
     auto& r_geom = this->GetGeometry();
-    const auto& r_prop = this->GetProperties();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType system_size = this->ComputeSizeOfSystem();
 
     Vector damping_residual_contribution = ZeroVector(system_size);
 
     // Calculate damping contribution to residual -->
-    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo)) {
+    if (mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DAMPING_RATIO) || mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO)) {
         Vector current_nodal_velocities = ZeroVector(system_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
