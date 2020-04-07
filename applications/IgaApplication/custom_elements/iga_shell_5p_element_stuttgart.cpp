@@ -57,8 +57,8 @@ namespace Kratos
         // KRATOS_WATCH("start: CalculateAll")
         
         // definition of problem size
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int mat_size = number_of_nodes * 5;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
 
         //set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -134,10 +134,10 @@ namespace Kratos
             }
         }
 
-        // if (Id() == 1){
-        //     KRATOS_WATCH(rLeftHandSideMatrix)
-        //     KRATOS_WATCH(rRightHandSideVector)
-        // }
+        // performance check
+        double stop_calculate_element = OpenMPUtils::GetCurrentTime();
+        if(Id()==10)
+            KRATOS_WATCH(stop_calculate_element - start_calculate_element)
         KRATOS_CATCH("");
     }
 
@@ -166,8 +166,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const int number_of_nodes = GetGeometry().size();
-        const int mat_size = number_of_nodes * 5;
+        const int number_of_control_points = GetGeometry().size();
+        const int mat_size = number_of_control_points * 5;
 
         if (SD.size() != 5)
             KRATOS_ERROR << "Stress size is wrong." << std::endl;
@@ -333,11 +333,11 @@ namespace Kratos
         
         const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
         const unsigned int pos = GetGeometry()[0].GetDofPosition(ROTATION_X);
         double w_1, w_2;
 
-        for (unsigned int i = 0; i < number_of_nodes; ++i) 
+        for (unsigned int i = 0; i < number_of_control_points; ++i) 
         {
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
@@ -396,7 +396,7 @@ namespace Kratos
         // G3 = A3
     }
 
-    void IgaShell5pElementStuttgart::CalculateActualBaseVectorsgLinearized(
+    void IgaShell5pElementStuttgart::CalculateActualBaseVectorsLinearized(
         const MetricVariables& rActualMetric,
         const Vector& rw,
         const Vector& rDw_D1,
@@ -632,13 +632,13 @@ namespace Kratos
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
         const double thickness = GetProperties().GetValue(THICKNESS);
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int mat_size = number_of_nodes * 5;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
 
         const Vector& funct = N;
         const Matrix& deriv = DN_De;
         const Matrix& s_deriv = DDN_DDe;
-        const unsigned int num_node = number_of_nodes;
+        const unsigned int num_node = number_of_control_points;
         const unsigned int dof_per_node = 5;
 
         static array_1d<double, 3> v_d1;               // Verschiebungsableitung nach 1
@@ -1242,13 +1242,13 @@ namespace Kratos
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
         const double thickness = GetProperties().GetValue(THICKNESS);
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int mat_size = number_of_nodes * 5;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
 
         const Vector& funct = N;
         const Matrix& deriv = DN_De;
         const Matrix& s_deriv = DDN_DDe;
-        const unsigned int num_node = number_of_nodes;
+        const unsigned int num_node = number_of_control_points;
         const unsigned int dof_per_node = 5;
 
         /* AKTUELLE KONFIGURATION */
@@ -2081,7 +2081,7 @@ namespace Kratos
         //     Matrix F = ZeroMatrix(3, 3);
         //     double detF = 0.0;
         //     CalculateInitialBaseVectorsGLinearized(G1, G2);
-        //     CalculateActualBaseVectorsgLinearized(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
+        //     CalculateActualBaseVectorsLinearized(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
         //     CalculateDeformationGradient(G1, G2, g1, g2, g3, F, detF);
 
         //     // stresses at GP
@@ -2165,14 +2165,14 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
-        if (rResult.size() != 5 * number_of_nodes)
-            rResult.resize(5 * number_of_nodes, false);
+        if (rResult.size() != 5 * number_of_control_points)
+            rResult.resize(5 * number_of_control_points, false);
 
         const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
-        for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        for (unsigned int i = 0; i < number_of_control_points; ++i) {
             const unsigned int index = i * 5;
             rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
@@ -2195,12 +2195,12 @@ namespace Kratos
         KRATOS_TRY
         // KRATOS_WATCH("GetDofList")
 
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(5 * number_of_nodes);
+        rElementalDofList.reserve(5 * number_of_control_points);
 
-        for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        for (unsigned int i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));

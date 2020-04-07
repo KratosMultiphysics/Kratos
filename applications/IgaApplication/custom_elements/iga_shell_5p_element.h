@@ -18,7 +18,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** 3D Shell with hierarchical shear vector (7p). Optimized for Isogeometric Analysis by Echter et al..
+/** Isogeometric hierarchic Reissner-Mindlin shell element parameterized by 5 parameters (5p)
 */
 class IgaShell5pElement
     : public BaseDiscreteElement
@@ -160,8 +160,12 @@ private:
     ///@}
 	///@name Member Variables
 	///@{
+
     // curvilinear coordinate zeta (theta3)
     double mZeta;
+
+    // transformation matrix from contravariant curvilinear base to local Cartesian base both in the initial configuration
+    Matrix mInitialTransConToCar;
 
     /**
         * Internal variables used for metric transformation
@@ -172,11 +176,10 @@ private:
         Vector a_ab_con; // contravariant metric
         Vector curvature; //
         Matrix J; //Jacobian
-        double detJ;       // not used (ML)
         Vector a1; //base vector 1
         Vector a2; //base vector 2
-        Vector a3_KL; //base vector 3
-        Vector a3_KL_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        Vector a3_kirchhoff_love; //base vector 3
+        Vector a3_kirchhoff_love_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
         double dA; //differential area
         Vector a1_con;  // contravariant base vector 1
         Vector a2_con;  // contravariant base vector 2
@@ -184,9 +187,6 @@ private:
         Vector Da1_D2;  // derivative of base vector 1 w.r.t. theta2
         Vector Da2_D2;  // derivative of base vector 2 w.r.t. theta2
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
-        Matrix T_con_to_car; //Transformation matrix T_con_to_car from contravariant to local Cartesian basis (only for strains!!!)
-        Matrix T_car_to_cov; // Transformation matrix from local Cartesian to covariant basis
-        Matrix T_cov_to_car; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
@@ -201,12 +201,11 @@ private:
             curvature = ZeroVector(rWorkingSpaceDimension);
 
             J = ZeroMatrix(rWorkingSpaceDimension, 2);
-            detJ = 1.0;
 
             a1 = ZeroVector(rWorkingSpaceDimension);
             a2 = ZeroVector(rWorkingSpaceDimension);
-            a3_KL = ZeroVector(rWorkingSpaceDimension);
-            a3_KL_tilde = ZeroVector(rWorkingSpaceDimension);
+            a3_kirchhoff_love = ZeroVector(rWorkingSpaceDimension);
+            a3_kirchhoff_love_tilde = ZeroVector(rWorkingSpaceDimension);
 
             dA = 1.0;
 
@@ -218,9 +217,6 @@ private:
             Da2_D2 = ZeroVector(rWorkingSpaceDimension);
 
             H = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
-            T_con_to_car = ZeroMatrix(rStrainSize, rStrainSize);
-            T_car_to_cov = ZeroMatrix(rStrainSize, rStrainSize);
-            T_cov_to_car = ZeroMatrix(rStrainSize, rStrainSize);
         }
     };
 
@@ -332,14 +328,17 @@ private:
         }
     };
 
-    // here the number of Gauss-Points over the thickness can be determined
-    GaussQuadratureThickness mGaussQuadratureThickness = GaussQuadratureThickness(3);
+    // here the number of Gauss-Points over the thickness is specified
+    GaussQuadratureThickness mGaussIntegrationThickness = GaussQuadratureThickness(3);
     ///@}
     ///@name Operations
     ///@{
     /**
-        * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
-        */
+     * @brief Calculation of the Stiffness Matrix
+     * @detail Km = integration_weight * B^T * D *B
+     * @param B = B matrix
+     * @param D = material stiffness matrix
+     */
     void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
@@ -348,8 +347,7 @@ private:
 
     /**
      * @brief The method calculates and adds the non-linear part of the stiffness matrix
-     * @param SecondVariationsStrain are seperated into a membrane and a curvature part
-     * @param SD = stress (bending or membrane stress respectively)
+     * @param SD = stress
      */
     void CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
@@ -357,12 +355,50 @@ private:
         const Vector& SD,
         const double& rIntegrationWeight);
 
+    /**
+     * @brief The method calculates the metric
+     */
     void CalculateMetric( MetricVariables& rMetric);
     
     /**
-     * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
+     * @brief The method calculates the transformation matrix from the contravariant to the local Cartesian base both in the initial configuration
+     * @param rG1_con = first initial contravariant base vector
+     * @param rG2_con = second initial contravariant base vector 
+     */
+    void CalculateTransformationMatrixInitialTransConToCar(
+        const array_1d<double, 3>& rG1_con, 
+        const array_1d<double, 3>& rG2_con);
+
+    /**
+     * @brief The method calculates the transformation matrix from the local Cartesian to the covariant base both in the initial configuration
+     * @param rInitialTransCarToCov = transformation matrix from the local Cartesian to the covariant base both in the initial configuration
+     */
+    void CalculateTransformationMatrixInitialTransCarToCov(Matrix& rInitialTransCarToCov);
+
+    /**
+     * @brief The method calculates the transformation matrix from the contravariant to the local Cartesian base both in the actual configuration
+     * @param rg1 = first actual covariant base vector
+     * @param rg2 = second actual covariant base vector
+     * @param rg3 = third actual covariant base vector
+     * @param ra2_con = second actual covariant base vector of the mid-surface
+     * @param ra3_kirchhoff_love = third actual covariant Kirchhoff-Love base vector of the mid-surface
+     */
+    void CalculateTransformationMatrixActualTransCovToCar(
+        Matrix& rActualTransCovToCar,
+        const Vector& rg1,
+        const Vector& rg2,
+        const Vector& rg3,
+        const Vector& ra2_con,
+        const Vector& ra3_kirchhoff_love);
+
+    /**
+     * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector as well as the derivatives of itself and its components  
      * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
      * @param rw = shear difference vector
+     * @param rDw_D1 = derivative of the shear difference vector w.r.t. theta1
+     * @param rDw_D2 = derivative of the shear difference vector w.r.t. theta2
+     * @param rw_alpha = the components w_1 and w_2 of the shear difference vector (shear dofs)
+     * @param rDw_alpha_Dbeta = derivative of the components w_1 resp. w_2 w.r.t theta1 and theta2
      */
     void CalculateShearDifferenceVector(
         array_1d<double, 3>& rw,
@@ -374,18 +410,29 @@ private:
     
     /**
      * @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the initial configuration
-     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
+     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed. Base vector a refer to the mid-span and base vector g refer to the shell body.
+     * @param rG1 = first covariant base vector of the shell body in the initial configuration
+     * @param rG2 = second covariant base vector of the shell body in the initial configuration
+     * @param rG1_con = first contravariant base vector of the shell body in the initial configuration
+     * @param rG2_con = second contravariant base vector of the shell body in the initial configuration
      */
-    void CalculateInitialBaseVectorsGLinearized(
+    void CalculateInitialBaseVectorsLinearised(
         array_1d<double, 3>& rG1,
-        array_1d<double, 3>& rG2);
+        array_1d<double, 3>& rG2,
+        array_1d<double, 3>& rG1_con,
+        array_1d<double, 3>& rG2_con);
 
     /**
      * @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the actual configuration
-     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
+     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed.
      * @param rw = shear difference vector
+     * @param rDw_D1 = derivative of the shear difference vector w.r.t. theta1
+     * @param rDw_D2 = derivative of the shear difference vector w.r.t. theta2
+     * @param rg1 = first covariant base vector of the shell body in the actual configuration
+     * @param rg2 = second covariant base vector of the shell body in the actual configuration
+     * @param rg3 = third covariant base vector of the shell body in the actual configuration
      */
-    void CalculateActualBaseVectorsgLinearized(
+    void CalculateActualBaseVectorsLinearised(
         const MetricVariables& rActualMetric,
         const Vector& rw,
         const Vector& rDw_D1,
@@ -426,30 +473,45 @@ private:
 
     void CalculateStrain(
         array_1d<double, 5>& rStrainVector,
-        const Vector& rgab,
+        const Vector& ra_ab,
         const Vector& rCurvature);
 
-    void CalculateStrainRM(
+    void CalculateStrainReissnerMindlin(
         array_1d<double, 5>& rStrainVectorRM,
         const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
-        const Vector& rg1,
-        const Vector& rg2);
+        const Vector& ra1,
+        const Vector& ra2);
 
     void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
         const Vector& rCurvilinearStrain,
         Vector& rCartesianStrain);
 
+    /**
+     * @brief The method calculates the B matrix of the Kirchhoff-Love contributions
+     * @param rB = B matrix
+     */
 	void CalculateB(
 		Matrix& rB,
-		const MetricVariables& rMetric);
+		const MetricVariables& rActualMetric);
     
+    /**
+     * @brief The method calculates the second variations according to Kirchhoff-Love
+     */
     void CalculateSecondVariations(
         SecondVariations& rSecondVariations,
-        const MetricVariables& rMetric);
+        const MetricVariables& rActualMetric);
 
-    void CalculateVariationsRM(        
+    /**
+     * @brief The method calculates the additional terms of the B matrix and the second variations according to Reissner-Mindlin
+     * @param rw = hierarchic shear difference vector
+     * @param rDw_D1 = derivative of the shear difference vector w.r.t. theta1
+     * @param rDw_D2 = derivative of the shear difference vector w.r.t. theta2
+     * @param rw_alpha = components of the shear difference vector
+     * @param rDw_alpha_Dbeta = derivative of the component alpha of the shear difference vector w.r.t. theta(beta) which means theta1 or theta2
+     */
+    void CalculateVariationsReissnerMindlin(        
         Matrix& rB,
         SecondVariations& rSecondVariations,
         const Vector& rw,
@@ -468,7 +530,6 @@ private:
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
     
-    unsigned int mcount = 0.0;
     ///@}
 
     ///@}

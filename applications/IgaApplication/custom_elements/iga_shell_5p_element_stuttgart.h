@@ -385,7 +385,7 @@ private:
      * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
      * @param rw = shear difference vector
      */
-    void CalculateActualBaseVectorsgLinearized(
+    void CalculateActualBaseVectorsLinearized(
         const MetricVariables& rActualMetric,
         const Vector& rw,
         const Vector& rDw_D1,

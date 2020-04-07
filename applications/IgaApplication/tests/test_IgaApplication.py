@@ -15,6 +15,7 @@ from shell_kl_discrete_element_tests import ShellKLDiscreteElementTests
 # from test_iga_test_factory import IgaTestFactory
 from iga_3p_element_tests import Iga3pElementTests
 from iga_5p_element_tests import Iga5pElementTests
+from iga_7p_element_tests import Iga7pElementTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.

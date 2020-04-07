@@ -163,32 +163,37 @@ private:
     // curvilinear coordinate zeta (theta3)
     double mZeta;
 
+    // transformation matrix from contravariant curvilinear base in the initial configuration to local Cartesian base
+    Matrix mInitialTransConToCar;
+
     /**
         * Internal variables used for metric transformation
         */
     struct MetricVariables
     {
         Vector gab; // covariant metric
-        Vector gab_con; // contravariant metric
+        Vector a_ab_con; // contravariant metric
         Vector curvature; //
         Matrix J; //Jacobian
         double detJ;       // not used (ML)
         Vector a1; //base vector 1
         Vector a2; //base vector 2
         Vector a3_KL; //base vector 3
-        Vector a3_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
+        Vector a3_KL_tilde; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
         Vector Da1_D1;  // derivative of base vector 1 w.r.t. theta1
         Vector Da2_D2;  // derivative of base vector 2 w.r.t. theta2
         Vector Da1_D2;  // derivative of base vector 1 w.r.t. theta2
         Vector Da3_KL_D1;   // derivative of base vector 3 w.r.t. theta1
         Vector Da3_KL_D2;   // derivative of base vector 3 w.r.t. theta2
-        Vector Da3_tilde_D1; // derivative of a3_tilde w.r.t. theta1
-        Vector Da3_tilde_D2; // derivative of a3_tilde w.r.t. theta2
+        Vector Da3_KL_tilde_D1; // derivative of a3_KL_tilde w.r.t. theta1
+        Vector Da3_KL_tilde_D2; // derivative of a3_KL_tilde w.r.t. theta2
         double dA; //differential area
+        Vector a1_con;  // contravariant base vector 1
+        Vector a2_con;  // contravariant base vector 2
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
         Matrix T_con_to_car; //Transformation matrix T_con_to_car from contravariant to local Cartesian basis (only for strains!!!)
-        Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
-        Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
+        Matrix T_car_to_cov; // Transformation matrix from local Cartesian to covariant basis
+        Matrix T_cov_to_car; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
@@ -198,7 +203,7 @@ private:
         MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 6)
         {
             gab = ZeroVector(rWorkingSpaceDimension);
-            gab_con = ZeroVector(rWorkingSpaceDimension);
+            a_ab_con = ZeroVector(rWorkingSpaceDimension);
 
             curvature = ZeroVector(rWorkingSpaceDimension);
 
@@ -208,21 +213,25 @@ private:
             a1 = ZeroVector(rWorkingSpaceDimension);
             a2 = ZeroVector(rWorkingSpaceDimension);
             a3_KL = ZeroVector(rWorkingSpaceDimension);
-            a3_tilde = ZeroVector(rWorkingSpaceDimension);
+            a3_KL_tilde = ZeroVector(rWorkingSpaceDimension);
             Da1_D1 = ZeroVector(rWorkingSpaceDimension);
             Da2_D2 = ZeroVector(rWorkingSpaceDimension);
             Da1_D2 = ZeroVector(rWorkingSpaceDimension);
             Da3_KL_D1 = ZeroVector(rWorkingSpaceDimension);
             Da3_KL_D2 = ZeroVector(rWorkingSpaceDimension);
-            Da3_tilde_D1 = ZeroVector(rWorkingSpaceDimension);
-            Da3_tilde_D2 = ZeroVector(rWorkingSpaceDimension);
+            Da3_KL_tilde_D1 = ZeroVector(rWorkingSpaceDimension);
+            Da3_KL_tilde_D2 = ZeroVector(rWorkingSpaceDimension);
 
             dA = 1.0;
 
+
+            a1_con = ZeroVector(rWorkingSpaceDimension);
+            a2_con = ZeroVector(rWorkingSpaceDimension);
+            
             H = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
             T_con_to_car = ZeroMatrix(rStrainSize, rStrainSize);
-            TransCartToCov = ZeroMatrix(rStrainSize, rStrainSize);
-            TransCovToCart = ZeroMatrix(rStrainSize, rStrainSize);
+            T_car_to_cov = ZeroMatrix(rStrainSize, rStrainSize);
+            T_cov_to_car = ZeroMatrix(rStrainSize, rStrainSize);
         }
     };
 
@@ -366,6 +375,23 @@ private:
 
     void CalculateMetric( MetricVariables& rMetric);
     
+    void CalculateTransformationMatrixInitialTransConToCar(
+        const array_1d<double, 3>& rG1_con, 
+        const array_1d<double, 3>& rG2_con);
+
+    void CalculateTransformationMatrixInitialTransCarToCov(
+        Matrix& rInitialTransCarToCov,
+        const array_1d<double, 3>& rG1_con, 
+        const array_1d<double, 3>& rG2_con);
+
+    void CalculateTransformationMatrixActualTransCovToCar(
+        Matrix& rActualTransCovToCar,
+        const Vector& rg1,
+        const Vector& rg2,
+        const Vector& rg3,
+        const Vector& ra2_con,
+        const Vector& ra3_KL);
+
     /**
      * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
      * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
@@ -378,6 +404,12 @@ private:
         array_1d<double, 3>& rw_i,
         Matrix& rDw_i_Dalpha,
         const MetricVariables& rActualMetric);
+
+    void CalculateInitialBaseVectorsLinearised(
+        array_1d<double, 3>& rG1,
+        array_1d<double, 3>& rG2,
+        array_1d<double, 3>& rG1_con,
+        array_1d<double, 3>& rG2_con);
 
     /**
      * @brief Calculates deformation gradient F for a Gauss point
@@ -394,12 +426,27 @@ private:
         double& rdetF);
 
     /**
-    * This functions updates the constitutive variables
-    * @param rActualMetric: The actual metric
-    * @param rThisConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
+     * @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the actual configuration
+     * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
+     * @param rw = shear difference vector
+     */
+    void CalculateActualBaseVectorsLinearised(
+        const MetricVariables& rActualMetric,
+        const Vector& rw,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const double& rw_bar,
+        array_1d<double, 3>& rg1,
+        array_1d<double, 3>& rg2,
+        array_1d<double, 3>& rg3);
+
+    /**
+        * This functions updates the constitutive variables
+        * @param rActualMetric: The actual metric
+        * @param rThisConstitutiveVariables: The constitutive variables to be calculated
+        * @param rValues: The CL parameters
+        * @param ThisStressMeasure: The stress measure considered
+        */
     void CalculateConstitutiveVariables(
         const MetricVariables& rActualMetric,
         const Vector& rw,

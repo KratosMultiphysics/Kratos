@@ -262,7 +262,7 @@ namespace Kratos
         std::cout << "clipper.NbSpansV(): " << clipper.NbSpansV() << std::endl;
         for (int i = 0; i < clipper.NbSpansU(); ++i)
         {
-            for (int j = 0; j < clipper.NbSpansU(); ++j)
+            for (int j = 0; j < clipper.NbSpansV(); ++j)
             {
                 if (clipper.SpanTrimType(i, j) == ANurbs::Empty)
                 {

@@ -57,8 +57,8 @@ namespace Kratos
         // KRATOS_WATCH("here: CalculateAllStart")
 
         // definition of problem size
-        const unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int mat_size = number_of_nodes * 3;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        unsigned int mat_size = number_of_control_points * 3;
 
         //set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -619,7 +619,7 @@ namespace Kratos
             constitutive_variables_membrane, constitutive_variables_curvature,
             Values, ConstitutiveLaw::StressMeasure_PK2);
 
-        double detF = actual_metric.dA / mInitialMetric.dA; // should be checked (ML)
+        double detF = actual_metric.dA / mInitialMetric.dA;
 
         // stresses
         double thickness = GetProperties().GetValue(THICKNESS);
@@ -719,7 +719,7 @@ namespace Kratos
         array_1d<double, 2> q_pk2_cov;
         q_pk2_cov[0] = Dm_cov_Dalpha[0](0) / sqrt(rActualMetric.gab[0]) + Dm_cov_Dalpha[1](2) / sqrt(rActualMetric.gab[1]);
         q_pk2_cov[1] = Dm_cov_Dalpha[1](1) / sqrt(rActualMetric.gab[1]) + Dm_cov_Dalpha[0](2) / sqrt(rActualMetric.gab[0]);
-        double detF = rActualMetric.dA / mInitialMetric.dA; // should be checked (ML)
+        double detF = rActualMetric.dA / mInitialMetric.dA;
         array_1d<double, 2> q_cau_cov = q_pk2_cov / detF;
 
         // transformation actual covariant basis to local Cartesian basis

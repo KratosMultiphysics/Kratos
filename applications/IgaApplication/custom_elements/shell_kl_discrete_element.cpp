@@ -33,9 +33,6 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        // if (m_phi1 == 1)
-        // KRATOS_WATCH("here: CalculateAllStart")
-        
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = number_of_nodes * 3;
@@ -67,11 +64,6 @@ namespace Kratos
         Vector   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
         Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
-
-        //KRATOS_WATCH(N)
-        //KRATOS_WATCH(DN_De)
-        //KRATOS_WATCH(DDN_DDe)
-
 
         MetricVariables actual_metric(3);
         CalculateMetric(actual_metric);
@@ -131,8 +123,6 @@ namespace Kratos
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
-
-        //KRATOS_WATCH(rLeftHandSideMatrix)
 
         KRATOS_CATCH("");
     }
@@ -462,9 +452,6 @@ namespace Kratos
         Vector strain_vector = ZeroVector(3);
         Vector curvature_vector = ZeroVector(3);
         
-        // if (m_phi1 == 1)
-        //    KRATOS_WATCH(mInitialMetric.Q);
-
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
         rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature, mInitialMetric.curvature);

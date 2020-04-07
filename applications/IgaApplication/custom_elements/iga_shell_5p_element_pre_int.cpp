@@ -396,10 +396,6 @@ namespace Kratos
 
         // pre-integration
         rThisConstitutiveVariablesMembrane.D *= thickness;
-        rThisConstitutiveVariablesMembrane.D(3, 3) = rThisConstitutiveVariablesMembrane.D(3, 3) * 5 / 6;       // ML
-        rThisConstitutiveVariablesMembrane.D(3, 4) = rThisConstitutiveVariablesMembrane.D(3, 4) * 5 / 6;
-        rThisConstitutiveVariablesMembrane.D(4, 3) = rThisConstitutiveVariablesMembrane.D(3, 4);
-        rThisConstitutiveVariablesMembrane.D(4, 4) = rThisConstitutiveVariablesMembrane.D(4, 4) * 5 / 6;
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D * (pow(thickness, 2) / 12);
 
         // Strain Transformation to local Cartesian space with VoigtSize 5
