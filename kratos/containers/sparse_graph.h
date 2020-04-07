@@ -66,6 +66,7 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::map<IndexType, std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered
+    typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseGraph
     KRATOS_CLASS_POINTER_DEFINITION(SparseGraph);
@@ -74,32 +75,46 @@ public:
     ///@name Life Cycle
     ///@{
 
+    SparseGraph(IndexType N)
+    : mGraphSize(N)
+    {
+        mSizeIsAvailable = true;
+    }
+
     /// Default constructor.
-    SparseGraph(){}
+    SparseGraph()
+    : mGraphSize(0)
+    {
+        mSizeIsAvailable = false;
+    }
 
     /// Destructor.
     virtual ~SparseGraph(){}
 
-    /// Assignment operator. TODO: decide if we do want to allow it
-    SparseGraph& operator=(SparseGraph const& rOther)=delete;
-    // {
-    //     this->AddEntries(rOther.GetGraph());
-    //     return *this;
-    // }
-
-    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
-    ///but i don't know why :-(
-    SparseGraph(const SparseGraph& rOther)
-    {
-        this->AddEntries(rOther);
-    }
-
     ///@}
     ///@name Operators
     ///@{
+
+    IndexType Size() const{
+        KRATOS_ERROR_IF(mSizeIsAvailable == false) << "SparseGraph Size method can only be called after Finalize, or if provided in the constructor" << std::endl;
+        return mGraphSize; //note that this is only valid after Finalize has been called
+    }
+
+    bool Has(const IndexType I, const IndexType J) const
+    {
+        const auto& row_it = mGraph.find(I);
+        if(row_it != mGraph.end() ) {
+            if((row_it->second).find(J) != (row_it->second).end())
+                return true;
+        }
+        return false;
+    }
+
     void Clear()
     {
         mGraph.clear();
+        mSizeIsAvailable = false;
+        mGraphSize = 0;
     }
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
@@ -122,7 +137,6 @@ public:
         mGraph[RowIndex].insert(rColBegin, rColEnd);
     }
 
-    //adds a square FEM matrix, identified by rIndices
     template<class TContainerType>
     void AddEntries(const TContainerType& rIndices)
     {
@@ -130,7 +144,7 @@ public:
             mGraph[I].insert(rIndices.begin(), rIndices.end());
     }
 
-    void AddEntries(const SparseGraph& rOtherGraph)
+    void AddEntries(SparseGraph& rOtherGraph)
     {
         for(const auto& item: rOtherGraph.GetGraph())
         {
@@ -140,7 +154,14 @@ public:
 
     void Finalize()
     {
-
+        if(!mSizeIsAvailable){
+            mGraphSize=0;
+            for(const auto& item : this->GetGraph())
+            {
+                mGraphSize = std::max(mGraphSize,item.first+1);
+            }
+            mSizeIsAvailable = true;
+        }
     }
 
     const GraphType& GetGraph() const{
@@ -150,14 +171,10 @@ public:
     IndexType ExportCSRArrays(
         vector<IndexType>& rRowIndices,
         vector<IndexType>& rColIndices
-    ) //TODO: this function should be imported in the CSR matrix interface, not here
+    )
     {
         //need to detect the number of rows this way since there may be gaps
-        IndexType nrows=0;
-        for(const auto& item : this->GetGraph())
-        {
-            nrows = std::max(nrows,item.first+1);
-        }
+        IndexType nrows=this->Size();
 
         if(rRowIndices.size() != nrows+1)
         {
@@ -215,6 +232,40 @@ public:
     ///@}
     ///@name Access
     ///@{
+    class const_iterator_adaptor : public std::iterator<
+        std::forward_iterator_tag,
+        typename GraphType::value_type
+        >
+	{
+		const_row_iterator map_iterator;
+	public:
+		const_iterator_adaptor(const_row_iterator it) :map_iterator(it) {}
+		const_iterator_adaptor(const const_iterator_adaptor& it)
+            : map_iterator(it.map_iterator) {}
+		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
+		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
+		bool operator==(const const_iterator_adaptor& rhs) const
+            { return map_iterator == rhs.map_iterator; }
+		bool operator!=(const const_iterator_adaptor& rhs) const
+            { return map_iterator != rhs.map_iterator; }
+        //TODO: is it correct that the two following operators are the same?
+		const typename GraphType::mapped_type& operator*() const { return (map_iterator->second); }
+		const typename GraphType::mapped_type& operator->() const { return map_iterator->second; }
+		const_row_iterator& base() { return map_iterator; }
+		const_row_iterator const& base() const { return map_iterator; }
+        const IndexType GetRowIndex(){
+            return map_iterator->first;
+        }
+	};
+
+    const_iterator_adaptor begin() const
+    {
+        return const_iterator_adaptor( mGraph.begin() );
+    }
+    const_iterator_adaptor end() const
+    {
+        return const_iterator_adaptor( mGraph.end() );
+    }
 
 
     ///@}
@@ -292,7 +343,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    IndexType mGraphSize = 0;
     GraphType mGraph;
+    bool mSizeIsAvailable = false;
+
 
     ///@}
     ///@name Private Operators
@@ -310,6 +364,8 @@ private:
                 IJ.push_back(J);
         }
         rSerializer.save("IJ",IJ);
+        rSerializer.save("size",mGraphSize);
+        rSerializer.save("mSizeIsAvailable",mSizeIsAvailable);
     }
 
     void load(Serializer& rSerializer)
@@ -328,6 +384,10 @@ private:
                 counter += nrow;
             }
         }
+
+        rSerializer.load("size",mGraphSize);
+        rSerializer.load("mSizeIsAvailable",mSizeIsAvailable);
+
     }
 
 
@@ -350,7 +410,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
+    /// Assignment operator.
+    SparseGraph& operator=(SparseGraph const& rOther) = delete;
 
+    /// Copy constructor.
+    SparseGraph(SparseGraph const& rOther) = delete;
 
     ///@}
 

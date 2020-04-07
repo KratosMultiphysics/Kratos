@@ -7,14 +7,17 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Carlos A. Roig
+//  Main authors:    Riccardo Rossi
 
 #include <utility>
 #include <iostream>
+#include <random>
 
 #include "testing/testing.h"
 #include "containers/sparse_graph.h"
+#include "containers/sparse_contiguous_row_graph.h"
 #include "includes/key_hash.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 namespace Testing {
@@ -25,6 +28,58 @@ typedef std::unordered_map<std::pair<std::size_t, std::size_t>,
                           PairHasher<std::size_t, std::size_t>,
                           PairComparor<std::size_t, std::size_t>
                           > MatrixMapType;
+
+
+ElementConnectivityType RandomElementConnectivities(
+    const IndexType block_size,
+    const IndexType nodes_in_elem,
+    const IndexType nel,
+    const IndexType ndof,
+    const IndexType standard_dev
+)
+{
+
+    std::cout << std::endl;
+    std::cout << "beginning generation" << std::endl;
+    double start = OpenMPUtils::GetCurrentTime();
+    //generating random indices
+    ElementConnectivityType connectivities(nel*block_size);
+
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(nel);++i)
+    {
+        connectivities[i].resize(nodes_in_elem*block_size);
+        std::mt19937 gen(i);
+        //std::uniform_int_distribution<> dis(0,ndof-1);
+        std::normal_distribution<> dis{
+            static_cast<double>(ndof/nel*i),
+            static_cast<double>(standard_dev)
+            };
+
+        for(int j = 0; j<static_cast<int>(nodes_in_elem); ++j){
+            //IndexType eq_id = dis(gen)*block_size;
+            IndexType eq_id;
+            bool acceptable = false;
+            while(!acceptable){
+                auto randomid = static_cast<IndexType>(dis(gen));
+                if(static_cast<IndexType>(randomid) > 0 &&
+                   static_cast<IndexType>(randomid) < ndof-1)
+                {
+                    acceptable=true;
+                    eq_id = randomid * block_size;
+                }
+            }
+
+            for(IndexType k = 0; k<block_size; ++k){
+                connectivities[i][j*block_size+k] = eq_id+k;
+            }
+        }
+    }
+    double end_gen = OpenMPUtils::GetCurrentTime();
+    std::cout << "finishing generation - time = " << end_gen-start << std::endl;
+
+    return connectivities;
+}
 
 ElementConnectivityType ElementConnectivities()
 {
@@ -110,10 +165,44 @@ MatrixMapType GetReferenceMatrixAsMap()
     return AMap;
 }
 
-
-template< class TSparseGraphType>
 bool CheckGraph(
-        const TSparseGraphType& rAgraph,
+        const SparseContiguousRowGraph& rAgraph,
+        const MatrixMapType& rReferenceGraph)
+{
+    //check that all entries in Agraph are also in reference_A_map
+    const auto& rgraph = rAgraph.GetGraph();
+    for(IndexType I = 0; I<rgraph.size();++I)
+    {
+        for(auto J : rgraph[I] )
+        {
+            if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
+                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
+        }
+    }
+
+    for(auto it=rAgraph.begin(); it!=rAgraph.end(); ++it)
+    {
+        const auto I = it.GetRowIndex();
+        for(auto J : *it )
+        {
+            if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
+                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
+        }
+    }
+
+    //check that all the entries of reference_A_map are also in Agraph
+    for(unsigned int I=0; I<rgraph.size(); ++I)
+    {
+        for(auto J : rgraph[I])
+            if(rgraph[I].find(J) == rgraph[I].end())
+                 KRATOS_ERROR << "Entry " << I << "," << J << " is in the reference graph but not in Agraph"  << std::endl;
+    }
+
+    return true;
+}
+
+bool CheckGraph(
+        const SparseGraph& rAgraph,
         const MatrixMapType& rReferenceGraph)
 {
     //check that all entries in Agraph are also in reference_A_map
@@ -128,12 +217,23 @@ bool CheckGraph(
         }
     }
 
+    for(auto it=rAgraph.begin(); it!=rAgraph.end(); ++it)
+    {
+        const auto I = it.GetRowIndex();
+        for(auto J : *it )
+        {
+            if(rReferenceGraph.find({I,J}) == rReferenceGraph.end()) //implies it is not present
+                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph"  << std::endl;
+        }
+    }
+
+
     //check that all the entries of reference_A_map are also in Agraph
     for(const auto& item : rReferenceGraph)
     {
         auto I = item.first.first;
         auto J = item.first.second;
-        if(rgraph.at(I).find(J) == rgraph.at(I).end())
+        if(!rAgraph.Has(I,J))
             KRATOS_ERROR << "Entry " << I << "," << J << " is in the reference graph but not in Agraph"  << std::endl;
     }
 
@@ -163,17 +263,48 @@ bool CheckCSRGraphArrays(
     return true;
 }
 
+
+template<typename TGraphType>
+std::unique_ptr<TGraphType> AssembleGraph(
+    ElementConnectivityType& rConnectivities,
+    IndexType GraphSize)
+{
+    std::unique_ptr<TGraphType> pAgraph(nullptr);
+
+    #pragma omp parallel
+    {
+        std::unique_ptr<TGraphType>
+            plocal_graph(new TGraphType(GraphSize));
+        #pragma omp for
+        for(int i=0; i<static_cast<int>(rConnectivities.size()); ++i){
+            plocal_graph->AddEntries(rConnectivities[i]);
+        }
+
+        #pragma omp critical
+        {
+            if(pAgraph == nullptr )
+                pAgraph.swap(plocal_graph);
+            else
+                pAgraph->AddEntries(*plocal_graph);
+        }
+    }
+
+    pAgraph->Finalize();
+    return pAgraph;
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 {
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
-
+KRATOS_WATCH(__LINE__)
     SparseGraph Agraph;
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
+KRATOS_WATCH(__LINE__)
     Agraph.Finalize();
-
+KRATOS_WATCH(__LINE__)
     CheckGraph(Agraph, reference_A_map);
 
     //check serialization
@@ -192,19 +323,47 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
 
 }
 
-// Basic Type
-KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphConstruction, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
 {
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
-    std::unique_ptr<SparseGraph> pAgraph(nullptr);
+    SparseContiguousRowGraph Agraph(40);
+    for(const auto& c : connectivities)
+        Agraph.AddEntries(c);
+    Agraph.Finalize();
+
+    CheckGraph(Agraph, reference_A_map);
+
+    //check serialization
+    StreamSerializer serializer;
+    const std::string tag_string("TestString");
+    serializer.save(tag_string, Agraph);
+    Agraph.Clear();
+    serializer.load(tag_string, Agraph);
+    CheckGraph(Agraph, reference_A_map);
+
+    // //check exporting
+    // vector<IndexType> row_index, col_index;
+    // Agraph.ExportCSRArrays(row_index, col_index);
+
+    // CheckCSRGraphArrays(row_index, col_index, reference_A_map);
+
+}
+
+// Basic Type
+KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSuite)
+{
+    const auto connectivities = ElementConnectivities();
+    auto reference_A_map = GetReferenceMatrixAsMap();
+
+    std::unique_ptr<SparseContiguousRowGraph> pAgraph(nullptr);
 
     #pragma omp parallel
     {
-        std::unique_ptr<SparseGraph> plocal_graph(new SparseGraph());
+        std::unique_ptr<SparseContiguousRowGraph> plocal_graph(new SparseContiguousRowGraph(40));
         #pragma omp for
-        for(int i=0; i<connectivities.size(); ++i){
+        for(int i=0; i<static_cast<int>(connectivities.size()); ++i){
             plocal_graph->AddEntries(connectivities[i]);
         }
 
@@ -222,6 +381,37 @@ KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphConstruction, KratosCoreFastSuite)
     CheckGraph(*pAgraph, reference_A_map);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
+{
+    const IndexType block_size = 4;
+    const IndexType nodes_in_elem = 4;
+    const IndexType nel = 1e6;
+    const IndexType ndof = nel/6;
+    const IndexType standard_dev = 100;
+    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
 
+    double start_graph = OpenMPUtils::GetCurrentTime();
+    auto pAgraph = AssembleGraph<SparseGraph>(connectivities, ndof*block_size);
+    double end_graph = OpenMPUtils::GetCurrentTime();
+
+    pAgraph->Finalize();
+    std::cout << "SparseGraph time = " << end_graph-start_graph << std::endl;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCoreFastSuite)
+{
+    const IndexType block_size = 4;
+    const IndexType nodes_in_elem = 4;
+    const IndexType nel = 1e6;
+    const IndexType ndof = nel/6;
+    const IndexType standard_dev = 100;
+    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
+
+    double start_graph = OpenMPUtils::GetCurrentTime();
+    auto pAgraph = AssembleGraph<SparseContiguousRowGraph>(connectivities, ndof*block_size);
+    double end_graph = OpenMPUtils::GetCurrentTime();
+
+    std::cout << "SparseGraphDiscontinuousRow generation time = " << end_graph-start_graph << std::endl;
+}
 } // namespace Testing
 } // namespace Kratos
