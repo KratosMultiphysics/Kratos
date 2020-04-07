@@ -3,16 +3,21 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
-def CreateTurbulenceModel(model, settings):
+def CreateTurbulenceModel(model_part, settings):
     if not CheckIfApplicationsAvailable("RANSApplication"):
         msg = "Using a turbulence model requires the RANSApplication. "
         msg += "Please re-install/re-compile with RANSApplication."
         raise Exception(msg)
 
     from KratosMultiphysics.RANSApplication.turbulence_model_factory import Factory
-    return Factory(settings, model)
+    return Factory(model_part, settings)
 
 class TurbulenceModelSolver(PythonSolver):
+    def __init__(self, model_part, settings):
+        self.fluid_model_part = model_part
+        self.model = model_part.GetModel()
+        super(TurbulenceModelSolver, self).__init__(self.model, settings)
+
     def AddVariables(self):
         msg = "Calling the base TurbulenceModelSolver class AddVariables method."
         msg += " Please override it in the derrived class."

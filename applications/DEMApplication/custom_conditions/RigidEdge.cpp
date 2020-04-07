@@ -69,7 +69,6 @@ RigidEdge3D::~RigidEdge3D()
 
 void RigidEdge3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 
-//  mTgOfFrictionAngle = GetProperties()[FRICTION];
     if (! rCurrentProcessInfo[IS_RESTARTED]){
         this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
         this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;

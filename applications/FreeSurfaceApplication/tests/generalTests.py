@@ -43,7 +43,7 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
             self.checkResults()
 
     def setUp(self):
-        self.check_tolerance = 1e-6
+        self.check_tolerance = 1e-5
         self.print_reference_values = False
 
     def setUpProblem(self):

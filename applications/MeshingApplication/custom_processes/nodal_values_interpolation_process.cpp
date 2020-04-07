@@ -33,23 +33,7 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
         mrDestinationMainModelPart(rDestinationMainModelPart),
         mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "echo_level"                 : 1,
-        "framework"                  : "Eulerian",
-        "max_number_of_searchs"      : 1000,
-        "interpolate_non_historical" : true,
-        "extrapolate_contour_values" : true,
-        "surface_elements"           : false,
-        "search_parameters"          : {
-            "allocation_size"           : 1000,
-            "bucket_size"               : 4,
-            "search_factor"             : 2.0
-        },
-        "step_data_size"             : 0,
-        "buffer_size"                : 0
-    })");
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     KRATOS_INFO_IF("NodalValuesInterpolationProcess", mThisParameters["echo_level"].GetInt() > 0) << "Step data size: " << mThisParameters["step_data_size"].GetInt() << " Buffer size: " << mThisParameters["buffer_size"].GetInt() << std::endl;
 }
@@ -398,6 +382,33 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters NodalValuesInterpolationProcess<TDim>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "echo_level"                 : 1,
+        "framework"                  : "Eulerian",
+        "max_number_of_searchs"      : 1000,
+        "interpolate_non_historical" : true,
+        "extrapolate_contour_values" : true,
+        "surface_elements"           : false,
+        "search_parameters"          : {
+            "allocation_size"           : 1000,
+            "bucket_size"               : 4,
+            "search_factor"             : 2.0
+        },
+        "step_data_size"             : 0,
+        "buffer_size"                : 0
+    })"
+    );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/
