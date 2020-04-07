@@ -148,7 +148,7 @@ class TestFactories(KratosUnittest.TestCase):
                 "solver_type" : "amgcl"
             },
             "scheme_settings" : {
-                "name" : "static"
+                "name" : "static_scheme"
             },
             "convergence_criteria_settings" : {
                 "name" : "displacement_criteria"
@@ -168,7 +168,7 @@ class TestFactories(KratosUnittest.TestCase):
                 "solver_type" : "amgcl"
             },
             "scheme_settings" : {
-                "name" : "static"
+                "name" : "static_scheme"
             },
             "convergence_criteria_settings" : {
                 "name" : "displacement_criteria"
@@ -188,7 +188,7 @@ class TestFactories(KratosUnittest.TestCase):
                 "solver_type" : "amgcl"
             },
             "scheme_settings" : {
-                "name" : "static"
+                "name" : "static_scheme"
             },
             "convergence_criteria_settings" : {
                 "name" : "displacement_criteria"
@@ -208,7 +208,7 @@ class TestFactories(KratosUnittest.TestCase):
                 "solver_type" : "amgcl"
             },
             "scheme_settings" : {
-                "name" : "static"
+                "name" : "static_scheme"
             },
             "convergence_criteria_settings" : {
                 "name" : "displacement_criteria"
@@ -228,7 +228,7 @@ class TestFactories(KratosUnittest.TestCase):
                 "solver_type" : "amgcl"
             },
             "scheme_settings" : {
-                "name" : "static"
+                "name" : "static_scheme"
             },
             "convergence_criteria_settings" : {
                 "name" : "displacement_criteria"
