@@ -36,6 +36,7 @@ proc ExtractSurfaceTriangles { } {
     # List of triangles defined by: its vertex and vertex normals
     #                               faces: ordered vertex ids
 
+    # TODO: Call GenerateOBJFile with the information extracted from the surface mesh
     # GenerateOBJFile
 }
 
@@ -52,7 +53,8 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 }
 
 proc GenerateOBJFile { } {
-    
+
+    # TODO: Extract required mesh data and format it into a file:
     # Analyze the format of the OBJ and generate the file in GID
     # The format of the OBJ file is as follows:
 
@@ -78,61 +80,219 @@ proc GenerateOBJFile { } {
     #                                    from i0 to i1 etc.)
 }
 
-proc call_SphereTree {objfilename} {
-    # set output [exec makeTreeMedial file_name.obj]
-    # set output_full [exec makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj]
-    # puts $output
+proc GenerateSPHFileFromOBJFile { } {
+    call_SphereTree
+}
 
-    set argv {makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj}
+proc call_SphereTree { } {
+
+    # TODO: pass arguments from GiD somehow: 
+    set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    if {$Algorithm == "makeTreeMedial"} {
+        call_TreeMedial
+    } elseif {$Algorithm == "makeTreeGrid"} {
+        call_makeTreeGrid
+    } elseif {$Algorithm == "makeTreeSpawn"} {
+        call_makeTreeSpawn
+    } elseif {$Algorithm == "makeTreeOctree"} {
+        call_makeTreeOctree        
+    } elseif {$Algorithm == "makeTreeHubbard"} {
+        call_makeTreeHubbard
+    } else {
+        W "Select a valid algorithm"
+    }
+    
+    CleanSPHFile
+}
+
+proc call_TreeMedial { } {
+
+    set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    set $branch [GiD_AccessValue get gendata branch]
+    set $depth [GiD_AccessValue get gendata depth]
+    set $testerLevels [GiD_AccessValue get gendata testerLevels]
+    set $numCover [GiD_AccessValue get gendata numCover]
+    set $minCover [GiD_AccessValue get gendata minCover]
+    set $initSpheres [GiD_AccessValue get gendata initSpheres]
+    set $minSpheres [GiD_AccessValue get gendata minSpheres]
+    set $erFact [GiD_AccessValue get gendata erFact]
+    set $numSamples [GiD_AccessValue get gendata numSamples]
+    set $minSamples [GiD_AccessValue get gendata minSamples]
+    set $genericOBJFilename  generic_obj.obj
+
+    #TODO: now define the arguments and call the external script sphereTree:
+    set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename}
+
     set program [lindex $argv 0]
     set arguments [lrange $argv 1 end]
-    #spawn $program {*}$arguments
-    set output [exec $program {*}$arguments]
-    puts $output
+    # Execute external script
+    exec $program {*}$arguments
 
+
+    #  Other References ##################
     # If $argv is foo bar baz, then
     # spawn [lindex $argv 0] [lrange $argv 1 end]
     # will invoke foo with 1 argument: "bar baz"
     # spawn [lindex $argv 0] {*}[lrange $argv 1 end]
     # will invoke foo with 2 arguments: "bar" and "baz"
 
+    # set output [exec makeTreeMedial file_name.obj]
+    # set output_full [exec makeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj]
 
-
-    # TODO: pass arguments from GiD somehow: 
-    # example calls:
-    # ##  use medial algorithms without optimiser
-    # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -expand -merge %1
-
-    # ##  use medial algorithms using optimiser for top level
-    # makeTreeMedial -branch 8 -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -nopause -expand -merge -optimise simplex -maxOptLevel 1 %1
-
-    # ##  use spawn algorithm
-    # makeTreeSpawn -branch 8 -depth 3 -testerLevels 2 -numCover 10000 -minCover 5 -nopause %1
-
-    # ##  use grid algorithm
-    # makeTreeGrid  -branch 8 -depth 3 -testerLevels 2 -numCover 10000 -minCover 5 -nopause  %1
-
-    # ##  use Hubbard's algorithm
-    # makeTreeHubbard  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause  %1
-
-    # ##  use octree algorithm
-    # makeTreeOctree -depth 3 -nopause %1
+    # TreeMedial ValidArgs:
+    # -depth              Depth of the sphere-tree
+    # -branch             Branching factor of sphere-tree
+    # -numCover           Number of sample points to cover object with
+    # -minCover           Minimum number of sample points per triangle
+    # -initSpheres        Initial number of spheres in medial axis approx.
+    # -minSpheres         Minimum number of spheres to create for each sub
+    #                         region of the medial axis approximation.
+    # -erFact             Amount by which to reduce the error when refining
+    #                         the medial axis approximation.
+    # -testerLevels       Controls the number of points to use to represent a
+    #                         sphere when evaluating fit.  Use -1 for CONVEX
+    #                         objects, 1 will generate 42 points and 2 will
+    #                         generate 168 points.
+    # -optimise           Which optimisation algorithm to use, SIMPLEX just
+    #                         rearranges the spheres to try improve fit, BALANCE
+    #                         tries to throw away spheres that don't improve the
+    #                         approximation.
+    # -maxOptLevel        Maximum level of the sphere-tree to apply the optimiser.
+    #                         0 does first set only - i.e. children of level 0.
+    # -balExcess          The amount of extra error the BALANCE algorithm is
+    #                         allowed to introduce when throwing away error,
+    #                         e.g. 0.05 allows a 5 percent increase in the error.
+    # -verify             Verify the model is suitable for use
+    # -nopause            Don't pause when processing, i.e. batch mode
+    # -eval               Evaluate the fit of the sphere-tree and append the info
+    #                         to the end of the output file.
+    # -merge              Try the MERGE, BURST and EXPAND algorithms.  You can
+    # -burst              specify any number of these that you wish.
+    # -expand
 
 }
 
+proc call_makeTreeGrid { } {
 
-proc GenerateSPHFileFromOBJFile { objfilename } {
-    call_SphereTree objfilename
+    set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    set $branch [GiD_AccessValue get gendata branch]
+    set $depth [GiD_AccessValue get gendata depth]
+    set $numCover [GiD_AccessValue get gendata numCover]
+    set $minCover [GiD_AccessValue get gendata minCover]
+    set $testerLevels [GiD_AccessValue get gendata testerLevels]
+    set $genericOBJFilename  generic_obj.obj
+
+    #TODO: now define the arguments and call the external script sphereTree:
+    set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename}
+
+    set program [lindex $argv 0]
+    set arguments [lrange $argv 1 end]
+    # Execute external script
+    exec $program {*}$arguments
+
+    # makeTreeGrid ValidArgs:
+    # -depth              Depth of the sphere-tree
+    # -branch             Branching factor of sphere-tree
+    # -numCover           Number of sample points to cover object with
+    # -minCover           Minimum number of sample points per triangle
+    # -testerLevels       Controls the number of points to use to represent a
+    #                         sphere when evaluating fit.  Use -1 for CONVEX
+    #                         objects, 1 will generate 42 points and 2 will
+    #                         generate 168 points.
+    # -verify             Verify the model is suitable for use
+    # -nopause            Don't pause when processing, i.e. batch mode
+    # -eval               Evaluate the fit of the sphere-tree and append the info
+    #                         to the end of the output file.
 }
+
+proc call_makeTreeSpawn { } {
+
+    set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    set $branch [GiD_AccessValue get gendata branch]
+    set $depth [GiD_AccessValue get gendata depth]
+    set $numCover [GiD_AccessValue get gendata numCover]
+    set $minCover [GiD_AccessValue get gendata minCover]
+    set $testerLevels [GiD_AccessValue get gendata testerLevels]
+    set $genericOBJFilename  generic_obj.obj
+
+    #TODO: now define the arguments and call the external script sphereTree:
+    set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename}
+
+    set program [lindex $argv 0]
+    set arguments [lrange $argv 1 end]
+    # Execute external script
+    exec $program {*}$arguments
+
+    # makeTreeSpawn ValidArgs:
+    # -depth              Depth of the sphere-tree
+    # -branch             Branching factor of sphere-tree
+    # -numCover           Number of sample points to cover object with
+    # -minCover           Minimum number of sample points per triangle
+    # -testerLevels       Controls the number of points to use to represent a
+    #                         sphere when evaluating fit.  Use -1 for CONVEX
+    #                         objects, 1 will generate 42 points and 2 will
+    #                         generate 168 points.
+    # -verify             Verify the model is suitable for use
+    # -nopause            Don't pause when processing, i.e. batch mode
+    # -eval               Evaluate the fit of the sphere-tree and append the info
+    #                         to the end of the output file.
+}
+
+proc call_makeTreeOctree { } {
+
+    set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    set $depth [GiD_AccessValue get gendata depth]
+    set $genericOBJFilename  generic_obj.obj
+
+    #TODO: now define the arguments and call the external script sphereTree:
+    set argv {$Algorithm -depth $depth -nopause $genericOBJFilename}
+
+    set program [lindex $argv 0]
+    set arguments [lrange $argv 1 end]
+    # Execute external script
+    exec $program {*}$arguments
+
+    # makeTreeOctree ValidArgs:
+    # -depth              Depth of the sphere-tree
+    # -nopause            Don't pause when processing, i.e. batch mode
+}
+
+proc call_makeTreeOctree { } {
+
+    set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    set $branch [GiD_AccessValue get gendata branch]
+    set $depth [GiD_AccessValue get gendata depth]
+    set $numSamples [GiD_AccessValue get gendata numSamples]
+    set $minSamples [GiD_AccessValue get gendata minSamples]
+    set $genericOBJFilename  generic_obj.obj
+
+    #TODO: now define the arguments and call the external script sphereTree:
+    set argv {$Algorithm -depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples $genericOBJFilename}
+
+    set program [lindex $argv 0]
+    set arguments [lrange $argv 1 end]
+    # Execute external script
+    exec $program {*}$arguments
+
+    # makeTreeOctree ValidArgs:
+    # -depth              Depth of the sphere-tree
+    # -branch             Branching factor of sphere-tree
+    # -numSamples         Number of sample points to cover object with
+    # -minSamples         Minimum number of sample points per triangle
+    # makeTreeHubbard  -branch 8 -depth 3 -numSamples 500 -minSamples 1
+    #                  -nopause  bunny-1500.obj
+}
+
 
 proc CleanSPHFile { sphfilename } {
-    # Delete some lines and columns. 
-    # Follow criteria to delete invalid spheres
+    # TODO: Access generic_obj.obj file and execute the partial removal of some lines and columns as specified in the reference.
 
 }
 
 proc GenerateClusterFile { sphfilename mshfilename} {
-    # Look for a way to edit, compile and execute mesh_to_clu_converter.cpp with the custom filenames
+    # TODO: Generate the cluster file from the joint information of generic_obj.obj and generic_msh.msh
+
+    # Look for a way to edit, compile and execute mesh_to_clu_converter.cpp with the specified filenames
     # Create cpp executable able to generate cluster file directly from inputs.
     # Or pass always the same generic sph and msh names. Generate generic cluster filename.
 
