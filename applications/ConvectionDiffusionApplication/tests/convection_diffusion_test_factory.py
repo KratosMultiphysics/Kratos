@@ -8,8 +8,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 have_eigen_solvers_dependencies = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
-if have_eigen_solvers_dependencies:
-    import KratosMultiphysics.EigenSolversApplication
 
 # Other imports
 import os
