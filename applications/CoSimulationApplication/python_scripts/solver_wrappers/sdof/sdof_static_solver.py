@@ -112,7 +112,7 @@ class SDoFStaticSolver(object):
             raise Exception("Identifier is unknown!")
 
 def ValidateAndAssignDefaults(defaults, settings, recursive=False):
-    for key in settings.items():
+    for key, val in settings.items():
         # check if the current entry also exists in the defaults
         if not key in defaults.keys():
             err_msg  = 'The item with name "' + key + '" is present in this '
