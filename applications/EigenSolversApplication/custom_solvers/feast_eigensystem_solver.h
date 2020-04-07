@@ -46,7 +46,8 @@ namespace { // helpers namespace
     Parameters SettingsHelper<double>::GetDefaultParameters()
     {
         return Parameters(R"({
-
+            "e_min" : 0.0,
+            "e_max" : 0.0
         })");
     }
 
@@ -54,7 +55,9 @@ namespace { // helpers namespace
     Parameters SettingsHelper<std::complex<double>>::GetDefaultParameters()
     {
         return Parameters(R"({
-
+            "e_mid_re" : 0.0,
+            "e_mid_im" : 0.0,
+            "e_r" : 0.0
         })");
     }
 
@@ -66,10 +69,6 @@ namespace { // helpers namespace
 
         KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
             "Invalid eigenvalue limits provided" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
-            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
     }
 
     template<>
@@ -78,13 +77,8 @@ namespace { // helpers namespace
         KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
             "Invalid search radius provided" << std::endl;
 
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
-            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
+        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Search for extremal eigenvalues is only available for real symmetric problems" << std::endl;
     }
 
     template<> double SettingsHelper<double>::GetE1() {return mParam["e_min"].GetDouble();}
@@ -135,11 +129,6 @@ class FEASTEigensystemSolver
             "number_of_eigenvalues" : 0,
             "search_lowest_eigenvalues" : false,
             "search_highest_eigenvalues" : false,
-            "e_min" : 0.0,
-            "e_max" : 0.0,
-            "e_mid_re" : 0.0,
-            "e_mid_im" : 0.0,
-            "e_r" : 0.0,
             "subspace_size" : 0,
             "max_iteration" : 20,
             "tolerance" : 1e-12,
