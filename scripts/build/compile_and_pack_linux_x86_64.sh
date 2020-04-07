@@ -99,7 +99,6 @@ cmake ..  																		                                 \
 -DINSTALL_PYTHON_FILES=ON														                           \
 -DSOLID_MECHANICS_APPLICATION=ON 												                       \
 -DSWIMMING_DEM_APPLICATION=ON													                         \
--DINCLUDE_FEAST=ON                                                                                                                                                     \
 
 ################################################################################
 #### COMPILE THE CODE
