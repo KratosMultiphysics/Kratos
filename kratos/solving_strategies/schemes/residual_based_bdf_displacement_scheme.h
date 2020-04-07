@@ -353,7 +353,7 @@ public:
      */
     static std::string Name()
     {
-        return "bdf_displacement";
+        return "bdf_displacement_scheme";
     }
 
     ///@}

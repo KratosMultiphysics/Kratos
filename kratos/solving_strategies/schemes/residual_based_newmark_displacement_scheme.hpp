@@ -132,7 +132,7 @@ public:
      */
     static std::string Name()
     {
-        return "newmark";
+        return "newmark_scheme";
     }
 
     ///@}
