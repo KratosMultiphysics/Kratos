@@ -25,6 +25,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
                 self._SetUpCompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_transonic":
+                self._SetUpTransonicPerturbationElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
@@ -66,6 +68,15 @@ class PotentialFlowFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "CompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_transonic"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "TransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
@@ -121,6 +132,10 @@ class PotentialFlowSolver(FluidSolver):
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
+            "builder_and_solver_settings" : {
+                "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
+                "silent_warnings"                    : false
+            },
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
@@ -134,6 +149,12 @@ class PotentialFlowSolver(FluidSolver):
             },
             "move_mesh_flag": false,
             "reference_chord": 1.0,
+            "time_stepping"                : {
+                "automatic_time_step" : false,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 1.0,
+                "time_step":            1.0
+            },
             "auxiliary_variables_list" : []
         }''')
 
@@ -182,6 +203,9 @@ class PotentialFlowSolver(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
+    # def AdvanceInTime(self, current_time):
+    #     raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+
     def _ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call
         data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
@@ -200,6 +224,8 @@ class PotentialFlowSolver(FluidSolver):
                 strategy_type = "non_linear"
         elif "compressible" in element_type:
             strategy_type = "non_linear"
+        elif "transonic" in element_type:
+            strategy_type = "upwind_non_linear"
         else:
             strategy_type = None
         return strategy_type
@@ -233,6 +259,7 @@ class PotentialFlowSolver(FluidSolver):
         elif strategy_type == "non_linear":
             convergence_criterion = self._GetConvergenceCriterion()
             solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+            #solution_strategy = KratosMultiphysics.LineSearchStrategy(
                 computing_model_part,
                 time_scheme,
                 linear_solver,
@@ -241,6 +268,33 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
+        elif strategy_type == "upwind_non_linear":
+            RT = self.settings["relative_tolerance"].GetDouble()
+            AT = self.settings["absolute_tolerance"].GetDouble()
+            Displacement = KratosMultiphysics.DisplacementCriteria(RT, AT)
+            Displacement.SetEchoLevel(1)
+            Residual = KratosMultiphysics.ResidualCriteria(RT, AT)
+            Residual.SetEchoLevel(1)
+            convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+
+            bs_params = self.settings["builder_and_solver_settings"]
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+            builder_and_solver.SetEchoLevel(-1)
+            echo = builder_and_solver.GetEchoLevel()
+            print("echo = ", echo)
+
+            solution_strategy = KCPFApp.UpwindResidualBasedNewtonRaphsonStrategyWithBuilderAndSolver(
+            #solution_strategy = KCPFApp.UpwindLineSearchStrategy(
+                computing_model_part,
+                time_scheme,
+                linear_solver,
+                convergence_criterion,
+                builder_and_solver,
+                self.settings["maximum_iterations"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+            builder_and_solver.SetEchoLevel(0)
         else:
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)

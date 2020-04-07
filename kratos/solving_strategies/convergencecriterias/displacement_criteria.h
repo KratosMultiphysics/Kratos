@@ -177,6 +177,7 @@ public:
 
             const TDataType absolute_norm = (final_correction_norm/std::sqrt(float_size_solution));
 
+            KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Reference displacement norm = " << mReferenceDispNorm << "; Current displacement norm =  " << final_correction_norm << "]" << std::endl;
             KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;

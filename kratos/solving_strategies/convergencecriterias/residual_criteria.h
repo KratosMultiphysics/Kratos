@@ -176,14 +176,14 @@ public:
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL     CRITERION", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL     CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
             if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) {
-                KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
+                KRATOS_INFO_IF("RESIDUAL     CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
                 return true;
             } else {
                 return false;

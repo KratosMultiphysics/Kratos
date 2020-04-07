@@ -16,6 +16,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "includes/dof.h"
 
 namespace Kratos
 {
@@ -34,8 +35,20 @@ struct ElementalData{
     array_1d<double, TNumNodes> N;
 };
 
+typedef std::vector<std::size_t> EquationIdVectorType;
+typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
+
+template <int Dim, int NumNodes>
+void GetEquationIdVectorNormalElement(const Element& rElement, EquationIdVectorType& rElementalIdList);
+
+template <int Dim, int NumNodes>
+void GetEquationIdVectorKuttaElement(const Element& rElement, EquationIdVectorType& rElementalIdList);
+
+template <int Dim, int NumNodes>
+void GetDofListNormalElement(const Element& rElement, DofsVectorType& rElementalDofList);
 
 template <int Dim, int NumNodes>
 BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
@@ -65,6 +78,9 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputeTotalVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
@@ -83,10 +99,55 @@ template <int Dim, int NumNodes>
 double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+double ComputeMaximumVelocitySquared(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationDensity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDensityDerivative(const double& rDensity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindDensity(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeSwitchingOperator(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactor(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDerivativeUpwindFactorWRTMachNumberSquared(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDerivativeMachNumberSquaredWRTVelocitySquared(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiSupersonicAccelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicAccelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes> ComputeDrhoDphiUpSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphi(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> ComputeAndAssembleDrhoDphiSupersonicDecelerating(const Element& rElement, const Element& rUpstreamElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+BoundedVector<double, NumNodes + 1> AssembleDrhoDphi(const Element& rElement, const BoundedVector<double, NumNodes>& rDrhoDPhiCurrent, const Element& rUpstreamElement,  const BoundedVector<double, NumNodes>& rDrhoDPhiUpstream, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);

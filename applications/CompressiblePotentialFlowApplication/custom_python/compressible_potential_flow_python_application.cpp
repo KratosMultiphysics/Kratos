@@ -22,6 +22,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
@@ -40,6 +41,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
@@ -72,6 +74,9 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FREE_STREAM_VELOCITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_STREAM_DENSITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_STREAM_MACH);
+
+    // Transonic stabilisation parameters
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UPWINDING_FACTOR_CONSTANT);
 
     // Geometrical variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REFERENCE_CHORD);

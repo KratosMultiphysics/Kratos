@@ -12,6 +12,7 @@
 
 #include "potential_wall_condition.h"
 #include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -80,6 +81,70 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& 
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
     rLeftHandSideMatrix.clear();
+
+    array_1d<double, 3> An_tmp;
+    if (TDim == 2)
+        CalculateNormal2D(An_tmp);
+    else
+        CalculateNormal3D(An_tmp);
+    array_1d<double, TDim> An;
+    for(unsigned int i = 0; i < TDim; i++){
+        An(i) = An_tmp(i);
+    }
+
+    const GeometryType& rGeom_element = pGetElement()->GetGeometry();
+    BoundedMatrix<double, TNumNodes + 1, TDim> DN_DX_element = ZeroMatrix(TNumNodes + 1, TDim);
+    array_1d<double, TNumNodes + 1> N_element = ZeroVector(TNumNodes + 1);
+    double vol_element;
+    GeometryUtils::CalculateGeometryData(rGeom_element, DN_DX_element, N_element, vol_element);
+
+    const GeometryType& rGeom_condition = this->GetGeometry();
+    BoundedMatrix<double, TNumNodes + 1, TDim> DN_DX = ZeroMatrix(TNumNodes, TDim);
+    for(unsigned int i = 0; i < TNumNodes + 1; i++){
+        for(unsigned int j = 0; j < TNumNodes; j++){
+            if(rGeom_element[i].Id()==rGeom_condition[j].Id()){
+                for(unsigned int k = 0; k < TDim; k++){
+                    DN_DX(j,k) = DN_DX_element(i,k);
+                }
+            }
+        }
+    }
+
+    BoundedMatrix<double,TNumNodes,TDim-1> DN_DX_tmp = ZeroMatrix(TNumNodes, TDim -1);
+    array_1d<double,TNumNodes> N = ZeroVector(TNumNodes);
+    double length;
+    GeometryUtils::CalculateGeometryData(rGeom_condition, DN_DX_tmp, N, length);
+
+    const double density = PotentialFlowUtilities::ComputePerturbationDensity<TDim, TNumNodes+1>(*pGetElement(), rCurrentProcessInfo);
+    const BoundedVector<double, NumNodes> An_DN_DX = prod(An, trans(DN_DX));
+    noalias(rLeftHandSideMatrix) = density * outer_prod(N, An_DN_DX);
+
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes+1>(*pGetElement());
+    for (unsigned int i = 0; i < TDim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivative<TDim, TNumNodes+1>(density, rCurrentProcessInfo);
+    const BoundedVector<double, TNumNodes> v_DN_DX = prod(velocity, trans(DN_DX));
+    noalias(rLeftHandSideMatrix) += 2 * inner_prod(velocity,An) * DrhoDu2 * outer_prod(N, v_DN_DX);
+
+    const BoundedMatrix<double, TNumNodes, TNumNodes> term1 = density * outer_prod(N, An_DN_DX);
+    const BoundedMatrix<double, TNumNodes, TNumNodes> term2 = 2 * inner_prod(velocity,An) * DrhoDu2 * outer_prod(N, v_DN_DX);
+
+    // if(this->Id()==363){
+    //     KRATOS_WATCH(pGetElement()->Id())
+    //     KRATOS_WATCH(DN_DX_element)
+    //     KRATOS_WATCH(N_element)
+    //     KRATOS_WATCH(vol_element)
+    //     KRATOS_WATCH(DN_DX)
+    //     KRATOS_WATCH(An)
+    //     KRATOS_WATCH(An_DN_DX)
+    //     KRATOS_WATCH(N)
+    //     KRATOS_WATCH(term1)
+    //     KRATOS_WATCH(term2)
+    //     KRATOS_WATCH(rLeftHandSideMatrix)
+    //     KRATOS_WATCH(velocity)
+    // }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -112,6 +177,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
     rLeftHandSideMatrix.clear();
+    //CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
