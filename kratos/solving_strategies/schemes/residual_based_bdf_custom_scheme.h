@@ -423,7 +423,7 @@ public:
      */
     static std::string Name()
     {
-        return "bdf";
+        return "bdf_scheme";
     }
 
     ///@}

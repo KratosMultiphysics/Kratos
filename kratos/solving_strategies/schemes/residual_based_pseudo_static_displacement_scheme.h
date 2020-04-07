@@ -296,7 +296,7 @@ public:
      */
     static std::string Name()
     {
-        return "pseudo_static";
+        return "pseudo_static_scheme";
     }
 
     ///@}

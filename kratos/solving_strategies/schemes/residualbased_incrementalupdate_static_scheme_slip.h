@@ -255,7 +255,7 @@ public:
      */
     static std::string Name()
     {
-        return "static_slip";
+        return "static_slip_scheme";
     }
 
     ///@}

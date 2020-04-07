@@ -382,7 +382,7 @@ public:
      */
     static std::string Name()
     {
-        return "static";
+        return "static_scheme";
     }
 
     ///@}

@@ -475,7 +475,7 @@ public:
      */
     static std::string Name()
     {
-        return "bossak";
+        return "bossak_scheme";
     }
 
     ///@}
