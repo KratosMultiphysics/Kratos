@@ -40,14 +40,7 @@ AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
     if (mThisParameters.Has("interval"))
         to_validate_parameters.AddValue("interval", mThisParameters["interval"]);
 
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"                : "",
-        "rayleigh_damping"               : false,
-        "interval"                       : [0.0, 1e30]
-    })" );
-
-    to_validate_parameters.ValidateAndAssignDefaults(default_parameters);
+    to_validate_parameters.ValidateAndAssignDefaults(GetDefaultParameters());
     if (mThisParameters.Has("model_part_name"))
         mThisParameters.SetValue("model_part_name", to_validate_parameters["model_part_name"]);
     else

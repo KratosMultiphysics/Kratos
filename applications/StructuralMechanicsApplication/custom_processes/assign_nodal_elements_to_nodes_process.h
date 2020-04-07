@@ -133,6 +133,19 @@ public:
      */
     void ExecuteInitializeSolutionStep() override;
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters( R"({
+            "model_part_name"                : "",
+            "rayleigh_damping"               : false,
+            "interval"                       : [0.0, 1e30]
+        } )" );
+        return default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{
