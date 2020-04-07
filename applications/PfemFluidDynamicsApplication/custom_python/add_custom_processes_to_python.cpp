@@ -187,7 +187,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
 	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")
 	    .def(py::init<ModelPart &, Parameters>())
-        .def(py::init<ModelPart &, Parameters &>())
 	    .def("Execute", &UpdateConditionsOnFreeSurfaceProcess::Execute);
 	;
     ;
