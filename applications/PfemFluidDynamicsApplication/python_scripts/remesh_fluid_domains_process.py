@@ -74,7 +74,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.counter      = 1
         self.next_meshing = 0.0
         self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
-
+        self.update_conditions_on_free_surface = self.settings["update_conditions_on_free_surface"]["update_conditions"].GetBool()
 
     def ExecuteInitialize(self):
         """This function performs the initialize of the process
@@ -197,6 +197,14 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                         print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
                     self.RemeshFluidDomains()
 
+                    # Updating conditions on the free surface
+                    if self.update_conditions_on_free_surface:
+                        if self.echo_level > 1:
+                            print("::[Remesh_Fluid_Domains_Process]:: UpdateConditionsOnFreeSurface ")
+                        KratosPfemFluid.UpdateConditionsOnFreeSurfaceProcess(self.main_model_part, \
+                            self.settings["update_conditions_on_free_surface"]).Execute()
+
+
         if currentStep > 1 and self.fileTotalVolume is not None:
             for domain in self.meshing_domains:
                 if domain.Active():
@@ -233,7 +241,16 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
                 if(self.IsMeshingStep()):
+                    if self.echo_level>1:
+                        print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
                     self.RemeshFluidDomains()
+
+                    # Updating conditions on the free surface
+                    if self.update_conditions_on_free_surface:
+                        if self.echo_level > 1:
+                            print("::[Remesh_Fluid_Domains_Process]:: UpdateConditionsOnFreeSurface ")
+                        KratosPfemFluid.FreeSurfaceTrackingProcess(self.main_model_part, self.settings["update_conditions_on_free_surface"]).Execute()
+
 
     #
     def ExecuteMeshing(domain):
