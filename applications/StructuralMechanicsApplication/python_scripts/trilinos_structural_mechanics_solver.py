@@ -81,12 +81,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_builder_and_solver(self):
-        if self.settings["multi_point_constraints_used"].GetBool():
-            raise Exception("MPCs not yet implemented in MPI")
-
-        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
-
         linear_solver = self.get_linear_solver()
         epetra_communicator = self._GetEpetraCommunicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
