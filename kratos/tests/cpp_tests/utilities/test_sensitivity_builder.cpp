@@ -49,7 +49,7 @@ public:
     {
     }
 
-    void GetValuesVector(Vector& rValues, int) override
+    void GetValuesVector(Vector& rValues, int) const override
     {
         rValues.resize(3, false);
         rValues[0] = 12.;
