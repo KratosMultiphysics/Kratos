@@ -120,7 +120,7 @@ public:
 
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+        typedef Variable<double> ComponentType;
 
         if(mRadialDisplacement == true) {
             ComponentType VarComponentX = KratosComponents< ComponentType >::Get(mVariableNameX);
@@ -172,7 +172,7 @@ public:
                 FaceArea += itCond->GetGeometry().Area();
             }
 
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+            typedef Variable<double> ComponentType;
             const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
             double FaceReaction = 0.0;
@@ -295,7 +295,7 @@ public:
 
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+        typedef Variable<double> ComponentType;
         const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
         if(mRadialDisplacement == true) {
