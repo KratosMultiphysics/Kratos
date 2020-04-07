@@ -284,11 +284,12 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
 
 void AssignNodalElementsToNodesProcess::InitializeElements(ModelPart& rModelPart)
 {
+    const auto& r_process_info = rModelPart.GetProcessInfo();
     ElementsArrayType& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
     #pragma omp parallel for
     for(int i=0; i< static_cast<int>(r_elements_array.size()); i++)
-        (it_elem_begin + i)->Initialize();
+        (it_elem_begin + i)->Initialize(r_process_info);
 
     // Inactive by default
     VariableUtils().SetFlag(ACTIVE, false, rModelPart.Elements());
