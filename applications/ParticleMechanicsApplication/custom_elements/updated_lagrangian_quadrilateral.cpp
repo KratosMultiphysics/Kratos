@@ -506,8 +506,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
 
         if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
         {
-            GeometryType& r_geometry = GetGeometry();
-            MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(r_geometry,
+            MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(*this,
                 mDN_DX, mMP.cauchy_stress_vector, mMP.volume, rRightHandSideVector);
         }
         else
@@ -1831,7 +1830,6 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
 
     if (rVariable == CALCULATE_EXPLICIT_MP_STRESS) 
     {
-        // TODO collapse these
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
         this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);

@@ -16,7 +16,7 @@
 namespace Kratos
 {
     void MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(
-        GeometryType& rGeom,
+        Element& rElement,
         const Matrix& rDN_DX,
         const Vector& rMPStress,
         const double& rMPVolume,
@@ -24,8 +24,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
-        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
+            // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
+            // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
+        GeometryType& rGeom = rElement.GetGeometry();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
