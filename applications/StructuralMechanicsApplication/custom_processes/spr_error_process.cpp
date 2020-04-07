@@ -27,14 +27,7 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
     Parameters ThisParameters
     ): mThisModelPart(rThisModelPart)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "stress_vector_variable" : "CAUCHY_STRESS_VECTOR",
-        "echo_level"             : 0
-    })"
-    );
-
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mpStressVariable = &const_cast<Variable<Vector>&>(KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString()));
     mEchoLevel = ThisParameters["echo_level"].GetInt();
@@ -296,6 +289,22 @@ inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
         }
     }
     find_neighbours.Execute();
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters SPRErrorProcess<TDim>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "stress_vector_variable" : "CAUCHY_STRESS_VECTOR",
+        "echo_level"             : 0
+    })" );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/
