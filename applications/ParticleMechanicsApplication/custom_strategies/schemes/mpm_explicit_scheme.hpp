@@ -405,49 +405,67 @@ namespace Kratos {
                 // Extrapolate from Material Point Elements and Conditions
                 Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
-                // If we are updating stress first (USF and central difference), calculate nodal velocities from momenta and apply BCs
-                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-                {
-                    const IndexType DisplacementPosition = mr_grid_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
-
+                // If we are updating stress before momenta update (USF and central difference),
+                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
+                    // calculate nodal velocities from momenta and apply BCs
+                    calculateGridVelocityAndApplyDirichletBC(rCurrentProcessInfo,true);
+                    
+                    // calculate stresses
+                    const auto it_elem_begin = r_model_part.ElementsBegin();
                     #pragma omp parallel for
-                    for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
+                    for (int i = 0; i < static_cast<int>(r_model_part.Elements().size()); ++i) {
+                        auto it_elem = it_elem_begin + i;
+                        std::vector<bool> dummy;
+                        it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
+                    }
+                }
+
+                KRATOS_CATCH("")
+            }
+
+            /// Apply Dirichlet BCs to nodal velocity field
+            void calculateGridVelocityAndApplyDirichletBC(
+                ProcessInfo rCurrentProcessInfo,
+                bool calculateVelocityFromMomenta = false)
+            {
+                KRATOS_TRY
+
+                const IndexType DisplacementPosition = mr_grid_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
+                const SizeType DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
+
+                #pragma omp parallel for
+                for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
+                {
+                    NodeIterator i = mr_grid_model_part.NodesBegin() + iter;
+
+                    if ((i)->Is(ACTIVE))
                     {
-                        auto i = mr_grid_model_part.NodesBegin() + iter;
+                        double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                        array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                        array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
 
-                        if ((i)->Is(ACTIVE))
+                        std::array<bool, 3> fix_displacements = { false, false, false };
+                        fix_displacements[0] = (i->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
+                        fix_displacements[1] = (i->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
+                        if (DomainSize == 3)
+                            fix_displacements[2] = (i->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
+
+                        for (IndexType j = 0; j < DomainSize; j++)
                         {
-                            const SizeType DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
-                            double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                            array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                            array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
-
-                            std::array<bool, 3> fix_displacements = { false, false, false };
-                            fix_displacements[0] = (i->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-                            fix_displacements[1] = (i->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
-                            if (DomainSize == 3)
-                                fix_displacements[2] = (i->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
-
-                            if (nodal_mass > numerical_limit)
+                            if (fix_displacements[j])
                             {
-                                for (IndexType j = 0; j < DomainSize; j++)
-                                {
-                                    if (fix_displacements[j])
-                                    {
-                                        nodal_velocity[j] = 0.0;
-                                    }
-                                    else
-                                    {
-                                        nodal_velocity[j] = nodal_momentum[j] / nodal_mass;
-                                    }
-                                }
+                                nodal_velocity[j] = 0.0;
+                            }
+                            else if (calculateVelocityFromMomenta && nodal_mass > numerical_limit)
+                            {
+                                nodal_velocity[j] = nodal_momentum[j] / nodal_mass;
                             }
                         }
                     }
                 }
+
                 KRATOS_CATCH("")
             }
-
 
             
             /** Function called once at the end of a solution step, after convergence is reached if
@@ -511,84 +529,8 @@ namespace Kratos {
                 }
                 rCurrentProcessInfo.SetValue(MUSL_VELOCITY_FIELD_IS_COMPUTED, true);
 
-
                 // Reapply dirichlet BCs to MUSL velocity field
-                const SizeType DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
-                NodesArrayType& r_nodes = rModelPart.Nodes();
-                const auto it_node_begin = rModelPart.NodesBegin();
-                const IndexType DisplacementPosition = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-
-                for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i)
-                {
-                    NodeIterator itCurrentNode = it_node_begin + i;
-
-                    std::array<bool, 3> fix_displacements = { false, false, false };
-                    fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
-                    fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
-                    if (DomainSize == 3)
-                        fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
-
-                    array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
-
-                    for (IndexType j = 0; j < DomainSize; j++)
-                    {
-                        if (fix_displacements[j])
-                        {
-                            r_current_velocity[j] = 0.0;
-                        }
-                    }
-                }
-            }
-
-
-            void InitializeNonLinIteration(ModelPart& r_model_part,
-                TSystemMatrixType& A,
-                TSystemVectorType& Dx,
-                TSystemVectorType& b) override
-            {
-                KRATOS_TRY
-
-                    ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-
-                    // This calculates the stresses before momenta update.
-                    // Used for USF and Central Difference method
-                    if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-                    {
-                        ElementsArrayType& pElements = r_model_part.Elements();
-                        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-                        for (ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
-                        {
-                            (it)->InitializeNonLinearIteration(CurrentProcessInfo);
-                        }
-
-                        ConditionsArrayType& pConditions = r_model_part.Conditions();
-                        for (ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
-                        {
-                            (it)->InitializeNonLinearIteration(CurrentProcessInfo);
-                        }
-                    }
-
-                KRATOS_CATCH("")
-            }
-
-            //***************************************************************************
-            //***************************************************************************
-
-            void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
-                ProcessInfo& CurrentProcessInfo) override
-            {
-                (rCurrentCondition)->InitializeNonLinearIteration(CurrentProcessInfo);
-            }
-
-
-            //***************************************************************************
-            //***************************************************************************
-
-            void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
-                ProcessInfo& CurrentProcessInfo) override
-            {
-                (rCurrentElement)->InitializeNonLinearIteration(CurrentProcessInfo);
+               calculateGridVelocityAndApplyDirichletBC(rCurrentProcessInfo);
             }
 
             //***************************************************************************

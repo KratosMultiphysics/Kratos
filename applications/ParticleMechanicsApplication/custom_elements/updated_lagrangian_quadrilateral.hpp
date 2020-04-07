@@ -416,9 +416,6 @@ public:
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Called after InitializeSolutionStep at the start of the non-linear iteration
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
     /// Called at the end of each solution step
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
@@ -557,6 +554,10 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
         std::vector<int>& rValues,

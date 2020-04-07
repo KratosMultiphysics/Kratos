@@ -975,41 +975,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
     }
 }
-////************************************************************************************
-////************************************************************************************
-
-void UpdatedLagrangianQuadrilateral::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-    // Currently this is only used for explicit time integration update stress first (USF) method.
-    // In this function we set the particle stress before the momenta update.
-    // This needs to occur after all particles are mapped to the grid, but before the momenta update.
-
-    KRATOS_TRY
-    
-        if (rCurrentProcessInfo.Has(IS_EXPLICIT) && rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
-        {
-            // Create and initialize element variables:
-            GeneralVariables Variables;
-            this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
-            // Calculate shape function gradients
-            Matrix Jacobian;
-            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
-            Matrix InvJ;
-            double detJ;
-            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-            Matrix DN_De;
-            this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
-            mDN_DX = prod(DN_De, InvJ); // cartesian gradients
-
-            //calculate stress
-            this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
-
-            this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-        }
-
-    KRATOS_CATCH("")
-}
 
 ////************************************************************************************
 ////************************************************************************************
@@ -1955,6 +1920,40 @@ void UpdatedLagrangianQuadrilateral::DecimalCorrection(Vector& rVector)
 ///@}
 ///@name Access Get Values
 ///@{
+
+void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == CALCULATE_EXPLICIT_MP_STRESS) {
+        // Create and initialize element variables:
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+
+        // Calculate shape function gradients
+        Matrix Jacobian;
+        Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+        Matrix InvJ;
+        double detJ;
+        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+        Matrix DN_De;
+        this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+        mDN_DX = prod(DN_De, InvJ); // cartesian gradients
+
+        //calculate stress
+        this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
+        this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+
+        rValues[0] = true;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
 
 void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
     std::vector<int>& rValues,

@@ -246,19 +246,13 @@ namespace Kratos
             TSystemVectorType mDx = TSystemVectorType();
             TSystemVectorType mb = TSystemVectorType();
 
-            pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
             // Compute residual forces on the model part
             this->CalculateAndAddRHS(pScheme, BaseType::GetModelPart());
 
             pScheme->Update(BaseType::GetModelPart(), dof_set_dummy, mA, mDx, mb);
 
-            //pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb); // TODO check if we need this
-
             // Calculate reactions if required
-            if (mCalculateReactionsFlag) {
-                CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-            }
+            if (mCalculateReactionsFlag) CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
 
             return true;
         }
