@@ -26,13 +26,14 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""{
-            "echo_level"            : 0,
-            "model_part_name"       : "Fluid Domain",
-            "meshing_control_type"  : "step",
-            "meshing_frequency"     : 1.0,
-            "meshing_before_output" : true,
-            "meshing_domains"       : [],
-            "write_totalVolumeBeforeMeshing" : true
+            "echo_level"                        : 0,
+            "model_part_name"                   : "Fluid Domain",
+            "meshing_control_type"              : "step",
+            "meshing_frequency"                 : 1.0,
+            "meshing_before_output"             : true,
+            "meshing_domains"                   : [],
+            "update_conditions_on_free_surface" : {},
+            "write_totalVolumeBeforeMeshing"    : true
         }""")
 
         ##overwrite the default settings with user-provided parameters
@@ -105,7 +106,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                 domain.Initialize()
                 if(domain.Active()):
                     domain.ComputeInitialAverageMeshParameters()
-                    domain.SetTimeDataOnProcessInfo()     
+                    domain.SetTimeDataOnProcessInfo()
 
 
     def InitializeDomains(self):
@@ -154,7 +155,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         model_part_name = self.settings["model_part_name"].GetString()
 
         """
-        choose just one of the following two options: 
+        choose just one of the following two options:
         use this if you want conditions
         ATTENTION: this is slow, and must be used together with ModelMeshingWithConditionsForFluids and GenerateNewConditionsForFluids
         skin_build = KratosDelaunay.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
@@ -218,7 +219,6 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.flush()
 
-
     def ExecuteFinalize(self):
         """This function executes the Finalize of the process
         """
@@ -265,7 +265,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         #if( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= 0.025):
             #return False
-            
+
         if(self.meshing_control_is_time):
             #print( str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])+">"+ str(self.next_meshing) )
             return ( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_meshing )
