@@ -44,7 +44,7 @@ NodalConcentratedElement::NodalConcentratedElement(
     : Element( NewId, pGeometry )
 {
     // If we compute the Rayleigh damping or we use the damping ratio instead
-    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, true);
+    mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, false);
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -60,7 +60,7 @@ NodalConcentratedElement::NodalConcentratedElement(
     if (pProperties->Has(CONSIDER_RAYLEIGH_DAMPING)) {
         mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, pProperties->GetValue(CONSIDER_RAYLEIGH_DAMPING));
     } else {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, true);
+        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, false);
     }
 }
 
