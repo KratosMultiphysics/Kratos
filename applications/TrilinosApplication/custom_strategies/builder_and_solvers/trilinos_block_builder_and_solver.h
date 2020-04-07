@@ -170,6 +170,7 @@ public:
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         mGlobalNumConstraints = GetGlobalNumberOfConstraints(rModelPart);
+        KRATOS_INFO("TrilinosBandS ")<<mGlobalNumConstraints<<std::endl;
         // Getting process info
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
@@ -430,6 +431,18 @@ public:
     {
         KRATOS_TRY
 
+        TSystemVectorPointerType p_Dx; /// The increment in the solution
+        TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
+        TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
+
+        BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
+        TSparseSpace::Copy(*p_A, rA);
+        TSparseSpace::Copy(*p_Dx, rDx);
+        TSparseSpace::Copy(*p_b, rb);
+        TSparseSpace::Clear(p_Dx);
+        TSparseSpace::Clear(p_b);
+        TSparseSpace::Clear(p_A);
+
         if (BaseType::GetEchoLevel() > 0)
             START_TIMER("Build", 0)
 
@@ -438,8 +451,15 @@ public:
         if (BaseType::GetEchoLevel() > 0)
             STOP_TIMER("Build", 0)
 
+        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
+        if(global_num_constraints > 0) {
+            if (BaseType::GetEchoLevel() > 0) START_TIMER("ApplyConstraints", 0);
+            ApplyConstraints(pScheme, rModelPart, rA, rb);
+            if (BaseType::GetEchoLevel() > 0) STOP_TIMER("ApplyConstraints", 0);
+        }
+
         // apply dirichlet conditions
-        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nBefore the solution of the system"
