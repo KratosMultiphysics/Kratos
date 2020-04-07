@@ -634,9 +634,6 @@ protected:
     /// Boolean for stress update option
     bool mIsUSFStressUpdate = false;
 
-    /// Boolean for central difference explicit time integration
-    bool mIsCentralDifference = false;
-
 
     ///@}
     ///@name Protected Operators

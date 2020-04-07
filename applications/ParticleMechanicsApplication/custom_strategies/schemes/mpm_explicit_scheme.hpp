@@ -101,8 +101,7 @@ namespace Kratos {
                 )
                 : Scheme<TSparseSpace, TDenseSpace>(),
                 mr_grid_model_part(grid_model_part),
-                mStressUpdateOption(StressUpdateOption),
-                mIsCentralDifference(isCentralDifference)
+                mStressUpdateOption(StressUpdateOption)
             {
             }
 
@@ -196,8 +195,8 @@ namespace Kratos {
                 TSystemVectorType& b) override
             {
                 KRATOS_TRY
-                    // The current process info
-                    ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+                // The current process info
+                ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
 
                 // The array of nodes
                 NodesArrayType& r_nodes = r_model_part.Nodes();
@@ -228,7 +227,7 @@ namespace Kratos {
                     if ((it_node)->Is(ACTIVE))
                     {
                         // Current step information "N+1" (before step update).
-                        this->UpdateTranslationalDegreesOfFreedom(it_node, disppos, dim);
+                        this->UpdateTranslationalDegreesOfFreedom(r_current_process_info, it_node, disppos, dim);
                     }                    
                 } // for Node parallel
 
@@ -239,6 +238,7 @@ namespace Kratos {
             //***************************************************************************
 
             void UpdateTranslationalDegreesOfFreedom(
+                ProcessInfo& r_current_process_info,
                 NodeIterator itCurrentNode,
                 const IndexType DisplacementPosition,
                 const SizeType DomainSize = 3
@@ -253,10 +253,11 @@ namespace Kratos {
                 array_1d<double, 3>& r_nodal_momenta = itCurrentNode->FastGetSolutionStepValue(NODAL_MOMENTUM);
                 array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-                double gamma = 1.0;
-                if (mIsCentralDifference) {
-                    gamma = 0.5; // factor since we are only adding the central difference corrector here
-                }
+                const double gamma = (r_current_process_info.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+                    ? 0.5
+                    : 1.0;
+                    // we are only adding the central difference corrector here
+
 
                 for (IndexType j = 0; j < DomainSize; j++) {
                     if (fix_displacements[j]) {
@@ -366,7 +367,7 @@ namespace Kratos {
             {
                 KRATOS_TRY
 
-                    ProcessInfo CurrentProcessInfo = r_model_part.GetProcessInfo();
+                ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
                 BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
                 // LOOP OVER THE GRID NODES PERFORMED FOR CLEAR ALL NODAL INFORMATION
                 #pragma omp parallel for
@@ -408,7 +409,7 @@ namespace Kratos {
                 Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
                 // If we are updating stress first (USF and central difference), calculate nodal velocities from momenta and apply BCs
-                if (mStressUpdateOption == 0 || mIsCentralDifference)
+                if (mStressUpdateOption == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
                 {
                     const IndexType DisplacementPosition = mr_grid_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
 
@@ -419,7 +420,7 @@ namespace Kratos {
 
                         if ((i)->Is(ACTIVE))
                         {
-                            const SizeType DomainSize = CurrentProcessInfo[DOMAIN_SIZE];
+                            const SizeType DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
                             double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
                             array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                             array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
@@ -554,9 +555,11 @@ namespace Kratos {
             {
                 KRATOS_TRY
 
+                    ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+
                     // This calculates the stresses before momenta update.
                     // Used for USF and Central Difference method
-                    if (mStressUpdateOption == 0 || mIsCentralDifference)
+                    if (mStressUpdateOption == 0 || rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
                     {
                         ElementsArrayType& pElements = r_model_part.Elements();
                         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -803,7 +806,6 @@ namespace Kratos {
             TimeVariables mTime;            /// This struct contains the details of the time variables
             ModelPart& mr_grid_model_part;
             const int mStressUpdateOption; // 0 = USF, 1 = USL, 2 = MUSL
-            const bool mIsCentralDifference;
 
         private:
     }; /* Class MPMExplicitScheme */

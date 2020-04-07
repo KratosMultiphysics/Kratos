@@ -912,7 +912,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
     mFinalizedStep = false;
     mIsExplicit = rCurrentProcessInfo.Has(IS_EXPLICIT);
-    mIsCentralDifference = rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE);
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -954,7 +953,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
         // be the initial particle acceleration mapped to the grid.
-        if (mIsCentralDifference)
+        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         {
             const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
             for (unsigned int j = 0; j < dimension; j++)
@@ -1099,7 +1098,8 @@ void UpdatedLagrangianQuadrilateral::FinalizeExplicitSolutionStep(ProcessInfo& r
         const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
         // Map grid to particle       
-        MPMExplicitUtilities::UpdateGaussPointExplicit(rGeom, delta_time, mIsCentralDifference, *this, mN);
+        bool isCentralDifference = rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE);
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rGeom, delta_time, isCentralDifference, *this, mN);
 
         // If we are doing MUSL, map updated particle velocities back to the grid
         if (rGeom[0].Has(MUSL_VELOCITY_FIELD_IS_COMPUTED))
