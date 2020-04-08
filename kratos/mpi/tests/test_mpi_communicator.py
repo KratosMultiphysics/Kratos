@@ -219,10 +219,24 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         self.assertEqual(comm.ScanSum(1), 1)
 
 
-    #def test_model_part_io_properties_block(self):
-    #    model_part = ModelPart("Main")
-    #    model_part_io = ModelPartIO("test_model_part_io")
-    #    model_part_io.ReadProperties(model_part.Properties)
+    def test_GlobalNumberOf_Methods(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        self._read_model_part_mpi(main_model_part)
+
+        main_comm = main_model_part.GetCommunicator()
+
+        self.assertEqual(main_comm.GlobalNumberOfNodes(), 9)
+        self.assertEqual(main_comm.GlobalNumberOfElements(), 8)
+        self.assertEqual(main_comm.GlobalNumberOfConditions(), 8)
+
+        sub_comm = main_model_part.GetSubModelPart("Skin").GetCommunicator()
+
+        self.assertEqual(sub_comm.GlobalNumberOfNodes(), 8)
+        self.assertEqual(sub_comm.GlobalNumberOfElements(), 0)
+        self.assertEqual(sub_comm.GlobalNumberOfConditions(), 8)
 
 if __name__ == '__main__':
     KratosUnittest.main()
