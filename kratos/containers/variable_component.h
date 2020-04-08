@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 
@@ -28,8 +28,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "variable_data.h"
-
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -53,12 +52,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Provide information for store or retrive a component of a variable in data container.
-/** Provide information for store or retrive a component of a
-    variable in data container. This class also provide a method to
-    extract its component value from the source variable value in
-    container.
-*/
+/**
+ * @class VariableComponent
+ * @brief Provide information for store or retrive a component of a variable in data container.
+ * @details Provide information for store or retrive a component of a variable in data container. This class also provide a method to extract its component value from the source variable value in container.
+ * @tparam TAdaptorType The adaptor variable type
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ */
 template<class TAdaptorType>
 class VariableComponent : public VariableData
 {
@@ -87,14 +88,24 @@ public:
     /// Adaptor type.
     typedef TAdaptorType AdaptorType;
 
+    typedef VariableComponent<TAdaptorType> VariableComponentType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    VariableComponent(const std::string& ComponentName, const std::string& SourceName, int ComponentIndex, const AdaptorType& NewAdaptor)
-        : BaseType(ComponentName, sizeof(DataType), true, NewAdaptor.GetComponentIndex()), mAdaptor(NewAdaptor)
+    VariableComponent(
+        const std::string& rComponentName,
+        const std::string& rSourceName,
+        int ComponentIndex,
+        const AdaptorType& rNewAdaptor,
+        const VariableComponentType* pTimeDerivativeVariable = nullptr
+        )
+        : BaseType(rComponentName, sizeof(DataType), true, rNewAdaptor.GetComponentIndex()),
+          mAdaptor(rNewAdaptor),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
-        SetKey(GenerateKey(SourceName, sizeof(DataType), true,  ComponentIndex));
+        SetKey(GenerateKey(rSourceName, sizeof(DataType), true, ComponentIndex));
     }
 
     /// Copy constructor.
@@ -114,10 +125,19 @@ public:
     ///@name Operations
     ///@{
 
-
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief This method returns the time derivative component variable
+     * @return The reference of the time derivative component variable (if any)
+     */
+    const VariableComponentType& GetTimeDerivative() const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpTimeDerivativeVariable;
+    }
 
     const SourceVariableType& GetSourceVariable() const
     {
@@ -239,6 +259,8 @@ private:
 
     TAdaptorType mAdaptor;
 
+    const VariableComponentType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
+
     ///@}
     ///@name Serialization
     ///@{
@@ -307,6 +329,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 

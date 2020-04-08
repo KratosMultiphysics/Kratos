@@ -3,8 +3,8 @@
 //      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License: BSD License
-//                     Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
 //  Main authors:  Riccardo Rossi
 //
@@ -72,6 +72,13 @@ public:
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
         std::vector< bool > foundf( rModelPart.Nodes().size());
+
+        // Allocate non-historical variables
+        for (auto &r_node : rModelPart.Nodes()) {
+            r_node.SetValue(rVar, 0.0);
+            r_node.SetValue(BFECC_ERROR, 0.0);
+            r_node.SetValue(BFECC_ERROR_1, 0.0);
+        }
 
         //FIRST LOOP: estimate rVar(n+1)
         #pragma omp parallel for firstprivate(results,N)
@@ -327,5 +334,3 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_BFECC_LIMITER_CONVECTION_INCLUDED  defined
-
-

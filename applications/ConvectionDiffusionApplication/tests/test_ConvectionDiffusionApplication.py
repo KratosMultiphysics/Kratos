@@ -6,19 +6,6 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
-
-# Import the tests or test_classes to create the suites
-
 ##### SELF-CONTAINED TESTS #####
 from bfecc_convection_test import BFECCConvectionTest
 from source_term_test import SourceTermTest
@@ -55,8 +42,6 @@ def AssembleTestSuites():
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
     ### Adding the self-contained tests
-    smallSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
-    smallSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
@@ -75,6 +60,8 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
+    nightSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    nightSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']

@@ -25,18 +25,7 @@ ImposeRigidMovementProcess::ImposeRigidMovementProcess(
     ):mrThisModelPart(rThisModelPart),
       mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"             : "please_specify_model_part_name",
-        "new_model_part_name"         : "Rigid_Movement_ModelPart",
-        "master_variable_name"        : "DISPLACEMENT",
-        "slave_variable_name"         : "",
-        "relation"                    : 1.0,
-        "constant"                    : 0.0,
-        "master_node_id"              : 0
-    })" );
-
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 }
 
 /***********************************************************************************/
@@ -172,6 +161,25 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters ImposeRigidMovementProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"             : "please_specify_model_part_name",
+        "new_model_part_name"         : "Rigid_Movement_ModelPart",
+        "master_variable_name"        : "DISPLACEMENT",
+        "slave_variable_name"         : "",
+        "relation"                    : 1.0,
+        "constant"                    : 0.0,
+        "master_node_id"              : 0
+    })" );
+
+    return default_parameters;
 }
 
 // class ImposeRigidMovementProcess
