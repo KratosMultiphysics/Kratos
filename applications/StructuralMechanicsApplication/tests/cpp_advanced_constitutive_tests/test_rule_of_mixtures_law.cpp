@@ -187,11 +187,13 @@ void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::siz
     // Now we create the elements
     rThisModelPart.CreateNewElement(ElementName, 1, {{5,8,6,2,3,7,4,1}}, p_elem_prop);
 
+    const auto& const_process_info = rThisModelPart.GetProcessInfo();
+
     // Initialize elements
     for (auto& r_elem : rThisModelPart.Elements()) {
-        r_elem.Initialize();
-        r_elem.InitializeSolutionStep(r_process_info);
-        r_elem.InitializeNonLinearIteration(r_process_info);
+        r_elem.Initialize(const_process_info);
+        r_elem.InitializeSolutionStep(const_process_info);
+        r_elem.InitializeNonLinearIteration(const_process_info);
     }
 }
 
@@ -241,11 +243,13 @@ void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::si
     rThisModelPart.CreateNewElement(ElementName, 11, {{9,12,11,8}}, p_elem_prop);
     rThisModelPart.CreateNewElement(ElementName, 12, {{3,2,1,6}}, p_elem_prop);
 
+    const auto& const_process_info = rThisModelPart.GetProcessInfo();
+
     // Initialize elements
     for (auto& r_elem : rThisModelPart.Elements()) {
-        r_elem.Initialize();
-        r_elem.InitializeSolutionStep(r_process_info);
-        r_elem.InitializeNonLinearIteration(r_process_info);
+        r_elem.Initialize(const_process_info);
+        r_elem.InitializeSolutionStep(const_process_info);
+        r_elem.InitializeNonLinearIteration(const_process_info);
     }
 }
 

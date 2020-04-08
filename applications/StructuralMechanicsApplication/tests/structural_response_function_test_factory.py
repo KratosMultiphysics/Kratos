@@ -41,7 +41,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.response_function.CalculateValue()
             self.value = self.response_function.GetValue()
             self.response_function.CalculateGradient()
-            self.gradient = self.response_function.GetShapeGradient()
+            self.gradient = self.response_function.GetNodalGradient(KM.SHAPE_SENSITIVITY)
             self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
