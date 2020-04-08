@@ -88,8 +88,6 @@ void  AddModelerToPython(pybind11::module& m)
     // Modeler Stages Solution Loop
     .def("UpdateModelInitializeSolutionStep", &Modeler::UpdateModelInitializeSolutionStep)
     .def("UpdateModelFinalizeSolutionStep", &Modeler::UpdateModelFinalizeSolutionStep)
-    // Modeler Stages Finalize
-    .def("FinalizeModel", &Modeler::FinalizeModel)
     // Additional Old Functions
     .def("GenerateModelPart", GenerateModelPart1)
     .def("GenerateMesh",&GenerateMesh)
