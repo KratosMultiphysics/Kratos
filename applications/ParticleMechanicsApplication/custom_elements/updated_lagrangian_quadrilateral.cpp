@@ -942,12 +942,15 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
         // be the initial particle acceleration mapped to the grid.
-        if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         {
-            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-            for (unsigned int j = 0; j < dimension; j++)
+            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
             {
-                nodal_momentum[j] += 0.5 * delta_time * (Variables.N[i] * mMP.acceleration[j]) * mMP.mass;
+                const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    nodal_momentum[j] += 0.5 * delta_time * (Variables.N[i] * mMP.acceleration[j]) * mMP.mass;
+                }
             }
         }
 
