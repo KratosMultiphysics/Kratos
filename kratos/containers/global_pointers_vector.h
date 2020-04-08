@@ -455,61 +455,23 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
-        {
-            
-
-            std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
-
-            std::string data;
-            data.resize( this->size() * pointer_size);
-            for(std::size_t i=0; i<this->size(); ++i)
-            {
-                mData[i].save(&data[0]+i*pointer_size);
-            }
-
-            rSerializer.save("Size", this->size());
-            rSerializer.save("Data", data);
-        }
-        else //SERIALIZING THE POINTER CONTENT TOO
-        {
-            rSerializer.save("Size", this->size());
-            for(const auto& item : mData)
-                rSerializer.save("Gp", item);
+        rSerializer.save("Size", this->size());
+        
+        for(std::size_t i=0; i<this->size(); i++) {
+            rSerializer.save("Data", mData[i]);
         }
     }
 
     void load(Serializer& rSerializer)
     {
-        if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
-        {
-            std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
+        std::size_t size;
 
-            std::size_t size;
-            rSerializer.load("Size", size);
-            this->reserve(size);
-
-            std::string tmp;
-            rSerializer.load("Data", tmp);
-
-            for(std::size_t i = 0; i<size; ++i)
-            {
-                GlobalPointer<TDataType> p(nullptr);
-                p.load(&tmp[0]+i*pointer_size);
-                this->push_back(p);
-            }
-        }
-        else //SERIALIZING THE POINTER CONTENT TOO
-        {
-            std::size_t size;
-            rSerializer.load("Size", size);
-            this->reserve(size);
-            for(std::size_t i = 0; i<size; ++i)
-            {
-                GlobalPointer<TDataType> p(nullptr);
-                rSerializer.load("Gp", p);
-                this->push_back(p);
-            }
+        rSerializer.load("Size", size);
+            
+        for(std::size_t i = 0; i < size; i++) {
+            GlobalPointer<TDataType> p(nullptr);
+            rSerializer.load("Data", p);
+            this->push_back(p);
         }
     }
 
