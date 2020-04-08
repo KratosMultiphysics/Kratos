@@ -50,9 +50,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     def test_lowest_power_in_core(self):
         try:
-            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 
         self._RunParametrized("""
             {
@@ -78,9 +78,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     def test_highest_power_in_core(self):
         try:
-            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 
         self._RunParametrized("""
             {

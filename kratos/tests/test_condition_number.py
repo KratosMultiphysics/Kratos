@@ -12,9 +12,9 @@ class TestConditionNumber(KratosUnittest.TestCase):
 
     def test_condition_number(self):
         try:
-            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 
         space = KratosMultiphysics.UblasSparseSpace()
 
