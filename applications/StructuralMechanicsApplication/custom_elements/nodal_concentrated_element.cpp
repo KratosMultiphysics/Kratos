@@ -374,9 +374,6 @@ void NodalConcentratedElement::Initialize(const ProcessInfo& rCurrentProcessInfo
 {
     KRATOS_TRY;
 
-    // Defining auxiliar zero array
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-
     // We get the reference
     const auto& rconst_this = *this;
 
