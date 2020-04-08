@@ -19,6 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/line_2d_2.h"
+#include "integration/line_newton_cotes_integration_points.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
@@ -101,6 +102,21 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(2.0), TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LengthLine2D2NewtonCotes, KratosCoreGeometriesFastSuite) {
+        const auto geom = GeneratePointsDiagonalLine2D2();
+
+        const Line2D2<Point>::IntegrationPointsArrayType& integration_points = Quadrature<LineNewtonCotesIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
+
+        Vector temp;
+        temp = geom->DeterminantOfJacobian( temp, integration_points );
+        double length = 0.0;
+        for ( std::size_t i = 0; i < integration_points.size(); i++ ) {
+            length += temp[i] * integration_points[i].Weight();
+        }
+
+        KRATOS_CHECK_NEAR(length, std::sqrt(2.0), TOLERANCE);
     }
 
     /** Checks if the bounding box of the line is calculated correctly.
