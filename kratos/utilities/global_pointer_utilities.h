@@ -362,18 +362,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    static bool ObjectIsLocal(Element& elem, const int CurrentRank)
+    static bool ObjectIsLocal(const Element& elem, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }
 
-    static bool ObjectIsLocal(Condition& cond, const int CurrentRank)
+    static bool ObjectIsLocal(const Condition& cond, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }
 
     //particularizing to the case of nodes
-    static bool ObjectIsLocal(Node<3>& node, const int CurrentRank)
+    static bool ObjectIsLocal(const Node<3>& node, const int CurrentRank)
     {
         return node.FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank);
     }
