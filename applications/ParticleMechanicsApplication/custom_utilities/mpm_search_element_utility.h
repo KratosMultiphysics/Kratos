@@ -93,7 +93,7 @@ namespace MPMSearchElementUtility
                     // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
                     bool isOnEdge = false;
                     for (SizeType i = 0; i < N.size(); ++i) {
-                        if (abs(N[i]) < std::numeric_limits<double>::epsilon()) {
+                        if (std::abs(N[i]) < std::numeric_limits<double>::epsilon()) {
                             isOnEdge = true;
                             break;
                         }
