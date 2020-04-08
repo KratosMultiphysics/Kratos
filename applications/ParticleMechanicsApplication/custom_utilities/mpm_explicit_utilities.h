@@ -46,19 +46,13 @@ namespace Kratos
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalcuateAndAddExplicitInternalForce(Element& rElement,
             const Matrix& rDN_DX, const Vector& rMPStress, const double& rMPVolume, Vector& rRightHandSideVector);
 
-
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo, 
-            Element& rElement, Vector& rN);
+            Element& rElement, const Vector& rN);
 
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateMUSLGridVelocity(Element& rElement, const Vector& rN);
 
-        void CalculateMUSLGridVelocity(Element& rElement, Vector& rN);
-
-
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(GeometryType& rGeom,
-            const Matrix& rDN_DX, const double rDeltaTime, Vector& rMPStrain, Matrix& rDeformationGradient,
-            const bool& isCompressible);
-
-
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
+            Element& rElement, const Matrix& rDN_DX, Vector& rMPStrain, Matrix& rDeformationGradient);
     }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
 #endif /* KRATOS_MPM_EXPLICIT_UTILITIES defined */

@@ -585,8 +585,8 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
 
 
     // Compute explicit element kinematics, strain is incremented here.
-    MPMExplicitUtilities::CalculateExplicitKinematics(rGeom, mDN_DX, delta_time,
-        mMP.almansi_strain_vector, rVariables.F, isCompressible);
+    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, mDN_DX, 
+        mMP.almansi_strain_vector, rVariables.F);
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
@@ -1373,7 +1373,6 @@ void UpdatedLagrangianQuadrilateral::CalculateDampingMatrix( MatrixType& rDampin
     KRATOS_CATCH( "" )
 }
 
-// TODO confirm this is still needed
 void UpdatedLagrangianQuadrilateral::AddExplicitContribution(const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     Variable<array_1d<double, 3>>& rDestinationVariable,

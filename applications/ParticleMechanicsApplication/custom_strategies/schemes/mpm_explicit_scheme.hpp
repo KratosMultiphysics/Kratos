@@ -120,55 +120,8 @@ namespace Kratos {
             void Initialize(ModelPart& rModelPart) override
             {
                 KRATOS_TRY
-
-                    ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-                // TODO cleanup
-                // Preparing the time values for the first step (where time = initial_time +
-                // dt)
-                mTime.Current = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
-                mTime.Delta = r_current_process_info[DELTA_TIME];
-                mTime.Middle = mTime.Current - 0.5 * mTime.Delta;
-                mTime.Previous = mTime.Current - mTime.Delta;
-                mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
-
-                /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
-                const SizeType dim = r_current_process_info[DOMAIN_SIZE];
-
                 // Initialize scheme
-                if (!BaseType::SchemeIsInitialized())
-                    InitializeExplicitScheme(rModelPart, dim);
-                else
-                    SchemeCustomInitialization(rModelPart, dim);
-
                 BaseType::SetSchemeIsInitialized();
-
-                KRATOS_CATCH("")
-            }
-
-            void InitializeExplicitScheme(
-                ModelPart& rModelPart,
-                const SizeType DomainSize = 3
-                )
-            {
-                KRATOS_TRY
-
-                    /// The array of ndoes
-                    NodesArrayType& r_nodes = rModelPart.Nodes();
-
-                // The first iterator of the array of nodes
-                const auto it_node_begin = rModelPart.NodesBegin();
-
-                #pragma omp parallel for schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                    auto it_node = (it_node_begin + i);
-
-
-                    array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-                    for (IndexType j = 0; j < DomainSize; j++) {
-                        r_current_residual[j] = 0.0;
-                    }
-                }
-
                 KRATOS_CATCH("")
             }
 
@@ -195,23 +148,10 @@ namespace Kratos {
                 // The current process info
                 ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
 
-                // The array of nodes
-                NodesArrayType& r_nodes = r_model_part.Nodes();
-
                 /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
                 const SizeType dim = r_current_process_info[DOMAIN_SIZE];
+                const double delta_time = r_current_process_info[DELTA_TIME];
 
-                // Step Update
-                // The first step is time =  initial_time ( 0.0) + delta time
-                mTime.Current = r_current_process_info[TIME];
-                mTime.Delta = r_current_process_info[DELTA_TIME];
-
-                mTime.Middle = mTime.Current - 0.50 * mTime.Delta;
-                mTime.Previous = mTime.Current - 1.00 * mTime.Delta;
-                mTime.PreviousMiddle = mTime.Middle - 1.00 * mTime.Delta;
-
-                if (mTime.Previous < 0.0) mTime.Previous = 0.00;
-                if (mTime.PreviousMiddle < 0.0) mTime.PreviousMiddle = 0.00;
                 // The iterator of the first node
                 const auto it_node_begin = r_model_part.NodesBegin();
 
@@ -219,12 +159,11 @@ namespace Kratos {
                 const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
 
                 #pragma omp parallel for schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                for (int i = 0; i < static_cast<int>(r_model_part.Nodes().size()); ++i) {
                     auto it_node = it_node_begin + i;
                     if ((it_node)->Is(ACTIVE))
                     {
-                        // Current step information "N+1" (before step update).
-                        this->UpdateTranslationalDegreesOfFreedom(r_current_process_info, it_node, disppos, dim);
+                        this->UpdateTranslationalDegreesOfFreedom(r_current_process_info, it_node, disppos, delta_time, dim);
                     }                    
                 } // for Node parallel
 
@@ -238,6 +177,7 @@ namespace Kratos {
                 ProcessInfo& r_current_process_info,
                 NodeIterator itCurrentNode,
                 const IndexType DisplacementPosition,
+                const double delta_time,
                 const SizeType DomainSize = 3
                 )
             {
@@ -255,16 +195,16 @@ namespace Kratos {
                     : 1.0;
                     // we are only adding the central difference corrector here
 
-
-                for (IndexType j = 0; j < DomainSize; j++) {
-                    if (fix_displacements[j]) {
+                for (IndexType j = 0; j < DomainSize; j++) 
+                {
+                    if (fix_displacements[j]) 
+                    {
                         r_nodal_momenta[j] = 0.0;
                         r_current_residual[j] = 0.0;
                     }
                     else {
-                        r_nodal_momenta[j] += gamma * mTime.Delta * r_current_residual[j];
+                        r_nodal_momenta[j] += gamma * delta_time * r_current_residual[j];
                     }
-
                 } // for DomainSize
 
                 // We need to set updated grid velocity here if we are using the USL formulation
@@ -283,7 +223,6 @@ namespace Kratos {
                 }
             }
 
-
             
             /** This is the place to initialize the elements.
             This is intended to be called just once when the strategy is initialized */
@@ -291,7 +230,7 @@ namespace Kratos {
             {
                 KRATOS_TRY
 
-                    int num_threads = OpenMPUtils::GetNumThreads();
+                int num_threads = OpenMPUtils::GetNumThreads();
                 OpenMPUtils::PartitionVector element_partition;
                 OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), num_threads, element_partition);
 
@@ -323,7 +262,7 @@ namespace Kratos {
             {
                 KRATOS_TRY
 
-                    KRATOS_ERROR_IF(this->mElementsAreInitialized == false) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
+                KRATOS_ERROR_IF(this->mElementsAreInitialized == false) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
                 int num_threads = OpenMPUtils::GetNumThreads();
                 OpenMPUtils::PartitionVector condition_partition;
@@ -366,7 +305,6 @@ namespace Kratos {
 
                 ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
                 BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
-                // LOOP OVER THE GRID NODES PERFORMED FOR CLEAR ALL NODAL INFORMATION
                 #pragma omp parallel for
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                 {
@@ -380,7 +318,6 @@ namespace Kratos {
                     array_1d<double, 3 >& nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
                     array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
                     array_1d<double, 3 >& nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-
 
                     double& nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
                     double& nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
@@ -421,7 +358,6 @@ namespace Kratos {
                         it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
                     }
                 }
-
                 KRATOS_CATCH("")
             }
 
@@ -488,18 +424,11 @@ namespace Kratos {
                     : false;
                 if (isMUSL) PerformModifiedUpdateStressLastMapping(rCurrentProcessInfo, rModelPart, rElements);
 
-
-                bool calculateMPStresses;
-                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 ||
+                const bool calculateMPStresses = (
+                    rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 ||
                     rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-                {
-                    calculateMPStresses = false;
-                }
-                else
-                {
-                    calculateMPStresses = true;
-                }
-
+                    ? false
+                    : true;
 
                 // Definition of the first element iterator
                 const auto it_elem_begin = rModelPart.ElementsBegin();
@@ -512,8 +441,6 @@ namespace Kratos {
                     
                     if (!isMUSL) it_elem->CalculateOnIntegrationPoints(EXPLICIT_MAP_GRID_TO_MP, dummy, rCurrentProcessInfo);
                     if (calculateMPStresses) it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
-
-                    //it_elem->FinalizeSolutionStep(rCurrentProcessInfo);
                 }
 
                 // Definition of the first condition iterator
@@ -648,68 +575,6 @@ namespace Kratos {
                 KRATOS_CATCH("")
             }
 
-            virtual void SchemeCustomInitialization(
-                ModelPart& rModelPart,
-                const SizeType DomainSize = 3
-                )
-            {
-                KRATOS_TRY
-
-                    // The array containing the nodes
-                    NodesArrayType& r_nodes = rModelPart.Nodes();
-
-                // The fisrt node interator
-                const auto it_node_begin = rModelPart.NodesBegin();
-
-                // Auxiliar zero array
-                const array_1d<double, 3> zero_array = ZeroVector(3);
-
-                // Getting dof position
-                const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-
-                #pragma omp parallel for schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                    // Current step information "N+1" (before step update).
-                    auto it_node = it_node_begin + i;
-
-                    const double nodal_mass = it_node->GetValue(NODAL_MASS);
-
-                    const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-                    array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-                    //             array_1d<double,3>& r_current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-
-                    // Solution of the explicit equation:
-                    if (nodal_mass > numerical_limit) {
-                        r_current_acceleration = r_current_residual / nodal_mass;
-                    }
-                    else {
-                        r_current_acceleration = zero_array;
-                    }
-
-                    std::array<bool, 3> fix_displacements = { false, false, false };
-
-                    fix_displacements[0] = (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed());
-                    fix_displacements[1] = (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
-                    if (DomainSize == 3)
-                        fix_displacements[2] = (it_node->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
-
-                    for (IndexType j = 0; j < DomainSize; j++) {
-                        if (fix_displacements[j]) {
-                            r_current_acceleration[j] = 0.0;
-                        }
-                        r_current_velocity[j] += (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j];
-                        // r_current_displacement[j]  = 0.0;
-                    } // for DomainSize
-
-                }     // for node parallel
-
-                mTime.Previous = mTime.Current;
-                mTime.PreviousMiddle = mTime.Middle;
-                KRATOS_CATCH("")
-            }
-
             void Calculate_RHS_Contribution(
                 Element::Pointer pCurrentElement,
                 LocalSystemVectorType& RHS_Contribution,
@@ -718,7 +583,6 @@ namespace Kratos {
                 ) override
             {
                 KRATOS_TRY
-
                     this->TCalculate_RHS_Contribution(pCurrentElement, RHS_Contribution, rCurrentProcessInfo);
                 KRATOS_CATCH("")
             }
@@ -738,9 +602,7 @@ namespace Kratos {
                 ) override
             {
                 KRATOS_TRY
-
                     this->TCalculate_RHS_Contribution(pCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
-
                 KRATOS_CATCH("")
             }
 
@@ -752,33 +614,13 @@ namespace Kratos {
                 )
             {
                 KRATOS_TRY
-
                 pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
                 pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-
                 KRATOS_CATCH("")
             }
 
         protected:
             /// @name Member Variables
-            struct DeltaTimeParameters {
-                double PredictionLevel; // 0, 1, 2 // NOTE: Should be a integer?
-                double Maximum;         // Maximum delta time
-                double Fraction;        // Fraction of the delta time
-            };
-
-            /// @brief This struct contains the details of the time variables
-            struct TimeVariables {
-                double PreviousMiddle; // n-1/2
-                double Previous;       // n
-                double Middle;         // n+1/2
-                double Current;        // n+1
-                double Delta;          // Time step
-            };
-
-            /// Protected static Member Variables
-            // TODO check if this is needed
-            TimeVariables mTime;            /// This struct contains the details of the time variables
             ModelPart& mr_grid_model_part;
 
         private:

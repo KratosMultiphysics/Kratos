@@ -88,7 +88,7 @@ namespace Kratos
     void MPMExplicitUtilities::UpdateGaussPointExplicit(
         const ProcessInfo& rCurrentProcessInfo,
         Element& rElement,
-        Vector& rN)
+        const Vector& rN)
     {
         KRATOS_TRY
 
@@ -183,7 +183,7 @@ namespace Kratos
 
     void MPMExplicitUtilities::CalculateMUSLGridVelocity(
         Element& rElement,
-        Vector& rN)
+        const Vector& rN)
     {
         KRATOS_TRY
 
@@ -219,15 +219,16 @@ namespace Kratos
     /***********************************************************************************/
 
     void MPMExplicitUtilities::CalculateExplicitKinematics(
-        GeometryType& rGeom,
+        const ProcessInfo& rCurrentProcessInfo,
+        Element& rElement,
         const Matrix& rDN_DX,
-        const double rDeltaTime,
         Vector& rMPStrain,
-        Matrix& rDeformationGradientIncrement,
-        const bool& isCompressible)
+        Matrix& rDeformationGradientIncrement)
     {
         KRATOS_TRY
 
+        GeometryType rGeom = rElement.GetGeometry();
+        const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
 
@@ -247,14 +248,14 @@ namespace Kratos
         }
 
         //Calculate rate of deformation and spin tensors
-        Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
-        Matrix spinTensor = velocityGradient - rateOfDeformation;
+        const Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
+        const Matrix spinTensor = velocityGradient - rateOfDeformation;
 
         //Calculate objective Jaumann strain rate
-        Matrix jaumannRate = rateOfDeformation -
-            (prod(spinTensor, rateOfDeformation)) * rDeltaTime +
-            prod((rateOfDeformation * rDeltaTime), spinTensor);
-        Matrix strainIncrement = rDeltaTime * jaumannRate;
+        const Matrix jaumannRate = rateOfDeformation -
+            (prod(spinTensor, rateOfDeformation)) * deltaTime +
+            prod((rateOfDeformation * deltaTime), spinTensor);
+        const Matrix strainIncrement = deltaTime * jaumannRate;
 
         // Apply strain increment to strain vector
         rMPStrain(0) += strainIncrement(0, 0); //e_xx
@@ -265,7 +266,7 @@ namespace Kratos
         }        
         else
         {
-            rMPStrain(2) += strainIncrement(2, 2) * rDeltaTime; //e_zz
+            rMPStrain(2) += strainIncrement(2, 2) * deltaTime; //e_zz
 
             rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
             rMPStrain(4) += 2.0 * strainIncrement(1, 2); //e_yz
@@ -274,7 +275,7 @@ namespace Kratos
 
         // Model compressibility
         rDeformationGradientIncrement = IdentityMatrix(dimension);
-        if (isCompressible) rDeformationGradientIncrement += strainIncrement;
+        if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE)) rDeformationGradientIncrement += strainIncrement;
 
         KRATOS_CATCH("")
     }

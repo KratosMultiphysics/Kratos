@@ -90,17 +90,11 @@ namespace Kratos
             KRATOS_TRY
 
             mKeepSystemConstantDuringIterations = false;
-
-            // Set flags to start correcty the calculations
             mSolutionStepIsInitialized = false;
-
             mInitializeWasPerformed = false;
-
             mFinalizeSolutionStep = true;
-
             // Set EchoLevel to the default value (only time is displayed)
             SetEchoLevel(1);
-
             // By default the matrices are rebuilt at each solution step
             this->SetRebuildLevel(1);
 
@@ -123,7 +117,6 @@ namespace Kratos
         {
             return mpScheme;
         };
-
 
         void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
         {
@@ -166,7 +159,6 @@ namespace Kratos
         // 2 -> printing linear solver data
         // 3 -> Print of debug informations:
         //		Echo of stiffness matrix, Dx, b...
-
         void SetEchoLevel(int Level) override
         {
             BaseType::mEchoLevel = Level;
@@ -248,7 +240,6 @@ namespace Kratos
 
             // Compute residual forces on the model part
             this->CalculateAndAddRHS(pScheme, BaseType::GetModelPart());
-
             pScheme->Update(BaseType::GetModelPart(), dof_set_dummy, mA, mDx, mb);
 
             // Calculate reactions if required
@@ -284,10 +275,7 @@ namespace Kratos
         /*@} */
         /**@name Member Variables */
         /*@{ */
-
         typename TSchemeType::Pointer mpScheme;
-
-
 
         /**
         Flag telling if it is needed to reform the DofSet at each
@@ -322,7 +310,6 @@ namespace Kratos
             TSystemMatrixType mA = TSystemMatrixType();
             TSystemVectorType mDx = TSystemVectorType();
             TSystemVectorType mb = TSystemVectorType();
-
 
             /*Finalization of the solution step,
             operations to be done after achieving convergence, for example the
