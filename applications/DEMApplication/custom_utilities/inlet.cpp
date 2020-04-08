@@ -540,7 +540,7 @@ namespace Kratos {
 
             if (number_of_particles_to_insert) {
                 //randomizing mesh
-                srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
+                std::mt19937 random_generator(r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
                 int valid_elements_length = 0;
@@ -605,7 +605,7 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = rand() % valid_elements_length;
+                    int random_pos = random_generator() % valid_elements_length;
                     Element* p_injector_element = valid_elements[random_pos].get();
 
                     if (mp[CONTAINS_CLUSTERS] == false) {
