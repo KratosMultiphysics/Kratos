@@ -581,18 +581,16 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 2, 2 , false);
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 2 || rResult.size2() != 2)
+            rResult.resize( 2, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
-            shape_functions_gradients( IntegrationPointIndex );
+        ShapeFunctionsGradientsType shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
         DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
-        ShapeFunctionsValuesInIntegrationPoint =
-            row( CalculateShapeFunctionsIntegrationPointsValues(
-                     ThisMethod ), IntegrationPointIndex );
+        ShapeFunctionsValuesInIntegrationPoint =row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         // Loop over all nodes
@@ -629,12 +627,13 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 2, 2 , false);
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 2 || rResult.size2() != 2)
+            rResult.resize( 2, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
         Matrix shape_functions_gradients;
-        shape_functions_gradients = ShapeFunctionsLocalGradients(
-                                        shape_functions_gradients, rPoint );
+        shape_functions_gradients = ShapeFunctionsLocalGradients( shape_functions_gradients, rPoint );
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
 
