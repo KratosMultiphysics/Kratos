@@ -112,6 +112,7 @@ namespace Kratos {
         bool mWarningTooSmallInletForMassFlow;
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
+        std::vector<ModelPart*> mListOfSubModelParts;
     };
 }// namespace Kratos.
 

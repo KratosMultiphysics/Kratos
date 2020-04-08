@@ -48,7 +48,7 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         for node in self.spheres_model_part.Nodes:
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
-            if node.Id == 7:
+            if node.Id == 6:
                 if self.time >= 1.15:
                     print(node_vel)
                     print(node_force)

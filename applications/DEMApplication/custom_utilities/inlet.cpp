@@ -35,6 +35,10 @@ namespace Kratos {
         return indentation;
     }
 
+    bool SortSubModelPartsByName(ModelPart* A, ModelPart* B) {
+        return (A->Name() < B->Name());
+    }
+
     /// Constructor
 
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
@@ -114,15 +118,22 @@ namespace Kratos {
         int smp_number = 0;
 
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
+            ModelPart* mp = &*smp_it;
+            mListOfSubModelParts.push_back(mp);
+        }
+        std::sort(mListOfSubModelParts.begin(), mListOfSubModelParts.end(), SortSubModelPartsByName);
+
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+            ModelPart& mp = *mListOfSubModelParts[i];
+
 
             CheckSubModelPart(mp);
             mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
             mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
 
-            int mesh_size = smp_it->NumberOfNodes();
+            int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;
-            ModelPart::NodesContainerType::ContainerType& all_nodes = smp_it->NodesArray();
+            ModelPart::NodesContainerType::ContainerType& all_nodes = mp.NodesArray();
             std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
             mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
@@ -172,7 +183,7 @@ namespace Kratos {
                                                              mBallsModelPartHasSphericity,
                                                              mBallsModelPartHasRotation,
                                                              true,
-                                                             smp_it->Elements());
+                                                             mp.Elements());
 
                 FixInjectorConditions(p_element);
                 max_Id++;
@@ -454,8 +465,8 @@ namespace Kratos {
     void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {
 
         bool is_there_any_dense_inlet = false;
-        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+            ModelPart& mp = *mListOfSubModelParts[i];
             if (mp[DENSE_INLET]) {
                 is_there_any_dense_inlet = true;
                 break;
@@ -475,15 +486,15 @@ namespace Kratos {
 
         int smp_number = 0;
         int inter_smp_number = 0;
-        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
-            ModelPart& mp = *smp_it;
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+            ModelPart& mp = *mListOfSubModelParts[i];
 
             const double inlet_start_time = mp[INLET_START_TIME];
             if (current_time < inlet_start_time) continue;
 
-            const int mesh_size_elements = smp_it->NumberOfElements();
+            const int mesh_size_elements = mp.NumberOfElements();
 
-            ModelPart::ElementsContainerType::ContainerType& all_elements = smp_it->ElementsArray();
+            ModelPart::ElementsContainerType::ContainerType& all_elements = mp.ElementsArray();
 
             if (current_time > mp[INLET_STOP_TIME]) {
                 if (mLayerRemoved[inter_smp_number]) continue;
@@ -623,9 +634,9 @@ namespace Kratos {
                                                                                     mBallsModelPartHasSphericity,
                                                                                     mBallsModelPartHasRotation,
                                                                                     false,
-                                                                                    smp_it->Elements());
+                                                                                    mp.Elements());
 
-                        mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = smp_it->Name();
+                        mOriginInletSubmodelPartIndexes[p_spheric_particle->Id()] = mp.Name();
                         FixInjectionConditions(p_spheric_particle, p_injector_element);
                         UpdatePartialThroughput(*p_spheric_particle, smp_number);
                         max_Id++;
@@ -647,20 +658,20 @@ namespace Kratos {
                                                                                             p_fast_properties,
                                                                                             mBallsModelPartHasSphericity,
                                                                                             mBallsModelPartHasRotation,
-                                                                                            smp_it->Elements(),
+                                                                                            mp.Elements(),
                                                                                             number_of_added_spheres,
                                                                                             mStrategyForContinuum,
                                                                                             new_component_spheres);
 
                         max_Id += number_of_added_spheres;
                         if (p_cluster) {
-                            mOriginInletSubmodelPartIndexes[p_cluster->Id()] = smp_it->Name();
+                            mOriginInletSubmodelPartIndexes[p_cluster->Id()] = mp.Name();
                             UpdateInjectedParticleVelocity(*p_cluster, *p_injector_element);
                         }
 
                         else {
                             for (unsigned int i = 0; i < new_component_spheres.size(); ++i) {
-                                mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = smp_it->Name();
+                                mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = mp.Name();
                                 UpdateInjectedParticleVelocity(*new_component_spheres[i], *p_injector_element);
 
                             }
