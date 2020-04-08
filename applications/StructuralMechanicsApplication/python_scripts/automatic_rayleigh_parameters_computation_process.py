@@ -159,11 +159,11 @@ class AutomaticRayleighComputationProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if solver_type == "eigen_feast":
+        if solver_type == "feast":
             eigen_system_settings = KM.Parameters("""
             {
                 "eigen_system_settings" : {
-                    "solver_type"           : "eigen_feast",
+                    "solver_type"           : "feast",
                     "echo_level"            : 0,
                     "tolerance"             : 1e-10,
                     "symmetric"             : true,

@@ -157,7 +157,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "eigen_feast",
+                        "solver_type": "feast",
                         "symmetric": true,
                         "e_min": 0.01,
                         "e_max": 0.20,

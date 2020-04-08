@@ -19,7 +19,7 @@ def ConstructSolver(settings):
             return eigen_solver
         else:
             raise Exception("EigenSolversApplication not available")
-    elif solver_type == "eigen_feast":
+    elif solver_type == "feast":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
             if EiSA.HasFEAST():
@@ -32,7 +32,7 @@ def ConstructSolver(settings):
                 raise Exception("FEAST not available in EigenSolversApplication")
         else:
             raise Exception("EigenSolversApplication not available")
-    elif solver_type == "eigen_feast_complex":
+    elif solver_type == "feast_complex":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
             if EiSA.HasFEAST():

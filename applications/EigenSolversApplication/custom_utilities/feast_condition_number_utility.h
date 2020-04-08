@@ -101,7 +101,7 @@ public:
 
         Parameters this_params(R"(
         {
-            "solver_type"                : "eigen_feast",
+            "solver_type"                : "feast",
             "symmetric"                  : true,
             "number_of_eigenvalues"      : 3,
             "search_lowest_eigenvalues"  : true,
