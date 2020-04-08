@@ -65,7 +65,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "SuperLUSolver",
+                            "solver_type"             : "EigenSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -93,7 +93,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                        "solver_type"             : "SuperLUSolver",
+                        "solver_type"             : "EigenSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,

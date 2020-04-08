@@ -31,7 +31,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
             "required_eigen_number"   : 1,
             "verbosity"               : 0,
             "linear_solver_settings"  : {
-                "solver_type"             : "SuperLUSolver",
+                "solver_type"             : "EigenSolversApplication.sparse_lu",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,
@@ -48,7 +48,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
             "required_eigen_number"   : 1,
             "verbosity"               : 0,
             "linear_solver_settings"  : {
-                "solver_type"             : "SuperLUSolver",
+                "solver_type"             : "EigenSolversApplication.sparse_lu",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,
