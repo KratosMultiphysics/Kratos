@@ -66,6 +66,12 @@ def CheckIfApplicationsAvailable(*application_names):
 
     return True
 
+def GetNotAvailableApplications(*application_names):
+    """Returns a list of applications that are not available out of a provided list of applications
+    """
+    available_apps = GetListOfAvailableApplications()
+    return [app_name for app_name in application_names if app_name not in available_apps]
+
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
     """
