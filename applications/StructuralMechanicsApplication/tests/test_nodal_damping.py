@@ -76,7 +76,6 @@ class NodalDampingTests(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("sdof")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        prop = mp.CreateNewProperties(1)
 
         self._add_variables(mp)
 
