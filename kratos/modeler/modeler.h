@@ -110,15 +110,6 @@ public:
     {}
 
     ///@}
-    ///@name Modeler Stages at Finalize
-    ///@{
-
-    /// Finalizes the model, special outputs
-    virtual void FinalizeModel(
-        Model& rModel) const
-    {}
-
-    ///@}
     ///@name Operators
     ///@{
 
