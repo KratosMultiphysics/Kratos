@@ -193,13 +193,13 @@ public:
                 }
                 else if(current_rank == i)
                 {
-                    auto non_local_gp_map = ComputeGpMap(container, all_remote_ids, current_rank);
+                    auto non_local_gp_map = ComputeGpMap(container, all_remote_ids, rDataCommunicator);
                     rDataCommunicator.Send(non_local_gp_map,master_rank);
                 }
             }
             else
             {
-                auto recv_gps = ComputeGpMap(container, all_remote_ids, current_rank);
+                auto recv_gps = ComputeGpMap(container, all_remote_ids, rDataCommunicator);
 
                 for(auto& it : recv_gps)
                     all_non_local_gp_map.emplace(it.first, it.second);
@@ -401,15 +401,17 @@ private:
     static std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > ComputeGpMap(
         const TContainerType& container,
         const std::vector<int>& ids,
-        int current_rank)
+        const DataCommunicator& rDataCommunicator)
     {
+        const int current_rank = rDataCommunicator.Rank();
         std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > extracted_list;
+        
         for(auto id : ids)
         {
             const auto it = container.find(id);
             if( it != container.end()) //found locally
             {
-                if(!rDataCommunicator.IsDistributed() || ObjectIsLocal(it, current_rank))
+                if(!rDataCommunicator.IsDistributed() || ObjectIsLocal(*it, current_rank))
                     extracted_list.emplace(id, GlobalPointer<typename TContainerType::value_type>(&*it, current_rank));
             }
         }
