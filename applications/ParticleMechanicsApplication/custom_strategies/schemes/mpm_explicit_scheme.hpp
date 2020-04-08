@@ -223,67 +223,6 @@ namespace Kratos {
                 }
             }
 
-            
-            /** This is the place to initialize the elements.
-            This is intended to be called just once when the strategy is initialized */
-            void InitializeElements(ModelPart& rModelPart) override
-            {
-                KRATOS_TRY
-
-                int num_threads = OpenMPUtils::GetNumThreads();
-                OpenMPUtils::PartitionVector element_partition;
-                OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), num_threads, element_partition);
-
-                #pragma omp parallel
-                {
-                    int k = OpenMPUtils::ThisThread();
-                    ElementsArrayType::iterator element_begin = rModelPart.Elements().begin() + element_partition[k];
-                    ElementsArrayType::iterator element_end = rModelPart.Elements().begin() + element_partition[k + 1];
-
-                    for (ElementsArrayType::iterator itElem = element_begin; itElem != element_end; itElem++)
-                    {
-                        itElem->Initialize(); // function to initialize the element
-                    }
-                }
-
-                this->mElementsAreInitialized = true;
-
-                KRATOS_CATCH("")
-            }
-
-            //***************************************************************************
-            //***************************************************************************
-
-            /**
-            This is the place to initialize the conditions.
-            This is intended to be called just once when the strategy is initialized
-            */
-            void InitializeConditions(ModelPart& rModelPart) override
-            {
-                KRATOS_TRY
-
-                KRATOS_ERROR_IF(this->mElementsAreInitialized == false) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
-
-                int num_threads = OpenMPUtils::GetNumThreads();
-                OpenMPUtils::PartitionVector condition_partition;
-                OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), num_threads, condition_partition);
-
-                #pragma omp parallel
-                {
-                    int k = OpenMPUtils::ThisThread();
-                    ConditionsArrayType::iterator condition_begin = rModelPart.Conditions().begin() + condition_partition[k];
-                    ConditionsArrayType::iterator condition_end = rModelPart.Conditions().begin() + condition_partition[k + 1];
-
-                    for (ConditionsArrayType::iterator itCond = condition_begin; itCond != condition_end; itCond++)
-                    {
-                        itCond->Initialize(); // Function to initialize the condition
-                    }
-                }
-
-                this->mConditionsAreInitialized = true;
-                KRATOS_CATCH("")
-            }
-
             //***************************************************************************
             //***************************************************************************
 
