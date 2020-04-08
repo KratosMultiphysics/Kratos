@@ -565,10 +565,6 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-    bool isCompressible = rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE);
-
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
@@ -600,7 +596,7 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
     mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
 
     // Update MP volume
-    if (isCompressible)
+    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
     {
         mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
         mMP.volume = mMP.mass / mMP.density;
