@@ -116,7 +116,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "SkylineLUFactorizationSolver",
+                            "solver_type"             : "skyline_lu_factorization",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
