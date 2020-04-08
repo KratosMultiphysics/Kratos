@@ -36,15 +36,19 @@ namespace Kratos {
 
     double  PropertiesProxy::GetRollingFrictionWithWalls()                                    { return *mRollingFrictionWithWalls;          }
     double* PropertiesProxy::pGetRollingFrictionWithWalls()                                   { return  mRollingFrictionWithWalls;          }
-    void    PropertiesProxy::SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls) { mRollingFrictionWithWalls = rolling_friction_with_walls; }
+    void    PropertiesProxy::SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls) { mRollingFrictionWithWalls = rolling_friction_with_walls;  }
 
-    double  PropertiesProxy::GetTgOfFrictionAngle()                                           { return *mTgOfFrictionAngle;                 }
-    double* PropertiesProxy::pGetTgOfFrictionAngle()                                          { return  mTgOfFrictionAngle;                 }
-    void    PropertiesProxy::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { mTgOfFrictionAngle = tg_of_friction_angle;  }
+    double  PropertiesProxy::GetTgOfStaticFrictionAngle()                                     { return *mTgOfStaticFrictionAngle;           }
+    double* PropertiesProxy::pGetTgOfStaticFrictionAngle()                                    { return  mTgOfStaticFrictionAngle;           }
+    void    PropertiesProxy::SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle) { mTgOfStaticFrictionAngle = tg_of_static_friction_angle;    }
+
+    double  PropertiesProxy::GetTgOfDynamicFrictionAngle()                                    { return *mTgOfDynamicFrictionAngle;          }
+    double* PropertiesProxy::pGetTgOfDynamicFrictionAngle()                                   { return  mTgOfDynamicFrictionAngle;          }
+    void    PropertiesProxy::SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle) { mTgOfDynamicFrictionAngle = tg_of_dynamic_friction_angle;}
 
     double  PropertiesProxy::GetCoefficientOfRestitution()                                    { return *mCoefficientOfRestitution;          }
     double* PropertiesProxy::pGetCoefficientOfRestitution()                                   { return  mCoefficientOfRestitution;          }
-    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution) { mCoefficientOfRestitution = coefficient_of_restitution;      }
+    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution) { mCoefficientOfRestitution = coefficient_of_restitution;    }
 
     double  PropertiesProxy::GetLnOfRestitCoeff()                                             { return *mLnOfRestitCoeff;                   }
     double* PropertiesProxy::pGetLnOfRestitCoeff()                                            { return  mLnOfRestitCoeff;                   }
@@ -105,7 +109,8 @@ namespace Kratos {
         mPoisson                    = props.pGetPoisson();
         mRollingFriction            = props.pGetRollingFriction();
         mRollingFrictionWithWalls   = props.pGetRollingFrictionWithWalls();
-        mTgOfFrictionAngle          = props.pGetTgOfFrictionAngle();
+        mTgOfStaticFrictionAngle    = props.pGetTgOfStaticFrictionAngle();
+        mTgOfDynamicFrictionAngle   = props.pGetTgOfDynamicFrictionAngle();
         mCoefficientOfRestitution   = props.pGetCoefficientOfRestitution();
         mLnOfRestitCoeff            = props.pGetLnOfRestitCoeff();
         mDensity                    = props.pGetDensity();
@@ -156,8 +161,11 @@ namespace Kratos {
             vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(NULL);
             }*/
 
-            aux_pointer = &( props_it->GetValue(FRICTION) );
-            vector_of_proxies[properties_counter].SetTgOfFrictionAngleFromProperties(aux_pointer);
+            aux_pointer = &( props_it->GetValue(STATIC_FRICTION) );
+            vector_of_proxies[properties_counter].SetTgOfStaticFrictionAngleFromProperties(aux_pointer);
+
+            aux_pointer = &( props_it->GetValue(DYNAMIC_FRICTION) );
+            vector_of_proxies[properties_counter].SetTgOfDynamicFrictionAngleFromProperties(aux_pointer);
 
             aux_pointer = &( props_it->GetValue(COEFFICIENT_OF_RESTITUTION) );
             vector_of_proxies[properties_counter].SetCoefficientOfRestitutionFromProperties(aux_pointer);

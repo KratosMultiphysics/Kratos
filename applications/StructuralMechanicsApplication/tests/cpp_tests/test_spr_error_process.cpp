@@ -23,28 +23,28 @@
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_processes/spr_error_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         /**
         * Checks the correct work of the SPR metric process
-        * Test triangle 
+        * Test triangle
         */
         KRATOS_TEST_CASE_IN_SUITE(SPRErrorProcess1, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
-            
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             CppTestsUtilities::Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N", false);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
@@ -64,9 +64,11 @@ namespace Kratos
                 }
             }
 
+            const auto& const_process_info = this_model_part.GetProcessInfo();
+
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize();
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(const_process_info);
+                ielem.InitializeSolutionStep(const_process_info);
             }
 
             // Compute error
@@ -76,8 +78,8 @@ namespace Kratos
             KRATOS_CHECK_RELATIVE_NEAR(0.0229129, process_info[ERROR_OVERALL], 1.0e-5);
             KRATOS_CHECK_RELATIVE_NEAR(0.148492, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
         }
-        
-        /** 
+
+        /**
         * Checks the correct work of the nodal SPR compute
         * Test tetrahedra
         */
@@ -85,10 +87,10 @@ namespace Kratos
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
-            
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
@@ -112,9 +114,11 @@ namespace Kratos
                 }
             }
 
+            const auto& const_process_info = this_model_part.GetProcessInfo();
+
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize();
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(const_process_info);
+                ielem.InitializeSolutionStep(const_process_info);
             }
 
             // Compute error
