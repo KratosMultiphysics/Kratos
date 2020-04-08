@@ -37,7 +37,7 @@
             "input_filename" : "slip_tests/slip_boundary_test_Grid"
         },
         "pressure_dofs"                      : false,
-        "auxiliary_variables_list"           : ["NORMAL","IS_STRUCTURE"]
+        "auxiliary_variables_list"           : ["NORMAL","BOUNDARY_CONDITION_TYPE"]
     },
     "processes"        : {
         "constraints_process_list" : [{

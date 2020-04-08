@@ -78,7 +78,7 @@ public:
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
 		const unsigned int BlockSize,
-		const Variable<double>& rVariable):
+		const Variable<int>& rVariable):
     CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
 	{}
 
@@ -201,38 +201,38 @@ public:
 		}
 	}
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition
+	// An extra function to distinguish the application of slip in element considering nonconforming BC imposition
 	void ElementApplySlipCondition(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc element, do as standard
+		// Otherwise, if it is a nonconforming bc element, dont do anything
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
 	}
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition (RHS Version)
+	// An extra function to distinguish the application of slip in element considering nonconforming bc imposition (RHS Version)
 	void ElementApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc element, do as standard
+		// Otherwise, if it is a nonconforming bc element, dont do anything
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
 	}
 
-	// An extra function to distinguish the application of slip in condition considering penalty imposition
+	// An extra function to distinguish the application of slip in condition considering nonconforming bc imposition
 	void ConditionApplySlipCondition(TLocalMatrixType& rLocalMatrix,
 			TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc condition, do as standard
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
@@ -275,12 +275,12 @@ public:
 	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		// If it is not a nonconforming bc condition, do as standard
+		if (!this->IsNonconformingCondition(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
-		// Otherwise, if it is a penalty element, dont do anything
+		// Otherwise, if it is a nonconforming bc element, dont do anything
 		else
 		{
 			if (rLocalVector.size() > 0)
@@ -305,36 +305,52 @@ public:
 
 	}
 
-	// Checking whether it is normal element or penalty element
-	bool IsPenalty(GeometryType& rGeometry) const
+	// Checking whether it is normal element or nonconforming bc element
+	virtual bool IsNonconformingCondition(GeometryType& rGeometry) const
 	{
-		bool is_penalty = false;
+		bool is_nonconforming_bc = false;
 		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 		{
 			if(this->IsSlip(rGeometry[itNode]) )
 			{
-				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
-				const double tolerance  = 1.e-6;
-				if (identifier > 1.00 + tolerance)
+				const int bc_type = rGeometry[itNode].GetValue(mrFlagVariable);
+				if (bc_type == 2)
 				{
-					is_penalty = true;
+					is_nonconforming_bc = true;
 					break;
 				}
 			}
 		}
 
-		return is_penalty;
+		return is_nonconforming_bc;
 	}
 
-	/// Same functionalities as RotateVelocities, just to have a clear function naming
-	virtual	void RotateDisplacements(ModelPart& rModelPart) const
+	
+	// Clone a normal vector from a given input to all nodal value
+	virtual void CloneNormalToNode(GeometryType& rGeometry, array_1d<double,3>& rNormal)
 	{
-		this->RotateVelocities(rModelPart);
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			rGeometry[itNode].SetLock();
+			rGeometry[itNode].FastGetSolutionStepValue(NORMAL) = rNormal;
+            rGeometry[itNode].UnSetLock();
+		}
+	}
+
+	// Clear nodal normal vector value
+	virtual void ClearNormalFromNode(GeometryType& rGeometry)
+	{
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			rGeometry[itNode].SetLock();
+			rGeometry[itNode].FastGetSolutionStepValue(NORMAL).clear();
+			rGeometry[itNode].UnSetLock();
+		}
 	}
 
 	/// Transform nodal displacement to the rotated coordinates (aligned with each node's normal)
 	/// The name is kept to be Rotate Velocities, since it is currently a derived class of coordinate_transformation_utilities in the core
-	void RotateVelocities(ModelPart& rModelPart) const override
+	virtual	void RotateDisplacements(ModelPart& rModelPart) const
 	{
 		TLocalVectorType displacement(this->GetDomainSize());
 		TLocalVectorType Tmp(this->GetDomainSize());
@@ -371,15 +387,10 @@ public:
 		}
 	}
 
-	/// Same functionalities as RecoverVelocities, just to have a clear function naming
-	virtual void RecoverDisplacements(ModelPart& rModelPart) const
-	{
-		this->RecoverVelocities(rModelPart);
-	}
 
 	/// Transform nodal displacement from the rotated system to the original configuration
 	/// The name is kept to be Recover Velocities, since it is currently a derived class of coordinate_transformation_utilities in the core
-	void RecoverVelocities(ModelPart& rModelPart) const override
+	virtual void RecoverDisplacements(ModelPart& rModelPart) const
 	{
 		TLocalVectorType displacement(this->GetDomainSize());
 		TLocalVectorType Tmp(this->GetDomainSize());
@@ -466,6 +477,24 @@ protected:
 	///@name Protected Operations
 	///@{
 
+		/// Normalize a vector.
+	/**
+	 * @param rThis the vector
+	 * @return Original norm of the input vector
+	 */
+	double Normalize(array_1d<double,3>& rThis) const override
+	{
+		double norm = 0;
+		for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		norm += (*iComponent)*(*iComponent);
+		norm = std::sqrt(norm);
+		if (norm > std::numeric_limits<double>::epsilon()){
+			for(array_1d<double,3>::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+			*iComponent /= norm;
+		}
+		return norm;
+	}
+
 	///@}
 	///@name Protected  Access
 	///@{
@@ -484,7 +513,7 @@ private:
 	///@name Static Member Variables
 	///@{
 
-	const Variable<double>& mrFlagVariable;
+	const Variable<int>& mrFlagVariable;
 
 	///@}
 	///@name Member Variables

@@ -29,6 +29,7 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -103,7 +104,7 @@ public:
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
                 :ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(Alpha, NewmarkBeta),
-                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, IS_STRUCTURE)
+                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, BOUNDARY_CONDITION_TYPE)
     {
         // To distinguish quasi-static and dynamic
         mIsDynamic = IsDynamic;
@@ -119,7 +120,7 @@ public:
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
-        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,BOUNDARY_CONDITION_TYPE)
     {
     }
 

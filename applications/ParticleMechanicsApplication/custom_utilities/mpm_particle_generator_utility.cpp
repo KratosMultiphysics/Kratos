@@ -643,13 +643,12 @@ namespace MPMParticleGeneratorUtility
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
                         for ( unsigned int j = 0; j < r_geometry.size(); j ++)
                         {
-                            // Nodal normal vector is used
-                            if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
-                            const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
-                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
+                            // // Nodal normal vector is used
+                            // if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
+                            // const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
+                            // if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
+                            
 
                             // Create new material point condition
                             new_condition_id = last_condition_id + j;
