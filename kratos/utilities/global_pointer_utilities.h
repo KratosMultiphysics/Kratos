@@ -97,8 +97,7 @@ public:
             const auto it = container.find(id);
             if( it != container.end()) //found locally
             {
-                //if(container[id].FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
-                if(IteratorIsLocal(it, current_rank))
+                if(!rDataCommunicator.IsDistributed() || IteratorIsLocal(*it, current_rank))
                     global_pointers_list.emplace(id,GPType(&*it, current_rank));
                 else //remote, but this is a lucky case since for those we know to which rank they  they belong
                     remote_ids.push_back(id); //TODO: optimize according to the comment just above
@@ -363,16 +362,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    template< class TIteratorType >
-    static bool IteratorIsLocal(TIteratorType& it, const int CurrentRank)
+    static bool IteratorIsLocal(Element& elem, const int CurrentRank)
+    {
+        return true; //if the iterator was found, then it is local!
+    }
+
+    static bool IteratorIsLocal(Condition& cond, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }
 
     //particularizing to the case of nodes
-    static bool IteratorIsLocal(ModelPart::NodesContainerType::iterator& it, const int CurrentRank)
+    static bool IteratorIsLocal(Node<3>& node, const int CurrentRank)
     {
-        if(it->FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank)
+        if(node.FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank)
             return true;
         else
             return false;
@@ -409,8 +412,7 @@ private:
             const auto it = container.find(id);
             if( it != container.end()) //found locally
             {
-                //if(it->FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
-                if(IteratorIsLocal(it, current_rank))
+                if(!rDataCommunicator.IsDistributed() || IteratorIsLocal(it, current_rank))
                     extracted_list.emplace(id, GlobalPointer<typename TContainerType::value_type>(&*it, current_rank));
             }
         }
