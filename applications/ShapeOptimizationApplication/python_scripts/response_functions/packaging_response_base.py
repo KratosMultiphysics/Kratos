@@ -11,9 +11,9 @@
 import time as timer
 import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
-from .response_function import ResponseFunctionBase
+from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
-class PackagingResponseBase(ResponseFunctionBase):
+class PackagingResponseBase(ResponseFunctionInterface):
     """
     A base class for packaging response functions that agglomerate the nodal violations
     into a single response function.
@@ -119,9 +119,11 @@ class PackagingResponseBase(ResponseFunctionBase):
     def GetValue(self):
         return self.value
 
-    def GetShapeGradient(self):
+    def GetNodalGradient(self, variable):
         if not self.gradient:
             raise RuntimeError("Gradient was not calculated")
+        if variable != KM.SHAPE_SENSITIVITY:
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
 
     def _CalculateDistances(self):
