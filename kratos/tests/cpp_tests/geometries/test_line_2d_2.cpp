@@ -378,6 +378,21 @@ namespace Testing {
         KRATOS_CHECK_NEAR(N_values_line(1, 1), 0.788675, TOLERANCE);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsValuesMatrixNewtonCotes, KratosCoreGeometriesFastSuite) {
+
+        Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine2D2();
+
+        const Line2D2<Point>::IntegrationPointsArrayType& integration_points = Quadrature<LineNewtonCotesIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        const Matrix N_values_geom = p_geom->ShapeFunctionsValues(integration_points);
+
+        KRATOS_CHECK_NEAR(N_values_geom(0, 0), 0.75, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(0, 1), 0.25, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(1, 0), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(1, 1), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(2, 0), 0.25, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(2, 1), 0.75, TOLERANCE);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsDiagonalLine2D2();
         auto& r_geom = *geom;
