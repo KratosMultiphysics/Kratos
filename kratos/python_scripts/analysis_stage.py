@@ -137,10 +137,6 @@ class AnalysisStage(object):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
         """
-        # Finalizes the model, special outputs.
-        for modeler in self._GetListOfModelers():
-            modeler.FinalizeModel(self.model)
-
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
