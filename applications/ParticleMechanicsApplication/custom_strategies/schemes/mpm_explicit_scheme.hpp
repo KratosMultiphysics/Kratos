@@ -464,10 +464,6 @@ namespace Kratos {
                 // velocity back to the nodes. The nodal velocity field is then
                 // used for stress computations.
 
-                // We need to call 'FinalizeSolutionStep' twice. 
-                // First, to update the particles and then aggregate the new particle velocities on the grid.
-                // Second, to calculate the stresses from the grid velocity
-
                 // Definition of the first element iterator
                 const auto it_elem_begin = rModelPart.ElementsBegin();
 
