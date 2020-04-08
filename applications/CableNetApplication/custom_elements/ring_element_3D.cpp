@@ -92,10 +92,6 @@ void RingElement3D::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void RingElement3D::Initialize() {
-  KRATOS_TRY
-  KRATOS_CATCH("")
-}
 
 void RingElement3D::GetValuesVector(Vector &rValues, int Step) {
 

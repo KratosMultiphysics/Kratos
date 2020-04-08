@@ -212,9 +212,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 }
 
 
-double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
-double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[FRICTION]; }
-double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
+double DEMWall::GetYoung() const                    { return GetProperties()[YOUNG_MODULUS];    }
+double DEMWall::GetPoisson() const                  { return GetProperties()[POISSON_RATIO];    }
+double DEMWall::GetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];  }
+double DEMWall::GetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION]; }
 
 
 void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)
