@@ -33,8 +33,8 @@ def WriteClusterMdpa(problem_name):
 
         if Line.startswith("Begin_Cluster"):
             Line = Line.strip('\n')# Remove the line-ending characters
-            for i in range(len(ClusterAvailableTypes)):
-                if Line.split(' ')[1] + ".clu" == ClusterAvailableTypes[i]:
+            for i, cluster_type in enumerate(ClusterAvailableTypes):
+                if Line.split(' ')[1] + ".clu" == cluster_type:
                     ClusterType.append(i+1)
 
         if Line[0].isdigit():
@@ -51,29 +51,29 @@ def WriteClusterMdpa(problem_name):
 
     ClusterMdpa.write('\nBegin Nodes\n')
 
-    for j in range(len(NodeNumber)):
-        ClusterMdpa.write(NodeNumber[j] + ' ' + NodeX[j] + ' ' + NodeY[j] + ' ' + NodeZ[j] + '\n')
+    for j, node_number in enumerate(NodeNumber):
+        ClusterMdpa.write(node_number + ' ' + NodeX[j] + ' ' + NodeY[j] + ' ' + NodeZ[j] + '\n')
 
     ClusterMdpa.write('End Nodes\n')
 
     ClusterMdpa.write('\nBegin Elements Cluster3D\n')
 
-    for j in range(len(NodeNumber)):
-        ClusterMdpa.write(NodeNumber[j] + ' ' + str(ClusterType[j]) + ' ' + NodeNumber[j] + '\n')
+    for j, node_number in enumerate(NodeNumber):
+        ClusterMdpa.write(node_number + ' ' + str(ClusterType[j]) + ' ' + node_number + '\n')
 
     ClusterMdpa.write('End Elements\n')
 
     ClusterMdpa.write('\nBegin NodalData CHARACTERISTIC_LENGTH\n')
 
-    for j in range(len(NodeNumber)):
-        ClusterMdpa.write(NodeNumber[j] + ' 0 ' + ChLength[j] + '\n')
+    for j, node_number in enumerate(NodeNumber):
+        ClusterMdpa.write(node_number + ' 0 ' + ChLength[j] + '\n')
 
     ClusterMdpa.write('End NodalData\n')
 
     ClusterMdpa.write('\nBegin NodalData ORIENTATION\n')
 
-    for j in range(len(NodeNumber)):
-        ClusterMdpa.write(NodeNumber[j] + ' 0 [4] ( ' + qX[j] + ' , ' + qY[j] + ' , ' + qZ[j] + ' , ' + qW[j] + ' )\n')
+    for j, node_number in enumerate(NodeNumber):
+        ClusterMdpa.write(node_number + ' 0 [4] ( ' + qX[j] + ' , ' + qY[j] + ' , ' + qZ[j] + ' , ' + qW[j] + ' )\n')
 
     ClusterMdpa.write('End NodalData\n')
 
