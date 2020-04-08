@@ -29,6 +29,8 @@
 #include "integration/triangle_collocation_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
+#include "integration/line_newton_cotes_integration_points.h"
+
 #define tet10_a 0.108103018168070
 #define tet10_b 0.445948490915965
 #define tet10_c 0.816847572980459
@@ -336,6 +338,13 @@ LineCollocationIntegrationPoints5::IntegrationPointsArrayType LineCollocationInt
         IntegrationPointType(0.909090909091,0.181818181818)
     }
 };
+
+// Newton-Cotes
+LineNewtonCotesIntegrationPoints1::IntegrationPointsArrayType LineNewtonCotesIntegrationPoints1::msIntegrationPoints = LineNewtonCotesIntegrationPoints1::IntegrationPoints();
+LineNewtonCotesIntegrationPoints2::IntegrationPointsArrayType LineNewtonCotesIntegrationPoints2::msIntegrationPoints = LineNewtonCotesIntegrationPoints2::IntegrationPoints();
+LineNewtonCotesIntegrationPoints3::IntegrationPointsArrayType LineNewtonCotesIntegrationPoints3::msIntegrationPoints = LineNewtonCotesIntegrationPoints3::IntegrationPoints();
+LineNewtonCotesIntegrationPoints4::IntegrationPointsArrayType LineNewtonCotesIntegrationPoints4::msIntegrationPoints = LineNewtonCotesIntegrationPoints4::IntegrationPoints();
+LineNewtonCotesIntegrationPoints5::IntegrationPointsArrayType LineNewtonCotesIntegrationPoints5::msIntegrationPoints = LineNewtonCotesIntegrationPoints5::IntegrationPoints();
 
 //TRIANGLE:
 
