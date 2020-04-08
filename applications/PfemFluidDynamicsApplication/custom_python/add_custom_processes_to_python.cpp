@@ -52,6 +52,7 @@
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
 #include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_scalar_field_to_pfem_entities_process.hpp"
+#include "custom_processes/update_conditions_on_free_surface_process.hpp"
 
 //Processes
 
@@ -183,6 +184,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, Parameters &>())
         .def(py::init<ModelPart &, const Variable<array_1d<double, 3>> &, array_1d<double, 3> &>())
         .def("Execute", &AssignVectorVariableToPfemConditionsProcess::Execute);
+
+	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")
+	    .def(py::init<ModelPart &, Parameters>())
+	    .def("Execute", &UpdateConditionsOnFreeSurfaceProcess::Execute);
+	;
     ;
 }
 

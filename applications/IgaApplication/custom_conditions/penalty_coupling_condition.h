@@ -82,8 +82,7 @@ public:
     {};
 
     /// Destructor.
-    virtual ~PenaltyCouplingCondition() override
-    {};
+    virtual ~PenaltyCouplingCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -123,7 +122,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo) override
     {
         MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -139,7 +138,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType right_hand_side_vector = Vector(0);
 
@@ -158,7 +157,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
@@ -219,7 +218,7 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override {
         pGetGeometry()->PrintData(rOStream);
     }
 
