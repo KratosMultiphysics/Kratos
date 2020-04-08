@@ -168,6 +168,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_data_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_environment_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_global_pointers_to_python.cpp
