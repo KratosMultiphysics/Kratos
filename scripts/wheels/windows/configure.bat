@@ -27,6 +27,7 @@ CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\FreeSurfaceApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
