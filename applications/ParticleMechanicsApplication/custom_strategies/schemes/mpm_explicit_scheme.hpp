@@ -146,7 +146,7 @@ namespace Kratos {
             {
                 KRATOS_TRY
                 // The current process info
-                ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+                const ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
 
                 /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
                 const SizeType dim = r_current_process_info[DOMAIN_SIZE];
@@ -174,7 +174,7 @@ namespace Kratos {
             //***************************************************************************
 
             void UpdateTranslationalDegreesOfFreedom(
-                ProcessInfo& r_current_process_info,
+                const ProcessInfo& r_current_process_info,
                 NodeIterator itCurrentNode,
                 const IndexType DisplacementPosition,
                 const double delta_time,
@@ -303,7 +303,7 @@ namespace Kratos {
             {
                 KRATOS_TRY
 
-                ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+                const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
                 BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
                 #pragma omp parallel for
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
@@ -417,7 +417,7 @@ namespace Kratos {
                 KRATOS_TRY
 
                 ElementsArrayType& rElements = rModelPart.Elements();
-                ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+                const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
                 const bool isMUSL = (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 2)
                     ? true
@@ -458,7 +458,7 @@ namespace Kratos {
 
             //***************************************************************************
             //***************************************************************************
-            void PerformModifiedUpdateStressLastMapping(ProcessInfo& rCurrentProcessInfo, ModelPart& rModelPart, ElementsArrayType& rElements)
+            void PerformModifiedUpdateStressLastMapping(const ProcessInfo& rCurrentProcessInfo, ModelPart& rModelPart, ElementsArrayType& rElements)
             {
                 // MUSL stress update. This works by projecting the updated particle
                 // velocity back to the nodes. The nodal velocity field is then
