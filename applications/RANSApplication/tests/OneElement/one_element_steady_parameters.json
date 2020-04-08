@@ -133,7 +133,8 @@
                     "mesh_id": 0,
                     "model_part_name": "MainModelPart",
                     "variable_name": "KINEMATIC_VISCOSITY",
-                    "value": 10.0
+                    "value": 10.0,
+                    "constrained": false
                 }
             },
             {
