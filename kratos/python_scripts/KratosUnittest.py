@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
-from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
+from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
 from unittest.util import safe_repr
@@ -37,12 +37,9 @@ class TestCase(TestCase):
 
     def skipTestIfApplicationsNotAvailable(self, *application_names):
         '''Skips the test if required applications are not available'''
-        available_apps = GetListOfAvailableApplications()
-
-        required_but_not_available_apps = [app_name for app_name in application_names if app_name not in available_apps]
-
+        required_but_not_available_apps = GetNotAvailableApplications(application_names)
         if len(required_but_not_available_apps) > 0:
-            self.skipTest('Required Applications are missing: {}'.format('", "'.join(required_but_not_available_apps)))
+            self.skipTest('Required Applications are missing: {}'.format('", "'.join(*required_but_not_available_apps)))
 
     def assertEqualTolerance(self, first, second, tolerance, msg=None):
         ''' Fails if first and second have a difference greater than
@@ -104,6 +101,15 @@ class TestCase(TestCase):
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
+
+
+def skipIfApplicationsNotAvailable(*application_names):
+    '''Skips the test if required applications are not available'''
+    required_but_not_available_apps = GetNotAvailableApplications(application_names)
+    if len(required_but_not_available_apps) > 0:
+        reason_for_skip = 'Required Applications are missing: {}'.format('", "'.join(*required_but_not_available_apps))
+        return skip(reason_for_skip)
+    return _id
 
 
 @contextmanager
