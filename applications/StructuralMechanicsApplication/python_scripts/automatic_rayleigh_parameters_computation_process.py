@@ -118,7 +118,9 @@ class AutomaticRayleighComputationProcess(KM.Process):
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.settings["eigen_system_settings"])
                 builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
                 eigen_scheme = SMA.EigensolverDynamicScheme()
-                eigen_solver = SMA.EigensolverStrategy(self.main_model_part, eigen_scheme, builder_and_solver)
+                eigen_solver = SMA.EigensolverStrategy(self.main_model_part, eigen_scheme, builder_and_solver,
+                    self.mass_matrix_diagonal_value,
+                    self.stiffness_matrix_diagonal_value)
                 eigen_solver.Solve()
 
                 # Setting the variable RESET_EQUATION_IDS
@@ -175,6 +177,25 @@ class AutomaticRayleighComputationProcess(KM.Process):
                 }
             }
             """)
+            self.mass_matrix_diagonal_value = 1.0
+            self.stiffness_matrix_diagonal_value = -1.0
+        elif solver_type == "eigen_feast":
+            eigen_system_settings = KM.Parameters("""
+            {
+                "eigen_system_settings" : {
+                    "solver_type"           : "eigen_feast",
+                    "echo_level"            : 0,
+                    "tolerance"             : 1e-10,
+                    "symmetric"             : true,
+                    "e_min"                 : 0.0,
+                    "e_max"                 : 4.0e5,
+                    "number_of_eigenvalues" : 2,
+                    "subspace_size"         : 15
+                }
+            }
+            """)
+            self.mass_matrix_diagonal_value = 1.0
+            self.stiffness_matrix_diagonal_value = -1.0
         else:
             eigen_system_settings = KM.Parameters("""
             {
@@ -184,4 +205,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
             }
             """)
             eigen_system_settings["eigen_system_settings"]["solver_type"].SetString(solver_type)
+            self.mass_matrix_diagonal_value = 0.0
+            self.stiffness_matrix_diagonal_value = 1.0
         return eigen_system_settings
