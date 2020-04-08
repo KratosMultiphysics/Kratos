@@ -191,11 +191,6 @@ int AdjointFiniteDifferencingMembraneElement<TPrimalElement>::Check(const Proces
     KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW ))
         << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    KRATOS_ERROR_IF( strain_size != 3) << "Wrong constitutive law used. This is a membrane element! "
-        << "Expected strain size is 3 (el id = " << this->Id() << ")" << std::endl;
-
     return return_value;
 
     KRATOS_CATCH("")
