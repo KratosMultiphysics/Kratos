@@ -361,7 +361,7 @@ public:
     {
         KRATOS_TRY
 
-        typedef Variable<double> component_type;
+        typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         component_type vector_var_x = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_X"));
         component_type vector_var_y = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Y"));
         component_type vector_var_z = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Z"));

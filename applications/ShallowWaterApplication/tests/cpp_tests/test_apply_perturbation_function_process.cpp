@@ -86,6 +86,21 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicat
         double value = node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         KRATOS_CHECK_NEAR(value, exact_value, tolerance);
     }
+
+    // Creation and execution of the process for component
+    ApplyPerturbationFunctionProcess<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>(
+        model_part,
+        sub_model_part.Nodes(),
+        WATER_SURFACE_Z,
+        parameters)();
+
+    for (auto& node : model_part.Nodes())
+    {
+        double x = node.X();
+        double exact_value = ((x < 1.0) ? (0.0) : (periodic_function(x)));
+        double value = node.FastGetSolutionStepValue(WATER_SURFACE_Z);
+        KRATOS_CHECK_NEAR(value, exact_value, tolerance);
+    }
 }
 
 } // namespace Testing
