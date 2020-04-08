@@ -55,20 +55,6 @@ def IsMPIAvailable():
 
     return "mpi" in os.listdir(kratos_path)
 
-def IsApplicationAvailable(application_name):
-    """Returns whether an application is available
-    """
-    warn_msg = '"IsApplicationAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(application_name)
-
-def AreApplicationsAvailable(list_application_names):
-    """Returns whether several applications are available
-    """
-    warn_msg = '"AreApplicationsAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(*list_application_names)
-
 def CheckIfApplicationsAvailable(*application_names):
     """Returns whether the inquired applications are available
     """
