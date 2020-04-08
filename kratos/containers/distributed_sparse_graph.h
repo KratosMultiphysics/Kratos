@@ -130,6 +130,21 @@ public:
         return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
     }
 
+    const IndexType LocalId(const IndexType rGlobalId) const
+    {
+        return rGlobalId-mLocalBounds[0];
+    }
+
+    const IndexType GlobalId(const IndexType rLocalId) const
+    {
+        return rLocalId+mLocalBounds[0];
+    }
+
+    const IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
+    {
+        return rGlobalId-mCpuBounds[rOwnerRank];
+    }
+
     IndexType OwnerRank(const IndexType RowIndex)
     {
         //NOTE: here we assume that CPUs with lower rank get the rows with lower rank
@@ -153,6 +168,8 @@ public:
 
     }
 
+
+
     ///@}
     ///@name Operators
     ///@{
@@ -165,10 +182,11 @@ public:
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
     {
         if(IsLocal(RowIndex)){
-            mLocalGraph.AddEntry(RowIndex, ColIndex);
+            mLocalGraph.AddEntry(LocalId(RowIndex), ColIndex);
         }
         else{
-            mNonLocalGraphs[OwnerRank(RowIndex)].AddEntry(RowIndex, ColIndex);
+            IndexType owner = OwnerRank(RowIndex);
+            mNonLocalGraphs[owner].AddEntry(RemoteLocalId(RowIndex,owner), ColIndex);
         }
     }
 
@@ -176,10 +194,11 @@ public:
     void AddEntries(const IndexType RowIndex, const TContainerType& rColIndices)
     {
         if(IsLocal(RowIndex)){
-            mLocalGraph.AddEntries(RowIndex, rColIndices);
+            mLocalGraph.AddEntries(LocalId(RowIndex), rColIndices);
         }
         else{
-            mNonLocalGraphs[OwnerRank(RowIndex)].AddEntries(RowIndex, rColIndices);
+            IndexType owner = OwnerRank(RowIndex);
+            mNonLocalGraphs[owner].AddEntries(RemoteLocalId(RowIndex,owner), rColIndices);
         }
     }
 
@@ -190,10 +209,11 @@ public:
                     )
     {
         if(IsLocal(RowIndex)){
-            mLocalGraph.AddEntries(RowIndex, rColBegin, rColEnd);
+            mLocalGraph.AddEntries(LocalId(RowIndex), rColBegin, rColEnd);
         }
         else{
-            mNonLocalGraphs[OwnerRank(RowIndex)].AddEntries(RowIndex, rColBegin, rColEnd);
+            IndexType owner = OwnerRank(RowIndex);
+            mNonLocalGraphs[owner].AddEntries(RemoteLocalId(RowIndex,owner), rColBegin, rColEnd);
         }
     }
 
@@ -203,9 +223,10 @@ public:
         for(auto I : rIndices)
         {
             if(IsLocal(I)){
-                mLocalGraph.AddEntries(I, rIndices);
+                mLocalGraph.AddEntries(LocalId(I), rIndices);
             }
             else{
+                //TODO
                 mNonLocalGraphs[OwnerRank(I)].AddEntries(I, rIndices);;
             }
         }
@@ -216,13 +237,12 @@ public:
         //TODO
     }
 
-    void AddEntries(SparseGraph& rOtherGraph)
+    void AddEntries(const SparseGraph& rOtherGraph)
     {
-//TODO
-        // for(unsigned int i=0; i<rOtherGraph.GetGraph().size(); ++i)
-        // {
-        //     AddEntries(i, rOtherGraph.GetGraph()[i]);
-        // }
+        for(auto it = rOtherGraph.begin(); it!=rOtherGraph.end(); ++it)
+        {
+            AddEntries(it.GetRowIndex(), *it);
+        }
     }
 
     void Finalize()
@@ -234,17 +254,17 @@ public:
         auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrComm);
 
         //sendrecv data
-        // for(auto color : colors)
-        // {
-        //     if(color >= 0) //-1 would imply no communication
-        //     {
-        //         //TODO: this can be made nonblocking
-        //         auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+        for(auto color : colors)
+        {
+            if(color >= 0) //-1 would imply no communication
+            {
+                //TODO: this can be made nonblocking
+                auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
 
-        //         // SparseGraph recv_graph;
-        //         mLocalGraph.AddEntries(recv_graph);
-        //     }
-        // }
+                // SparseGraph recv_graph;
+                mLocalGraph.AddEntries(recv_graph);
+            }
+        }
     }
 
     const LocalGraphType& GetLocalGraph() const{

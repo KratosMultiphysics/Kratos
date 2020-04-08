@@ -75,7 +75,13 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Default constructor. - needs to be public for communicator, but it will fail if used in any other mode
+    SparseContiguousRowGraph()
+    :mGraphSize(0)
+    {
+    }
+
+/// Default constructor.
     SparseContiguousRowGraph(IndexType GraphSize)
     :mGraphSize(GraphSize)
     {
@@ -270,7 +276,7 @@ public:
 		const typename GraphType::value_type& operator->() const { return *map_iterator; }
 		const_row_iterator& base() { return map_iterator; }
 		const_row_iterator const& base() const { return map_iterator; }
-        const IndexType GetRowIndex(){
+        IndexType GetRowIndex() const{
             return map_iterator-mbegin;
         }
 	};
@@ -407,7 +413,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    SparseContiguousRowGraph(){};
+
 
 
     ///@}

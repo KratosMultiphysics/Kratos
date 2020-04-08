@@ -91,6 +91,15 @@ public:
     /// Destructor.
     virtual ~SparseGraph(){}
 
+    /// Copy constructor. TODO: we need it otherwise the sendrecv does not work...
+    ///but i don't know why :-(
+    SparseGraph(const SparseGraph& rOther)
+    {
+        this->mGraph = rOther.mGraph;
+        mGraphSize = rOther.mGraphSize;
+        mSizeIsAvailable = rOther.mSizeIsAvailable;
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -258,7 +267,7 @@ public:
 		const typename GraphType::mapped_type& operator->() const { return map_iterator->second; }
 		const_row_iterator& base() { return map_iterator; }
 		const_row_iterator const& base() const { return map_iterator; }
-        const IndexType GetRowIndex(){
+        IndexType GetRowIndex() const{
             return map_iterator->first;
         }
 	};
@@ -418,8 +427,6 @@ private:
     /// Assignment operator.
     SparseGraph& operator=(SparseGraph const& rOther) = delete;
 
-    /// Copy constructor.
-    SparseGraph(SparseGraph const& rOther) = delete;
 
     ///@}
 

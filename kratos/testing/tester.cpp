@@ -270,9 +270,10 @@ namespace Kratos
 
 			std::stringstream secondary_stream;
 			std::streambuf* original_buffer = nullptr;
-			if (ParallelEnvironment::GetDefaultRank() != 0) {
-				original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
-			}
+
+			// if (ParallelEnvironment::GetDefaultRank() != 0) {
+			// 	original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
+			// }
 
 			std::size_t test_number = 0;
 			for (auto i_test = GetInstance().mTestCases.begin();
@@ -298,9 +299,9 @@ namespace Kratos
 
 			auto tmp = ReportResults(std::cout, number_of_run_tests, elapsed.count());
 
-			if (ParallelEnvironment::GetDefaultRank() != 0) {
-				std::cout.rdbuf(original_buffer);
-			}
+			// if (ParallelEnvironment::GetDefaultRank() != 0) {
+			// 	std::cout.rdbuf(original_buffer);
+			// }
 			return tmp;
 		}
 
