@@ -30,8 +30,7 @@ namespace Internals {
 void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunicator& rComm)
 {
     /* NOTE: the modelpart should at least have PARTITION_INDEX in the nodal solution step data */
-    constexpr double pi = 3.141592653589793238462643383279502884197169399375105820974944592308;
-    constexpr double total_angle = pi/2.0;
+    constexpr double total_angle = Globals::Pi/2.0;
     constexpr double side_length = 1.0;
 
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
