@@ -375,7 +375,7 @@ private:
     //particularizing to the case of nodes
     static bool ObjectIsLocal(const Node<3>& node, const int CurrentRank)
     {
-        return node.FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank);
+        return node.FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank;
     }
 
     ///@}
