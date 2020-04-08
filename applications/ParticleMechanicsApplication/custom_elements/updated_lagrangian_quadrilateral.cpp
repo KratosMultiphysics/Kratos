@@ -972,36 +972,35 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep(ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-        // FinalizeSolutionStep for explicit time integration is done in the scheme
-        if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT)) 
-        {
-            // Create and initialize element variables:
-            GeneralVariables Variables;
-            this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+    KRATOS_ERROR_IF(rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+        << "FinalizeSolutionStep for explicit time integration is done in the scheme";
 
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    // Create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-            // Set constitutive law flags:
-            Flags& ConstitutiveLawOptions = Values.GetOptions();
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
 
-            // Compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables, rCurrentProcessInfo);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-            // Set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(Variables, Values);
+    // Compute element kinematics B, F, DN_DX ...
+    this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
-            // Call the constitutive law to update material variables
-            mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
+    // Set general variables to constitutivelaw parameters
+    this->SetGeneralVariables(Variables, Values);
 
-            // Call the element internal variables update
-            this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+    // Call the constitutive law to update material variables
+    mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
 
-            mFinalizedStep = true;
-        }
+    // Call the element internal variables update
+    this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+
+    mFinalizedStep = true;
         
     KRATOS_CATCH("")
 }
