@@ -785,5 +785,21 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
     }
 }
 
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    const auto& r_mpi_comm = r_model_part.GetCommunicator();
+
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfNodes(), r_mpi_comm.TotalProcesses()+1);
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfElements(), r_mpi_comm.TotalProcesses());
+}
+
 }
 }
