@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicat
     }
 
     // Creation and execution of the process for component
-    ApplyPerturbationFunctionProcess<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>(
+    ApplyPerturbationFunctionProcess<Variable<double>>(
         model_part,
         sub_model_part.Nodes(),
         WATER_SURFACE_Z,

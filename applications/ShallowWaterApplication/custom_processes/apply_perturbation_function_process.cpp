@@ -80,7 +80,7 @@ void ApplyPerturbationFunctionProcess<TVarType>::ExecuteBeforeSolutionLoop()
         double distance = ComputeDistance(*i_node.base());
         double& r_value = i_node->FastGetSolutionStepValue(mrVariable);
         r_value = ComputeInitialValue(distance);
-    }    
+    }
 }
 
 
@@ -136,6 +136,5 @@ void ApplyPerturbationFunctionProcess<TVarType>::ValidateParameters(Parameters& 
 }
 
 template class ApplyPerturbationFunctionProcess<Variable<double>>;
-template class ApplyPerturbationFunctionProcess<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>;
 
 }  // namespace Kratos.

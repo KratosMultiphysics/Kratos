@@ -126,7 +126,6 @@ void ApplySinusoidalFunctionProcess<TVarType>::ValidateParameters(Parameters& rP
 
 
 template class ApplySinusoidalFunctionProcess< Variable<double> >;
-template class ApplySinusoidalFunctionProcess< VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > > >;
 template class ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >;
 
 }  // namespace Kratos.
