@@ -58,6 +58,7 @@ namespace Python
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
@@ -84,6 +85,14 @@ namespace Python
     bool IsIdSelfAssigned1(GeometryType& dummy)
     {
         return(dummy.IsIdSelfAssigned());
+    }
+
+    void CreateQuadraturePointGeometries1(GeometryType& dummy,
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
+    {
+        return(dummy.CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives));
     }
 
     array_1d<double,3> GetNormal(
@@ -144,6 +153,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    // Quadrature points
+    .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     .def("Normal",GetNormal)
     .def("Normal",FastGetNormal)
     .def("UnitNormal",GetUnitNormal)
@@ -208,6 +219,9 @@ void  AddGeometriesToPython(pybind11::module& m)
 
     // Adding PointsArrayType to interface
     PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"NodesVector");
+
+    // Adding GeometriesArrayType to interface
+    PointerVectorPythonInterface<GeometriesArrayType>().CreateInterface(m, "GeometriesVector");
 
     /// Nurbs Geometries
     // NurbsSurfaceGeometry3D
