@@ -41,7 +41,7 @@ class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnitt
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
-                        value = mp.GetValue(variable)
+                        value = mp.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
 
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Component"):
@@ -52,22 +52,11 @@ class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnitt
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
-                                # X-component
-                                values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_X"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
-                                # Y-component
-                                values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_Y"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value) + " != "+str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
-                                # Z-component
-                                values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_Z"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value)+" != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
-
+                                for component_index, component in enumerate(["_X", "_Y", "_Z"]):
+                                    values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name +component]
+                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                    isclosethis = t_isclose(value[component_index], value_json, rel_tol=reltol, abs_tol=tol)
+                                    self.assertTrue(isclosethis, msg=(str(value[component_index]) + " != "+str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
                             else:
                                 values_json = self.data["PARTICLE_"+str(mp.Id)][variable_name][step - 1]
                                 for index in range(len(value)):

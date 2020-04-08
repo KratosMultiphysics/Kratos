@@ -9,8 +9,6 @@
 
 namespace Kratos {
 
-    void DEM_KDEM_with_damage::Initialize(SphericContinuumParticle* element) {}
-
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_with_damage::Clone() const {
         DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_with_damage(*this));
         return p_clone;
@@ -237,7 +235,6 @@ namespace Kratos {
         double tau_strength = 0.0;
         static bool first_time_entered = true;
         int damage_process = 0;
-        double equiv_tg_of_fri_ang;
         double maximum_frictional_shear_force = 0.0;
         const unsigned int sphere_id = 22222222;
         const std::string filename = "tangential_forces_damage.txt";
@@ -343,13 +340,15 @@ namespace Kratos {
                 }
             }
         } else {
-            equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
+            double equiv_tg_of_static_fri_ang = 0.5 * (element1->GetTgOfStaticFrictionAngle() + element2->GetTgOfStaticFrictionAngle());
+            double equiv_tg_of_dynamic_fri_ang = 0.5 * (element1->GetTgOfDynamicFrictionAngle() + element2->GetTgOfDynamicFrictionAngle());
 
-            if(equiv_tg_of_fri_ang < 0.0) {
+            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
             }
 
-            maximum_frictional_shear_force = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+            double maximum_frictional_shear_force = equiv_tg_of_static_fri_ang * LocalElasticContactForce[2];
+            if (current_tangential_force_module > maximum_frictional_shear_force) maximum_frictional_shear_force = equiv_tg_of_dynamic_fri_ang * LocalElasticContactForce[2];
 
             if (maximum_frictional_shear_force < 0.0) maximum_frictional_shear_force = 0.0;
 

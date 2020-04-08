@@ -93,13 +93,6 @@ void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void CrBeamElement3D2N::Initialize()
-{
-
-    KRATOS_TRY;
-    KRATOS_CATCH("")
-}
-
 void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
 

@@ -376,7 +376,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.main_model_part.RemoveSubModelPart("ComputingContact")
 
         # Ensure properties defined
-        MeshingApplication.MeshingUtilities.RecursiveEnsureModelPartOwnsProperties(self.main_model_part.GetRootModelPart())
+        KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
 
         # We create the contact submodelparts
         self.main_model_part.CreateSubModelPart("Contact")

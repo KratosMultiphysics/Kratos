@@ -243,7 +243,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties[PARTICLE_DENSITY] = 2650.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 7.0e6
         properties[KratosMultiphysics.POISSON_RATIO] = 0.30
-        properties[FRICTION] = 0.0
+        properties[STATIC_FRICTION] = 0.0
+        properties[DYNAMIC_FRICTION] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 1.0
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
@@ -251,7 +252,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
         properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
 
-        properties_walls[FRICTION] = 0.0
+        properties_walls[STATIC_FRICTION] = 0.0
+        properties_walls[DYNAMIC_FRICTION] = 0.0
         properties_walls[WALL_COHESION] = 0.0
         properties_walls[COMPUTE_WEAR] = 0
         properties_walls[SEVERITY_OF_WEAR] = 0.001
@@ -261,8 +263,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.30
 
 
-    def FinalizeTimeStep(self, time):
-        super(CustomizedSolutionForTimeStepTesting, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super(CustomizedSolutionForTimeStepTesting, self).FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
         #if not self.step%200:

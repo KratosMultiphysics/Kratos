@@ -187,7 +187,7 @@ while(time < final_time):
         gid_io.WriteNodalResults( KratosMultiphysics.DISTANCE, fluid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults( KratosMultiphysics.PRESS_PROJ, fluid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults( KratosMultiphysics.LIN_DARCY_COEF, fluid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(KM.NONLIN_DARCY_COEF, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.NONLIN_DARCY_COEF, fluid_model_part.Nodes, time, 0)
         gid_io.Flush()
 
         if not problem_settings.single_output_file:

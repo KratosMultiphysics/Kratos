@@ -72,7 +72,7 @@ namespace Kratos {
             auto elements_begin = rModelPart.ElementsBegin();
             for (unsigned int i_elem = 0; i_elem < rModelPart.NumberOfElements(); ++i_elem){
                 auto it_elem = elements_begin + i_elem;
-                it_elem->SetValue(DIVERGENCE_WEIGHTED,0.5);
+                it_elem->SetValue(AVERAGED_DIVERGENCE,0.5);
                 it_elem->SetValue(VELOCITY_H1_SEMINORM,0.5);
             }
         }
@@ -98,7 +98,7 @@ namespace Kratos {
             auto elements_begin = model_part.ElementsBegin();
             for (unsigned int i_elem = 0; i_elem < model_part.NumberOfElements(); ++i_elem){
                 auto it_elem = elements_begin + i_elem;
-                double divergence_value = it_elem->GetValue(DIVERGENCE_WEIGHTED);
+                double divergence_value = it_elem->GetValue(AVERAGED_DIVERGENCE);
                 double velocity_seminorm_value = it_elem->GetValue(VELOCITY_H1_SEMINORM);
                 KRATOS_CHECK_NEAR(divergence_value, 1.3416407865, 1e-10);
                 KRATOS_CHECK_NEAR(velocity_seminorm_value, 1.3509256086, 1e-10);

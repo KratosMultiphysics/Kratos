@@ -15,8 +15,6 @@
 // External includes
 
 // Project includes
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
@@ -84,7 +82,7 @@ namespace Kratos
             std::vector<NodeType::Pointer> line_nodes(2);
             line_nodes[0] = p_node_1;
             line_nodes[1] = p_node_4;
-            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("Condition2D2N", 1, PointerVector<NodeType>{line_nodes}, p_properties);
+            Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("LineCondition2D2N", 1, PointerVector<NodeType>{line_nodes}, p_properties);
 
             // Adding conditions and its nodes to the sub model part
             r_sub_model_part_2.AddNode(p_node_1);

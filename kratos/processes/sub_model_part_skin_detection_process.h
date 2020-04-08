@@ -42,6 +42,7 @@ class FaceSelector
 {
 public:
 KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
+virtual ~FaceSelector() = default;
 virtual void Prepare(ModelPart& rMainModelPart) const = 0;
 virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
 };
@@ -155,7 +156,10 @@ void CreateConditions(
     std::unordered_set<IndexType>& rNodesInTheSkin,
     const std::string& rConditionName) const override;
 
-Parameters GetDefaultSettings() const override;
+/**
+ * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+ */
+const Parameters GetDefaultParameters() const override;
 
 ///@}
 

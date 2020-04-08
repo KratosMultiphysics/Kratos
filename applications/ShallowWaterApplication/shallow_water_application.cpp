@@ -60,9 +60,6 @@ namespace Kratos
 
     void KratosShallowWaterApplication::Register()
     {
-        // Calling base class register to register Kratos components
-        KratosApplication::Register();
-
         std::cout << " KRATOS      |          |   |                        " << std::endl;
         std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
         std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
@@ -98,6 +95,12 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(PROJECTED_VECTOR1)
         KRATOS_REGISTER_VARIABLE(DELTA_VECTOR1)
         KRATOS_REGISTER_VARIABLE(CURRENT_ELEMENT)
+
+        // Benchmark variables
+        KRATOS_REGISTER_VARIABLE(EXACT_HEIGHT)
+        KRATOS_REGISTER_VARIABLE(HEIGHT_ERROR)
+        KRATOS_REGISTER_VARIABLE(EXACT_VELOCITY)
+        KRATOS_REGISTER_VARIABLE(VELOCITY_ERROR)
 
         // Units conversion
         KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)

@@ -27,14 +27,7 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
     Parameters ThisParameters
     ): mThisModelPart(rThisModelPart)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "stress_vector_variable" : "CAUCHY_STRESS_VECTOR",
-        "echo_level"             : 0
-    })"
-    );
-
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mpStressVariable = &const_cast<Variable<Vector>&>(KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString()));
     mEchoLevel = ThisParameters["echo_level"].GetInt();
@@ -283,9 +276,35 @@ inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
 {
     FindNodalNeighboursProcess find_neighbours(rModelPart);
     // Array of nodes
-    NodesArrayType& nodes_array = rModelPart.Nodes();
-    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    if (it_node_begin->Has(NEIGHBOUR_ELEMENTS)) { // Clear previous neighbours
+        find_neighbours.ClearNeighbours();
+    } else { // Initialize neighbours
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+            it_node->SetValue(NEIGHBOUR_NODES, GlobalPointersVector<Node<3>>());
+            it_node->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>());
+        }
+    }
     find_neighbours.Execute();
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters SPRErrorProcess<TDim>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "stress_vector_variable" : "CAUCHY_STRESS_VECTOR",
+        "echo_level"             : 0
+    })" );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/
