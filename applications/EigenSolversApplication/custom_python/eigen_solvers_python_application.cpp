@@ -35,6 +35,22 @@ PYBIND11_MODULE(KratosEigenSolversApplication, m)
         ;
 
     AddCustomSolversToPython(m);
+
+    m.def("HasMKL", []() {
+#if defined(USE_EIGEN_MKL)
+        return true;
+#else
+        return false;
+#endif
+        });
+
+    m.def("HasFEAST", []() {
+#if defined(USE_EIGEN_FEAST)
+        return true;
+#else
+        return false;
+#endif
+        });
 }
 
 } // namespace Python

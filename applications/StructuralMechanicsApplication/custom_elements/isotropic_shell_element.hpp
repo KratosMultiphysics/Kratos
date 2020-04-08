@@ -129,7 +129,7 @@ public:
 
     void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 

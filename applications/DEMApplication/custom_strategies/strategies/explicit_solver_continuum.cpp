@@ -406,7 +406,7 @@ namespace Kratos {
         double standard_dev = 0;
         double current_coordination_number = ComputeCoordinationNumber(standard_dev);
         int iteration = 0;
-        int maxiteration = 100;
+        int maxiteration = 300;
         double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
         const bool local_coordination_option = r_process_info[LOCAL_COORDINATION_NUMBER_OPTION];
         const bool global_coordination_option = r_process_info[GLOBAL_COORDINATION_NUMBER_OPTION];
@@ -425,6 +425,7 @@ namespace Kratos {
         double max_factor_between_iterations = 1.02;
         double relative_error = 1000;
         if(local_coordination_option) {
+            KRATOS_INFO("DEM")<<"Now iterating for local coordination number..."<<std::endl;
             while (std::abs(relative_error) > tolerance) {
                 if (iteration >= maxiteration) break;
                 iteration++;
@@ -469,11 +470,16 @@ namespace Kratos {
                 SearchNeighbours();
             }//while
             current_coordination_number = ComputeCoordinationNumber(standard_dev);
+            KRATOS_INFO("DEM")<<"Coordination number reached after local operations = "<<current_coordination_number<<std::endl;
         }
         if(global_coordination_option) {
+            KRATOS_INFO("DEM")<<"Now iterating for global coordination number..."<<std::endl;
             //STAGE 2, Global Coordination Number
             tolerance = 1e-4;
             max_factor_between_iterations = 1.1;
+            double old_old_amplification = 1.0;
+            double old_amplification = 1.0;
+
             while (std::abs(current_coordination_number / desired_coordination_number - 1.0) > tolerance) {
                 if (iteration >= maxiteration) break;
                 iteration++;
@@ -482,12 +488,15 @@ namespace Kratos {
                     KRATOS_ERROR << "The specified tangency method is not supported for this problem, please use absolute value instead" << std::endl;
                     break;
                 }
-
-                double old_amplification = amplification;
-                amplification *= std::sqrt(desired_coordination_number / current_coordination_number);
+                old_old_amplification = old_amplification;
+                old_amplification = amplification;
+                amplification *= std::pow(desired_coordination_number / current_coordination_number, 1.0/3.0);
 
                 if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
                 if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
+                if(std::abs(amplification - old_amplification) >= std::abs(old_amplification - old_old_amplification) - std::numeric_limits<double>::epsilon()) {
+                    amplification = 0.5 * (amplification + old_amplification);
+                }
                 if ( amplification < 1.0 && !local_coordination_option) {
                     iteration = maxiteration;
                     break;
@@ -498,23 +507,19 @@ namespace Kratos {
             }//while
         }
 
-        if(r_model_part.GetCommunicator().MyPID() == 0) { KRATOS_INFO("DEM") <<std::endl;}
+        KRATOS_INFO("DEM") <<std::endl;
 
         if (iteration < maxiteration){
-            if(r_model_part.GetCommunicator().MyPID() == 0) {
-                KRATOS_INFO("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
-                KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
-                //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
-            }
+            KRATOS_INFO("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
+            KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
+            //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
             r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
         }
 
         else {
-            if(r_model_part.GetCommunicator().MyPID() == 0) {
-                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << current_coordination_number << ". " << "\n" << std::endl;
-                KRATOS_ERROR << "Please use a Absolute tolerance instead " << std::endl;
-                //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
-            }
+            KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << current_coordination_number << ". Desired number was " <<desired_coordination_number << "\n" << std::endl;
+            KRATOS_ERROR << "Please use a Absolute tolerance instead " << std::endl;
+            //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
         }
 
     } //SetCoordinationNumber
