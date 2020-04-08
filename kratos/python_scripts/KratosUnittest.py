@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
+from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
 from unittest.util import safe_repr
@@ -33,6 +34,15 @@ class TestCase(TestCase):
 
     def run(self, result=None):
         super(TestCase,self).run(result)
+
+    def skipTestIfApplicationsNotAvailable(self, *application_names):
+        '''Skips the test if required applications are not available'''
+        available_apps = GetListOfAvailableApplications()
+
+        required_but_not_available_apps = [app_name for app_name in application_names if app_name not in available_apps]
+
+        if len(required_but_not_available_apps) > 0:
+            self.skipTest('Required Applications are missing: {}'.format('", "'.join(required_but_not_available_apps)))
 
     def assertEqualTolerance(self, first, second, tolerance, msg=None):
         ''' Fails if first and second have a difference greater than
