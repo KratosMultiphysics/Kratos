@@ -84,19 +84,7 @@ public:
 
         if( mEntity == EntityType::NODES ){
 
-          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-          {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-
-            if( rModelPart.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
-            {
-              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
-            }
-
-            mdouble_value = rParameters["value"].GetDouble();
-          }
-          else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+          if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
             if( rModelPart.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
             {
