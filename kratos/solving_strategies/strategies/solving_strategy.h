@@ -393,6 +393,46 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    TSystemMatrixType& GetSystemMatrix()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemMatrix not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    TSystemVectorType& GetSystemVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSystemVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    TSystemVectorType& GetSolutionVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "GetSolutionVector not implemented in base SolvingStrategy" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+
     ///@}
     ///@name Input and output
     ///@{

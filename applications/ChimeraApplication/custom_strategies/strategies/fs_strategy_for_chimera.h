@@ -204,7 +204,7 @@ protected:
             KRATOS_INFO("FRACTIONAL STEP :: ")<<it+1<<std::endl;
             // build momentum system and solve for fractional step velocity increment
             r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-            double norm_dv = BaseType::SolveStrategy(*BaseType::mpMomentumStrategy);
+            double norm_dv = BaseType::mpMomentumStrategy->Solve();
 
             // Check convergence
             converged = BaseType::CheckFractionalStepConvergence(norm_dv);
@@ -247,7 +247,7 @@ protected:
         KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
             "Calculating Pressure."<< std::endl;
         //double norm_dp = 0;
-        double norm_dp = BaseType::SolveStrategy(*BaseType::mpPressureStrategy);
+        double norm_dp = BaseType::mpPressureStrategy->Solve();
 
 #pragma omp parallel
         {
