@@ -185,7 +185,7 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-void BaseShellElement::Initialize()
+void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const auto& r_props = GetProperties();
