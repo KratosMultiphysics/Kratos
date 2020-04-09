@@ -163,6 +163,7 @@ public:
             FastTransferBetweenModelPartsProcess(r_fs_velocity_model_part, r_model_part).Execute();
             // Velocity Builder and Solver
             ResidualBasedBlockBuilderAndSolverPointerType p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
+            p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
             SchemePointerType p_scheme;
             //initializing fractional velocity solution step
@@ -190,6 +191,7 @@ public:
             // Pressure Builder and Solver
             ResidualBasedBlockBuilderAndSolverPointerType p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
             SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace >> ();
+            p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
