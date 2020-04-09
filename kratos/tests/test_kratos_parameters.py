@@ -579,7 +579,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-                    
+
     def test_set_methods(self):
         # This method checks all the "GetXXX" Methods if they throw an error
         tmp = Parameters("""{
