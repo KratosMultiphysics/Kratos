@@ -567,49 +567,12 @@ private:
     GidIO(GidIO const& rOther);
 }; // Class GidIO
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) GidIO<GidGaussPointsContainer,GidMeshContainer>;
 
-/**
- * Input and output
- */
-/*    GidIO& operator >> (GidIO& rInput, IO::NodeType& rNode)
-    {
-        rInput.ReadNode(rNode);
-        return rInput;
-    }
+///@}
+///@name Input and output
+///@{
 
-    GidIO& operator >> (GidIO& rInput, IO::const NodesContainerType& rNodes)
-    {
-        rInput.ReadNodes(rNodes);
-        return rInput;
-    }
-
-    GidIO& operator >> (GidIO& rInput, IO::PropertiesContainerType& rProperties)
-    {
-        rInput.ReadProperties(rProperties);
-        return rInput;
-    }
-
-    GidIO& operator >> (GidIO& rInput, IO::MeshType& rMesh)
-    {
-        rInput.ReadMesh(rMesh);
-        return rInput;
-    }
-
-    GidIO& operator << (GidIO& rOutput, IO::const NodesContainerType& rNodes)
-    {
-        rOutput.WriteNodes(rNodes);
-        return rOutput;
-    }
-
-    GidIO& operator << (GidIO& rOutput, IO::ElementsContainerType& rElements)
-    {
-        rOutput.WriteElements(rElements);
-        return rOutput;
-    }*/
-
-/**
- * output stream function
- */
 inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
 {
     rThis.PrintInfo(rOStream);
@@ -620,16 +583,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
 
 }// namespace Kratos.
 
-#undef KRATOS_INDEX_PARSER
-#undef KRATOS_COORDINATES_PARSER
-#undef KRATOS_NODE_PARSER
-#undef KRATOS_NODE_DATA_PARSER
-#undef KRATOS_PROPERTIES_LHS_PARSER
-#undef KRATOS_PROPERTIES_TEMPORARY_VARIABLES
-#undef KRATOS_ARRAY_1D_3_PARSER
-#undef KRATOS_VECTOR_PARSER
-#undef KRATOS_MATRIX_PARSER
-#undef KRATOS_CONDITIONS_TEMPORARY_VARIABLES
-#undef KRATOS_CONDITIONS_FIX_PARSER
+///@}
 
 #endif // KRATOS_GID_OUTPUT_H_INCLUDED  defined
