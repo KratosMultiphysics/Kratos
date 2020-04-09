@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
@@ -439,26 +439,26 @@ namespace Kratos {
         LHS and to the RHS
           of the system
          */
-        void CalculateSystemContributions(Element::Pointer rCurrentElement,
-                                          LocalSystemMatrixType& LHS_Contribution,
-                                          LocalSystemVectorType& RHS_Contribution,
-                                          Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo) override
+        void CalculateSystemContributions(
+            Element& rCurrentElement,
+            LocalSystemMatrixType& LHS_Contribution,
+            LocalSystemVectorType& RHS_Contribution,
+            Element::EquationIdVectorType& EquationId,
+            const ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
 
             //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-            //KRATOS_WATCH(LHS_Contribution);
+            rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
+
             //basic operations for the element considered
-            (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-            //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-            (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+            rCurrentElement.CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
-            (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+            rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (statics is already included)
 
@@ -466,58 +466,59 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
 
             KRATOS_CATCH("")
         }
 
-        void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
-                                        LocalSystemVectorType& RHS_Contribution,
-                                        Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo) override
+        void CalculateRHSContribution(
+            Element& rCurrentElement,
+            LocalSystemVectorType& RHS_Contribution,
+            Element::EquationIdVectorType& EquationId,
+            const ProcessInfo& CurrentProcessInfo) override
         {
             int k = OpenMPUtils::ThisThread();
 
             //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
-            (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+            rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
 
-            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
-            (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+            rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
 
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            mRotationTool.Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
-            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+            mRotationTool.Rotate(RHS_Contribution,rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
         }
 
         /** functions totally analogous to the precedent but applied to
         the "condition" objects
          */
-        void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
-                                                            LocalSystemMatrixType& LHS_Contribution,
-                                                            LocalSystemVectorType& RHS_Contribution,
-                                                            Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo) override
+        void CalculateSystemContributions(
+            Condition& rCurrentCondition,
+            LocalSystemMatrixType& LHS_Contribution,
+            LocalSystemVectorType& RHS_Contribution,
+            Element::EquationIdVectorType& EquationId,
+            const ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
 
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+            rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
+            rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+            //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            rCurrentCondition.CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
 
             AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
@@ -525,40 +526,38 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
-            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
 
             KRATOS_CATCH("")
         }
 
-        void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
-                                                          LocalSystemVectorType& RHS_Contribution,
-                                                          Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo) override
+        void CalculateRHSContribution(
+            Condition& rCurrentCondition,
+            LocalSystemVectorType& RHS_Contribution,
+            Element::EquationIdVectorType& EquationId,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
 
             int k = OpenMPUtils::ThisThread();
 
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             //Initializing the non linear iteration for the current condition
-            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
+            rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
-            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->CalculateMassMatrix(mMass[k],rCurrentProcessInfo);
-            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
+            rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+            rCurrentCondition.CalculateMassMatrix(mMass[k],rCurrentProcessInfo);
+            //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            rCurrentCondition.CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
+            rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
-            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
-
-
+            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
 
             KRATOS_CATCH("");
         }
@@ -575,9 +574,7 @@ namespace Kratos {
             Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
             double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-
-            if (DeltaTime == 0)
-                KRATOS_THROW_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
+            KRATOS_ERROR_IF(DeltaTime < 1.0e-12) << "Detected delta_time = 0 in the Bossak scheme. Check if the time step is created correctly for the current model part" << std::endl;
 
             //initializing constants
             ma0 = 1.0 / (mGammaNewmark * DeltaTime);
@@ -658,7 +655,7 @@ namespace Kratos {
             Element::EquationIdVectorType EquationId;
             LocalSystemVectorType RHS_Contribution;
             LocalSystemMatrixType LHS_Contribution;
-            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             //for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
 
@@ -697,7 +694,7 @@ namespace Kratos {
 
                 //adding the dynamic contributions (statics is already included)
                 AddDynamicsToLHS(LHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
-                AddDynamicsToRHS((*itElem), RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
+                AddDynamicsToRHS(*(*itElem), RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
 
                 GeometryType& rGeom = (*itElem)->GetGeometry();
                 unsigned int NumNodes = rGeom.PointsNumber();
@@ -918,7 +915,7 @@ namespace Kratos {
         void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
                               LocalSystemMatrixType& D,
                               LocalSystemMatrixType& M,
-                              ProcessInfo& CurrentProcessInfo)
+                              const ProcessInfo& CurrentProcessInfo)
         {
 
             //multipling time scheme factor
@@ -952,18 +949,19 @@ namespace Kratos {
          *  @param[in] rM The elemental acceleration LHS matrix.
          *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
          */
-        void AddDynamicsToRHS(Element::Pointer rCurrentElement,
-                              LocalSystemVectorType& rRHS_Contribution,
-                              LocalSystemMatrixType& rD,
-                              LocalSystemMatrixType& rM,
-                              ProcessInfo& rCurrentProcessInfo)
+        void AddDynamicsToRHS(
+            Element& rCurrentElement,
+            LocalSystemVectorType& rRHS_Contribution,
+            LocalSystemMatrixType& rD,
+            LocalSystemMatrixType& rM,
+            const ProcessInfo& rCurrentProcessInfo)
         {
             //adding inertia contribution
             if (rM.size1() != 0) {
                 int k = OpenMPUtils::ThisThread();
-                rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
+                rCurrentElement.GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
+                rCurrentElement.GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
                 noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
@@ -979,19 +977,19 @@ namespace Kratos {
          *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
          */
         void AddDynamicsToRHS(
-                              Condition::Pointer rCurrentCondition,
-                              LocalSystemVectorType& rRHS_Contribution,
-                              LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& rM,
-                              ProcessInfo& rCurrentProcessInfo)
+            Condition& rCurrentCondition,
+            LocalSystemVectorType& rRHS_Contribution,
+            LocalSystemMatrixType& D,
+            LocalSystemMatrixType& rM,
+            const ProcessInfo& rCurrentProcessInfo)
         {
             //adding inertia contribution
             if (rM.size1() != 0)
             {
                 int k = OpenMPUtils::ThisThread();
-                rCurrentCondition->GetSecondDerivativesVector(macc[k], 0);
+                rCurrentCondition.GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentCondition->GetSecondDerivativesVector(maccold[k], 1);
+                rCurrentCondition.GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
 
                 noalias(rRHS_Contribution) -= prod(rM, macc[k]);
