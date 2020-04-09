@@ -21,18 +21,17 @@
 
 // External includes
 
-
 // Project includes
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/define.h"
-//#include "includes/serializer.h"
+// #include "includes/serializer.h"
 #include "includes/dof.h"
-//#include "includes/variables.h"
-#include "fluid_dynamics_application_variables.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "containers/pointer_vector_set.h"
 #include "utilities/openmp_utils.h"
+
+// Application includes
+#include "fluid_dynamics_application_variables.h"
 
 
 namespace Kratos
@@ -849,7 +848,6 @@ protected:
             rNode.FastGetSolutionStepValue(DIVPROJ) = rNode.GetValue(DIVPROJ);
         }
     }
-
 
     ///@}
     ///@name Protected  Access

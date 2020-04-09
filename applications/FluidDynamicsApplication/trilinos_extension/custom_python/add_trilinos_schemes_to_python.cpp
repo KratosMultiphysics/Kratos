@@ -29,7 +29,6 @@
 // FluidDynamicsApplication dependencies
 #include "custom_strategies/schemes/gear_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 
 namespace Kratos {
@@ -58,12 +57,6 @@ void AddTrilinosSchemesToPython(pybind11::module& m)
     .def(py::init<double, double, unsigned int, double, Process::Pointer >())
     .def(py::init<double,double,unsigned int >())
     .def(py::init<double,unsigned int, const Variable<int>&>())
-    ;
-
-    using TrilinosVelocityBDFSchemeTurbulent = ResidualBasedPredictorCorrectorBDFSchemeTurbulent<TrilinosSparseSpace, UblasLocalSpace>;
-    py::class_ < TrilinosVelocityBDFSchemeTurbulent, typename TrilinosVelocityBDFSchemeTurbulent::Pointer, TrilinosBaseScheme >
-    (m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
-    .def(py::init<unsigned int, Kratos::Flags& >() )
     ;
 
     using TrilinosResidualBasedSimpleSteadyScheme = ResidualBasedSimpleSteadyScheme<TrilinosSparseSpace, UblasLocalSpace>;
