@@ -315,7 +315,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         #create solver
         eigensolver_settings = KratosMultiphysics.Parameters("""{
-            "solver_type": "eigen_feast",
+            "solver_type": "feast",
             "symmetric": true,
             "e_min": 0.0,
             "e_max": 4.0e5,

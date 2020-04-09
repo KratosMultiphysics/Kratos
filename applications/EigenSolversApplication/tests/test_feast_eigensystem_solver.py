@@ -15,7 +15,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_feast",
+            "solver_type": "feast",
             "symmetric": true,
             "number_of_eigenvalues": 3,
             "search_lowest_eigenvalues": true,
@@ -74,7 +74,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_feast",
+            "solver_type": "feast",
             "symmetric": false,
             "number_of_eigenvalues": 3,
             "e_mid_re": 10.0,
@@ -139,7 +139,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type" : "eigen_feast",
+            "solver_type" : "feast",
             "symmetric" : false,
             "subspace_size" : 2,
             "e_mid_re": 0.0,
@@ -193,7 +193,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_feast_complex",
+            "solver_type": "feast_complex",
             "symmetric": true,
             "number_of_eigenvalues": 3,
             "e_mid_re": 0.0,
@@ -252,7 +252,7 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_feast_complex",
+            "solver_type": "feast_complex",
             "symmetric": false,
             "subspace_size": 2,
             "e_mid_re": 10.0,

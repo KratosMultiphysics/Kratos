@@ -100,7 +100,6 @@ jobs:
           -H"%KRATOS_SOURCE%"                                ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
           -DBOOST_ROOT="%BOOST_ROOT%"                        ^
-          -DINCLUDE_FEAST=OFF                                ^
           -DINSTALL_RUNKRATOS=OFF                            ^
           -DCMAKE_CXX_FLAGS="/Od"                            ^
           -DUSE_COTIRE=ON                                    || goto :error
