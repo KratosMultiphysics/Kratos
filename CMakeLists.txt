@@ -386,6 +386,16 @@ include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
 
+# Additional considerations depending of the apps compiled
+if(DEFINED ENV{KRATOS_APPLICATIONS})
+    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        if("FreeSurfaceApplication" MATCHES ${APPLICATION_NAME})
+            add_definitions( -DKRATOS_FREE_SURFACE_APPLICATION_INCLUDED )
+        endif("FreeSurfaceApplication" MATCHES ${APPLICATION_NAME})
+    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
