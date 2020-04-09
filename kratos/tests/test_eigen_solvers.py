@@ -128,10 +128,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             """)
 
     def test_eigen_eigensystem_solver(self):
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+        self.skipTestIfApplicationsNotAvailable("EigenSolversApplication")
         self._RunParametrized("""
             {
                 "test_list" : [
