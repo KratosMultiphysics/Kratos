@@ -140,7 +140,7 @@ public:
         return rLocalId+mLocalBounds[0];
     }
 
-    const IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
+    IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
     {
         return rGlobalId-mCpuBounds[rOwnerRank];
     }
