@@ -31,11 +31,13 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fs_strategy.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
-#include "custom_strategies/strategies/gear_scheme.h"
+
+//schemes
+#include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
