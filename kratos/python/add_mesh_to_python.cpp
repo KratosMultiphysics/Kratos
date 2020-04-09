@@ -579,16 +579,16 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInt<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, int>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, array_1d<double, 3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, Matrix>)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInt<Condition>)
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, int>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
