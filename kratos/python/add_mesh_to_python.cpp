@@ -147,6 +147,20 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
 ///@{
 
 template< class TObject >
+pybind11::list CalculateOnIntegrationPointsInt(
+    TObject& dummy, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo)
+{
+    std::vector<int> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
+    pybind11::list result;
+    for (unsigned int j = 0; j < Output.size(); j++)
+    {
+        result.append(Output[j]);
+    }
+    return result;
+}
+
+template< class TObject >
 pybind11::list CalculateOnIntegrationPointsDouble(
     TObject& dummy, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo )
 {
@@ -490,6 +504,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInt<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Element>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Element>)
@@ -618,6 +633,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInt<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
