@@ -21,6 +21,9 @@
 #include "utilities/timer.h"
 #include "containers/flags.h"
 #include "input_output/gid_output.h"
+#ifdef KRATOS_FREE_SURFACE_APPLICATION_INCLUDED
+#include "../applications/FreeSurfaceApplication/custom_utilities/edgebased_gid_io.h"
+#endif
 
 namespace Kratos
 {
@@ -1433,5 +1436,8 @@ void GidIO<TGaussPointContainer, TMeshContainer>::PrintOnGaussPoints(
 
 // GidIO default instantiation
 template class GidIO<GidGaussPointsContainer,GidMeshContainer>;
+#ifdef KRATOS_FREE_SURFACE_APPLICATION_INCLUDED
+template class GidIO<EdgebasedGidGaussPointsContainer,EdgebasedGidMeshContainer>;
+#endif
 
 } // namespace Kratos.
