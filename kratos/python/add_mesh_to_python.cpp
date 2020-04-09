@@ -178,7 +178,7 @@ void GetValuesOnIntegrationPoints(
 ///@{
 
 template< class TObject, class TDataType >
-void SetValuesOnIntegrationPointsInt(
+void SetValuesOnIntegrationPoints(
     TObject& dummy, const Variable<TDataType>& rVariable, std::vector<TDataType> values, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(values.size() != dummy.IntegrationPointsNumber())
@@ -457,10 +457,10 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInt<Element>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
     .def("Calculate", &ElementCalculateInterface<double>)
