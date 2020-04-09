@@ -46,10 +46,10 @@ namespace Kratos
         static auto Or_CriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, Or_CriteriaType>();
 
         // Registration of convergence solvers
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(DisplacementCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(ResidualCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(And_CriteriaFactory );
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(Or_CriteriaFactory );
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(DisplacementCriteriaFactory.Name(), DisplacementCriteriaFactory);
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(ResidualCriteriaFactory.Name(), ResidualCriteriaFactory);
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(And_CriteriaFactory.Name(), And_CriteriaFactory );
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(Or_CriteriaFactory.Name(), Or_CriteriaFactory );
     };
 } // Namespace Kratos
 

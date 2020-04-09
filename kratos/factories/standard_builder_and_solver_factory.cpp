@@ -44,9 +44,9 @@ namespace Kratos
         static auto ResidualBasedBlockBuilderAndSolverFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType>();
 
         // Registration of convergence solvers
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverFactory);
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory);
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverFactory.Name(), ResidualBasedEliminationBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory.Name(), ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverFactory.Name(), ResidualBasedBlockBuilderAndSolverFactory);
     };
 } // Namespace Kratos
 
