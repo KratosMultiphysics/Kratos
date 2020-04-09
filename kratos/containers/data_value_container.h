@@ -219,7 +219,8 @@ public:
             KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
 #endif 
         
-        mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
+        auto p_source_variable = &rThisVariable.GetSourceVariable();
+        mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
 
         return *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex());
     }
@@ -263,8 +264,11 @@ public:
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
             *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
-        else
-            mData.push_back(ValueType(&rThisVariable,new TDataType(rValue))); 
+        else{
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
+            *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue; 
+        }
     }
 
     template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
