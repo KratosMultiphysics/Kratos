@@ -9,6 +9,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 set( KRATOS_FREE_SURFACE_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/edgebased_gid_io.cpp
 )
 
 set( KRATOS_FREE_SURFACE_PYTHON_INTERFACE_SOURCES
