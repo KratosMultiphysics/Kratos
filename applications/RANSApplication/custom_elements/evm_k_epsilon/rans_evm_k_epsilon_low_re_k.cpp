@@ -137,13 +137,13 @@ void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& r
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
+void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues,
                                                                               int Step)
 {
     if (rValues.size() != TNumNodes)
@@ -159,7 +159,7 @@ void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetFirstDerivativesVector(Ve
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
+void RansEvmKEpsilonLowReKElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues,
                                                                                int Step)
 {
     if (rValues.size() != TNumNodes)
