@@ -201,7 +201,7 @@ public:
     }
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, const ModelPart& rModelPart,
-                               const double SolutionTag, const unsigned int ValueIndex )
+                               const double SolutionTag, const unsigned int ValueIndex  = 0)
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -238,7 +238,7 @@ public:
     }
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,3> >& rVariable, const ModelPart& rModelPart,
-                               const double SolutionTag, const unsigned int ValueIndex )
+                               const double SolutionTag, const unsigned int ValueIndex = 0)
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
             //WriteGaussPoints(ResultFile);
@@ -277,7 +277,7 @@ public:
     }
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,6> >& rVariable, const ModelPart& rModelPart,
-                               const double SolutionTag, const unsigned int ValueIndex )
+                               const double SolutionTag, const unsigned int ValueIndex = 0)
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -322,7 +322,7 @@ public:
 
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, const ModelPart& rModelPart,
-                               const double SolutionTag, const unsigned int ValueIndex )
+                               const double SolutionTag, const unsigned int ValueIndex = 0)
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -370,7 +370,7 @@ public:
     }
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, const ModelPart& rModelPart,
-                               const double SolutionTag, int ValueIndex )
+                               const double SolutionTag, const unsigned int ValueIndex = 0)
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
             //WriteGaussPoints(ResultFile);
