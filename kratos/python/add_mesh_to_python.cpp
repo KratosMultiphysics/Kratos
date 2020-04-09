@@ -160,60 +160,6 @@ pybind11::list CalculateOnIntegrationPoints(
     return result;
 }
 
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsDouble(
-    TObject& dummy, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<double> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
-    }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsArray1d(
-    TObject& dummy, const Variable<array_1d<double, 3>>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<array_1d<double, 3>> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
-    }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsVector(
-    TObject& dummy, const Variable<Vector>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
-    }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsMatrix(
-    TObject& dummy, const Variable<Matrix>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<Matrix> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-        result.append( Output[j] );
-    return result;
-}
-
 ///@}
 ///@name Get Values on Integration Points
 ///@{
