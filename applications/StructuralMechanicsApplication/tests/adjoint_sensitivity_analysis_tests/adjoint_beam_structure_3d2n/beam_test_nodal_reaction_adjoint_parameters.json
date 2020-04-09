@@ -113,7 +113,7 @@
                 "gauss_points_check_variables" : ["I22_SENSITIVITY"],
                 "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_nodal_reaction_results.json",
                 "model_part_name"  : "Structure.test_model_part",
-                "tolerance"            : 1e-5,
+                "tolerance"            : 1e-4,
                 "time_frequency"   : -2.0
             }
         }

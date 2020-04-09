@@ -117,7 +117,7 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
 
         # check w.r.t. to design variable SHAPE_SENSITIVITY
         reference_res_2 = ((0,2499.999376,2499.999376,0,2499.999376,2499.999376),(0,2499.999376,2499.999376,0,2499.999376,2499.999376),
-        (0,-0.001250,-0.001250,0,-0.0012450,-0.001250),(0,-2500.000624,-2500.000624,0,-2500.000624,-2500.000624),
+        (0,-0.001250,-0.001250,0,-0.001250,-0.001250),(0,-2500.000624,-2500.000624,0,-2500.000624,-2500.000624),
         (0,-2500.000624,-2500.000624,0,-2500.000624,-2500.000624),(0,-0.001250,-0.001250,0,-0.001250,-0.001250))
         cond.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, sen_matrix, mp.ProcessInfo)
         self.__CheckSensitivityMatrix(sen_matrix, reference_res_2)
