@@ -54,6 +54,24 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerHasComponent, KratosCoreFastSuite) {
     KRATOS_CHECK(container.Has(DISPLACEMENT_Z));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerSetComponentCheck, KratosCoreFastSuite) {
+    DataValueContainer container;
+
+    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_X));
+    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_Y));
+    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_Z));
+
+    container.SetValue(DISPLACEMENT_X, 10.0);
+
+    KRATOS_CHECK(container.Has(DISPLACEMENT_X));
+    KRATOS_CHECK(container.Has(DISPLACEMENT_Y));
+    KRATOS_CHECK(container.Has(DISPLACEMENT_Z));
+
+    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_X), 10.0);
+    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Y), 0.0);
+    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Z), 0.0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainer, KratosCoreFastSuite) {
     DataValueContainer container;
     Vector original_distances(4);
