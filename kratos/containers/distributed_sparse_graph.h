@@ -80,8 +80,8 @@ public:
     DistributedSparseGraph(const std::vector<IndexType> limits,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
     : mLocalBounds(limits),
-      mLocalGraph(), //limits[1]-limits[0]),
-      mrComm(rComm)
+      mrComm(rComm),
+      mLocalGraph() //limits[1]-limits[0]),
     {
 
         auto all_limits = mrComm.AllGather(mLocalBounds);
@@ -130,12 +130,12 @@ public:
         return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
     }
 
-    const IndexType LocalId(const IndexType rGlobalId) const
+    IndexType LocalId(const IndexType rGlobalId) const
     {
         return rGlobalId-mLocalBounds[0];
     }
 
-    const IndexType GlobalId(const IndexType rLocalId) const
+    IndexType GlobalId(const IndexType rLocalId) const
     {
         return rLocalId+mLocalBounds[0];
     }
