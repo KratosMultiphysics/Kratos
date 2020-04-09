@@ -92,22 +92,39 @@ public:
         const int world_size = rDataCommunicator.Size();
 
         std::vector<int> remote_ids;
-        for(const int id : id_list )
-        {
-            const auto it = container.find(id);
-            if( it != container.end()) //found locally
-            {
-                if(!rDataCommunicator.IsDistributed() || ObjectIsLocal(*it, current_rank))
-                    global_pointers_list.emplace(id,GPType(&*it, current_rank));
-                else //remote, but this is a lucky case since for those we know to which rank they  they belong
-                    remote_ids.push_back(id); //TODO: optimize according to the comment just above
+
+        if(rDataCommunicator.IsDistributed()) {
+            // If the execution is distributed, for every entity id find if its in the container, and if it is, if it is local
+            // to our partition.
+            for(const int id : id_list ) {
+                const auto it = container.find(id);
+
+                if( it != container.end()) { 
+                    if(ObjectIsLocal(*it, current_rank)) {
+                        // Found locally
+                        global_pointers_list.emplace(id,GPType(&*it, current_rank));
+                    } else {
+                        // Remote, but this is a lucky case since for those we know to which rank they  they belong
+                        // TODO: optimize according to the comment just above
+                        remote_ids.push_back(id);
+                    }
+                } else {
+                    // Id not found and we have no clue of what node owns it
+                    remote_ids.push_back(id);
+                }
             }
-            else //id not found and we have no clue of what node owns it
-            {
-                remote_ids.push_back(id);
+        } else {
+            // If the execution is not distributed, only check if the id is in the container.
+            for(const int id : id_list ) {
+                const auto it = container.find(id);
+                if( it != container.end()) { 
+                    // Found locally
+                    global_pointers_list.emplace(id,GPType(&*it, current_rank));
+                }
             }
         }
-        //gather everything onto master_rank processor
+
+        // Gather everything onto master_rank processor
         int master_rank = 0;
 
         std::vector<int> all_remote_ids;
@@ -406,13 +423,28 @@ private:
         const int current_rank = rDataCommunicator.Rank();
         std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > extracted_list;
         
-        for(auto id : ids)
-        {
-            const auto it = container.find(id);
-            if( it != container.end()) //found locally
-            {
-                if(!rDataCommunicator.IsDistributed() || ObjectIsLocal(*it, current_rank))
+        if(rDataCommunicator.IsDistributed()) {
+            // If the execution is distributed, for every entity id find if its in the container, and if it is, if it is local
+            // to our partition.
+            for(auto id : ids) {
+                const auto it = container.find(id);
+
+                if( it != container.end()) { 
+                    // Found locally
+                    if(ObjectIsLocal(*it, current_rank)){
+                        extracted_list.emplace(id, GlobalPointer<typename TContainerType::value_type>(&*it, current_rank));
+                    }
+                }
+            }
+        } else {
+            // If the execution is not distributed, only check if the id is in the container.
+            for(auto id : ids) {
+                const auto it = container.find(id);
+
+                if( it != container.end()) {
+                    // Found locally                
                     extracted_list.emplace(id, GlobalPointer<typename TContainerType::value_type>(&*it, current_rank));
+                }
             }
         }
         return extracted_list;
