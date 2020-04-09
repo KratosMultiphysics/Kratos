@@ -232,6 +232,19 @@ void GetValuesOnIntegrationPoints(
 ///@{
 
 template< class TObject >
+void SetValuesOnIntegrationPointsInt(
+    TObject& dummy, const Variable<int>& rVariable, std::vector<int> values, const ProcessInfo& rCurrentProcessInfo)
+{
+    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
+        dummy.GetIntegrationMethod());
+
+    if (values.size() != integration_points.size())
+        KRATOS_ERROR << "Size of values vector is: " << values.size() << ", but the number of integration points is: " << integration_points.size() << std::endl;
+
+    dummy.SetValuesOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
+}
+
+template< class TObject >
 void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
 {
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
@@ -512,6 +525,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInt<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
@@ -641,6 +655,7 @@ void  AddMeshToPython(pybind11::module& m)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInt<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
