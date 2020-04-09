@@ -31,23 +31,6 @@
 
 namespace Kratos
 {
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -73,33 +56,15 @@ public:
 
     /** Constructor.
      */
-    explicit BaseFactoryMethods()
-    {
-    }
+    explicit BaseFactoryMethods(){}
 
     /** Destructor.
      */
-    virtual ~BaseFactoryMethods()
-    {
-    }
-
-    ///@}
-    ///@name Operators
-    ///@{
+    virtual ~BaseFactoryMethods(){}
 
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This method returns the name of the class stored
-     * @return The name of the class stored (as defined in settings)
-     */
-    virtual std::string Name() const
-    {
-        KRATOS_ERROR << "Methods must be implemented in the base class" << std::endl;
-        return "";
-    }
 
     /**
      * @brief This method checks if the linear class is registered
@@ -111,14 +76,6 @@ public:
         KRATOS_ERROR << "Methods must be implemented in the base class" << std::endl;
         return false;
     }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
 
     ///@}
     ///@name Input and output
@@ -178,15 +135,11 @@ public:
 
     /** Constructor.
      */
-    explicit BaseFactory()
-    {
-    }
+    explicit BaseFactory(){}
 
     /** Destructor.
      */
-    virtual ~BaseFactory()
-    {
-    }
+    virtual ~BaseFactory(){}
 
     ///@}
     ///@name Operators

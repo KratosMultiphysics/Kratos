@@ -24,22 +24,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -70,15 +54,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This method returns the name of the class stored
-     * @return The name of the class stored (as defined in settings)
-     */
-    std::string Name() const override
-    {
-        return TCustomBuilderAndSolverType::Name();
-    }
 
     /**
      * @brief This method is an auxiliar method to create a new builder and solver

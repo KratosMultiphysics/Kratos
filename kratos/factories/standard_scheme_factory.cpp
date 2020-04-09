@@ -55,13 +55,13 @@ namespace Kratos
         static auto ResidualBasedBDFCustomSchemeFactory= StandardSchemeFactory<BaseSchemeType, ResidualBasedBDFCustomSchemeType>();
 
         // Registration of convergence solvers
-        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeFactory.Name(), ResidualBasedIncrementalUpdateStaticSchemeFactory);
-        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeSlipFactory.Name(), ResidualBasedIncrementalUpdateStaticSchemeSlipFactory);
-        KRATOS_REGISTER_SCHEME(ResidualBasedBossakDisplacementSchemeFactory.Name(), ResidualBasedBossakDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME(ResidualBasedNewmarkDisplacementSchemeFactory.Name(), ResidualBasedNewmarkDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME(ResidualBasedPseudoStaticDisplacementSchemeFactory.Name(), ResidualBasedPseudoStaticDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME(ResidualBasedBDFDisplacementSchemeFactory.Name(), ResidualBasedBDFDisplacementSchemeFactory);
-        KRATOS_REGISTER_SCHEME(ResidualBasedBDFCustomSchemeFactory.Name(), ResidualBasedBDFCustomSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeType::Name(), ResidualBasedIncrementalUpdateStaticSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeSlipType::Name(), ResidualBasedIncrementalUpdateStaticSchemeSlipFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedBossakDisplacementSchemeType::Name(), ResidualBasedBossakDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedNewmarkDisplacementSchemeType::Name(), ResidualBasedNewmarkDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedPseudoStaticDisplacementSchemeType::Name(), ResidualBasedPseudoStaticDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedBDFDisplacementSchemeType::Name(), ResidualBasedBDFDisplacementSchemeFactory);
+        KRATOS_REGISTER_SCHEME(ResidualBasedBDFCustomSchemeType::Name(), ResidualBasedBDFCustomSchemeFactory);
     };
 } // Namespace Kratos
 
