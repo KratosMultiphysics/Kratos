@@ -57,39 +57,6 @@ typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
-array_1d<double,3> GetNormalFromCondition(
-    Condition& dummy,
-    CoordinatesArrayType& LocalCoords
-    )
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
-        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
-    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
-}
-
-array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
-        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
-    CoordinatesArrayType LocalCoords;
-    LocalCoords.clear();
-    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
-}
-
-double GetAreaFromCondition( Condition& dummy )
-{
-    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetArea\" is deprecated, please "
-        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
-    return( dummy.GetGeometry().Area() );
-}
-
-double GetAreaFromElement( Element& dummy )
-{
-    KRATOS_WARNING_FIRST_N("Element-Python Interface", 10) << "\"GetArea\" is deprecated, please "
-        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
-    return( dummy.GetGeometry().Area() );
-}
-
 Properties::Pointer GetPropertiesFromElement( Element& pelem )
 {
     return( pelem.pGetProperties() );
@@ -137,7 +104,7 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
 void ConditionCalculateLocalSystemStandard( Condition& dummy,
                                                 Matrix& rLeftHandSideMatrix,
                                                 Vector& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
@@ -147,14 +114,6 @@ void ConditionInitialize(Condition& dummy,
 {
     dummy.Initialize(rCurrentProcessInfo);
 }
-
-void ConditionInitializeOld(Condition& dummy)
-{
-    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
-    ProcessInfo tmp_process_info;
-    dummy.Initialize(tmp_process_info);
-}
-
 
 py::list GetNodesFromCondition( Condition& dummy )
 {
@@ -189,7 +148,7 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
 
 template< class TObject >
 pybind11::list CalculateOnIntegrationPointsDouble(
-    TObject& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo )
 {
     std::vector<double> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
@@ -203,7 +162,7 @@ pybind11::list CalculateOnIntegrationPointsDouble(
 
 template< class TObject >
 pybind11::list CalculateOnIntegrationPointsArray1d(
-    TObject& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<array_1d<double, 3>>& rVariable, const ProcessInfo& rProcessInfo )
 {
     std::vector<array_1d<double, 3>> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
@@ -217,7 +176,7 @@ pybind11::list CalculateOnIntegrationPointsArray1d(
 
 template< class TObject >
 pybind11::list CalculateOnIntegrationPointsVector(
-    TObject& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<Vector>& rVariable, const ProcessInfo& rProcessInfo )
 {
     std::vector<Vector> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
@@ -231,7 +190,7 @@ pybind11::list CalculateOnIntegrationPointsVector(
 
 template< class TObject >
 pybind11::list CalculateOnIntegrationPointsMatrix(
-    TObject& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
+    TObject& dummy, const Variable<Matrix>& rVariable, const ProcessInfo& rProcessInfo )
 {
     std::vector<Matrix> Output;
     dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
@@ -316,7 +275,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
 }
 
 template< class TDataType >
-TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariable, ProcessInfo& rCurrentProcessInfo)
+TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     TDataType aux;
     dummy.Calculate(rVariable, aux, rCurrentProcessInfo);
@@ -386,13 +345,6 @@ void ElementInitialize(Element& dummy,
                        const ProcessInfo& rCurrentProcessInfo)
 {
     dummy.Initialize(rCurrentProcessInfo);
-}
-
-void ElementInitializeOld(Element& dummy)
-{
-    KRATOS_WARNING_FIRST_N("DEPRECATION", 10) << "Please pass a \"ProcessInfo\" to \"Initialize\"" << std::endl;
-    ProcessInfo tmp_process_info;
-    dummy.Initialize(tmp_process_info);
 }
 
 template<class TDataType>
@@ -534,7 +486,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
-    .def("GetArea", GetAreaFromElement ) // deprecated, to be removed (see warning in function)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
@@ -585,7 +536,6 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &ElementInitialize)
-    .def("Initialize", &ElementInitializeOld)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("__str__", PrintObject<Element>)
     ;
@@ -679,9 +629,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
-    .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
-    .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
     .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<double>)
     .def("CalculateSensitivityMatrix", &ConditionCalculateSensitivityMatrix<array_1d<double,3> >)
 
@@ -700,7 +647,6 @@ void  AddMeshToPython(pybind11::module& m)
 
 
     .def("Initialize", &ConditionInitialize)
-    .def("Initialize", &ConditionInitializeOld)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)

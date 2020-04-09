@@ -125,6 +125,13 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
+            "time_stepping"                : {
+                "automatic_time_step" : false,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 1.0,
+                "time_step":            1.0
+            },
             "move_mesh_flag": false,
             "reference_chord": 1.0,
             "auxiliary_variables_list" : []
@@ -174,9 +181,6 @@ class PotentialFlowSolver(FluidSolver):
         solution_strategy.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-
-    def AdvanceInTime(self, current_time):
-        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
     def _ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call

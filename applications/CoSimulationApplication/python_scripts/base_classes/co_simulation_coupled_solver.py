@@ -9,6 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.factories.helpers as factories_helper
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
@@ -57,19 +58,19 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             # using the Echo_level of the coupled solver, since IO is needed by the coupling
 
         ### Creating the predictors
-        self.predictors_list = cs_tools.CreatePredictors(
+        self.predictors_list = factories_helper.CreatePredictors(
             self.settings["predictors"],
             self.solver_wrappers,
             self.echo_level)
 
         ### Creating the coupling operations
-        self.coupling_operations_dict = cs_tools.CreateCouplingOperations(
+        self.coupling_operations_dict = factories_helper.CreateCouplingOperations(
             self.settings["coupling_operations"],
             self.solver_wrappers,
             self.echo_level)
 
         ### Creating the data transfer operators
-        self.data_transfer_operators_dict = cs_tools.CreateDataTransferOperators(
+        self.data_transfer_operators_dict = factories_helper.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
             self.echo_level)
 

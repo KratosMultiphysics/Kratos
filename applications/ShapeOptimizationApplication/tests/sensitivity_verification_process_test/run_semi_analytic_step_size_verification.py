@@ -77,7 +77,7 @@ for move_node_id in list_of_move_nodes:
         response.RunCalculation(True)
 
         # Write results
-        gradient_of_interest = response.GetShapeGradient()[move_node_id]
+        gradient_of_interest = response.GetNodalGradient(KM.SHAPE_SENSITIVITY)[move_node_id]
         with open(results_filename,'a') as open_file:
             line_to_write = '%.0E' % Decimal(str(current_delta)) + ",\t"
             line_to_write += '%.6E' % Decimal(str(gradient_of_interest[0])) + ",\t"

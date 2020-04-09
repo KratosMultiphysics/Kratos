@@ -417,7 +417,7 @@ private:
         for (int i = 0; i < NumProcs; i++) ExtraDofs[i] = 0;
 
         Condition::DofsVectorType DofList;
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
         for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
         {
             Condition::GeometryType& rGeom = itCond->GetGeometry();
