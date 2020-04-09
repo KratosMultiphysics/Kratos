@@ -128,10 +128,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             """)
 
     def test_eigen_eigensystem_solver(self):
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+        self.skipTestIfApplicationsNotAvailable("EigenSolversApplication")
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -148,13 +145,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     def test_FEAST_with_eigen_solver(self):
         try:
-            import KratosMultiphysics.ExternalSolversApplication
-            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("'feast' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        try:
             import KratosMultiphysics.EigenSolversApplication
+            if not KratosMultiphysics.EigenSolversApplication.HasFEAST():
+                self.skipTests("FEAST is not available")
         except:
             self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
         self._RunParametrized("""
@@ -162,77 +155,10 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                     {
                         "solver_type": "feast",
-                        "print_feast_output": false,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_eigen_sparse_lu"
-                        }
-                    }
-                ]
-            }
-            """)
-
-    def test_FEAST_with_mkl_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("'feast' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-            if not hasattr(KratosMultiphysics.EigenSolversApplication, "ComplexPardisoLUSolver"):
-                self.skipTest("'ComplexPardisoLUSolver' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
-
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "feast",
-                        "print_feast_output": false,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_eigen_pardiso_lu"
-                        }
-                    }
-                ]
-            }
-            """)
-
-    def test_FEAST_with_skyline_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("'feast' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "feast",
-                        "print_feast_output": false,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_skyline_lu_solver"
-                        }
+                        "symmetric": true,
+                        "e_min": 0.01,
+                        "e_max": 0.20,
+                        "subspace_size": 5
                     }
                 ]
             }
