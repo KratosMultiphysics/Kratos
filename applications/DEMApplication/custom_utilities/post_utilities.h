@@ -331,13 +331,6 @@ namespace Kratos {
                 array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
                 GeometryFunctions::QuaternionToGiDEulerAngles(Orientation, EulerAngles);
 
-                double& OrientationReal = i.FastGetSolutionStepValue(ORIENTATION_REAL);
-                OrientationReal = Orientation.w();
-
-                array_1d<double, 3 >& OrientationImag = i.FastGetSolutionStepValue(ORIENTATION_IMAG);
-                OrientationImag[0] = Orientation.x();
-                OrientationImag[1] = Orientation.y();
-                OrientationImag[2] = Orientation.z();
             }//for Node
         } //ComputeEulerAngles
 

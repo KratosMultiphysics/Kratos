@@ -34,7 +34,6 @@ namespace Kratos {
         rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{1,4}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{2,5}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{5,6}}, p_elem_prop);
-
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
@@ -204,6 +203,38 @@ namespace Kratos {
         KRATOS_CHECK(r_model_part.NumberOfNodes() == 3);
         KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
         KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartEnsureModelPartOwnsProperties, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        Properties::Pointer p_elem_prop = Kratos::make_shared<Properties>(1);
+        for (auto& r_cond : r_model_part.Conditions()) {
+            r_cond.SetProperties(p_elem_prop);
+        }
+        for (auto& r_elem : r_model_part.Elements()) {
+            r_elem.SetProperties(p_elem_prop);
+        }
+        
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
+        
+        // Call method
+        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
+        aux_util.EnsureModelPartOwnsProperties(false);
+
+        // Check results
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 2);
+        
+        aux_util.EnsureModelPartOwnsProperties(true);
+
+        // Check results
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
     }
   }  // namespace Testing.
 }  // namespace Kratos.

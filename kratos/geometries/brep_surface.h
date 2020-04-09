@@ -70,6 +70,7 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     static constexpr IndexType SURFACE_INDEX = -1;
 
@@ -317,6 +318,44 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->CreateIntegrationPoints(
+            rIntegrationPoints);
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points on the
+     *        nurbs surface of this geometry.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives) override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives);
+    }
+
+    ///@}
     ///@name Shape Function
     ///@{
 

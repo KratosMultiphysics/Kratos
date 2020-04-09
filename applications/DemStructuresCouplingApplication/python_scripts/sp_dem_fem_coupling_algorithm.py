@@ -142,8 +142,12 @@ class SPAlgorithm(Algorithm):
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             elif self.test_number == 3:
-                self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
-                self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
+                if self.structural_solution._GetSolver().main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2:
+                    self.outer_walls_model_part_1 = self.model["Structure.LinePressure2D_Left_line"]
+                    self.outer_walls_model_part_2 = self.model["Structure.LinePressure2D_Bot_line"]
+                else:
+                    self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
+                    self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
                 DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
