@@ -130,7 +130,7 @@ void Create3DGeometryHexahedra(
 
     // Initialize elements
     for (auto& elem : rThisModelPart.Elements()) {
-        elem.Initialize();
+        elem.Initialize(process_info);
         elem.InitializeSolutionStep(process_info);
         elem.InitializeNonLinearIteration(process_info);
     }
@@ -180,7 +180,7 @@ void Create3DGeometryTetrahedra(
 
     // Initialize elements
     for (auto& elem : rThisModelPart.Elements()) {
-        elem.Initialize();
+        elem.Initialize(process_info);
         elem.InitializeSolutionStep(process_info);
         elem.InitializeNonLinearIteration(process_info);
     }

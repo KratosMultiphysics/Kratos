@@ -719,19 +719,21 @@ void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
 {
     KRATOS_TRY;
 
+    const auto& r_process_info = mrThisModelPart.GetProcessInfo();
+
     // Iterate over conditions
     auto& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
-        (it_cond_begin + i)->Initialize();
+        (it_cond_begin + i)->Initialize(r_process_info);
 
     // Iterate over elements
     auto& r_elements_array = mrThisModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
-        (it_elem_begin + i)->Initialize();
+        (it_elem_begin + i)->Initialize(r_process_info);
 
     KRATOS_CATCH("");
 }
