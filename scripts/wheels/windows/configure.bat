@@ -33,7 +33,6 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 %cmake% -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"        ^
--DINCLUDE_FEAST=OFF                                                                                 ^
 -DINSTALL_EMBEDDED_PYTHON=OFF                                                                       ^
 -DLAPACK_LIBRARIES=%LAPACK%                                                                         ^
 -DBLAS_LIBRARIES=%BLAS%                                                                             ^

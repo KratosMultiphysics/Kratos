@@ -13,15 +13,15 @@
 #if !defined(KRATOS_FEAST_CONDITION_NUMBER_UTILITY )
 #define  KRATOS_FEAST_CONDITION_NUMBER_UTILITY
 
+// System includes
 
-/* System includes */
+// External includes
 
-/* External includes */
-
-/* Project includes */
+// Project includes
+#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-#ifdef INCLUDE_FEAST
-    #include "external_includes/feast_solver.h"
+#ifdef USE_EIGEN_FEAST
+    #include "custom_solvers/feast_eigensystem_solver.h"
 #endif
 
 namespace Kratos
@@ -37,7 +37,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -59,45 +59,25 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
-    typedef Matrix                                             MatrixType;
 
-    typedef Vector                                             VectorType;
+    /// Definition of the shared pointer of the class
+    KRATOS_CLASS_POINTER_DEFINITION(FEASTConditionNumberUtility);
 
+    /// Indexes
     typedef std::size_t                                          SizeType;
-    
     typedef std::size_t                                         IndexType;
 
+    /// Sparse space
     typedef typename TSparseSpace::MatrixType            SparseMatrixType;
-
     typedef typename TSparseSpace::VectorType            SparseVectorType;
 
+    /// Dense space
     typedef typename TDenseSpace::MatrixType              DenseMatrixType;
-
     typedef typename TDenseSpace::VectorType              DenseVectorType;
-    
-    typedef std::complex<double>                              ComplexType;
-    
-    typedef compressed_matrix<ComplexType>        ComplexSparseMatrixType;
 
-    typedef matrix<ComplexType>                    ComplexDenseMatrixType;
-
-    typedef vector<ComplexType>                         ComplexVectorType;
-
-    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
-
-    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
-
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
-    
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /* Constructor */
-
-
-    /** Destructor */
 
     ///@}
     ///@name Operators
@@ -107,78 +87,100 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
-     * Computes the condition number using the maximum and minimum eigenvalue of the system (in moduli)
+     * @brief Computes the condition number using the maximum and minimum eigenvalue of the system (in moduli)
      * @param InputMatrix: The matrix to obtain the condition number
      * @param pLinearSolver: The complex linear solver considered in the FEAST solver
      * @return condition_number: The condition number obtained
      */
-    static inline double ConditionNumber(
-        const MatrixType& InputMatrix,
-        ComplexLinearSolverType::Pointer pLinearSolver = nullptr
-        )
+    static inline double GetConditionNumber(const SparseMatrixType& InputMatrix)
     {
-#ifdef INCLUDE_FEAST
-        typedef FEASTSolver<TSparseSpace, TDenseSpace> FEASTSolverType;
-        
+#ifdef USE_EIGEN_FEAST
+        typedef FEASTEigensystemSolver<true, double, double> FEASTSolverType;
+
         Parameters this_params(R"(
         {
-            "solver_type": "FEAST",
-            "print_feast_output": false,
-            "perform_stochastic_estimate": true,
-            "solve_eigenvalue_problem": true,
-            "lambda_min": 0.0,
-            "lambda_max": 1.0,
-            "echo_level": 0,
-            "number_of_eigenvalues": 0,
-            "search_dimension": 10
+            "solver_type"                : "feast",
+            "symmetric"                  : true,
+            "number_of_eigenvalues"      : 3,
+            "search_lowest_eigenvalues"  : true,
+            "search_highest_eigenvalues" : false,
+            "e_min"                      : 0.0,
+            "e_max"                      : 1.0,
+            "echo_level"                 : 0
         })");
-        
-        const std::size_t size = InputMatrix.size1();
-        
+
+        const std::size_t size_matrix = InputMatrix.size1();
+
         const double normA = TSparseSpace::TwoNorm(InputMatrix);
-        this_params["lambda_max"].SetDouble(normA);
-        this_params["lambda_min"].SetDouble(-normA);
-        this_params["number_of_eigenvalues"].SetInt(size * 2/3 - 1);
-        this_params["search_dimension"].SetInt(3/2 * size + 1);
+
+        this_params["e_max"].SetDouble(normA);
+        this_params["e_min"].SetDouble(-normA);
+//         this_params["number_of_eigenvalues"].SetInt(size_matrix * 2/3 - 1);
+//         this_params["subspace_size"].SetInt(3/2 * size_matrix + 1);
         SparseMatrixType copy_matrix = InputMatrix;
-        SparseMatrixType identity_matrix = IdentityMatrix(size, size);
-        
+        SparseMatrixType identity_matrix(size_matrix, size_matrix);
+        for (IndexType i = 0; i < size_matrix; ++i)
+            identity_matrix.push_back(i, i, 1.0);
+
         // Create the auxilary eigen system
-        DenseMatrixType eigen_vectors;
-        DenseVectorType eigen_values;
-        
+        DenseMatrixType eigen_vectors(size_matrix, 1);
+        DenseVectorType eigen_values(size_matrix);
+
         // Create the FEAST solver
-        FEASTSolverType FEASTSolver(Kratos::make_shared<Parameters>(this_params), pLinearSolver);
-        
+        FEASTSolverType feast_solver_lowest(this_params);
+
         // Solve the problem
-        FEASTSolver.Solve(copy_matrix, identity_matrix, eigen_values, eigen_vectors);
-        
+        feast_solver_lowest.Solve(copy_matrix, identity_matrix, eigen_values, eigen_vectors);
+
         // Size of the eigen values vector
-        const int dim_eigen_values = eigen_values.size();
-        
+        int dim_eigen_values = eigen_values.size();
+
         // We get the moduli of the eigen values
-        #pragma omp parallel for 
-        for (int i = 0; i < dim_eigen_values; i++)
-        {
+        #pragma omp parallel for
+        for (int i = 0; i < dim_eigen_values; i++) {
             eigen_values[i] = std::abs(eigen_values[i]);
         }
-        
+
         // Now we sort the vector
         std::sort(eigen_values.begin(), eigen_values.end());
-        
+
+        const double lowest_eigen_value = eigen_values[0];
+
+        // Create the FEAST solver
+        this_params["search_lowest_eigenvalues"].SetBool(false);
+        this_params["search_highest_eigenvalues"].SetBool(true);
+        FEASTSolverType feast_solver_highest(this_params);
+
+        // Solve the problem
+        copy_matrix = InputMatrix;
+        feast_solver_highest.Solve(copy_matrix, identity_matrix, eigen_values, eigen_vectors);
+
+        // Size of the eigen values vector
+        dim_eigen_values = eigen_values.size();
+
+        // We get the moduli of the eigen values
+        #pragma omp parallel for
+        for (int i = 0; i < dim_eigen_values; i++) {
+            eigen_values[i] = std::abs(eigen_values[i]);
+        }
+
+        // Now we sort the vector
+        std::sort(eigen_values.begin(), eigen_values.end());
+
+        const double highest_eigen_value = eigen_values[dim_eigen_values - 1];
+
         // We compute the eigen value
-        double condition_number = 0.0;
-        if (dim_eigen_values > 0) condition_number = eigen_values[dim_eigen_values - 1]/eigen_values[0];
+        const double condition_number = highest_eigen_value/lowest_eigen_value;
 #else
         const double condition_number = 0.0;
         KRATOS_ERROR << "YOU MUST COMPILE FEAST IN ORDER TO USE THIS UTILITY" << std::endl;
 #endif
-        
+
         return condition_number;
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -198,7 +200,7 @@ public:
     ///@{
 
 private:
-    
+
     ///@name Private static Member Variables
     ///@{
 
@@ -213,7 +215,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     ///@}
     ///@name Private  Access
     ///@{
