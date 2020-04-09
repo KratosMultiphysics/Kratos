@@ -231,9 +231,12 @@ public:
 
     const VariableData& GetSourceVariable() const
     {   
-        KRATOS_DEBUG_ERROR_IF(IsNotComponent()) << "The source variable is only defined for components" << std::endl;
         KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
         return *mpSourceVariable;
+    }
+
+    virtual const void* pZero() const {
+        KRATOS_ERROR << "Calling base class method." << std::endl;
     }
 
 

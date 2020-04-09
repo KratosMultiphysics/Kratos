@@ -348,6 +348,10 @@ public:
         return mZero;
     }
 
+    const void* pZero() const override {
+       return &mZero;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{

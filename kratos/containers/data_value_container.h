@@ -219,7 +219,8 @@ public:
             KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
 #endif 
         
-        mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
+        auto p_source_variable = &rThisVariable.GetSourceVariable();
+        mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
 
         return *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex());
     }
@@ -263,33 +264,10 @@ public:
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end()) {
             *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
-        } else {
-            if (rThisVariable.IsComponent()) {
-                const auto& r_source_variable_data = rThisVariable.GetSourceVariable();
-                const auto& r_source_variable_data_name = r_source_variable_data.Name();
-                if (KratosComponents<Variable<array_1d<double, 3> >>::Has(r_source_variable_data_name)) {
-                    const auto& r_source_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_source_variable_data_name);
-                    this->SetValue(r_source_variable, r_source_variable.Zero());
-                } else if (KratosComponents<Variable<array_1d<double, 4> >>::Has(r_source_variable_data_name)) {
-                    const auto& r_source_variable = KratosComponents<Variable<array_1d<double, 4>>>::Get(r_source_variable_data_name);
-                    this->SetValue(r_source_variable, r_source_variable.Zero());
-                } else if (KratosComponents<Variable<array_1d<double, 6> >>::Has(r_source_variable_data_name)) {
-                    const auto& r_source_variable = KratosComponents<Variable<array_1d<double, 6>>>::Get(r_source_variable_data_name);
-                    this->SetValue(r_source_variable, r_source_variable.Zero());
-                } else if (KratosComponents<Variable<array_1d<double, 9> >>::Has(r_source_variable_data_name)) {
-                    const auto& r_source_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(r_source_variable_data_name);
-                    this->SetValue(r_source_variable, r_source_variable.Zero());
-                } else {
-                    KRATOS_ERROR << "Variable for component" << rThisVariable.Name() << " not found" << std::endl;
-                }
-                if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end()) {
-                    *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
-                } else {
-                    KRATOS_ERROR << "All components of " << r_source_variable_data.Name() << " should have been initialized, something went wrong" << std::endl;
-                }
-            } else {
-                mData.push_back(ValueType(&rThisVariable,new TDataType(rValue)));
-            }
+        else{
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
+            *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue; 
         }
     }
 
