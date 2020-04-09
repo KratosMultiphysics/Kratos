@@ -64,6 +64,22 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetValue, KratosCoreFas
         KRATOS_CHECK_EQUAL(distances[i], original_distances[i]);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerAddComponent, KratosCoreFastSuite) {
+    VariablesList::Pointer p_variables_list=Kratos::make_intrusive<VariablesList>();
+    p_variables_list->Add(VELOCITY_Y);
+    VariablesListDataValueContainer container(p_variables_list);
+    array_1d<double, 3> original_velocity;
+    original_velocity[0] = 0.00;
+    original_velocity[1] = 0.10;
+    original_velocity[2] = 0.20;
+
+    container.SetValue(VELOCITY, original_velocity);
+
+    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
+    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
+    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetComponentValue, KratosCoreFastSuite) {
     VariablesList::Pointer p_variables_list=Kratos::make_intrusive<VariablesList>();
     p_variables_list->Add(VELOCITY);
