@@ -149,7 +149,7 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
@@ -304,7 +304,7 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
@@ -527,7 +527,7 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }
@@ -717,7 +717,7 @@ namespace Kratos
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Set(ACTIVE, true);
-                    p_auxiliar_condition->Initialize();
+                    p_auxiliar_condition->Initialize(r_process_info);
                     p_auxiliar_condition->InitializeSolutionStep(r_process_info);
                 }
             }

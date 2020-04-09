@@ -99,8 +99,6 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        void Initialize() override;
-
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
             ProcessInfo& rCurrentProcessInfo) override;
