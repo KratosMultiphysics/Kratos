@@ -797,8 +797,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICor
 
     const auto& r_mpi_comm = r_model_part.GetCommunicator();
 
-    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfNodes(), r_mpi_comm.TotalProcesses()+1);
-    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfElements(), r_mpi_comm.TotalProcesses());
+    const unsigned int comm_size = r_mpi_comm.TotalProcesses();
+
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfNodes(), comm_size+1);
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfElements(), comm_size);
 }
 
 }
