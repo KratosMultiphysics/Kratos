@@ -262,9 +262,9 @@ public:
 #endif
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end()) {
             *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
-        else{
+        } else {
             auto p_source_variable = &rThisVariable.GetSourceVariable();
             mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
             *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue; 
