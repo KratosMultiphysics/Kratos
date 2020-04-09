@@ -48,14 +48,14 @@ namespace MPMSearchElementUtility
         const double Tolerance)
     {
         // Reset elements to inactive
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
-                auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
-                auto& r_geometry = element_itr->GetGeometry();
-                element_itr->Reset(ACTIVE);
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
+            auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
+            auto& r_geometry = element_itr->GetGeometry();
+            element_itr->Reset(ACTIVE);
 
-                for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
-                    r_geometry[j].Reset(ACTIVE);
+            for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
+                r_geometry[j].Reset(ACTIVE);
 
         }
 
@@ -72,66 +72,70 @@ namespace MPMSearchElementUtility
 
             // Element search and assign background grid
             #pragma omp for
-            for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
+            for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
 
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
-                const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
+                std::vector<array_1d<double, 3>> xg;
+                element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rMPMModelPart.GetProcessInfo());
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true) {
-                        pelem->Set(ACTIVE);
-                        element_itr->GetGeometry() = pelem->GetGeometry();
-                        auto& r_geometry = element_itr->GetGeometry();
+                    pelem->Set(ACTIVE);
+                    element_itr->GetGeometry() = pelem->GetGeometry();
+                    auto& r_geometry = element_itr->GetGeometry();
 
-                        for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
-                            r_geometry[j].Set(ACTIVE);
+                    for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
+                        r_geometry[j].Set(ACTIVE);
                 }
-                else{
-                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
-                            << " is failed. Geometry is cleared." << std::endl;
+                else {
+                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
+                        << " is failed. Geometry is cleared." << std::endl;
 
-                        element_itr->GetGeometry().clear();
-                        element_itr->Reset(ACTIVE);
-                        element_itr->Set(TO_ERASE);
+                    element_itr->GetGeometry().clear();
+                    element_itr->Reset(ACTIVE);
+                    element_itr->Set(TO_ERASE);
                 }
             }
 
             // Condition search and assign background grid
             #pragma omp for
-            for(int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i){
+            for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
 
                 auto condition_itr = rMPMModelPart.Conditions().begin() + i;
+                std::vector<array_1d<double, 3>> xg;
+                condition_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
 
-                if (condition_itr->Has(MPC_COORD)){
-                    const array_1d<double,3>& xg = condition_itr->GetValue(MPC_COORD);
+                if (xg.size() == 1) {
+                    // Only search for particle based BCs!
+                    // Grid BCs are still applied on MP_model_part but we don't want to search for them.
                     typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
                     // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                    bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                     if (is_found == true) {
-                            pelem->Set(ACTIVE);
-                            condition_itr->GetGeometry() = pelem->GetGeometry();
-                            auto& r_geometry = condition_itr->GetGeometry();
+                        pelem->Set(ACTIVE);
+                        condition_itr->GetGeometry() = pelem->GetGeometry();
+                        auto& r_geometry = condition_itr->GetGeometry();
 
-                            for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
-                                r_geometry[j].Set(ACTIVE);
+                        for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
+                            r_geometry[j].Set(ACTIVE);
                     }
-                    else{
-                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
-                                << " is failed. Geometry is cleared." << std::endl;
+                    else {
+                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
+                            << " is failed. Geometry is cleared." << std::endl;
 
-                            condition_itr->GetGeometry().clear();
-                            condition_itr->Reset(ACTIVE);
-                            condition_itr->Set(TO_ERASE);
+                        condition_itr->GetGeometry().clear();
+                        condition_itr->Reset(ACTIVE);
+                        condition_itr->Set(TO_ERASE);
                     }
                 }
             }

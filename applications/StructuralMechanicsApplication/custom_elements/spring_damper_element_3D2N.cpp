@@ -224,18 +224,6 @@ void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int S
     }
 }
 
-//************* STARTING - ENDING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-void SpringDamperElement3D2N::Initialize()
-{
-    KRATOS_TRY;
-
-    // NOTE: Add something if necessary
-
-    KRATOS_CATCH( "" );
-}
 
 //************* COMPUTING  METHODS
 //************************************************************************************

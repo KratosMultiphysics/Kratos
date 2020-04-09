@@ -39,8 +39,9 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-UpdatedLagrangianUP::UpdatedLagrangianUP( )
-    : UpdatedLagrangian( )
+UpdatedLagrangianUP::UpdatedLagrangianUP()
+    : UpdatedLagrangian()
+    , m_mp_pressure(1.0)
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
@@ -48,6 +49,7 @@ UpdatedLagrangianUP::UpdatedLagrangianUP( )
 //************************************************************************************
 UpdatedLagrangianUP::UpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer pGeometry )
     : UpdatedLagrangian( NewId, pGeometry )
+    , m_mp_pressure(1.0)
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -57,6 +59,7 @@ UpdatedLagrangianUP::UpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer
 
 UpdatedLagrangianUP::UpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : UpdatedLagrangian( NewId, pGeometry, pProperties )
+    , m_mp_pressure(1.0)
 {
     mFinalizedStep = true;
 
@@ -67,6 +70,7 @@ UpdatedLagrangianUP::UpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer
 
 UpdatedLagrangianUP::UpdatedLagrangianUP( UpdatedLagrangianUP const& rOther)
     :UpdatedLagrangian(rOther)
+    , m_mp_pressure(rOther.m_mp_pressure)
      //,mDeformationGradientF0(rOther.mDeformationGradientF0)
      //,mDeterminantF0(rOther.mDeterminantF0)
 {
@@ -78,6 +82,8 @@ UpdatedLagrangianUP::UpdatedLagrangianUP( UpdatedLagrangianUP const& rOther)
 UpdatedLagrangianUP&  UpdatedLagrangianUP::operator=(UpdatedLagrangianUP const& rOther)
 {
     UpdatedLagrangian::operator=(rOther);
+
+    m_mp_pressure = rOther.m_mp_pressure;
 
     return *this;
 }
@@ -95,6 +101,8 @@ Element::Pointer UpdatedLagrangianUP::Clone( IndexType NewId, NodesArrayType con
 {
 
     UpdatedLagrangianUP NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    NewElement.m_mp_pressure = m_mp_pressure;
 
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
@@ -157,17 +165,13 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
-    const array_1d<double,3> & MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
-    const array_1d<double,3> & MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
-
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_acceleration = ZeroVector(3);
     array_1d<double,3> MP_velocity = ZeroVector(3);
     double MP_pressure = 0.0;
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
+    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -200,8 +204,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     /* NOTE:
     Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    MP_velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
-    this -> SetValue(MP_VELOCITY,MP_velocity );
+    mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
 
     /* NOTE: The following interpolation techniques have been tried:
         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
@@ -209,19 +212,16 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     */
 
     // Update the MP Pressure
-    this -> SetValue(MP_PRESSURE,MP_pressure);
+    m_mp_pressure = MP_pressure;
 
     // Update the MP Position
-    const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(MP_COORD,new_xg);
+    mMP.xg += delta_xg ;
 
     //Update the MP Acceleration
-    this -> SetValue(MP_ACCELERATION,MP_acceleration);
+    mMP.acceleration = MP_acceleration;
 
     // Update the MP total displacement
-    array_1d<double,3>& MP_Displacement = this->GetValue(MP_DISPLACEMENT);
-    MP_Displacement += delta_xg;
-    this -> SetValue(MP_DISPLACEMENT,MP_Displacement);
+    mMP.displacement += delta_xg;
 
     KRATOS_CATCH( "" )
 }
@@ -268,9 +268,8 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian( Jacobian, xg);
+    Jacobian = this->MPMJacobian( Jacobian, mMP.xg);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
@@ -279,7 +278,7 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
-    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
+    jacobian = this->MPMJacobianDelta( jacobian, mMP.xg, rVariables.CurrentDisp);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
@@ -373,18 +372,12 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     GeometryType& r_geometry = GetGeometry();
     unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, mMP.xg);
 
     mFinalizedStep = false;
-
-    const array_1d<double,3>& MP_velocity = this->GetValue(MP_VELOCITY);
-    const array_1d<double,3>& MP_acceleration = this->GetValue(MP_ACCELERATION);
-    const double & MP_pressure = this->GetValue(MP_PRESSURE);
-    const double& MP_mass = this->GetValue(MP_MASS);
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -418,12 +411,12 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        double nodal_mpressure =  Variables.N[i] * (MP_pressure - aux_MP_pressure) * MP_mass;
+        double nodal_mpressure =  Variables.N[i] * (m_mp_pressure - aux_MP_pressure) * mMP.mass;
 
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = Variables.N[i] * (MP_velocity[j] - aux_MP_velocity[j]) * MP_mass;
-            nodal_inertia[j]  = Variables.N[i] * (MP_acceleration[j] - aux_MP_acceleration[j]) * MP_mass;
+            nodal_momentum[j] = Variables.N[i] * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
+            nodal_inertia[j]  = Variables.N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
         }
 
         r_geometry[i].SetLock();
@@ -431,7 +424,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
 
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_mass;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * mMP.mass;
         r_geometry[i].UnSetLock();
     }
 }
@@ -1045,7 +1038,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessI
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
     // TOTAL MASS OF ONE MP ELEMENT
-    const double & r_total_mass = this->GetValue(MP_MASS);
+    const double & r_total_mass = mMP.mass;
 
     // LUMPED MATRIX
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1193,8 +1186,42 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
     for (unsigned int i = 0; i < dimension; i++)
         stress_vector[i] += (nodal_mean_stress - mean_stress);
 
-    this->SetValue(MP_CAUCHY_STRESS_VECTOR, stress_vector);
+    mMP.cauchy_stress_vector = stress_vector;
 
+}
+
+void UpdatedLagrangianUP::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_PRESSURE) {
+        rValues[0] = m_mp_pressure;
+    }
+    else {
+        UpdatedLagrangian::CalculateOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_PRESSURE) {
+        m_mp_pressure = rValues[0];
+    }
+    else {
+        UpdatedLagrangian::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
 }
 
 //************************************************************************************

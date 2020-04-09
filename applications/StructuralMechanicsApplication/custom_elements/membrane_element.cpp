@@ -125,7 +125,7 @@ void MembraneElement::GetDofList(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::Initialize()
+void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

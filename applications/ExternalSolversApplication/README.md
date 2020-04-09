@@ -1,6 +1,6 @@
 ## External Solvers Application
 
-External Solvers application is the place where interface to third party solvers are located. 
+External Solvers application is the place where interface to third party solvers are located.
 
 In the following list you can find which solvers are currently supported by kratos and links to the library projects or algortihms in which are bases:
 
@@ -14,3 +14,21 @@ In the following list you can find which solvers are currently supported by krat
 
 ### Eigen Solvers:
 * __FEASTSolver__: Based on [FEAST](http://www.feast-solver.org/) project.
+
+
+## Installing Blas and Lapack
+Blas and Lapack are required to compile the `ExternalSolversApplication`.
+After installing they have to be added to the `configure` file using the CMake Flags `BLAS_LIBRARIES` and `LAPACK_LIBRARIES`.
+Typical installation paths are:
+
+### Windows
+~~~
+-DLAPACK_LIBRARIES="C:\CompiledLibs\blas_x64\liblapack.lib"
+-DBLAS_LIBRARIES="C:\CompiledLibs\blas_x64\libblas.lib"
+~~~
+
+### MacOS
+~~~
+-DLAPACK_LIBRARIES="/usr/lib/liblapack.dylib"
+-DBLAS_LIBRARIES="/usr/lib/libblas.dylib"
+~~~

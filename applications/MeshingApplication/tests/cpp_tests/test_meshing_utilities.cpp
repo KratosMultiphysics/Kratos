@@ -45,26 +45,6 @@ namespace Kratos {
         }
 
         /**
-        * Checks the correct work of the EnsureModelPartOwnsProperties
-        * Test triangle
-        */
-        KRATOS_TEST_CASE_IN_SUITE(EnsureModelPartOwnsProperties, KratosMeshingApplicationFastSuite)
-        {
-            Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-            ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
-            r_current_process_info[DOMAIN_SIZE] = 2;
-
-            CreateDummy2DNoModelPartPropertiesModelPart(r_model_part);
-
-            KRATOS_CHECK(r_model_part.NumberOfProperties() == 0);
-
-            MeshingUtilities::EnsureModelPartOwnsProperties(r_model_part);
-
-            KRATOS_CHECK(r_model_part.NumberOfProperties() == 1);
-        }
-
-        /**
         * Checks the correct work of the BlockThresholdSizeElements
         * Test triangle
         */

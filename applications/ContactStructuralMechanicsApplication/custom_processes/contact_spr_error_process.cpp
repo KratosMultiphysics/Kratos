@@ -28,16 +28,7 @@ ContactSPRErrorProcess<TDim>::ContactSPRErrorProcess(
     Parameters ThisParameters
     ): BaseType(rThisModelPart)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
-        "penalty_normal"                      : 1.0e4,
-        "penalty_tangential"                  : 1.0e4,
-        "echo_level"                          : 0
-    })"
-    );
-
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     // Penalty values
     mPenaltyNormal = ThisParameters["penalty_normal"].GetDouble();
@@ -360,6 +351,23 @@ void ContactSPRErrorProcess<3>::ComputeNormalTangentMatrices(
     rTk2(0,3) = rNormal[0]*t2[1]+rNormal[1]*t2[0];
     rTk2(0,4) = rNormal[1]*t2[2]+rNormal[2]*t2[1];
     rTk2(0,5) = rNormal[2]*t2[0]+rNormal[0]*t2[2];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters ContactSPRErrorProcess<TDim>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
+        "penalty_normal"                      : 1.0e4,
+        "penalty_tangential"                  : 1.0e4,
+        "echo_level"                          : 0
+    })" );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/

@@ -31,11 +31,11 @@ void ApplyChimeraProcessFractionalStep<TDim>::ExecuteFinalizeSolutionStep()
     if (BaseType::mReformulateEveryStep) {
         auto& vel_modelpart =
             BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_velocity_model_part");
-        vel_modelpart.MasterSlaveConstraints().clear();
+        vel_modelpart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 
         auto& pre_modelpart =
             BaseType::mrMainModelPart.GetSubModelPart(BaseType::mrMainModelPart.Name()+"fs_pressure_model_part");
-        pre_modelpart.MasterSlaveConstraints().clear();
+        pre_modelpart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
     }
 
     BaseType::ExecuteFinalizeSolutionStep();
