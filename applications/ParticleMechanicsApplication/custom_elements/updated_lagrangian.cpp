@@ -1639,6 +1639,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     if (rVariable == MP_DENSITY) {
         rValues[0] = mMP.density;
     }
+    else if (rVariable == MP_MATERIAL_ID) {
+        rValues[0] = GetProperties().Id();
+    }
     else if (rVariable == MP_MASS) {
         rValues[0] = mMP.mass;
     }
