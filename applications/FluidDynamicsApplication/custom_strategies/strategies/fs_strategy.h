@@ -90,7 +90,9 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> StrategyType;
+
+    typedef typename StrategyType::Pointer StrategyPointerType;
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -571,7 +573,7 @@ protected:
 
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-            double NormDv = mpMomentumStrategy->Solve();
+            double NormDv = SolveStrategy(*mpMomentumStrategy);
 
 //            // Compute projections (for stabilization)
 //            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -618,7 +620,7 @@ protected:
 
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
-        double NormDp = mpPressureStrategy->Solve();
+        double NormDp = SolveStrategy(*mpPressureStrategy);
 
 #pragma omp parallel
         {
@@ -1048,6 +1050,14 @@ protected:
      }
 
 
+    double SolveStrategy(StrategyType& rStrategy)
+    {
+        rStrategy.Initialize();
+        rStrategy.InitializeSolutionStep();
+        rStrategy.Predict();
+        rStrategy.SolveSolutionStep();
+        return TSparseSpace::TwoNorm(rStrategy.GetSolutionVector());
+    }
     ///@}
     ///@name Protected  Access
     ///@{
