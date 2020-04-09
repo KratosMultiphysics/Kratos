@@ -27,7 +27,6 @@
 #include "includes/gid_io.h"
 #include "includes/gid_gauss_point_container.h"
 #include "includes/deprecated_variables.h"
-#include "free_surface_application.h"
 
 
 namespace Kratos
@@ -48,7 +47,7 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
-    bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement( const ModelPart::ElementConstantIterator pElemIt ) override
     {
         KRATOS_TRY
         if( pElemIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
@@ -62,7 +61,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    bool AddCondition( const ModelPart::ConditionsContainerType::iterator pCondIt )
+    bool AddCondition( const ModelPart::ConditionConstantIterator pCondIt ) override
     {
         KRATOS_TRY
         if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
