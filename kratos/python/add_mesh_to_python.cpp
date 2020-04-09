@@ -146,11 +146,11 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
 ///@name Calculate on Integration Points
 ///@{
 
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsInt(
-    TObject& dummy, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo)
+template< class TObject, class TDataType >
+pybind11::list CalculateOnIntegrationPoints(
+    TObject& dummy, const Variable<TDataType>& rVariable, const ProcessInfo& rProcessInfo)
 {
-    std::vector<int> Output;
+    std::vector<TDataType> Output;
     dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
     pybind11::list result;
     for (unsigned int j = 0; j < Output.size(); j++)
