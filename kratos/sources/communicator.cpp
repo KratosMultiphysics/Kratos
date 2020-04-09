@@ -95,22 +95,22 @@ int Communicator::TotalProcesses() const
 
 Communicator::SizeType Communicator::GlobalNumberOfNodes() const
 {
-    return mrDataCommunicator.SumAll(mpLocalMesh->NumberOfNodes());
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfNodes()));
 }
 
 Communicator::SizeType Communicator::GlobalNumberOfElements() const
 {
-    return mrDataCommunicator.SumAll(mpLocalMesh->NumberOfElements());
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfElements()));
 }
 
 Communicator::SizeType Communicator::GlobalNumberOfConditions() const
 {
-    return mrDataCommunicator.SumAll(mpLocalMesh->NumberOfConditions());
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfConditions()));
 }
 
 Communicator::SizeType Communicator::GlobalNumberOfMasterSlaveConstraints() const
 {
-    return mrDataCommunicator.SumAll(mpLocalMesh->NumberOfMasterSlaveConstraints());
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfMasterSlaveConstraints()));
 }
 
 Communicator::SizeType Communicator::GetNumberOfColors() const
