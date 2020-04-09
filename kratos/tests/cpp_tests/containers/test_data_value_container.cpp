@@ -80,6 +80,17 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerComponent, KratosCoreFastSuite) {
     KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
     KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
     KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+
+    container.SetValue(DISPLACEMENT_Y, 1.23);
+
+    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
+    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
+    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+
+    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_X), 0.00);
+    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Y), 1.23);
+    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Z), 0.00);
+
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMerge, KratosCoreFastSuite) {
