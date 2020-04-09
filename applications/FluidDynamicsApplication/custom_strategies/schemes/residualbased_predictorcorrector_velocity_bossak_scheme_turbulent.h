@@ -694,7 +694,7 @@ namespace Kratos {
 
                 //adding the dynamic contributions (statics is already included)
                 AddDynamicsToLHS(LHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
-                AddDynamicsToRHS(*(*itElem), RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
+                AddDynamicsToRHS(**itElem, RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
 
                 GeometryType& rGeom = (*itElem)->GetGeometry();
                 unsigned int NumNodes = rGeom.PointsNumber();
