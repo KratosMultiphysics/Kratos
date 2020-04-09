@@ -13,8 +13,7 @@ else:
     msg += " Please install/compile it and try again."
     raise Exception(msg)
 
-from statistics import mean, stdev
-import math
+from math import pow, sqrt
 
 
 def Factory(settings, model):
@@ -160,8 +159,8 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         if (total_elements_in_threshold_range > 0):
             y_mean = (group_means[0] * group_histogram[0] + group_means[1] * group_histogram[1]) / total_elements_in_threshold_range
 
-            threshold_sum_squared = (group_variances[0] + math.pow(group_means[0], 2)) * group_histogram[0] + (group_variances[1] + math.pow(group_means[1], 2)) * group_histogram[1]
-            y_std = math.sqrt((threshold_sum_squared  - total_elements_in_threshold_range * math.pow(y_mean, 2)) / (total_elements_in_threshold_range - 1.0))
+            threshold_sum_squared = (group_variances[0] + pow(group_means[0], 2)) * group_histogram[0] + (group_variances[1] + pow(group_means[1], 2)) * group_histogram[1]
+            y_std = sqrt((threshold_sum_squared  - total_elements_in_threshold_range * pow(y_mean, 2)) / (total_elements_in_threshold_range - 1.0))
         else:
             y_mean = 0.0
             y_std = 0.0
