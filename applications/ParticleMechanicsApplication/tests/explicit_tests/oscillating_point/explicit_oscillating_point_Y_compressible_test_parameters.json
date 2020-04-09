@@ -72,7 +72,7 @@
                 "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT","MP_VOLUME"],
                 "input_file_name"  : "explicit_tests/oscillating_point/explicit_oscillating_point_Y_compressible_test_results.json",
                 "model_part_name"  : "MPM_Material",
-                "time_frequency"   : 0.25
+                "time_frequency"   : 0.05
             }
         }]
     },
@@ -85,7 +85,7 @@
             "gauss_points_output_variables" : ["MP_VELOCITY","MP_DISPLACEMENT","MP_VOLUME"],
             "output_file_name"              : "explicit_tests/oscillating_point/explicit_oscillating_point_Y_compressible_test_results.json",
             "model_part_name"               : "MPM_Material",
-            "time_frequency"                : 0.25
+            "time_frequency"                : 0.05
         }
     }]
 }

@@ -92,21 +92,25 @@ namespace Kratos
     {
         KRATOS_TRY
 
-
         const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
         const bool& isCentralDifference = rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE);
         GeometryType& rGeom = rElement.GetGeometry();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
-        bool isUpdateMPPositionFromUpdatedMPVelocity = true; // should normally be true. this reduces energy lost from kinematic aliasing
-        const ProcessInfo& rProcessInfo = ProcessInfo();
 
-        // Update the MP Velocity
+
+        // False for stability (typical across research papers). 
+        // One may set to true to reduces energy lost from kinematic aliasing
+        bool isUpdateMPPositionFromUpdatedMPVelocity = false; 
+
+
+        const ProcessInfo& rProcessInfo = ProcessInfo();
         std::vector<array_1d<double, 3 > > MP_PreviousVelocity;
         std::vector<array_1d<double, 3 > > MP_PreviousAcceleration; 
         array_1d<double, 3> MP_Velocity = ZeroVector(3);
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_PreviousVelocity,rProcessInfo);        
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, MP_PreviousAcceleration, rProcessInfo);
+
         const double gamma = (isCentralDifference)
             ? 0.5
             : 1.0; // 0.5 for central difference, 1.0 for forward euler
@@ -118,22 +122,27 @@ namespace Kratos
             MP_Velocity[i] = MP_PreviousVelocity[0][i] + (1.0 - gamma) * rDeltaTime * MP_PreviousAcceleration[0][i];
         }
 
+
+        // Calculate the MP displacement and acceleration for this timestep
         array_1d<double, 3> delta_xg = ZeroVector(3);
         array_1d<double, 3> MP_Acceleration = ZeroVector(3);
-
         for (IndexType i = 0; i < number_of_nodes; i++)
         {
             const double nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
-
             if (nodal_mass > std::numeric_limits<double>::epsilon())
             {
                 const array_1d<double, 3>& r_nodal_momenta = rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM);
                 const array_1d<double, 3>& r_current_residual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                // Applicable to central difference only, the value in VELOCITY at the moment is actually the
+                // predicted (middle) grid velocity
                 const array_1d<double, 3>& r_middle_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
                 for (IndexType j = 0; j < dimension; j++)
                 {
+                    // Update MP acceleration regardless of explicit method
                     MP_Acceleration[j] += rN[i] * r_current_residual[j] / nodal_mass;
+
                     if (isCentralDifference)
                     {
                         delta_xg[j] += rDeltaTime * rN[i] * r_middle_velocity[j];
@@ -157,8 +166,6 @@ namespace Kratos
         rElement.SetValuesOnIntegrationPoints(MP_VELOCITY, { MP_Velocity }, rProcessInfo);
 
         // Update the MP Position
-        std::vector<array_1d<double, 3 > > xg;
-        rElement.CalculateOnIntegrationPoints(MP_COORD, xg,rProcessInfo);
         if (isUpdateMPPositionFromUpdatedMPVelocity)
         {
             for (IndexType j = 0; j < dimension; j++)
@@ -166,6 +173,8 @@ namespace Kratos
                 delta_xg[j] = rDeltaTime * MP_Velocity[j];
             }
         }
+        std::vector<array_1d<double, 3 > > xg;
+        rElement.CalculateOnIntegrationPoints(MP_COORD, xg, rProcessInfo);
         const array_1d<double, 3>& new_xg = xg[0] + delta_xg;
         rElement.SetValuesOnIntegrationPoints(MP_COORD, { new_xg }, rProcessInfo);
 
@@ -206,7 +215,6 @@ namespace Kratos
                 array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
                 for (IndexType j = 0; j < dimension; j++)
                 {
-                    // we need to use the original shape functions here (calculated before the momenta update)
                     r_current_velocity[j] += rN[i] * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
                 }
             }

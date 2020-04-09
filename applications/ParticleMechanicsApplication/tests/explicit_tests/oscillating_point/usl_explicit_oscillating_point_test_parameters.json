@@ -72,10 +72,9 @@
                 "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT"],
                 "input_file_name"  : "explicit_tests/oscillating_point/usl_explicit_oscillating_point_test_results.json",
                 "model_part_name"  : "MPM_Material",
-                "time_frequency"   : 0.5
+                "time_frequency"   : 0.05
             }
-        }]
-    },
+        }],
 		"print_output_process" : [{
         "python_module"   : "particle_json_output_process",
         "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
@@ -85,7 +84,8 @@
             "gauss_points_output_variables" : ["MP_VELOCITY","MP_DISPLACEMENT"],
             "output_file_name"              : "explicit_tests/oscillating_point/usl_explicit_oscillating_point_test_results.json",
             "model_part_name"               : "MPM_Material",
-            "time_frequency"                : 0.5
+            "time_frequency"                : 0.05
         }
     }]
+    }
 }
