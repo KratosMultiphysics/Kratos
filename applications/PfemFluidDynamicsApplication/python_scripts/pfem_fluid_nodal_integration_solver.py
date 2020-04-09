@@ -120,7 +120,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_ERROR_XX)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_VOLUME)
@@ -168,7 +168,9 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
-        
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
+
         print("::[Pfem Fluid Solver]:: Variables ADDED")
 
 

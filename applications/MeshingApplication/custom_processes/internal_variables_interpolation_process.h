@@ -157,6 +157,11 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -351,7 +356,7 @@ private:
         itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         TVarType aux_value;
         values[GaussPointId] = pPointOrigin->GetValue(rThisVar, aux_value);
-        itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
 
     /**
@@ -442,7 +447,7 @@ private:
         std::vector<TVarType> values;
         itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         values[GaussPointId] = destination_value;
-        itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
 
     /**
@@ -606,7 +611,7 @@ private:
         std::vector<TVarType> values;
         itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         values[GaussPointId] = destination_value;
-        itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
 
     /**

@@ -416,6 +416,12 @@ namespace Testing {
         KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
         KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
         KRATOS_CHECK_EQUAL(this_geometry.Id(), 1);
+
+        // Check for higher Id.
+        auto this_geometry_2 = Geometry<Point>(717);
+        KRATOS_CHECK_IS_FALSE(this_geometry_2.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry_2.IsIdSelfAssigned());
+        KRATOS_CHECK_EQUAL(this_geometry_2.Id(), 717);
     }
 } // namespace Testing.
 } // namespace Kratos.

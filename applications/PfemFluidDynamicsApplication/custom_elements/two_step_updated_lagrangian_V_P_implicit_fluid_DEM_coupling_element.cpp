@@ -62,19 +62,12 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::ComputeMat
                                                                                                 ProcessInfo &currentProcessInfo,
                                                                                                 ElementalVariables &rElementalVariables)
 {
-  double FluidBulkModulus = 0;
-  double FluidYieldShear = 0;
-  double staticFrictionCoefficient = 0;
-  double regularizationCoefficient = 0;
-  // double inertialNumberThreshold=0;
   double timeStep = currentProcessInfo[DELTA_TIME];
 
-  this->EvaluatePropertyFromANotRigidNode(Density, DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus, BULK_MODULUS);
-  this->EvaluatePropertyFromANotRigidNode(FluidYieldShear, YIELD_SHEAR);
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient, REGULARIZATION_COEFFICIENT);
-  // this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+  Density = this->GetProperties()[DENSITY];
+  double FluidBulkModulus = this->GetProperties()[BULK_MODULUS];
+  double FluidYieldShear = this->GetProperties()[YIELD_SHEAR];
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
 
   if (FluidBulkModulus == 0)
   {
@@ -94,7 +87,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::ComputeMat
   else
   {
     // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
-    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff, DYNAMIC_VISCOSITY);
+    DeviatoricCoeff = this->GetProperties()[DYNAMIC_VISCOSITY];
   }
 
   // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
@@ -656,7 +649,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::CalculateL
       }
       if (wallElement == true)
       {
-        this->EvaluatePropertyFromANotRigidNode(FluidFractionRate, FLUID_FRACTION_RATE);
+        FluidFractionRate = this->GetProperties()[FLUID_FRACTION_RATE];
       }
 
       if (std::abs(FluidFraction) < 1.0e-12)

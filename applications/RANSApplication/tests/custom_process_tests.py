@@ -618,25 +618,25 @@ class CustomProcessTest(UnitTest.TestCase):
         self.submodelpart_1 = self.model_part.CreateSubModelPart(
             "submodelpart_1")
         self.submodelpart_1.AddNodes([1, 2, 3])
-        self.submodelpart_1.CreateNewCondition("Condition2D2N", 1, [1, 2],
+        self.submodelpart_1.CreateNewCondition("LineCondition2D2N", 1, [1, 2],
                                                prop)
-        self.submodelpart_1.CreateNewCondition("Condition2D2N", 2, [2, 3],
+        self.submodelpart_1.CreateNewCondition("LineCondition2D2N", 2, [2, 3],
                                                prop)
 
         self.submodelpart_2 = self.model_part.CreateSubModelPart(
             "submodelpart_2")
         self.submodelpart_2.AddNodes([3, 4, 5])
-        self.submodelpart_2.CreateNewCondition("Condition2D2N", 3, [3, 4],
+        self.submodelpart_2.CreateNewCondition("LineCondition2D2N", 3, [3, 4],
                                                prop)
-        self.submodelpart_2.CreateNewCondition("Condition2D2N", 4, [4, 5],
+        self.submodelpart_2.CreateNewCondition("LineCondition2D2N", 4, [4, 5],
                                                prop)
 
         self.submodelpart_3 = self.model_part.CreateSubModelPart(
             "submodelpart_3")
         self.submodelpart_3.AddNodes([1, 6, 5])
-        self.submodelpart_3.CreateNewCondition("Condition2D2N", 5, [5, 6],
+        self.submodelpart_3.CreateNewCondition("LineCondition2D2N", 5, [5, 6],
                                                prop)
-        self.submodelpart_3.CreateNewCondition("Condition2D2N", 6, [6, 1],
+        self.submodelpart_3.CreateNewCondition("LineCondition2D2N", 6, [6, 1],
                                                prop)
 
         self.model_part.SetBufferSize(2)

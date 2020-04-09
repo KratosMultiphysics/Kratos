@@ -139,7 +139,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    void ElementalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rElementalError,std::vector<int>& rIds,const Variable<double> rVariable)
+    void ElementalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rElementalError,std::vector<int>& rIds,const Variable<double> &rVariable)
     {
       KRATOS_TRY
 

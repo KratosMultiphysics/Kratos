@@ -375,6 +375,11 @@ class non_copyable {
 
 } // namespace detail
 
+namespace error {
+
+struct empty_level {};
+
+} // namespace error
 } // namespace amgcl
 
 namespace std {

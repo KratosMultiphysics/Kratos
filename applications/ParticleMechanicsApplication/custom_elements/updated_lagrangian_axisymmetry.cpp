@@ -95,11 +95,8 @@ void UpdatedLagrangianAxisymmetry::Initialize()
     KRATOS_TRY
     UpdatedLagrangian::Initialize();
 
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-    const double mp_volume = this->GetValue(MP_VOLUME);
     const double pi = std::atan(1.0)*4.0;
-    const double mp_mass = mp_volume * 2 * pi * xg[0] * GetProperties()[DENSITY];
-    this->SetValue(MP_MASS, mp_mass);
+    mMP.mass = mMP.volume * 2 * pi * mMP.xg[0] * GetProperties()[DENSITY];
 
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(3);
@@ -142,9 +139,7 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
+    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
 
     // Reading shape functions local gradients
     rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De);
@@ -164,9 +159,8 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian( Jacobian, xg);
+    Jacobian = this->MPMJacobian( Jacobian, mMP.xg);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
@@ -175,7 +169,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
-    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
+    jacobian = this->MPMJacobianDelta( jacobian, mMP.xg, rVariables.CurrentDisp);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
@@ -560,8 +554,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& r
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     array_1d<double,3> rPointLocal = ZeroVector(3);
 
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-    rPointLocal = r_geometry.PointLocalCoordinates(rPointLocal, xg);
+    rPointLocal = r_geometry.PointLocalCoordinates(rPointLocal, mMP.xg);
 
     if (dimension == 2 && r_geometry.PointsNumber() == 3)
     {

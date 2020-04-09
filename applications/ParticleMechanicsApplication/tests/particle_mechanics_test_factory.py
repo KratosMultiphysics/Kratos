@@ -63,6 +63,9 @@ class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTe
 class BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test"
 
+class BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/linear_self_weight_load_2D_quad_test"
+
 ### Cook's Membrane Tests
 class CooksMembraneCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "cooks_membrane_tests/compressible_cook_membrane_2D_test"
