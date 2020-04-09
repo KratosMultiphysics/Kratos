@@ -86,14 +86,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -103,11 +95,6 @@ public:
         return "StandardSchemeFactory";
     }
 };
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 ///@name Input and output

@@ -90,14 +90,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -107,11 +99,6 @@ public:
         return "StandardBuilderAndSolverFactory";
     }
 };
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 ///@name Input and output
