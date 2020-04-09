@@ -62,9 +62,9 @@ public:
         mIndexContainer(index_container) {}
 
     ///Destructor
-  virtual ~GidGaussPointsContainer(){};
+    virtual ~GidGaussPointsContainer(){};
 
-    bool AddElement( const ModelPart::ElementConstantIterator pElemIt )
+    virtual bool AddElement( const ModelPart::ElementConstantIterator pElemIt )
     {
         KRATOS_TRY
         if( pElemIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
@@ -78,7 +78,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    bool AddCondition( const ModelPart::ConditionConstantIterator pCondIt )
+    virtual bool AddCondition( const ModelPart::ConditionConstantIterator pCondIt )
     {
         KRATOS_TRY
         if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily &&
@@ -90,10 +90,6 @@ public:
         else return false;
         KRATOS_CATCH("")
     }
-
-
-//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, const ModelPart& rModelPart,
-//                                        const double SolutionTag, const unsigned int ValueIndex )
 
     virtual void PrintFlagsResults(
         GiD_FILE ResultFile,
