@@ -206,21 +206,6 @@ namespace Kratos {
                         r_nodal_momenta[j] += gamma * delta_time * r_current_residual[j];
                     }
                 } // for DomainSize
-
-                // We need to set updated grid velocity here if we are using the USL formulation
-                if (r_current_process_info.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 1)
-                {
-                    array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
-                    r_current_velocity.clear();
-                    const double nodal_mass = itCurrentNode->FastGetSolutionStepValue(NODAL_MASS);
-                    if (nodal_mass > numerical_limit)
-                    {
-                        for (IndexType j = 0; j < DomainSize; j++)
-                        {
-                            r_current_velocity[j] = r_nodal_momenta[j] / nodal_mass;
-                        } // for DomainSize
-                    }
-                }
             }
 
             //***************************************************************************
@@ -357,35 +342,34 @@ namespace Kratos {
 
                 ElementsArrayType& rElements = rModelPart.Elements();
                 const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
-                const bool isMUSL = (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 2)
-                    ? true
-                    : false;
-                if (isMUSL) PerformModifiedUpdateStressLastMapping(rCurrentProcessInfo, rModelPart, rElements);
-
-                const bool calculateMPStresses = (
-                    rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 ||
-                    rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-                    ? false
-                    : true;
-
-                // Definition of the first element iterator
                 const auto it_elem_begin = rModelPart.ElementsBegin();
 
-                // Finalizes solution step for all of the elements
+
+                // map grid to MPs
                 #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(rElements.size()); ++i) {
+                for (int i = 0; i < static_cast<int>(rElements.size()); ++i) 
+                {
                     auto it_elem = it_elem_begin + i;
                     std::vector<bool> dummy;
-                    
-                    if (!isMUSL) it_elem->CalculateOnIntegrationPoints(EXPLICIT_MAP_GRID_TO_MP, dummy, rCurrentProcessInfo);
-                    if (calculateMPStresses) it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
+                    it_elem->CalculateOnIntegrationPoints(EXPLICIT_MAP_GRID_TO_MP, dummy, rCurrentProcessInfo);
                 }
 
-                // Definition of the first condition iterator
-                const auto it_cond_begin = rModelPart.ConditionsBegin();
+                //update stress after momenta update for USL(1) and MUSL(2)
+                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) > 0)
+                {
+                    this->CalculateUpdatedGridVelocityField(rCurrentProcessInfo, rModelPart);
+
+                    #pragma omp parallel for
+                    for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
+                    {
+                        auto it_elem = it_elem_begin + i;
+                        std::vector<bool> dummy;
+                        it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
+                    }
+                }                
 
                 // Finalizes solution step for all of the conditions
+                const auto it_cond_begin = rModelPart.ConditionsBegin();
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(rModelPart.Conditions().size()); ++i) {
                     auto it_cond = it_cond_begin + i;
@@ -394,45 +378,62 @@ namespace Kratos {
 
                 KRATOS_CATCH("")
             }
+            //***************************************************************************
+            //***************************************************************************
 
-            //***************************************************************************
-            //***************************************************************************
-            void PerformModifiedUpdateStressLastMapping(const ProcessInfo& rCurrentProcessInfo, ModelPart& rModelPart, ElementsArrayType& rElements)
+            void CalculateUpdatedGridVelocityField(const ProcessInfo& rCurrentProcessInfo, ModelPart& rModelPart)
             {
-                // MUSL stress update. This works by projecting the updated particle
-                // velocity back to the nodes. The nodal velocity field is then
-                // used for stress computations.
-
-                // Definition of the first element iterator
-                const auto it_elem_begin = rModelPart.ElementsBegin();
-
-                // Map grid results to MPs
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(rElements.size()); ++i) {
-                    auto it_elem = it_elem_begin + i;
-                    std::vector<bool> dummy;
-                    it_elem->CalculateOnIntegrationPoints(EXPLICIT_MAP_GRID_TO_MP, dummy, rCurrentProcessInfo);
-                }
-
-                // Reset grid velocities
-                #pragma omp parallel for
-                for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
+                if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 1)
                 {
-                    auto i = mr_grid_model_part.NodesBegin() + iter;
-                    array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
-                    nodal_velocity.clear();
+                    // USL
+                    const SizeType DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
+                    #pragma omp parallel for
+                    for (int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter)
+                    {
+                        NodeIterator i = rModelPart.NodesBegin() + iter;
+                        if ((i)->Is(ACTIVE))
+                        {
+                            array_1d<double, 3 >& r_nodal_momenta = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                            array_1d<double, 3>& r_current_velocity = i->FastGetSolutionStepValue(VELOCITY);
+                            r_current_velocity.clear();
+                            const double nodal_mass = i->FastGetSolutionStepValue(NODAL_MASS);
+                            if (nodal_mass > numerical_limit)
+                            {
+                                for (IndexType j = 0; j < DomainSize; j++)
+                                {
+                                    r_current_velocity[j] = r_nodal_momenta[j] / nodal_mass;
+                                } // for DomainSize
+                            }
+                        }
+                    }
                 }
+                else if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 2)
+                {
+                    // MUSL stress update. This works by projecting the updated particle
+                    // velocity back to the nodes. The nodal velocity field is then
+                    // used for stress computations.
 
-                // Map updated MP velocities back to grid
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(rElements.size()); ++i) {
-                    auto it_elem = it_elem_begin + i;
-                    std::vector<bool> dummy;
-                    it_elem->CalculateOnIntegrationPoints(CALCULATE_MUSL_VELOCITY_FIELD, dummy, rCurrentProcessInfo);
+                    // Reset grid velocities
+                    #pragma omp parallel for
+                    for (int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter)
+                    {
+                        auto i = rModelPart.NodesBegin() + iter;
+                        array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
+                        nodal_velocity.clear();
+                    }
+
+                    // Map updated MP velocities back to grid
+                    const auto it_elem_begin = rModelPart.ElementsBegin();
+                    #pragma omp parallel for
+                    for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i) {
+                        auto it_elem = it_elem_begin + i;
+                        std::vector<bool> dummy;
+                        it_elem->CalculateOnIntegrationPoints(CALCULATE_MUSL_VELOCITY_FIELD, dummy, rCurrentProcessInfo);
+                    }
+
+                    // Reapply dirichlet BCs to MUSL velocity field
+                    calculateGridVelocityAndApplyDirichletBC(rCurrentProcessInfo);
                 }
-
-                // Reapply dirichlet BCs to MUSL velocity field
-               calculateGridVelocityAndApplyDirichletBC(rCurrentProcessInfo);
             }
 
             //***************************************************************************
