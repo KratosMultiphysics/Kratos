@@ -241,6 +241,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
 {
 
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
+    const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
     // Create the auxiliar conditions
     for (auto& r_map : rInverseFaceMap) {
@@ -263,7 +264,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
         auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
         rSkinModelPart.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
-        p_cond->Initialize();
+        p_cond->Initialize(r_process_info);
     }
 }
 

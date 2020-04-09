@@ -59,6 +59,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
     const std::string& rConditionName) const
 {
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
+    const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
     // Create the auxiliar conditions
     for (auto& map : rInverseFaceMap) {
@@ -87,7 +88,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
             auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, condition_nodes, p_prop);
             rSkinModelPart.AddCondition(p_cond);
             p_cond->Set(INTERFACE, true);
-            p_cond->Initialize();
+            p_cond->Initialize(r_process_info);
 
             for (auto& index : nodes_face)
                 rNodesInTheSkin.insert(index);
