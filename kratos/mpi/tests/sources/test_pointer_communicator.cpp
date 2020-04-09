@@ -128,7 +128,6 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFast
     );
 
     for(unsigned int i=0; i<indices.size(); ++i) {
-        int expected_id = indices[i];
         auto& gp = gp_list(i);
         KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
     }
