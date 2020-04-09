@@ -321,11 +321,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateSystemContributions(Element::Pointer rCurrentElement,
-            LocalSystemMatrixType& LHS_Contribution,
-            LocalSystemVectorType& RHS_Contribution,
-            Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -333,15 +334,15 @@ public:
         LocalSystemMatrixType Damp;
 
         // Initialize element
-        rCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
-        rCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
         // Get matrix contributions
-        rCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rCurrentElement->CalculateMassMatrix(Mass,rCurrentProcessInfo);
-        rCurrentElement->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->CombineLHSContributions(LHS_Contribution,Mass,Damp,rCurrentProcessInfo);
@@ -350,11 +351,11 @@ public:
         KRATOS_CATCH("")
     }
 
-
-    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
-                                    LocalSystemVectorType& RHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
+        LocalSystemVectorType &RHS_Contribution,
+        Element::EquationIdVectorType &rEquationId,
+        const ProcessInfo &rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -362,15 +363,15 @@ public:
         LocalSystemMatrixType Damp;
 
         // Initialize element
-        rCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
-        rCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
         // Get matrix contributions
-        rCurrentElement->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rCurrentElement->CalculateMassMatrix(Mass,rCurrentProcessInfo);
-        rCurrentElement->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
@@ -378,11 +379,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
-            LocalSystemMatrixType& LHS_Contribution,
-            LocalSystemVectorType& RHS_Contribution,
-            Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -390,15 +392,15 @@ public:
         LocalSystemMatrixType Damp;
 
         // Initialize element
-        rCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
-        rCurrentCondition->EquationIdVector(rEquationId,rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
         // Get matrix contributions
-        rCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rCurrentCondition->CalculateMassMatrix(Mass,rCurrentProcessInfo);
-        rCurrentCondition->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->CombineLHSContributions(LHS_Contribution,Mass,Damp,rCurrentProcessInfo);
@@ -407,11 +409,11 @@ public:
         KRATOS_CATCH("")
     }
 
-
-    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
-            LocalSystemVectorType& RHS_Contribution,
-            Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(
+        Condition &rCurrentCondition,
+        LocalSystemVectorType &RHS_Contribution,
+        Element::EquationIdVectorType &rEquationId,
+        const ProcessInfo &rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -419,15 +421,15 @@ public:
         LocalSystemMatrixType Damp;
 
         // Initialize element
-        rCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
-        rCurrentCondition->EquationIdVector(rEquationId,rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
         // Get matrix contributions
-        rCurrentCondition->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rCurrentCondition->CalculateMassMatrix(Mass,rCurrentProcessInfo);
-        rCurrentCondition->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
@@ -606,23 +608,24 @@ protected:
     }
 
     template<class TObject>
-    void AddDynamicRHSContribution(typename TObject::Pointer pObject,
-                                   LocalSystemVectorType& rRHS,
-                                   LocalSystemMatrixType& rMass,
-                                   const ProcessInfo& rCurrentProcessInfo)
+    void AddDynamicRHSContribution(
+        TObject& rObject,
+        LocalSystemVectorType& rRHS,
+        LocalSystemMatrixType& rMass,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         if (rMass.size1() != 0)
         {
             const Vector& rCoefs = rCurrentProcessInfo.GetValue(BDF_COEFFICIENTS);
 
             LocalSystemVectorType Acc;
-            pObject->GetFirstDerivativesVector(Acc);
+            rObject.GetFirstDerivativesVector(Acc);
             Acc *= rCoefs[0];
 
             for(unsigned int n = 1; n < 3; ++n)
             {
                 LocalSystemVectorType rVel;
-                pObject->GetFirstDerivativesVector(rVel,n);
+                rObject.GetFirstDerivativesVector(rVel,n);
                 noalias(Acc) += rCoefs[n] * rVel;
             }
 
@@ -874,7 +877,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    /// Poiner to a turbulence model
+    /// Pointer to a turbulence model
     Process::Pointer mpTurbulenceModel = nullptr;
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
