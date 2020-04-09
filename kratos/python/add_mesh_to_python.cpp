@@ -461,11 +461,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInt<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, array_1d<double, 3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, Matrix>)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
