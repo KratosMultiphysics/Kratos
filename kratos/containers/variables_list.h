@@ -273,6 +273,7 @@ namespace Kratos
 
 			if(ThisVariable.IsComponent()){
 				Add(ThisVariable.GetSourceVariable());
+				return;
 			}
 
 			mVariables.push_back(&ThisVariable);
