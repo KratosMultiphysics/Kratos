@@ -177,27 +177,15 @@ void GetValuesOnIntegrationPoints(
 ///@name Set Values on Integration Points
 ///@{
 
-template< class TObject >
+template< class TObject, class TDataType >
 void SetValuesOnIntegrationPointsInt(
-    TObject& dummy, const Variable<int>& rVariable, std::vector<int> values, const ProcessInfo& rCurrentProcessInfo)
+    TObject& dummy, const Variable<TDataType>& rVariable, std::vector<TDataType> values, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(values.size() != dummy.IntegrationPointsNumber())
         << "Sizes do not match. Size of values vector is: " << values.size() << ". The number of integration points is: "
         << dummy.IntegrationPointsNumber() << std::endl;
 
     dummy.SetValuesOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
-}
-
-template< class TObject >
-void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
-{
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
-
-    if(values.size() != integration_points.size())
-        KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 template< class TObject >
