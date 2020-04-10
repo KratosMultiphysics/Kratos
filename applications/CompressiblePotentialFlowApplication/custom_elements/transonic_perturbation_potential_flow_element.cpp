@@ -972,6 +972,32 @@ double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeDensit
            pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
 }
 
+template <int TDim, int TNumNodes>
+double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeLocalMachSquaredDerivative(
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    // read free stream values
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // calculate local values
+    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
+    double local_mach_number = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<TDim, TNumNodes>(*this, rCurrentProcessInfo);
+
+    // make squares of values
+    double sq_local_mach_number = pow(local_mach_number, 2);
+    double sq_free_stream_mach = pow(free_stream_mach, 2);
+    double sq_local_velocity = inner_prod(velocity, velocity);
+    double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
+
+    // square bracket term
+    double square_bracket_term = 1.0 + 0.5*(heat_capacity_ratio - 1)*sq_free_stream_mach*(1 - (sq_local_velocity/sq_free_stream_velocity));
+
+    // calculate mach derivative
+    return sq_local_mach_number * ((1/sq_local_velocity) + 0.5*(heat_capacity_ratio - 1)*(1/sq_free_stream_velocity)*sq_free_stream_mach*(1/square_bracket_term));
+}
+
 // serializer
 
 template <int TDim, int TNumNodes>

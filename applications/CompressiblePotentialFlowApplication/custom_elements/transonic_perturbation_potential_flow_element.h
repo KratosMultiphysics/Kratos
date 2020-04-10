@@ -276,6 +276,8 @@ private:
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
+    double ComputeLocalMachSquaredDerivative(const ProcessInfo& rCurrentProcessInfo) const;
+
     ///@}
     ///@name Private Operations
     ///@{
