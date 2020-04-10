@@ -63,20 +63,14 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
                     metric_process = solver.get_metric_process()
                     metric_process.Execute()
 
-                    # We remove the contact model part to avoid problems (it will  be recomputed later)
-                    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, computing_model_part.GetSubModelPart("ComputingContact").Conditions)
-                    computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KM.TO_ERASE)
-
                     # We remove the contact submodelparts
                     computing_model_part.RemoveSubModelPart("Contact")
-                    computing_model_part.RemoveSubModelPart("ComputingContact")
 
                     # Ensure properties defined
                     KM.AuxiliarModelPartUtilities(computing_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties(True)
 
                     # We create the contact submodelparts
                     computing_model_part.CreateSubModelPart("Contact")
-                    computing_model_part.CreateSubModelPart("ComputingContact")
 
                     # Remeshing
                     remeshing_process = solver.get_remeshing_process()
