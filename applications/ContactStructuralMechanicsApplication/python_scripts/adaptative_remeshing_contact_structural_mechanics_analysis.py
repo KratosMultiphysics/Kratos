@@ -111,8 +111,6 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             """)
 
             interface_model_part = computing_model_part.GetSubModelPart("Contact")
-            main_model_part = computing_model_part.GetRootModelPart()
-            main_model_part.RemoveSubModelPart("ComputingContact")
 
             if interface_model_part.HasSubModelPart("SlaveSubModelPart"):
                 slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
