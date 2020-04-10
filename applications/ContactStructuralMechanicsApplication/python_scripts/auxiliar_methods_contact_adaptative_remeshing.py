@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.MeshingApplication as MA
+import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import auxiliar methods
 from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
@@ -62,6 +63,9 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
                     # Compute metric
                     metric_process = solver.get_metric_process()
                     metric_process.Execute()
+
+                    # Clean up contact pairs
+                    CSMA.ContactUtilities.CleanContactModelParts(computing_model_part)
 
                     # We remove the contact submodelparts
                     computing_model_part.RemoveSubModelPart("Contact")
