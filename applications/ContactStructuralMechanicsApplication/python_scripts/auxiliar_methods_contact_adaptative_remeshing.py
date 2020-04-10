@@ -59,7 +59,7 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
                     KM.Logger.PrintInfo(self.analysis._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                     break
                 else:
-                    # Compue metric
+                    # Compute metric
                     metric_process = solver.get_metric_process()
                     metric_process.Execute()
 
