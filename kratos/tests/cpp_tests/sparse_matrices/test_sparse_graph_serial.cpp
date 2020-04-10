@@ -337,7 +337,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
 {
     const IndexType block_size = 4;
     const IndexType nodes_in_elem = 4;
-    const IndexType nel = 1e2;
+    const IndexType nel = 1e6;
     const IndexType ndof = nel/6;
     const IndexType standard_dev = 100;
     auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
@@ -353,16 +353,22 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
 {
     const IndexType block_size = 4;
     const IndexType nodes_in_elem = 4;
-    const IndexType nel = 1e2;
+    const IndexType nel = 1e6;
     const IndexType ndof = nel/6;
     const IndexType standard_dev = 100;
     auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
 
     double start_graph = OpenMPUtils::GetCurrentTime();
-    auto pAgraph = AssembleGraph<SparseContiguousRowGraph>(connectivities, ndof*block_size);
+
+    SparseContiguousRowGraph Agraph(ndof*block_size);
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+        Agraph.AddEntries(connectivities[i]);
+    Agraph.Finalize();
+
     double end_graph = OpenMPUtils::GetCurrentTime();
 
-    std::cout << "SparseGraphDiscontinuousRow generation time = " << end_graph-start_graph << std::endl;
+    std::cout << "SparseGraphContiguousRow generation time = " << end_graph-start_graph << std::endl;
 }
 } // namespace Testing
 } // namespace Kratos

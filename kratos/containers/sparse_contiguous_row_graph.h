@@ -18,6 +18,7 @@
 #include <iostream>
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
+#include "includes/lock_object.h"
 
 // External includes
 #include <unordered_map>
@@ -56,7 +57,7 @@ namespace Kratos
 
 /** This class is designed to store a matrix graph, aimed at the fast construction of other
  * sparse matrix formats (particularly CSR)
- * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
+ * IMPORTANT NOTE: AddEntries IS threasafe
 */
 
 class SparseContiguousRowGraph
@@ -77,15 +78,21 @@ public:
 
     /// Default constructor. - needs to be public for communicator, but it will fail if used in any other mode
     SparseContiguousRowGraph()
-    :mGraphSize(0)
     {
     }
 
-/// Default constructor.
     SparseContiguousRowGraph(IndexType GraphSize)
-    :mGraphSize(GraphSize)
     {
-        mGraph.resize(GraphSize);
+        mGraph.resize(GraphSize,false);
+        mLocks.resize(GraphSize,false);
+
+        //doing first touching
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(GraphSize); ++i)
+        {
+            mLocks[i] = LockObject();
+            mGraph[i] = std::unordered_set<IndexType>();
+        }
     }
 
     /// Destructor.
@@ -111,10 +118,11 @@ public:
     void Clear()
     {
         mGraph.clear();
+        mLocks.clear();
     }
 
     inline IndexType Size() const{
-        return mGraphSize;
+        return mGraph.size();
     }
 
     bool Has(const IndexType I, const IndexType J) const
@@ -140,13 +148,17 @@ public:
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
     {
+        mLocks[RowIndex].SetLock();
         mGraph[RowIndex].insert(ColIndex);
+        mLocks[RowIndex].UnSetLock();
     }
 
     template<class TContainerType>
     void AddEntries(const IndexType RowIndex, const TContainerType& rColIndices)
     {
+        mLocks[RowIndex].SetLock();
         mGraph[RowIndex].insert(rColIndices.begin(), rColIndices.end());
+        mLocks[RowIndex].UnSetLock();
     }
 
     template<class TIteratorType>
@@ -155,7 +167,9 @@ public:
                     const TIteratorType& rColEnd
                     )
     {
+        mLocks[RowIndex].SetLock();
         mGraph[RowIndex].insert(rColBegin, rColEnd);
+        mLocks[RowIndex].UnSetLock();
     }
 
     //adds a square FEM matrix, identified by rIndices
@@ -165,7 +179,9 @@ public:
         for(auto I : rIndices){
             KRATOS_DEBUG_ERROR_IF(I > this->Size()) << "Index : " << I
                 << " exceeds the graph size : " << Size() << std::endl;
+            mLocks[I].SetLock();
             mGraph[I].insert(rIndices.begin(), rIndices.end());
+            mLocks[I].UnSetLock();
         }
     }
 
@@ -366,8 +382,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    IndexType mGraphSize;
     GraphType mGraph;
+    vector<LockObject> mLocks;
 
     ///@}
     ///@name Private Operators
@@ -392,9 +408,10 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("GraphSize",mGraphSize);
+        IndexType size;
+        rSerializer.load("GraphSize",size);
 
-        for(IndexType I=0; I<mGraphSize; ++I)
+        for(IndexType I=0; I<size; ++I)
         {
 //            IndexType I;
 //            rSerializer.load("I",I);
