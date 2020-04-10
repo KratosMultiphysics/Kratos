@@ -274,8 +274,6 @@
       <Item id="ElementType" kkword="ELEMENT_TYPE" />
       <Item id="ContainsClusters" kkword="CONTAINS_CLUSTERS" />
       <Item id="RandomOrientation" kkword="RANDOM_ORIENTATION" />
-      <Item id="OrientationReal" kkword="ORIENTATION_REAL" />
-      <Item id="OrientationImag" kkword="ORIENTATION_IMAG" />
       <Item id="ProbabilityDistribution" kkword="PROBABILITY_DISTRIBUTION" />
     </DEM>
   </Applications>

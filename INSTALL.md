@@ -1,21 +1,22 @@
 # Contents
-* [Basic Configuration](#basic-configuration)
-* [Adding Applications](#basic-configuration)
-* [Adding Kratos to Path](#adding-kratos-to-path)
-* [Examples](#examples)
-  * [Linux](#linux)
-  * [Windows](#windows)
-  * [MacOS](#macos)
-* [Advanced Configuration](#advanced-configuration)
-  * [Building Environment](#building-environments)
-  * [Common Flags](#common-flags)
-  * [Compilation Performance](#compilation-performance)
-  * [Parallelism](#parallelism)
-  * [External Libraries](#external-libraries)
-    * [Feast](#feast)
-    * [Metis](#metis)
-    * [Trilinos](#trilinos)
-* [Applications](#applications)
+- [Contents](#contents)
+  - [Basic Configuration](#basic-configuration)
+  - [Adding Applications](#adding-applications)
+  - [Adding Kratos to Path](#adding-kratos-to-path)
+  - [Examples](#examples)
+    - [Linux](#linux)
+    - [Windows](#windows)
+    - [MacOS](#macos)
+  - [Advanced Configuration](#advanced-configuration)
+    - [Building Environment](#building-environment)
+    - [Common Flags](#common-flags)
+    - [Compilation Performance](#compilation-performance)
+    - [Parallelism](#parallelism)
+    - [Logging](#logging)
+    - [External libraries](#external-libraries)
+      - [Metis](#metis)
+      - [Trilinos](#trilinos)
+  - [Applications](#applications)
 
 
 ## Basic Configuration
@@ -315,11 +316,6 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### External libraries
-#### Feast
-`-DINCLUDE_FEAST`
-
-Enables or Disables(default) the use of FEAST
-
 #### Metis
 
 `-DUSE_METIS_5=ON/OFF`
