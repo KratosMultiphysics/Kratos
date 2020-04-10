@@ -640,7 +640,7 @@ public:
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 
@@ -651,7 +651,7 @@ public:
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    TSystemVectorType& GetSystemVector()
+    TSystemVectorType& GetSystemVector() override
     {
         TSystemVectorType& mb = *mpb;
 
@@ -662,7 +662,7 @@ public:
      * @brief This method returns the solution vector
      * @return The Dx vector
      */
-    TSystemVectorType& GetSolutionVector()
+    TSystemVectorType& GetSolutionVector() override
     {
         TSystemVectorType& mDx = *mpDx;
 

@@ -397,7 +397,7 @@ public:
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType& GetSystemMatrix()
+    virtual TSystemMatrixType& GetSystemMatrix()
     {
         KRATOS_TRY
 
@@ -410,7 +410,7 @@ public:
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    TSystemVectorType& GetSystemVector()
+    virtual TSystemVectorType& GetSystemVector()
     {
         KRATOS_TRY
 
@@ -423,7 +423,7 @@ public:
      * @brief This method returns the solution vector
      * @return The Dx vector
      */
-    TSystemVectorType& GetSolutionVector()
+    virtual TSystemVectorType& GetSolutionVector()
     {
         KRATOS_TRY
 
