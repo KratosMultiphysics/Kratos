@@ -206,8 +206,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
             auto p_element = r_reference_element.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
             auxiliar_elements_vector_buffer.push_back(p_element);
 
-            // Deep copy elemental data and flags
-//             p_element->Data() = it_node->Data();
+            // Deep copy elemental flags
             p_element->Set(Flags(*it_node));
         }
 
