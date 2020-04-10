@@ -569,6 +569,9 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
+    /* Before create new mesh we reorder nodes, conditions and elements: */
+    mMmgUtilities.ReorderAllIds(mrThisModelPart);
+
     // Writing the new mesh data on the model part
     mMmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
 
