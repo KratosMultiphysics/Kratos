@@ -24,7 +24,11 @@
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
 
-// RANS trilinos extensions
+// strategies
+#include "custom_strategies/coupled_strategy.h"
+#include "custom_strategies/coupled_strategy_item.h"
+
+// schemes
 #include "custom_strategies/generic_convergence_criteria.h"
 #include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
 #include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"
@@ -41,27 +45,44 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-
+    using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
+    using MPIBaseConvergenceCriteriaType = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
+    using MPIBaseSolvingStrategyType = SolvingStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
 
-    using MPIConvergenceCriteria = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
+    // Add coupled strategy item
+    using MPICoupledStrategyItemType = CoupledStrategyItem<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
+    py::class_<MPICoupledStrategyItemType, typename MPICoupledStrategyItemType::Pointer>(m, "MPICoupledStrategyItem")
+        .def(py::init<MPIBaseSolvingStrategyType::Pointer, std::string, int>())
+        .def(py::init<MPIBaseSolvingStrategyType::Pointer, std::string, int, std::vector<int>>())
+        .def("AddAuxiliaryProcess", &MPICoupledStrategyItemType::AddAuxiliaryProcess)
+        .def("GetName", &MPICoupledStrategyItemType::GetName)
+        .def("GetStrategy", &MPICoupledStrategyItemType::GetStrategy)
+        .def("GetAuxiliaryProcessList", &MPICoupledStrategyItemType::GetStrategy)
+        .def("GetStrategyInfo", &MPICoupledStrategyItemType::GetStrategyInfo)
+        .def("GetStrategySolvabilityPattern", &MPICoupledStrategyItemType::GetStrategySolvabilityPattern)
+        .def("SetStrategySolvabilityPattern", &MPICoupledStrategyItemType::SetStrategySolvabilityPattern);;
 
-    py::class_<GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>,
-               typename GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIConvergenceCriteria>(
-        m, "MPIGenericScalarConvergenceCriteria")
-        .def(py::init<MPISparseSpaceType::DataType, MPISparseSpaceType::DataType>());
+    // Add strtegies
+    using MPICoupledStrategyType = CoupledStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
+    py::class_<MPICoupledStrategyType, typename MPICoupledStrategyType::Pointer, MPIBaseSolvingStrategyType>(m, "MPICoupledStrategy")
+        .def(py::init<ModelPart&, bool, bool, bool, int>())
+        .def("AddStrategyItem", &MPICoupledStrategyType::AddStrategyItem)
+        .def("AddConvergenceCheckVariable", &MPICoupledStrategyType::AddConvergenceCheckVariable);
 
-    py::class_<GenericResidualBasedBossakVelocityScalarScheme<MPISparseSpaceType, LocalSpaceType>,
-               typename GenericResidualBasedBossakVelocityScalarScheme<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIBaseSchemeType>(
-        m, "MPIGenericResidualBasedBossakVelocityDynamicScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&,
-                      const Variable<double>&, const Variable<double>&>());
+    // Convergence criteria
+    using MPIGenericConvergenceCriteriaType = GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPIGenericConvergenceCriteriaType, typename MPIGenericConvergenceCriteriaType::Pointer, MPIBaseConvergenceCriteriaType>(m, "MPIGenericScalarConvergenceCriteria")
+        .def(py::init<double, double>());
 
-    py::class_<GenericResidualBasedSimpleSteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>,
-               typename GenericResidualBasedSimpleSteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIBaseSchemeType>(
-        m, "MPIGenericResidualBasedSimpleSteadyScalarScheme")
+    // add schemes
+    using MPIGenericResidualBasedBossakVelocityScalarSchemeType = GenericResidualBasedBossakVelocityScalarScheme<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPIGenericResidualBasedBossakVelocityScalarSchemeType, typename MPIGenericResidualBasedBossakVelocityScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIGenericResidualBasedBossakVelocityDynamicScalarScheme")
+        .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
+
+    using MPIGenericResidualBasedSimpleSteadyScalarSchemeType = GenericResidualBasedSimpleSteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPIGenericResidualBasedSimpleSteadyScalarSchemeType, typename MPIGenericResidualBasedSimpleSteadyScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIGenericResidualBasedSimpleSteadyScalarScheme")
         .def(py::init<const double>());
 }
 
