@@ -175,6 +175,7 @@ protected:
     BoundedVector<double,3> mElasticPreviousPrincipalStrain;
     BoundedVector<double,3> mPrincipalStressTrial;
     BoundedVector<double,3> mPrincipalStressUpdated;
+    BoundedVector<double,3> mMainStrain;
     unsigned int mRegion;
     bool mLargeStrainBool;
     double mEquivalentPlasticStrain;
