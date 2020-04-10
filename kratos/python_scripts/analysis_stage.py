@@ -60,22 +60,12 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        
-        # Solution loop
-        solver = self._GetSolver()
         while self.KeepAdvancingSolutionLoop():
-            modified_model = self.__CheckIfModelIsModified()
-            self.time = solver.AdvanceInTime(self.time)
-            # We reinitialize if remeshed previously
-            if modified_model:
-                self.ReInitializeSolver()
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            # We reinitialize if remeshed on the InitializeSolutionStep
-            if modified_model:
-                self.ReInitializeSolver()
-                self.InitializeSolutionStep()
-            solver.Predict()
-            solver.SolveSolutionStep()
+            self._GetSolver().Predict()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -134,12 +124,22 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
+        # We reinitialize if remeshed previously
+        if self._CheckIfModelIsModified():
+            self.ClearDatabase()
+            self.ReInitializeSolver()
+
         self.PrintAnalysisStageProgressInformation()
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
+        # We reinitialize if remeshed on the InitializeSolutionStep
+        if self._CheckIfModelIsModified():
+            self.ClearDatabase()
+            self.ReInitializeSolver()
+            self.InitializeSolutionStep()
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -213,7 +213,7 @@ class AnalysisStage(object):
         pass
 
     def ClearDatabase(self):
-        """ This method clears the database in case it is necessary
+        """ This method clears the database in case it is necessary. For example it is used in the remeshing process when some specific modifications must be done in the database (i.e To reset a flag that affects the whole model part)
 
             Keyword arguments:
             self It signifies an instance of a class.
@@ -271,6 +271,9 @@ class AnalysisStage(object):
         ## Processes of initialize the solution step
         for process in processes:
             process.ExecuteInitializeSolutionStep()
+
+        # We reset the flags
+        self._ResetModelIsModified()
 
     def GetReInitializeRequired(self):
         """ This returns the initilization requirement. By default only elements and conditions are initialized
@@ -358,6 +361,32 @@ class AnalysisStage(object):
         """
         return "Analysis"
 
+    def _CheckIfModelIsModified(self):
+        # We check of some model part requires reinitialize
+        modified_model = False
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
+                    modified_model = True
+                    break
+
+        return modified_model
+
+    def _SetModelIsModified(self):
+        # Set the MODIFIED flag
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                self.model.GetModelPart(model_part_name).Set(KratosMultiphysics.MODIFIED, True)
+
+    def _ResetModelIsModified(self):
+        # Reset the MODIFIED flag
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                self.model.GetModelPart(model_part_name).Reset(KratosMultiphysics.MODIFIED)
+
     def __CreateListOfProcesses(self):
         """This function creates the processes and the output-processes
         """
@@ -381,15 +410,3 @@ class AnalysisStage(object):
                 warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
                 warn_msg += 'the state of convergence from "SolveSolutionStep"'
                 IssueDeprecationWarning("AnalysisStage", warn_msg)
-                
-    def __CheckIfModelIsModified(self):
-        # We check of some model part requires reinitialize
-        modified_model = False
-        if hasattr(self, 'model'):
-            model_part_names = self.model.GetModelPartNames()
-            for model_part_name in model_part_names:
-                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
-                    modified_model = True
-                    break
-        
-        return modified_model

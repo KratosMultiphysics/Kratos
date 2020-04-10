@@ -64,32 +64,6 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
             detect_skin.Execute()
         solver.SetEchoLevel(self.analysis.echo_level)
 
-    def AdaptativeRemeshingRunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered
-
-            Keyword arguments:
-            self It signifies an instance of a class.
-        """
-
-        # If we remesh using a process
-        computing_model_part = self.analysis._GetSolver().GetComputingModelPart()
-        root_model_part = computing_model_part.GetRootModelPart()
-
-        while self.analysis.KeepAdvancingSolutionLoop():
-            self.analysis.time = self.analysis._GetSolver().AdvanceInTime(self.analysis.time)
-            # We reinitialize if remeshed previously
-            if root_model_part.Is(KratosMultiphysics.MODIFIED):
-                self.analysis.ReInitializeSolver()
-            self.analysis.InitializeSolutionStep()
-            # We reinitialize if remeshed on the InitializeSolutionStep
-            if root_model_part.Is(KratosMultiphysics.MODIFIED):
-                self.analysis.ReInitializeSolver()
-                self.analysis.InitializeSolutionStep()
-            self.analysis._GetSolver().Predict()
-            self.analysis._GetSolver().SolveSolutionStep()
-            self.analysis.FinalizeSolutionStep()
-            self.analysis.OutputSolutionStep()
-
     def SPRAdaptativeRemeshingRunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered with SPR convergence criteria
 
@@ -100,7 +74,6 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
         # Remeshing adaptively
         solver = self.analysis._GetSolver()
         computing_model_part = solver.GetComputingModelPart()
-        root_model_part = computing_model_part.GetRootModelPart()
         convergence_criteria = solver.get_convergence_criterion()
         builder_and_solver = solver.get_builder_and_solver()
         mechanical_solution_strategy = solver.get_mechanical_solution_strategy()
@@ -109,19 +82,15 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
             self.analysis.time = solver.AdvanceInTime(self.analysis.time)
             non_linear_iteration = 1
             while non_linear_iteration <= self.analysis.non_linear_iterations:
-                if root_model_part.Is(KratosMultiphysics.MODIFIED):
-                    self.analysis.ClearDatabase()
-                    self.analysis.ReInitializeSolver()
-                if non_linear_iteration == 1 or root_model_part.Is(KratosMultiphysics.MODIFIED):
+                if non_linear_iteration == 1 or self.analysis._CheckIfModelIsModified():
                     self.analysis.InitializeSolutionStep()
                     solver.Predict()
-                    root_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                    self.analysis._ResetModelIsModified()
                     self.analysis.is_printing_rank = False
                 computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
                 is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                 solver.SolveSolutionStep()
                 is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                self.ExecuteBeforeFinalizeSolutionStep()
                 self.analysis.FinalizeSolutionStep()
                 if is_converged:
                     self.analysis.is_printing_rank = True
@@ -138,6 +107,6 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
                     metric_process.Execute()
                     remeshing_process.Execute()
 
-                    root_model_part.Set(KratosMultiphysics.MODIFIED, True)
+                    self.analysis._SetModelIsModified()
                     non_linear_iteration += 1
             self.analysis.OutputSolutionStep()
