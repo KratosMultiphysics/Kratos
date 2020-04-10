@@ -1,0 +1,1237 @@
+
+DLR Tau-Code, Python-Interface, Version 03/15/2005 compiled on Oct 12 2016 (from 19618 [libs: 19618])
+
+Executing script </home/inigo/software/kratosMerge/Kratos/bin/Release/KratosMultiphysics/CoSimulationApplication/solver_wrappers/../helpers/tau_solver.py>
+
+
+Implemented boundary treatments:
+--------------------------------
+  axisymmetry wedge plane                    
+  symmetry plane                             
+  axisymmetry axis                           
+  farfield                                   
+  supersonic inflow                          
+  supersonic outflow                         
+  reservoir-pressure inflow                  
+  exit-pressure outflow                      
+  dirichlet                                  
+  euler wall                                 
+  sharp edge                                 
+  viscous wall                               
+  engine exhaust                             
+  engine inflow                              
+  heat exchanger inflow                      
+  heat exchanger outflow                     
+  actuator exhaust                           
+  actuator inflow                            
+  chimera                                    
+  actuation                                  
+  mirror plane                               
+  periodic plane                             
+
+Implemented grid metrics:
+  Cell_Vertex                               
+  Cell_Centered                             
+
+Implemented types of agglomeration: 
+  private                                   
+  MGridGen                                  
+  Directional_MGridGen                      
+
+Reading parameter file 'airfoil_Structured.cntl.mod'
+
+Preprocessor parameters:
+  Files/IO ------------------------------------------------------: -
+                                        Boundary mapping filename: airfoil_Structured.cntl.mod
+                                            Primary grid filename: /home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Mesh/airfoil_Structured_scaliert.grid
+                                                      Grid prefix: dualgrid
+                                                  Old grid prefix: (none)
+                                         Parent input file prefix: (none)
+                                        Parent output file prefix: (none)
+                                    Output MG agglomeration (0/1): 0
+                                                                 : -
+                                       Read partitioning filename: (none)
+                                             Write graph filename: (none)
+  Parameter -----------------------------------------------------: -
+                                       Number of multigrid levels: 3
+                                                     Output level: 25
+                                                      Grid metric: Cell_Vertex
+  Runtime optimisation ------------------------------------------: -
+                            Cache-coloring (0/max_faces in color): 100000
+                                     Bandwidth optimisation (0/1): 1
+                               2D offset vector (0 / x=1,y=2,z=3): 0
+                                      Compute lusgs mapping (0/1): 1
+  Agglomeration -------------------------------------------------: -
+                                            Type of agglomeration: private
+                                                                 : -
+                                            Agglomeration version: 0
+                                     Enhanced agglomeration (0/1): 0
+                                              Point fusing reward: 1.2
+                                       Structured grid coarsening: 0
+                                      Surface agglomeration ratio: 0
+                                   Wallnormal agglomeration ratio: 0
+                                                                 : -
+                                  Type of coarsening for MGridGen: 4
+                                  Type of refinement for MGridGen: 6
+                        Minsize for the coarse graph for MGridGen: 1
+                        Maxsize for the coarse graph for MGridGen: 4
+  Extras --------------------------------------------------------: -
+                                       Sharp edge angle (degrees): 0
+                                 Control volume edge weight (0/1): 1
+                                          Consider wall roughness: global
+                                            Global wall roughness: 0
+                                               Roughness filename: (none)
+                                    Compute exact whirlflux (0/1): 0
+                                                Axisymmetry (0/1): 0
+                                      Axisymmetry axial direction: 1 0 0 
+                                     Axisymmetry radial direction: 0 0 1 
+                                            Project wall distance: 0
+                                                Line search (0/1): 0
+                                    Write lines into a file (0/1): 0
+                             Threshold parameter for aspect ratio: 4
+  Partitioning --------------------------------------------------: -
+                                                Number of domains: 1
+                                          Smooth partitions (0/1): 0
+                                      Type of partitioning (name): zoltan
+  Theta not for Tau ---------------------------------------------: -
+                    Preprocessing for incompressible solver (0/1): 0
+                                 Output shifted points grid (0/1): 0
+                Correct metric for boundary control volumes (0/1): 1
+               Project boundary control volumes coordinates (0/1): 1
+                   Translation factor for shifted boundary points: 1
+                                       Compute parent faces (0/1): 0
+  Logfile control -----------------------------------------------: -
+                       Enable logfile output on all domains (0/1): 0
+-----------------------------------------------------
+Reading boundary mapping: file 'airfoil_Structured.cntl.mod'
+
+Preprocessor boundary parameters
+  ---------------------------------------------------------------: -
+                                                              Map: 0
+                                                             Type: symmetry plane
+                                                          Subtype: 
+                                                          Markers: 3
+                                                         Partname: 
+                                                             Name: SYM1
+                                               Multigrid priority: 0
+  block end
+  ---------------------------------------------------------------: -
+                                                              Map: 1
+                                                             Type: farfield
+                                                          Subtype: 
+                                                          Markers: 1
+                                                         Partname: 
+                                                             Name: INLET
+                                               Multigrid priority: 0
+  block end
+  ---------------------------------------------------------------: -
+                                                              Map: 2
+                                                             Type: exit-pressure outflow
+                                                          Subtype: 
+                                                          Markers: 2
+                                                         Partname: 
+                                                             Name: OUTLET
+                                               Multigrid priority: 0
+  block end
+  ---------------------------------------------------------------: -
+                                                              Map: 3
+                                                             Type: viscous wall
+                                                          Subtype: turbulent
+                                          Constant wall roughness: 0
+                                                          Markers: 13
+                                                         Partname: 
+                                                             Name: MEMBRANE
+                                               Multigrid priority: 1
+  block end
+  ---------------------------------------------------------------: -
+                                                              Map: 4
+                                                             Type: symmetry plane
+                                                          Subtype: 
+                                                          Markers: 4
+                                                         Partname: 
+                                                             Name: SYM2
+                                               Multigrid priority: 0
+  block end
+-----------------------------------------------------
+Boundary mapping for this grid:        treatment-name: map  triangles/quads
+                                       symmetry plane:   0   39776
+                                             farfield:   1   452
+                                exit-pressure outflow:   2   176
+                                         viscous wall:   3   194
+                                       symmetry plane:   4   39776
+-----------------------------------------------------
+Computing dual grid
+  for the cell vertex grid metric
+Computing multigrid level 2
+Computing multigrid level 3
+Computing face neighbors for grid level 1
+  Structured grid detected
+  159872 ngbfaces
+  400226 neighbor cells searched in structured grid
+  face neighbors for limit angle of 25 degrees:
+    inner-line faces 157918
+    edge-line faces  1954
+    isolated faces 40241
+Computing face neighbors for grid level 2
+  Structured grid detected
+  38850 ngbfaces
+  99782 neighbor cells searched in structured grid
+  face neighbors for limit angle of 25 degrees:
+    inner-line faces 37866
+    edge-line faces  984
+    isolated faces 11041
+Computing face neighbors for grid level 3
+  Structured grid detected
+  9856 ngbfaces
+  25026 neighbor cells searched in structured grid
+  face neighbors for limit angle of 25 degrees:
+    inner-line faces 9273
+    edge-line faces  583
+    isolated faces 2657
+Wall distances for grid level 1
+  Updates in loop: 72327 6558 2974 2401 2030 1896 1782 1697 1624 1530 1446 1400 1346 1272 1170 1946 1852 1654 1482 1341 1277 1048 871 740 574 418 234 22 8 8 6 6 6 0
+Wall distances for grid level 2
+  Updates in loop: 18498 4921 3840 3113 2604 2181 1831 1506 1208 968 680 562 460 384 298 226 182 154 108 80 32 8 2 0
+Wall distances for grid level 3
+  Updates in loop: 4317 982 687 470 306 182 124 86 50 36 18 2 0
+Near-points for boundary-faces of viscous wall on level 1:       2 differ from normal-points
+Near-points for boundary-faces of viscous wall on level 2:       6 differ from normal-points
+Near-points for boundary-faces of viscous wall on level 3:       6 differ from normal-points
+Check dual grids
+-----------------------------------------------------
+    Multigrid level 1
+    points ................................: 80374
+    faces .................................: 200113
+    min point neighbors ...................: 3
+    max point neighbors ...................: 6
+    volume ................................: 0.0111339
+    max. inner surface integral ...........: No inner points exist !
+    max. boundary surface integral ........: 5.80313e-14
+    at point / position ...................: 45104 (0.225498 1.31928e-20 0.000215456)
+    min, max surface ratio ................: 1 1
+    faces in              symmetry plane ..: 40187
+    faces in              symmetry plane ..: 40187
+    faces in                    farfield ..: 906
+    faces in       exit-pressure outflow ..: 354
+    faces in                viscous wall ..: 388
+-----------------------------------------------------
+    Multigrid level 2
+    points ................................: 19994
+    faces .................................: 49891
+    min point neighbors ...................: 3
+    max point neighbors ...................: 71
+    max point children ....................: 137
+    volume ................................: 0.0111339
+    max. inner surface integral ...........: No inner points exist !
+    max. boundary surface integral ........: 5.62678e-14
+    at point / position ...................: 1038 (0.225499 -6.62701e-21 -0.000108227)
+    min, max surface ratio ................: 1 1
+    faces in              symmetry plane ..: 9997
+    faces in              symmetry plane ..: 9997
+    faces in                    farfield ..: 140
+    faces in       exit-pressure outflow ..: 180
+    faces in                viscous wall ..: 192
+-----------------------------------------------------
+    Multigrid level 3
+    points ................................: 4976
+    faces .................................: 12513
+    min point neighbors ...................: 3
+    max point neighbors ...................: 45
+    max point children ....................: 62
+    volume ................................: 0.0111339
+    max. inner surface integral ...........: No inner points exist !
+    max. boundary surface integral ........: 4.30154e-14
+    at point / position ...................: 421 (0.226047 -0.002 0.000269326)
+    min, max surface ratio ................: 1 1
+    faces in              symmetry plane ..: 2504
+    faces in              symmetry plane ..: 2472
+    faces in                    farfield ..: 64
+    faces in       exit-pressure outflow ..: 32
+    faces in                viscous wall ..: 96
+-----------------------------------------------------
+Domain decomposition
+
+Bandwidth optimisation on level 1
+
+Bandwidth optimisation on level 2
+
+Bandwidth optimisation on level 3
+-----------------------------------------------------
+Coloring and sorting the inner faces
+  fngb-dimension 200113, all faces 200113
+  inner-line faces 157918
+  edge-line faces  1954 (0 inner 1954 at bdry)
+  isolated faces   40241
+  2325 colors, max. faces in color 323
+  fngb-dimension 49891, all faces 49891
+  inner-line faces 37866
+  edge-line faces  984 (0 inner 984 at bdry)
+  isolated faces   11041
+  679 colors, max. faces in color 272
+  fngb-dimension 12513, all faces 12513
+  inner-line faces 9273
+  edge-line faces  583 (0 inner 583 at bdry)
+  isolated faces   2657
+  201 colors, max. faces in color 199
+LUSGS mapping on level 1
+LUSGS mapping on level 2
+LUSGS mapping on level 3
+free preprocessing data
+
+Signal handling
+  Signal 15: Write data & exit after time step
+  Signal 12: Write data after time step
+
+-----------------------------------------------------
+Implemented solver boundary treatments:
+   0: axisymmetry wedge plane                   
+   1: symmetry plane                            
+   2: axisymmetry axis                          
+   3: farfield                                  
+   4: supersonic outflow                        
+   5: supersonic inflow                         
+   6: reservoir-pressure inflow                 
+   7: exit-pressure outflow                     
+   8: dirichlet                                 
+   9: actuation                                 
+  10: engine exhaust                            
+  11: engine inflow                             
+  12: euler wall                                
+  13: sharp edge                                
+  14: viscous wall                              
+  15: chimera                                   
+  16: actuator inflow                           
+  17: actuator exhaust                          
+  18: heat exchanger inflow                     
+  19: heat exchanger outflow                    
+  20: mirror plane                              
+  21: periodic plane                            
+
+-----------------------------------------------------
+Implemented 1-Equation Turbulence Model(s):
+  SAO:          Spalart-Allmaras model, old version of SA-noft2 w.r.t S-tilde
+  SAE:          Spalart-Allmaras model with Edwards modification (SA-Edwards)
+  SA-Standard:  Standard Spalart-Allmaras model, including ft2-term (SA)
+  SA-noft2:     Spalart-Allmaras model, without ft2-term
+  SA-neg:       Negative Spalart-Allmaras model
+
+Implemented initialization types:
+  walldist 
+  direct 
+
+Implemented SA boundary conditions:
+  smooth
+  rough_mixed
+  rough
+
+Implemented vortical correction functions:
+  flower 
+  sarc 
+
+-----------------------------------------------------
+Implemented relaxation solvers:
+  Runge_Kutta
+  Backward_Euler
+
+Implemented linear relaxation solvers:
+  Runge_Kutta
+  Runge_Kutta_adjoint
+  Backward_Euler
+
+Implemented inviscid flux discretization types:
+  Upwind
+  Central
+  Mixed
+
+Implemented upwind fluxes:
+  Van_Leer
+  AUSMDV
+  AUSMP
+  AUSMPWP
+  AUSMPUP
+  Roe
+  AUSM_Van_Leer
+  EFM
+  MAPS+
+
+Implemented reconstruction methods:
+  Green_Gauss                               
+  Least_square                              
+
+Implemented central dissipation fluxes:
+  Scalar_dissipation                        
+  Matrix_dissipation                        
+
+Implemented central convective meanflow fluxes:
+  Average_of_flux                           
+  Flux_of_average                           
+  Skew_symmetric_kok                        
+
+Implemented central convective turbulence fluxes:
+  Average_of_flux                           
+  Flux_of_average                           
+  AUSMDV                                    
+  Roe                                       
+  Roe2nd                                    
+
+Implemented versions of cell stretching coefficient:
+  TAU                                       
+  HyperFlex                                 
+  HyperFlex_II                              
+
+Implemented smoothers:
+  Point_explicit                            
+  Upwind_implicit                           
+  Implicit                                  
+
+Implemented grid movement types:
+          static: Grid does not move
+           rigid: Rigid body motion
+        deformed: Deforming grid
+  deformed+rigid: Deforming grid combined with rigid body motion
+
+Implemented unsteady time stepping schemes:
+          (none): Unsteady time stepping is off
+            dual: Dual time stepping scheme
+          global: Global time stepping scheme
+        adaptive: Adaptive time stepping scheme
+
+Implemented functions for computation of flow statistics:
+            mean: compute mean values of rho, u, v, w, p, mue_turb, mue_lam
+        variance: compute <u'u'>, <v'v'>, <w'w'>, <u'v'>, <u'w'>, <v'w'>, <p'p'>
+     meanvelgrad: compute mean velocity gradients and mean pressure gradient
+        meanturb: compute mean values of turbulence variables (depends on turbulence model)
+             des: compute mean des state, i.e. fd, hybrid scale, l_rans/l_hybrid
+
+-----------------------------------------------------
+Implemented "Field output values":
+             gid for output of the global point id
+              cp for output of the pressure coefficient
+            Ptot for output of the total pressure
+          apsimP for output of the apsim pressure
+            temp for output of the temperature
+            mach for output of the Mach number
+            mean for output of the field mean values
+     meanvelgrad for output of the mean velocity gradient
+        meanturb for output of the mean turbulence values
+        mean-des for output of the mean des values
+         mean-cp for output of the field mean cp values
+ residual-stress for output of the residual turbulent stresses
+        variance for output of the field variance values
+           imach for output of the isentropic Mach number
+         muetmue for output of the ratio muet mue
+   rs-boussinesq for output of the specific Reynolds stresses (Boussinesq)
+          rs-qcr for output of the QCR contribution to specific Reynolds stresses
+             des for output of the length +(des),-(Rans)
+      turbfilter for output of the LES/DES filter widths
+      test-iddes for output of the output for testing iddes
+         rotcorr for output of the rotational  correction
+             sas for output of the Von Karman Length  
+      divergence for output of the divergence of vel
+        testgrad for output of the test gradients
+          dscale for output of the dissipation scaling
+            Rrho for output of the density residual
+           Rrhov for output of the momentum residual
+           RrhoE for output of the residual of rho times energy
+         Rrhonue for output of the residual of rho nuetilde (1EQ)
+          strain for output of the strainrate
+            vort for output of the vorticity
+              Nk for output of the kinematic vorticity
+            heli for output of the helicity
+              Hn for output of the normalized helicity
+              l2 for output of the lambda2-criterion
+               Q for output of the second invariant Q
+          rotxyz for output of the rotation components
+           wdist for output of the wall-distance
+          wrough for output of the wall-roughness
+         wnormal for output of the wall-normal
+          domain for output of the point domain no 
+         xyzgeod for output of the coordinates in geodesic system
+        vxyzgeod for output of the velocity in geodesic system
+         xyzbody for output of the coordinates in body-fixed system
+        vxyzbody for output of the velocity in body-fixed system
+         xyzaero for output of the coordinates in aerodynamic system
+        vxyzaero for output of the velocity in aerodynamic system
+      vxyzmoving for output of the velocity in moving system
+      vxyzmvgeod for output of the velocity in moving geod. system
+             xyz for output of the grid coordinates
+          xyzold for output of the old grid coordinates
+         xyzoold for output of the oold grid coordinates
+          volume for output of the cv volume
+       oldvolume for output of the cv volume
+      ooldvolume for output of the cv volume
+            wxyz for output of the grid velocity
+        wxyzgeod for output of the grid velocity in geod. system
+         entropy for output of the normalized entropy difference
+         gradrho for output of the density gradient
+           gradu for output of the x_velocity gradient
+           gradv for output of the y_velocity gradient
+           gradw for output of the z_velocity gradient
+           gradp for output of the pressure gradient
+            visc for output of the laminar viscosity
+           kappa for output of the thermal conductivity
+        momentum for output of the momentum
+               H for output of the total enthalpy
+            rhoE for output of the density times total energy
+           mgind for output of the multigrid indicator
+          Kn-rho for output of the Knudsen number (gradrho)
+        Kn-tau-q for output of the Knudsen number (stress, heat flux)
+             mfp for output of the mean free path
+       carbuncle for output of the carbuncle switch indicator
+           blank for output of the chimera blanked points
+          ipzone for output of the chimera interpolated points
+        notfound for output of the chimera points not found
+            hole for output of the chimera holecut
+         holeold for output of the old chimera holecut
+        holeoold for output of the oold chimera holecut
+
+-----------------------------------------------------
+Implemented "Surface output values":
+             xyz for output of the grid coordinates
+         restart for output of the variables used to restart
+             rho for output of the density
+               v for output of the velocity
+               p for output of the pressure
+            temp for output of the temperature
+            mean for output of the mean flow variables
+         mean-cp for output of the mean and rms pressure coeff
+         mean-cf for output of the mean skin friction
+        variance for output of the variances of flow variables
+            mach for output of the Mach number
+              cp for output of the pressure coeff
+            Ptot for output of the total pressure
+           clydl for output of the local force coeff. vector
+          cmxyzl for output of the local moment coeff. vector
+         entropy for output of the normalized entropy difference
+          apsimP for output of the apsim pressure
+       acd-raysc for output of the acd ray scaling factor
+       acd-chlen for output of the acd chord length
+       acd-twist for output of the acd blade twist
+        acd-vrot for output of the acd rotational velocity
+      acd-alphai for output of the acd ind angle of attack
+       acd-alpha for output of the acd eff angle of attack
+          acd-cl for output of the acd coefficient of lift
+          acd-cd for output of the acd coefficient of drag
+     acd-secload for output of the acd tau sectional load
+     acd-dsk-xyz for output of the acd disk point coords
+ acd-dsk-secload for output of the acd disk sectional load
+ acd-dsk-srfload for output of the acd disk surface load
+   acd-dsk-force for output of the acd disk discrete force
+ acd-bld-secload for output of the acd blade sectional load
+     acd-bld-vel for output of the acd blade velocity
+             htc for output of the heat transfer coefficient
+           imach for output of the isentropic Mach number
+              ch for output of the Stanton number
+          heatfl for output of the wall heat flux
+            visc for output of the laminar viscosity
+            fxyz for output of the force vector
+        fxyzgeod for output of the force vector in geodesic system
+              cf for output of the skin friction
+           cfxyz for output of the skin friction vector
+       cfxyzgeod for output of the skin friction vector in geod. system
+           yplus for output of the y+ values
+          krplus for output of the k_r+ values
+          wrough for output of the wall-roughness
+          cpharm for output of the harmonics of pressure coeff.
+          cfharm for output of the harmonics of skin friction  
+            eddy for output of the eddy viscosity
+              sa for output of the Spalart Allmaras viscosity
+         xyzgeod for output of the coordinates in geodesic system
+        vxyzgeod for output of the velocity in geodesic system
+         xyzbody for output of the coordinates in body-fixed system
+        vxyzbody for output of the velocity in body-fixed system
+         xyzaero for output of the coordinates in aerodynamic system
+        vxyzaero for output of the velocity in aerodynamic system
+      vxyzmoving for output of the velocity in moving system
+      vxyzmvgeod for output of the velocity in moving geod. system
+          volume for output of the cv volume
+            wxyz for output of the grid velocity
+        wxyzgeod for output of the grid velocity in geod. system
+        momentum for output of the momentum
+               H for output of the total enthalpy
+            rhoE for output of the density times total energy
+        massflux for output of the mass flux
+           blank for output of the chimera blanked points
+          ipzone for output of the chimera interpolated points
+        vxyzedge for output of the boundary layer edge velocities
+        bldatasw for output of the boundary layer data streamwise
+        bldatacf for output of the boundary layer data cross flow
+          ltflag for output of the laminar turbulent flag
+          blinfo for output of the boundary layer information
+         bldelta for output of the boundary layer thicknesses
+         fnormal for output of the boundary normal vector
+
+-----------------------------------------------------
+Implemented "Plane output values":
+             xyz for output of the grid coordinates
+            temp for output of the temperature
+               v for output of the velocity components
+               p for output of the pressure
+             rho for output of the density
+              cp for output of the pressure coeff
+            Ptot for output of the total pressure
+              pl for output of the pressure loss
+         entropy for output of the surface entropy
+              cf for output of the skin friction
+           cfxyz for output of the skin friction vector
+           cfabs for output of the abs. skin friction
+           yplus for output of the y+ values
+            psi1 for output of the adjoint variable 1 (density)
+            psi2 for output of the adjoint variable 2 (u)
+            psi3 for output of the adjoint variable 3 (v)
+            psi4 for output of the adjoint variable 4 (w)
+            psi5 for output of the adjoint variable 5 (pressure)
+
+-----------------------------------------------------
+Implemented monitoring values (to be separated by '_').
+Monitoring values that can be used for Cauchy convergence control (CC)
+are indicated by an "X" in the second column:
+    KEY                CC COMMENT
+  Rrho                    root mean square of density residual
+  Rrhovx                  root mean square of x-component of momentum residual
+  Rrhovy                  root mean square of y-component of momentum residual
+  Rrhovz                  root mean square of z-component of momentum residual
+  RrhoE                   root mean square of density times energy residual
+  Rrhonue                 root mean square of rho nuetilde residual
+  Max-Rrho                maximum norm of rho residual
+  X-max-Rrho              grid x-coordinate of Max-Rrho
+  Y-max-Rrho              grid y-coordinate of Max-Rrho
+  Z-max-Rrho              grid z-coordinate of Max-Rrho
+  Max-Rrho-global         global maximum norm of density residual over all domains
+  Max-Rrhonue             maximum norm of rho nuetilde residual
+  X-max-Rrhonue           grid x-coordinate of Max-Rrhonue
+  Y-max-Rrhonue           grid y-coordinate of Max-Rrhonue
+  Z-max-Rrhonue           grid z-coordinate of Max-Rrhonue
+  Res-GMRES               total linear residual from GMRES solver
+  C-lift               X  lift-coefficient 
+  C-lift-p             X  pressure part of C-lift
+  C-lift-v             X  viscous part of C-lift
+  C-drag               X  drag-coefficient
+  C-drag-p             X  pressure part of C-drag
+  C-drag-v             X  viscous part of C-drag
+  C-sidef              X  coeff of sideforce
+  C-sidef-p            X  pressure part of C-sidef
+  C-sidef-v            X  viscous part of C-sidef
+  C-mx                 X  rolling moment coefficient
+  C-mx-p               X  pressure part of rolling moment coefficient
+  C-mx-v               X  viscous part of rolling moment coefficient
+  C-my                 X  pitching moment coefficient
+  C-my-p               X  pressure part of pitching moment coefficient
+  C-my-v               X  viscous part of pitching moment coefficient
+  C-mz                 X  yawing moment coefficient
+  C-mz-p               X  pressure part of yawing moment coefficient
+  C-mz-v               X  viscous part of yawing moment coefficient
+  C-fx                 X  force-coefficient (x-component)
+  C-fx-p               X  pressure part of force-coefficient (x-component)
+  C-fx-v               X  viscous part of force-coefficient (x-component)
+  C-fy                 X  force-coefficient (y-component)
+  C-fy-p               X  pressure part of force-coefficient (y-component)
+  C-fy-v               X  viscous part of force-coefficient (y-component)
+  C-fz                 X  force-coefficient (z-component)
+  C-fz-p               X  pressure part of force-coefficient (z-component)
+  C-fz-v               X  viscous part of force-coefficient (z-component)
+  Fx                   X  x-component of force [N]
+  Fx-p                 X  pressure part of x-component of force [N]
+  Fx-v                 X  viscous part of x-component of force [N]
+  Fy                   X  y-component of force [N]
+  Fy-p                 X  pressure part of y-component of force [N]
+  Fy-v                 X  viscous part of y-component of force [N]
+  Fz                   X  z-component of force [N]
+  Fz-p                 X  pressure part of z-component of force [N]
+  Fz-v                 X  viscous part of z-component of force [N]
+  Mx                   X  x-component of moment [Nm]
+  Mx-p                 X  pressure part of x-component of moment [Nm]
+  Mx-v                 X  viscous part of x-component of moment [Nm]
+  My                   X  y-component of moment [Nm]
+  My-p                 X  pressure part of y-component of moment [Nm]
+  My-v                 X  viscous part of y-component of moment [Nm]
+  Mz                   X  z-component of moment [Nm]
+  Mz-p                 X  pressure part of z-component of moment [Nm]
+  Mz-v                 X  viscous part of z-component of moment [Nm]
+  Min-mach             X  minimum Machnumber in field
+  X-min-mach              grid x-coordinate of Min-mach
+  Y-min-mach              grid y-coordinate of Min-mach
+  Z-min-mach              grid z-coordinate of Min-mach
+  Max-mach             X  maximum Machnumber in field
+  X-max-mach              grid x-coordinate of Max-mach
+  Y-max-mach              grid y-coordinate of Max-mach
+  Z-max-mach              grid z-coordinate of Max-mach
+  Heatflow             X  total heatflow [W]
+  Res-heat                heatflux-increment
+  Min-y+               X  minimum value of y+
+  X-min-y+                grid x-coordinate of Min-y+
+  Y-min-y+                grid y-coordinate of Min-y+
+  Z-min-y+                grid z-coordinate of Min-y+
+  Max-y+               X  maximum value of y+
+  X-max-y+                grid x-coordinate of Max-y+
+  Y-max-y+                grid y-coordinate of Max-y+
+  Z-max-y+                grid z-coordinate of Max-y+
+  Min-kr                  minimum value of kr
+  X-min-kr                grid x-coordinate of Min-kr
+  Y-min-kr                grid y-coordinate of Min-kr
+  Z-min-kr                grid z-coordinate of Min-kr
+  Max-kr                  maximum value of kr
+  X-max-kr                grid x-coordinate of Max-kr
+  Y-max-kr                grid y-coordinate of Max-kr
+  Z-max-kr                grid z-coordinate of Max-kr
+  Min-kr+                 minimum value of kr+
+  X-min-kr+               grid x-coordinate of Min-kr+
+  Y-min-kr+               grid y-coordinate of Min-kr+
+  Z-min-kr+               grid z-coordinate of Min-kr+
+  Max-kr+                 maximum value of kr+
+  X-max-kr+               grid x-coordinate of Max-kr+
+  Y-max-kr+               grid y-coordinate of Max-kr+
+  Z-max-kr+               grid z-coordinate of Max-kr+
+  act-area                Area actuation bdry
+  act-targ-mf             Actuation target massflow
+  act-pres                Actuation bdry pressure
+  Min-eddyv            X  min dim-less eddy viscosity
+  X-min-eddyv             grid x-coordinate of Min-eddyv
+  Y-min-eddyv             grid y-coordinate of Min-eddyv
+  Z-min-eddyv             grid z-coordinate of Min-eddyv
+  Max-eddyv            X  max dim-less eddy viscosity
+  X-max-eddyv             grid x-coordinate of Max-eddyv
+  Y-max-eddyv             grid y-coordinate of Max-eddyv
+  Z-max-eddyv             grid z-coordinate of Max-eddyv
+  Min-k                X  min kinetic energy
+  X-min-k                 grid x-coordinate of Min-k
+  Y-min-k                 grid y-coordinate of Min-k
+  Z-min-k                 grid z-coordinate of Min-k
+  Max-k                X  max kinetic energy
+  X-max-k                 grid x-coordinate of Max-k
+  Y-max-k                 grid y-coordinate of Max-k
+  Z-max-k                 grid z-coordinate of Max-k
+  Min-k2               X  min 2nd turb. quantity
+  X-min-k2                grid x-coordinate of Min-k2
+  Y-min-k2                grid y-coordinate of Min-k2
+  Z-min-k2                grid z-coordinate of Min-k2
+  Max-k2               X  max 2nd turb. quantity
+  X-max-k2                grid x-coordinate of Max-k2
+  Y-max-k2                grid y-coordinate of Max-k2
+  Z-max-k2                grid z-coordinate of Max-k2
+  Max-mtm              X  max eddy-viscosity/laminar-viscosity
+  X-max-mtm               grid x-coordinate of Max-mtm
+  Y-max-mtm               grid y-coordinate of Max-mtm
+  Z-max-mtm               grid z-coordinate of Max-mtm
+  Angle-a                 angle of attack alpha
+  Angle-b                 yaw angle beta
+  Sideslip                sideslip angle beta
+  Farf-vx                 farfield vx
+  Farf-vz                 farfield vz
+  Mtm-2t                  number of pseudo time steps (unsteady)
+  Alpha(t)                pitch amplitude
+  H(t)                    heave amplitude [grid unit]
+  dalpha-dt               pitch angular velocity
+  dh-dt                   heave velocity [grid unit/s]
+  S-k-e                   structural kinetic energy
+  T/tperiod               time normalized with period length
+  Phi                     rotation angle phi
+  Psi                     rotation angle psi
+  Xi                      rotation angle xi
+  Trans-x                 translation in x direction [grid unit]
+  Trans-y                 translation in y direction [grid unit]
+  Trans-z                 translation in z direction [grid unit]
+  Farf-mach               effective farfield Mach number at origin
+  Farf-alpha              effective farfield angle of attack alpha at origin [deg]
+  Farf-beta               effective farfield angle of attack beta at origin [deg]
+  les-dt               X  timescale resolution of des
+  les-percent          X  % of des points
+  hybcentpercent       X  % of fluxes computed with pure central
+  vort-center-x           center of vorticity (x)
+  vort-center-y           center of vorticity (y)
+  vort-center-z           center of vorticity (z)
+  vort-total           X  total vorticity
+  dudx                 X  dudx
+  dvdy                 X  dvdy
+  dwdz                 X  dwdz
+  total-ke             X  total ke
+  mean-dissip1         X  molecular dissipation
+  rmsu                 X  rms u
+  rmsv                 X  rms v
+  rmsw                 X  rms w
+  rmsp                 X  rms pressure
+  skew                 X  velocity derivative skewness
+  kurt                 X  normalized velocity derivative kurtosis
+  Taylor-f             X  Longitudinal Taylor length scale
+  Taylor-g             X  Transverse Taylor length scale
+  Taylor-Re            X  Re based on Taylor scale
+  L2n-vc               X  L2 norm of vortical correction
+  Max-vc               X  Max value of vortical correction
+  Min-vc               X  Min value of vortical correction
+  Res-lift                cl-increment
+  Res-drag                cd-increment
+  R-time                  Total CPU time (real)
+  U-time                  Total CPU time (user)
+  Rhs-time                CPU time for one compute_residual() call.
+  Norm-time               Normalized CPU time (real)
+  dJ/da-1                 Adjoint & Primal: Partial dJ/da
+  dJ/da-2                 Adjoint: psi * partial dR/da, Primal: Partial dJ/dW * dW/da
+  dJ/da                   Adjoint & Primal: derivative of cost fn wrt design var.
+  Sens                 X  Functional sensitivity
+  Freqdom-Cl-Amp          Freqdom: Amplitude of CL
+  Freqdom-Cl-Phase        Freqdom: Phase shift of CL
+  Freqdom-Cd-Amp          Freqdom: Amplitude of CD
+  Freqdom-Cd-Phase        Freqdom: Phase shift of CD
+  Freqdom-Cmx-Amp         Freqdom: Amplitude shift of CM_X
+  Freqdom-Cmx-Phase       Freqdom: Phase shift of CM_X
+  Freqdom-Cmy-Amp         Freqdom: Amplitude shift of CM_Y
+  Freqdom-Cmy-Phase       Freqdom: Phase shift of CM_Y
+  Freqdom-Cmz-Amp         Freqdom: Amplitude shift of CM_Z
+  Freqdom-Cmz-Phase       Freqdom: Phase shift of CM_Z
+  Impl-cfl                Implicit CFL number
+-----------------------------------------------------
+
+Solver parameters:
+  Files/IO ------------------------------------------------------: -
+                                              Restart-data prefix: (none)
+                                        Boundary mapping filename: airfoil_Structured.cntl.mod
+                                              Output files prefix: /home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Outputs/airfoilSol
+                                  Profile output description file: airfoil_Structured.cntl.mod
+                                    Plane output description file: airfoil_Structured.cntl.mod
+                                  Surface output description file: airfoil_Structured.cntl.mod
+                                    Field output description file: airfoil_Structured.cntl.mod
+                                                                 : -
+                                 Automatic parameter update (0/1): 1
+                            Automatic parameter update mode (0/1): 0
+                                      Accumulate queue time (0/1): 0
+                                                     Output level: 25
+  Timestepping Start/Stop ---------------------------------------: -
+                                                    Output period: 200
+                                         Maximal time step number: 200
+                                                 Minimum residual: 1e-10
+  Memory management ---------------------------------------------: -
+                                            Increase memory (0/1): 1
+  Geometry ------------------------------------------------------: -
+                                                       Grid scale: 1
+                                          Reference relation area: 0.00045
+                             Reference length (pitching momentum): 0.002
+                       Reference length (rolling/yawing momentum): 0.225
+                                              Origin coordinate x: 0
+                                              Origin coordinate y: 0
+                                              Origin coordinate z: 0
+  Perfect gas thermodynamic -------------------------------------: -
+                                                   Gas constant R: 287.06
+                                               Gas constant gamma: 1.4
+  Transport coefficients ----------------------------------------: -
+                                                  Reynolds number: 613699.8287
+                                                   Prandtl number: 0.72
+                                              Sutherland constant: 110.4
+                                   Sutherland reference viscosity: 1.716e-05
+                                 Sutherland reference temperature: 273
+  References ----------------------------------------------------: -
+                                                Reference density: 1.23656526555367
+                                            Reference temperature: 293.15
+                                               Reference pressure: 104058.993826812
+                                                  Reynolds length: 0.225
+                                            Reference Mach number: 0.11658
+                                               Reference velocity: 40.0146809378118
+                                         Reference outer pressure: 104058.993826812
+  Variables -----------------------------------------------------: -
+                                        Fix negative values (0/1): 0
+                                                  Minimal density: 1e-12
+                                                 Minimal pressure: 1e-12
+                                                   Minimal energy: 1e-12
+                  Infinite swept wing with 2D offset vector (0/1): 0
+  Flowfield initialization --------------------------------------: -
+                                      Init total conditions (0/1): 0
+  Solver IO parameters ------------------------------------------: -
+                              Write pointdata dimensionless (0/1): 0
+              Reference system of forces and moments (tau/ln9300): tau
+                       Output scaling factor of translation (xyz): 1 1 1 
+  Universal -----------------------------------------------------: -
+                                                      Solver type: Flow
+  Monitoring ----------------------------------------------------: -
+                                            Monitor history (0/1): 1
+                                   Residual monitoring type (0/1): 0
+                                                Monitoring values: Rrho_Max-Rrho_X-max-Rrho_Y-max-Rrho_Z-max-Rrho_Rrhovx_Rrhovy_Rrhovz_RrhoE_Rrhonue_C-lift_C-drag_C-sidef_C-mx_C-my_C-mz_Angle-a_Max-y+
+                                        Global monitoring (0/1/2): 1
+                         Residual evaluation for monitoring (0/1): 1
+                              Recompute freestream residual (0/1): 0
+                            Flux-consistent force integrals (0/1): 0
+                                   Monitoring significant figures: 3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_2_3
+                            Extended coefficient monitoring (0/1): 0
+  Logfile control -----------------------------------------------: -
+                       Enable logfile output on all domains (0/1): 0
+  Flux main -----------------------------------------------------: -
+                                Inviscid flux discretization type: Central
+                                 Viscous flux type TSL/Full (0/1): 1
+                                      Mixed inviscid fluxes (0/1): 0
+  Central flux --------------------------------------------------: -
+                                       Central dissipation scheme: Matrix_dissipation
+                                 Central convective meanflow flux: Average_of_flux
+                            Scaling of central scheme dissipation: Standard
+                               Central convective turbulence flux: Average_of_flux
+                                2nd order dissipation coefficient: 0.5
+                        Inverse 4th order dissipation coefficient: 64
+                           Version of cell stretching coefficient: TAU
+                            Use modified dissipation for 2D (0/1): 0
+                                     Use temperature sensor (0/1): 0
+                              Temperature switch weighting factor: 2
+  Matrix Dissipation --------------------------------------------: -
+                                 Pressure switch weighting factor: 1
+                Minimum artificial dissipation for acoustic waves: 0.2
+                      Minimum artificial dissipation for velocity: 0.2
+                  Couple mean flow and turbulence equations (0/1): 0
+                                        Hartens entropy fix (0/1): 0
+  Gradients -----------------------------------------------------: -
+                                      Reconstruction of gradients: Green_Gauss
+  Relaxation ----------------------------------------------------: -
+                                                Relaxation solver: Backward_Euler
+                                 Hold static velocity field (0/1): 0
+  Backward Euler ------------------------------------------------: -
+                                                    Linear solver: Lusgs
+                                    Implicit overrelaxation omega: 1
+                                     Implicit overrelaxation beta: 1
+                 Turbulence model equations eigenvalue correction: 0.15
+  LUSGS ---------------------------------------------------------: -
+                                               Sgs stages maximum: 3
+Lusgs treat rotating frame of reference source terms implicitly (0/1): 0
+  Multigrid -----------------------------------------------------: -
+                                          MG description filename: 3w
+                                        Multigrid indicator (0/1): 0
+                                    SG start up steps (fine grid): 0
+          SG start up steps (fine grid) in initial unsteady phase: 0
+Perform SG start up steps (fine grid) every unsteady timestep (0/1): 0
+                         Turbulence equations use multigrid (0/1): 1
+       Use source terms in coarse grid turbulence equations (0/1): 0
+                Use face gradient correction on coarse grid (0/1): 0
+                   Set boundary fluxes for forcing function (0/1): 0
+               Skip dissipation update for forcing function (0/1): 0
+  Full multigrid ------------------------------------------------: -
+                                            Multigrid start level: 1
+                          Maximal time step number (coarse grids): 100
+                                  Minimum residual (coarse grids): 0.001
+                  Full multigrid central scheme first-order (0/1): 1
+  Timestepsize --------------------------------------------------: -
+                                                       CFL number: 4
+                                        CFL number (coarse grids): 2
+                                        CFL number (large grad p): 2
+                                       Time step smoothing factor: 0
+                                       Time step computing method: Minimum_of_eigenvalues
+                               Viscous time step weighting factor: 4
+  Smoother ------------------------------------------------------: -
+                                                Residual smoother: Point_explicit
+                                              Correction smoother: Point_explicit
+                                        Correction smooth epsilon: 0.2
+                                          Residual smooth epsilon: 0.2002
+                                       Correction smoothing steps: 2
+                                         Residual smoothing steps: 2
+  Implicit Smoother ---------------------------------------------: -
+                                               Initial CFL number: 5
+                                                 Final CFL number: 25
+                           Start up steps with initial CFL number: 10
+                                   Increase factor for CFL number: 2
+                      Relaxation coefficient for implicit systems: 1
+                   Evaluate preconditioner first stage only (0/1): 0
+                         Threshold parameter for convective waves: 1
+                     Linear solution method for implicit smoother: Block_symmetric_gauss_seidel
+                   Number of sweeps for iterative solution method: 5
+                  Solve turbulence equations weakly coupled (0/1): 0
+                              Ratio solving steps turbulence/mean: 5
+                                    Initial CFL number turbulence: 5
+                                      Final CFL number turbulence: 25
+                Start up steps with initial CFL number turbulence: 10
+                        Increase factor for CFL number turbulence: 2
+           Relaxation coefficient for implicit systems turbulence: 1
+        Evaluate preconditioner first stage only turbulence (0/1): 0
+          Linear solution method for implicit smoother turbulence: Symmetric_gauss_seidel
+        Number of sweeps for iterative solution method turbulence: 5
+  Preconditioning -----------------------------------------------: -
+                                                  Preconditioning: (none)
+                                                    Cut-off value: 1
+                                            Spatial cut-off value: 1
+  Turbulence ----------------------------------------------------: -
+                                                  Turbulence mode: RANS
+                                           Ratio Prandtl lam/turb: 0.8
+                                        General ratio mue-t/mue-l: 100
+                                        Maximum limit mue-t/mue-l: 20000
+                                      General turbulent intensity: 0.1
+                                           Reference bl-thickness: 0
+                                         Turbulence model version: SA
+                                                Positivity scheme: 1
+                                            EARSM expansion order: 1
+                                   Vortical flow correction (0/1): 0
+                                   Turbulence initialization type: walldist
+                                             SAS correction (0/1): 0
+                                  Vortex generator modeling (0/1): 0
+                                              QCR extension (0/1): 0
+  SA models -----------------------------------------------------: -
+                                                 SA model version: SA-neg
+                                       SA boundary condition type: smooth
+                                SA attractor for zero value (0/1): 1
+  Cauchy convergence control ------------------------------------: -
+                                   Use Cauchy convergence control: off
+                             Cauchy convergence control variables: (none)
+                             Error for Cauchy convergence control: 0 
+                         Number of samples for Cauchy convergence: 20
+                            Factor for dynamic Cauchy convergence: 0.05
+  Chimera -------------------------------------------------------: -
+                               2D offset vector (0 / x=1,y=2,z=3): 0
+                                            Primary grid filename: /home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Mesh/airfoil_Structured_scaliert.grid
+                          Suppress error on orphaned points (0/1): 0
+                      Apply Chimera nearest neighbor search (0/1): 0
+                     Extend valid Chimera nearest neighbors (0/1): 0
+    Smooth interpolation data for Chimera nearest neighbors (0/1): 0
+                                   Apply Chimera adaptation (0/1): 0
+                              Apply Chimera wall projection (0/1): 0
+                                    Mismatch of overlapping walls: 0
+                       Remove overlap for loads integration (0/1): 0
+                                        Surface element tolerance: 0
+                                     Surface kink detection angle: 30
+                           Surface kink detection angle tolerance: 15
+                                 Chimera new implementation (0/1): 1
+                                   Chimera debugging output (0/1): 0
+                              Chimera debugging wall output (0/1): 0
+                        Apply Chimera automatic holecutting (0/1): 0
+                     Apply Chimera automatic shrink overlap (0/1): 0
+                           Chimera automatic shrink maximum value: 15
+                           Chimera automatic shrink overlap width: 5
+  Extra field output values -------------------------------------: -
+                                              Field output values: cp_mach_visc
+  Surface output parameters -------------------------------------: -
+                                            Surface output values: p_rho_cp_cfxyz_yplus_fnormal
+                                            Surface output period: 200
+  Cutting plane parameters --------------------------------------: -
+                                              Plane output values: xyz_cp_cf_yplus
+                                              Plane output period: 200
+                                                 Number of planes: 0
+                                                  Plane support x: -
+                                                  Plane support y: -
+                                                  Plane support z: -
+                                                   Plane normal x: -
+                                                   Plane normal y: -
+                                                   Plane normal z: -
+
+Profile parameters:
+                                               Number of profiles: 0
+                                            Profile output period: 0
+                                            Profile every n steps: 1
+                                            Profile output values: xyz_v_p
+                                        Wall boundary point (0/1): -
+                                                Profile support x: -
+                                                Profile support y: -
+                                                Profile support z: -
+                                                 Profile normal x: -
+                                                 Profile normal y: -
+                                                 Profile normal z: -
+                                                    Profile range: -
+  Dual time -----------------------------------------------------: -
+                                           Unsteady time stepping: dual
+                   Unsteady activate inner iteration output (0/1): 1
+                            Unsteady show pseudo time steps (0/1): 1
+                                 Unsteady physical time step size: 0.005
+                                    Unsteady physical time offset: 0
+                            Unsteady computational time step size: -1
+                               Unsteady normalized time step size: -1
+                                     Unsteady physical time steps: 1
+                          Unsteady inner iterations per time step: 10
+                 Minimum number of inner iterations per time step: 10
+                                   Unsteady implicit scheme order: 2
+                                     Unsteady extrapolation order: 0
+                               Compute harmonics on surface (0/1): 1
+                                         Physical simulation time: -1
+                                                 Runge-Kutta type: SDIRK
+                                       Time step adaptation (0/1): 1
+                                   Time step adaptation tolerance: 5e-05
+                                  Time step adaptation controller: proportional-integral
+                                 Use time step size limiter (0/1): 1
+  Moving grid ---------------------------------------------------: -
+                                            Type of grid movement: static
+                                      Motion description filename: (none)
+                                        Motion hierarchy filename: (none)
+                                 Extended motion monitoring (0/1): 0
+                                 Geometric conservation law (0/1): 1
+                                     Initialize deformation (0/1): 0
+  Flow time averaging -------------------------------------------: -
+                                          Compute flow statistics: (none)
+                                            Reset flow statistics: mean_variance_meanvelgrad
+                              Moving average sampling window size: 0
+  Memory management ---------------------------------------------: -
+                                            Increase memory (0/1): 1
+  APSIM parameters ----------------------------------------------: -
+                                                 APSIM input file: (none)
+                                              APSIM output prefix: (none)
+  Nearest wall data parameters ----------------------------------: -
+                                  Compute nearest wall data (0/1): 0
+                                            Project wall distance: 0
+                                            Primary grid filename: /home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Mesh/airfoil_Structured_scaliert.grid
+  Transition module parameters ----------------------------------: -
+                               Transition module description file: airfoil_Structured.cntl.mod
+                             Set transition at solver start (0/1): 0
+                                    Transition prescription (0/1): 0
+                                      Transition prediction (0/1): 0
+
+Solver boundary parameter:
+  ---------------------------------------------------------------: -
+                                                             Type: symmetry plane
+                                                          Markers: 3
+                                         Write surface data (0/1): 0
+                                      Cutting plane allowed (0/1): 0
+  ---------------------------------------------------------------: -
+                                                             Type: symmetry plane
+                                                          Markers: 4
+                                         Write surface data (0/1): 0
+                                      Cutting plane allowed (0/1): 0
+  ---------------------------------------------------------------: -
+                                                             Type: farfield
+                                                          Markers: 1
+                                                             Name: INLET
+                                   Unified flux formulation (0/1): 0
+                                                                 : -
+                                       Constant alpha/clift (0/1): 0
+                                                   Targeted clift: 0
+                                                Adjustment factor: 0.01
+                                            Lift iteration period: 20
+                                             Lift iteration start: 200
+                                                                 : -
+                                          Vortex correction (0/1): 0
+                                                     Chord length: 0
+                                                                 : -
+                                     Monitor farfield state (0/1): 1
+                                          Monitor mass flow (0/1): 0
+                                           Monitor momentum (0/1): 0
+                                              Set gradients (0/1): 0
+                                         Write surface data (0/1): 0
+                                      Cutting plane allowed (0/1): 0
+                                             Modify farfield file: (none)
+                                                                 : -
+                                                          Density: 1.23656526555367
+                                                      Mach number: 0.11658
+                                                         Velocity: 40.0146809378118
+                                              Angle beta (degree): 0
+                                             Angle alpha (degree): 6
+                                          Sideslip angle (degree): 0
+                                                      Temperature: 293.15
+                                                Ratio mue-t/mue-l: 100
+  ---------------------------------------------------------------: -
+                                                             Type: exit-pressure outflow
+                                                          Markers: 2
+                                                             Name: OUTLET
+                                                    Exit pressure: 104058.993826812
+                                    Match measured pressure (0/1): 0
+                                                Measured pressure: 104058.993826812
+                                          Measurement coordinates: 0 0 0 
+                                 Matching adjustment factor [0,1]: 0.5
+                                        Matching iteration period: 150
+                                         Matching iteration start: 750
+                                          Monitor mass flow (0/1): 1
+                                           Monitor momentum (0/1): 0
+                                           Monitor pressure (0/1): 0
+                                            Monitor impulse (0/1): 0
+                                     Monitor farfield state (0/1): 0
+                                         Write surface data (0/1): 0
+                                      Cutting plane allowed (0/1): 0
+  ---------------------------------------------------------------: -
+                                                          Markers: 13
+                                                             Type: viscous wall
+                                                          Subtype: turbulent
+                                                             Name: MEMBRANE
+                                                                 : -
+                                          Use wall function (0/1): 0
+                                             Temperature filename: (none)
+                                                                 : -
+                                                Moving wall (0/1): 0
+                                                Moving wall omega: 0 0 0 
+                                                Moving wall trans: 0 0 0 
+                                               Moving wall origin: 0 0 0 
+                                                                 : -
+                                             Monitor forces (0/1): 1
+                                     Monitor farfield state (0/1): 0
+                                          Monitor mass flow (0/1): 0
+                                          Monitor heat flow (0/1): 0
+                                              Set gradients (0/1): 0
+                                         Write surface data (0/1): 1
+                                      Cutting plane allowed (0/1): 1
+                                        Monitor drag forces (0/1): 0
+                                        Monitor lift forces (0/1): 0
+                                           Calculate fluxes (0/1): 0
+                                                                 : -
+                                            Apply mass flux (0/1): 0
+                                               Effusion mass flux: 0
+                                    Coolant reservoir temperature: -293.15
+                                                                 : -
+                                                        Heat flux: adiabatic
+                                             Heat flux evaluation: gradient
+                                       Heat flux correction (0/1): 0
+                                                      Temperature: 293.15
+                                                       Emissivity: 0.8
+
+-----------------------------------------------------
+Active turbulence model: Spalart Allmaras model
+ Constants: Karmann 0.410 cb1 0.1355 cb2 0.6220 sigm 0.6667 cv1 7.1
+            cv2 0.70 cw1 3.24 cw2 0.30 cw3 2.00
+
+Active boundary condition: smooth
+
+Active transition management: Limit production in laminar flagged regions
+
+Active initialization type: walldist
+
+Cauchy convergence control not active
+High memory initialisation to reduce CPU-time
+
+Initializing UNSTEADY run from SCRATCH.
+
+
+Mainloop on level 1:
+ Level 1  _  _          
+ Level 2  _   \_   _   /
+ Level 3  _     \_/ \_/ 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Origin x,y,z: 0, 0, 0 [grid units]  0, 0, 0 [m]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Lift/Drag Reference Area: 0.00045 [grid units] 0.00045 [m^2]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Time scheme: DUAL_TIME
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Iter|      Rrho|    Rrhovx|    Rrhovy|    Rrhovz|     RrhoE|   Rrhonue|  Max-Rrho| X-max-Rrho| Y-max-Rrho| Z-max-Rrho|    C-lift|    C-drag|   C-sidef|      C-mx|      C-my|      C-mz|    Max-y+|  Angle-a|    MF(OUTLET)|
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+!          1|  1.65e+02|  2.68e+02|  1.98e-11|  7.84e+01|  5.72e+02|  5.31e-01|  8.34e+03|   5.09e-04|  -2.00e-03|  -9.86e-04|  7.68e-01|  5.86e-01| -5.86e-08| -3.65e-03| -6.13e+01|  2.24e-03|  2.75e+01|  6.0e+00|   1.96839e-01|
+!          2|  1.46e+02|  1.44e+02|  1.05e-11|  3.80e+01|  4.97e+02|  1.68e-01|  7.33e+03|   1.51e-03|  -1.06e-19|  -1.73e-03|  2.99e+00|  1.36e+00| -2.86e-07| -1.38e-02| -2.36e+02|  4.60e-03|  2.59e+01|  6.0e+00|   1.96839e-01|
+!          3|  1.19e+02|  9.06e+01|  9.77e-12|  4.28e+01|  4.05e+02|  5.76e-02|  6.53e+03|   1.51e-03|  -2.00e-03|  -1.73e-03|  4.94e+00|  2.17e+00| -5.37e-07| -2.27e-02| -3.92e+02|  7.27e-03|  2.48e+01|  6.0e+00|   1.96839e-01|
+!          4|  8.07e+01|  6.62e+01|  8.01e-12|  4.76e+01|  2.74e+02|  2.21e-02|  5.42e+03|   1.51e-03|  -2.00e-03|  -1.73e-03|  4.93e+00|  2.49e+00| -6.68e-07| -2.27e-02| -3.99e+02|  8.69e-03|  3.03e+01|  6.0e+00|   1.96839e-01|
+!          5|  5.13e+01|  4.15e+01|  3.06e-12|  4.08e+01|  1.73e+02|  9.50e-03|  3.84e+03|   1.51e-03|  -2.00e-03|  -1.73e-03|  3.62e+00|  2.13e+00| -5.83e-07| -1.68e-02| -2.97e+02|  7.73e-03|  4.11e+01|  6.0e+00|   1.96839e-01|
+!          6|  3.73e+01|  2.60e+01|  1.35e-12|  3.35e+01|  1.28e+02|  4.54e-03|  2.54e+03|   3.85e-03|  -1.61e-19|  -2.63e-03|  3.31e+00|  1.76e+00| -4.49e-07| -1.55e-02| -2.57e+02|  6.25e-03|  4.94e+01|  6.0e+00|   1.96839e-01|
+!          7|  2.29e+01|  1.86e+01|  1.65e-12|  2.55e+01|  8.00e+01|  2.39e-03|  1.14e+03|   3.85e-03|  -1.61e-19|  -2.63e-03|  3.61e+00|  1.70e+00| -4.17e-07| -1.68e-02| -2.74e+02|  5.83e-03|  5.51e+01|  6.0e+00|   1.96839e-01|
+!          8|  1.99e+01|  1.20e+01|  9.06e-13|  1.57e+01|  7.00e+01|  1.36e-03|  1.34e+03|   1.51e-03|  -1.06e-19|  -1.73e-03|  3.70e+00|  1.70e+00| -4.39e-07| -1.71e-02| -2.86e+02|  5.81e-03|  5.99e+01|  6.0e+00|   1.96839e-01|
+!          9|  1.69e+01|  7.85e+00|  5.05e-13|  1.31e+01|  5.91e+01|  8.29e-04|  1.15e+03|   2.66e-03|  -2.00e-03|  -2.25e-03|  3.62e+00|  1.63e+00| -4.40e-07| -1.67e-02| -2.84e+02|  5.51e-03|  6.45e+01|  6.0e+00|   1.96839e-01|
+!         10|  1.28e+01|  5.70e+00|  5.34e-13|  1.15e+01|  4.54e+01|  5.32e-04|  8.71e+02|   5.08e-03|  -1.79e-19|  -2.92e-03|  3.56e+00|  1.51e+00| -4.19e-07| -1.64e-02| -2.77e+02|  5.01e-03|  6.89e+01|  6.0e+00|   1.96839e-01|
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Elapsed Time for the last 10 inner iterations   3.756   4.626 seconds (wallclock in solver and total user time, respectively).
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Time|      Rrho|    Rrhovx|    Rrhovy|    Rrhovz|     RrhoE|   Rrhonue|  Max-Rrho| X-max-Rrho| Y-max-Rrho| Z-max-Rrho|    C-lift|    C-drag|   C-sidef|      C-mx|      C-my|      C-mz|    Max-y+|  Angle-a|    MF(OUTLET)|
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| 5.000e-03|  1.28e+01|  5.70e+00|  5.34e-13|  1.15e+01|  4.54e+01|  5.32e-04|  8.71e+02|   5.08e-03|  -1.79e-19|  -2.92e-03|  3.56e+00|  1.51e+00| -4.19e-07| -1.64e-02| -2.77e+02|  5.01e-03|  6.89e+01|  6.0e+00|   1.96839e-01|
+10 inner loops not converged
+
+Integral values on boundaries
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total force coefficients (aerodynamic system)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  Surface-Part              Name                CLift                CDrag               CSideF              Area[%]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     Overall Sum                          3.56328471015        1.50587275786   -4.19252162675e-07                  100
+  bdry-part    3          MEMBRANE        3.56328471015        1.50587275786   -4.19252162675e-07                  100
+ name-group    3          MEMBRANE        3.56328471015        1.50587275786   -4.19252162675e-07                  100
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total moment coefficients (body fitted system [tau])
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  Surface-Part              Name                 CM_x                 CM_y                 CM_z              Area[%]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     Overall Sum                        -0.016395768599       -276.675604062     0.00501102283251                  100
+  bdry-part    3          MEMBRANE      -0.016395768599       -276.675604062     0.00501102283251                  100
+ name-group    3          MEMBRANE      -0.016395768599       -276.675604062     0.00501102283251                  100
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Wallclock runtime in mainloop: 3.8 seconds
+      cpu runtime in mainloop: 3.8 seconds
+Wallclock time for exchange of pointdata: 0.000 seconds (min/avg/max 0.000/0.000/0.000 over all domains)
+Output file </home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Outputs/airfoilSol.pval.unsteady_i=1_t=5.000e-03> written
+Output file </home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Outputs/airfoilSol.surface.pval.unsteady_i=1_t=5.000e-03> written
+Output file </home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/tests/TAU/Outputs/airfoilSol.monitor.pval.unsteady.dat> written
+
+Transition module done
+
+Received 'exit' command

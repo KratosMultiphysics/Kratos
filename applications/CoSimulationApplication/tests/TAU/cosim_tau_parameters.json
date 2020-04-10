@@ -1,0 +1,36 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "data_transfer_operators" : {},
+        "coupling_sequence":
+        [
+            {
+                "name": "fluid",
+                "output_data_list": [],
+                "input_data_list": []
+            }
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.external.tau_wrapper",
+                "solver_wrapper_settings" : {},
+                "data" : {},
+                "io_settings" : {
+                    "type" : "tau_io"
+                }
+            }
+        }
+    }
+}
