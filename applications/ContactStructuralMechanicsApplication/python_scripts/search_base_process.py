@@ -112,11 +112,7 @@ class SearchBaseProcess(KM.Process):
                 self.preprocess = True
 
                 # We remove the submodelpart
-                KM.VariableUtils().SetFlag(KM.TO_ERASE, True, self.main_model_part.GetSubModelPart("ComputingContact").Conditions)
-                self.main_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KM.TO_ERASE)
-
                 self.main_model_part.RemoveSubModelPart("Contact")
-                self.main_model_part.RemoveSubModelPart("ComputingContact")
 
                 KM.AuxiliarModelPartUtilities(self.main_model_part).EnsureModelPartOwnsProperties(True)
                 KM.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).EnsureModelPartOwnsProperties(True)
