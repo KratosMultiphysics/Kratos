@@ -31,24 +31,27 @@ class TAUWrapper(CoSimulationSolverWrapper):
 
     def Initialize(self):
         super(TAUWrapper, self).Initialize()
+        to_io_data_config = {
+            "type" : "control_signal",
+            "signal" : "Initialize"
+        }
+        self.ExportData(to_io_data_config)
 
-        # for main_model_part_name, mdpa_file_name in self.settings["solver_wrapper_settings"]["model_parts_read"].items():
-        #     KM.ModelPartIO(mdpa_file_name.GetString()).ReadModelPart(self.model[main_model_part_name])
+    def SolveSolutionStep(self):
+        super(TAUWrapper, self).SolveSolutionStep()
+        to_io_data_config = {
+            "type" : "control_signal",
+            "signal" : "SolveSolutionStep"
+        }
+        self.ExportData(to_io_data_config)
 
-        # for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_send"].items():
-        #     interface_config = {
-        #         "comm_name" : comm_name.GetString(),
-        #         "model_part_name" : model_part_name
-        #     }
-        #     self.ExportCouplingInterface(interface_config)
-
-        # for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
-        #     interface_config = {
-        #         "comm_name" : comm_name.GetString(),
-        #         "model_part_name" : model_part_name
-        #     }
-
-        #     self.ImportCouplingInterface(interface_config)
+    def Finalize(self):
+        super(TAUWrapper, self).Finalize()
+        to_io_data_config = {
+            "type" : "control_signal",
+            "signal" : "Finalize"
+        }
+        self.ExportData(to_io_data_config)
 
     def AdvanceInTime(self, current_time):
         return 100.0 # TODO find a better solution here... maybe get time from solver through IO
