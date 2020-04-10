@@ -129,7 +129,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
 
             mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
             mortar_mapping.Execute()
-            self.FinalizeSolutionStep()
+            super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).FinalizeSolutionStep()
         else:
             super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).FinalizeSolutionStep()
 
