@@ -33,8 +33,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
         .def("GetMinimumScalarValue", &RansVariableUtilities::GetMinimumScalarValue)
         .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
-        .def("CopyNodalSolutionStepVariablesList",
-             &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
+        .def("CopyNodalSolutionStepVariablesList", &RansVariableUtilities::CopyNodalSolutionStepVariablesList)
+        .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
+        .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>);
 
     m.def_submodule("RansCalculationUtilities")
         .def("CalculateLogarithmicYPlusLimit",

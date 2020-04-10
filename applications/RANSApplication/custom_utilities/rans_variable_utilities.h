@@ -58,6 +58,15 @@ void KRATOS_API(RANS_APPLICATION) SetNodalVariables(ModelPart::NodesContainerTyp
 void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart,
                                                                      ModelPart& rDestinationModelPart);
 
+template<typename TDataType>
+double GetVariableValueNorm(const TDataType& rValue);
+
+template<typename TDataType>
+void KRATOS_API(RANS_APPLICATION) CalculateTransientVariableConvergence(double& rRelativeChange,
+                                                                        double& rAbsoluteChange,
+                                                                        const ModelPart& rModelPart,
+                                                                        const Variable<TDataType>& rVariable);
+
 ///@}
 } // namespace RansVariableUtilities
 
