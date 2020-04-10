@@ -109,6 +109,11 @@ public:
         return mGraphSize; //note that this is only valid after Finalize has been called
     }
 
+    bool IsEmpty()
+    {
+        return mGraph.empty();
+    }
+
     bool Has(const IndexType I, const IndexType J) const
     {
         const auto& row_it = mGraph.find(I);

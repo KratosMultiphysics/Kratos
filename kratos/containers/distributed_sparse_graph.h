@@ -20,6 +20,8 @@
 #include "includes/serializer.h"
 #include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
+#include "containers/sparse_graph.h"
+#include "containers/sparse_contiguous_row_graph.h"
 
 // External includes
 #include <unordered_map>
@@ -67,7 +69,8 @@ public:
     ///@name Type Definitions
     ///@{
     typedef std::size_t IndexType; //note that this could be different from the one in the basetype
-    typedef SparseGraph LocalGraphType; //using a map since we need it ordered
+    typedef SparseContiguousRowGraph LocalGraphType; //using a map since we need it ordered
+    typedef SparseGraph NonLocalGraphType; //using a map since we need it ordered
 
     /// Pointer definition of DistributedSparseGraph
     KRATOS_CLASS_POINTER_DEFINITION(DistributedSparseGraph);
@@ -81,8 +84,10 @@ public:
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
     : mLocalBounds(limits),
       mrComm(rComm),
-      mLocalGraph() //limits[1]-limits[0]),
+      mLocalGraph(limits[1]-limits[0])
     {
+        mNonLocalGraphs.resize(mrComm.Size(),false);
+        mNonLocalLocks.resize(mrComm.Size(),false);
 
         auto all_limits = mrComm.AllGather(mLocalBounds);
 
@@ -125,6 +130,10 @@ public:
     /// Destructor.
     virtual ~DistributedSparseGraph(){}
 
+    IndexType Size() const{
+        return mLocalGraph.Size(); //note that this is only valid after Finalize has been called
+    }
+
     bool IsLocal(const IndexType I)
     {
         return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
@@ -143,6 +152,11 @@ public:
     IndexType RemoteLocalId(const IndexType rGlobalId, const IndexType rOwnerRank) const
     {
         return rGlobalId-mCpuBounds[rOwnerRank];
+    }
+
+    bool Has(const IndexType GlobalI, const IndexType GlobalJ) const
+    {
+        return mLocalGraph.Has(LocalId(GlobalI),GlobalJ);
     }
 
     IndexType OwnerRank(const IndexType RowIndex)
@@ -173,10 +187,15 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    const typename LocalGraphType::GraphType::value_type& operator[](const IndexType& LocalPosition) const
+    {
+		return mLocalGraph[LocalPosition];
+    }
+
     void Clear()
     {
         mLocalGraph.Clear();
-        mNonLocalGraphs.clear();
+        //mNonLocalGraphs.clear();
     }
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
@@ -186,7 +205,9 @@ public:
         }
         else{
             IndexType owner = OwnerRank(RowIndex);
+            mNonLocalLocks[owner].SetLock();
             mNonLocalGraphs[owner].AddEntry(RemoteLocalId(RowIndex,owner), ColIndex);
+            mNonLocalLocks[owner].UnSetLock();
         }
     }
 
@@ -198,7 +219,9 @@ public:
         }
         else{
             IndexType owner = OwnerRank(RowIndex);
+            mNonLocalLocks[owner].SetLock();
             mNonLocalGraphs[owner].AddEntries(RemoteLocalId(RowIndex,owner), rColIndices);
+            mNonLocalLocks[owner].UnSetLock();
         }
     }
 
@@ -213,7 +236,9 @@ public:
         }
         else{
             IndexType owner = OwnerRank(RowIndex);
+            mNonLocalLocks[owner].SetLock();
             mNonLocalGraphs[owner].AddEntries(RemoteLocalId(RowIndex,owner), rColBegin, rColEnd);
+            mNonLocalLocks[owner].UnSetLock();
         }
     }
 
@@ -222,12 +247,16 @@ public:
     {
         for(auto I : rIndices)
         {
+            // KRATOS_WATCH(I)
+            // KRATOS_WATCH(IsLocal(I))
             if(IsLocal(I)){
                 mLocalGraph.AddEntries(LocalId(I), rIndices);
             }
             else{
-                //TODO
-                mNonLocalGraphs[OwnerRank(I)].AddEntries(I, rIndices);;
+                IndexType owner = OwnerRank(I);
+                mNonLocalLocks[owner].SetLock();
+                mNonLocalGraphs[owner].AddEntries(RemoteLocalId(I,owner), rIndices);;
+                mNonLocalLocks[owner].UnSetLock();
             }
         }
     }
@@ -237,19 +266,21 @@ public:
         //TODO
     }
 
-    void AddEntries(const SparseGraph& rOtherGraph)
-    {
-        for(auto it = rOtherGraph.begin(); it!=rOtherGraph.end(); ++it)
-        {
-            AddEntries(it.GetRowIndex(), *it);
-        }
-    }
+    // void AddEntries(const SparseGraph& rOtherGraph)
+    // {
+    //     for(auto it = rOtherGraph.begin(); it!=rOtherGraph.end(); ++it)
+    //     {
+    //         AddEntries(it.GetRowIndex(), *it);
+    //     }
+    // }
 
     void Finalize()
     {
         std::vector<int> send_list;
-        for(auto& item : mNonLocalGraphs)
-            send_list.push_back(item.first);
+
+        for(unsigned int id = 0; id<mNonLocalGraphs.size(); ++id)
+            if( !mNonLocalGraphs[id].IsEmpty())
+                send_list.push_back(id);
 
         auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrComm);
 
@@ -258,21 +289,28 @@ public:
         {
             if(color >= 0) //-1 would imply no communication
             {
+std::cout << "communication with " << color << std::endl;
                 //TODO: this can be made nonblocking
-                auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+                const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
 
-                // SparseGraph recv_graph;
-                mLocalGraph.AddEntries(recv_graph);
+                for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
+                {
+                    auto I = row_it.GetRowIndex();
+                    mLocalGraph.AddEntries(I,*row_it);
+                }
+std::cout << "finished communication with " << color << std::endl;
             }
         }
+
+KRATOS_WATCH("Finalize finished")
     }
 
     const LocalGraphType& GetLocalGraph() const{
         return mLocalGraph;
     }
 
-    const LocalGraphType& GetNonLocalGraph(IndexType Rank) const{
-        return mNonLocalGraphs.at(Rank);
+    const NonLocalGraphType& GetNonLocalGraph(IndexType Rank) const{
+        return mNonLocalGraphs[Rank];
     }
 
 
@@ -366,7 +404,8 @@ private:
 
     std::vector<IndexType> mCpuBounds;
     LocalGraphType mLocalGraph;
-    std::unordered_map<IndexType,LocalGraphType> mNonLocalGraphs;
+    DenseVector<NonLocalGraphType> mNonLocalGraphs;
+    DenseVector<LockObject> mNonLocalLocks;
 
     ///@}
     ///@name Private Operators
