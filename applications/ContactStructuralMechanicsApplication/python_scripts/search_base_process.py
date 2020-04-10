@@ -111,6 +111,9 @@ class SearchBaseProcess(KM.Process):
             if self.main_model_part.GetRootModelPart().Is(KM.MODIFIED):
                 self.preprocess = True
 
+                # Clean up contact pairs
+                CSMA.ContactUtilities.CleanContactModelParts(self.main_model_part)
+
                 # We remove the submodelpart
                 self.main_model_part.RemoveSubModelPart("Contact")
 
