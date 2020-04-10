@@ -78,9 +78,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         """
 
         # If we remesh using a process
-        if self.process_remesh == "remesh_loop":
-            self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
-        elif self.process_remesh == "adaptively": # Remeshing adaptively
+        if self.process_remesh == "adaptively": # Remeshing adaptively
             self.adaptive_utilities.SPRAdaptativeRemeshingRunSolutionLoop()
         else:
             super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).RunSolutionLoop()
