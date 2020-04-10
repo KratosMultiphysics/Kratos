@@ -356,9 +356,8 @@ class ContactRemeshMmgProcess(MmgProcess):
         self -- It signifies an instance of a class.
         """
 
-        # We remove the submodelpart
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.GetSubModelPart("ComputingContact").Conditions)
-        self.main_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        # Clean up contact pairs
+        ContactStructuralMechanicsApplication.ContactUtilities.CleanContactModelParts(self.main_model_part)
 
         # We clean the computing before remesh
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Nodes)
@@ -373,14 +372,12 @@ class ContactRemeshMmgProcess(MmgProcess):
 
         # We remove the contact submodelparts
         self.main_model_part.RemoveSubModelPart("Contact")
-        self.main_model_part.RemoveSubModelPart("ComputingContact")
 
         # Ensure properties defined
         KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
 
         # We create the contact submodelparts
         self.main_model_part.CreateSubModelPart("Contact")
-        self.main_model_part.CreateSubModelPart("ComputingContact")
 
     def _AuxiliarCallsAfterRemesh(self):
         """ This method is executed right after execute the remesh
