@@ -6,7 +6,7 @@ from importlib import import_module
 def CreateSolver(model, custom_settings):
 
     if not isinstance(model, KratosMultiphysics.Model):
-        raise Exception("input is expected to be provided as a Kratos Model object")#
+        raise Exception("input is expected to be provided as a Kratos Model object")
 
     if not isinstance(custom_settings, KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
