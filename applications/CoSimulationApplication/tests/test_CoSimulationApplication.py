@@ -50,56 +50,56 @@ def AssembleTestSuites():
     '''
     suites = KratosUnittest.KratosSuites
     ################################################################################
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
-    if numpy_available:
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofStaticSolver]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverGetSolver]))
-    if not using_pykratos:
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
-    if not using_pykratos and numpy_available:
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOKratosPythonExposure]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
+    # smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
+    # if numpy_available:
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofStaticSolver]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverGetSolver]))
+    # if not using_pykratos:
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
+    # if not using_pykratos and numpy_available:
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOKratosPythonExposure]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
+    #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
 
 
     ################################################################################
-    nightSuite = suites['nightly'] # These tests are executed in the nightly build
-    nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
-    nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+    # nightSuite = suites['nightly'] # These tests are executed in the nightly build
+    # nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
+    # nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
 
-    nightSuite.addTests(smallSuite)
+    # nightSuite.addTests(smallSuite)
 
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
-    validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
-    if not using_pykratos and numpy_available:
-        validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
-        validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIODummySolvers]))
+    # validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
+    # if not using_pykratos and numpy_available:
+    #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
+    #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIODummySolvers]))
 
     ################################################################################
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # already contains the smallSuite
+    # allSuite.addTests(nightSuite) # already contains the smallSuite
     allSuite.addTests(validationSuite)
 
     return suites
 
 
 if __name__ == '__main__':
-    if not using_pykratos:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-        run_cpp_unit_tests.run()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+    # if not using_pykratos:
+    #     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    #     run_cpp_unit_tests.run()
+    #     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

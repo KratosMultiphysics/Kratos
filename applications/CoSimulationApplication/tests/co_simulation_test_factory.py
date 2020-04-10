@@ -28,62 +28,75 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
 
-    def test_MPM_FEM_beam_penalty(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
-        if not have_mpm_fem_dependencies:
-            self.skipTest("MPM-FEM dependencies are not available!")
+    # def test_MPM_FEM_beam_penalty(self):
+    #     if not numpy_available:
+    #         self.skipTest("Numpy not available")
+    #     if using_pykratos:
+    #         self.skipTest("This test cannot be run with pyKratos!")
+    #     if not have_mpm_fem_dependencies:
+    #         self.skipTest("MPM-FEM dependencies are not available!")
 
-        self.name = "penalty_beam"
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
-            self._runTest()
+    #     self.name = "penalty_beam"
+    #     with KratosUnittest.WorkFolderScope(".", __file__):
+    #         self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
+    #         self._runTest()
 
 
 class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "full" CoSimulation-Cases, too large for the nightly suite and therefore
     have to be in the validation-suite
     '''
-    def test_WallFSI(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
-        if not have_fsi_dependencies:
-            self.skipTest("FSI dependencies are not available!")
+    # def test_WallFSI(self):
+    #     if not numpy_available:
+    #         self.skipTest("Numpy not available")
+    #     if using_pykratos:
+    #         self.skipTest("This test cannot be run with pyKratos!")
+    #     if not have_fsi_dependencies:
+    #         self.skipTest("FSI dependencies are not available!")
 
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
-            self._runTest()
+    #     with KratosUnittest.WorkFolderScope(".", __file__):
+    #         self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
+    #         self._runTest()
 
-    def test_DEMFEMCableNet(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
-        if not have_dem_fem_dependencies:
-            self.skipTest("DEM FEM dependencies are not available!")
+    # def test_DEMFEMCableNet(self):
+    #     if not numpy_available:
+    #         self.skipTest("Numpy not available")
+    #     if using_pykratos:
+    #         self.skipTest("This test cannot be run with pyKratos!")
+    #     if not have_dem_fem_dependencies:
+    #         self.skipTest("DEM FEM dependencies are not available!")
 
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
-            self._runTest()
+    #     with KratosUnittest.WorkFolderScope(".", __file__):
+    #         self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
+    #         self._runTest()
 
-    def test_sdof_fsi(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
-        if not have_fsi_dependencies:
-            self.skipTest("FSI dependencies are not available!")
+    # def test_sdof_fsi(self):
+    #     if not numpy_available:
+    #         self.skipTest("Numpy not available")
+    #     if using_pykratos:
+    #         self.skipTest("This test cannot be run with pyKratos!")
+    #     if not have_fsi_dependencies:
+    #         self.skipTest("FSI dependencies are not available!")
 
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_sdof", "cosim_sdof_fsi")
-            # self.__AddVtkOutputToCFD() # uncomment to get output
-            self._runTest()
+    #     with KratosUnittest.WorkFolderScope(".", __file__):
+    #         self._createTest("fsi_sdof", "cosim_sdof_fsi")
+    #         # self.__AddVtkOutputToCFD() # uncomment to get output
+    #         self._runTest()
 
-    def test_sdof_static_fsi(self):
+    # def test_sdof_static_fsi(self):
+    #     if not numpy_available:
+    #         self.skipTest("Numpy not available")
+    #     if using_pykratos:
+    #         self.skipTest("This test cannot be run with pyKratos!")
+    #     if not have_potential_fsi_dependencies:
+    #         self.skipTest("FSI dependencies are not available!")
+
+    #     with KratosUnittest.WorkFolderScope(".", __file__):
+    #         self._createTest("fsi_sdof_static", "project_cosim_naca0012_small_fsi")
+    #         # self.__AddVtkOutputToCFD() # uncomment to get output
+    #         self._runTest()
+
+    def test_TAU(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
         if using_pykratos:
@@ -91,8 +104,8 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         if not have_potential_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_sdof_static", "project_cosim_naca0012_small_fsi")
+        with KratosUnittest.WorkFolderScope("TAU", __file__):
+            self._createTest(".", "cosim_tau")
             # self.__AddVtkOutputToCFD() # uncomment to get output
             self._runTest()
 
