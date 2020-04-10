@@ -6,6 +6,8 @@ import KratosMultiphysics
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+have_eigen_solvers_dependencies = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
 
 # Other imports
 import os
@@ -62,12 +64,15 @@ class ConvectionDiffusionTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
+@KratosUnittest.skipUnless(have_eigen_solvers_dependencies,"Missing required application: EigenSolversApplication")
 class BasicConvectionDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_stationary"
 
+@KratosUnittest.skipUnless(have_eigen_solvers_dependencies,"Missing required application: EigenSolversApplication")
 class BasicConvectionDiffusionTransientTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_transient"
 
+@KratosUnittest.skipUnless(have_eigen_solvers_dependencies,"Missing required application: EigenSolversApplication")
 class BasicDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_diffusion_test_stationary"
 
