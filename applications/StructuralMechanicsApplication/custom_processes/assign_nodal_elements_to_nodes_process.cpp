@@ -20,6 +20,7 @@
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "utilities/variable_utils.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -223,7 +224,10 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     r_model_part.AddElements(aux_elems.begin(), aux_elems.end());
 
     // We Initialize the elements
-    InitializeElements(r_model_part);
+    EntitiesUtilities::InitializeEntities<Element>(r_model_part);
+
+    // Inactive by default
+    VariableUtils().SetFlag(ACTIVE, false, r_model_part.Elements());
 
     // Set the flag ACTIVE
     this->Set(ACTIVE, false);
@@ -270,22 +274,6 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
     }
 
     KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void AssignNodalElementsToNodesProcess::InitializeElements(ModelPart& rModelPart)
-{
-    const auto& r_process_info = rModelPart.GetProcessInfo();
-    ElementsArrayType& r_elements_array = rModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(r_elements_array.size()); i++)
-        (it_elem_begin + i)->Initialize(r_process_info);
-
-    // Inactive by default
-    VariableUtils().SetFlag(ACTIVE, false, rModelPart.Elements());
 }
 
 /***********************************************************************************/

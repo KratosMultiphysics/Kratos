@@ -241,12 +241,6 @@ private:
     ///@{
 
     /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements
-     * @param rModelPart The model part contining the elements
-     */
-    void InitializeElements(ModelPart& rModelPart);
-
-    /**
      * @brief It returns a point geometry from an array of nodes
      * @param rArrayNodes The array containing nodes
      * @param Dimension The current dimension of work
