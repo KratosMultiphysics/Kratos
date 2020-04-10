@@ -33,7 +33,8 @@ typedef std::unordered_map<std::pair<std::size_t, std::size_t>,
 ElementConnectivityType RandomElementConnectivities(
     const IndexType block_size,
     const IndexType nodes_in_elem,
-    const IndexType nel,
+    const IndexType index_begin,
+    const IndexType index_end,
     const IndexType ndof,
     const IndexType standard_dev
 )
@@ -43,16 +44,16 @@ ElementConnectivityType RandomElementConnectivities(
     std::cout << "beginning generation" << std::endl;
     double start = OpenMPUtils::GetCurrentTime();
     //generating random indices
-    ElementConnectivityType connectivities(nel*block_size);
+    ElementConnectivityType connectivities((index_end-index_begin)*block_size);
 
     #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(nel);++i)
+    for(int i=static_cast<int>(index_begin); i<static_cast<int>(index_end);++i)
     {
         connectivities[i].resize(nodes_in_elem*block_size);
         std::mt19937 gen(i);
         //std::uniform_int_distribution<> dis(0,ndof-1);
         std::normal_distribution<> dis{
-            static_cast<double>(ndof/nel*i),
+            static_cast<double>(ndof/(index_end-index_begin)*i),
             static_cast<double>(standard_dev)
             };
 
@@ -340,7 +341,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
     const IndexType nel = 1e6;
     const IndexType ndof = nel/6;
     const IndexType standard_dev = 100;
-    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
+    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
 
     double start_graph = OpenMPUtils::GetCurrentTime();
     auto pAgraph = AssembleGraph<SparseGraph>(connectivities, ndof*block_size);
@@ -356,7 +357,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
     const IndexType nel = 1e6;
     const IndexType ndof = nel/6;
     const IndexType standard_dev = 100;
-    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, nel,ndof,standard_dev);
+    auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem,0, nel,ndof,standard_dev);
 
     double start_graph = OpenMPUtils::GetCurrentTime();
 

@@ -7,10 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Carlos A. Roig
+//  Main authors:    Riccardo Rossi
 
 #include <utility>
 #include <iostream>
+#include <random>
 
 #include "testing/testing.h"
 #include "mpi/includes/mpi_data_communicator.h"
@@ -175,6 +176,59 @@ bool CheckGraph(
     return true;
 }
 
+ElementConnectivityType RandomElementConnectivities(
+    const IndexType block_size,
+    const IndexType nodes_in_elem,
+    const IndexType index_begin,
+    const IndexType index_end,
+    const IndexType ndof,
+    const IndexType standard_dev
+)
+{
+
+    std::cout << std::endl;
+    std::cout << "beginning generation" << std::endl;
+    double start = OpenMPUtils::GetCurrentTime();
+    //generating random indices
+    ElementConnectivityType connectivities((index_end-index_begin)*block_size);
+
+    #pragma omp parallel for
+    for(int i=static_cast<int>(index_begin); i<static_cast<int>(index_end);++i)
+    {
+        connectivities[i].resize(nodes_in_elem*block_size);
+        std::mt19937 gen(i);
+        //std::uniform_int_distribution<> dis(0,ndof-1);
+        std::normal_distribution<> dis{
+            static_cast<double>(ndof/(index_end-index_begin)*i),
+            static_cast<double>(standard_dev)
+            };
+
+        for(int j = 0; j<static_cast<int>(nodes_in_elem); ++j){
+            //IndexType eq_id = dis(gen)*block_size;
+            IndexType eq_id;
+            bool acceptable = false;
+            while(!acceptable){
+                auto randomid = static_cast<IndexType>(dis(gen));
+                if(static_cast<IndexType>(randomid) > 0 &&
+                   static_cast<IndexType>(randomid) < ndof-1)
+                {
+                    acceptable=true;
+                    eq_id = randomid * block_size;
+                }
+            }
+
+            for(IndexType k = 0; k<block_size; ++k){
+                connectivities[i][j*block_size+k] = eq_id+k;
+            }
+        }
+    }
+    double end_gen = OpenMPUtils::GetCurrentTime();
+    std::cout << "finishing generation - time = " << end_gen-start << std::endl;
+
+    return connectivities;
+}
+
+
 // bool CheckCSRGraphArrays(
 //     const vector<SparseGraph::IndexType>& rRowIndices,
 //     const vector<SparseGraph::IndexType>& rColIndices,
@@ -239,6 +293,44 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
 
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosCoreFastSuite)
+{
+    typedef DistributedSparseGraph::IndexType IndexType;
+
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    const IndexType block_size = 4;
+    const IndexType nodes_in_elem = 4;
+    const IndexType nel = 1e2; //set to 1e6 or 1e7 for a more realistic benchmark
+    const IndexType ndof = nel/6;
+    const IndexType standard_dev = 100; //reducing this implies using more optimized numbering
+
+    auto el_bounds = ComputeBounds<IndexType>(nel, world_size, my_rank);
+    auto dofs_bounds = ComputeBounds<IndexType>(ndof*block_size, world_size, my_rank);
+
+    auto connectivities = RandomElementConnectivities(block_size,
+                                nodes_in_elem,
+                                el_bounds[0],
+                                el_bounds[1],
+                                ndof,
+                                standard_dev);
+
+    rComm.Barrier(); //to ensure fair timings
+    double start_graph = OpenMPUtils::GetCurrentTime();
+    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+        Agraph.AddEntries(connectivities[i]);
+    Agraph.Finalize();
+
+    rComm.Barrier(); //to ensure fair timings
+    double end_graph = OpenMPUtils::GetCurrentTime();
+    std::cout << "graph - time = " << end_graph-start_graph << std::endl;
+
+}
 
 
 } // namespace Testing
