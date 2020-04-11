@@ -217,7 +217,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        static std::vector<GeometryPointerType> Create(
+        static void Create(
             GeometryType& rGeometry,
             typename GeometryType::GeometriesArrayType& rResultGeometries,
             typename GeometryType::IntegrationPointsArrayType& rIntegrationPoints,

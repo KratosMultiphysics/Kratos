@@ -26,6 +26,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // IntersectionUtilities
     m.def("FindIntersection1DGeometries2D", &IntersectionUtilities::FindIntersection1DGeometries2D);
+    m.def("CreateQuadraturePointsCoupling1DGeometries2D", &IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D);
 
 }
 
