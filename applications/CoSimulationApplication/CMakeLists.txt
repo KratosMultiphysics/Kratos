@@ -44,43 +44,6 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCore )
     set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
 
-    # creating the auxiliary executables (enabled by default)
-    if(NOT DEFINED CO_SIM_HELPERS)
-        message("CO_SIM_HELPERS not defined. Setting to ON")
-        SET (CO_SIM_HELPERS ON)
-    endif(NOT DEFINED CO_SIM_HELPERS)
-
-    if(${CO_SIM_HELPERS} MATCHES ON)
-        message("Compiling the helpers for CoSimulation")
-        ### Ping-Pong
-        add_executable (ping ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/cpp_ping_pong_solvers/cpp_test_solver_ping.cpp)
-        add_executable (pong ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/cpp_ping_pong_solvers/cpp_test_solver_pong.cpp)
-        install(TARGETS ping DESTINATION libs )
-        install(TARGETS pong DESTINATION libs )
-
-        # add_definitions(-DKRATOS_CO_SIM_IO_ENABLE_SOCKETS)
-
-        ### CoSimIO
-        # C (also used for fortran)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/c)
-
-        # Python
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/python)
-
-        ### Dummy solvers
-        # Cpp
-        add_executable (dummy_solver_cpp ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/cpp/dummy_solver.cpp)
-        install(TARGETS dummy_solver_cpp DESTINATION libs )
-
-        # C
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/c)
-
-        # Fortran
-        include(CMakeAddFortranSubdirectory)
-        cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/fortran NO_EXTERNAL_INSTALL)
-
-    endif(${CO_SIM_HELPERS} MATCHES ON)
-
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         set_target_properties(KratosCoSimulationApplication PROPERTIES SUFFIX .pyd)
@@ -117,6 +80,55 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     # Install Targets
     install(TARGETS KratosCoSimulationApplication DESTINATION libs )
+
+    ##### Configuring auxiliar targets #####
+
+    ### CoSimIO
+    # add_definitions(-DKRATOS_CO_SIM_IO_ENABLE_SOCKETS)
+    # C (also used for fortran)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/c)
+    # Python
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/python)
+
+    # creating the auxiliary executables
+    if(NOT DEFINED CO_SIM_HELPERS)
+        message("CO_SIM_HELPERS not defined. Setting to ON")
+        SET (CO_SIM_HELPERS ON)
+    endif(NOT DEFINED CO_SIM_HELPERS)
+
+    if(NOT DEFINED CO_SIM_HELPERS_FORTRAN)
+        # by default disabled in Windows
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            message("CO_SIM_HELPERS_FORTRAN not defined. Setting to OFF")
+            SET (CO_SIM_HELPERS_FORTRAN OFF)
+        else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            message("CO_SIM_HELPERS_FORTRAN not defined. Setting to ON")
+            SET (CO_SIM_HELPERS_FORTRAN ON)
+        endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    endif(NOT DEFINED CO_SIM_HELPERS_FORTRAN)
+
+    if(${CO_SIM_HELPERS} MATCHES ON)
+        message("Compiling the helpers for CoSimulation")
+        ### Ping-Pong
+        add_executable (ping ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/cpp_ping_pong_solvers/cpp_test_solver_ping.cpp)
+        add_executable (pong ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/cpp_ping_pong_solvers/cpp_test_solver_pong.cpp)
+        install(TARGETS ping DESTINATION libs )
+        install(TARGETS pong DESTINATION libs )
+
+        ### Dummy solvers
+        # Cpp
+        add_executable (dummy_solver_cpp ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/cpp/dummy_solver.cpp)
+        install(TARGETS dummy_solver_cpp DESTINATION libs )
+
+        # C
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/c)
+    endif(${CO_SIM_HELPERS} MATCHES ON)
+
+    if(${CO_SIM_HELPERS_FORTRAN} MATCHES ON)
+        # Fortran
+        include(CMakeAddFortranSubdirectory)
+        cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/fortran NO_EXTERNAL_INSTALL)
+    endif(${CO_SIM_HELPERS_FORTRAN} MATCHES ON)
 
 endif(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
