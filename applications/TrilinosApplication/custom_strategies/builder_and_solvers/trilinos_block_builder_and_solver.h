@@ -399,42 +399,6 @@ public:
         }
     }
 
-    void InternalSystemSolveWithPhysics(TSystemMatrixType &rA,
-                                TSystemVectorType &rDx,
-                                TSystemVectorType &rb,
-                                ModelPart &rModelPart)
-    {
-        KRATOS_TRY
-        double norm_b;
-        if (TSparseSpace::Size(rb) != 0)
-            norm_b = TSparseSpace::TwoNorm(rb);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00)
-        {
-            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
-                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
-
-            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
-        }
-        else
-        {
-            TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING(
-                "TrilinosResidualBasedBlockBuilderAndSolver")
-                << "ATTENTION! setting the RHS to zero!" << std::endl;
-        }
-
-        // prints informations about the current time
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
-            << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-
     /**
      * @brief Function to perform the building and solving phase at the same time.
      * @details It is ideally the fastest and safer function to use when it is
@@ -1180,20 +1144,6 @@ protected:
         }
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
     void ResizeAndInitializeSystemVectors(typename TSchemeType::Pointer pScheme,
                                     TSystemMatrixPointerType& rpA,
                                     TSystemVectorPointerType& rpDx,
@@ -1322,6 +1272,21 @@ protected:
 
         KRATOS_CATCH("")
     }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -1337,6 +1302,40 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    void InternalSystemSolveWithPhysics(TSystemMatrixType &rA,
+                                TSystemVectorType &rDx,
+                                TSystemVectorType &rb,
+                                ModelPart &rModelPart)
+    {
+        KRATOS_TRY
+        double norm_b;
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
+        else
+            norm_b = 0.00;
+
+        if (norm_b != 0.00)
+        {
+            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
+                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
+
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(rDx);
+            KRATOS_WARNING(
+                "TrilinosResidualBasedBlockBuilderAndSolver")
+                << "ATTENTION! setting the RHS to zero!" << std::endl;
+        }
+
+        // prints informations about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
+            << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Function Calculates the total number of constraints across all the MPI ranks
