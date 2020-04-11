@@ -75,7 +75,8 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             local_parameter_1[0], local_parameter_2[0]);
 
         GeometriesArrayType quadrature_point_geometries_master(IntegrationPointsPerSpan);
-        r_geom_master.CreateQuadraturePointGeometries(quadrature_point_geometries_master, 1, integration_points);
+        CreateQuadraturePointsUtility<NodeType>::Create(
+            r_geom_master, quadrature_point_geometries_master, integration_points, 1);
 
         for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i)
         {

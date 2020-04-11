@@ -22,6 +22,7 @@
 #include "geometries/coupling_geometry.h"
 
 #include "integration/integration_point_utilities.h"
+#include "utilities/quadrature_points_utility.h"
 
 namespace Kratos
 {
