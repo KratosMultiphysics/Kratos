@@ -5,20 +5,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 from KratosMultiphysics.CoSimulationApplication.factories import coupling_operation_factory
+from testing_utilities import DummySolverWrapper
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
 
 from math import sqrt, pi
-
-class SolverWrapper(object):
-    '''dummy object used for testing to emulate the behavior of the SolverWrapper'''
-    def __init__(self, interface_data_dict):
-        self.interface_data_dict = interface_data_dict
-
-    def GetInterfaceData(self, data_name):
-        return self.interface_data_dict[data_name]
-
 
 class TestScalingOperation(KratosUnittest.TestCase):
 
@@ -40,7 +32,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
         self.interface_data.Initialize()
 
-        self.solver_wrappers = {"dummy_solver" : SolverWrapper({"data_4_testing" : self.interface_data})}
+        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"data_4_testing" : self.interface_data})}
 
     def test_constant_scaling(self):
         scaling_op_settings = KM.Parameters("""{

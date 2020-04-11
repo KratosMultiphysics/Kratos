@@ -141,7 +141,7 @@ public:
                         DofValue = itDof->GetSolutionStepValue(0);
                         DofIncr = Dx[DofId];
 
-                        KeyType CurrVar = itDof->GetVariable().Key();
+                        const auto& CurrVar = itDof->GetVariable();
                         if ((CurrVar == VELOCITY_X) || (CurrVar == VELOCITY_Y) || (CurrVar == VELOCITY_Z))
                         {
                             VelSolutionNorm += DofValue * DofValue;

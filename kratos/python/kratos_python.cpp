@@ -30,9 +30,9 @@
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"
 #include "add_mat_variables_to_python.h"
-#include "add_legacy_structural_app_vars_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
+#include "add_quaternion_to_python.h"
 #include "add_points_to_python.h"
 #include "add_geometries_to_python.h"
 #include "add_containers_to_python.h"
@@ -50,7 +50,9 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
-#include "add_utilities_to_python.h"
+#include "add_geometrical_utilities_to_python.h"
+#include "add_other_utilities_to_python.h"
+#include "add_variable_utils_to_python.h"
 #include "add_matrix_market_interface_to_python.h"
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
@@ -91,13 +93,13 @@ PYBIND11_MODULE(Kratos, m)
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddMeshToPython(m);
+    AddQuaternionToPython(m);
 
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
     AddALEVariablesToPython(m);
     AddC2CVariablesToPython(m);
     AddFSIVariablesToPython(m);
-    AddLegacyStructuralAppVarsToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);
@@ -117,7 +119,9 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
-    AddUtilitiesToPython(m);
+    AddGeometricalUtilitiesToPython(m);
+    AddOtherUtilitiesToPython(m);
+    AddVariableUtilsToPython(m);
     AddProcessInfoToPython(m);
     AddConstitutiveLawToPython(m);
     AddSerializerToPython(m);

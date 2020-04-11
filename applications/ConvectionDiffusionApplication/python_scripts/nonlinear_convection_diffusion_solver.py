@@ -72,7 +72,7 @@ class ConvectionDiffusionSolver:
 
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(model_part)
 
         self.model_part = model_part
         self.domain_size = domain_size

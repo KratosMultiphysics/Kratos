@@ -444,7 +444,7 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream, std::string const& rPrefixString="") const;
 
     ///@}
     ///@name Input and output

@@ -36,9 +36,6 @@ namespace Kratos
 
   void KratosPfemApplication::Register()
   {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     std::stringstream banner;
 
     banner << "            ___  __                       \n"

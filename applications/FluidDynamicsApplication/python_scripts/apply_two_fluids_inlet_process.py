@@ -101,7 +101,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.inlet_model_part = Model[settings["model_part_name"].GetString()]
         self.complete_model = self.inlet_model_part.GetRootModelPart()
 
-        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.complete_model, 10, 10)
+        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.complete_model)
         self.neighbour_search.Execute()
 
         self.variational_distance_process = self.set_variational_distance_process()

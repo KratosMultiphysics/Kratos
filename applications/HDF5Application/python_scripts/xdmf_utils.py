@@ -27,6 +27,7 @@ from KratosMultiphysics.HDF5Application.core.xdmf import UniformMeshTopology
 from KratosMultiphysics.HDF5Application.core.xdmf import UniformGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import NodalData
 from KratosMultiphysics.HDF5Application.core.xdmf import ElementData
+from KratosMultiphysics.HDF5Application.core.xdmf import ConditionData
 from KratosMultiphysics.HDF5Application.core.xdmf import TemporalGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
@@ -98,6 +99,13 @@ def RenumberConnectivitiesForXdmf(filename_or_list_of_filenames, h5path_to_mesh)
             KratosHDF5.HDF5XdmfConnectivitiesWriterProcess(
                 path, h5path_to_mesh).Execute()
 
+def GetListOfSpatialGrids(spatial_grids_list, h5_model_part, current_path):
+    for key in h5_model_part.keys():
+        if (key == "Conditions" or key == "Elements"):
+            spatial_grids_list.append([str(h5_model_part.name) + "/" + str(key), current_path + "." + str(key)])
+        else:
+            GetListOfSpatialGrids(spatial_grids_list, h5_model_part[key], current_path + "." + str(key))
+
 
 def CreateXdmfSpatialGrid(h5_model_part):
     """Return an XDMF Grid object corresponding to a mesh in an HDF5 file.
@@ -121,21 +129,21 @@ def CreateXdmfSpatialGrid(h5_model_part):
     sgrid = SpatialGrid()
     geom = Geometry(HDF5UniformDataItem(
         h5_model_part["Nodes/Local/Coordinates"]))
-    if ("Xdmf/Elements" in h5_model_part and "Xdmf/Conditions" in h5_model_part):
-        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid", "Element and Condition blocks found. Spacial grid is made from Elements block only.")
-        spatial_grid_block_name = "Xdmf/Elements"
-    elif "Xdmf/Elements" in h5_model_part:
-        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Elements.")
-        spatial_grid_block_name = "Xdmf/Elements"
-    elif "Xdmf/Conditions" in h5_model_part:
-        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Conditions.")
-        spatial_grid_block_name = "Xdmf/Conditions"
-    for name, value in h5_model_part[spatial_grid_block_name].items():
-        cell_type = TopologyCellType(
-            value.attrs["Dimension"], value.attrs["NumberOfNodes"])
-        connectivities = HDF5UniformDataItem(value["Connectivities"])
-        topology = UniformMeshTopology(cell_type, connectivities)
-        sgrid.add_grid(UniformGrid(name, geom, topology))
+
+    spatial_grids_list = []
+    GetListOfSpatialGrids(spatial_grids_list, h5_model_part["Xdmf"], "RootModelPart")
+
+    for spatial_grid in spatial_grids_list:
+        spatial_grid_location = spatial_grid[0]
+        spatial_grid_name = spatial_grid[1]
+        for name, value in h5_model_part[spatial_grid_location].items():
+            cell_type = TopologyCellType(
+                value.attrs["Dimension"], value.attrs["NumberOfNodes"])
+            connectivities = HDF5UniformDataItem(value["Connectivities"])
+            topology = UniformMeshTopology(cell_type, connectivities)
+            sgrid.add_grid(UniformGrid(spatial_grid_name + "." + name, geom, topology))
+            KratosMultiphysics.Logger.PrintInfo("XDMF", "Added " + spatial_grid_name + "." + name + " spatial grid.")
+
     return sgrid
 
 
@@ -177,6 +185,36 @@ def XdmfNodalResults(h5_results):
     return list(results.values())
 
 
+def XdmfNodalFlags(h5_results):
+    """Return a list of XDMF Attribute objects for nodal flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the flags
+
+    Checks for flags stored in data sets by variable name in:
+    - h5_flags["NodalFlagValues/<flag-name>"]
+
+    Expects:
+    - each flag variable occurs only once
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.NodalFlagsValueOutput.
+    """
+
+    results_path = "NodalFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = NodalData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+
 def XdmfElementResults(h5_results):
     """Return a list of XDMF Attribute objects for element results in an HDF5 file.
 
@@ -202,6 +240,81 @@ def XdmfElementResults(h5_results):
         results.append(r)
     return results
 
+def XdmfElementFlags(h5_results):
+    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_flags -- the HDF5 group containing the flags
+
+    Checks for flags stored by variable name in:
+    - h5_flags["ElementFlagValues/<flag-name>"]
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.ElementFlagValueOutput.
+    """
+    results_path = "ElementFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+def XdmfConditionResults(h5_results):
+    """Return a list of XDMF Attribute objects for element results in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the results
+
+    Checks for results stored by variable name in:
+    - h5_results["ConditionDataValues/<variable>"]
+
+    If no results are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionDataValueOutput.
+    """
+    results_path = "ConditionDataValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ConditionData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+def XdmfConditionFlags(h5_results):
+    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_flags -- the HDF5 group containing the flags
+
+    Checks for flags stored by variable name in:
+    - h5_flags["ConditionFlagValues/<flag-name>"]
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionFlagValueOutput.
+    """
+    results_path = "ConditionFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ConditionData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
 
 def XdmfResults(h5_results):
     """Return a list of XDMF Attribute objects for results in an HDF5 file.
@@ -212,7 +325,11 @@ def XdmfResults(h5_results):
     return list(
         chain(
             XdmfNodalResults(h5_results),
-            XdmfElementResults(h5_results)
+            XdmfNodalFlags(h5_results),
+            XdmfElementResults(h5_results),
+            XdmfElementFlags(h5_results),
+            XdmfConditionResults(h5_results),
+            XdmfConditionFlags(h5_results),
         )
     )
 

@@ -26,7 +26,9 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
+#include "utilities/quadrature_points_utility.h"
 
+#include "integration/integration_point_utilities.h"
 
 namespace Kratos {
 
@@ -37,17 +39,23 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Geometry as base class.
-    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef typename TContainerPointType::value_type NodeType;
+
+    typedef Geometry<NodeType> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+    // using base class functionalities.
+    using BaseType::CreateQuadraturePointGeometries;
+    using BaseType::pGetPoint;
+    using BaseType::GetPoint;
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
@@ -68,10 +76,7 @@ public:
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
     {
-        KRATOS_ERROR_IF(rThisPoints.size() !=
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        CheckAndFitKnotVectors();
     }
 
     /// Conctructor for NURBS surfaces
@@ -89,10 +94,7 @@ public:
         , mKnotsV(rKnotsV)
         , mWeights(rWeights)
     {
-        KRATOS_ERROR_IF(rThisPoints.size() != 
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+        CheckAndFitKnotVectors();
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
@@ -260,6 +262,65 @@ public:
         return NumberOfKnotsV() - PolynomialDegreeV() + 1;
     }
 
+    /// Returns the number of spans in DirectionIndex=0:U and DirectionIndex=1:V (which are larger than 0).
+    SizeType NumberOfKnotSpans(IndexType DirectionIndex) const
+    {
+        SizeType knot_span_counter = 0;
+        if (DirectionIndex == 0) {
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    knot_span_counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::NumberOfKnotSpans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0 and 1." << std::endl;
+        }
+        return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @param return vector of span intervals.
+     * @param index of direction: 0: U; 1: V.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        if (DirectionIndex == 0) {
+            rSpans[0] = mKnotsU[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsU[i + 1];
+                    counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            rSpans[0] = mKnotsV[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsV[i + 1];
+                    counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::Spans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0 and 1." << std::endl;
+        }
+    }
+
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
@@ -292,7 +353,7 @@ public:
 
         std::vector<NurbsInterval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsU[first_span + i];
             const double t1 = mKnotsU[first_span + i + 1];
 
@@ -314,7 +375,7 @@ public:
 
         std::vector<NurbsInterval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsV[first_span + i];
             const double t1 = mKnotsV[first_span + i + 1];
 
@@ -322,6 +383,140 @@ public:
         }
 
         return result;
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points according to the polynomial degrees.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_in_u = PolynomialDegreeU() + 1;
+        const SizeType points_in_v = PolynomialDegreeV() + 1;
+
+        CreateIntegrationPoints(
+            rIntegrationPoints, points_in_u, points_in_v);
+    }
+
+    /* Creates integration points according to the input parameter.
+     * @param return integration points.
+     * @param points in u direction per span.
+     * @param points in v direction per span.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        SizeType NumPointsPerSpanU,
+        SizeType NumPointsPerSpanV) const
+    {
+        auto knot_span_intervals_u = KnotSpanIntervalsU();
+        auto knot_span_intervals_v = KnotSpanIntervalsV();
+
+        const SizeType number_of_integration_points =
+            knot_span_intervals_u.size() * knot_span_intervals_v.size()
+            * NumPointsPerSpanU * NumPointsPerSpanV;
+
+        if (rIntegrationPoints.size() != number_of_integration_points) {
+            rIntegrationPoints.resize(number_of_integration_points);
+        }
+
+        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+
+        for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i) {
+            for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
+                IntegrationPointUtilities::IntegrationPoints2D(
+                    integration_point_iterator,
+                    NumPointsPerSpanU, NumPointsPerSpanV,
+                    knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
+                    knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
+            }
+        }
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
+    {
+        // shape function container.
+        NurbsSurfaceShapeFunction shape_function_container(
+            mPolynomialDegreeU, mPolynomialDegreeV, NumberOfShapeFunctionDerivatives);
+
+        // Resize containers.
+        if (rResultGeometries.size() != rIntegrationPoints.size())
+            rResultGeometries.resize(rIntegrationPoints.size());
+
+        auto default_method = this->GetDefaultIntegrationMethod();
+        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+
+        Matrix N(1, num_nonzero_cps);
+        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
+        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
+            shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
+        }
+
+        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+        {
+            if (IsRational()) {
+                shape_function_container.ComputeNurbsShapeFunctionValues(
+                    mKnotsU, mKnotsV, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
+            }
+            else {
+                shape_function_container.ComputeBSplineShapeFunctionValues(
+                    mKnotsU, mKnotsV, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
+            }
+
+            /// Get List of Control Points
+            PointsArrayType nonzero_control_points(num_nonzero_cps);
+            auto cp_indices = shape_function_container.ControlPointIndices(
+                NumberOfControlPointsU(), NumberOfControlPointsV());
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                nonzero_control_points(j) = pGetPoint(cp_indices[j]);
+            }
+            /// Get Shape Functions N
+            if (NumberOfShapeFunctionDerivatives >= 0) {
+                for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                    N(0, j) = shape_function_container(j, 0);
+                }
+            }
+
+            /// Get Shape Function Derivatives DN_De, ...
+            if (NumberOfShapeFunctionDerivatives > 0) {
+                IndexType shape_derivative_index = 1;
+                for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                    for (IndexType k = 0; k < n + 2; k++) {
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
+                        }
+                    }
+                    shape_derivative_index += n + 2;
+                }
+            }
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                default_method, rIntegrationPoints[i],
+                N, shape_function_derivatives);
+
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
+                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points);
+        }
     }
 
     ///@}
@@ -507,6 +702,44 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /*
+    * @brief Checks if the knot vector is coinciding with the number of
+    *        control points and the polynomial degree. If the knot vectors
+    *        have a multiplicity of p+1 in the beginning, it is reduced to p.
+    */
+    void CheckAndFitKnotVectors()
+    {
+        SizeType num_control_points = this->size();
+
+        if (num_control_points !=
+            (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size()))) {
+            if (num_control_points ==
+                (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
+                    * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2))) {
+                Vector KnotsU = ZeroVector(mKnotsU.size() - 2);
+                for (SizeType i = 0; i < mKnotsU.size() - 2; ++i) {
+                    KnotsU[i] = mKnotsU[i + 1];
+                }
+                mKnotsU = KnotsU;
+
+                Vector KnotsV = ZeroVector(mKnotsV.size() - 2);
+                for (SizeType i = 0; i < mKnotsV.size() - 2; ++i) {
+                    KnotsV[i] = mKnotsV[i + 1];
+                }
+                mKnotsV = KnotsV;
+            } else {
+                KRATOS_ERROR
+                    << "Number of controls points and polynomial degrees and number of knots do not match! " << std::endl
+                    << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
+                    << ", number of knots u: " << mKnotsU.size() << ", number of knots v: " << mKnotsV.size()
+                    << ", number of control points: " << num_control_points << std::endl
+                    << "Following condition must be achieved: ControlPoints.size() = (KnotsU.size() - P + 1) * (KnotsV.size() - Q + 1)"
+                    << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Private Serialization

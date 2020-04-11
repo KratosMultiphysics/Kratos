@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-class RansEvmMonolithicKEpsilonVMSAdjoint : public Element
+class KRATOS_API(RANS_APPLICATION) RansEvmMonolithicKEpsilonVMSAdjoint : public Element
 {
     class ThisExtensions : public AdjointExtensions
     {

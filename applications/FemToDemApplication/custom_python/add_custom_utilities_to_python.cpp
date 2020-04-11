@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/FEMDEM_coupling_utilities.h"
 
 namespace Kratos
 {
@@ -25,7 +26,17 @@ namespace Python
 {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-	using namespace pybind11;
+	namespace py = pybind11;
+
+    py::class_<FEMDEMCouplingUtilities>(m,"FEMDEMCouplingUtilities")
+        .def(py::init<>())
+        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities::SaveStructuralSolution)
+        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities::InterpolateStructuralSolution)
+        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities::RestoreStructuralSolution)
+        .def("AddExplicitImpulses",&FEMDEMCouplingUtilities::AddExplicitImpulses)
+        .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
+        .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
+        ;
 }
 
 }  // namespace Python.

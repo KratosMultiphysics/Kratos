@@ -45,6 +45,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class KRATOS_API(KRATOS_CORE) EntitiesEraseProcessFlags
+{
+public:
+    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
+    KRATOS_DEFINE_LOCAL_FLAG(ERASE_ALL_ENTITIES);     /// If the flag will be assigned (this means removing all entities of the model part)
+};
+
 /**
  * @class EntitiesEraseProcess
  * @ingroup KratosCore
@@ -64,10 +72,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
-    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
-    KRATOS_DEFINE_LOCAL_FLAG(ERASE_ALL_ENTITIES);     /// If the flag will be assigned (this means removing all entities of the model part)
-
     /// Pointer definition of EntitiesEraseProcess
     KRATOS_CLASS_POINTER_DEFINITION(EntitiesEraseProcess);
 
@@ -82,7 +86,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ERASE_ALL_ENTITIES
+        Flags Options = EntitiesEraseProcessFlags::REMOVE_FROM_ALL_LEVELS.AsFalse() | EntitiesEraseProcessFlags::ERASE_ALL_ENTITIES.AsFalse()
         );
 
     /**
@@ -114,6 +118,11 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -211,11 +220,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -246,11 +250,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TEntity>
@@ -274,5 +276,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_ENTITY_ERASE_PROCESS_INCLUDED  defined
-
-

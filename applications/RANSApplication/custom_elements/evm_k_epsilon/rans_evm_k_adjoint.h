@@ -61,7 +61,7 @@ struct RansEvmKAdjointData
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class RansEvmKAdjoint
+class KRATOS_API(RANS_APPLICATION) RansEvmKAdjoint
     : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmKAdjointData<TNumNodes>>
 {
 public:

@@ -75,7 +75,7 @@ class PFEM2Solver:
         self.domain_size = domain_size
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(model_part)
         (self.neighbour_search).Execute()
         self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
         (self.neighbour_elements_search).Execute()

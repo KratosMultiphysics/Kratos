@@ -49,6 +49,11 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         # Logger
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactImplicitMechanicalSolver]:: ", "Construction finished")
 
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+
     def AddVariables(self):
 
         super(MPCContactImplicitMechanicalSolver, self).AddVariables()

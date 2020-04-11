@@ -131,13 +131,13 @@ class ShallowWaterBaseSolver(PythonSolver):
         # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
         #                                                                                      domain_size+1) # BlockSize
 
-        builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         self.solver = KM.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                             self.time_scheme,
                                                             self.linear_solver,
                                                             self.conv_criteria,
-                                                            builder_and_solver,
+                                                            self.builder_and_solver,
                                                             self.settings["maximum_iterations"].GetInt(),
                                                             self.settings["compute_reactions"].GetBool(),
                                                             self.settings["reform_dofs_at_each_step"].GetBool(),

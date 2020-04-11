@@ -91,6 +91,7 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         for node in self.FEM_model_part.Nodes:
             node.Id = node.Id + max_id
             node.SetValue(KratosPfemFluid.NO_MESH, True)
+            node.Set(KratosMultiphysics.SOLID, True)
             femdem_model_part.AddNode(node, 0)
 
         for node in self.FEM_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:

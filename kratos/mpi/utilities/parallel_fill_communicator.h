@@ -170,8 +170,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     ModelPart& mrBaseModelPart;
 
+    bool mPartitionIndexCheckPerformed = false;
 
     ///@}
     ///@name Private Operators

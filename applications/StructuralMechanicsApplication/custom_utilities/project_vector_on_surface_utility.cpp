@@ -25,6 +25,8 @@ namespace Kratos {
 
 namespace {
 
+typedef std::size_t SizeType;
+
 void CheckVectorNorm(const Vector3& rVector)
 {
     KRATOS_ERROR_IF(norm_2(rVector) < 1e-12) << "Vector has length of zero!" << std::endl;
@@ -51,10 +53,38 @@ Vector3 CheckAndReadNormalizedVector(Parameters VectorParam)
     return vec_return;
 }
 
+void ValidateParameters(Parameters ThisParameters)
+{
+    Parameters default_parameters = Parameters(R"(
+        {
+            "model_part_name"  : "Structure",
+            "echo_level"       : 0,
+            "projection_type"  : "planar",
+            "global_direction" : [1,0,0],
+            "variable_name"    : "PLEASE_SPECIFY",
+            "visualize_in_vtk" : false,
+            "method_specific_settings" : { },
+            "check_local_space_dimension" : true
+        })" );
+
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+}
+
+bool CheckElementLocalSpaceDimension(const bool& rCheckLocalSpaceDimension, const SizeType ElementID, const SizeType ElementLocalSpaceDimension)
+{
+    if (rCheckLocalSpaceDimension) {
+        KRATOS_ERROR_IF_NOT(ElementLocalSpaceDimension==2) << "A projection plane must be provided for ProjectVectorOnSurfaceUtility for element " << ElementID << std::endl;
+    } else {
+        if (ElementLocalSpaceDimension!=2) return true;
+    }
+    return false;
+}
 } // helpers namespace
 
-void ProjectVectorOnSurfaceUtility::Execute(ModelPart& rModelPart, const Parameters ThisParameters)
+
+void ProjectVectorOnSurfaceUtility::Execute(ModelPart& rModelPart, Parameters ThisParameters)
 {
+    ValidateParameters(ThisParameters);
     const int echo_level = ThisParameters["echo_level"].GetInt();
 
     const std::string& r_variable_name = ThisParameters["variable_name"].GetString();
@@ -67,17 +97,18 @@ void ProjectVectorOnSurfaceUtility::Execute(ModelPart& rModelPart, const Paramet
 
     const std::string& r_projection_type = ThisParameters["projection_type"].GetString();
     const auto method_specific_settings = ThisParameters["method_specific_settings"];
+    const bool check_local_space_dimension = ThisParameters["check_local_space_dimension"].GetBool();
+
     if (r_projection_type == "planar") {
-        PlanarProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level);
+        PlanarProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, check_local_space_dimension);
     } else if (r_projection_type == "radial") {
-        RadialProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level);
+        RadialProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, check_local_space_dimension);
     } else if (r_projection_type == "spherical") {
-        SphericalProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level);
+        SphericalProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, check_local_space_dimension);
     } else {
         KRATOS_ERROR << "projection type: " << r_projection_type << " not available, please use planar,radial,spherical" << std::endl;
     }
 
-    // std::cout << std::endl << ".......done assigning direction for all elements......." << std::endl;
 }
 
 void ProjectVectorOnSurfaceUtility::PlanarProjection(
@@ -85,7 +116,8 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(
         const Parameters ThisParameters,
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
-        const int EchoLevel)
+        const int EchoLevel,
+        const bool rCheckLocalSpaceDimension)
 {
      auto& r_process_info = rModelPart.GetProcessInfo();
 
@@ -95,6 +127,10 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(
     // Loop over all elements in part
     for (auto &element : rModelPart.Elements()) {
 
+        if (CheckElementLocalSpaceDimension(rCheckLocalSpaceDimension,element.Id(),element.GetGeometry().LocalSpaceDimension()))
+        {
+            continue;
+        }
         // get local axis in cartesian coordinates
         element.Calculate(LOCAL_ELEMENT_ORIENTATION, local_coordinate_orientation, r_process_info);
 
@@ -148,7 +184,8 @@ void ProjectVectorOnSurfaceUtility::RadialProjection(
         const Parameters ThisParameters,
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
-        const int EchoLevel)
+        const int EchoLevel,
+        const bool rCheckLocalSpaceDimension)
 {
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
@@ -158,6 +195,10 @@ void ProjectVectorOnSurfaceUtility::RadialProjection(
     // Loop over all elements in part
     for (auto &element : rModelPart.Elements()) {
 
+        if (CheckElementLocalSpaceDimension(rCheckLocalSpaceDimension,element.Id(),element.GetGeometry().LocalSpaceDimension()))
+        {
+            continue;
+        }
         // get local axis in cartesian coordinates
         element.Calculate(LOCAL_ELEMENT_ORIENTATION, local_coordinate_orientation, r_process_info);
 
@@ -203,7 +244,8 @@ void ProjectVectorOnSurfaceUtility::SphericalProjection(
         const Parameters ThisParameters,
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
-        const int EchoLevel)
+        const int EchoLevel,
+        const bool rCheckLocalSpaceDimension)
 {
     KRATOS_ERROR << "SphericalProjection not implemented" << std::endl;
 }
