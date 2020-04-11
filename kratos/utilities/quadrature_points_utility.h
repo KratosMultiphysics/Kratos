@@ -258,7 +258,7 @@ namespace Kratos
 
                 rResultGeometries(i) = CreateQuadraturePointsUtility<TPointType>::CreateQuadraturePoint(
                     rGeometry.WorkingSpaceDimension(), rGeometry.LocalSpaceDimension(),
-                    data_container, *this);
+                    data_container, *rGeometry);
             }
         }
 
