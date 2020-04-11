@@ -21,6 +21,8 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/coupling_geometry.h"
 
+#include "integration/integration_point_utilities.h"
+
 namespace Kratos
 {
 namespace IntersectionUtilities
@@ -33,12 +35,20 @@ namespace IntersectionUtilities
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
 
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+
     void FindIntersection1DGeometries2D(
         ModelPart& rModelPartDomainA,
         ModelPart& rModelPartDomainB,
         ModelPart& rModelPartResult,
         double Tolerance = 1e-6);
 
+    void CreateQuadraturePointsCoupling1DGeometries2D(
+        ModelPart& rModelPartCoupling,
+        ModelPart& rModelPartResult,
+        double Tolerance);
 }  // namespace IntersectionUtilities.
 
 }  // namespace Kratos.
