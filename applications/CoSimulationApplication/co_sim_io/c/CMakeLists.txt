@@ -19,8 +19,9 @@ set_target_properties(co_sim_c_io PROPERTIES
     CXX_EXTENSIONS NO
 )
 
-get_directory_property( hasParent PARENT_DIRECTORY )
-if(hasParent)
+# using PARENT_DIRECTORY to check whether installed in Kratos or standalone
+get_directory_property( IN_KRATOS PARENT_DIRECTORY )
+if(IN_KRATOS)
     # if compiled from inside of Kratos, then install to the "libs" folder
     install(TARGETS co_sim_c_io DESTINATION libs )
 else()

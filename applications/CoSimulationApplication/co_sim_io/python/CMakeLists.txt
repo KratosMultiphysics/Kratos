@@ -3,10 +3,10 @@ cmake_minimum_required (VERSION 2.8.6)
 
 message("Configuring CoSimIO for Python")
 
-# using hasParent to check whether installed in Kratos or standalone
-get_directory_property( hasParent PARENT_DIRECTORY )
+# using PARENT_DIRECTORY to check whether installed in Kratos or standalone
+get_directory_property( IN_KRATOS PARENT_DIRECTORY )
 
-if(hasParent)
+if(IN_KRATOS)
     include(pybind11Tools)
 else()
     if(${MSVC})
@@ -34,7 +34,7 @@ set_target_properties(CoSimIO PROPERTIES
     CXX_EXTENSIONS NO
 )
 
-if(hasParent)
+if(IN_KRATOS)
     # if compiled from inside of Kratos, then install to the "libs" folder
     install(TARGETS CoSimIO DESTINATION libs )
 else()
