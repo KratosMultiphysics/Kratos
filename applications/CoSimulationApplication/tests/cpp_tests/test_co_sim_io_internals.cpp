@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "testing/testing.h"
 #include "co_sim_io/impl/co_sim_io_internals.h"
 
