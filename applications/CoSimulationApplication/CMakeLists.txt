@@ -64,19 +64,8 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
         # C (also used for fortran)
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/c)
 
-        install(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_sim_io/c/libco_sim_c_io.so # find a way to do this without specifying the ending
-            DESTINATION libs
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
-
         # Python
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/python)
-
-        install(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_sim_io/python/CoSimIO.cpython-36m-x86_64-linux-gnu.so # find a way to do this without specifying the ending
-            DESTINATION libs
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
-
 
         ### Dummy solvers
         # Cpp
@@ -86,19 +75,9 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
         # C
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/c)
 
-        install(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/custom_helpers/dummy_solver/c/dummy_solver_c
-            DESTINATION libs
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
-
         # Fortran
         include(CMakeAddFortranSubdirectory)
         cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/fortran NO_EXTERNAL_INSTALL)
-
-        install(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/custom_helpers/dummy_solver/fortran/dummy_solver_fortran
-            DESTINATION libs
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
     endif(${CO_SIM_HELPERS} MATCHES ON)
 

@@ -5,3 +5,9 @@ link_directories(${CMAKE_SOURCE_DIR}/libs)
 
 add_executable (dummy_solver_c dummy_solver.c)
 target_link_libraries(dummy_solver_c co_sim_c_io)
+
+# if compiled from inside of Kratos, then install to the "libs" folder
+get_directory_property( hasParent PARENT_DIRECTORY )
+if(hasParent)
+    install(TARGETS dummy_solver_c DESTINATION libs )
+endif()
