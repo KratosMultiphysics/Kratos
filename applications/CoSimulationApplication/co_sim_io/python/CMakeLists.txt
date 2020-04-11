@@ -1,8 +1,7 @@
-project(CoSimPythonIO)
+project(CoSimPythonIO CXX)
 cmake_minimum_required (VERSION 2.8.6)
 
-# set(PYBIND11_CPP_STANDARD -std=c++17) not used, kept here as a reminder that pybind might override things!
-include(pybind11Tools)
+message("Configuring CoSimIO for Python")
 
 if(${MSVC})
     # required such that "__cplusplus" is set to the correct value
@@ -20,8 +19,11 @@ set_target_properties(CoSimIO PROPERTIES
     CXX_EXTENSIONS NO
 )
 
-# if compiled from inside of Kratos, then install to the "libs" folder
 get_directory_property( hasParent PARENT_DIRECTORY )
 if(hasParent)
+    # if compiled from inside of Kratos, then install to the "libs" folder
     install(TARGETS CoSimIO DESTINATION libs )
+else()
+    # otherwise install to current directory
+    install(TARGETS CoSimIO DESTINATION ${CMAKE_SOURCE_DIR} )
 endif()
