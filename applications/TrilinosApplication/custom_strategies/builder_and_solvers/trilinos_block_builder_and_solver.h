@@ -170,7 +170,6 @@ public:
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         mGlobalNumConstraints = GetGlobalNumberOfConstraints(rModelPart);
-        KRATOS_INFO("TrilinosBandS ")<<mGlobalNumConstraints<<std::endl;
         // Getting process info
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
@@ -343,9 +342,10 @@ public:
 
                 // assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+
+                // TODO CleanMemory is missing
+                pScheme->CleanMemory(**it);
             }
-            // TODO CleanMemory is missing
-            pScheme->CleanMemory(**it);
         }
 
         // finalizing the assembly
@@ -387,11 +387,9 @@ public:
         ModelPart& rModelPart
     )
     {
-        KRATOS_INFO_ALL_RANKS("SystemSolveWithPhysics !! ")<<mGlobalNumConstraints<<std::endl;
         if(mGlobalNumConstraints > 0) {
             TSparseSpace::SetToZero(rDx);
             TSystemVectorType dx_mod(rb.Map());
-            KRATOS_INFO_ALL_RANKS("SystemSolveWithPhysics !!")<<std::endl;
             InternalSystemSolveWithPhysics(rA, dx_mod, rb, rModelPart);
             //recover solution of the original problem
             // TODO: Sparse matrix vector multiplication to get Dx
@@ -399,6 +397,41 @@ public:
         } else {
             InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
+    }
+
+    void InternalSystemSolveWithPhysics(TSystemMatrixType &rA,
+                                TSystemVectorType &rDx,
+                                TSystemVectorType &rb,
+                                ModelPart &rModelPart)
+    {
+        KRATOS_TRY
+        double norm_b;
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
+        else
+            norm_b = 0.00;
+
+        if (norm_b != 0.00)
+        {
+            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
+                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
+
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(rDx);
+            KRATOS_WARNING(
+                "TrilinosResidualBasedBlockBuilderAndSolver")
+                << "ATTENTION! setting the RHS to zero!" << std::endl;
+        }
+
+        // prints informations about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
+            << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
     }
 
 
@@ -420,17 +453,23 @@ public:
     {
         KRATOS_TRY
 
-        TSystemVectorPointerType p_Dx; /// The increment in the solution
-        TSystemVectorPointerType p_b;  /// The RHS vector of the system of equations
-        TSystemMatrixPointerType p_A;  /// The LHS matrix of the system of equations
 
-        ResizeAndInitializeSystemVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
-        TSparseSpace::Copy(*p_A, rA);
-        TSparseSpace::Copy(*p_Dx, rDx);
-        TSparseSpace::Copy(*p_b, rb);
-        TSparseSpace::Clear(p_Dx);
-        TSparseSpace::Clear(p_b);
-        TSparseSpace::Clear(p_A);
+        // NOTE: This reinitilaization is required here because in the previous
+        // non-linear iteration the A is changed by the operation A = T'AT. This new
+        // T will have a different sparcity as that of A which should be initially built.
+        // Open for other ideas
+        if(mGlobalNumConstraints > 0){
+            TSystemVectorPointerType p_Dx; /// The increment in the solution
+            TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
+            TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
+            ResizeAndInitializeSystemVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
+            TSparseSpace::Copy(*p_A, rA);
+            TSparseSpace::Copy(*p_Dx, rDx);
+            TSparseSpace::Copy(*p_b, rb);
+            TSparseSpace::Clear(p_Dx);
+            TSparseSpace::Clear(p_b);
+            TSparseSpace::Clear(p_A);
+        }
 
         if (BaseType::GetEchoLevel() > 0)
             START_TIMER("Build", 0)
@@ -447,7 +486,7 @@ public:
         }
 
         // apply dirichlet conditions
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nBefore the solution of the system"
@@ -520,8 +559,10 @@ public:
             // calculate elemental Right Hand Side Contribution
             const bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
+                // calculate elemental Right Hand Side Contribution
                 pScheme->CalculateRHSContribution(**it_elem, RHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
+
                 // assemble the elemental contribution
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
@@ -534,8 +575,10 @@ public:
             // calculate condition contribution
             const bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
-                pScheme->CalculateRHSContribution(**it_cond, RHS_Contribution,
-                                                    equation_ids_vector, r_current_process_info);
+                // calculate elemental contribution
+                pScheme->CalculateRHSContribution(
+                    **it_cond, RHS_Contribution, equation_ids_vector, r_current_process_info);
+
                 // assemble the elemental contribution
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
@@ -598,7 +641,6 @@ public:
 
         // Gets the array of constraints from the modeler
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-        KRATOS_INFO_ALL_RANKS("r_const_array size : ")<<r_constraints_array.size()<<std::endl;
         for (auto it_const = r_constraints_array.ptr_begin(); it_const != r_constraints_array.ptr_end(); ++it_const) {
             const bool constraint_is_active = (*it_const)->IsDefined(ACTIVE) ? (*it_const)->Is(ACTIVE) : true;
             // Gets list of Dof involved on every element
@@ -704,12 +746,12 @@ public:
                                     TSystemVectorPointerType& rpb,
                                     ModelPart& rModelPart) override
     {
+        mGlobalNumConstraints = GetGlobalNumberOfConstraints(rModelPart);
         // Formulate the system vectors A, b, dx
         ResizeAndInitializeSystemVectors(pScheme, rpA, rpDx, rpb, rModelPart);
 
         // Formulate the constraint transformation matrix T
         ConstructMasterSlaveConstraintsStructure(rModelPart);
-
     }
 
     //**************************************************************************
@@ -904,7 +946,7 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::set<int> mInactiveSlaveEqIDs; /// The set containing the inactive slave dofs
-    IndexType mGlobalNumConstraints;
+    IndexType mGlobalNumConstraints = 0;
 
     ///@}
     ///@name Protected Operators
@@ -1015,7 +1057,7 @@ protected:
                 << std::endl;
 
             // generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_t = 
+            TSystemMatrixPointerType p_new_t =
                 TSystemMatrixPointerType(new TSystemMatrixType(Copy, t_graph));
             mpT.swap(p_new_t);
 
@@ -1029,6 +1071,7 @@ protected:
     virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
+        TSparseSpace::SetToZero(*mpT);
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -1089,7 +1132,6 @@ protected:
         TSystemVectorType& rb) override
     {
         if (mGlobalNumConstraints > 0) {
-            KRATOS_INFO_ALL_RANKS("Applying Constraints ")<<std::endl;
             // We make T and L matrices and C vector
             BuildMasterSlaveConstraints(rModelPart);
             {// To be able to clear res_b automatically.
@@ -1111,7 +1153,7 @@ protected:
             // First we do aux = T'A
             { // To delete aux_mat
                 TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
-                err = EpetraExt::MatrixMatrix::Multiply(*mpT, true, rA, false, aux_mat, false);
+                err = EpetraExt::MatrixMatrix::Multiply(*mpT, true, rA, false, aux_mat);
                 KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
                 aux_mat.FillComplete();
                 { // To delete mod_a
@@ -1151,58 +1193,6 @@ protected:
     ///@{
 
     ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    void InternalSystemSolveWithPhysics(TSystemMatrixType &rA,
-                                TSystemVectorType &rDx,
-                                TSystemVectorType &rb,
-                                ModelPart &rModelPart)
-    {
-        KRATOS_TRY
-
-        double norm_b;
-        if (TSparseSpace::Size(rb) != 0)
-            norm_b = TSparseSpace::TwoNorm(rb);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00)
-        {
-            if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
-                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
-
-            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
-        }
-        else
-        {
-            TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING(
-                "TrilinosResidualBasedBlockBuilderAndSolver")
-                << "ATTENTION! setting the RHS to zero!" << std::endl;
-        }
-
-        // prints informations about the current time
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
-            << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-        KRATOS_CATCH("")
-    }
 
     void ResizeAndInitializeSystemVectors(typename TSchemeType::Pointer pScheme,
                                     TSystemMatrixPointerType& rpA,
@@ -1332,6 +1322,21 @@ private:
 
         KRATOS_CATCH("")
     }
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief Function Calculates the total number of constraints across all the MPI ranks
