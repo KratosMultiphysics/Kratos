@@ -10,5 +10,5 @@ target_link_libraries(dummy_solver_c co_sim_c_io)
 get_directory_property( IN_KRATOS PARENT_DIRECTORY )
 if(IN_KRATOS)
     # if compiled from inside of Kratos, then install to the "libs" folder
-    install(TARGETS dummy_solver_fortran DESTINATION libs )
+    install(TARGETS dummy_solver_c DESTINATION libs )
 endif()
