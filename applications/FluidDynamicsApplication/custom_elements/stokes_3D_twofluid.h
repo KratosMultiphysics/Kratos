@@ -416,8 +416,8 @@ public:
 
              ComputeConstitutiveResponse_AIR(data, air_density, air_nu, rCurrentProcessInfo);
 
-            Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data);
-            Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data);
+            ComputeGaussPointRHSContribution(rhs_local, data);
+            ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
             noalias(rLeftHandSideMatrix) += weight*lhs_local;
@@ -470,8 +470,8 @@ public:
 
              ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
-            Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data);
-            Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data);
+            ComputeGaussPointRHSContribution(rhs_local, data);
+            ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
             noalias(rLeftHandSideMatrix) += weight*lhs_local;
@@ -584,10 +584,10 @@ public:
                         ComputeConstitutiveResponse(data, rCurrentProcessInfo);
                     }
 
-                    Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data); //ATTENTION: uses implementation within the current element since a general integration rule must be employed
-                    Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data); //ATTENTION: uses implementation within the current element since a general integration rule must be employed
+                    ComputeGaussPointRHSContribution(rhs_local, data); //ATTENTION: uses implementation within the current element since a general integration rule must be employed
+                    ComputeGaussPointLHSContribution(lhs_local, data); //ATTENTION: uses implementation within the current element since a general integration rule must be employed
                     const array_1d<double,4> Nenriched = row(Nenr,igauss);
-                    Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(H,V,Kee,rhs_ee, data, distances, Nenriched, DNenr[igauss]);
+                    ComputeGaussPointEnrichmentContributions(H,V,Kee,rhs_ee, data, distances, Nenriched, DNenr[igauss]);
 
                     const double weight = volumes[igauss];
                     noalias(rLeftHandSideMatrix) += weight*lhs_local;
@@ -650,9 +650,9 @@ public:
     ///@{
 
     //this is the symbolic function implementing the element
-    void ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data);
-    void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data);
-    void ComputeGaussPointEnrichmentContributions(
+    virtual void ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data);
+    virtual void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data);
+    virtual void ComputeGaussPointEnrichmentContributions(
         BoundedMatrix<double,4,16>& H,
         BoundedMatrix<double,16,4>& V,
         BoundedMatrix<double,4,4>&  Kee,

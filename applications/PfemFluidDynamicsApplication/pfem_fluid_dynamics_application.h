@@ -43,10 +43,6 @@
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h"
-#include "custom_elements/updated_lagrangian_V_explicit_solid_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_fluid_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -277,38 +273,6 @@ private:
   /// 3D two step v-p  element
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3D;
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3Dquadratic;
-
-  /// 2D two step v-p explicit element
-  const TwoStepUpdatedLagrangianVPExplicitElement<2> mTwoStepUpdatedLagrangianVPExplicitElement2D;
-  const TwoStepUpdatedLagrangianVPExplicitElement<2> mTwoStepUpdatedLagrangianVPExplicitElement2Dquadratic;
-
-  /// 3D two step v-p explicit element
-  const TwoStepUpdatedLagrangianVPExplicitElement<3> mTwoStepUpdatedLagrangianVPExplicitElement3D;
-  const TwoStepUpdatedLagrangianVPExplicitElement<3> mTwoStepUpdatedLagrangianVPExplicitElement3Dquadratic;
-
-  /// 2D two step v-p solid explicit element
-  const TwoStepUpdatedLagrangianVPExplicitSolidElement<2> mTwoStepUpdatedLagrangianVPExplicitSolidElement2D;
-  const TwoStepUpdatedLagrangianVPExplicitSolidElement<2> mTwoStepUpdatedLagrangianVPExplicitSolidElement2Dquadratic;
-
-  /// 3D two step v-p solid explicit element
-  const TwoStepUpdatedLagrangianVPExplicitSolidElement<3> mTwoStepUpdatedLagrangianVPExplicitSolidElement3D;
-  const TwoStepUpdatedLagrangianVPExplicitSolidElement<3> mTwoStepUpdatedLagrangianVPExplicitSolidElement3Dquadratic;
-
-  /// 2D velocity solid explicit element
-  const UpdatedLagrangianVExplicitSolidElement<2> mUpdatedLagrangianVExplicitSolidElement2D;
-  const UpdatedLagrangianVExplicitSolidElement<2> mUpdatedLagrangianVExplicitSolidElement2Dquadratic;
-
-  /// 3D velocity solid explicit element
-  const UpdatedLagrangianVExplicitSolidElement<3> mUpdatedLagrangianVExplicitSolidElement3D;
-  const UpdatedLagrangianVExplicitSolidElement<3> mUpdatedLagrangianVExplicitSolidElement3Dquadratic;
-
-  /// 2D two step v-p fluid explicit element
-  const TwoStepUpdatedLagrangianVPExplicitFluidElement<2> mTwoStepUpdatedLagrangianVPExplicitFluidElement2D;
-  const TwoStepUpdatedLagrangianVPExplicitFluidElement<2> mTwoStepUpdatedLagrangianVPExplicitFluidElement2Dquadratic;
-
-  /// 3D two step v-p fluid explicit element
-  const TwoStepUpdatedLagrangianVPExplicitFluidElement<3> mTwoStepUpdatedLagrangianVPExplicitFluidElement3D;
-  const TwoStepUpdatedLagrangianVPExplicitFluidElement<3> mTwoStepUpdatedLagrangianVPExplicitFluidElement3Dquadratic;
   ///@}
   ///@name Private Operators
   ///@{

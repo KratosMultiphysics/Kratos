@@ -52,7 +52,27 @@ void XdmfConnectivitiesWriterProcess::Execute()
     for (const auto& name : mpFile->GetGroupNames(mPrefix + "/Conditions"))
         CreateXdmfConnectivities(mPrefix + "/Conditions/" + name, mPrefix + "/Xdmf/Conditions/" + name);
 
+    KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/SubModelParts")) << "Path \"" << mPrefix + "/Xdmf/SubModelParts\" exists." << std::endl;
+    CreateXdmfConnectivitiesForSubModelParts(mPrefix + "/SubModelParts", mPrefix + "/Xdmf/SubModelParts");
+
     KRATOS_CATCH("");
+}
+
+void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const
+{
+    for (const auto& r_name : mpFile->GetGroupNames(rPath))
+    {
+        if (r_name == "Conditions" ||  r_name == "Elements")
+        {
+            for (const auto& r_item_name : mpFile->GetGroupNames(rPath + "/" + r_name))
+                CreateXdmfConnectivities(rPath + "/" + r_name + "/" + r_item_name,  rDestinationPrefix + "/" + r_name + "/" + r_item_name);
+
+        }
+        else
+        {
+            CreateXdmfConnectivitiesForSubModelParts(rPath + "/" + r_name, rDestinationPrefix + "/" + r_name);
+        }
+    }
 }
 
 void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const

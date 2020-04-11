@@ -153,10 +153,6 @@ private:
 ///@name Un accessible methods
 ///@{
 
-/// Assignment operator.
-SandProductionUtilities & operator=(SandProductionUtilities const& rOther);
-
-
 ///@}
 
 }; // Class SandProductionUtilities

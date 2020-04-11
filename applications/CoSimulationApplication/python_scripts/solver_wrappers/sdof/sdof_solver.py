@@ -192,8 +192,7 @@ class SDoFSolver(object):
             - 1/(self.delta_t * self.beta) * self.x_f[1,0]\
             + (1-1/(2*self.beta)) * self.x_f[2,0]
         self.dx_f = np.array([d_f, v_f, a_f])
-        b_f = np.array([0.0, 0.0, - d_f * self.stiffness - v_f * self.damping - a_f * self.mass])
-
+        b_f = np.array([0.0, 0.0, d_f * self.stiffness + v_f * self.damping])
         return b_f
 
     def ApplyRootPointExcitation(self):

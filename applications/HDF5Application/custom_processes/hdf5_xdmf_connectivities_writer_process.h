@@ -78,6 +78,8 @@ private:
 
     void CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const;
 
+    void CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const;  
+
     ///@}
 
 }; // class XdmfConnectivitiesWriterProcess

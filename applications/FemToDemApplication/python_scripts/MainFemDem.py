@@ -342,6 +342,7 @@ class FEM_Solution(MainSolidFEM.Solution):
     def GraphicalOutputPrintOutput(self):
         if(self.graphical_output.IsOutputStep()):
                 self.graphical_output.PrintOutput()
+                self.KratosPrintInfo("-- Printing FEM POST file --")
     #============================================================================================================================
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()

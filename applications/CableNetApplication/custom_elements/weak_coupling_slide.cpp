@@ -88,12 +88,6 @@ void WeakSlidingElement3D3N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void WeakSlidingElement3D3N::Initialize()
-{
-    KRATOS_TRY
-    KRATOS_CATCH("")
-}
-
 BoundedMatrix<double, WeakSlidingElement3D3N::msLocalSize,
 WeakSlidingElement3D3N::msLocalSize>
 WeakSlidingElement3D3N::CreateElementStiffnessMatrix(

@@ -24,9 +24,6 @@ namespace Kratos
 namespace Testing
 {
 
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
     // Number of Iteration and computation tolerance
     static constexpr unsigned int num_iteration = 100;
     static constexpr double comp_tolerance = 1.0e-9;
@@ -136,25 +133,25 @@ namespace Testing
         Matrix A = CreateSymmetricTest3Matrix3x3();
         ParticleMechanicsMathUtilities<double>::QRFactorization(A, Q, R);
 
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - Q(0,0))/Q(0,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 4.082483e-01 - Q(0,1))/Q(0,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-5.773503e-01 - Q(0,2))/Q(0,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - Q(1,0))/Q(1,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-4.082483e-01 - Q(1,1))/Q(1,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 5.773503e-01 - Q(1,2))/Q(1,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - Q(2,0))/Q(2,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 8.164966e-01 - Q(2,1))/Q(2,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 5.773503e-01 - Q(2,2))/Q(2,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - Q(0,0))/Q(0,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 4.082483e-01 - Q(0,1))/Q(0,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-5.773503e-01 - Q(0,2))/Q(0,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - Q(1,0))/Q(1,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-4.082483e-01 - Q(1,1))/Q(1,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 5.773503e-01 - Q(1,2))/Q(1,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - Q(2,0))/Q(2,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 8.164966e-01 - Q(2,1))/Q(2,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 5.773503e-01 - Q(2,2))/Q(2,2), 1e-6);
 
-        KRATOS_CHECK_LESS_EQUAL((-1.414214e+00 - R(0,0))/R(0,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - R(0,1))/R(0,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - R(0,2))/R(0,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(1,0))/R(1,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 1.224745e+00 - R(1,1))/R(1,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 4.082483e-01 - R(1,2))/R(1,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(2,0))/R(2,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(2,1))/R(2,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 1.154701e+00 - R(2,2))/R(2,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-1.414214e+00 - R(0,0))/R(0,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - R(0,1))/R(0,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - R(0,2))/R(0,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(1,0))/R(1,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 1.224745e+00 - R(1,1))/R(1,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 4.082483e-01 - R(1,2))/R(1,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(2,0))/R(2,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - R(2,1))/R(2,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 1.154701e+00 - R(2,2))/R(2,2), 1e-6);
 
         // Check False
         A.resize(4,3,false);
@@ -179,63 +176,63 @@ namespace Testing
         Matrix A = CreateTestMatrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValues(A);
 
-        KRATOS_CHECK_LESS_EQUAL(( -5.0 - eigen_values_3[0])/eigen_values_3[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((  3.0 - eigen_values_3[1])/eigen_values_3[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((  6.0 - eigen_values_3[2])/eigen_values_3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -5.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((  3.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((  6.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
 
         Matrix B = CreateTestMatrix2x2();
         noalias(eigen_values_2) = ParticleMechanicsMathUtilities<double>::EigenValues(B);
 
-        KRATOS_CHECK_LESS_EQUAL(( 4.0 - eigen_values_2[0])/eigen_values_2[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-3.0 - eigen_values_2[1])/eigen_values_2[1], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.0 - eigen_values_2[0])/eigen_values_2[0], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-3.0 - eigen_values_2[1])/eigen_values_2[1], 1e-6);
 
         // 2. Compute EigenValues using direct method
         Matrix C = CreateSymmetricTestMatrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValuesDirectMethod(C);
 
-        KRATOS_CHECK_LESS_EQUAL(( 8.0 - eigen_values_3[0])/eigen_values_3[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[1])/eigen_values_3[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[2])/eigen_values_3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 8.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
 
         Matrix D = CreateSymmetricTest2Matrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValuesDirectMethod(D);
 
-        KRATOS_CHECK_LESS_EQUAL((10.0 - eigen_values_3[0])/eigen_values_3[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 6.0 - eigen_values_3[1])/eigen_values_3[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - eigen_values_3[2])/eigen_values_3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((10.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 6.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
 
         // 3. Compute EigenVectors and EigenValues of 3x3 symmetric matrices - using Gauss Seidel method
         ParticleMechanicsMathUtilities<double>::EigenVectors(C, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
 
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[0])/eigen_values_3[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[1])/eigen_values_3[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 8.0 - eigen_values_3[2])/eigen_values_3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-1.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 8.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
 
-        KRATOS_CHECK_LESS_EQUAL(( 7.071068e-01 - eigen_vectors_3(0,0))/eigen_vectors_3(0,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(0,1))/eigen_vectors_3(0,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - eigen_vectors_3(0,2))/eigen_vectors_3(0,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-2.357023e-01 - eigen_vectors_3(1,0))/eigen_vectors_3(1,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 9.428090e-01 - eigen_vectors_3(1,1))/eigen_vectors_3(1,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-2.357023e-01 - eigen_vectors_3(1,2))/eigen_vectors_3(1,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 6.666667e-01 - eigen_vectors_3(2,0))/eigen_vectors_3(2,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 3.333333e-01 - eigen_vectors_3(2,1))/eigen_vectors_3(2,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 6.666667e-01 - eigen_vectors_3(2,2))/eigen_vectors_3(2,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 7.071068e-01 - eigen_vectors_3(0,0))/eigen_vectors_3(0,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(0,1))/eigen_vectors_3(0,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-7.071068e-01 - eigen_vectors_3(0,2))/eigen_vectors_3(0,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-2.357023e-01 - eigen_vectors_3(1,0))/eigen_vectors_3(1,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 9.428090e-01 - eigen_vectors_3(1,1))/eigen_vectors_3(1,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-2.357023e-01 - eigen_vectors_3(1,2))/eigen_vectors_3(1,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 6.666667e-01 - eigen_vectors_3(2,0))/eigen_vectors_3(2,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 3.333333e-01 - eigen_vectors_3(2,1))/eigen_vectors_3(2,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 6.666667e-01 - eigen_vectors_3(2,2))/eigen_vectors_3(2,2), 1e-6);
 
         ParticleMechanicsMathUtilities<double>::EigenVectors(D, eigen_vectors_3, eigen_values_3, comp_tolerance, num_iteration);
 
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - eigen_values_3[0])/eigen_values_3[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL((10.0 - eigen_values_3[1])/eigen_values_3[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 6.0 - eigen_values_3[2])/eigen_values_3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 0.0 - eigen_values_3[0])/eigen_values_3[0], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((10.0 - eigen_values_3[1])/eigen_values_3[1], 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 6.0 - eigen_values_3[2])/eigen_values_3[2], 1e-6);
 
-        KRATOS_CHECK_LESS_EQUAL(( 8.944272e-01 - eigen_vectors_3(0,0))/eigen_vectors_3(0,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-4.472136e-01 - eigen_vectors_3(0,1))/eigen_vectors_3(0,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(0,2))/eigen_vectors_3(0,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 4.472136e-01 - eigen_vectors_3(1,0))/eigen_vectors_3(1,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 8.944272e-01 - eigen_vectors_3(1,1))/eigen_vectors_3(1,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(1,2))/eigen_vectors_3(1,2), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(2,0))/eigen_vectors_3(2,0), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(2,1))/eigen_vectors_3(2,1), tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 1.000000e+00 - eigen_vectors_3(2,2))/eigen_vectors_3(2,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 8.944272e-01 - eigen_vectors_3(0,0))/eigen_vectors_3(0,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL((-4.472136e-01 - eigen_vectors_3(0,1))/eigen_vectors_3(0,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(0,2))/eigen_vectors_3(0,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 4.472136e-01 - eigen_vectors_3(1,0))/eigen_vectors_3(1,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 8.944272e-01 - eigen_vectors_3(1,1))/eigen_vectors_3(1,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(1,2))/eigen_vectors_3(1,2), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(2,0))/eigen_vectors_3(2,0), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 0.000000e+00 - eigen_vectors_3(2,1))/eigen_vectors_3(2,1), 1e-6);
+        KRATOS_CHECK_LESS_EQUAL(( 1.000000e+00 - eigen_vectors_3(2,2))/eigen_vectors_3(2,2), 1e-6);
 
     }
 
@@ -253,12 +250,12 @@ namespace Testing
         const double norm_M = ParticleMechanicsMathUtilities<double>::NormTensor(M);
 
         for (unsigned int i = 0; i<3; ++i)
-            KRATOS_CHECK_NEAR(V3[i], 0.5773502692, tolerance);
+            KRATOS_CHECK_NEAR(V3[i], 0.5773502692, 1e-6);
 
         for (unsigned int i = 0; i<6; ++i)
-            KRATOS_CHECK_NEAR(V6[i], 0.4082482905, tolerance);
+            KRATOS_CHECK_NEAR(V6[i], 0.4082482905, 1e-6);
 
-        KRATOS_CHECK_NEAR(norm_M, 11.66190379, tolerance);
+        KRATOS_CHECK_NEAR(norm_M, 11.66190379, 1e-6);
     }
 
 } // namespace Testing

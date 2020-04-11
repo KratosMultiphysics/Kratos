@@ -74,22 +74,24 @@ public:
     ///@name Life Cycle
     ///@{
 
+    static Parameters GetDefaultSettings()
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
+            "default_omega" : 0.1
+        })");
+
+        return default_parameters;
+    }
+
     /**
      * @brief Default constructor. (with parameters)
      * @param ThisParameters Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
     */
-    explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters)
+    explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters) :
+        ResidualBasedIncrementalAitkenStaticScheme([](Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x["default_omega"].GetDouble(); }(ThisParameters))
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
-            "default_omega" : 0.0
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mDefaultOmega = ThisParameters["default_omega"].GetDouble();
-        mOldOmega = ThisParameters["default_omega"].GetDouble();
     }
 
     /**

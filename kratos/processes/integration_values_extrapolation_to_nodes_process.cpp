@@ -38,15 +38,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     Parameters ThisParameters
     ) : mrModelPart(rMainModelPart)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"            : "",
-        "echo_level"                 : 0,
-        "area_average"               : true,
-        "average_variable"           : "NODAL_AREA",
-        "list_of_variables"          : [],
-        "extrapolate_non_historical" : true
-    })");
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mEchoLevel = ThisParameters["echo_level"].GetInt();
@@ -54,26 +46,18 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     mAreaAverage = ThisParameters["area_average"].GetBool();
 
     // The average variable
-    mpAverageVariable = &(const_cast<Variable<double>&>(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString())));
+    mpAverageVariable = &(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString()));
 
     // We get the list of variables
-    const SizeType n_variables = ThisParameters["list_of_variables"].size();
-
-    for (IndexType p_var = 0; p_var < n_variables; ++p_var){
-        const std::string& r_variable_name = ThisParameters["list_of_variables"].GetArrayItem(p_var).GetString();
-
+    for (const std::string& r_variable_name : ThisParameters["list_of_variables"].GetStringArray()){
         if (KratosComponents<Variable<double>>::Has(r_variable_name)){
-            const Variable<double>& r_variable = KratosComponents< Variable<double>>::Get(r_variable_name);
-            mDoubleVariable.push_back(&(const_cast<Variable<double>&>(r_variable)));
+            mDoubleVariable.push_back(&(KratosComponents< Variable<double>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<array_1d<double, 3> >>::Has(r_variable_name)) {
-            const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-            mArrayVariable.push_back(&(const_cast<Variable<array_1d<double, 3>>&>(r_variable)));
+            mArrayVariable.push_back(&(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
-            const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
-            mVectorVariable.push_back(&(const_cast<Variable<Vector>&>(r_variable)));
+            mVectorVariable.push_back(&(KratosComponents<Variable<Vector>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) {
-            const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
-            mMatrixVariable.push_back(&(const_cast<Variable<Matrix>&>(r_variable)));
+            mMatrixVariable.push_back(&(KratosComponents<Variable<Matrix>>::Get(r_variable_name)));
         } else {
             KRATOS_ERROR << "Only double, array, vector and matrix variables are allowed in the variables list." ;
         }
@@ -217,6 +201,39 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             }
         }
     }
+
+    // Assemble nodal data
+    if (mExtrapolateNonHistorical)
+    {
+        for (const auto p_var : mDoubleVariable) {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        }
+        for (const auto p_var : mArrayVariable)  {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        }
+        for (const auto p_var : mVectorVariable) {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        }
+        for (const auto p_var : mMatrixVariable) {
+            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
+        }
+    }
+    else
+    {
+        for (const auto p_var : mDoubleVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        }
+        for (const auto p_var : mArrayVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        }
+        for (const auto p_var : mVectorVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        }
+        for (const auto p_var : mMatrixVariable) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        }
+    }
+
 }
 
 /***********************************************************************************/
@@ -255,6 +272,23 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
             if (mExtrapolateNonHistorical) data.Erase(*p_var);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters IntegrationValuesExtrapolationToNodesProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"            : "",
+        "echo_level"                 : 0,
+        "area_average"               : true,
+        "average_variable"           : "NODAL_AREA",
+        "list_of_variables"          : [],
+        "extrapolate_non_historical" : true
+    })" );
+    return default_parameters;
 }
 
 /***********************************************************************************/
@@ -301,6 +335,8 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
             }
         }
     }
+
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAverageVariable);
 
     // The process info
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();

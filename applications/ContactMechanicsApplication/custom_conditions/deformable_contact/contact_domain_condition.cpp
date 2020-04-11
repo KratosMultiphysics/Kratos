@@ -297,7 +297,7 @@ namespace Kratos
   //*********************************SET DOUBLE VALUE***********************************
   //************************************************************************************
 
-  void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+  void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                             std::vector<double>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
@@ -307,7 +307,7 @@ namespace Kratos
   //*********************************SET VECTOR VALUE***********************************
   //************************************************************************************
 
-  void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+  void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                             std::vector<Vector>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
@@ -318,7 +318,7 @@ namespace Kratos
   //*********************************SET MATRIX VALUE***********************************
   //************************************************************************************
 
-  void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+  void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                             std::vector<Matrix>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
@@ -1503,7 +1503,7 @@ namespace Kratos
         noalias(Tforce) = ZeroVector(dimension);
 
 	//TANGENT FORCE STICK
-	if(rVariables.Contact.Options.Is(NOT_SLIP))
+	if(rVariables.Contact.Options.IsNot(SLIP))
 	  {
 	    for (unsigned int i=0; i<dimension; i++)
 	      {
