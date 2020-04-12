@@ -33,6 +33,47 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         settings -- Kratos parameters containing solver settings.
         """
         KratosMultiphysics.Process.__init__(self)
+        self.process = KratosMultiphysics.FromJSONCheckResultProcess(model, params)
+
+    def ExecuteInitialize(self):
+        """ This method is executed at the begining to initialize the process
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.process.ExecuteInitialize()
+
+    def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Here the dictionary containing the solution is filled
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.process.ExecuteFinalizeSolutionStep()
+        self.assertTrue(self.process.Is(KratosMultiphysics.FromJSONCheckResultProcess.CORRECT_RESULT), "Results do not coincide with the JSON reference")
+
+class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
+    """This class is used in order to check results using a json file
+    containing the solution a given model part with a certain frequency
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    model -- the model contaning the model_parts
+    settings -- Kratos parameters containing solver settings.
+    """
+
+    def __init__(self, model, params):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the model contaning the model_parts
+        settings -- Kratos parameters containing solver settings.
+        """
+        KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""{
