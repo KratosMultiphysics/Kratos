@@ -8,6 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Raul Bravo
+//                  Altug Emiroglu, https://github.com/emiroglu
 //
 
 
@@ -28,6 +29,12 @@ namespace Kratos
 {
     KRATOS_DEFINE_APPLICATION_VARIABLE( ROM_APPLICATION, int, AUX_ID )
     KRATOS_DEFINE_APPLICATION_VARIABLE( ROM_APPLICATION, Matrix, ROM_BASIS )
+
+    // Modal derivative variables
+    KRATOS_DEFINE_APPLICATION_VARIABLE( ROM_APPLICATION, int, BUILD_LEVEL )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( ROM_APPLICATION, Vector, EIGENVALUE_VECTOR)
+    KRATOS_DEFINE_APPLICATION_VARIABLE( ROM_APPLICATION, int, EIGENVALUE_I )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( ROM_APPLICATION, int, EIGENVALUE_J )
 }
 
 #endif	/* KRATOS_ROM_APPLICATION_VARIABLES_H_INCLUDED */
