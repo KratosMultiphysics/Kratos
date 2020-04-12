@@ -8,6 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Raul Bravo
+//                  Altug Emiroglu, http://github.com/emiroglu
 //
 //
 
@@ -16,23 +17,23 @@
 
 
 // External includes
-#include <pybind11/pybind11.h>
-
 
 // Project includes
-#include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 
 #include "spaces/ublas_space.h"
 
-//strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+// Strategies
+#include "custom_strategies/custom_strategies/modal_derivative_strategy.hpp"
 
+// Schemes
+#include "custom_strategies/custom_schemes/modal_derivative_scheme.hpp"
 
-//linear solvers
+// Builders and solvers
+#include "custom_strategies/rom_builder_and_solver.h"
+
+// Linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos {
 namespace Python {
@@ -45,14 +46,53 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
     //********************************************************************
     //********************************************************************
+
+    // Custom strategy types
+    typedef ModalDerivativeStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ModalDerivativeStrategyType;
+
+    // Custom scheme types
+    typedef ModalDerivativeScheme< SparseSpaceType, LocalSpaceType >  ModalDerivativeSchemeType;
+
+    // Custom builder and solvers types
     typedef ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ROMBuilderAndSolverType;
 
-     py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
+    //********************************************************************
+    //*************************STRATEGY CLASSES***************************
+    //********************************************************************
+
+    // Modal Derivative strategy
+    py::class_< ModalDerivativeStrategyType, typename ModalDerivativeStrategyType::Pointer,BaseSolvingStrategyType >(m,"ModalDerivativeStrategy")
+        .def(py::init<ModelPart&,
+             BaseSchemeType::Pointer,
+             BuilderAndSolverType::Pointer,
+             bool>(),
+                py::arg("model_part"),
+                py::arg("scheme"),
+                py::arg("builder_and_solver"),
+                py::arg("derivative_type")=false)
+            ;
+
+    //********************************************************************
+    //*************************SCHEME CLASSES*****************************
+    //********************************************************************
+
+    // Modal Derivative scheme
+    py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
+        .def(py::init<>() )
+        ;
+
+    //********************************************************************
+    //*************************BUILDER AND SOLVER*************************
+    //********************************************************************
+
+    // ROM builder and solver
+    py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
