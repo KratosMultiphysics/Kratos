@@ -613,6 +613,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("IsCorrectResult", &FromJSONCheckResultProcess::IsCorrectResult)
     ;
 
     from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;

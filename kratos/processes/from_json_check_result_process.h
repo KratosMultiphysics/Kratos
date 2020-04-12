@@ -648,42 +648,14 @@ public:
      */
     int Check() override;
 
-    ///@}
-    ///@name Access
-    ///@{
-
     /**
-     * @brief This method returns the Nodes database. If not initialized it will try initialize again
-     * @return The nodes database
+     * @brief This function returns if the result is correct
+     * @return If the result is correct
      */
-    const ResultDatabase& GetNodeDatabase()
+    bool IsCorrectResult()
     {
-        if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
-            InitializeDatabases();
-            KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
-        }
-
-        return mDatabaseNodes;
+        return this->Is(CORRECT_RESULT);
     }
-
-    /**
-     * @brief This method returns the GP database. If not initialized it will try initialize again
-     * @return The GP database
-     */
-    const ResultDatabase& GetGPDatabase()
-    {
-        if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
-            InitializeDatabases();
-            KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
-        }
-
-        return mDatabaseGP;
-    }
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -825,9 +797,45 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief This method returns the model part
+     * @return The model part of the problem
+     */
     ModelPart& GetModelPart() const;
 
+    /**
+     * @brief This method returns the settings
+     * @return The settings of the problem
+     */
     Parameters GetSettings() const;
+
+    /**
+     * @brief This method returns the Nodes database. If not initialized it will try initialize again
+     * @return The nodes database
+     */
+    const ResultDatabase& GetNodeDatabase()
+    {
+        if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
+            InitializeDatabases();
+            KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
+        }
+
+        return mDatabaseNodes;
+    }
+
+    /**
+     * @brief This method returns the GP database. If not initialized it will try initialize again
+     * @return The GP database
+     */
+    const ResultDatabase& GetGPDatabase()
+    {
+        if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
+            InitializeDatabases();
+            KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
+        }
+
+        return mDatabaseGP;
+    }
 
     ///@}
     ///@name Protected Inquiry
