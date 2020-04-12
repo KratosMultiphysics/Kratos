@@ -16,8 +16,8 @@ import json
 
 class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
-def __init__(self,model,project_parameters):
-        super(StructuralMechanicsAnalysisROM,self).__init__(model,project_parameters)
+    def __init__(self,model,project_parameters):
+        super(StructuralMechanicsModalDerivativeAnalysis,self).__init__(model,project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -30,7 +30,7 @@ def __init__(self,model,project_parameters):
     
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super(ModalDerivativeSolver,self).ModifyInitialGeometry()
+        super(StructuralMechanicsModalDerivativeAnalysis,self).ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
             data = json.load(f)
@@ -49,6 +49,6 @@ def __init__(self,model,project_parameters):
                     Counter=str(node.Id)
                     for j in range(initial_rom_dofs):
                         aux[i,j] = nodal_modes[Counter][i][j]
-                node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
-                node.SetValue(romapp.AUX_ID, counter) # Aux ID
+                node.SetValue(RomApplication.ROM_BASIS, aux ) # ROM basis
+                node.SetValue(RomApplication.AUX_ID, counter) # Aux ID
                 counter+=1
