@@ -62,10 +62,11 @@ class ModalDerivativeSolver(MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver()
         linear_solver = self.get_linear_solver()
 
-        reform_dof_set_at_each_step = False
-        move_mesh_flag = False
-        
         # TODO: I need to check if this is necessary
+        # reform_dof_set_at_each_step = False
+        # move_mesh_flag = False
+        
+        
         # mass_matrix_diagonal_value = 0.0
         # stiffness_matrix_diagonal_value = 1.0
 
