@@ -8,6 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Raul Bravo
+//                  Altug Emiroglu, http://github.com/emiroglu
 //
 //
 
@@ -15,16 +16,14 @@
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
-
 
 // Project includes
-#include "includes/define.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/rom_residuals_utility.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
+// Utilities
+#include "custom_utilities/rom_residuals_utility.h"
+#include "custom_utilities/rom_finite_difference_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -42,6 +41,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
     ;     
+
+    class_<RomFiniteDifferenceUtility, typename RomFiniteDifferenceUtility::Pointer>(m,"RomFiniteDifferenceUtility")
+    .def(init<>())
+    .def_static("CalculateLeftHandSideDOFDerivative",&RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative)
+    ;
 
 }
 
