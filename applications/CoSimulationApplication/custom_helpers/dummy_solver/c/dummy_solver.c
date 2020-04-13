@@ -31,9 +31,9 @@ void ExportMesh(const char* pConnectionName, const char* pIdentifier)
 
 }
 
-void AdvanceInTime(double* pCurrentTime)
+double AdvanceInTime(double pCurrentTime)
 {
-    *pCurrentTime += 0.1;
+    return pCurrentTime + 0.1;
 }
 
 void InitializeSolutionStep()

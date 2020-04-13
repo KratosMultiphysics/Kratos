@@ -88,10 +88,11 @@ void Initialize()
 }
 
 
-void AdvanceInTime(double* pCurrentTime)
+double AdvanceInTime(double pCurrentTime)
 {
-    *pCurrentTime += sDeltaTime;
-    solver_print(2) << "AdvanceInTime; new time: " << *pCurrentTime << std::endl;
+    pCurrentTime += sDeltaTime;
+    return pCurrentTime;
+    solver_print(2) << "AdvanceInTime; new time: " << pCurrentTime << std::endl;
 }
 
 void InitializeSolutionStep()
@@ -160,7 +161,7 @@ void RunSolutionLoop()
 {
     double current_time = 0.0;
     while (current_time < sEndTime) {
-        AdvanceInTime(&current_time);
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
         SolveSolutionStep();
         FinalizeSolutionStep();
@@ -181,7 +182,7 @@ void RunSolutionLoopWithWeakCoupling()
 
     double current_time = 0.0;
     while (current_time < sEndTime) {
-        AdvanceInTime(&current_time);
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
 
         ImportDataFromCoSim(comm_name, "field_pressure");
@@ -208,7 +209,7 @@ void RunSolutionLoopWithStrongCoupling()
 
     double current_time = 0.0;
     while (current_time < sEndTime) {
-        AdvanceInTime(&current_time);
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
 
         while(true) {

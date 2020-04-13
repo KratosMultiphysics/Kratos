@@ -211,7 +211,7 @@ public:
         }
     }
 
-    void IsConverged(int& rConvergenceSignal)
+    void IsConverged(int& rConvergenceSignal) // TODO change this to return => there is no reason to have this by reference, only makes it more complicated!
     {
         std::string dummy("");
         rConvergenceSignal = (RecvControlSignal(dummy) == CoSimIO::ControlSignal::ConvergenceAchieved);

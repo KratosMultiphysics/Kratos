@@ -58,7 +58,7 @@ void CoSimIO_ExportMesh(
 
 void CoSimIO_RegisterAdvanceInTime(
     const char* pConnectionName,
-    void (*pFunctionPointer)(double*));
+    double (*pFunctionPointer)(double));
 
 void CoSimIO_RegisterSolvingFunction(
     const char* pConnectionName,

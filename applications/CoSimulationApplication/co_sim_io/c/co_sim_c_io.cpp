@@ -85,7 +85,7 @@ void CoSimIO_ExportMesh(
 
 void CoSimIO_RegisterAdvanceInTime(
     const char* pConnectionName,
-    void (*pFunctionPointer)(double*))
+    double (*pFunctionPointer)(double))
 {
     CoSimIO::Register(pConnectionName, "AdvanceInTime", pFunctionPointer);
 }
