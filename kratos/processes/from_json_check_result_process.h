@@ -162,7 +162,9 @@ public:
         )
     {
         auto& p_table = GetResultaData(GPIndex)[ComponentIndex];
-        p_table->Clear(); // We clear to avoid reassign
+        if (p_table->Data().size() > 0) {
+            p_table->Clear(); // We clear to avoid reassign
+        }
 
         KRATOS_ERROR_IF_NOT(rValuesX.size() == rValuesY.size()) << "The input vectors don't have the same size" << std::endl;
 
@@ -490,6 +492,7 @@ public:
             for (auto& r_table_vector_vector : r_table_vector_vector_vector) {
                 for (auto& r_table_vector : r_table_vector_vector) {
                     for (auto& p_table : r_table_vector) {
+                        KRATOS_ERROR_IF(p_table == nullptr) << "Table not created" << std::endl;
                         KRATOS_ERROR_IF_NOT(p_table->Data().size() == mCommonColumn.size()) << "Inconsistent size of the tables. Time vector size: " << mCommonColumn.size() << " vs table size " << p_table->Data().size() << std::endl;
                     }
                 }
