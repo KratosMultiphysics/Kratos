@@ -445,7 +445,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     }
 
     // GP
-    auto size_parameters =[](const Parameters rParameters){SizeType size = 0; for (auto& r_param : rParameters) ++size; return size;};
+    auto size_parameters =[](const Parameters& rParameters){return std::distance(rParameters.begin(), rParameters.end());};
     const SizeType number_of_gp_variables = mThisParameters["gauss_points_check_variables"].size();
     std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
     std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
