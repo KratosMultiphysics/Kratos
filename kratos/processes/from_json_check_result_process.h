@@ -821,29 +821,13 @@ protected:
      * @brief This method returns the Nodes database. If not initialized it will try initialize again
      * @return The nodes database
      */
-    const ResultDatabase& GetNodeDatabase()
-    {
-        if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
-            InitializeDatabases();
-            KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
-        }
-
-        return mDatabaseNodes;
-    }
+    const ResultDatabase& GetNodeDatabase();
 
     /**
      * @brief This method returns the GP database. If not initialized it will try initialize again
      * @return The GP database
      */
-    const ResultDatabase& GetGPDatabase()
-    {
-        if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
-            InitializeDatabases();
-            KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
-        }
-
-        return mDatabaseGP;
-    }
+    const ResultDatabase& GetGPDatabase();
 
     ///@}
     ///@name Protected Inquiry

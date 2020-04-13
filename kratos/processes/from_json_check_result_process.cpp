@@ -871,4 +871,30 @@ Parameters FromJSONCheckResultProcess::GetSettings() const
     return this->mThisParameters;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+const ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
+{
+    if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
+        InitializeDatabases();
+        KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
+    }
+
+    return mDatabaseNodes;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
+{
+    if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
+        InitializeDatabases();
+        KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) << "Is not possible to initialize the database" << std::endl;
+    }
+
+    return mDatabaseGP;
+}
+
 } // namespace Kratos
