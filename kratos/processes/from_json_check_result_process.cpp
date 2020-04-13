@@ -633,7 +633,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
         auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_vector);
         const std::string& r_variable_name = p_var_vector->Name();
 
-        const Vector& r_vector = results[r_variable_name]["ELEMENT_" + std::to_string(it_elem_begin->Id())]["0"][0].GetVector();
+        const Vector& r_vector = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name]["0"][0].GetVector();
         const SizeType size_vector = r_vector.size();
 
         Vector aux_vector(time_size);
