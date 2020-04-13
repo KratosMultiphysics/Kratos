@@ -42,11 +42,8 @@ class CoSimConnection
 {
 
 public:
-    typedef void (*DataExchangeFunctionType)(const std::string&, const std::string&);
-    typedef void (*DataExchangeCFunctionType)(const char*, const char*);
 
     using FunctionPointerType = std::function<void(CoSimConnection&, const std::string&)>;
-
 
     explicit CoSimConnection(const std::string& rName, const std::string& rSettingsFileName)
     : CoSimConnection(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
@@ -77,21 +74,22 @@ public:
         FunctionPointerType FunctionPointer)
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        // // TODO maybe check if the name of the function is allowed?
+        // TODO maybe check if the name of the function is allowed?
+        // Print Info saying that function was registered
 
         KRATOS_CO_SIM_ERROR_IF((mRegisteredFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
 
         mRegisteredFunctions[rFunctionName] = FunctionPointer;
     }
 
-    // void Run()
-    // {
-    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+    void Run()
+    {
+        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
 
-    //     CoSimIO::ControlSignal control_signal;
-    //     std::string identifier;
-    //     while(true) {
-    //         control_signal = RecvControlSignal(identifier);
+        CoSimIO::ControlSignal control_signal;
+        std::string identifier;
+        while(true) {
+            control_signal = RecvControlSignal(identifier);
     //         if (control_signal == CoSimIO::ControlSignal::BreakSolutionLoop) {
     //             break; // coupled simulation is done
     //         } else if (signal_to_name.count(control_signal) > 0) {
@@ -102,57 +100,57 @@ public:
     //         } else {
     //             KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
     //         }
-    //     }
-    // }
-
-    void Run()
-    {
-        // TODO make this work again, currently does not work bcs of the two different containers for fct-ptrs
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-
-        const std::map<const CoSimIO::ControlSignal, const std::string> signal_to_name {
-            {CoSimIO::ControlSignal::ImportGeometry, "ImportGeometry"},
-            {CoSimIO::ControlSignal::ExportGeometry, "ExportGeometry"},
-            {CoSimIO::ControlSignal::ImportMesh,     "ImportMesh"},
-            {CoSimIO::ControlSignal::ExportMesh,     "ExportMesh"},
-            {CoSimIO::ControlSignal::ImportData,     "ImportData"},
-            {CoSimIO::ControlSignal::ExportData,     "ExportData"}
-        };
-
-        CoSimIO::ControlSignal control_signal;
-        std::string identifier;
-        while(true) {
-            control_signal = RecvControlSignal(identifier);
-            if (control_signal == CoSimIO::ControlSignal::BreakSolutionLoop) {
-                break; // coupled simulation is done
-            } else if (control_signal == CoSimIO::ControlSignal::AdvanceInTime) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpAdvInTime) << "No function was registered for \"AdvanceInTime\"!" << std::endl;
-
-                std::vector<double> time_vec(1);
-                std::unique_ptr<DataContainer<double>> p_container_time(new DataContainerStdVector<double>(time_vec));
-                ImportData("time_from_co_sim", *p_container_time);
-                mpAdvInTime(&time_vec[0]);
-                ExportData("time_to_co_sim", *p_container_time);
-            } else if (control_signal == CoSimIO::ControlSignal::InitializeSolutionStep) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpInitSolStep) << "No function was registered for \"InitializeSolutionStep\"!" << std::endl;
-                mpInitSolStep();
-
-            } else if (control_signal == CoSimIO::ControlSignal::SolveSolutionStep) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpSolSolStep) << "No function was registered for \"SolveSolutionStep\"!" << std::endl;
-                mpSolSolStep();
-            } else if (control_signal == CoSimIO::ControlSignal::FinalizeSolutionStep) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpFinSolStep) << "No function was registered for \"FinalizeSolutionStep\"!" << std::endl;
-                mpFinSolStep();
-            } else if (signal_to_name.count(control_signal) > 0) {
-                const auto& r_function_name(signal_to_name.at(control_signal));
-
-                KRATOS_CO_SIM_ERROR_IF_NOT((mDataExchangeFunctions.count(r_function_name)>0)) << "No function was registered for \"" << r_function_name << "\"!" << std::endl;
-                mDataExchangeFunctions.at(r_function_name)(mConnectionName, identifier);
-            } else {
-                KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
-            }
         }
     }
+
+    // void Run()
+    // {
+    //     // TODO make this work again, currently does not work bcs of the two different containers for fct-ptrs
+    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+
+    //     const std::map<const CoSimIO::ControlSignal, const std::string> signal_to_name {
+    //         {CoSimIO::ControlSignal::ImportGeometry, "ImportGeometry"},
+    //         {CoSimIO::ControlSignal::ExportGeometry, "ExportGeometry"},
+    //         {CoSimIO::ControlSignal::ImportMesh,     "ImportMesh"},
+    //         {CoSimIO::ControlSignal::ExportMesh,     "ExportMesh"},
+    //         {CoSimIO::ControlSignal::ImportData,     "ImportData"},
+    //         {CoSimIO::ControlSignal::ExportData,     "ExportData"}
+    //     };
+
+    //     CoSimIO::ControlSignal control_signal;
+    //     std::string identifier;
+    //     while(true) {
+    //         control_signal = RecvControlSignal(identifier);
+    //         if (control_signal == CoSimIO::ControlSignal::BreakSolutionLoop) {
+    //             break; // coupled simulation is done
+    //         } else if (control_signal == CoSimIO::ControlSignal::AdvanceInTime) {
+    //             KRATOS_CO_SIM_ERROR_IF_NOT(mpAdvInTime) << "No function was registered for \"AdvanceInTime\"!" << std::endl;
+
+    //             std::vector<double> time_vec(1);
+    //             std::unique_ptr<DataContainer<double>> p_container_time(new DataContainerStdVector<double>(time_vec));
+    //             ImportData("time_from_co_sim", *p_container_time);
+    //             mpAdvInTime(&time_vec[0]);
+    //             ExportData("time_to_co_sim", *p_container_time);
+    //         } else if (control_signal == CoSimIO::ControlSignal::InitializeSolutionStep) {
+    //             KRATOS_CO_SIM_ERROR_IF_NOT(mpInitSolStep) << "No function was registered for \"InitializeSolutionStep\"!" << std::endl;
+    //             mpInitSolStep();
+
+    //         } else if (control_signal == CoSimIO::ControlSignal::SolveSolutionStep) {
+    //             KRATOS_CO_SIM_ERROR_IF_NOT(mpSolSolStep) << "No function was registered for \"SolveSolutionStep\"!" << std::endl;
+    //             mpSolSolStep();
+    //         } else if (control_signal == CoSimIO::ControlSignal::FinalizeSolutionStep) {
+    //             KRATOS_CO_SIM_ERROR_IF_NOT(mpFinSolStep) << "No function was registered for \"FinalizeSolutionStep\"!" << std::endl;
+    //             mpFinSolStep();
+    //         } else if (signal_to_name.count(control_signal) > 0) {
+    //             const auto& r_function_name(signal_to_name.at(control_signal));
+
+    //             KRATOS_CO_SIM_ERROR_IF_NOT((mDataExchangeFunctions.count(r_function_name)>0)) << "No function was registered for \"" << r_function_name << "\"!" << std::endl;
+    //             mDataExchangeFunctions.at(r_function_name)(mConnectionName, identifier);
+    //         } else {
+    //             KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
+    //         }
+    //     }
+    // }
 
     void IsConverged(int& rConvergenceSignal) // TODO change this to return => there is no reason to have this by reference, only makes it more complicated!
     {
@@ -210,14 +208,6 @@ private:
     std::string mConnectionName;
 
     bool mIsConnectionMaster = false;
-
-    void (*mpAdvInTime)(double*) = nullptr;
-    void (*mpInitSolStep)()      = nullptr;
-    void (*mpSolSolStep)()       = nullptr;
-    void (*mpFinSolStep)()       = nullptr;
-
-    std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
-    std::map<const std::string, DataExchangeCFunctionType> mDataExchangeCFunctions;
 
     std::map<const std::string, FunctionPointerType> mRegisteredFunctions;
 
