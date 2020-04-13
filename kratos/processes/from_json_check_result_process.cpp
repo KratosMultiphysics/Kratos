@@ -416,8 +416,9 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     FillVariablesList(r_check_variables_names, r_gauss_points_check_variables);
 
     // Nodal
-    std::vector<IndexType> nodal_variables_ids(r_check_variables_names.size());
-    std::vector<IndexType> nodal_values_sizes(r_check_variables_names.size(), 1);
+    const SizeType number_of_nodes_variables = r_check_variables_names.size();
+    std::vector<IndexType> nodal_variables_ids(number_of_nodes_variables);
+    std::vector<IndexType> nodal_values_sizes(number_of_nodes_variables, 1);
     SizeType aux_size = 0;
     for (IndexType i = 0; i < mpNodalVariableDoubleList.size(); ++i) {
         nodal_variables_ids[aux_size + i] = mpNodalVariableDoubleList[i]->Key();
@@ -444,8 +445,9 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     }
 
     // GP
-    std::vector<IndexType> gp_variables_ids(r_gauss_points_check_variables.size());
-    std::vector<IndexType> gp_values_sizes(r_gauss_points_check_variables.size(), 1);
+    const SizeType number_of_gp_variables = r_gauss_points_check_variables.size();
+    std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
+    std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
     aux_size = 0;
     for (IndexType i = 0; i < mpGPVariableDoubleList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableDoubleList[i]->Key();
