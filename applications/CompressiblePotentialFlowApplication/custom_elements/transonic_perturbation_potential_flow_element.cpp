@@ -974,16 +974,14 @@ double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeDensit
 
 template <int TDim, int TNumNodes>
 double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeLocalMachSquaredDerivative(
+    array_1d<double, TDim> velocity,
+    double local_mach_number,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     // read free stream values
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-
-    // calculate local values
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    double local_mach_number = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<TDim, TNumNodes>(*this, rCurrentProcessInfo);
 
     // make squares of values
     double sq_local_mach_number = pow(local_mach_number, 2);
