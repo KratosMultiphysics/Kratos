@@ -162,6 +162,11 @@ public:
         )
     {
         auto& p_table = GetResultaData(GPIndex)[ComponentIndex];
+
+    #ifdef KRATOS_DEBUG
+        KRATOS_ERROR_IF(p_table == nullptr) << "No table defined for ComponentIndex: " << ComponentIndex << " GPIndex: " << GPIndex << std::endl;
+    #endif
+
         if (p_table->Data().size() > 0) {
             p_table->Clear(); // We clear to avoid reassign
         }
