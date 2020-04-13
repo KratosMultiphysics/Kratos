@@ -449,16 +449,20 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
     std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
     aux_size = 0;
+    SizeType number_of_gp = 0;
     for (IndexType i = 0; i < mpGPVariableDoubleList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableDoubleList[i]->Key();
+        const auto& r_data = results[mpGPVariableDoubleList[i]->Name()]["ELEMENT_" + std::to_string(it_elem_begin->Id())];
+        number_of_gp = r_data.size();
     }
     aux_size += mpGPVariableDoubleList.size();
     for (IndexType i = 0; i < mpGPVariableArrayList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableArrayList[i]->Key();
+        const auto& r_data = results[mpGPVariableArrayList[i]->Name()]["ELEMENT_" + std::to_string(it_elem_begin->Id())];
+        number_of_gp = r_data.size();
         gp_values_sizes[aux_size + i] = 3;
     }
     aux_size += mpGPVariableArrayList.size();
-    SizeType number_of_gp = 0;
     for (IndexType i = 0; i < mpGPVariableVectorList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableVectorList[i]->Key();
         const auto& r_data = results[mpGPVariableVectorList[i]->Name()]["ELEMENT_" + std::to_string(it_elem_begin->Id())];
