@@ -361,7 +361,7 @@ public:
         )
     {
         // If no variables we skip
-        if (rVariablesIndexes.size()) {
+        if (rVariablesIndexes.size() == 0) {
             return void();
         }
 
