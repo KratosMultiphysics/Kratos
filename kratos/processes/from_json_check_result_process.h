@@ -368,13 +368,13 @@ public:
         KRATOS_ERROR_IF_NOT(rVariablesIndexes.size() == rValuesSizes.size()) << "Inconsistent sizes in the values sizes and the variable indexes" << std::endl;
 
         // Auxiliar lambda to generate vectors of tables
-        auto r_table_generator =[](const SizeType NumberOfEntites, const SizeType NumberOfComponents, const SizeType NumberOfGP){std::vector<Table<double, double>::Pointer> aux_1(NumberOfComponents, nullptr); EntityDatabase aux_2(NumberOfGP, aux_1); VariableDatabase data(NumberOfEntites, aux_2); for (IndexType k = 0; k < NumberOfComponents; ++k){for (IndexType j = 0; j < NumberOfGP; ++j){ for (IndexType i = 0; i < NumberOfComponents; ++i){ data[k][j][i] = Kratos::make_shared<Table<double, double>>();}}}; return data;};
+        auto table_generator =[](const SizeType NumberOfEntites, const SizeType NumberOfComponents, const SizeType NumberOfGP){std::vector<Table<double, double>::Pointer> aux_1(NumberOfComponents, nullptr); EntityDatabase aux_2(NumberOfGP, aux_1); VariableDatabase data(NumberOfEntites, aux_2); for (IndexType k = 0; k < NumberOfComponents; ++k){for (IndexType j = 0; j < NumberOfGP; ++j){ for (IndexType i = 0; i < NumberOfComponents; ++i){ data[k][j][i] = Kratos::make_shared<Table<double, double>>();}}}; return data;};
 
         // Fill the inner map of tables
         for (IndexType i = 0; i < rVariablesIndexes.size(); ++i) {
             const IndexType index = rVariablesIndexes[i];
             const SizeType size = rValuesSizes[i];
-            this->insert(std::pair<IndexType, VariableDatabase>(index, r_table_generator(NumberOfEntites, size, NumberOfGP)));
+            this->insert(std::pair<IndexType, VariableDatabase>(index, table_generator(NumberOfEntites, size, NumberOfGP)));
         }
     }
 

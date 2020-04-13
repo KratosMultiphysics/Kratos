@@ -446,6 +446,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     }
 
     // GP
+    auto size_parameters =[](const Parameters rParameters){SizeType size = 0; for (auto& r_param : rParameters) ++size; return size;};
     const SizeType number_of_gp_variables = mThisParameters["gauss_points_check_variables"].size();
     std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
     std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
@@ -454,21 +455,20 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     for (IndexType i = 0; i < mpGPVariableDoubleList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableDoubleList[i]->Key();
         const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableDoubleList[i]->Name()];
-        number_of_gp = r_data.size();
+        number_of_gp = size_parameters(r_data);
     }
-
     aux_size += mpGPVariableDoubleList.size();
     for (IndexType i = 0; i < mpGPVariableArrayList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableArrayList[i]->Key();
         const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableArrayList[i]->Name()];
-        number_of_gp = r_data.size();
+        number_of_gp = size_parameters(r_data);
         gp_values_sizes[aux_size + i] = 3;
     }
     aux_size += mpGPVariableArrayList.size();
     for (IndexType i = 0; i < mpGPVariableVectorList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableVectorList[i]->Key();
         const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableVectorList[i]->Name()];
-        number_of_gp = r_data.size();
+        number_of_gp = size_parameters(r_data);
         const Vector& r_vector = r_data["0"][0].GetVector();
         gp_values_sizes[aux_size + i] = r_vector.size();
     }
