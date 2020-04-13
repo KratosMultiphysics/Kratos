@@ -18,6 +18,54 @@
 
 #include "../co_sim_io.h"
 
+namespace CoSimIO_Py_Wrappers {
+
+void ImportMesh() {
+    KRATOS_CO_SIM_ERROR << "this function is not yet implemented!" << std::endl;
+}
+
+void ExportMesh(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& rNodalCoordinates,
+    std::vector<int>& rElementConnectivities,
+    std::vector<int>& rElementTypes)
+{
+    CoSimIO::ExportMesh(
+        rConnectionName,
+        rIdentifier,
+        rNodalCoordinates,
+        rElementConnectivities,
+        rElementTypes);
+}
+
+std::vector<double> ImportData(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier)
+{
+    std::vector<double> values;
+
+    CoSimIO::ImportData(
+        rConnectionName,
+        rIdentifier,
+        values);
+
+    return values;
+}
+
+void ExportData(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& rValues)
+{
+    CoSimIO::ExportData(
+        rConnectionName,
+        rIdentifier,
+        rValues);
+}
+
+} // namespace CoSimIO_Py_Wrappers
+
 
 PYBIND11_MODULE(CoSimIO, m)
 {
@@ -31,11 +79,11 @@ PYBIND11_MODULE(CoSimIO, m)
 
     m.def("IsConverged", &CoSimIO::IsConverged);
 
-    // mCoSimIO.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
-    // mCoSimIO.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
+    m.def("ImportMesh", CoSimIO_Py_Wrappers::ImportMesh);
+    m.def("ExportMesh", CoSimIO_Py_Wrappers::ExportMesh);
 
-    // mCoSimIO.def("ImportData", CoSimIO_Wrappers::ImportData);
-    // mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData);
+    m.def("ImportData", CoSimIO_Py_Wrappers::ImportData);
+    m.def("ExportData", CoSimIO_Py_Wrappers::ExportData);
 
     // functions for CoSim-orchestrated CoSimulation
     m.def("Run", &CoSimIO::Run);
