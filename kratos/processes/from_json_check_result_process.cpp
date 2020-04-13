@@ -384,6 +384,8 @@ int FromJSONCheckResultProcess::Check()
 
 void FromJSONCheckResultProcess::InitializeDatabases()
 {
+    KRATOS_TRY;
+
     // This clears the databse of the result information in first place
     mDatabaseNodes.Clear();
     mDatabaseGP.Clear();
@@ -642,6 +644,8 @@ void FromJSONCheckResultProcess::InitializeDatabases()
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -652,6 +656,8 @@ void FromJSONCheckResultProcess::FillVariablesList(
     const std::vector<std::string>& rGPVariablesNames
     )
 {
+    KRATOS_TRY;
+
     // Nodal variables
     for (const std::string& r_variable_name : rNodalVariablesNames) {
         if (KratosComponents<Variable<double>>::Has(r_variable_name)){
@@ -679,6 +685,8 @@ void FromJSONCheckResultProcess::FillVariablesList(
             KRATOS_ERROR << "Only double, array and vector variables are allowed in the variables list." << std::endl;
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -742,6 +750,8 @@ std::string FromJSONCheckResultProcess::GetNodeIdentifier(NodeType& rNode)
 
 FromJSONCheckResultProcess::NodesArrayType& FromJSONCheckResultProcess::GetNodes(const Flags* pFlag)
 {
+    KRATOS_TRY;
+
     if (this->IsNot(NODES_CONTAINER_INITIALIZED)) {
         auto& r_nodes_array = this->Is(CHECK_ONLY_LOCAL_ENTITIES) ? mrModelPart.GetCommunicator().LocalMesh().Nodes() : mrModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
@@ -770,6 +780,8 @@ FromJSONCheckResultProcess::NodesArrayType& FromJSONCheckResultProcess::GetNodes
     }
 
     return mNodesArray;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -777,6 +789,8 @@ FromJSONCheckResultProcess::NodesArrayType& FromJSONCheckResultProcess::GetNodes
 
 FromJSONCheckResultProcess::ElementsArrayType& FromJSONCheckResultProcess::GetElements(const Flags* pFlag)
 {
+    KRATOS_TRY;
+
     if (this->IsNot(ELEMENTS_CONTAINER_INITIALIZED)) {
         auto& r_elements_array = this->Is(CHECK_ONLY_LOCAL_ENTITIES) ? mrModelPart.GetCommunicator().LocalMesh().Elements() : mrModelPart.Elements();
         const auto it_elem_begin = r_elements_array.begin();
@@ -805,6 +819,8 @@ FromJSONCheckResultProcess::ElementsArrayType& FromJSONCheckResultProcess::GetEl
     }
 
     return mElementsArray;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
