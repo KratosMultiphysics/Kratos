@@ -357,7 +357,7 @@ public:
         const std::vector<IndexType>& rVariablesIndexes,
         const std::vector<IndexType>& rValuesSizes,
         const SizeType NumberOfEntites,
-        const SizeType NumberOfGP = 0
+        const SizeType NumberOfGP = 1
         )
     {
         KRATOS_ERROR_IF_NOT(rVariablesIndexes.size() == rValuesSizes.size()) << "Inconsistent sizes in the values sizes and the variable indexes" << std::endl;

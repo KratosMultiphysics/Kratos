@@ -477,7 +477,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
 
     // Initialize the databases
     mDatabaseNodes.Initialize(nodal_variables_ids, nodal_values_sizes, r_nodes_array.size());
-    mDatabaseGP.Initialize(gp_variables_ids, gp_values_sizes, r_elements_array.size());
+    mDatabaseGP.Initialize(gp_variables_ids, gp_values_sizes, r_elements_array.size(), number_of_gp);
 
     // Get the time vector
     const Vector& r_time = results["TIME"].GetVector();
