@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 from importlib import import_module
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
@@ -11,6 +12,13 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # This include NEEDS to be here bcs of its dependencies
         from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_ale_fluid_solver
         return navier_stokes_ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
+
+    if solver_type == "CoupledRANS":
+        if (CheckIfApplicationsAvailable("RANSApplication")):
+            from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
+            return CoupledRANSSolver(model, solver_settings)
+        else:
+            raise Exception("\"CoupledRANS\" solver requires RANSApplication.")
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
