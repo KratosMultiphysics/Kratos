@@ -679,7 +679,7 @@ void FromJSONCheckResultProcess::FillVariablesList(
         } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
             mpNodalVariableVectorList.push_back(&(KratosComponents<Variable<Vector>>::Get(r_variable_name)));
         } else {
-            KRATOS_ERROR << "Only double, array, vector and component variables are allowed in the variables list." << std::endl;
+            KRATOS_ERROR << "Only double, array, vector and component variables are allowed in the variables list. Variable: " << r_variable_name << std::endl;
         }
     }
 
@@ -692,7 +692,7 @@ void FromJSONCheckResultProcess::FillVariablesList(
         } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
             mpGPVariableVectorList.push_back(&(KratosComponents<Variable<Vector>>::Get(r_variable_name)));
         } else {
-            KRATOS_ERROR << "Only double, array and vector variables are allowed in the variables list." << std::endl;
+            KRATOS_ERROR << "Only double, array and vector variables are allowed in the variables list. Variable: " << r_variable_name << std::endl;
         }
     }
 
