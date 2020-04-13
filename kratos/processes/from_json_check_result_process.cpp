@@ -75,6 +75,13 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
 
+    // The auxiliar vectors for the variables
+    const auto& r_check_variables_names = mThisParameters["check_variables"].GetStringArray();
+    const auto& r_gauss_points_check_variables = mThisParameters["gauss_points_check_variables"].GetStringArray();
+
+    // We fill the list of variables
+    FillVariablesList(r_check_variables_names, r_gauss_points_check_variables);
+
     // We initialize the databases
     InitializeDatabases();
 
@@ -408,15 +415,8 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     buffer << infile.rdbuf();
     Parameters results(buffer.str());
 
-    // The auxiliar vectors for the variables
-    const auto& r_check_variables_names = mThisParameters["check_variables"].GetStringArray();
-    const auto& r_gauss_points_check_variables = mThisParameters["gauss_points_check_variables"].GetStringArray();
-
-    // We fill the list of variables
-    FillVariablesList(r_check_variables_names, r_gauss_points_check_variables);
-
     // Nodal
-    const SizeType number_of_nodes_variables = r_check_variables_names.size();
+    const SizeType number_of_nodes_variables = mThisParameters["check_variables"].size();
     std::vector<IndexType> nodal_variables_ids(number_of_nodes_variables);
     std::vector<IndexType> nodal_values_sizes(number_of_nodes_variables, 1);
     SizeType aux_size = 0;
@@ -445,7 +445,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     }
 
     // GP
-    const SizeType number_of_gp_variables = r_gauss_points_check_variables.size();
+    const SizeType number_of_gp_variables = mThisParameters["gauss_points_check_variables"].size();
     std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
     std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
     aux_size = 0;
