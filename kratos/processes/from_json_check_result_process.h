@@ -142,7 +142,7 @@ public:
         ) const
     {
         KRATOS_DEBUG_ERROR_IF(ComponentIndex == GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
-        return GetResultaData(GPIndex)[ComponentIndex]->GetValue(Time);
+        return (*this)[GPIndex][ComponentIndex]->GetValue(Time);
     }
 
     /**
@@ -269,7 +269,8 @@ public:
         const SizeType GPIndex = 0
         ) const
     {
-        return GetEntityData(EntityIndex).GetValue(Time, ComponentIndex, GPIndex);
+        KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
+        return (*this)[EntityIndex].GetValue(Time, ComponentIndex, GPIndex);
     }
 
     /**
