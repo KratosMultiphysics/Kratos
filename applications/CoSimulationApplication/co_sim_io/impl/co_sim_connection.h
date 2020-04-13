@@ -91,6 +91,7 @@ public:
         std::string identifier;
         while(true) {
             control_signal = RecvControlSignal(identifier);
+            //TODO check if received signal is valid
             if (control_signal == CoSimIO::ControlSignal::BreakSolutionLoop) {
                 break; // coupled simulation is done
             } else {
