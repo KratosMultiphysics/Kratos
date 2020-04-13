@@ -30,6 +30,7 @@
 #include <string>
 #include <map>
 #include <utility>
+#include <functional>
 
 // Project includes
 #include "co_sim_file_communication.h"
