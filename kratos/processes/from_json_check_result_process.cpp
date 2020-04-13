@@ -500,6 +500,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     mDatabaseGP.SetCommonColumn(r_time);
 
     // Fill database
+    /* Nodal values */
     for (auto& p_var_double : mpNodalVariableDoubleList) {
         auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_double);
         const std::string& r_variable_name = p_var_double->Name();
@@ -580,7 +581,8 @@ void FromJSONCheckResultProcess::InitializeDatabases()
         }
     }
 
-    for (auto& p_var_double : mpNodalVariableDoubleList) {
+    /* GP values */
+    for (auto& p_var_double : mpGPVariableDoubleList) {
         auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_double);
         const std::string& r_variable_name = p_var_double->Name();
         for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
