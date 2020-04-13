@@ -102,11 +102,6 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
                 self.__CommunicateStateOfConvergence(True)
                 return True
-            else:
-                # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
-                for conv_acc in self.convergence_accelerators_list:
-                    conv_acc.ComputeAndApplyUpdate()
-                self.__CommunicateStateOfConvergence(False)
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
                 cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))

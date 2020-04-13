@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -124,84 +124,93 @@ public:
   }
 
   void CalculateSystemContributions(
-      Element::Pointer rCurrentElement,
+      Element& rCurrentElement,
       LocalSystemMatrixType& LHS_Contribution,
       LocalSystemVectorType& RHS_Contribution,
       Element::EquationIdVectorType& EquationId,
-      ProcessInfo& CurrentProcessInfo) override
+      const ProcessInfo& CurrentProcessInfo) override
   {
     KRATOS_TRY;
 
-    rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
-    rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
+    rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
-    rCurrentElement->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
-    rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
+    rCurrentElement.CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
+    rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
     // apply slip condition
-    mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+    mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
 
     KRATOS_CATCH("");
   }
 
-  void Condition_CalculateSystemContributions(
-      Condition::Pointer rCurrentCondition,
+  void CalculateSystemContributions(
+      Condition& rCurrentCondition,
       LocalSystemMatrixType& LHS_Contribution,
       LocalSystemVectorType& RHS_Contribution,
       Condition::EquationIdVectorType& EquationId,
-      ProcessInfo& CurrentProcessInfo) override
+      const ProcessInfo& CurrentProcessInfo) override
   {
     KRATOS_TRY;
 
-    rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
-    rCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
+    rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
-    rCurrentCondition->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
-    rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
+    rCurrentCondition.CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
+    rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
     // apply slip condition
-    mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+    mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
 
     KRATOS_CATCH("");
   }
 
-  void Calculate_RHS_Contribution(
-      Element::Pointer rCurrentElement,
+  void CalculateRHSContribution(
+      Element& rCurrentElement,
       LocalSystemVectorType& rRHS_Contribution,
       Element::EquationIdVectorType& rEquationId,
-      ProcessInfo& rCurrentProcessInfo) override
+      const ProcessInfo& rCurrentProcessInfo) override
   {
     KRATOS_TRY;
 
+    //TODO: This is very inefficient. Check why the RHS-only methods are not called.
     Matrix LHS_Contribution;
-    CalculateSystemContributions(rCurrentElement,LHS_Contribution,
-                                 rRHS_Contribution,rEquationId,rCurrentProcessInfo);
+    CalculateSystemContributions(
+      rCurrentElement,
+      LHS_Contribution,
+      rRHS_Contribution,
+      rEquationId,
+      rCurrentProcessInfo);
 
     KRATOS_CATCH("");
   }
 
-  void Condition_Calculate_RHS_Contribution(
-      Condition::Pointer rCurrentCondition,
+  void CalculateRHSContribution(
+      Condition& rCurrentCondition,
       LocalSystemVectorType& rRHS_Contribution,
       Element::EquationIdVectorType& rEquationId,
-      ProcessInfo& rCurrentProcessInfo) override
+      const ProcessInfo& rCurrentProcessInfo) override
   {
     KRATOS_TRY;
 
+    //TODO: This is very inefficient. Check why the RHS-only methods are not called.
     Matrix LHS_Contribution;
-    Condition_CalculateSystemContributions(rCurrentCondition,LHS_Contribution,
-                                           rRHS_Contribution,rEquationId,
-                                           rCurrentProcessInfo);
+    CalculateSystemContributions(
+      rCurrentCondition,
+      LHS_Contribution,
+      rRHS_Contribution,
+      rEquationId,
+      rCurrentProcessInfo);
 
     KRATOS_CATCH("");
   }

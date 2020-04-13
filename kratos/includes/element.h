@@ -1151,7 +1151,6 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
-        const_cast<Element*>(this)->Check(rCurrentProcessInfo); // TODO remove this after the transition period
 
         KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
 
@@ -1167,14 +1166,9 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
-
-        const double domain_size = this->GetGeometry().DomainSize();
-        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
-
-        return 0;
-
+        // calling the const version for backward compatibility
+        const Element& r_const_this = *this;
+        return r_const_this.Check(rCurrentProcessInfo);
         KRATOS_CATCH("")
     }
 
