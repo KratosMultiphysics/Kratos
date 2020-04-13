@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include "rans_application_variables.h"
 
 // Include base h
 #include "rans_calculation_utilities.h"
@@ -50,6 +51,34 @@ void CalculateGeometryData(const GeometryType& rGeometry,
 
     for (unsigned int g = 0; g < number_of_gauss_points; ++g)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+}
+
+void CalculateConditionGeometryData(const GeometryType& rGeometry,
+                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                    Vector& rGaussWeights,
+                                    Matrix& rNContainer)
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        rGeometry.IntegrationPoints(rIntegrationMethod);
+
+    const std::size_t number_of_integration_points = integration_points.size();
+    const int dimension = rGeometry.WorkingSpaceDimension();
+    const double domain_size = rGeometry.DomainSize();
+
+    if (rGaussWeights.size() != number_of_integration_points)
+    {
+        rGaussWeights.resize(number_of_integration_points, false);
+    }
+
+    rNContainer = rGeometry.ShapeFunctionsValues(rIntegrationMethod);
+
+    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+    double det_J = (dimension == 2) ? 0.5 * domain_size : 2.0 * domain_size;
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++)
+    {
+        rGaussWeights[g] = det_J * integration_points[g].Weight();
+    }
 }
 
 double EvaluateInPoint(const GeometryType& rGeometry,
@@ -235,6 +264,16 @@ double CalculateLogarithmicYPlusLimit(const double Kappa,
            "Tolerance [ "
         << dx << " > " << Tolerance << ", MaxIterations = " << MaxIterations << " ].\n";
     return y_plus;
+}
+
+bool IsWall(const ConditionType& rCondition)
+{
+    return rCondition.GetValue(RANS_IS_WALL);
+}
+
+bool IsInlet(const ConditionType& rCondition)
+{
+    return rCondition.GetValue(RANS_IS_INLET);
 }
 
 // template instantiations

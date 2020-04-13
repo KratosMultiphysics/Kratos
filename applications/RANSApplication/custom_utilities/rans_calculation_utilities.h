@@ -31,7 +31,7 @@ namespace RansCalculationUtilities
 {
 /// Node type
 using NodeType = ModelPart::NodeType;
-
+using ConditionType = ModelPart::ConditionType;
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
 
@@ -50,6 +50,11 @@ void CalculateGeometryData(const GeometryType& rGeometry,
                            Vector& rGaussWeights,
                            Matrix& rNContainer,
                            GeometryType::ShapeFunctionsGradientsType& rDN_DX);
+
+void CalculateConditionGeometryData(const GeometryType& rGeometry,
+                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                    Vector& rGaussWeights,
+                                    Matrix& rNContainer);
 
 GeometryType::ShapeFunctionsGradientsType CalculateGeometryParameterDerivatives(
     const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod);
@@ -96,6 +101,10 @@ double KRATOS_API(RANS_APPLICATION)
                                    const double Beta,
                                    const int MaxIterations = 20,
                                    const double Tolerance = 1e-6);
+
+bool IsWall(const ConditionType& rCondition);
+
+bool IsInlet(const ConditionType& rCondition);
 
 } // namespace RansCalculationUtilities
 
