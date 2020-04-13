@@ -435,7 +435,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     aux_size += mpNodalVariableArrayList.size();
     for (IndexType i = 0; i < mpNodalVariableVectorList.size(); ++i) {
         nodal_variables_ids[aux_size + i] = mpNodalVariableVectorList[i]->Key();
-        const Vector& r_vector = results[mpNodalVariableVectorList[i]->Name()]["NODE_" + GetNodeIdentifier(*it_node_begin)][0].GetVector();
+        const Vector& r_vector = results["NODE_" + GetNodeIdentifier(*it_node_begin)][mpNodalVariableVectorList[i]->Name()][0].GetVector();
         nodal_values_sizes[aux_size + i] = r_vector.size();
     }
     aux_size += mpNodalVariableVectorList.size();
@@ -453,20 +453,21 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     SizeType number_of_gp = 0;
     for (IndexType i = 0; i < mpGPVariableDoubleList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableDoubleList[i]->Key();
-        const auto& r_data = results[mpGPVariableDoubleList[i]->Name()]["ELEMENT_" + std::to_string(it_elem_begin->Id())];
+        const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableDoubleList[i]->Name()];
         number_of_gp = r_data.size();
     }
+
     aux_size += mpGPVariableDoubleList.size();
     for (IndexType i = 0; i < mpGPVariableArrayList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableArrayList[i]->Key();
-        const auto& r_data = results[mpGPVariableArrayList[i]->Name()]["ELEMENT_" + std::to_string(it_elem_begin->Id())];
+        const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableArrayList[i]->Name()];
         number_of_gp = r_data.size();
         gp_values_sizes[aux_size + i] = 3;
     }
     aux_size += mpGPVariableArrayList.size();
     for (IndexType i = 0; i < mpGPVariableVectorList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableVectorList[i]->Key();
-        const auto& r_data = results[mpGPVariableVectorList[i]->Name()]["ELEMENT_" + std::to_string(it_elem_begin->Id())];
+        const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableVectorList[i]->Name()];
         number_of_gp = r_data.size();
         const Vector& r_vector = r_data["0"][0].GetVector();
         gp_values_sizes[aux_size + i] = r_vector.size();
