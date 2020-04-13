@@ -438,6 +438,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
         const Vector& r_vector = results[mpNodalVariableVectorList[i]->Name()]["NODE_" + GetNodeIdentifier(*it_node_begin)][0].GetVector();
         nodal_values_sizes[aux_size + i] = r_vector.size();
     }
+    aux_size += mpNodalVariableVectorList.size();
 
     // Set the flags if possible to initialize
     if ((r_nodes_array.size() > 0 && aux_size > 0) || aux_size == 0) {
@@ -470,6 +471,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
         const Vector& r_vector = r_data["0"][0].GetVector();
         gp_values_sizes[aux_size + i] = r_vector.size();
     }
+    aux_size += mpGPVariableVectorList.size();
 
     // Set the flags if possible to initialize
     if ((r_elements_array.size() > 0 && aux_size > 0) || aux_size == 0) {
