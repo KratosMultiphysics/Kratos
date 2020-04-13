@@ -138,7 +138,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_double : mpNodalVariableDoubleList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -153,7 +153,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_component : mpNodalVariableComponentsList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -168,7 +168,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_array : mpNodalVariableArrayList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -186,7 +186,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_vector : mpNodalVariableVectorList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -205,7 +205,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_double : mpNodalVariableDoubleList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -220,7 +220,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_component : mpNodalVariableComponentsList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -235,7 +235,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_array : mpNodalVariableArrayList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -253,7 +253,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             for (auto& p_var_vector : mpNodalVariableVectorList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
-//                 #pragma omp parallel for reduction(+:check_counter)
+                #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
@@ -285,7 +285,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
         for (auto& p_var_double : mpGPVariableDoubleList) {
             const auto& r_var_database = r_gp_database.GetVariableData(*p_var_double);
 
-//             #pragma omp parallel for reduction(+:check_counter) firstprivate(result_double)
+            #pragma omp parallel for reduction(+:check_counter) firstprivate(result_double)
             for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
                 auto it_elem = it_elem_begin + i;
 
@@ -304,7 +304,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
         for (auto& p_var_array : mpGPVariableArrayList) {
             const auto& r_var_database = r_gp_database.GetVariableData(*p_var_array);
 
-//             #pragma omp parallel for reduction(+:check_counter) firstprivate(result_array)
+            #pragma omp parallel for reduction(+:check_counter) firstprivate(result_array)
             for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
                 auto it_elem = it_elem_begin + i;
 
@@ -324,7 +324,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
         for (auto& p_var_vector : mpGPVariableVectorList) {
             const auto& r_var_database = r_gp_database.GetVariableData(*p_var_vector);
 
-//             #pragma omp parallel for reduction(+:check_counter) firstprivate(result_vector)
+            #pragma omp parallel for reduction(+:check_counter) firstprivate(result_vector)
             for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
                 auto it_elem = it_elem_begin + i;
 
