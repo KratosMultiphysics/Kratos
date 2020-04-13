@@ -25,10 +25,14 @@
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
+#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
+#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
 
 // Condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
+#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_condition.h"
+#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_condition.h"
 
 // Adjoint element includes
 #include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
@@ -180,6 +184,18 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    /// incompressible potential flow elements
+    const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;
+    const IncompressiblePotentialFlowVelocityElement<3, 4> mIncompressiblePotentialFlowVelocity3D;
+    const IncompressiblePotentialFlowPressureElement<2, 3> mIncompressiblePotentialFlowPressure2D;
+    const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressure3D;
+
+    /// incompressible potential flow conditions
+    const IncompressiblePotentialFlowVelocityCondition<2, 2> mIncompressiblePotentialFlowVelocityCondition2D2N;
+    const IncompressiblePotentialFlowVelocityCondition<3, 3> mIncompressiblePotentialFlowVelocityCondition3D3N;
+    const IncompressiblePotentialFlowPressureCondition<2, 2> mIncompressiblePotentialFlowPressureCondition2D2N;
+    const IncompressiblePotentialFlowPressureCondition<3, 3> mIncompressiblePotentialFlowPressureCondition3D3N;
 
     /// k-epsilon turbulence model elements
     const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
