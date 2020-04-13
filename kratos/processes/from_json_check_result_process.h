@@ -123,7 +123,7 @@ public:
      * @brief This method retrieves the entity database
      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
      */
-    const GPDatabaseType& GetResultaData(const SizeType GPIndex = 0) const
+    GPDatabaseType& GetResultaData(const SizeType GPIndex = 0)
     {
         KRATOS_DEBUG_ERROR_IF(GPIndex == this->size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << this->size() << std::endl;
         return operator[](GPIndex);
@@ -139,7 +139,7 @@ public:
         const double Time,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
-        ) const
+        )
     {
         KRATOS_DEBUG_ERROR_IF(ComponentIndex == GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
         return operator[](GPIndex)[ComponentIndex]->GetValue(Time);
@@ -249,7 +249,7 @@ public:
      * @brief This method retrieves the entity database
      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
      */
-    const EntityDatabase& GetEntityData(const IndexType EntityIndex) const
+    EntityDatabase& GetEntityData(const IndexType EntityIndex)
     {
         KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
         return operator[](EntityIndex);
@@ -267,7 +267,7 @@ public:
         const double Time,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
-        ) const
+        )
     {
         KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
         return operator[](EntityIndex).GetValue(Time, ComponentIndex, GPIndex);
@@ -408,7 +408,7 @@ public:
     template<class TVariableType>
     VariableDatabase& GetVariableData(const TVariableType& rVariable)
     {
-        const auto it = find(rVariable.Key());
+        auto it = find(rVariable.Key());
         if (it != end()) {
             return it->second;
         } else {
@@ -417,41 +417,25 @@ public:
     }
 
     /**
-     * @brief This method retrieves the variable database
+     * @brief This method retrieves the interpolated value from the database
      * @param rVariable The variable to be retrieved
+     * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
+     * @param Time The time value to be retrieved
+     * @param ComponentIndex The component index of the vector/array
+     * @param GPIndex The Gauss point index
      * @tparam TVariableType The variable type considered
      */
     template<class TVariableType>
-    const VariableDatabase& GetVariableData(const TVariableType& rVariable) const
+    const double GetValue(
+        const TVariableType& rVariable,
+        const IndexType EntityIndex,
+        const double Time,
+        const SizeType ComponentIndex = 0,
+        const SizeType GPIndex = 0
+        )
     {
-        const auto it = find(rVariable.Key());
-        if (it != end()) {
-            return it->second;
-        } else {
-            KRATOS_ERROR << "Not allocated Variable: " << rVariable.Name() << std::endl;
-        }
+        return GetVariableData(rVariable).GetValue(EntityIndex, Time, ComponentIndex, GPIndex);
     }
-
-//     /**
-//      * @brief This method retrieves the interpolated value from the database
-//      * @param rVariable The variable to be retrieved
-//      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
-//      * @param Time The time value to be retrieved
-//      * @param ComponentIndex The component index of the vector/array
-//      * @param GPIndex The Gauss point index
-//      * @tparam TVariableType The variable type considered
-//      */
-//     template<class TVariableType>
-//     const double GetValue(
-//         const TVariableType& rVariable,
-//         const IndexType EntityIndex,
-//         const double Time,
-//         const SizeType ComponentIndex = 0,
-//         const SizeType GPIndex = 0
-//         ) const
-//     {
-//         return GetVariableData(rVariable).GetValue(EntityIndex, Time, ComponentIndex, GPIndex);
-//     }
 
     /**
      * @brief This method set the values into the tables
@@ -830,13 +814,13 @@ protected:
      * @brief This method returns the Nodes database. If not initialized it will try initialize again
      * @return The nodes database
      */
-    const ResultDatabase& GetNodeDatabase();
+    ResultDatabase& GetNodeDatabase();
 
     /**
      * @brief This method returns the GP database. If not initialized it will try initialize again
      * @return The GP database
      */
-    const ResultDatabase& GetGPDatabase();
+    ResultDatabase& GetGPDatabase();
 
     ///@}
     ///@name Protected LifeCycle
