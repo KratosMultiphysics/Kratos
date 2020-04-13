@@ -431,26 +431,26 @@ public:
         }
     }
 
-    /**
-     * @brief This method retrieves the interpolated value from the database
-     * @param rVariable The variable to be retrieved
-     * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
-     * @param Time The time value to be retrieved
-     * @param ComponentIndex The component index of the vector/array
-     * @param GPIndex The Gauss point index
-     * @tparam TVariableType The variable type considered
-     */
-    template<class TVariableType>
-    const double GetValue(
-        const TVariableType& rVariable,
-        const IndexType EntityIndex,
-        const double Time,
-        const SizeType ComponentIndex = 0,
-        const SizeType GPIndex = 0
-        ) const
-    {
-        return GetVariableData(rVariable).GetValue(EntityIndex, Time, ComponentIndex, GPIndex);
-    }
+//     /**
+//      * @brief This method retrieves the interpolated value from the database
+//      * @param rVariable The variable to be retrieved
+//      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
+//      * @param Time The time value to be retrieved
+//      * @param ComponentIndex The component index of the vector/array
+//      * @param GPIndex The Gauss point index
+//      * @tparam TVariableType The variable type considered
+//      */
+//     template<class TVariableType>
+//     const double GetValue(
+//         const TVariableType& rVariable,
+//         const IndexType EntityIndex,
+//         const double Time,
+//         const SizeType ComponentIndex = 0,
+//         const SizeType GPIndex = 0
+//         ) const
+//     {
+//         return GetVariableData(rVariable).GetValue(EntityIndex, Time, ComponentIndex, GPIndex);
+//     }
 
     /**
      * @brief This method set the values into the tables
