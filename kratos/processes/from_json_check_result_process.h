@@ -360,6 +360,11 @@ public:
         const SizeType NumberOfGP = 1
         )
     {
+        // If no variables we skip
+        if (rVariablesIndexes.size()) {
+            return void();
+        }
+
         KRATOS_ERROR_IF_NOT(rVariablesIndexes.size() == rValuesSizes.size()) << "Inconsistent sizes in the values sizes and the variable indexes" << std::endl;
 
         // Auxiliar lambda to generate vectors of tables
