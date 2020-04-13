@@ -459,7 +459,8 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     aux_size += mpGPVariableDoubleList.size();
     for (IndexType i = 0; i < mpGPVariableArrayList.size(); ++i) {
         gp_variables_ids[aux_size + i] = mpGPVariableArrayList[i]->Key();
-        const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableArrayList[i]->Name()];
+        const std::string& r_variable_name = mpGPVariableArrayList[i]->Name();
+        const auto& r_data = KratosComponents<VariableComponent<ComponentType>>::Has(r_variable_name + "_X") ? results["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name + "_X"] : results["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name];
         number_of_gp = size_parameters(r_data);
         gp_values_sizes[aux_size + i] = 3;
     }
