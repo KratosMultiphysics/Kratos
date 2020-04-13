@@ -127,6 +127,7 @@ public:
      */
     const GPDatabaseType& GetResultaData(const SizeType GPIndex = 0) const
     {
+        KRATOS_DEBUG_ERROR_IF(GPIndex == this->size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << this->size() << std::endl;
         return (*this)[GPIndex];
     }
 
@@ -142,6 +143,7 @@ public:
         const SizeType GPIndex = 0
         ) const
     {
+        KRATOS_DEBUG_ERROR_IF(ComponentIndex == GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
         return GetResultaData(GPIndex)[ComponentIndex]->GetValue(Time);
     }
 
@@ -242,6 +244,7 @@ public:
      */
     const EntityDatabase& GetEntityData(const IndexType EntityIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
         return (*this)[EntityIndex];
     }
 
