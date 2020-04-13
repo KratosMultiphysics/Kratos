@@ -142,7 +142,7 @@ public:
         const SizeType GPIndex = 0
         ) const
     {
-        return GetResultaData(GPIndex)[ComponentIndex]->GetNearestValue(Time);
+        return GetResultaData(GPIndex)[ComponentIndex]->GetValue(Time);
     }
 
     /**
