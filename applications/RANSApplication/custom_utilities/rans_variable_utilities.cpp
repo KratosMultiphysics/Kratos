@@ -20,6 +20,10 @@
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
+
+// Application includes
+#include "rans_application_variables.h"
 
 // Include base h
 #include "rans_variable_utilities.h"
@@ -227,6 +231,85 @@ void CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart, ModelPart& 
     KRATOS_CATCH("");
 }
 
+void FixFlaggedDofs(ModelPart& rModelPart,
+                    const Variable<double>& rFixingVariable,
+                    const Flags& rFlag,
+                    const bool CheckValue)
+{
+    KRATOS_TRY
+
+    const int number_of_nodes = rModelPart.NumberOfNodes();
+#pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        if (r_node.Is(rFlag) == CheckValue)
+        {
+            r_node.Fix(rFixingVariable);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <typename TDataType>
+void CopyFlaggedVariableFromNonHistorical(ModelPart& rModelPart,
+                                          const Variable<TDataType>& rVariable,
+                                          const Flags& rFlag,
+                                          const bool CheckValue)
+{
+    KRATOS_TRY
+
+    const int number_of_nodes = rModelPart.NumberOfNodes();
+#pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        if (r_node.Is(rFlag) == CheckValue)
+        {
+            r_node.FastGetSolutionStepValue(rVariable) = r_node.GetValue(rVariable);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <typename TDataType>
+void CopyFlaggedVariableToNonHistorical(ModelPart& rModelPart,
+                                        const Variable<TDataType>& rVariable,
+                                        const Flags& rFlag,
+                                        const bool CheckValue)
+{
+    KRATOS_TRY
+
+    const int number_of_nodes = rModelPart.NumberOfNodes();
+#pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        if (r_node.Is(rFlag) == CheckValue)
+        {
+            r_node.SetValue(rVariable, r_node.FastGetSolutionStepValue(rVariable));
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CalculateMagnitudeSquareFor3DVariable(ModelPart& rModelPart,
+                                           const Variable<array_1d<double, 3>>& r3DVariable,
+                                           const Variable<double>& rOutputVariable)
+{
+    const int number_of_nodes = rModelPart.NumberOfNodes();
+#pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        const double magnitude = norm_2(r_node.FastGetSolutionStepValue(r3DVariable));
+        r_node.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
+    }
+}
+
 template <>
 double GetVariableValueNorm(const double& rValue)
 {
@@ -287,7 +370,98 @@ void CalculateTransientVariableConvergence(double& rRelativeChange,
     KRATOS_CATCH("");
 }
 
+void AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName)
+{
+    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    if (!r_process_info.Has(ANALYSIS_STEPS))
+    {
+        r_process_info.SetValue(ANALYSIS_STEPS, std::vector<std::string>());
+    }
+    r_process_info[ANALYSIS_STEPS].push_back(rStepName);
+}
+
+bool IsAnalysisStepCompleted(const ModelPart& rModelPart, const std::string& rStepName)
+{
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    if (r_process_info.Has(ANALYSIS_STEPS))
+    {
+        const std::vector<std::string>& r_steps = r_process_info[ANALYSIS_STEPS];
+        return (std::find(r_steps.begin(), r_steps.end(), rStepName) != r_steps.end());
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void AssignBoundaryFlagsToGeometries(ModelPart& rModelPart)
+{
+    const int number_of_conditions = rModelPart.NumberOfConditions();
+#pragma omp parallel for
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
+    {
+        Condition& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
+        r_condition.SetValue(RANS_IS_INLET, r_condition.Is(INLET));
+        r_condition.SetValue(RANS_IS_OUTLET, r_condition.Is(OUTLET));
+        r_condition.SetValue(RANS_IS_WALL, r_condition.Is(STRUCTURE));
+    }
+}
+
+template <typename TDataType>
+void AssignConditionVariableValuesToNodes(ModelPart& rModelPart,
+                                          const Variable<TDataType>& rVariable,
+                                          const Flags& rFlag,
+                                          const bool FlagValue)
+{
+    ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
+    VariableUtils().SetHistoricalVariableToZero(rVariable, r_nodes);
+
+    const int number_of_conditions = rModelPart.NumberOfConditions();
+#pragma omp parallel for
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
+    {
+        ModelPart::ConditionType& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
+        if (r_cond.Is(rFlag) == FlagValue)
+        {
+            const int number_of_nodes = r_cond.GetGeometry().PointsNumber();
+            const TDataType& r_normal = r_cond.GetValue(rVariable);
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                ModelPart::NodeType& r_node = r_cond.GetGeometry()[i_node];
+                r_node.SetLock();
+                r_node.FastGetSolutionStepValue(rVariable) +=
+                    r_normal * (1.0 / static_cast<double>(number_of_nodes));
+                r_node.UnSetLock();
+            }
+        }
+    }
+
+    rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
+}
+
 // template instantiations
+template void AssignConditionVariableValuesToNodes<double>(ModelPart&,
+                                                           const Variable<double>&,
+                                                           const Flags&,
+                                                           const bool);
+
+template void AssignConditionVariableValuesToNodes<array_1d<double, 3>>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Flags&, const bool);
+
+template void CopyFlaggedVariableFromNonHistorical<double>(ModelPart&,
+                                                           const Variable<double>&,
+                                                           const Flags&,
+                                                           const bool);
+template void CopyFlaggedVariableFromNonHistorical<array_1d<double, 3>>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Flags&, const bool);
+
+template void CopyFlaggedVariableToNonHistorical<double>(ModelPart&,
+                                                         const Variable<double>&,
+                                                         const Flags&,
+                                                         const bool);
+template void CopyFlaggedVariableToNonHistorical<array_1d<double, 3>>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Flags&, const bool);
+
 template void CalculateTransientVariableConvergence<double>(double&,
                                                             double&,
                                                             const ModelPart&,

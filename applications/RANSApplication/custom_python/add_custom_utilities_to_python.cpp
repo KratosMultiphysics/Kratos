@@ -33,9 +33,20 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
         .def("GetMinimumScalarValue", &RansVariableUtilities::GetMinimumScalarValue)
         .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
+        .def("AddAnalysisStep", &RansVariableUtilities::AddAnalysisStep)
+        .def("IsAnalysisStepCompleted", &RansVariableUtilities::IsAnalysisStepCompleted)
+        .def("AssignBoundaryFlagsToGeometries", &RansVariableUtilities::AssignBoundaryFlagsToGeometries)
+        .def("AssignConditionVariableValuesToNodes", &RansVariableUtilities::AssignConditionVariableValuesToNodes<double>, py::arg("model_part"), py::arg("variable"), py::arg("flag"), py::arg("flag_value") = true)
+        .def("AssignConditionVariableValuesToNodes", &RansVariableUtilities::AssignConditionVariableValuesToNodes<array_1d<double, 3>>, py::arg("model_part"), py::arg("variable"), py::arg("flag"), py::arg("flag_value") = true)
         .def("CopyNodalSolutionStepVariablesList", &RansVariableUtilities::CopyNodalSolutionStepVariablesList)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
-        .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>);
+        .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
+        .def("CalculateMagnitudeSquareFor3DVariable", &RansVariableUtilities::CalculateMagnitudeSquareFor3DVariable)
+        .def("FixFlaggedDofs", &RansVariableUtilities::FixFlaggedDofs, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyFlaggedVariableToNonHistorical", &RansVariableUtilities::CopyFlaggedVariableToNonHistorical<double>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyFlaggedVariableToNonHistorical", &RansVariableUtilities::CopyFlaggedVariableToNonHistorical<array_1d<double, 3>>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyFlaggedVariableFromNonHistorical", &RansVariableUtilities::CopyFlaggedVariableFromNonHistorical<double>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyFlaggedVariableFromNonHistorical", &RansVariableUtilities::CopyFlaggedVariableFromNonHistorical<array_1d<double, 3>>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true);
 
     m.def_submodule("RansCalculationUtilities")
         .def("CalculateLogarithmicYPlusLimit",

@@ -58,6 +58,27 @@ void KRATOS_API(RANS_APPLICATION) SetNodalVariables(ModelPart::NodesContainerTyp
 void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart,
                                                                      ModelPart& rDestinationModelPart);
 
+void KRATOS_API(RANS_APPLICATION) FixFlaggedDofs(ModelPart& rModelPart,
+                                                 const Variable<double>& rFixingVariable,
+                                                 const Flags& rFlag,
+                                                 const bool CheckValue = true);
+
+template <typename TDataType>
+void KRATOS_API(RANS_APPLICATION) CopyFlaggedVariableFromNonHistorical(ModelPart& rModelPart,
+                                                                       const Variable<TDataType>& rVariable,
+                                                                       const Flags& rFlag,
+                                                                       const bool CheckValue = true);
+
+template <typename TDataType>
+void KRATOS_API(RANS_APPLICATION) CopyFlaggedVariableToNonHistorical(ModelPart& rModelPart,
+                                                                     const Variable<TDataType>& rVariable,
+                                                                     const Flags& rFlag,
+                                                                     const bool CheckValue = true);
+
+void KRATOS_API(RANS_APPLICATION) CalculateMagnitudeSquareFor3DVariable(ModelPart& rModelPart,
+                                                                        const Variable<array_1d<double, 3>>& r3DVariable,
+                                                                        const Variable<double>& rOutputVariable);
+
 template<typename TDataType>
 double GetVariableValueNorm(const TDataType& rValue);
 
@@ -66,6 +87,19 @@ void KRATOS_API(RANS_APPLICATION) CalculateTransientVariableConvergence(double& 
                                                                         double& rAbsoluteChange,
                                                                         const ModelPart& rModelPart,
                                                                         const Variable<TDataType>& rVariable);
+
+void KRATOS_API(RANS_APPLICATION) AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName);
+
+bool KRATOS_API(RANS_APPLICATION) IsAnalysisStepCompleted(const ModelPart& rModelPart, const std::string& rStepName);
+
+void KRATOS_API(RANS_APPLICATION) AssignBoundaryFlagsToGeometries(ModelPart& rModelPart);
+
+template <typename TDataType>
+void KRATOS_API(RANS_APPLICATION)
+    AssignConditionVariableValuesToNodes(ModelPart& rModelPart,
+                                         const Variable<TDataType>& rVariable,
+                                         const Flags& rFlag,
+                                         const bool FlagValue = true);
 
 ///@}
 } // namespace RansVariableUtilities
