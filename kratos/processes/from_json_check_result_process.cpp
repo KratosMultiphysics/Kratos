@@ -555,7 +555,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
         auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_vector);
         const std::string& r_variable_name = p_var_vector->Name();
 
-        const Vector& r_vector = results[r_variable_name]["NODE_" + GetNodeIdentifier(*it_node_begin)][0].GetVector();
+        const Vector& r_vector = results["NODE_" + GetNodeIdentifier(*it_node_begin)][r_variable_name][0].GetVector();
         const SizeType size_vector = r_vector.size();
 
         Vector aux_vector(time_size);
