@@ -40,9 +40,6 @@ namespace Kratos
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
-    /// Definition of component
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -615,6 +612,9 @@ public:
 
     /// The node type definiton
     typedef Node<3> NodeType;
+
+    /// Definition of component
+    typedef VectorComponentAdaptor<array_1d<double, 3>> ComponentType;
 
     ///@}
     ///@name Life Cycle
