@@ -98,12 +98,6 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
     this->Set(USE_NODE_COORDINATES, mThisParameters["use_node_coordinates"].GetBool());
     this->Set(CHECK_ONLY_LOCAL_ENTITIES, mThisParameters["check_only_local_entities"].GetBool());
 
-    // Auxiliar flag
-    this->Set(NODES_CONTAINER_INITIALIZED, false);
-    this->Set(ELEMENTS_CONTAINER_INITIALIZED, false);
-    this->Set(NODES_DATABASE_INITIALIZED, false);
-    this->Set(ELEMENTS_DATABASE_INITIALIZED, false);
-
     // Set the flag CORRECT_RESULT to false
     this->Set(CORRECT_RESULT, false);
 
