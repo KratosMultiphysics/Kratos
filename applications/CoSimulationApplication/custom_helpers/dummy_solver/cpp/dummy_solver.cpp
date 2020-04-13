@@ -205,8 +205,6 @@ void RunSolutionLoopWithStrongCoupling()
     // ImportMesh(comm_name, "interface_mesh_quads");
     ExportMesh(comm_name, "interface_mesh_tri");
 
-    int convergence_signal;
-
     double current_time = 0.0;
     while (current_time < sEndTime) {
         current_time = AdvanceInTime(current_time);
@@ -217,8 +215,7 @@ void RunSolutionLoopWithStrongCoupling()
             SolveSolutionStep();
             ExportDataToCoSim(comm_name, "field_velocity");
 
-            CoSimIO::IsConverged(comm_name, convergence_signal);
-            if (convergence_signal) {break;}
+            if (CoSimIO::IsConverged(comm_name)) {break;}
         }
 
         FinalizeSolutionStep();

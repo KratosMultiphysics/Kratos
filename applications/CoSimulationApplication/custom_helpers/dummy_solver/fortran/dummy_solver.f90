@@ -259,7 +259,6 @@ program dummy_solver_fortran
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     SUBROUTINE run_solution_loop_strong_coupling ()
         real :: current_time = 0.0
-        integer :: convergence_signal = 0
 
         call solver_print("Doing COUPLED simulation (strongly coupled)", 1)
 
@@ -276,8 +275,9 @@ program dummy_solver_fortran
                 call import_data_from_co_sim("external_dummy_solver", "field_pressure")
                 call solve_solution_step()
                 call export_data_to_co_sim("external_dummy_solver", "field_velocity")
-                call CoSimIO_IsConverged("external_dummy_solver"//c_null_char, convergence_signal)
-                if(convergence_signal.NE.0) exit
+                ! TODO fix this!
+                ! call CoSimIO_IsConverged("external_dummy_solver"//c_null_char)
+                ! if(convergence_signal.NE.0) exit
             end do
 
             call finalize_solution_step()

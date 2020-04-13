@@ -29,9 +29,7 @@ PYBIND11_MODULE(CoSimIO, m)
 
     m.def("Disconnect", &CoSimIO::Disconnect);
 
-    // mCoSimIO.def("IsConverged", CoSimIO_Wrappers::IsConverged);
-
-    // mCoSimIO.def("SendControlSignal", CoSimIO::SendControlSignal);
+    m.def("IsConverged", &CoSimIO::IsConverged);
 
     // mCoSimIO.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     // mCoSimIO.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);

@@ -408,13 +408,6 @@ void ExportData_Values(
         rValues);
 }
 
-bool IsConverged(const std::string& rConnectionName)
-{
-    int convergence_signal;
-    CoSimIO::IsConverged(rConnectionName, convergence_signal);
-    return convergence_signal;
-}
-
 } // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
@@ -429,7 +422,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     mCoSimIO.def("Disconnect", CoSimIO::Disconnect);
 
-    mCoSimIO.def("IsConverged", CoSimIO_Wrappers::IsConverged);
+    mCoSimIO.def("IsConverged", CoSimIO::IsConverged);
 
     mCoSimIO.def("SendControlSignal", CoSimIO::SendControlSignal);
 

@@ -76,7 +76,7 @@ MODULE co_sim_io
         SUBROUTINE CoSimIO_IsConverged(ConnectionName, ConvergenceSignal) BIND(C, NAME="CoSimIO_IsConverged")
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
-            INTEGER(C_INT), INTENT(INOUT) :: ConvergenceSignal !! TODO Most probably this will not be inout  but in and out separately!
+            INTEGER(C_INT), INTENT(OUT) :: ConvergenceSignal
         END SUBROUTINE CoSimIO_IsConverged
 
 
