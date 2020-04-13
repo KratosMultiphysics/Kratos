@@ -44,6 +44,9 @@ public:
     typedef void (*DataExchangeFunctionType)(const std::string&, const std::string&);
     typedef void (*DataExchangeCFunctionType)(const char*, const char*);
 
+    using FunctionPointerType = std::function<void(CoSimConnection&, const std::string&)>;
+
+
     explicit CoSimConnection(const std::string& rName, const std::string& rSettingsFileName)
     : CoSimConnection(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
@@ -68,62 +71,95 @@ public:
         mpComm->SendControlSignal(rIdentifier, Signal);
     }
 
-    // Only used for AdvanceInTime
     void Register(
         const std::string& rFunctionName,
-        void (*pFunctionPointer)(double*))
+        FunctionPointerType FunctionPointer)
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(rFunctionName != "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function, trying to register \"" << rFunctionName << "\"!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mpAdvInTime) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+        // // TODO maybe check if the name of the function is allowed?
 
-        mpAdvInTime = pFunctionPointer;
+        KRATOS_CO_SIM_ERROR_IF((mRegisteredFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+
+        mRegisteredFunctions[rFunctionName] = FunctionPointer;
     }
 
-    // Used for the solving functions
-    void Register(
-        const std::string& rFunctionName,
-        void (*pFunctionPointer)(void))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+    // // Only used for AdvanceInTime
+    // void Register(
+    //     const std::string& rFunctionName,
+    //     void (*pFunctionPointer)(double*))
+    // {
+    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+    //     KRATOS_CO_SIM_ERROR_IF(rFunctionName != "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function, trying to register \"" << rFunctionName << "\"!" << std::endl;
+    //     KRATOS_CO_SIM_ERROR_IF(mpAdvInTime) << "A function was already registered for " << rFunctionName << "!" << std::endl;
 
-        if (rFunctionName == "InitializeSolutionStep") {
-            KRATOS_CO_SIM_ERROR_IF(mpInitSolStep) << "A function was already registered for \"InitializeSolutionStep\"!" << std::endl;
-            mpInitSolStep = pFunctionPointer;
-        } else if (rFunctionName == "SolveSolutionStep") {
-            KRATOS_CO_SIM_ERROR_IF(mpSolSolStep) << "A function was already registered for \"SolveSolutionStep\"!" << std::endl;
-            mpSolSolStep = pFunctionPointer;
-        } else if (rFunctionName == "FinalizeSolutionStep") {
-            KRATOS_CO_SIM_ERROR_IF(mpFinSolStep) << "A function was already registered for \"FinalizeSolutionStep\"!" << std::endl;
-            mpFinSolStep = pFunctionPointer;
-        } else {
-            KRATOS_CO_SIM_ERROR << "Only functions for \"InitializeSolutionStep\", \"SolveSolutionStep\" \"FinalizeSolutionStep\" can be registered using this function, tried registering " << rFunctionName << std::endl;
-        }
-    }
+    //     mpAdvInTime = pFunctionPointer;
+    // }
 
-    // Used for the data-exchange functions coming from C or Fortran
-    void Register(
-        const std::string& rFunctionName,
-        void (*pFunctionPointer)(const char*, const char*))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mDataExchangeFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF((mDataExchangeCFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
-        // TODO maybe check if the name of the function is allowed?
-        mDataExchangeCFunctions[rFunctionName] = pFunctionPointer;
-    }
+    // // Used for the solving functions
+    // void Register(
+    //     const std::string& rFunctionName,
+    //     void (*pFunctionPointer)(void))
+    // {
+    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
 
-    // Used for the data-exchange functions coming from C++
-    void Register(
-        const std::string& rFunctionName,
-        void (*pFunctionPointer)(const std::string&, const std::string&))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mDataExchangeCFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF((mDataExchangeFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
-        // TODO maybe check if the name of the function is allowed?
-        mDataExchangeFunctions[rFunctionName] = pFunctionPointer;
-    }
+    //     if (rFunctionName == "InitializeSolutionStep") {
+    //         KRATOS_CO_SIM_ERROR_IF(mpInitSolStep) << "A function was already registered for \"InitializeSolutionStep\"!" << std::endl;
+    //         mpInitSolStep = pFunctionPointer;
+    //     } else if (rFunctionName == "SolveSolutionStep") {
+    //         KRATOS_CO_SIM_ERROR_IF(mpSolSolStep) << "A function was already registered for \"SolveSolutionStep\"!" << std::endl;
+    //         mpSolSolStep = pFunctionPointer;
+    //     } else if (rFunctionName == "FinalizeSolutionStep") {
+    //         KRATOS_CO_SIM_ERROR_IF(mpFinSolStep) << "A function was already registered for \"FinalizeSolutionStep\"!" << std::endl;
+    //         mpFinSolStep = pFunctionPointer;
+    //     } else {
+    //         KRATOS_CO_SIM_ERROR << "Only functions for \"InitializeSolutionStep\", \"SolveSolutionStep\" \"FinalizeSolutionStep\" can be registered using this function, tried registering " << rFunctionName << std::endl;
+    //     }
+    // }
+
+    // // Used for the data-exchange functions coming from C or Fortran
+    // void Register(
+    //     const std::string& rFunctionName,
+    //     void (*pFunctionPointer)(const char*, const char*))
+    // {
+    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+    //     KRATOS_CO_SIM_ERROR_IF(mDataExchangeFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
+    //     KRATOS_CO_SIM_ERROR_IF((mDataExchangeCFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+    //     // TODO maybe check if the name of the function is allowed?
+    //     mDataExchangeCFunctions[rFunctionName] = pFunctionPointer;
+    // }
+
+    // // Used for the data-exchange functions coming from C++
+    // void Register(
+    //     const std::string& rFunctionName,
+    //     void (*pFunctionPointer)(const std::string&, const std::string&))
+    // {
+    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+    //     KRATOS_CO_SIM_ERROR_IF(mDataExchangeCFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
+    //     KRATOS_CO_SIM_ERROR_IF((mDataExchangeFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+    //     // TODO maybe check if the name of the function is allowed?
+    //     mDataExchangeFunctions[rFunctionName] = pFunctionPointer;
+    // }
+
+    // void Run()
+    // {
+    //     KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+
+    //     CoSimIO::ControlSignal control_signal;
+    //     std::string identifier;
+    //     while(true) {
+    //         control_signal = RecvControlSignal(identifier);
+    //         if (control_signal == CoSimIO::ControlSignal::BreakSolutionLoop) {
+    //             break; // coupled simulation is done
+    //         } else if (signal_to_name.count(control_signal) > 0) {
+    //             const auto& r_function_name(signal_to_name.at(control_signal));
+
+    //             KRATOS_CO_SIM_ERROR_IF_NOT((mDataExchangeFunctions.count(r_function_name)>0)) << "No function was registered for \"" << r_function_name << "\"!" << std::endl;
+    //             mDataExchangeFunctions.at(r_function_name)(*this, identifier);
+    //         } else {
+    //             KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
+    //         }
+    //     }
+    // }
 
     void Run()
     {
@@ -219,6 +255,11 @@ public:
         mpComm->ExportGeometry(std::forward<Args>(args)...);
     }
 
+    std::string GetConnectionName() const
+    {
+        return mConnectionName;
+    }
+
 private:
     std::unique_ptr<CoSimCommunication> mpComm; // handles communication (File, Sockets, MPI, ...)
 
@@ -233,6 +274,8 @@ private:
 
     std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
     std::map<const std::string, DataExchangeCFunctionType> mDataExchangeCFunctions;
+
+    std::map<const std::string, FunctionPointerType> mRegisteredFunctions;
 
     void Initialize(SettingsType& rSettings)
     {

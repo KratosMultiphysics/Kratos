@@ -179,6 +179,74 @@ inline void Run(const std::string& rConnectionName)
     Internals::GetConnection(rConnectionName).Run();
 }
 
+template<>
+inline void Register(
+    const std::string& rConnectionName,
+    const std::string& rFunctionName,
+    void (*pFunctionPointer)(void))
+{
+    using namespace CoSimIO::Internals;
+
+    auto fct_callback = [pFunctionPointer](CoSimConnection& rConnection, const std::string& rIdentifier)
+    {
+        pFunctionPointer();
+    };
+
+    Internals::GetConnection(rConnectionName).Register(rFunctionName, fct_callback);
+}
+
+template<>
+inline void Register(
+    const std::string& rConnectionName,
+    const std::string& rFunctionName,
+    void (*pFunctionPointer)(double*))
+{
+    using namespace CoSimIO::Internals;
+
+    auto fct_callback = [pFunctionPointer](CoSimConnection& rConnection, const std::string& rIdentifier)
+    {
+        std::vector<double> time_vec(1);
+        std::unique_ptr<DataContainer<double>> p_container_time(new DataContainerStdVector<double>(time_vec));
+        rConnection.ImportData("time_from_co_sim", *p_container_time);
+        pFunctionPointer(&time_vec[0]);
+        rConnection.ExportData("time_to_co_sim", *p_container_time);
+    };
+
+    Internals::GetConnection(rConnectionName).Register(rFunctionName, fct_callback);
+}
+
+template<>
+inline void Register(
+    const std::string& rConnectionName,
+    const std::string& rFunctionName,
+    void (*pFunctionPointer)(const char*, const char*))
+{
+    using namespace CoSimIO::Internals;
+
+    auto fct_callback = [pFunctionPointer](CoSimConnection& rConnection, const std::string& rIdentifier)
+    {
+        pFunctionPointer(rConnection.GetConnectionName().c_str(), rIdentifier.c_str());
+    };
+
+    Internals::GetConnection(rConnectionName).Register(rFunctionName, fct_callback);
+}
+
+template<>
+inline void Register(
+    const std::string& rConnectionName,
+    const std::string& rFunctionName,
+    void (*pFunctionPointer)(const std::string&, const std::string&))
+{
+    using namespace CoSimIO::Internals;
+
+    auto fct_callback = [pFunctionPointer](CoSimConnection& rConnection, const std::string& rIdentifier)
+    {
+        pFunctionPointer(rConnection.GetConnectionName(), rIdentifier);
+    };
+
+    Internals::GetConnection(rConnectionName).Register(rFunctionName, fct_callback);
+}
+
 template<typename TFunctionType>
 inline void Register(
     const std::string& rConnectionName,
