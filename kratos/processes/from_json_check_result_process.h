@@ -162,12 +162,14 @@ public:
         )
     {
         auto& p_table = GetResultaData(GPIndex)[ComponentIndex];
+        p_table->Clear(); // We clear to avoid reassign
 
         KRATOS_ERROR_IF_NOT(rValuesX.size() == rValuesY.size()) << "The input vectors don't have the same size" << std::endl;
 
         // Push values
         for (IndexType i = 0; i < rValuesX.size(); ++i) {
             p_table->PushBack(rValuesX[i], rValuesY[i]);
+//             p_table->insert(rValuesX[i], rValuesY[i]);
         }
     }
 
@@ -687,24 +689,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -830,10 +815,6 @@ protected:
     const ResultDatabase& GetGPDatabase();
 
     ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
     ///@name Protected LifeCycle
     ///@{
 
@@ -843,11 +824,6 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -881,25 +857,6 @@ private:
     /* The databases which store the values */
     ResultDatabase mDatabaseNodes;  /// The database containing the information to compare the results for the nodes
     ResultDatabase mDatabaseGP;     /// The database containing the information to compare the results for the Gauss Points
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
 
     ///@}
     ///@name Un accessible methods
