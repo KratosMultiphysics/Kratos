@@ -442,7 +442,7 @@ private:
 
     friend class Serializer;
 
-    void load(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         rSerializer.save("A_ab_covariant_vector", m_B_ab_covariant_vector);
