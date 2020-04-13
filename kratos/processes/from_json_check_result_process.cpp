@@ -107,6 +107,11 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
     // Set the flag CORRECT_RESULT to false
     this->Set(CORRECT_RESULT, false);
 
+#ifdef KRATOS_DEBUG
+    // We do the check
+    Check();
+#endif
+
     KRATOS_CATCH("");
 }
 
