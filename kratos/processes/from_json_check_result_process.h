@@ -61,8 +61,9 @@ ModelPart& GetModelPartFromModelAndSettings(
     Parameters ThisParameters
     )
 {
-    const auto& r_model_part_name = ThisParameters["model_part_name"].GetString();
-    const auto sub_model_part_name = ThisParameters.Has("sub_model_part_name") ? ThisParameters["model_part_name"].GetString() : "";
+    const std::string& r_model_part_name = ThisParameters["model_part_name"].GetString();
+    const std::string sub_model_part_name = ThisParameters.Has("sub_model_part_name") ? ThisParameters["sub_model_part_name"].GetString() : "";
+
     if (sub_model_part_name == "") {
         return rModel.GetModelPart(r_model_part_name);
     } else {
