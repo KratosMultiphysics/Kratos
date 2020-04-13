@@ -72,7 +72,8 @@ template<typename TDataType>
 class DataContainerStdVector : public DataContainer<TDataType>
 {
 public:
-    DataContainerStdVector(std::vector<TDataType>& rVector) : mrVector(rVector) {}
+    explicit DataContainerStdVector(std::vector<TDataType>& rVector)
+        : mrVector(rVector) {}
 
     std::size_t size() const override {return mrVector.size();}
     void resize(const std::size_t NewSize) override {mrVector.resize(NewSize);} // resize does not change the capacity if resized to a smaller size
@@ -87,7 +88,8 @@ template<typename TDataType>
 class DataContainerRawMemory : public DataContainer<TDataType>
 {
 public:
-    DataContainerRawMemory(TDataType** ppData, const std::size_t Size) : mppData(ppData), mSize(Size) {}
+    explicit DataContainerRawMemory(TDataType** ppData, const std::size_t Size)
+        : mppData(ppData), mSize(Size) {}
 
     std::size_t size() const override {return mSize;};
     void resize(const std::size_t NewSize) override
