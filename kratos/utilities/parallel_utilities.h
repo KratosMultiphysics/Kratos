@@ -75,9 +75,9 @@ public:
         for(int i=0; i<mNchunks; ++i)
         {
             TReduceHelper local_helper;
-            for (int k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k)
+            for (auto p = mit_begin + mBlockPartition[i], e = mit_begin + mBlockPartition[i+1]; p != e; ++p)
             {
-                f(*(mit_begin + k), local_helper); //note that we pass a reference to the value, not the iterator
+                f(*p, local_helper); //note that we pass a reference to the value, not the iterator
             }
             reduce_helper.ThreadSafeMerge(local_helper);
         }
@@ -244,5 +244,4 @@ public:
 }  // namespace Kratos.
 
 #endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED  defined
-
 
