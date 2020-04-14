@@ -30,10 +30,10 @@ def CreateSolver(model, custom_settings):
         raise Exception(err_msg)
 
     if custom_settings["solver_settings"].Has("contact_settings"): # this is a contact problem
-        kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
+        kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication.adaptive_remeshing"
         solver_module_name = "contact_" + solver_module_name
     else:
-        kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
+        kratos_module = "KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing"
 
     module_full = kratos_module + "." + solver_module_name
     solver = import_module(module_full).CreateSolver(model, custom_settings["solver_settings"])

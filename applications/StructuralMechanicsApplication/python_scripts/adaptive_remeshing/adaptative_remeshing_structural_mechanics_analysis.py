@@ -10,7 +10,7 @@ import sys
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 # Import solver wrapper
-from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
+from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import auxiliar methods
 from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
