@@ -135,7 +135,7 @@ public:
      * @param ComponentIndex The component index of the vector/array
      * @param GPIndex The Gauss point index
      */
-    const double GetValue(
+    double GetValue(
         const double Time,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
@@ -262,7 +262,7 @@ public:
      * @param ComponentIndex The component index of the vector/array
      * @param GPIndex The Gauss point index
      */
-    const double GetValue(
+    double GetValue(
         const IndexType EntityIndex,
         const double Time,
         const SizeType ComponentIndex = 0,
@@ -426,7 +426,7 @@ public:
      * @tparam TVariableType The variable type considered
      */
     template<class TVariableType>
-    const double GetValue(
+    double GetValue(
         const TVariableType& rVariable,
         const IndexType EntityIndex,
         const double Time,
