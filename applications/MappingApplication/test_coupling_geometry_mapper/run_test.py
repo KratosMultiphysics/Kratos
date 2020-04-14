@@ -3,6 +3,7 @@ import KratosMultiphysics.MappingApplication as KratosMapping
 
 def ReadModelPart(model_part, mdpa_file_name):
     # adding varibables used for mapping
+    # adding variables used for mapping
     historical_vars = [KM.PRESSURE, KM.FORCE, KM.TEMPERATURE, KM.VELOCITY]
     for var in historical_vars:
         model_part.AddNodalSolutionStepVariable(var)
@@ -18,8 +19,8 @@ model_part_destination = current_model.CreateModelPart("destination")
 model_part_coupling = current_model.CreateModelPart("coupling")
 model_part_coupling_quadrature_points = current_model.CreateModelPart("coupling_quadrature_points")
 
-ReadModelPart(model_part_origin, "../coupled_cantilever/domainA.gid/domainA")
-ReadModelPart(model_part_destination, "../coupled_cantilever/domainB.gid/domainB")
+ReadModelPart(model_part_origin, "coupled_cantilever/domainA")
+ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
 
 KratosMapping.IntersectionUtilities.FindIntersection1DGeometries2D(model_part_origin, model_part_destination, model_part_coupling)
 KratosMapping.IntersectionUtilities.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
