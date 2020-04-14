@@ -94,6 +94,11 @@ protected:
     VectorType CurrentDeviatoricCauchyStress;
     VectorType UpdatedDeviatoricCauchyStress;
 
+    // MZ added
+    MatrixType B;
+    MatrixType test_lhs;
+    VectorType test_rhs;
+
   } ElementalVariables;
 
 public:
