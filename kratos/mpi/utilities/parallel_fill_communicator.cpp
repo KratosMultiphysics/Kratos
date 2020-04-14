@@ -227,10 +227,10 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     }
 
     // Get rank of current processor.
-    const unsigned my_rank = r_data_communicator.Rank();
+    const int my_rank = r_data_communicator.Rank();
 
     // Get number of processors.
-    const unsigned num_processors = r_data_communicator.Size();
+    const int num_processors = r_data_communicator.Size();
     // Find all ghost nodes on this process and mark the corresponding neighbour process for communication.
     vector<bool> receive_from_neighbour(num_processors, false);
     for (const auto& rNode : rModelPart.Nodes())
@@ -242,9 +242,9 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     }
 
     // Make a list of my receive process ids.
-    std::vector<unsigned> my_receive_neighbours;
+    std::vector<int> my_receive_neighbours;
     my_receive_neighbours.reserve(30);
-    for (unsigned p_id = 0; p_id < num_processors; ++p_id)
+    for (int p_id = 0; p_id < num_processors; ++p_id)
     {
         if (receive_from_neighbour[p_id])
             my_receive_neighbours.push_back(p_id);
@@ -252,7 +252,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 
     // Initialize arrays for all neighbour id lists on root process.
     std::vector<std::size_t> number_of_receive_neighbours;
-    std::vector<std::vector<unsigned>> receive_neighbours;
+    std::vector<std::vector<int>> receive_neighbours;
     if (my_rank == root_id)
     {
         number_of_receive_neighbours.resize(num_processors);
@@ -264,7 +264,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     }
     if (my_rank == root_id)
     {
-        for (unsigned p_id = 0; p_id < num_processors; ++p_id)
+        for (int p_id = 0; p_id < num_processors; ++p_id)
             receive_neighbours[p_id].resize(number_of_receive_neighbours[p_id]);
     }
 
@@ -272,7 +272,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     if (my_rank == root_id) // On root we directly copy the data without calling MPI.
         std::copy(my_receive_neighbours.begin(), my_receive_neighbours.end(), receive_neighbours[root_id].begin());
     // Gather the remaining id lists to root.
-    for (unsigned p_id = 1; p_id < num_processors; ++p_id)
+    for (int p_id = 1; p_id < num_processors; ++p_id)
     {
         if (my_rank == root_id)
         {
@@ -291,8 +291,8 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     {
         ///@TODO for large problems, this should use a compressed matrix.
         DenseMatrix<int> domains_graph = ZeroMatrix(num_processors, num_processors);
-        for (unsigned index1 = 0; index1 < num_processors; ++index1)
-            for (unsigned index2 : receive_neighbours[index1])
+        for (int index1 = 0; index1 < num_processors; ++index1)
+            for (int index2 : receive_neighbours[index1])
             {
                 KRATOS_ERROR_IF(index1 == index2) << "Trying to communicate with the node itself." << std::endl;
                 domains_graph(index1, index2) = 1;
@@ -304,7 +304,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
         GraphColoringProcess coloring_process(num_processors, domains_graph, domains_colored_graph, max_color);
         coloring_process.Execute();
         // Count max colors.
-        for (unsigned p_id = 0; p_id < num_processors; ++p_id)
+        for (int p_id = 0; p_id < num_processors; ++p_id)
             for (int j = 0; j < max_color; ++j)
                 if (domains_colored_graph(p_id, j) != -1 && max_color_found < j) max_color_found = j;
 
@@ -323,7 +323,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     }
     // Send the remaining color patterns to processes.
     std::vector<int> send_colors(max_color_found);
-    for (unsigned p_id = 1; p_id < num_processors; ++p_id)
+    for (int p_id = 1; p_id < num_processors; ++p_id)
     {
         if (my_rank == root_id)
         {
@@ -347,7 +347,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     ModelPart& rModelPart,
     const std::vector<int>& rColors,
-    unsigned MyRank)
+    int MyRank)
 {
     KRATOS_TRY;
     // Allocate space needed in the communicator.
