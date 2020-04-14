@@ -72,7 +72,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
         typename FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
         BaseSolvingStrategyType>(m, "FSStrategy")
-    .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, bool, double, double, int, int, unsigned int, unsigned int, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, const Kratos::Variable<int> &>())
     .def("CalculateReactions", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::CalculateReactions)
