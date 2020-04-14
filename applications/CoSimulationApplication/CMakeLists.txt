@@ -49,6 +49,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     # Making the cpp_test_solver_one and cpp_test_solver_two executables
     add_executable(ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
     add_executable(pong ${KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES})
+    install(TARGETS ping DESTINATION libs )
 
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
