@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 
     class CustomReducerReturnValueVersion{
         public:
-            double max_value = -std::numeric_limits<double>::max();
+            double max_value = std::numeric_limits<double>::lowest();
             double max_abs = 0.0;
 
             void LocalMerge(double function_return_value){
