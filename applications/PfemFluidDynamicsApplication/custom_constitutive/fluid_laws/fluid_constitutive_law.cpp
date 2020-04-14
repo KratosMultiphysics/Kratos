@@ -189,11 +189,9 @@ double PfemFluidConstitutiveLaw::CalculateInGaussPoint(const Variable<double>& r
                                                        unsigned int step) const {
 
     const GeometryType& r_geometry = rParameters.GetElementGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
     const auto& r_shape_function = rParameters.GetShapeFunctionsValues();
     double result = 0;
-
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
+    for (unsigned int i = 0; i < r_shape_function.size(); i++) {
         result += r_shape_function[i] * r_geometry[i].FastGetSolutionStepValue(rVariableInput, step);
     }
 
