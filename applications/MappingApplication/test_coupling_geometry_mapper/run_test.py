@@ -1,8 +1,8 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def ReadModelPart(model_part, mdpa_file_name):
-    # adding varibables used for mapping
     # adding variables used for mapping
     historical_vars = [KM.PRESSURE, KM.FORCE, KM.TEMPERATURE, KM.VELOCITY]
     for var in historical_vars:
