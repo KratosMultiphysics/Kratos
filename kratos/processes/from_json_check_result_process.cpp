@@ -82,6 +82,11 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
     // We fill the list of variables
     FillVariablesList(r_check_variables_names, r_gauss_points_check_variables);
 
+    // Set some flags
+    this->Set(HISTORICAL_VALUE, mThisParameters["historical_value"].GetBool());
+    this->Set(USE_NODE_COORDINATES, mThisParameters["use_node_coordinates"].GetBool());
+    this->Set(CHECK_ONLY_LOCAL_ENTITIES, mThisParameters["check_only_local_entities"].GetBool());
+
     // We initialize the databases
     InitializeDatabases();
 
@@ -92,11 +97,6 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
     const std::size_t absolute_tolerance_digits = ComputeRelevantDigits(mAbsoluteTolerance);
     const std::size_t relative_tolerance_digits = ComputeRelevantDigits(mRelativeTolerance);
     mRelevantDigits = static_cast<std::size_t>(std::max(absolute_tolerance_digits, relative_tolerance_digits)) + 1;
-
-    // Set some flags
-    this->Set(HISTORICAL_VALUE, mThisParameters["historical_value"].GetBool());
-    this->Set(USE_NODE_COORDINATES, mThisParameters["use_node_coordinates"].GetBool());
-    this->Set(CHECK_ONLY_LOCAL_ENTITIES, mThisParameters["check_only_local_entities"].GetBool());
 
     // Set the flag CORRECT_RESULT to false
     this->Set(CORRECT_RESULT, false);
