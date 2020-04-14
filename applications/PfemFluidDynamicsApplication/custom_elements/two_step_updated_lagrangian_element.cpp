@@ -1401,7 +1401,7 @@ double TwoStepUpdatedLagrangianElement<2>::CalcNormalProjectionDefRate(const Vec
 
   double NormalProjSpatialDefRate = NormalVector[0] * SpatialDefRate[0] * NormalVector[0] +
                                     NormalVector[1] * SpatialDefRate[1] * NormalVector[1] +
-                                    2 * NormalVector[0] * SpatialDefRate[2] * NormalVector[1];
+                                    2 * NormalVector[0] * SpatialDefRate[3] * NormalVector[1]; // SWITCH_TO_AXISYM
 
   return NormalProjSpatialDefRate;
 }
@@ -1453,7 +1453,7 @@ double TwoStepUpdatedLagrangianElement<2>::CalcNormalProjectionDefRate(VectorTyp
 
   NormalProjSpatialDefRate = NormalMean[0] * SpatialDefRate[0] * NormalMean[0] +
                              NormalMean[1] * SpatialDefRate[1] * NormalMean[1] +
-                             2 * NormalMean[0] * SpatialDefRate[2] * NormalMean[1];
+                             2 * NormalMean[0] * SpatialDefRate[3] * NormalMean[1];
 
   return NormalProjSpatialDefRate;
 }
