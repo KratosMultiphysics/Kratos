@@ -22,8 +22,9 @@ model_part_coupling_quadrature_points = current_model.CreateModelPart("coupling_
 ReadModelPart(model_part_origin, "coupled_cantilever/domainA")
 ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
 
-KratosMapping.IntersectionUtilities.FindIntersection1DGeometries2D(model_part_origin, model_part_destination, model_part_coupling)
-KratosMapping.IntersectionUtilities.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
+# TODO in the future we should just submit the interface submodel parts to FindIntersection1DGeometries2D
+KratosMapping.FindIntersection1DGeometries2D(model_part_origin, model_part_destination, model_part_coupling, 1e-6)
+KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
