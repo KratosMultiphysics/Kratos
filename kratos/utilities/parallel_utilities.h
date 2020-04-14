@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Denis Demidov
 //
 
 #if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED )
