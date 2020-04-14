@@ -114,7 +114,24 @@ public:
     ///@{
 
     void Initialize() override
-    {}
+    {
+        // Set up nodes to use slip conditions if needed.
+        if (mUseSlipConditions) {
+            auto& r_model_part = BaseType::GetModelPart();
+#pragma omp parallel for
+            for (int i_cond = 0; i_cond < r_model_part.NumberOfConditions(); ++i_cond) {
+                auto it_cond = r_model_part.ConditionsBegin() + i_cond;
+                if (it_cond->Is(SLIP)) {
+                    auto& r_geom = it_cond->GetGeometry();
+                    for (auto& r_node : r_geom) {
+                        r_node.SetLock();
+                        r_node.Set(SLIP, true);
+                        r_node.UnSetLock();
+                    }
+                }
+            }
+        }
+    }
 
     int Check() override
     {
@@ -156,21 +173,16 @@ public:
 
     double Solve() override
     {
-        // Initialize BDF2 coefficients
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-
         double NormDp = 0.0;
-
         if (mPredictorCorrector)
         {
             bool Converged = false;
+            const unsigned int echo_level = BaseType::GetEchoLevel();
 
             // Iterative solution for pressure
             for(unsigned int it = 0; it < mMaxPressureIter; ++it)
             {
-                if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-                    std::cout << "Pressure iteration " << it << std::endl;
+                KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
 
                 NormDp = this->SolveStep();
 
@@ -178,14 +190,11 @@ public:
 
                 if ( Converged )
                 {
-                    if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-                        std::cout << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
+                    KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
                     break;
                 }
             }
-            if (!Converged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "Predictor-correctior iterations did not converge." << std::endl;
-
+            KRATOS_INFO_IF("FSStrategy", !Converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
         }
         else
         {
@@ -201,6 +210,12 @@ public:
         return NormDp;
     }
 
+    void InitializeSolutionStep() override
+    {
+        // Initialize BDF2 coefficients
+        SetTimeCoefficients();
+    }
+
     bool SolveSolutionStep() override
     {
         double norm_dp = this->Solve();
@@ -211,7 +226,6 @@ public:
          */
         return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
     }
-
 
     virtual void CalculateReactions()
     {
@@ -289,7 +303,6 @@ public:
         mpPressureStrategy->Clear();
     }
 
-
     ///@}
     ///@name Access
     ///@{
@@ -301,7 +314,6 @@ public:
         mpMomentumStrategy->SetEchoLevel(StrategyLevel);
         mpPressureStrategy->SetEchoLevel(StrategyLevel);
     }
-
 
     ///@}
     ///@name Inquiry
@@ -329,16 +341,13 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
-
     ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
-
 protected:
-
     ///@name Protected Life Cycle
     ///@{
 
@@ -399,25 +408,26 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     /// Calculate the coefficients for time iteration.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
      */
-    void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
+    void SetTimeCoefficients()
     {
         KRATOS_TRY;
+
+        auto &r_process_info = (BaseType::GetModelPart()).GetProcessInfo();
 
         if (mTimeOrder == 2)
         {
             //calculate the BDF coefficients
-            double Dt = rCurrentProcessInfo[DELTA_TIME];
-            double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+            double Dt = r_process_info[DELTA_TIME];
+            double OldDt = r_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
             double Rho = OldDt / Dt;
             double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
 
-            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+            Vector &BDFcoeffs = r_process_info[BDF_COEFFICIENTS];
             BDFcoeffs.resize(3, false);
 
             BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
@@ -426,10 +436,10 @@ protected:
         }
         else if (mTimeOrder == 1)
         {
-            double Dt = rCurrentProcessInfo[DELTA_TIME];
+            double Dt = r_process_info[DELTA_TIME];
             double TimeCoeff = 1.0 / Dt;
 
-            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+            Vector &BDFcoeffs = r_process_info[BDF_COEFFICIENTS];
             BDFcoeffs.resize(2, false);
 
             BDFcoeffs[0] = TimeCoeff; //coefficient for step n+1 (1/Dt)
@@ -949,7 +959,6 @@ protected:
 
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -968,9 +977,9 @@ private:
     ///@name Private Operations
     ///@{
 
-
-    void InitializeStrategy(SolverSettingsType& rSolverConfig,
-            bool PredictorCorrector)
+    void InitializeStrategy(
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector)
     {
         KRATOS_TRY;
 
@@ -978,8 +987,6 @@ private:
 
         // Check that input parameters are reasonable and sufficient.
         this->Check();
-
-        ModelPart& rModelPart = this->GetModelPart();
 
         mDomainSize = rSolverConfig.GetDomainSize();
 
@@ -1022,34 +1029,6 @@ private:
         if (HaveTurbulence)
             mExtraIterationSteps.push_back(pTurbulenceProcess);
 
-        // Set up nodes to use slip conditions if needed.
-        if (mUseSlipConditions)
-        {
-#pragma omp parallel
-            {
-                ModelPart::ConditionIterator CondBegin;
-                ModelPart::ConditionIterator CondEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Conditions(),CondBegin,CondEnd);
-
-                for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
-                {
-                    const Condition& rCond = *itCond;
-                    const bool is_slip = rCond.Is(SLIP);
-                    if (is_slip)
-                    {
-
-                        Condition::GeometryType& rGeom = itCond->GetGeometry();
-                        for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
-                        {
-                            rGeom[i].SetLock();
-                            rGeom[i].Set(SLIP,is_slip);
-                            rGeom[i].UnSetLock();
-                        }
-                    }
-                }
-            }
-            rModelPart.GetCommunicator().SynchronizeOrNodalFlags(SLIP);
-        }
 
         // Check input parameters
         this->Check();
