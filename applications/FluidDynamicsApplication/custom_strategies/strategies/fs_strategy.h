@@ -202,11 +202,6 @@ public:
             NormDp = this->SolveStep();
         }
 
-        if (mReformDofSet)
-            this->Clear();
-
-
-
         return NormDp;
     }
 
@@ -225,6 +220,13 @@ public:
          * based on this.
          */
         return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
+    }
+
+    void FinalizeSolutionStep() override
+    {
+        if (mReformDofSet) {
+            this->Clear();
+        }
     }
 
     virtual void CalculateReactions()
