@@ -18,6 +18,21 @@
 #include <iomanip>
 #include <algorithm>
 
+// std::filesystem is needed for file communication in a folder
+// std::filesystem is part of C++17 and not supported by every compiler. Here we check if it is available.
+#if defined(__cplusplus) && __cplusplus >= 201703L
+    #if defined(__has_include) && __has_include(<filesystem>) // has_include is C++17, hence has to be checked in a separate line
+        #define KRATOS_CO_SIM_IO_FILESYSTEM_AVAILABLE
+        #include <filesystem>
+        namespace fs = std::filesystem;
+    #elif __has_include(<experimental/filesystem>)
+        #define KRATOS_CO_SIM_IO_FILESYSTEM_AVAILABLE
+        #include <experimental/filesystem>
+        namespace fs = std::experimental::filesystem;
+    #endif
+#endif
+
+
 // Project includes
 #include "co_sim_communication.h"
 
@@ -90,17 +105,18 @@ public:
         Internals::AddMissingSettings(default_settings, mrSettings);
 
         mCommFolder = ".CoSimIOFileComm_"+rName;
-        // mCommInFolder = (mrSettings.at("use_folder_for_communication") == "1"); // this is not yet supported
-        /* Comments on folder:
-        See http://www.martinbroadhurst.com/list-the-files-in-a-directory-in-c.html
-        Probably should be optional since it includes OS-dependent headers
-        Only with C++17 we can enable it by default (but not many compilers fully support it yet!) => maybe check with __has_include
-        if including "windows.h" remember to define "WIN32_LEAN_AND_MEAN"
-        */
+        mCommInFolder = (mrSettings.at("use_folder_for_communication") == "1");
 
+        #ifndef KRATOS_CO_SIM_IO_FILESYSTEM_AVAILABLE
+        KRATOS_CO_SIM_ERROR_IF(mCommInFolder) << "Communication is a folder can only be used if std::filesystem (C++17) is available" << std::endl;
+        #endif
 
         if (mCommInFolder && GetIsConnectionMaster()) {
-            // delete and recreate folder
+            #ifdef KRATOS_CO_SIM_IO_FILESYSTEM_AVAILABLE
+            // delete and recreate directory to remove potential leftovers
+            fs::remove_all(mCommFolder);
+            fs::create_directory(mCommFolder);
+            #endif
         }
     }
 
@@ -407,14 +423,22 @@ private:
 
     std::string GetTempFileName(const std::string& rFileName)
     {
-        // return std::string(rFileName).insert(CommDir.length()+1, ".");
-        return "." + rFileName;
+        if (mCommInFolder) {
+            // TODO check this
+            return std::string(rFileName).insert(mCommFolder.length()+1, ".");
+        } else {
+            return "." + rFileName;
+        }
     }
 
     std::string GetFullPath(const std::string& rFileName)
     {
-        // return CommDir + "/" + rFileName; // TODO check if this work in Win
-        return rFileName;
+        if (mCommInFolder) {
+            // TODO check this
+            return mCommFolder + "/" + rFileName;  // using portable separator "/"
+        } else {
+            return rFileName;
+        }
     }
 
     void WaitForFile(const std::string& rFileName)
