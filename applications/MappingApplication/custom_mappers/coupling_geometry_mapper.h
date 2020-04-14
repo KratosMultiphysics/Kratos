@@ -57,7 +57,7 @@ private:
 };
 
 template<class TSparseSpace, class TDenseSpace>
-class CouplingGeomteryMapper : public Mapper<TSparseSpace, TDenseSpace>
+class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -66,8 +66,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of CouplingGeomteryMapper
-    KRATOS_CLASS_POINTER_DEFINITION(CouplingGeomteryMapper);
+    /// Pointer definition of CouplingGeometryMapper
+    KRATOS_CLASS_POINTER_DEFINITION(CouplingGeometryMapper);
 
     typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
 
@@ -90,12 +90,12 @@ public:
     ///@{
 
     // Default constructor, needed for registration
-    CouplingGeomteryMapper(ModelPart& rModelPartOrigin,
+    CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
                          : mrModelPartOrigin(rModelPartOrigin),
                            mrModelPartDestination(rModelPartDestination) {}
 
-    CouplingGeomteryMapper(ModelPart& rModelPartOrigin,
+    CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
                          : mrModelPartOrigin(rModelPartOrigin),
@@ -109,7 +109,7 @@ public:
     }
 
     /// Destructor.
-    ~CouplingGeomteryMapper() override = default;
+    ~CouplingGeometryMapper() override = default;
 
     ///@}
     ///@name Operations
@@ -167,7 +167,7 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<CouplingGeomteryMapper<TSparseSpace, TDenseSpace>>(
+        return Kratos::make_unique<CouplingGeometryMapper<TSparseSpace, TDenseSpace>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
@@ -184,13 +184,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "CouplingGeomteryMapper";
+        return "CouplingGeometryMapper";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "CouplingGeomteryMapper";
+        rOStream << "CouplingGeometryMapper";
     }
 
     /// Print object's data.
@@ -256,7 +256,7 @@ private:
 
     ///@}
 
-}; // Class CouplingGeomteryMapper
+}; // Class CouplingGeometryMapper
 
 ///@} addtogroup block
 }  // namespace Kratos.

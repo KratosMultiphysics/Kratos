@@ -96,7 +96,7 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 
 
 template<class TSparseSpace, class TDenseSpace>
-void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen
     // kommt drauf an, wo die Coupling-Geometries sind
@@ -110,7 +110,7 @@ void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 I.e. Operations that can be performed several times in the livetime of the mapper
 */
 template<class TSparseSpace, class TDenseSpace>
-void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
 {
     AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
@@ -129,7 +129,7 @@ void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krato
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::MapInternal(
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
@@ -145,7 +145,7 @@ void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::MapInternal(
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::MapInternal(
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rOriginVariable,
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
@@ -169,6 +169,6 @@ void CouplingGeomteryMapper<TSparseSpace, TDenseSpace>::MapInternal(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class CouplingGeomteryMapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class CouplingGeometryMapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
 
 }  // namespace Kratos.
