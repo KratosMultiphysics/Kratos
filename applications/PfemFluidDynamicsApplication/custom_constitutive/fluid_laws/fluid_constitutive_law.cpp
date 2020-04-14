@@ -132,6 +132,31 @@ void PfemFluidConstitutiveLaw::EffectiveViscousConstitutiveMatrix3D(double Effec
     rConstitutiveMatrix(5, 5) = +EffectiveDynamicViscosity;
 }
 
+void PfemFluidConstitutiveLaw::EffectiveViscousConstitutiveMatrixAxisymmetric(
+    double EffectiveDynamicViscosity,
+    Matrix& rConstitutiveMatrix) {
+
+	constexpr double two_thirds = 2.0 / 3.0;
+	constexpr double four_thirds = 4.0 / 3.0;
+
+	rConstitutiveMatrix(0, 0) = +EffectiveDynamicViscosity * four_thirds;
+	rConstitutiveMatrix(0, 1) = -EffectiveDynamicViscosity * two_thirds;
+	rConstitutiveMatrix(0, 2) = -EffectiveDynamicViscosity * two_thirds;
+	rConstitutiveMatrix(0, 3) = 0.0;
+    rConstitutiveMatrix(1, 0) = -EffectiveDynamicViscosity * two_thirds;
+	rConstitutiveMatrix(1, 1) = +EffectiveDynamicViscosity * four_thirds;
+	rConstitutiveMatrix(1, 2) = -EffectiveDynamicViscosity * two_thirds;
+    rConstitutiveMatrix(1, 3) = 0.0;
+	rConstitutiveMatrix(2, 0) = -EffectiveDynamicViscosity * two_thirds;
+	rConstitutiveMatrix(2, 1) = -EffectiveDynamicViscosity * two_thirds;;
+	rConstitutiveMatrix(2, 2) = +EffectiveDynamicViscosity * four_thirds;
+    rConstitutiveMatrix(2, 3) = 0.0;
+    rConstitutiveMatrix(3, 0) = 0.0;
+	rConstitutiveMatrix(3, 1) = 0.0;
+	rConstitutiveMatrix(3, 2) = 0.0;
+    rConstitutiveMatrix(3, 3) = +EffectiveDynamicViscosity;
+}
+
 // Protected access ///////////////////////////////////////////////////////////
 
 double PfemFluidConstitutiveLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {

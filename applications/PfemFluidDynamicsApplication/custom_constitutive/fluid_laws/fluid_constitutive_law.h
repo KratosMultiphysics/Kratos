@@ -135,6 +135,13 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemFluidConstitutiveLaw : pub
      */
     void EffectiveViscousConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
 
+    /// Helper function to write the constitutive matrix using an effective viscosity (axisymmetric version).
+    /** It returns a matrix with the same structure as for a Newtonian fluid, using the given viscosity.
+     *  @param[in] EffectiveViscosity Equivalent viscosity for the fluid (dynamic units -- Pa s -- assumed).
+     *  @param[out] rC Resulting constitutive matrix.
+     */
+    void EffectiveViscousConstitutiveMatrixAxisymmetric(double EffectiveViscosity, Matrix& rC);
+
     ///@}
     ///@name Protected  Access
     ///@{
