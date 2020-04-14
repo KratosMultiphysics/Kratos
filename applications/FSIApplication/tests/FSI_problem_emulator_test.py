@@ -101,7 +101,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 "max_iteration"                      : 20,
                 "rotation_dofs"                      : false,
                 "linear_solver_settings"             : {
-                    "solver_type" : "SuperLUSolver",
+                    "solver_type" : "EigenSolversApplication.sparse_lu",
                     "scaling"     : true
                 }
             }
