@@ -1075,16 +1075,17 @@ protected:
             }
         }
 
+        // Assemble the weights. If the weights are to be added up.
+        mpT->GlobalAssemble(false, Add);
         // All other Dofs except slaves
-        const int my_rank = rModelPart.GetCommunicator().MyPID();
         const double value = 1.0;
         for(auto const dof : BaseType::mDofSet){
             const int eq_id = dof.EquationId();
             if(slave_eq_ids_set.count(eq_id)==0) // Its a master
-                if(my_rank == dof.GetSolutionStepValue(PARTITION_INDEX))
-                    mpT->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
+                mpT->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
         }
-        mpT->GlobalAssemble();
+        // This is to transfer the 1.0 valuse set above.
+        mpT->GlobalAssemble(true, Insert);
 
         KRATOS_CATCH("")
     }
@@ -1113,7 +1114,6 @@ protected:
                 TSparseSpace::Copy(res_b, rb);
             }
             int err = 0;
-
             // First we do aux = T'A
             { // To delete aux_mat
                 TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
