@@ -39,7 +39,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         list_of_processes = super(FluidDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list","mesh_adaptivity_processes"]
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
