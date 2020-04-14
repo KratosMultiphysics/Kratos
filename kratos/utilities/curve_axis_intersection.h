@@ -90,7 +90,7 @@ namespace Kratos
             double& rMax,
             double Parameter)
         {
-            for (IndexType i = 0; i < rAxis.size(); ++i) {
+            for (IndexType i = 0; i < rAxis.size() - 1; ++i) {
                 KRATOS_DEBUG_ERROR_IF(i == rAxis.size() - 1)
                     << "Point of polygon not within the axis boundaries. Axis are: "
                     << rAxis << ". Searched parameter is: " << Parameter << std::endl;
@@ -157,14 +157,14 @@ namespace Kratos
 
             // iterate through polygon and check for knot intersections
             for (IndexType i = 1; i < polygon.size(); ++i) {
-                if (std::get<1>(polygon[i])[0] < min_1) {
+                if (std::get<1>(polygon[i])[0] - min_1 < -Tolerance) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, min_1,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
                     rIntersectionParameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
-                else if (std::get<1>(polygon[i])[0] > max_1) {
+                else if (std::get<1>(polygon[i])[0] - max_1 > Tolerance) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, max_1,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
@@ -172,14 +172,14 @@ namespace Kratos
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
 
-                if (std::get<1>(polygon[i])[1] < min_2) {
+                if (std::get<1>(polygon[i])[1] - min_2 < -Tolerance) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, min_2,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
                     rIntersectionParameters.push_back(intersection_parameter);
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1]);
                 }
-                else if (std::get<1>(polygon[i])[1] > max_2) {
+                else if (std::get<1>(polygon[i])[1] - max_2 > Tolerance) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, max_2,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);

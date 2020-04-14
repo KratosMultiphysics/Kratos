@@ -48,7 +48,7 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
@@ -101,11 +101,14 @@ jobs:
         set KRATOS_APP_DIR=applications
 
         set KRATOS_APPLICATIONS=
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ChimeraApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\IgaApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ParticleMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MappingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CoSimulationApplication;
@@ -119,7 +122,6 @@ jobs:
           -H"%KRATOS_SOURCE%"                                ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
           -DBOOST_ROOT="%BOOST_ROOT%"                        ^
-          -DINCLUDE_FEAST=OFF                                ^
           -DINSTALL_RUNKRATOS=OFF                            ^
           -DCMAKE_CXX_FLAGS="/Od"                            ^
           -DUSE_COTIRE=ON                                    || goto :error
