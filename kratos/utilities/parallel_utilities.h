@@ -163,6 +163,24 @@ public:
         }
     }
 
+    //simple version
+    template <class TUnaryFunction, class TReducer>
+    inline TReducer for_reduce(TUnaryFunction &&f)
+    {
+        TReducer global_reducer;
+        #pragma omp parallel for
+        for(int i=0; i<mNchunks; ++i)
+        {
+            TReducer local_reducer;
+            for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k)
+            {
+                local_reducer.LocalMerge(f(k));
+            }
+            global_reducer.ThreadSafeMerge(local_reducer);
+        }
+        return global_reducer;
+    }
+
 private:
 
     TIndexType mSize;

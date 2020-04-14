@@ -121,6 +121,39 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                 r.max_abs   = std::max(r.max_abs,std::abs(data_vector[i]));
             }
         );
+
+    KRATOS_CHECK_EQUAL(Reducer.max_value, 0.0 );
+    KRATOS_CHECK_EQUAL(Reducer.max_abs, nsize-1 );
+
+    class CustomReducerReturnValueVersion{
+        public:
+            double max_value = -std::numeric_limits<double>::max();
+            double max_abs = 0.0;
+
+            void LocalMerge(double function_return_value){
+                this->max_value = std::max(this->max_value,function_return_value);
+                this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
+            }
+            void ThreadSafeMerge(CustomReducerReturnValueVersion& rOther){
+                #pragma omp critical
+                {
+                this->max_value = std::max(this->max_value,rOther.max_value);
+                this->max_abs   = std::max(this->max_abs,std::abs(rOther.max_abs));
+                }
+            }
+    };
+
+    auto ReturnValueReducer = IndexPartition<unsigned int>(data_vector.size()).
+        for_reduce<
+            std::function<double(unsigned int)>,
+            CustomReducerReturnValueVersion>(
+            [&](unsigned int i)->double{
+                return data_vector[i]; //note that here the lambda returns the values to be reduced
+                }
+            );
+    KRATOS_CHECK_EQUAL(ReturnValueReducer.max_value, 0.0 );
+    KRATOS_CHECK_EQUAL(ReturnValueReducer.max_abs, nsize-1 );
+
 }
 
 
