@@ -376,53 +376,53 @@ public:
 
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param LHS_Contribution The LHS matrix contribution
      * @param RHS_Contribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        pCurrentElement->EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
-            pCurrentElement->CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
-            pCurrentElement->CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
             BossakBaseType::AddDynamicsToLHS(LHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
-            BossakBaseType::AddDynamicsToRHS(pCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+            BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
         // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,pCurrentElement->GetGeometry());
-        mRotationTool.ElementApplySlipCondition(LHS_Contribution,RHS_Contribution,pCurrentElement->GetGeometry());
+        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ElementApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH( "" )
     }
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rRHSContribution The RHS vector contribution
      * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
 
         KRATOS_TRY
@@ -430,91 +430,91 @@ public:
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
         // Basic operations for the element considered
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        pCurrentElement->EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
-            pCurrentElement->CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
-            pCurrentElement->CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
-            BossakBaseType::AddDynamicsToRHS(pCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+            BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
         // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.RotateRHS(RHS_Contribution,pCurrentElement->GetGeometry());
-        mRotationTool.ElementApplySlipCondition(RHS_Contribution,pCurrentElement->GetGeometry());
+        mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ElementApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH( "" )
     }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCurrentCondition The condition to compute
      * @param rLHSContribution The LHS matrix contribution
      * @param rRHSContribution The RHS vector contribution
      * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
 
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        pCurrentCondition->EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
-            pCurrentCondition->CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
-            pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+            rCurrentCondition.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
+            rCurrentCondition.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
             BossakBaseType::AddDynamicsToLHS(LHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
-            BossakBaseType::AddDynamicsToRHS(pCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+            BossakBaseType::AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,pCurrentCondition->GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,pCurrentCondition->GetGeometry());
+        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH( "" )
     }
 
     /**
      * @brief Functions that calculates the RHS of a "condition" object
-     * @param pCurrentCondition The condition to compute
+     * @param rCurrentCondition The condition to compute
      * @param rRHSContribution The RHS vector contribution
      * @param rEquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        pCurrentCondition->EquationIdVector(EquationId,rCurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         if(mIsDynamic)
         {
-            pCurrentCondition->CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
-            pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
-            BossakBaseType::AddDynamicsToRHS(pCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+            rCurrentCondition.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
+            rCurrentCondition.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+            BossakBaseType::AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.RotateRHS(RHS_Contribution,pCurrentCondition->GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,pCurrentCondition->GetGeometry());
+        mRotationTool.RotateRHS(RHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH( "" )
     }

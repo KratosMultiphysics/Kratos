@@ -100,8 +100,6 @@ public:
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize() override;
-
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
      */

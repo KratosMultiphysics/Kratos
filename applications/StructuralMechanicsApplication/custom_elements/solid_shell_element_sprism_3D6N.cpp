@@ -1678,7 +1678,7 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::Initialize()
+void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

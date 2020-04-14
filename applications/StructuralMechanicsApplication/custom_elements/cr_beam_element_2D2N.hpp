@@ -101,8 +101,6 @@ public:
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize() override;
-
     void GetValuesVector(
         Vector& rValues,
         int Step = 0) override;

@@ -85,13 +85,6 @@ void CrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void CrBeamElement2D2N::Initialize()
-{
-
-    KRATOS_TRY;
-    KRATOS_CATCH("")
-}
-
 void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
 {
 
