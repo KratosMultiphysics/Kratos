@@ -965,20 +965,6 @@ void SmallDisplacementBbar::FinalizeSolutionStep( ProcessInfo& rCurrentProcessIn
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-int  SmallDisplacementBbar::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
-}
-
 //************************************************************************************
 //************************************************************************************
 
