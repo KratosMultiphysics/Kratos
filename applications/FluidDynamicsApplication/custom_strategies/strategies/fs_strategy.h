@@ -10,7 +10,6 @@
 //  Main authors:    Jordi Cotela
 //
 
-
 #ifndef KRATOS_FS_STRATEGY_H
 #define KRATOS_FS_STRATEGY_H
 
@@ -44,9 +43,8 @@ namespace Kratos {
 ///@name Type Definitions
 ///@{
 
+
 ///@}
-
-
 ///@name  Enum's
 ///@{
 
@@ -56,15 +54,11 @@ namespace Kratos {
 ///@{
 
 
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-template<class TSparseSpace,
-class TDenseSpace,
-class TLinearSolver
->
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class FSStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
@@ -75,16 +69,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FSStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-    typedef typename BaseType::TDataType TDataType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
