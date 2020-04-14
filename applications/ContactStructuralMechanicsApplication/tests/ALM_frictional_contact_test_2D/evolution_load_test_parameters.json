@@ -157,6 +157,7 @@
                 "check_for_flag"       : "ACTIVE",
                 "input_file_name"      : "ALM_frictional_contact_test_2D/evolution_load_test_LM_results.json",
                 "historical_value"     : false,
+                "check_for_flag"       : "SLAVE",
                 "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
                 "time_frequency"       : 5.0e-2
             }
