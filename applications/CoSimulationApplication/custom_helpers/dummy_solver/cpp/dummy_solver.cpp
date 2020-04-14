@@ -88,10 +88,11 @@ void Initialize()
 }
 
 
-void AdvanceInTime(double* pCurrentTime)
+double AdvanceInTime(double pCurrentTime)
 {
-    *pCurrentTime += sDeltaTime;
-    solver_print(2) << "AdvanceInTime; new time: " << *pCurrentTime << std::endl;
+    pCurrentTime += sDeltaTime;
+    return pCurrentTime;
+    solver_print(2) << "AdvanceInTime; new time: " << pCurrentTime << std::endl;
 }
 
 void InitializeSolutionStep()
@@ -160,7 +161,7 @@ void RunSolutionLoop()
 {
     double current_time = 0.0;
     while (current_time < sEndTime) {
-        AdvanceInTime(&current_time);
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
         SolveSolutionStep();
         FinalizeSolutionStep();
@@ -181,7 +182,7 @@ void RunSolutionLoopWithWeakCoupling()
 
     double current_time = 0.0;
     while (current_time < sEndTime) {
-        AdvanceInTime(&current_time);
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
 
         ImportDataFromCoSim(comm_name, "field_pressure");
@@ -204,11 +205,9 @@ void RunSolutionLoopWithStrongCoupling()
     // ImportMesh(comm_name, "interface_mesh_quads");
     ExportMesh(comm_name, "interface_mesh_tri");
 
-    int convergence_signal;
-
     double current_time = 0.0;
     while (current_time < sEndTime) {
-        AdvanceInTime(&current_time);
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
 
         while(true) {
@@ -216,8 +215,7 @@ void RunSolutionLoopWithStrongCoupling()
             SolveSolutionStep();
             ExportDataToCoSim(comm_name, "field_velocity");
 
-            CoSimIO::IsConverged(comm_name, convergence_signal);
-            if (convergence_signal) {break;}
+            if (CoSimIO::IsConverged(comm_name)) {break;}
         }
 
         FinalizeSolutionStep();

@@ -58,7 +58,7 @@ void CoSimIO_ExportMesh(
 
 void CoSimIO_RegisterAdvanceInTime(
     const char* pConnectionName,
-    void (*pFunctionPointer)(double*));
+    double (*pFunctionPointer)(double));
 
 void CoSimIO_RegisterSolvingFunction(
     const char* pConnectionName,
@@ -72,7 +72,7 @@ void CoSimIO_RegisterDataExchangeFunction(
 
 void CoSimIO_Run(const char* pConnectionName);
 
-void CoSimIO_IsConverged(const char* pConnectionName, int* pConvergenceSignal);
+int CoSimIO_IsConverged(const char* pConnectionName);
 
 // The following functions are intended to only be used from Fortran
 // This is because memory used in the CoSimIO should be allocated and freed in C

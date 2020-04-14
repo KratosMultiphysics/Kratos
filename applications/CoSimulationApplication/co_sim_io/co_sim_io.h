@@ -74,7 +74,7 @@ inline void ExportMesh(
     TIntContainerType& rElementTypes);
 
 
-inline void IsConverged(const std::string& rConnectionName, int& rConvergenceSignal);
+inline int IsConverged(const std::string& rConnectionName);
 
 inline void SendControlSignal(
     const std::string& rConnectionName,
