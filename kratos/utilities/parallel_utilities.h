@@ -164,7 +164,7 @@ public:
     }
 
     //simple version
-    template <class TUnaryFunction, class TReducer>
+    template <class TReducer, class TUnaryFunction>
     inline TReducer for_reduce(TUnaryFunction &&f)
     {
         TReducer global_reducer;

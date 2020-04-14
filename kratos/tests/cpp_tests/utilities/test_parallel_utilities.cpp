@@ -144,9 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     };
 
     auto ReturnValueReducer = IndexPartition<unsigned int>(data_vector.size()).
-        for_reduce<
-            std::function<double(unsigned int)>,
-            CustomReducerReturnValueVersion>(
+        for_reduce<CustomReducerReturnValueVersion>(
             [&](unsigned int i)->double{
                 return data_vector[i]; //note that here the lambda returns the values to be reduced
                 }
