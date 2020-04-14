@@ -46,24 +46,12 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     }
 
     //here we check for a reduction (computing the sum of all the entries)
-    SumReduction<double> reducer;
-
-    //compute a sum reduction - c++11 version
-    BlockPartition<std::vector<double>>(data_vector).for_each(
-        reducer,
-        [](double& item, SumReduction<double>& reduction_helper)
+    auto reducer = BlockPartition<std::vector<double>>(data_vector).for_reduce<SumReduction<double>>(
+        [](double& item)
         {
-            reduction_helper.mvalue += item;
+            return item;
         }
     );
-
-    //compute a sum reduction - c++17 version
-    // BlockPartition(data_vector).for_each(
-    //     reducer,
-    //     [](auto& item, auto& reduction_helper){
-    //         reduction_helper.mvalue += item;
-    //         }
-    //     );
 
     //get the value of the final sum
     double final_sum = reducer.mvalue;
@@ -98,12 +86,26 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     for(int i=0; i<nsize; ++i)
         data_vector[i] = -i;
 
-    //we want to find the maximum value and the maximum absolute value.
-    //this is a "custom reduction"
+    double reference_max = std::numeric_limits<double>::lowest();
+    double reference_min = std::numeric_limits<double>::max();
+    double reference_sum = 0.0;
+    double reference_sub = 0.0;
+    for(auto item : data_vector)
+    {
+        reference_max = std::max(reference_max, item);
+        reference_min = std::min(reference_min, item);
+        reference_sum += item;
+        reference_sub -= item;
+    }
     class CustomReducer{
         public:
             double max_value = -std::numeric_limits<double>::max();
             double max_abs = 0.0;
+
+            void LocalMerge(double function_return_value){
+                this->max_value = std::max(this->max_value,function_return_value);
+                this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
+            }
             void ThreadSafeMerge(CustomReducer& rOther){
                 #pragma omp critical
                 {
@@ -113,45 +115,22 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
             }
     };
 
-    CustomReducer Reducer;
-    IndexPartition<unsigned int>(data_vector.size()).for_each(
-        Reducer,
-        [&](unsigned int i, CustomReducer& r){
-                r.max_value = std::max(r.max_value, data_vector[i]);
-                r.max_abs   = std::max(r.max_abs,std::abs(data_vector[i]));
-            }
-        );
+    auto partition = IndexPartition<unsigned int>(data_vector.size());
+    auto ReturnValueReducer = partition.for_reduce<CustomReducer>([&](unsigned int i){
+            return data_vector[i]; //note that here the lambda returns the values to be reduced
+        });
 
-    KRATOS_CHECK_EQUAL(Reducer.max_value, 0.0 );
-    KRATOS_CHECK_EQUAL(Reducer.max_abs, nsize-1 );
-
-    class CustomReducerReturnValueVersion{
-        public:
-            double max_value = std::numeric_limits<double>::lowest();
-            double max_abs = 0.0;
-
-            void LocalMerge(double function_return_value){
-                this->max_value = std::max(this->max_value,function_return_value);
-                this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
-            }
-            void ThreadSafeMerge(CustomReducerReturnValueVersion& rOther){
-                #pragma omp critical
-                {
-                this->max_value = std::max(this->max_value,rOther.max_value);
-                this->max_abs   = std::max(this->max_abs,std::abs(rOther.max_abs));
-                }
-            }
-    };
-
-    auto ReturnValueReducer = IndexPartition<unsigned int>(data_vector.size()).
-        for_reduce<CustomReducerReturnValueVersion>(
-            [&](unsigned int i)->double{
-                return data_vector[i]; //note that here the lambda returns the values to be reduced
-                }
-            );
     KRATOS_CHECK_EQUAL(ReturnValueReducer.max_value, 0.0 );
     KRATOS_CHECK_EQUAL(ReturnValueReducer.max_abs, nsize-1 );
 
+    auto combined = IndexPartition<unsigned int>(data_vector.size()).
+        for_reduce<CombinedReduction< SumReduction<double>, MinReduction<double>>>(
+            [&](unsigned int i){
+                return std::pair<double,double>{data_vector[i],data_vector[i]}; //note that here the lambda returns the values to be reduced
+                }
+            );
+    KRATOS_CHECK_EQUAL(combined.GetValue().first, reference_sum );
+    KRATOS_CHECK_EQUAL(combined.GetValue().second, reference_min );
 }
 
 
