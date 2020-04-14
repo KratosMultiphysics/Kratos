@@ -3,15 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.MeshingApplication as MA
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import auxiliar methods
-from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing.auxiliar_methods_structural_adaptative_remeshing import AuxiliarMethodsStructuralAdaptiveRemeshing
+from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
 
-class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsStructuralAdaptiveRemeshing):
+class AuxiliarMethodsStructuralAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
     """
-    This class is an auxiliar script when using adaptative remeshing put in a class for contact
+    This class is an auxiliar script when using adaptative remeshing put in a class for structural analysis
 
     It can be imported and used as "black-box"
     """
@@ -22,7 +20,7 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsStructuralAdaptiveR
             self It signifies an instance of a class.
             analysis The AnalysisStage to be computed
         """
-        super(AuxiliarMethodsContactAdaptiveRemeshing, self).__init__(analysis)
+        super(AuxiliarMethodsStructuralAdaptiveRemeshing, self).__init__(analysis)
 
     def SPRAdaptativeRemeshingRunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered with SPR convergence criteria
@@ -61,24 +59,10 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsStructuralAdaptiveR
                     KM.Logger.PrintInfo(self.analysis._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                     break
                 else:
-                    # Compute metric
+                    # Remesh
                     metric_process = solver.get_metric_process()
-                    metric_process.Execute()
-
-                    # Clean up contact pairs
-                    CSMA.ContactUtilities.CleanContactModelParts(computing_model_part)
-
-                    # We remove the contact submodelparts
-                    computing_model_part.RemoveSubModelPart("Contact")
-
-                    # Ensure properties defined
-                    KM.AuxiliarModelPartUtilities(computing_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties(True)
-
-                    # We create the contact submodelparts
-                    computing_model_part.CreateSubModelPart("Contact")
-
-                    # Remeshing
                     remeshing_process = solver.get_remeshing_process()
+                    metric_process.Execute()
                     remeshing_process.Execute()
 
                     self.analysis._SetModelIsModified()

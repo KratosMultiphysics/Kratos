@@ -13,7 +13,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import auxiliar methods
-from KratosMultiphysics.auxiliar_methods_adaptative_remeshing import AuxiliarMethodsAdaptiveRemeshing
+from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing.auxiliar_methods_structural_adaptative_remeshing import AuxiliarMethodsStructuralAdaptiveRemeshing
 
 class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
@@ -62,7 +62,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         # Create utilities
-        self.adaptive_utilities = AuxiliarMethodsAdaptiveRemeshing(self)
+        self.adaptive_utilities = AuxiliarMethodsStructuralAdaptiveRemeshing(self)
 
     def Initialize(self):
         """ Initializing the Analysis """
