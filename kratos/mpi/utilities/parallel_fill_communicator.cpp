@@ -235,7 +235,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     vector<bool> receive_from_neighbour(num_processors, false);
     for (const auto& rNode : rModelPart.Nodes())
     {
-        const unsigned partition_index = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
+        const int partition_index = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
         KRATOS_ERROR_IF(partition_index >= num_processors) << "The partition index is out of range. Invalid model part." << std::endl;
         if(partition_index != my_rank)
             receive_from_neighbour[partition_index] = true;
@@ -383,7 +383,7 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     // Fill nodes for LocalMesh and GhostMesh.
     for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); ++it_node)
     {
-        const unsigned index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);
+        const int index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);
         if (index == MyRank)
         {
             r_local_nodes.push_back(*(it_node.base()));
