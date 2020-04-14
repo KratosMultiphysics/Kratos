@@ -168,9 +168,15 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeTransonicMach, Compre
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
-    GenerateTestingElement(model_part);
+    model_part.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+    model_part.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
+    model_part.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+    model_part.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
 
-    auto rCurrentProcessInfo = model_part.GetProcessInfo();
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = model_part.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              model_part.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = 68.0 * sqrt(67.0/3.0);
@@ -186,18 +192,24 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeTransonicMach, Compre
 }
 
 // Checks the function ComputeLocalMachSquaredDerivative from the utilities, supersonic local Mach number
-KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeSuperSonicMach, CompressiblePotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeSupersonicMach, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
-    GenerateTestingElement(model_part);
+    model_part.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+    model_part.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
+    model_part.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+    model_part.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
 
-    auto rCurrentProcessInfo = model_part.GetProcessInfo();
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = model_part.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              model_part.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = 272.0 * sqrt(134.0/21.0);
 
-    double local_mach_number = 4.0;
+    const double local_mach_number = 4.0;
 
     double mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
                 local_mach_number, model_part.GetProcessInfo());

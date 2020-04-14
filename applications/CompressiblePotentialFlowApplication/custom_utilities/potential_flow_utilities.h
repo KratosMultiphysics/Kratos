@@ -100,7 +100,7 @@ template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
-double ComputeLocalMachSquaredDerivative(array_1d<double, Dim> velocity, double local_mach_number,const ProcessInfo& rCurrentProcessInfo);
+double ComputeLocalMachSquaredDerivative(const array_1d<double, Dim>& velocity, const double& local_mach_number,const ProcessInfo& rCurrentProcessInfo);
 
 } // namespace PotentialFlow
 } // namespace Kratos
