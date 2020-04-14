@@ -163,5 +163,49 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
     KRATOS_CHECK_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
 }
 
+// Checks the function ComputeLocalMachSquaredDerivative from the utilities, transonic local Mach number
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeTransonicMach, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+
+    auto rCurrentProcessInfo = model_part.GetProcessInfo();
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = 68.0 * sqrt(67.0/3.0);
+
+    double local_mach_number = 1.0;
+
+    auto mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
+                local_mach_number, model_part.GetProcessInfo());
+
+    double reference_derivative = 1.16201001910861e-05;
+
+    KRATOS_CHECK_NEAR(mach_derivative, reference_derivative, 1e-16);
+}
+
+// Checks the function ComputeLocalMachSquaredDerivative from the utilities, supersonic local Mach number
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeSuperSonicMach, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+
+    auto rCurrentProcessInfo = model_part.GetProcessInfo();
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = 272.0 * sqrt(134.0/21.0);
+
+    double local_mach_number = 4.0;
+
+    double mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
+                local_mach_number, model_part.GetProcessInfo());
+
+    double reference_derivative = 0.000142346227340804;
+
+    KRATOS_CHECK_NEAR(mach_derivative, reference_derivative, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.
