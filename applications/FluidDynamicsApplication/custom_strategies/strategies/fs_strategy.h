@@ -234,34 +234,33 @@ public:
     {
         KRATOS_TRY;
 
-        // Check elements and conditions in the model part
+        // Base strategy check
         int ierr = BaseType::Check();
-        if (ierr != 0) return ierr;
-
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::runtime_error,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
-        if(BDF_COEFFICIENTS.Key() == 0)
-            KRATOS_THROW_ERROR(std::runtime_error,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
-
-        ModelPart& rModelPart = BaseType::GetModelPart();
-
-        if ( mTimeOrder == 2 && rModelPart.GetBufferSize() < 3 )
-            KRATOS_THROW_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (BDF2), needed 3, got ",rModelPart.GetBufferSize());
-        if ( mTimeOrder == 1 && rModelPart.GetBufferSize() < 2 )
-            KRATOS_THROW_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ",rModelPart.GetBufferSize());
-
-        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
-        for ( ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl )
-        {
-            ierr = itEl->Check(rCurrentProcessInfo);
-            if (ierr != 0) break;
+        if (ierr != 0) {
+            return ierr;
         }
 
-        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-        {
-            ierr = itCond->Check(rCurrentProcessInfo);
-            if (ierr != 0) break;
+        // Check time order and buffer size
+        const auto& r_model_part = BaseType::GetModelPart();
+        KRATOS_ERROR_IF(mTimeOrder == 2 && r_model_part.GetBufferSize() < 3)
+            << "Buffer size too small for fractional step strategy (BDF2), needed 3, got " << r_model_part.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(mTimeOrder == 1 && r_model_part.GetBufferSize() < 2)
+            << "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got " << r_model_part.GetBufferSize() << std::endl;
+
+        // Check elements and conditions
+        const auto &r_current_process_info = r_model_part.GetProcessInfo();
+        for (const auto& r_element : r_model_part.Elements()) {
+            ierr = r_element.Check(r_current_process_info);
+            if (ierr != 0) {
+               break;
+            }
+        }
+
+        for (const auto& r_condition : r_model_part.Conditions()) {
+            ierr = r_condition.Check(r_current_process_info);
+            if (ierr != 0) {
+                break;
+            }
         }
 
         return ierr;
