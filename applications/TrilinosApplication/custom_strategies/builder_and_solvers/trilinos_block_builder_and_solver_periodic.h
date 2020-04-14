@@ -430,7 +430,7 @@ private:
                 itCond->GetDofList(DofList,rProcessInfo);
                 for(typename Condition::DofsVectorType::iterator iDof = DofList.begin() ; iDof != DofList.end() ; ++iDof)
                     if ( (*iDof)->Id() == FirstNode)
-                        ExtraDofs[iDof->GetSolutionStepValue(PARTITION_INDEX)]++;
+                        ExtraDofs[(*iDof)->GetSolutionStepValue(PARTITION_INDEX)]++;
 
                 rGeom[0].GetValue(mPeriodicIdVar) = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
             }
