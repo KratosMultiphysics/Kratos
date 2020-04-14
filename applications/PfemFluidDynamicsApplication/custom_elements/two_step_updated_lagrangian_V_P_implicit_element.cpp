@@ -219,48 +219,40 @@ void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoint
 }
 
 template <>
-void TwoStepUpdatedLagrangianVPImplicitElement<2>::ComputeCompleteTangentTerm(ElementalVariables &rElementalVariables,
-                                                                              MatrixType &rDampingMatrix,
-                                                                              const ShapeFunctionDerivativesType &rDN_DX,
+void TwoStepUpdatedLagrangianVPImplicitElement<2>::ComputeCompleteTangentTerm(
+    ElementalVariables& rElementalVariables,
+     MatrixType& rDampingMatrix,
+                                                                              const ShapeFunctionDerivativesType& rDN_DX,
                                                                               const double secondLame,
                                                                               const double bulkModulus,
-                                                                              const double theta,
-                                                                              const double Weight)
-{
-  const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  const double FourThirds = 4.0 / 3.0;
-  const double nTwoThirds = -2.0 / 3.0;
+                                                                               const double theta,
+                                                                                const double Weight) {
 
-  SizeType FirstRow = 0;
-  SizeType FirstCol = 0;
+    for (SizeType i = 0; i < 3; ++i) {
+        for (SizeType j = 0; j < 3; ++j) {
+			rElementalVariables.ConstitutiveMatrix(i, j) += bulkModulus;
+		}
+	}
 
-  for (SizeType j = 0; j < NumNodes; ++j)
-  {
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
-      double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
-      double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0);
-      double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1);
-      // lagDNXi=rDN_DX(i,0);
-      // lagDNYi=rDN_DX(i,1);
-      // lagDNXj=rDN_DX(j,0);
-      // lagDNYj=rDN_DX(j,1);
+	noalias(rDampingMatrix) +=
+	    Weight * theta * prod(trans(rElementalVariables.B), Matrix(prod(rElementalVariables.ConstitutiveMatrix, rElementalVariables.B)));
 
-      // First Row
-      rDampingMatrix(FirstRow, FirstCol) += Weight * ((FourThirds * secondLame + bulkModulus) * lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame) * theta;
-      rDampingMatrix(FirstRow, FirstCol + 1) += Weight * ((nTwoThirds * secondLame + bulkModulus) * lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame) * theta;
+	// temporary workaround - start
+	//GeometryType& rGeometry = this->GetGeometry();
+	//const SizeType NumNodes = this->GetGeometry().PointsNumber();
+	//SizeType FirstRow = 0;
+	//for (SizeType i = 0; i < NumNodes; ++i) {
+	//	rGeometry[i].FastGetSolutionStepValue(YIELD_SHEAR, 0) += rDampingMatrix(FirstRow, FirstRow);
+    //    rGeometry[i].FastGetSolutionStepValue(YIELDED, 0) += rDampingMatrix(FirstRow + 1, FirstRow + 1);
+	//	FirstRow += 2;
+	//}
+	// temporary workaround - start
 
-      // Second Row
-      rDampingMatrix(FirstRow + 1, FirstCol) += Weight * ((nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj * secondLame) * theta;
-      rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * ((FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame) * theta;
-
-      // Update Counter
-      FirstRow += 2;
-    }
-    FirstRow = 0;
-    FirstCol += 2;
-  }
+    for (SizeType i = 0; i < 3; ++i) {
+		for (SizeType j = 0; j < 3; ++j) {
+			rElementalVariables.ConstitutiveMatrix(i, j) -= bulkModulus;
+		}
+	}
 }
 
 template <>
