@@ -254,7 +254,7 @@ namespace Kratos
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                     default_method, rIntegrationPoints[i],
-                    N, DN_De);
+                    N_matrix, DN_De);
 
                 rResultGeometries(i) = CreateQuadraturePointsUtility<TPointType>::CreateQuadraturePoint(
                     rGeometry.WorkingSpaceDimension(), rGeometry.LocalSpaceDimension(),
