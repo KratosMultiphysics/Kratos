@@ -124,8 +124,8 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
 
     IndexType check_counter = 0;
 
-    auto& r_node_database = GetNodeDatabase();
-    auto& r_gp_database = GetGPDatabase();
+    const auto& r_node_database = GetNodeDatabase();
+    const auto& r_gp_database = GetGPDatabase();
 
     if (mTimeCounter > mFrequency) {
         mTimeCounter = 0.0;
@@ -136,7 +136,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
 
         if (this->Is(HISTORICAL_VALUE)) {
             for (auto& p_var_double : mpNodalVariableDoubleList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -151,7 +151,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                 }
             }
             for (auto& p_var_component : mpNodalVariableComponentsList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -166,13 +166,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                 }
             }
             for (auto& p_var_array : mpNodalVariableArrayList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
-                    auto& r_entity_database = r_var_database.GetEntityData(i);
+                    const auto& r_entity_database = r_var_database.GetEntityData(i);
                     const array_1d<double, 3>& r_result = it_node->FastGetSolutionStepValue(*p_var_array);
                     for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
                         const double reference = r_entity_database.GetValue(time, i_comp);
@@ -184,13 +184,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                 }
             }
             for (auto& p_var_vector : mpNodalVariableVectorList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
-                    auto& r_entity_database = r_var_database.GetEntityData(i);
+                    const auto& r_entity_database = r_var_database.GetEntityData(i);
                     const Vector& r_result = it_node->FastGetSolutionStepValue(*p_var_vector);
                     for (IndexType i_comp = 0; i_comp < r_result.size(); ++i_comp) {
                         const double reference = r_entity_database.GetValue(time, i_comp);
@@ -203,7 +203,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             }
         } else { // Non-historical values
             for (auto& p_var_double : mpNodalVariableDoubleList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -218,7 +218,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                 }
             }
             for (auto& p_var_component : mpNodalVariableComponentsList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -233,13 +233,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                 }
             }
             for (auto& p_var_array : mpNodalVariableArrayList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
-                    auto& r_entity_database = r_var_database.GetEntityData(i);
+                    const auto& r_entity_database = r_var_database.GetEntityData(i);
                     const array_1d<double, 3>& r_result = it_node->GetValue(*p_var_array);
                     for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
                         const double reference = r_entity_database.GetValue(time, i_comp);
@@ -251,13 +251,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                 }
             }
             for (auto& p_var_vector : mpNodalVariableVectorList) {
-                auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
+                const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
                 #pragma omp parallel for reduction(+:check_counter)
                 for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                     auto it_node = it_node_begin + i;
 
-                    auto& r_entity_database = r_var_database.GetEntityData(i);
+                    const auto& r_entity_database = r_var_database.GetEntityData(i);
                     const Vector& r_result = it_node->GetValue(*p_var_vector);
                     for (IndexType i_comp = 0; i_comp < r_result.size(); ++i_comp) {
                         const double reference = r_entity_database.GetValue(time, i_comp);
@@ -283,13 +283,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
         std::vector<Vector> result_vector;
 
         for (auto& p_var_double : mpGPVariableDoubleList) {
-            auto& r_var_database = r_gp_database.GetVariableData(*p_var_double);
+            const auto& r_var_database = r_gp_database.GetVariableData(*p_var_double);
 
             #pragma omp parallel for reduction(+:check_counter) firstprivate(result_double)
             for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
                 auto it_elem = it_elem_begin + i;
 
-                auto& r_entity_database = r_var_database.GetEntityData(i);
+                const auto& r_entity_database = r_var_database.GetEntityData(i);
                 it_elem->CalculateOnIntegrationPoints(*p_var_double, result_double, r_process_info);
                 for (IndexType i_gp = 0; i_gp < result_double.size(); ++i_gp) {
                     const double result = result_double[i_gp];
@@ -302,13 +302,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             }
         }
         for (auto& p_var_array : mpGPVariableArrayList) {
-            auto& r_var_database = r_gp_database.GetVariableData(*p_var_array);
+            const auto& r_var_database = r_gp_database.GetVariableData(*p_var_array);
 
             #pragma omp parallel for reduction(+:check_counter) firstprivate(result_array)
             for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
                 auto it_elem = it_elem_begin + i;
 
-                auto& r_entity_database = r_var_database.GetEntityData(i);
+                const auto& r_entity_database = r_var_database.GetEntityData(i);
                 it_elem->CalculateOnIntegrationPoints(*p_var_array, result_array, r_process_info);
                 for (IndexType i_gp = 0; i_gp < result_array.size(); ++i_gp) {
                     for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
@@ -322,13 +322,13 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
             }
         }
         for (auto& p_var_vector : mpGPVariableVectorList) {
-            auto& r_var_database = r_gp_database.GetVariableData(*p_var_vector);
+            const auto& r_var_database = r_gp_database.GetVariableData(*p_var_vector);
 
             #pragma omp parallel for reduction(+:check_counter) firstprivate(result_vector)
             for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
                 auto it_elem = it_elem_begin + i;
 
-                auto& r_entity_database = r_var_database.GetEntityData(i);
+                const auto& r_entity_database = r_var_database.GetEntityData(i);
                 it_elem->CalculateOnIntegrationPoints(*p_var_vector, result_vector, r_process_info);
                 for (IndexType i_gp = 0; i_gp < result_vector.size(); ++i_gp) {
                     for (IndexType i_comp = 0; i_comp < result_vector[i_gp].size(); ++i_comp) {
@@ -885,7 +885,7 @@ Parameters FromJSONCheckResultProcess::GetSettings() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
+const ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
 {
     if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
         InitializeDatabases();
@@ -898,7 +898,7 @@ ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
 /***********************************************************************************/
 /***********************************************************************************/
 
-ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
+const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
 {
     if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
         InitializeDatabases();
