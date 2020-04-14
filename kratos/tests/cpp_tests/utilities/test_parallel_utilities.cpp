@@ -91,6 +91,38 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
         KRATOS_CHECK_EQUAL(output[i], -2.0 );
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize);
+    for(int i=0; i<nsize; ++i)
+        data_vector[i] = -i;
+
+    //we want to find the maximum value and the maximum absolute value.
+    //this is a "custom reduction"
+    class CustomReducer{
+        public:
+            double max_value = -std::numeric_limits<double>::max();
+            double max_abs = 0.0;
+            void ThreadSafeMerge(CustomReducer& rOther){
+                #pragma omp critical
+                {
+                this->max_value = std::max(this->max_value,rOther.max_value);
+                this->max_abs   = std::max(this->max_abs,std::abs(rOther.max_abs));
+                }
+            }
+    };
+
+    CustomReducer Reducer;
+    IndexPartition<unsigned int>(data_vector.size()).for_each(
+        Reducer,
+        [&](unsigned int i, CustomReducer& r){
+                r.max_value = std::max(r.max_value, data_vector[i]);
+                r.max_abs   = std::max(r.max_abs,std::abs(data_vector[i]));
+            }
+        );
+}
+
 
 } // namespace Testing
 } // namespace Kratos

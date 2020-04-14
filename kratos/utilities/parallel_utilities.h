@@ -213,7 +213,7 @@ template<class TDataType>
 class MaxReduction
 {
 public:
-    TDataType mvalue = std::numeric_limits<TDataType>::min; //i am deliberately making the member value public, to allow one to change it as needed
+    TDataType mvalue = -std::numeric_limits<TDataType>::max(); //i am deliberately making the member value public, to allow one to change it as needed
 
     //a user could define a ThreadSafeMerge for his specific reduction case
     void ThreadSafeMerge(SumReduction<TDataType>& rOther)
@@ -230,7 +230,7 @@ template<class TDataType>
 class MinReduction
 {
 public:
-    TDataType mvalue = std::numeric_limits<TDataType>::max; //i am deliberately making the member value public, to allow one to change it as needed
+    TDataType mvalue = std::numeric_limits<TDataType>::max(); //i am deliberately making the member value public, to allow one to change it as needed
 
     //a user could define a ThreadSafeMerge for his specific reduction case
     void ThreadSafeMerge(SumReduction<TDataType>& rOther)
