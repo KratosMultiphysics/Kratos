@@ -1796,88 +1796,89 @@ void TwoStepUpdatedLagrangianElement<TDim>::ComputeMassMatrix(Matrix &rMassMatri
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector &rRHSVector,
-                                                              const double Density,
-                                                              const ShapeFunctionsType &rN,
-                                                              const double Weight)
-{
-  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+void TwoStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector& rRHSVector, const double Density, const ShapeFunctionsType& rN,
+                                                              const double Weight) {
+	const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    //GeometryType& rGeometry = this->GetGeometry();
+	SizeType FirstRow = 0;
 
-  SizeType FirstRow = 0;
+	array_1d<double, 3> VolumeAcceleration(3, 0.0);
 
-  array_1d<double, 3> VolumeAcceleration(3, 0.0);
+	this->EvaluateInPoint(VolumeAcceleration, VOLUME_ACCELERATION, rN);
+    //KRATOS_WATCH(VolumeAcceleration);
+	for (SizeType i = 0; i < NumNodes; ++i) {
+		if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
 
-  this->EvaluateInPoint(VolumeAcceleration, VOLUME_ACCELERATION, rN);
-
-  for (SizeType i = 0; i < NumNodes; ++i)
-  {
-    if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-    { // it must be checked once at the begining only
-      // Build RHS
-      // double posX=this->GetGeometry()[i].X();
-      // double posY=this->GetGeometry()[i].Y();
-
-      // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;
-
-      // double posY=(this->GetGeometry()[0].Y() + this->GetGeometry()[1].Y() + this->GetGeometry()[2].Y())/3.0;
-
-      // double coeffX =(12.0-24.0*posY)*pow(posX,4);
-
-      // coeffX += (-24.0+48.0*posY)*pow(posX,3);
-
-      // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
-
-      // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
-
-      // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
-
-      // double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
-
-      // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
-
-      // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
-
-      // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
-
-      // rRHSVector[FirstRow] += Weight * Density * rN[i] * VolumeAcceleration[0]*coeffX;
-
-      // rRHSVector[FirstRow+1] += Weight * Density * rN[i] * VolumeAcceleration[1]*coeffY;
-
-      for (SizeType d = 0; d < TDim; ++d)
-      {
-        // Volume Acceleration
-        rRHSVector[FirstRow + d] += Weight * Density * rN[i] * VolumeAcceleration[d];
-      }
-    }
-    FirstRow += TDim;
-  }
+			for (SizeType d = 0; d < TDim; ++d) {
+				// Volume Acceleration
+				rRHSVector[FirstRow + d] += Weight * Density * rN[i] * VolumeAcceleration[d];
+			}
+		}
+         //rGeometry[i].FastGetSolutionStepValue(YIELDED, 0) += Weight * Density * rN[i] * VolumeAcceleration[1];
+         //rGeometry[i].FastGetSolutionStepValue(YIELD_SHEAR, 0) += Weight * Density * rN[i] * VolumeAcceleration[0];
+         //KRATOS_WATCH(Weight * Density * rN[i] * VolumeAcceleration[1]);
+         //KRATOS_WATCH(Weight * Density * rN[i] * VolumeAcceleration[0]);
+     //   this->GetGeometry()[i].SetValue(YIELDED,0) = rRHSVector[FirstRow];
+		FirstRow += TDim;
+	}
 }
 
 template <>
-void TwoStepUpdatedLagrangianElement<2>::AddInternalForces(Vector &rRHSVector,
-                                                           const ShapeFunctionDerivativesType &rDN_DX,
-                                                           ElementalVariables &rElementalVariables,
-                                                           const double Weight)
-{
-  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+void TwoStepUpdatedLagrangianElement<2>::AddInternalForces(Vector& rRHSVector, const ShapeFunctionDerivativesType& rDN_DX,
+                                                           ElementalVariables& rElementalVariables, const double Weight) {
+	// const SizeType NumNodes = this->GetGeometry().PointsNumber();
+	//const unsigned int NumNodes = this->GetGeometry().PointsNumber();
+	//const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-  SizeType FirstRow = 0;
+	// SizeType FirstRow = 0;
 
-  for (SizeType i = 0; i < NumNodes; ++i)
-  {
-    double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
-    double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
-    // lagDNXi=rDN_DX(i,0);
-    // lagDNYi=rDN_DX(i,1);
+	// for (SizeType i = 0; i < NumNodes; ++i)
+	//{
+	//  double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
+	//  double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
+	// lagDNXi=rDN_DX(i,0);
+	// lagDNYi=rDN_DX(i,1);
 
-    rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
-                                       lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[2]);
+	//  rElementalVariables.test_rhs[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
+	//                                     lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[2]);
 
-    rRHSVector[FirstRow + 1] += -Weight * (lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[1] +
-                                           lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[2]);
+	//  rElementalVariables.test_rhs[FirstRow + 1] += -Weight * (lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[1] +
+	//                                         lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[2]);
+	//}
+	Vector internal_forces = Weight * prod(trans(rElementalVariables.B), rElementalVariables.UpdatedTotalCauchyStress);
 
-    FirstRow += 2;
-  }
+    // temporary workaround - start
+	//GeometryType& rGeometry = this->GetGeometry();
+	//const SizeType NumNodes = this->GetGeometry().PointsNumber();
+	//SizeType FirstRow = 0;
+	//for (SizeType i = 0; i < NumNodes; ++i) {
+	//	rGeometry[i].FastGetSolutionStepValue(YIELD_SHEAR, 0) += internal_forces(FirstRow);
+    //    rGeometry[i].FastGetSolutionStepValue(YIELDED, 0) += internal_forces(FirstRow + 1);
+	//	FirstRow += 2;
+	//}
+	// temporary workaround - start
+
+	// KRATOS_WATCH(internal_forces.size());
+	// Vector temp = ZeroVector(6);
+	// temp[0] = internal_forces[1];
+	// temp[1] = internal_forces[0];
+	// temp[2] = internal_forces[3];
+	// temp[3] = internal_forces[2];
+	// temp[4] = internal_forces[5];
+	// temp[5] = internal_forces[4];
+
+	// Vector test_JMC_int_forces = ZeroVector(6);
+	// for (unsigned int i = 0; i < NumNodes; i++) {
+	//	  unsigned int indexup = dimension * i + i;
+	//	  unsigned int indexu = dimension * i;
+	//	  for (unsigned int j = 0; j < dimension; j++) {
+	//		  test_JMC_int_forces[indexup + j] += internal_forces[indexu + j];
+	//	  }
+	//}
+	// KRATOS_WATCH(test_JMC_int_forces);
+
+	noalias(rRHSVector) -= internal_forces;
+	                                            // KRATOS_WATCH(rRHSVector);
 }
 
 template <>
