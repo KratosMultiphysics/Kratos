@@ -85,7 +85,8 @@ KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication() : Krato
                                                                            mTwoStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
                                                                            mTwoStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
                                                                            mTwoStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                           mTwoStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10))))
+                                                                           mTwoStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
+                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidAxisymmetricElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -208,6 +209,7 @@ void KratosPfemFluidDynamicsApplication::Register()
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianElement2Dquadratic", mTwoStepUpdatedLagrangianElement2Dquadratic);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianElement3D", mTwoStepUpdatedLagrangianElement3D);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianElement3Dquadratic", mTwoStepUpdatedLagrangianElement3Dquadratic);
+  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitFluidAxisymmetricElement2D", mTwoStepUpdatedLagrangianVPImplicitFluidAxisymmetricElement2D);
 
   //Register Conditions
 
@@ -215,6 +217,7 @@ void KratosPfemFluidDynamicsApplication::Register()
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianAxisymmetricLaw", mNewtonianAxisymmetricLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology2DLaw", mPapanastasiouMuIRheology2DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology3DLaw", mPapanastasiouMuIRheology3DLaw);

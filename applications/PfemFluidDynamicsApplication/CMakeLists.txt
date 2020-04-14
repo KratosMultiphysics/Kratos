@@ -37,13 +37,15 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_implicit_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_axisymmetric_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
 
     # Fluid constitutive laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/fluid_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_axisymmetric_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_3D_law.cpp

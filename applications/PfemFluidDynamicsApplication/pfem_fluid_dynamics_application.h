@@ -3,7 +3,7 @@
 //  KRATOS| _ \/ _|___ _ __ | __| |_  _(_)__| |
 //        |  _/  _/ -_) '  \| _|| | || | / _` |
 //        |_| |_| \___|_|_|_|_| |_|\_,_|_\__,_|DYNAMICS
-//                                            
+//
 //  License:(BSD)    PfemFluidDynamicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
@@ -43,6 +43,7 @@
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_axisymmetric_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -61,6 +62,7 @@
 #include "custom_constitutive/fluid_laws/bingham_2D_law.h"
 #include "custom_constitutive/fluid_laws/bingham_3D_law.h"
 #include "custom_constitutive/fluid_laws/newtonian_2D_law.h"
+#include "custom_constitutive/fluid_laws/newtonian_axisymmetric_law.h"
 #include "custom_constitutive/fluid_laws/newtonian_3D_law.h"
 #include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.h"
 #include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_3D_law.h"
@@ -288,10 +290,14 @@ private:
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3D;
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3Dquadratic;
 
+  /// 2D two step v-p fluid axisymmetric element
+  const TwoStepUpdatedLagrangianVPImplicitFluidAxisymmetricElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidAxisymmetricElement2D;
+
   // Fluid constitutive laws
   const Bingham2DLaw mBingham2DLaw;
   const Bingham3DLaw mBingham3DLaw;
   const Newtonian2DLaw mNewtonian2DLaw;
+  const NewtonianAxisymmetricLaw mNewtonianAxisymmetricLaw;
   const Newtonian3DLaw mNewtonian3DLaw;
   const PapanastasiouMuIRheology2DLaw mPapanastasiouMuIRheology2DLaw;
   const JopMuIRheology3DLaw mJopMuIRheology3DLaw;
