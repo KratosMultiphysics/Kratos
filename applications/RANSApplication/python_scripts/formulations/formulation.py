@@ -41,14 +41,20 @@ class Formulation(ABC):
         pass
 
     def SolveCouplingStep(self):
-        for formulation in self.list_of_formulations:
-            if (not formulation.IsConverged()):
-                formulation.ExecuteBeforeCouplingSolveStep()
-                Kratos.Logger.PrintInfo(formulation.GetName(), "Initialized formulation coupling step.")
-                formulation.SolveCouplingStep()
-                Kratos.Logger.PrintInfo(formulation.GetName(), "Solved formulation coupling step.")
-                formulation.ExecuteAfterCouplingSolveStep()
-                Kratos.Logger.PrintInfo(formulation.GetName(), "Finalized formulation coupling step.")
+        for iteration in range(self.GetMaxCouplingIterations()):
+            solver_executed = False
+            for formulation in self.list_of_formulations:
+                if (not formulation.IsConverged()):
+                    formulation.ExecuteBeforeCouplingSolveStep()
+                    Kratos.Logger.PrintInfo(formulation.GetName(), "Initialized formulation coupling step.")
+                    formulation.SolveCouplingStep()
+                    Kratos.Logger.PrintInfo(formulation.GetName(), "Solved formulation coupling step.")
+                    formulation.ExecuteAfterCouplingSolveStep()
+                    Kratos.Logger.PrintInfo(formulation.GetName(), "Finalized formulation coupling step.")
+                    solver_executed = True
+
+            if (solver_executed):
+                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + ".")
 
     def ExecuteAfterCouplingSolveStep(self):
         pass
@@ -95,13 +101,40 @@ class Formulation(ABC):
         self.__ExecuteFormulationMethods("SetIsPeriodic", [value])
         self.is_periodic = value
 
+    def SetTimeSchemeSettings(self, settings):
+        self.__ExecuteFormulationMethods("SetTimeSchemeSettings", [settings])
+        self.time_scheme_settings = settings
+
+    def GetTimeSchemeSettings(self):
+        if (hasattr(self, "time_scheme_settings")):
+            return self.time_scheme_settings
+        else:
+            raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
+
     def GetBaseModelPart(self):
         return self.base_computing_model_part
+
+    def GetMaxCouplingIterations(self):
+        return 1
+
+    def GetInfo(self):
+        info = self.GetName()
+        for formulation in self.list_of_formulations:
+            info += str(formulation.GetInfo()).replace("\n", "\n\t")
+        return info
 
     def __ExecuteFormulationMethods(self, method_name, args = []):
         for formulation in self.list_of_formulations:
             getattr(formulation, method_name)(*args)
 
+    def SetConstants(self, settings):
+        pass
+
+    def GetFormulationsList(self):
+        return self.list_of_formulations
+
+    def GetStrategy(self):
+        return None
 
 
 
