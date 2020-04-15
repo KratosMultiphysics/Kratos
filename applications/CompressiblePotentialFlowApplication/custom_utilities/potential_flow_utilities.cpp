@@ -437,6 +437,19 @@ double ComputeLocalMachSquaredDerivative(
     double sq_local_velocity = inner_prod(velocity, velocity);
     double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
 
+    // check if velocity is over max allowed velocity
+    double sq_max_velocity = ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+
+    if (sq_local_velocity > sq_max_velocity)
+    {
+        KRATOS_WARNING("Clamped local velocity") << 
+        "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
+        << " sq_local_velocity  = " << sq_max_velocity
+        << " sq_max_velocity  = " << sq_max_velocity << std::endl;
+
+        sq_local_velocity = sq_max_velocity;
+    }
+
     // square bracket term
     double square_bracket_term = 1.0 + 0.5*(heat_capacity_ratio - 1)*
             sq_free_stream_mach*(1 - (sq_local_velocity/sq_free_stream_velocity));
@@ -478,7 +491,7 @@ double ComputeLocalSpeedofSoundSquared(
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
-    //      Aerodynamics, The MIT Press, London and
+    //      Aerodynamics, The MIT Press, London
 
     // read free stream values
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
@@ -510,8 +523,36 @@ double ComputeLocalSpeedofSoundSquared(
             sq_free_stream_mach*(1 - (sq_local_velocity/sq_free_stream_velocity));
 
     return sq_free_stream_speed_sound * square_bracket_term;
-
 }
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumberSquared(
+    const array_1d<double, Dim>& rVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.8 of Drela, M. (2014) Flight Vehicle
+    //      Aerodynamics, The MIT Press, London
+
+    double sq_local_speed_of_sound = ComputeLocalSpeedofSoundSquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
+
+    double sq_local_velocity = inner_prod(rVelocity, rVelocity);
+
+    // check if velocity is over max allowed velocity
+    double sq_max_velocity = ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+
+    if (sq_local_velocity > sq_max_velocity)
+    {
+        KRATOS_WARNING("ComputeLocalMachNumberSquared: Clamped local velocity") << 
+        "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
+        << " sq_local_velocity  = " << sq_max_velocity
+        << " sq_max_velocity  = " << sq_max_velocity << std::endl;
+
+        sq_local_velocity = sq_max_velocity;
+    }
+
+    return sq_local_velocity / sq_local_speed_of_sound;
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -544,6 +585,7 @@ template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rT
 template double ComputeLocalMachSquaredDerivative<2, 3>(const array_1d<double, 2>& velocity, const double& local_mach_number, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedofSoundSquared<2, 3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
@@ -572,6 +614,7 @@ template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rT
 template double ComputeLocalMachSquaredDerivative<3, 4>(const array_1d<double, 3>& velocity, const double& local_mach_number, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedofSoundSquared<3, 4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 } // namespace PotentialFlow
 } // namespace Kratos

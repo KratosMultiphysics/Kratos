@@ -181,7 +181,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeTransonicMach, Compre
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = 68.0 * sqrt(67.0/3.0);
 
-    double local_mach_number = 1.0;
+    double sq_local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+    double local_mach_number = sqrt(sq_local_mach_number);
 
     auto mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
                 local_mach_number, model_part.GetProcessInfo());
@@ -209,12 +210,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeSupersonicMach, Compr
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = 272.0 * sqrt(134.0/21.0);
 
-    const double local_mach_number = 4.0;
+    double sq_local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+    double local_mach_number = sqrt(sq_local_mach_number);
 
     double mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
                 local_mach_number, model_part.GetProcessInfo());
-
-    double reference_derivative = 0.000142346227340804;
+                
+    double reference_derivative = 2.06579558952642e-05;
 
     KRATOS_CHECK_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
@@ -266,6 +268,31 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotential
     double reference_sq_local_speed_sound = 77452.0000000000;
 
     KRATOS_CHECK_NEAR(sq_local_speed_sound, reference_sq_local_speed_sound, 1e-16);
+}
+
+// Checks ComputeLocalMachNumberSquared in utilities, local velocity that should be clamped
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    model_part.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+    model_part.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
+    model_part.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+    model_part.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = model_part.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              model_part.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = 350000.0;
+
+    double sq_local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+
+    double reference_sq_local_mach_number = 3.0;
+
+    KRATOS_CHECK_NEAR(sq_local_mach_number, reference_sq_local_mach_number, 1e-10);
 }
 
 } // namespace Testing
