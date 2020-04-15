@@ -170,7 +170,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             clock_time = StartTimeMeasuring()
 
             #add walls in fluid domains:
-            transfer_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.NOT_FLUID]
+            transfer_flags = [KratosMultiphysics.RIGID, (KratosMultiphysics.FLUID).AsFalse()]
 
             for solid_part in solid_body_model_parts:
                 set_solid_material_process=KratosPfemFluid.SetMaterialPropertiesToSolidNodes(solid_part)
@@ -233,6 +233,3 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
         print(" Main Model Part", self.main_model_part )
-
-
-

@@ -15,7 +15,7 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Spring_structure"
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n/Spring_structure"
         },
         "time_stepping"                      : {
             "time_step" : 1.1

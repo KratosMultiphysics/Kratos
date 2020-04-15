@@ -31,7 +31,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "element_finite_difference_utility.h"
+#include "finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -266,15 +266,15 @@ protected:
 				Vector derived_RHS = Vector(0);
 
 				// x-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
                 // y-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
                 // z-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node

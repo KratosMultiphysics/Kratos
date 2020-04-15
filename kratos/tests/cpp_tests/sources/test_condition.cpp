@@ -44,7 +44,7 @@ namespace Kratos {
             list_nodes[1] = p_node2;
             list_nodes[2] = p_node3;
 
-            auto p_cond = model_part.CreateNewCondition("Condition3D", 1, PointerVector<NodeType>{list_nodes}, p_prop);
+            auto p_cond = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, PointerVector<NodeType>{list_nodes}, p_prop);
 
             p_cond->SetValue(DISTANCE, 12.1);
             p_cond->SetValue(VELOCITY_X, 32.4);

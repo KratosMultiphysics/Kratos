@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -23,7 +23,6 @@
 #include "linear_solvers/deflated_cg_solver.h"
 #include "linear_solvers/bicgstab_solver.h"
 #include "linear_solvers/tfqmr_solver.h"
-#include "linear_solvers/mixedup_linear_solver.h"
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
 #include "linear_solvers/scaling_solver.h"
@@ -42,7 +41,6 @@ namespace Kratos
 //         typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
         typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
         typedef DeflatedCGSolver<SpaceType,  LocalSpaceType> DeflatedCGSolverType;
-//         typedef MixedUPLinearSolver<SpaceType,  LocalSpaceType> MixedUPLinearSolverType;
         typedef BICGSTABSolver<SpaceType,  LocalSpaceType> BICGSTABSolverType;
         typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
         typedef SkylineLUFactorizationSolver<SpaceType,  LocalSpaceType> SkylineLUFactorizationSolverType;
@@ -57,7 +55,6 @@ namespace Kratos
         static auto BICGSTABSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,BICGSTABSolverType>();
         static auto DeflatedCGSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,DeflatedCGSolverType>();
         static auto SkylineLUFactorizationSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,SkylineLUFactorizationSolverType>();
-//         static auto MixedUPStandardLinearSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,MixedUPLinearSolverType>();
         static auto TFQMRSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,TFQMRSolverType>();
         static auto AMGCLSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCLSolverType>();
         static auto AMGCL_NS_SolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
@@ -78,4 +75,3 @@ namespace Kratos
 
     };
 } // Namespace Kratos
-

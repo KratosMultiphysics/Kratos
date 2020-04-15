@@ -155,6 +155,7 @@ class SearchBaseProcess(KM.Process):
             master_slave_process.Execute()
 
         # Setting the integration order and active check factor
+        KM.AuxiliarModelPartUtilities(self._get_process_model_part()).RecursiveEnsureModelPartOwnsProperties(True)
         for prop in self._get_process_model_part().GetProperties():
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
 

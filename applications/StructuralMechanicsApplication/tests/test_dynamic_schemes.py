@@ -334,9 +334,23 @@ def create_solver(mp, scheme_name):
     elif scheme_name == "pseudo_static":
         scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
     elif scheme_name == "backward_euler":
-        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
+        bdf_parameters = KratosMultiphysics.Parameters(""" {
+            "domain_size"           : 3,
+            "integration_order"     : 1,
+            "solution_variables"    : ["DISPLACEMENT"]
+        } """)
+        bdf_parameters["domain_size"].SetInt(mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(1, bdf_parameters)
+        #scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
     elif scheme_name == "bdf2":
-        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
+        bdf_parameters = KratosMultiphysics.Parameters(""" {
+            "domain_size"           : 3,
+            "integration_order"     : 2,
+            "solution_variables"    : ["DISPLACEMENT"]
+        } """)
+        bdf_parameters["domain_size"].SetInt(mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(2, bdf_parameters)
+        #scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
     elif scheme_name == "explicit":
         dynamic_settings = KratosMultiphysics.Parameters("""
         {

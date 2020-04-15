@@ -31,11 +31,11 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fs_strategy.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
-#include "custom_strategies/strategies/gear_scheme.h"
+
+//schemes
+#include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -100,25 +100,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def("SetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::SetVelocityRelaxationFactor)
     .def("GetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::GetPressureRelaxationFactor)
     .def("SetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::SetPressureRelaxationFactor)
-    ;
-
-    py::class_<
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulent")
-    .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                  // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
-    ;
-
-    py::class_<
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>::Pointer,
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>>
-        (m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction")
-    .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                  // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
     ;
 
     py::class_<

@@ -31,7 +31,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
             self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping...")
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
-                ### Begin Substepping 
+                ### Begin Substepping
                 self.BeforeSolveDEMOperations()
                 FEMDEM_utilities.InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
                                                                self.FEM_Solution.delta_time,
@@ -54,8 +54,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
                 # DEM GiD print output
                 self.PrintDEMResults()
-
-                self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
 
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt

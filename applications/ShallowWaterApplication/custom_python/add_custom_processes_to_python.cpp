@@ -46,7 +46,7 @@ namespace Python
         (m, "ElementalRefiningCriteriaProcess")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&, Variable<double>, double, bool>())
+        .def(py::init<ModelPart&, const Variable<double>&, double, bool>())
         ;
 
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
