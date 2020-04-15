@@ -21,16 +21,37 @@ model_part_coupling_quadrature_points = current_model.CreateModelPart("coupling_
 
 ReadModelPart(model_part_origin, "coupled_cantilever/domainA")
 ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
-print(model_part_origin)
-print(model_part_destination)
 
-interfaceOrigin = model_part_origin.GetSubModelPart("PointLoad2D_domainAinterface")
-interfaceDestination = model_part_destination.GetSubModelPart("DISPLACEMENT_domainBinterface")
-print(interfaceOrigin)
-print(interfaceDestination)
+# Create submodelparts
+model_part_origin.CreateSubModelPart("interface")
+originInterface = model_part_origin.GetSubModelPart("interface")
+for nodeIndex in range(328,334):
+    originInterface.AddNodes([nodeIndex])
+model_part_destination.CreateSubModelPart("interface")
+destinationInterface = model_part_destination.GetSubModelPart("interface")
+destinationInterface.AddNodes([10])
+destinationInterface.AddNodes([6])
+destinationInterface.AddNodes([3])
+destinationInterface.AddNodes([1])
 
-# TODO, add some logic to call the correct intersection function. that would depend on the dimension of the coupling interfaces
-KratosMapping.FindIntersection1DGeometries2D(interfaceOrigin, interfaceDestination, model_part_coupling, 1e-6)
+
+# Create dummy line conditions on submodel parts to couple together
+originProps = originInterface.GetProperties()[1]
+nodeOffset = 327
+for conditionIndex in range(1,6):
+    cNode = nodeOffset + conditionIndex
+    originInterface.CreateNewCondition("LineLoadCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
+print(originInterface)
+
+destProps = destinationInterface.GetProperties()[1]
+destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 101, [1,3], destProps)
+destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 102, [3,6], destProps)
+destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 103, [6,10], destProps)
+print(destinationInterface)
+
+
+# TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
+KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
 KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
 
 mapper_params = KM.Parameters("""{
