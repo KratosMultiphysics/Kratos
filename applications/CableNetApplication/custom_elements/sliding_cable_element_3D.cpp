@@ -92,10 +92,14 @@ void SlidingCableElement3D::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void SlidingCableElement3D::Initialize()
+void SlidingCableElement3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+    } else {
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
+    }
     KRATOS_CATCH("")
 }
 
@@ -323,20 +327,17 @@ Vector SlidingCableElement3D::GetInternalForces()
   const double ref_length     = this->GetRefLength();
 
 
-  Vector temp_internal_stresses = ZeroVector(6);
   ProcessInfo temp_process_information;
   ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
-
   Vector temp_strain = ZeroVector(1);
+  Vector temp_stress = ZeroVector(1);
   temp_strain[0] = CalculateGreenLagrangeStrain();
   Values.SetStrainVector(temp_strain);
-  mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
+  Values.SetStressVector(temp_stress);
+  mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
 
-  const double total_internal_force = (temp_internal_stresses[3]+prestress) * area * current_length / ref_length;
-
-
-
+  double total_internal_force = (temp_stress[0]+prestress) * area * current_length / ref_length;
 
   Vector internal_forces = total_internal_force*this->GetDirectionVectorNt();
 
@@ -870,47 +871,17 @@ Vector SlidingCableElement3D::CalculateProjectionLengths()
 void SlidingCableElement3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    ConstitutiveLaw::Parameters element_parameters;
-    mpConstitutiveLaw->FinalizeMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+    Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
+    temp_strain[0] = CalculateGreenLagrangeStrain();
+    Values.SetStrainVector(temp_strain);
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->FinalizeMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("");
 }
 
-
-void SlidingCableElement3D::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    GetConstitutiveLawTrialResponse(rCurrentProcessInfo);
-    KRATOS_CATCH("");
-}
-
-void SlidingCableElement3D::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    Vector temp_shape_function = ZeroVector(3);
-    mpConstitutiveLaw->FinalizeNonLinearIteration(GetProperties(),
-            GetGeometry(),temp_shape_function,rCurrentProcessInfo);
-    KRATOS_CATCH("");
-}
-
-
-void SlidingCableElement3D::GetConstitutiveLawTrialResponse(
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    Vector stress_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    strain_vector[0] = CalculateGreenLagrangeStrain();
-
-
-    ConstitutiveLaw::Parameters element_parameters;
-    element_parameters.SetMaterialProperties(GetProperties());
-    element_parameters.SetStressVector(stress_vector);
-    element_parameters.SetStrainVector(strain_vector);
-
-    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-
-    KRATOS_CATCH("");
-}
 
 double SlidingCableElement3D::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const
 {

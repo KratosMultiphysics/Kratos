@@ -73,7 +73,7 @@ class MainCoupledFemDem_Solution:
                                                                            self.DEMParameters)
 
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
 
         if self.DoRemeshing:
             self.InitializeMMGvariables()
@@ -94,7 +94,7 @@ class MainCoupledFemDem_Solution:
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
-        
+
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -218,8 +218,6 @@ class MainCoupledFemDem_Solution:
         # DEM GiD print output
         self.PrintDEMResults()
 
-        self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
-
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
             self.TransferNodalForcesToFEM()
@@ -287,7 +285,7 @@ class MainCoupledFemDem_Solution:
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
-        
+
         if self.PressureLoad:
             utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_ID, 0, nodes)
 
@@ -330,7 +328,7 @@ class MainCoupledFemDem_Solution:
 
         if self.domain_size == 3:
             if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
-                self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+                self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
                 self.nodal_neighbour_finder.Execute()
                 # We reset the flag
                 self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
@@ -372,7 +370,7 @@ class MainCoupledFemDem_Solution:
                 if self.domain_size == 3:
                     self.RefineMappedVariables()
                     self.InitializeSolutionAfterRemeshing()
-                    self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+                    self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
                     self.nodal_neighbour_finder.Execute()
                     # We assign the flag to recompute neighbours inside the 3D elements
                     utils = KratosMultiphysics.VariableUtils()
@@ -489,7 +487,7 @@ class MainCoupledFemDem_Solution:
                 # We assign the flag to recompute neighbours inside the 3D elements
                 utils = KratosMultiphysics.VariableUtils()
                 utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
-            
+
             # We update the skin for the DE-FE contact
             self.ComputeSkinSubModelPart()
             if self.DEMFEM_contact:
@@ -712,11 +710,11 @@ class MainCoupledFemDem_Solution:
                     Elem = self.FEM_Solution.main_model_part.GetElement(Idelem)
                     self.PlotFilesElementsList[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
 
-                    stress_tensor = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
+                    stress_tensor = Elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
                     strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
 
                     damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
-                    
+
                     if self.domain_size == 2:
                         Sxx = stress_tensor[0][0]
                         Syy = stress_tensor[0][1]
@@ -841,12 +839,12 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
 
         remove_alone_DEM_elements_process = KratosFemDem.RemoveAloneDEMElementsProcess(
-                                                         self.FEM_Solution.main_model_part, 
+                                                         self.FEM_Solution.main_model_part,
                                                          self.SpheresModelPart)
         remove_alone_DEM_elements_process.Execute()
 
 #ExecuteBeforeGeneratingDEM============================================================================================================================
-    def ExecuteBeforeGeneratingDEM(self): 
+    def ExecuteBeforeGeneratingDEM(self):
         """Here the erased are labeled as INACTIVE so you can access to them. After calling
            GenerateDEM they are totally erased """
         if self.PressureLoad:
@@ -885,16 +883,12 @@ class MainCoupledFemDem_Solution:
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
             dem_walls_mp.AddProperties(props)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
-    
+
     #-----------------------------------
     def EraseConditionsAndNodesSubModelPart(self):
         DEM_sub_model_part = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
-        for cond in DEM_sub_model_part.Conditions:
-            cond.Set(KratosMultiphysics.TO_ERASE, True)
-        for node in DEM_sub_model_part.Nodes:
-            node.Set(KratosMultiphysics.TO_ERASE, True)
-        DEM_sub_model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
-        DEM_sub_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        self.DEM_Solution.rigid_face_model_part.Conditions.clear()
+        self.DEM_Solution.rigid_face_model_part.Nodes.clear()
     #-----------------------------------
     def CreateFEMPropertiesForDEFEContact(self):
         max_id_properties = 0

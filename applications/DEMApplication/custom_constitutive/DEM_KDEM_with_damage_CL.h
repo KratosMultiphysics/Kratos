@@ -22,8 +22,6 @@ namespace Kratos {
 
         void Check(Properties::Pointer pProp) const override;
 
-        void Initialize(SphericContinuumParticle* element) override;
-
         void CalculateForces(const ProcessInfo& r_process_info,
                              double OldLocalElasticContactForce[3],
                              double LocalElasticContactForce[3],

@@ -78,33 +78,33 @@ namespace Python
 	{
 		Mesher.ReGenerateMesh(model_part,
 			KratosComponents<Element>::Get("Fluid3D"),
-			KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+			KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 	}
 
 	void TetRegenerateLagrangian(TetGenModeler& Mesher,ModelPart& model_part, double alpha_shape)
 	{
 		Mesher.ReGenerateMesh(model_part,
 			KratosComponents<Element>::Get("TotalLagrangianFLuid"),
-			KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+			KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 	}
 */
 void TetRegeneratePfemUlf3D(TetGenPfemModeler& Mesher,ModelPart& model_part, double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("UpdatedLagrangianFluid3D"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 }
 void TetRegeneratePfemUlf3DInc(TetGenPfemModeler& Mesher,ModelPart& model_part, double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("UpdatedLagrangianFluid3Dinc"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 }
 void TetRegeneratePfem3DInc(TetGenPfemModeler& Mesher,ModelPart& model_part, double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("Fluid3D"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 }
 
 void TriRefinePFEM(TriGenCDTrefine & Mesher,ModelPart& model_part,bool refine)
@@ -118,33 +118,33 @@ void TriRegenerate(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shap
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("Fluid2D"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("LineCondition2D2N"),alpha_shape	);
 }
 
 void TriRegenerateCoupled(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("Fluid2DCoupled"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("LineCondition2D2N"),alpha_shape	);
 }
 
 void TriRegenerateUpdatedLagrangian(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("UpdatedLagrangianFluid2D"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("LineCondition2D2N"),alpha_shape	);
 }
 void TriRegenerateUpdatedLagrangianTest(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("UpdatedLagrangianFluid2Dinc"),
-                          KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("LineCondition2D2N"),alpha_shape	);
 }
 void TetRegenerateUpdatedLagrangian(TetGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
 {
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("UpdatedLagrangianFluid3D"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 }
 
 void TetRegenerateUpdatedLagrangianInc(TetGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
@@ -152,14 +152,14 @@ void TetRegenerateUpdatedLagrangianInc(TetGenModeler& Mesher,ModelPart& model_pa
     //KRATOS_WATCH("AAAAAAAAAKKKKKKKKKKKKKKKKKKKK")
     Mesher.ReGenerateMesh(model_part,
                           KratosComponents<Element>::Get("UpdatedLagrangianFluid3Dinc"),
-                          KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+                          KratosComponents<Condition>::Get("SurfaceCondition3D3N"),alpha_shape	);
 }
 /*
 void TriRegenerateulf_pressure(TriGenModeler& Mesher,ModelPart& model_part,double alpha_shape)
 {
 	Mesher.ReGenerateMesh(model_part,
 		KratosComponents<Element>::Get("ulf_pressure2D"),
-		KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
+		KratosComponents<Condition>::Get("LineCondition2D2N"),alpha_shape	);
 }
 */
 void  AddMeshersToPython(pybind11::module& m)

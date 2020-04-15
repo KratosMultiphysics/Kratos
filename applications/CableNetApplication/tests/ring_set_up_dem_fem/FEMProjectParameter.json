@@ -48,6 +48,7 @@
 			"Parameters"      : {
 				"model_part_name"         : "Structure",
 				"variable_name"           : "VOLUME_ACCELERATION",
+                "constrained"             : false,
 				"modulus"                 : 9.81,
 				"direction"               : [0.0,0.0,-1.0],
 				"interval"                : [0.0,"End"]
@@ -106,7 +107,7 @@
 				"input_file_name"  : "ring_set_up_dem_fem/ring_set_up_dem_fem_test_results.json",
 				"model_part_name"  : "Structure.checkMP",
 				"time_frequency"   : 5e-04,
-				"tolerance"        : 1e-2
+				"tolerance"        : 3e-1
 			}
 		}],
 		"list_other_processes"             :  [],

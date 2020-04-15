@@ -1,21 +1,22 @@
 # Contents
-* [Basic Configuration](#basic-configuration)
-* [Adding Applications](#basic-configuration)
-* [Adding Kratos to Path](#adding-kratos-to-path)
-* [Examples](#examples)
-  * [Linux](#linux)
-  * [Windows](#windows)
-  * [MacOS](#macos)
-* [Advanced Configuration](#advanced-configuration)
-  * [Building Environment](#building-environments)
-  * [Common Flags](#common-flags)
-  * [Compilation Performance](#compilation-performance)
-  * [Parallelism](#parallelism)
-  * [External Libraries](#external-libraries)
-    * [Feast](#feast)
-    * [Metis](#metis)
-    * [Trilinos](#trilinos)
-* [Applications](#applications)
+- [Contents](#contents)
+  - [Basic Configuration](#basic-configuration)
+  - [Adding Applications](#adding-applications)
+  - [Adding Kratos to Path](#adding-kratos-to-path)
+  - [Examples](#examples)
+    - [Linux](#linux)
+    - [Windows](#windows)
+    - [MacOS](#macos)
+  - [Advanced Configuration](#advanced-configuration)
+    - [Building Environment](#building-environment)
+    - [Common Flags](#common-flags)
+    - [Compilation Performance](#compilation-performance)
+    - [Parallelism](#parallelism)
+    - [Logging](#logging)
+    - [External libraries](#external-libraries)
+      - [Metis](#metis)
+      - [Trilinos](#trilinos)
+  - [Applications](#applications)
 
 
 ## Basic Configuration
@@ -55,14 +56,14 @@ Its now also possible to compile applications outside kratos source dir:
 
 Linux:
 ```shell
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication    
+add_app ${KRATOS_APP_DIR}/EigenSolversApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
 add_app /home/username/development/ExternalApplication  # Example of external Application
 ```
 
 Windows:
 ```shell
-CALL :add_app %KRATOS_APP_DIR%/ExternalSolversApplication    
+CALL :add_app %KRATOS_APP_DIR%/EigenSolversApplication
 CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
 ```
@@ -85,7 +86,7 @@ set PATH=%PATH%;C:/Kratos/bin/Release/libs
 
 ## Examples
 
-This examples are also located in 
+This examples are also located in
 
 ### Linux
 
@@ -111,7 +112,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
+add_app ${KRATOS_APP_DIR}/EigenSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -122,7 +123,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
@@ -148,7 +149,7 @@ set PYTHON_EXECUTABLE=C:\Python37\python.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 
@@ -159,10 +160,8 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Configure
 @echo on
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DINCLUDE_FEAST=OFF                                                                                 ^
--DLAPACK_LIBRARIES="C:\CompiledLibs\blas_x64\liblapack.lib"                                         ^
--DBLAS_LIBRARIES="C:\CompiledLibs\blas_x64\libblas.lib"
+cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DUSE_EIGEN_MKL=OFF
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
@@ -200,7 +199,7 @@ export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.7/bin/
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
+add_app ${KRATOS_APP_DIR}/EigenSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -214,8 +213,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 /Applications/CMake.app/Contents/bin/cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -L/usr/local/opt/llvm/lib" \
  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib" \
- -DLAPACK_LIBRARIES="/usr/lib/liblapack.dylib" \
- -DBLAS_LIBRARIES="/usr/lib/libblas.dylib" \
+ -DUSE_EIGEN_MKL=OFF
 
 # Buid
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
@@ -268,7 +266,7 @@ User defined flags for the C compiler.
 
 `-DCMAKE_CXX_FLAGS=String`
 
-User defined flags for the C++ compiler. 
+User defined flags for the C++ compiler.
 
 `-DBOOST_ROOT=String`
 
@@ -293,9 +291,16 @@ Enables or Disables(default) the use of [cotire](https://github.com/sakra/cotire
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
 In order to install and compile with this switch please use:
+
+On Linux
 ```shell
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1 
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1 && \
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+```
+On Windows
+```shell
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
@@ -311,11 +316,6 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### External libraries
-#### Feast
-`-DINCLUDE_FEAST`
-
-Enables or Disables(default) the use of FEAST
-
 #### Metis
 
 `-DUSE_METIS_5=ON/OFF`
@@ -340,7 +340,7 @@ Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
 
 Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
 
-`-DTRILINOS_PREFIX=String`
+`-DTRILINOS_LIBRARY_PREFIX=String`
 Indicates the prefix of the trilinos libraries in case they have:
 ```
 libepetra.so          -> No prefix

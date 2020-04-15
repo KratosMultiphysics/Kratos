@@ -3,7 +3,8 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 2
-  FRICTION 30.0
+  STATIC_FRICTION 30.0
+  DYNAMIC_FRICTION 30.0
   WALL_COHESION 0.0
   COMPUTE_WEAR 0
   SEVERITY_OF_WEAR 0.001
@@ -30,8 +31,8 @@ End Nodes
 
 
 Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: wall
-    2          2          9          8          6 
-    3          2          9          6          7 
+    2          2          9          8          6
+    3          2          9          6          7
 End Conditions
 
 Begin SubModelPart 1 // GUI DEM-FEM-Wall - DEM-FEM-Wall - group identifier: wall

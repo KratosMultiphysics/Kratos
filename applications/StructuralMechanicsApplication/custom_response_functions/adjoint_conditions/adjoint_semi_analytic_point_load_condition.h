@@ -110,21 +110,9 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
-
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
-                                            Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
-
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access

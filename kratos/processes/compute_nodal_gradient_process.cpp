@@ -134,7 +134,7 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
     KRATOS_TRY
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We get the gradient variable
@@ -188,7 +188,7 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
     KRATOS_TRY
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We get the gradient variable
@@ -474,7 +474,7 @@ void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonH
 /***********************************************************************************/
 
 template<bool THistorical>
-Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
+const Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
 {
     Parameters default_parameters = Parameters(R"(
     {

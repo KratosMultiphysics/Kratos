@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
-#include "includes/kratos_components.h"
 
 namespace Kratos
 {

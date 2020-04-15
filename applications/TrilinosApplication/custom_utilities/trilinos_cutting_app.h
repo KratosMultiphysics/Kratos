@@ -369,7 +369,7 @@ public:
         //NOW WE MUST COPY THE CONDITIONS
         int triangle_ID = number_of_old_conditions + conditions_before;
         vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");         //condition type
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
 
         for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
@@ -1128,7 +1128,7 @@ public:
         ElementsArrayType::iterator it_begin_old = rElements_old.ptr_begin();
         ElementsArrayType::iterator it_end_old = rElements_old.ptr_end();
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number);
 
         int triangle_id_int = 0; //counter for the new elements generated

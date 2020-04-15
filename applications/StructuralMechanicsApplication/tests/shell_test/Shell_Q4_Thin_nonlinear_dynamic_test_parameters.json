@@ -84,6 +84,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Structure.SelfWeight3D_surface",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"          : 9.8,
             "direction"       : [0.0,0.0,-1.0]
         }
