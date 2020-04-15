@@ -228,7 +228,7 @@ public:
 
                 // Check dof id is solved
                 if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id]) {
+                    if (mActiveDofs[dof_id] == 1) {
                         const auto& r_curr_var = it_dof->GetVariable();
                         if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
                             dof_value = it_dof->GetSolutionStepValue(0);
@@ -449,7 +449,7 @@ private:
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
 
-    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;  /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
