@@ -23,6 +23,34 @@
 namespace Kratos
 {
 
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double young   = r_material_properties[YOUNG_MODULUS];
+    const double poisson = r_material_properties[POISSON_RATIO];
+    return young / (3 * (1 - 2.0 * poisson));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateBulkModulus(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double young   = r_material_properties[YOUNG_MODULUS];
+    const double poisson = r_material_properties[POISSON_RATIO];
+    return young / (2.0 * (1 + poisson));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
     const BoundedVectorType& rStressVector,

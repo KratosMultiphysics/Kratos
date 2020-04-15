@@ -108,6 +108,20 @@ class ConstitutiveLawUtilities
     ///@{
 
     /**
+     * @brief This method computes the Bulk modulus K = E / (2(1+nu))
+     * @param rValues Parameters of the constitutive law
+     */
+    static double CalculateBulkModulus(
+        ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This method computes the Shear modulus G = E / (3(1-2nu))
+     * @param rValues Parameters of the constitutive law
+     */
+    static double CalculateShearModulus(
+        ConstitutiveLaw::Parameters &rValues);
+
+    /**
      * @brief This method computes the first invariant from a given stress vector
      * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
