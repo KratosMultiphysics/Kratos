@@ -183,7 +183,10 @@ protected:
                                              const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables, 
                                              Vector &rStrainVector, double& rDamageElement,  bool& rIsDamaging, const double CharacteristicLength,
                                              const bool SaveIntVars);
-        
+
+    double mAcumulatedPlasticStrain = 0.0;
+    double mPlasticityThreshold     = 0.0;
+
     ///@name Static Member Variables
     ///@{
 
