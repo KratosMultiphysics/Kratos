@@ -112,12 +112,6 @@ class MechanicalSolver(PythonSolver):
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "line_search": false,
-            "arc_length": false,
-            "arc_length_loads_sub_model_part_list":[],
-            "arc_length_loads_variable_list":[],
-            "arc_length_desired_iterations":6,
-            "arc_length_max_radius_factor":1.5,
-            "arc_length_min_radius_factor":0.8,
             "compute_reactions": true,
             "block_builder" : true,
             "builder_and_solver_settings" : {
@@ -462,11 +456,8 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            if (self.settings["line_search"].GetBool() == False):
-                if (self.settings["arc_length"].GetBool()):
-                    mechanical_solution_strategy = self._create_ramm_arc_length_strategy()
-                else:
-                    mechanical_solution_strategy = self._create_newton_raphson_strategy()
+            if(self.settings["line_search"].GetBool() == False):
+                mechanical_solution_strategy = self._create_newton_raphson_strategy()
             else:
                 mechanical_solution_strategy = self._create_line_search_strategy()
         else:
@@ -520,50 +511,3 @@ class MechanicalSolver(PythonSolver):
                                                      self.settings["compute_reactions"].GetBool(),
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
-
-    def _create_ramm_arc_length_strategy(self):
-        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
-        import json
-        self.loads_sub_sub_model_part_list = []
-        for i in range(self.settings["arc_length_loads_sub_model_part_list"].size()):
-            self.loads_sub_sub_model_part_list.append("sub_" + self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
-        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
-
-        computing_model_part = self.GetComputingModelPart()
-
-        # We create the arc-length loads subsubmodel parts
-        # Adding the nodes and conditions
-        for i in range(self.loads_sub_sub_model_part_list.size()):
-            computing_sub_model = computing_model_part.CreateSubModelPart("sub_" + self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
-            sub_model_part = self.main_model_part.GetSubModelPart(self.settings["arc_length_loads_sub_model_part_list"][i].GetString())
-            for node in sub_model_part.Nodes:
-                computing_sub_model.AddNode(node, 0)
-            for cond in sub_model_part.Conditions:
-                computing_sub_model.AddCondition(cond, 0)
-        
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-
-        # Arc-Length strategy
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.ARC_LENGTH_LAMBDA,1.0)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.ARC_LENGTH_RADIUS_FACTOR,1.0)
-
-        self.strategy_params = KratosMultiphysics.Parameters("{}")
-        self.strategy_params.AddValue("desired_iterations", self.settings["arc_length_desired_iterations"])
-        self.strategy_params.AddValue("max_radius_factor", self.settings["arc_length_max_radius_factor"])
-        self.strategy_params.AddValue("min_radius_factor", self.settings["arc_length_min_radius_factor"])
-        self.strategy_params.AddValue("loads_sub_model_part_list", self.loads_sub_sub_model_part_list)
-        self.strategy_params.AddValue("loads_variable_list", self.settings["arc_length_loads_variable_list"])
-
-        return KratosMultiphysics.RammArcLengthStrategy(computing_model_part,
-                                                        mechanical_scheme,
-                                                        linear_solver,
-                                                        mechanical_convergence_criterion,
-                                                        builder_and_solver,
-                                                        self.strategy_params,
-                                                        self.settings["max_iteration"].GetInt(),
-                                                        self.settings["compute_reactions"].GetBool(),
-                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                        self.settings["move_mesh_flag"].GetBool())
