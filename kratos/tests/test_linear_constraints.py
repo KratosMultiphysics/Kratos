@@ -7,7 +7,7 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 import math
 
 if KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
-    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+    import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 def inner_prod(a,b):
     tmp = 0
