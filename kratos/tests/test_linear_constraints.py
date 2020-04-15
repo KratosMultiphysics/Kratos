@@ -6,9 +6,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 import math
 
-structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
-if structural_mechanics_is_available:
-    import KratosMultiphysics.StructuralMechanicsApplication as SMA
+if KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
+    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def inner_prod(a,b):
     tmp = 0
@@ -299,7 +298,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             self.mp.CloneTimeStep(time)
 
         self.mp.ProcessInfo[KM.IS_RESTARTED] = False
-
+        
     def _basic_setup_test(self, solving_with = "Block", linear_solver = "AMGCL"):
         dim = 2
         current_model = KM.Model()
@@ -365,30 +364,29 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self._advanced_check_results()
         self._reset()
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_basic_MPC_Constraints(self):
         self._basic_setup_test("Block")
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_advanced_MPC_Constraints(self):
         self._advanced_setup_test("Block", "LU")
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_basic_LM_MPC_Constraints(self):
         self._basic_setup_test("LM", "LU")
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_advanced_LM_MPC_Constraints(self):
         self._advanced_setup_test("LM", "LU")
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_basic_Double_LM_MPC_Constraints(self):
         self._basic_setup_test("DoubleLM")
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_advanced_Double_LM_MPC_Constraints(self):
         self._advanced_setup_test("DoubleLM")
-
 
 class TestLinearConstraints(KratosUnittest.TestCase):
     def setUp(self):
@@ -466,7 +464,7 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         strategy.SolveSolutionStep()
         strategy.FinalizeSolutionStep()
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_constraints(self):
         dim = 2
 

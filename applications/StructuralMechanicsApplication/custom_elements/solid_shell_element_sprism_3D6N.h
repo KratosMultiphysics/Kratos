@@ -618,7 +618,7 @@ public:
       * @brief Called to initialize the element.
       * @details Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 

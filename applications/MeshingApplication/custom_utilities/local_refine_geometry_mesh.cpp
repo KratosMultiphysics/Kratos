@@ -465,7 +465,7 @@ namespace Kratos
             const int& number_elem,
             const Element::Pointer father_elem,
             Element::Pointer child_elem,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             )
     {
         // NOTE: Right now there is not an interpolation at all, it just copying the values
