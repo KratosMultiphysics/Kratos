@@ -52,6 +52,9 @@ class PfemFluidSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings"           : {
+                "materials_filename" : "unknown_name"
+            },
             "buffer_size": 3,
             "echo_level": 1,
             "reform_dofs_at_each_step": false,
@@ -212,6 +215,8 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+
         print("::[PfemFluidSolver]:: Variables ADDED")
 
 
@@ -236,15 +241,23 @@ class PfemFluidSolver(PythonSolver):
 
     def PrepareModelPart(self):
 
-        print("::[Pfem Fluid Solver]:: Model preparing started.")
+        print("::[PfemFluidSolver]:: Model preparing started.")
 
         self.computing_model_part_name = "fluid_computing_domain"
+
+        # Import materials and relative tables
+        materials_imported = self.ImportMaterials()
+        if materials_imported:
+            KratosMultiphysics.Logger.PrintInfo("::[PfemFluidSolver]:: ", "Materials were successfully imported.")
+        else:
+            KratosMultiphysics.Logger.PrintInfo("::[PfemFluidSolver]:: ", "Materials were not imported.")
 
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        params.AddValue("material_import_settings",self.settings["material_import_settings"])
         if( self.settings.Has("bodies_list") ):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
@@ -279,7 +292,7 @@ class PfemFluidSolver(PythonSolver):
         pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
     def _ComputeDeltaTime(self):
-        
+
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
         return delta_time
@@ -344,11 +357,21 @@ class PfemFluidSolver(PythonSolver):
 
     def Check(self):
         self.fluid_solver.Check()
-#
+
+    def ImportMaterials(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
+
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-
-#
 
 

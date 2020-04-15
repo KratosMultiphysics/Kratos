@@ -25,10 +25,6 @@ namespace Kratos
 {
 namespace Testing
 {
-
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
     void PrepareModelPart(ModelPart& rModelPart)
     {
         // Nodes
@@ -52,36 +48,40 @@ namespace Testing
         volume_acceleration[0] = 0.0;
         volume_acceleration[1] = -9.8;
         volume_acceleration[2] = 0.0;
-        pElement->SetValue(MP_COORD, mp_coordinate);
-        pElement->SetValue(MP_MASS, 1.5);
-        pElement->SetValue(MP_VOLUME_ACCELERATION, volume_acceleration);
+        pElement->SetValuesOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
+        std::vector<double> mp_mass_vector = { 1.5 };
+        pElement->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
 
         // For kinetic energy
         array_1d<double, 3> velocity;
         velocity[0] = 1.0;
         velocity[1] = 2.0;
         velocity[2] = 3.0;
-        pElement->SetValue(MP_VELOCITY, velocity);
+        pElement->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity }, rModelPart.GetProcessInfo());
 
         // For strain energy
-        array_1d<double, 6> mp_cauchy_stress;
+        //Vector mp_cauchy_stress1 = ;
+        Vector mp_cauchy_stress = ZeroVector(6);
         mp_cauchy_stress[0] = 1.0;
         mp_cauchy_stress[1] = 2.0;
         mp_cauchy_stress[2] = 3.0;
         mp_cauchy_stress[3] = 4.0;
         mp_cauchy_stress[4] = 5.0;
         mp_cauchy_stress[5] = 6.0;
-        array_1d<double, 6> mp_strain;
+        Vector mp_strain = ZeroVector(6);
         mp_strain[0] = 0.1;
         mp_strain[1] = 0.2;
         mp_strain[2] = 0.3;
         mp_strain[3] = 0.4;
         mp_strain[4] = 0.5;
         mp_strain[5] = 0.6;
-        pElement->SetValue(MP_VOLUME, 2.5);
-        pElement->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress);
-        pElement->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_strain);
-
+        std::vector<double> mp_volume_vector = { 2.5 };
+        pElement->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
+        std::vector<Vector> mp_cauchy_stress_vector = { mp_cauchy_stress };
+        pElement->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
+        std::vector<Vector> mp_almansi_strain_vector = { mp_strain };
+        pElement->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
     }
 
     /**
@@ -89,6 +89,7 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(ParticleTotalEnergyCalculation, KratosParticleMechanicsFastSuite)
     {
+        KRATOS_WATCH("")
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("Main");
         PrepareModelPart(r_model_part);
@@ -97,14 +98,23 @@ namespace Testing
         MPMEnergyCalculationUtility::CalculateTotalEnergy(r_model_part);
 
         const std::size_t element_id = 1;
-        const double & r_MP_PotentialEnergy = r_model_part.pGetElement(element_id)->GetValue(MP_POTENTIAL_ENERGY);
-        const double & r_MP_KineticEnergy   = r_model_part.pGetElement(element_id)->GetValue(MP_KINETIC_ENERGY);
-        const double & r_MP_StrainEnergy    = r_model_part.pGetElement(element_id)->GetValue(MP_STRAIN_ENERGY);
-        const double & r_MP_TotalEnergy     = r_model_part.pGetElement(element_id)->GetValue(MP_TOTAL_ENERGY);
-        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy, 7.35 , tolerance);
-        KRATOS_CHECK_NEAR(r_MP_KineticEnergy  ,10.50 , tolerance);
-        KRATOS_CHECK_NEAR(r_MP_StrainEnergy   ,11.375, tolerance);
-        KRATOS_CHECK_NEAR(r_MP_TotalEnergy    ,29.225, tolerance);
+
+        std::vector<double> r_MP_PotentialEnergy(1);
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_POTENTIAL_ENERGY, r_MP_PotentialEnergy, r_model_part.GetProcessInfo());
+        
+        std::vector<double> r_MP_KineticEnergy(1);
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_KINETIC_ENERGY, r_MP_KineticEnergy, r_model_part.GetProcessInfo());
+
+        std::vector<double> r_MP_StrainEnergy(1);
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_STRAIN_ENERGY, r_MP_StrainEnergy, r_model_part.GetProcessInfo());
+
+        std::vector<double> r_MP_TotalEnergy(1);
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_model_part.GetProcessInfo());
+
+        KRATOS_CHECK_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
+        KRATOS_CHECK_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);
+        KRATOS_CHECK_NEAR(r_MP_StrainEnergy[0]   , 11.375, 1e-6);
+        KRATOS_CHECK_NEAR(r_MP_TotalEnergy[0]    , 29.225, 1e-6);
     }
 
 } // namespace Testing

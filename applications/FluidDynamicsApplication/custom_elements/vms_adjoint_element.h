@@ -45,7 +45,7 @@ namespace Kratos {
  * @see VMS monolithic fluid element
  */
 template< unsigned int TDim >
-class VMSAdjointElement: public Element {
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element {
 
     class ThisExtensions : public AdjointExtensions
     {
@@ -170,6 +170,10 @@ public:
 
     typedef BoundedMatrix<double, TNumNodes, TDim>
     ShapeFunctionDerivativesType;
+
+    using Element::CalculateFirstDerivativesLHS;
+
+    using Element::CalculateSecondDerivativesLHS;
 
     ///@}
     ///@name Life Cycle

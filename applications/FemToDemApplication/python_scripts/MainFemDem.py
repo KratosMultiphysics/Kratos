@@ -268,7 +268,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 #============================================================================================================================
     def InitializeSolutionStep(self):
 
-        self.KratosPrintInfo("[STEP: " + str(self.step) + "  --  TIME: " + str(self.time) +  "  --  TIME_STEP: " + str(self.delta_time) + "]")
+        self.KratosPrintInfo("[STEP: " + str(self.step) + "  ///  TIME: " + str(self.time) +  "  ///  TIME_STEP: " + str(self.delta_time) + "]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
@@ -342,6 +342,7 @@ class FEM_Solution(MainSolidFEM.Solution):
     def GraphicalOutputPrintOutput(self):
         if(self.graphical_output.IsOutputStep()):
                 self.graphical_output.PrintOutput()
+                self.KratosPrintInfo("-- Printing FEM POST file --")
     #============================================================================================================================
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()

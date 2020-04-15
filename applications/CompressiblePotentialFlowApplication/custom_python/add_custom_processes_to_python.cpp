@@ -50,7 +50,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyFarFieldProcess, ApplyFarFieldProcess::Pointer, Process >
         (m, "ApplyFarFieldProcess")
-        .def(py::init<ModelPart&, const double, const bool>())
+        .def(py::init<ModelPart&, const double, const bool, const bool>())
         ;
 
     py::class_<ComputeEmbeddedLiftProcess<2,3>, ComputeEmbeddedLiftProcess<2,3>::Pointer, Process >

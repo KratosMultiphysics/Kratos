@@ -229,6 +229,11 @@ public:
      */
      virtual void ResetContactOperators();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -278,8 +283,6 @@ protected:
     TypeSolution mTypeSolution;        /// The solution type
     std::string mConditionName;        /// The name of the condition to be created
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
-
-    Flags mOptions;                    /// Local flags
 
     ///@}
     ///@name Protected Operators
@@ -357,11 +360,6 @@ protected:
      * @return CheckGap: The equivalent enum
      */
     CheckGap ConvertCheckGap(const std::string& str);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access

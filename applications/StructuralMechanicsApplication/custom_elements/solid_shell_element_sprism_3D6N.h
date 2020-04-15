@@ -424,7 +424,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: Set the values for given Variable.
+     * SetValuesOnIntegrationPoints: Set the values for given Variable.
      * GetValueOnIntegrationPoints: Get the values for given Variable.
      */
 
@@ -434,7 +434,7 @@ public:
      * @param rValues Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -446,7 +446,7 @@ public:
      * @param rValues Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -458,7 +458,7 @@ public:
      * @param rValues Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -470,7 +470,7 @@ public:
     * @param rValues Values of the ContstitutiveLaw
     * @param rCurrentProcessInfo The current process info instance
     */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -618,7 +618,7 @@ public:
       * @brief Called to initialize the element.
       * @details Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 

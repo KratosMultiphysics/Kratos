@@ -188,6 +188,15 @@ public:
     ///@name Access
     ///@{
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -246,7 +255,8 @@ protected:
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
-                            const double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight,
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -404,6 +414,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    double m_mp_pressure;
 
     ///@}
     ///@name Private Operators

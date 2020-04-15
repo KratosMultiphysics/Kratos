@@ -3,7 +3,7 @@ BOOK: Parts
 CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: volumes 
+GROUPALLOW: volumes elements
 QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
@@ -76,7 +76,7 @@ BOOK: Dirichlet_Constraints
 CONDITION: Solid_Displacement
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes surfaces volumes
-GROUPALLOW: points lines surfaces
+GROUPALLOW: points lines surfaces nodes
 QUESTION: SOLID_DISPLACEMENT_X#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
@@ -133,7 +133,7 @@ BOOK: Loads
 CONDITION: Force
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points
+GROUPALLOW: points nodes
 QUESTION: Modulus
 VALUE: 0.0
 HELP: If it is a function write the expression between ""
@@ -179,7 +179,7 @@ END CONDITION
 CONDITION: Face_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines 
+GROUPALLOW: lines faces
 QUESTION: Modulus
 VALUE: 0.0 
 HELP: If it is a function write the expression between ""
@@ -225,7 +225,7 @@ END CONDITION
 CONDITION: Normal_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines 
+GROUPALLOW: lines faces
 QUESTION: NORMAL_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Pressure_Value,0.0,HIDE,Imposed_Normal_Load,Constant)(true,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Pressure_Value,#CURRENT#,RESTORE,Imposed_Normal_Load,#CURRENT#)
@@ -271,7 +271,7 @@ END CONDITION
 CONDITION: Body_Acceleration
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: surfaces volumes
+GROUPALLOW: surfaces volumes nodes
 QUESTION: Modulus
 VALUE: 9.81
 HELP: If it is a function write the expression between ""
@@ -317,7 +317,7 @@ END CONDITION
 CONDITION: Surf_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: surfaces 
+GROUPALLOW: surfaces faces
 QUESTION: Modulus
 VALUE: 0.0 
 HELP: If it is a function write the expression between ""
@@ -363,7 +363,7 @@ END CONDITION
 CONDITION: Pressure_Load
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: surfaces 
+GROUPALLOW: surfaces faces
 QUESTION: PRESSURE_LOAD#CB#(true,false)
 VALUE: true
 DEPENDENCIES: (false,HIDE,Pressure_Load_Distribution,Uniform,HIDE,Pressure_Load_Value,0.0,HIDE,Imposed_Pressure_Load,Constant)(true,RESTORE,Pressure_Load_Distribution,#CURRENT#,RESTORE,Pressure_Load_Value,#CURRENT#,RESTORE,Imposed_Pressure_Load,#CURRENT#)
@@ -410,14 +410,14 @@ BOOK: Plots
 CONDITION: list_of_nodes_reaction
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes 
-GROUPALLOW: points lines surfaces
+GROUPALLOW: points lines surfaces nodes
 HELP: Select the nodes/lines to plot the sum of the reaction
 END CONDITION
 
 CONDITION: list_of_nodes_displacement
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines surfaces
+GROUPALLOW: points lines surfaces nodes
 HELP: Select the nodes/lines to plot the sum of the displacement
 END CONDITION
 

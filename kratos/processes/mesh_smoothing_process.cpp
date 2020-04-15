@@ -91,7 +91,7 @@ namespace Kratos
 				ModelPart coarse_model_part;
 				coarse_model_part.GetMeshes().clear();
 				coarse_model_part.GetMeshes().push_back(ModelPart::MeshType::Pointer(new ModelPart::MeshType(r_coars_mesh1)));
-				FindNodalNeighboursProcess find_neighbour_process(coarse_model_part, 10, 10);
+				FindNodalNeighboursProcess find_neighbour_process(coarse_model_part);
 				find_neighbour_process.Execute();
 				PerformCoarsening(r_coars_mesh1, r_coars_mesh2);
 			}
@@ -99,7 +99,7 @@ namespace Kratos
 			ModelPart coarse_model_part;
 			coarse_model_part.GetMeshes().clear();
 			coarse_model_part.GetMeshes().push_back(ModelPart::MeshType::Pointer(new ModelPart::MeshType(r_coars_mesh2)));
-			FindNodalNeighboursProcess find_neighbour_process(coarse_model_part, 10, 10);
+			FindNodalNeighboursProcess find_neighbour_process(coarse_model_part);
 			find_neighbour_process.Execute();
 			MeshSmoothingProcess coarse_smoothing_process(coarse_model_part, LAPLACIAN_SMOOTHING, 10);
 			coarse_smoothing_process.Execute();
