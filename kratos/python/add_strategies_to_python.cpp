@@ -30,7 +30,6 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "solving_strategies/strategies/ramm_arc_length_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
 #include "solving_strategies/strategies/explicit_strategy.h"
@@ -542,13 +541,6 @@ namespace Kratos
                 .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
                 .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
                 .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
-                ;
-
-            py::class_< RammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-                typename RammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                BaseSolvingStrategyType >
-                (m,"RammArcLengthStrategy")
-                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
