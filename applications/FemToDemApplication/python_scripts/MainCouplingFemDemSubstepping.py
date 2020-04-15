@@ -58,6 +58,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
             ### End Substepping
+            
             # Reset the data base for the FEM
             FEMDEM_utilities.RestoreStructuralSolution(self.FEM_Solution.main_model_part)
 
@@ -68,6 +69,13 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         if self.TransferDEMContactForcesToFEM:
             FEMDEM_utilities.ComputeAndTranferAveragedContactTotalForces(self.FEM_Solution.main_model_part, self.FEM_Solution.delta_time)
 
+#============================================================================================================================
+    def FinalizeSolutionStep(self):
+
+        # Transfer the contact forces of the DEM to the FEM nodes
+        if self.TransferDEMContactForcesToFEM:
+            self.TransferNodalForcesToFEM()
+
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
         # Update Coupled Postprocess file for Gid (post.lst)
@@ -75,6 +83,24 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         # Print required info
         self.PrintPlotsFiles()
+        
+        # MODIFIED FOR THE REMESHING
+        self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.FEM_Solution.model_processes.ExecuteFinalizeSolutionStep()
+
+        # processes to be executed before witting the output
+        self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        self.FEM_Solution.GraphicalOutputPrintOutput()
+
+        # processes to be executed after writting the output
+        self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
+
+        if self.DoRemeshing:
+             self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 
 #============================================================================================================================
     def BeforeSolveDEMOperations(self):
