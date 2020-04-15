@@ -226,7 +226,7 @@ private:
 
 
     template <typename TObjectType>
-    size_t GetDofIndex(TObjectType& rAdjointObject, ProcessInfo& rProcessInfo)
+    size_t GetDofIndex(TObjectType& rAdjointObject, const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
