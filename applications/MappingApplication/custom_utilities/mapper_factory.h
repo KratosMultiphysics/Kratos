@@ -41,7 +41,7 @@ namespace Kratos
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-class MapperFactory
+class KRATOS_API(MAPPING_APPLICATION) MapperFactory
 {
 public:
     ///@name Type Definitions
