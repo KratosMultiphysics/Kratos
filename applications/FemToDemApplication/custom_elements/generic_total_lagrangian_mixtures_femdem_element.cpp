@@ -111,12 +111,53 @@ Element::Pointer GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::C
 /***********************************************************************************/
 
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedConstitutiveLaw(
+    const std::string& rYieldSurface,
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveVariables& rThisConstVars,
+    const KinematicVariables& rKinVariables,
+    Vector& rStrainVector,
+    double& rDamageElement,
+    bool& rIsDamaging,
+    const double CharacteristicLength,
+    const bool SaveIntVars
+    )
+{
+    Vector damages_edges = ZeroVector(NumberOfEdges);
+    if (rYieldSurface != "Elastic") {
+        // Loop over edges of the element...
+        Vector average_stress_edge(VoigtSize);
+        Vector average_strain_edge(VoigtSize);
 
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            noalias(average_stress_edge) = rThisConstVars.StressVector;
+            noalias(average_strain_edge) = rThisConstVars.StrainVector;
+            this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
+            if (!SaveIntVars) {
+                damages_edges[edge] = mDamages[edge];
+                double threshold = mThresholds[edge];
+            
+                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
+                                                        average_stress_edge, edge, CharacteristicLength, rValues, 
+                                                        rIsDamaging);
+                rDamageElement = this->CalculateElementalDamage(damages_edges);         
+            } else {
+                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
+                                        average_stress_edge, edge, CharacteristicLength, rValues, 
+                                        rIsDamaging);
+                mDamage = this->CalculateElementalDamage(mDamages);
+                rDamageElement = mDamage;
+            }
+        } // Loop over edges
+    }
 
-
-
-
+    this->CalculateGreenLagrangeStrainVector(rStrainVector, rKinVariables.F);
+    const Vector& r_stress_vector = rThisConstVars.StressVector;
+    return (1.0 - rDamageElement)*r_stress_vector;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
