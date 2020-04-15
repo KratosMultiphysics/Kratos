@@ -48,7 +48,7 @@ endif(${USE_MPI} MATCHES ON )
 
 ## define test sources (cpp tests)
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
- 	file(GLOB_RECURSE KRATOS_MAPPING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+ 	file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Mapping python interface sources
