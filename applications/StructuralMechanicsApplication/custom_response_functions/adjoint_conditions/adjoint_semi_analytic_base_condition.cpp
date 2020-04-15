@@ -354,7 +354,12 @@ namespace Kratos
 
         if ( mpPrimalCondition->Has(rDesignVariable) ) {
             const double variable_value = mpPrimalCondition->GetValue(rDesignVariable);
-            return variable_value;
+            if (variable_value <= 0.0) {
+                return 1.0;
+            }
+            else {
+                return variable_value;
+            }  
         }
         else {
             return 1.0;
