@@ -13,6 +13,7 @@
 #include <iostream>
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 namespace Testing {
@@ -123,24 +124,73 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(ReturnValueReducer.max_value, 0.0 );
     KRATOS_CHECK_EQUAL(ReturnValueReducer.max_abs, nsize-1 );
 
+
+
+    //******************************************************************************************
+    //here we reduce at once, the sum,min,max and sub
     typedef CombinedReduction< SumReduction<double>,
                                MinReduction<double>,
                                MaxReduction<double>,
                                SubReduction<double>
             > MultipleReduction;
 
-    auto combined = IndexPartition<unsigned int>(data_vector.size()).
+    auto reduction_res = IndexPartition<unsigned int>(data_vector.size()).
         for_reduce<MultipleReduction>(
             [&](unsigned int i){
-                return std::tuple<double,double,double,double>{
-                    data_vector[i],data_vector[i],data_vector[i],data_vector[i]}; //note that here the lambda returns the values to be reduced
+                    double to_sum = data_vector[i];
+                    double to_max = data_vector[i];
+                    double to_min = data_vector[i];
+                    double to_sub = data_vector[i];
+                    return std::make_tuple( to_sum, to_max, to_min, to_sub );
                 }
             );
-    KRATOS_CHECK_EQUAL(std::get<0>(combined.GetValue()).mvalue, reference_sum );
-    KRATOS_CHECK_EQUAL(std::get<1>(combined.GetValue()).mvalue, reference_min );
-    KRATOS_CHECK_EQUAL(std::get<2>(combined.GetValue()).mvalue, reference_max );
-    KRATOS_CHECK_EQUAL(std::get<3>(combined.GetValue()).mvalue, reference_sub );
-    // KRATOS_CHECK_EQUAL(combined.GetValue().second, reference_min );
+    KRATOS_CHECK_EQUAL(reduction_res.GetValue<0>(), reference_sum );
+    KRATOS_CHECK_EQUAL(reduction_res.GetValue<1>(), reference_min );
+    KRATOS_CHECK_EQUAL(reduction_res.GetValue<2>(), reference_max );
+    KRATOS_CHECK_EQUAL(reduction_res.GetValue<3>(), reference_sub );
+
+
+    //check ability to handle exceptions in pure c++ - DELIBERATELY THROWING AN EXCEPTION!
+    IndexPartition<unsigned int>(data_vector.size()).for_pure_c11([&](unsigned int i){
+                    data_vector.at(i+1); //the highest thread will throw
+                }
+            );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
+{
+    int nsize = 1e7;
+    std::vector<double> data_vector(nsize), output(nsize);
+    for(int i=0; i<nsize; ++i)
+        data_vector[i] = i;
+
+    //check ability to handle exceptions in pure c++ - DELIBERATELY THROWING AN EXCEPTION!
+    IndexPartition<unsigned int>(data_vector.size()).for_pure_c11([&](unsigned int i){
+                    data_vector.at(i+1); //the highest thread will throw
+                }
+            );
+
+    //benchmark openmp vs pure c++11 impementation in a simple loop
+    double start_omp = OpenMPUtils::GetCurrentTime();
+    IndexPartition<unsigned int>(nsize).for_each(
+            [&](unsigned int i){
+                    output[i] = std::pow(data_vector[i],0.01);
+                }
+            );
+    double stop_omp = OpenMPUtils::GetCurrentTime();
+    std::cout << "omp time = " << stop_omp-start_omp << std::endl;
+
+    double start_pure= OpenMPUtils::GetCurrentTime();
+    IndexPartition<unsigned int>(nsize).for_pure_c11(
+            [&](unsigned int i){
+                    output[i] = std::pow(data_vector[i],0.01);
+                }
+            );
+    double stop_pure = OpenMPUtils::GetCurrentTime();
+    std::cout << "pure c++11 time = " << stop_pure-start_pure << std::endl;
+
+
+
 }
 
 

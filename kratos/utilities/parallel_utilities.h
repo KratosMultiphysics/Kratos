@@ -24,6 +24,9 @@
 #include<limits>
 #include<omp.h>
 
+#include <future>
+#include <thread>
+
 // External includes
 
 
@@ -131,6 +134,36 @@ public:
     }
 
     virtual ~IndexPartition() {}
+
+    //pure c++11 version (can handle exceptions)
+    template <class TUnaryFunction>
+    inline void for_pure_c11(TUnaryFunction &&f)
+    {
+        KRATOS_TRY
+        std::vector< std::future<void> > runners(mNchunks);
+        const auto& partition = mBlockPartition;
+        for(int i=0; i<mNchunks; ++i)
+        {
+            runners[i] = std::async(std::launch::async, [&partition, i,  &f]()
+                {
+                    for (auto k = partition[i]; k < partition[i+1]; ++k)
+                        f(k);
+                });
+        }
+
+        //here we impose a syncronization and we check the exceptions
+        for(int i=0; i<mNchunks; ++i)
+        {
+            try {
+                    runners[i].get();
+            } catch(const std::exception& e) {
+                std::cout << std::endl << "THREAD number: " << i << " caught exception " << e.what() << std::endl;
+        }
+
+        }
+
+        KRATOS_CATCH("")
+    }
 
     //simple version
     template <class TUnaryFunction>
@@ -273,33 +306,6 @@ public:
     }
 };
 
-//***********************************************************************************
-//***********************************************************************************
-//***********************************************************************************
-// template<class TFirstReduction, class TSecondReduction>
-// class CombinedReduction
-// {
-// public:
-//     typedef std::pair<typename TFirstReduction::value_type, typename TSecondReduction::value_type> value_type;
-//     TFirstReduction mFirst;
-//     TSecondReduction mSecond;
-
-//     value_type GetValue() const
-//     {
-//         return value_type{mFirst.GetValue(), mSecond.GetValue()};
-//     }
-
-//     void LocalMerge(const value_type&& value){
-//         mFirst.LocalMerge(value.first);
-//         mSecond.LocalMerge(value.second);
-//     }
-
-//     void ThreadSafeMerge(CombinedReduction& rOther)
-//     {
-//         mFirst.ThreadSafeMerge(rOther.mFirst);
-//         mSecond.ThreadSafeMerge(rOther.mSecond);
-//     }
-// };
 template <class... Reducer>
 struct CombinedReduction {
     typedef std::tuple<Reducer...> value_type;
@@ -308,14 +314,9 @@ struct CombinedReduction {
 
     CombinedReduction() {}
 
-    const value_type& GetValue() const
-    {
-        return mChild;
-    }
-
     template <int I>
-    auto value() const -> decltype(std::get<I>(mChild).value) {
-        return std::get<I>(mChild).value;
+    auto GetValue() const -> decltype(std::get<I>(mChild).GetValue()) {
+        return std::get<I>(mChild).GetValue();
     }
 
     template <class... T>
