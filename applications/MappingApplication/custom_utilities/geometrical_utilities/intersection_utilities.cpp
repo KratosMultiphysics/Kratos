@@ -24,33 +24,21 @@ void IntersectionUtilities::FindIntersection1DGeometries2D(
     ModelPart& rModelPartResult,
     double Tolerance)
 {
-    // TODO delete
-    auto firstcond = rModelPartDomainA.ConditionsBegin();
-    std::cout << "condition info = " << firstcond->Info() << std::endl;
-    auto firstGeom = firstcond->GetGeometry();
-    std::cout << "firstGeom info = " << firstGeom.Info() << std::endl;
-
-    std::cout << "firstGeom has this many points = " << firstGeom.PointsNumber() << std::endl;
-    auto geompoints = firstGeom.Points();
-    for (size_t i = 0; i < firstGeom.PointsNumber(); i++)
-    {
-        std::cout << geompoints[i] << std::endl;
-    }
-    // TODO delete
-
-
-    KRATOS_ERROR_IF(rModelPartDomainA.ConditionsBegin()->GetGeometry().Dimension() != 1)
+    // Only perform the test for 1D lines in 2D space. Maybe this is too strict...
+    KRATOS_ERROR_IF(rModelPartDomainA.ConditionsBegin()->GetGeometry().LocalSpaceDimension() != 1 &&
+        rModelPartDomainA.ConditionsBegin()->GetGeometry().Dimension() != 2)
         << "Can compare only line segments with other line segments." << std::endl;
 
     for (auto condition_a_itr = rModelPartDomainA.ConditionsBegin();
         condition_a_itr != rModelPartDomainA.ConditionsEnd();
         ++condition_a_itr)
     {
+        std::cout << condition_a_itr->Info() << std::endl;
+        std::cout << condition_a_itr->GetGeometry().Info() << std::endl;
         for (auto condition_b_itr = rModelPartDomainB.ConditionsBegin();
             condition_b_itr != rModelPartDomainB.ConditionsEnd();
             ++condition_b_itr)
         {
-            // ERROR HasIntersection does not properly show parallel curves, which are the significant subset
             if (condition_a_itr->GetGeometry().HasIntersection(condition_b_itr->GetGeometry()))
             {
                 rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
