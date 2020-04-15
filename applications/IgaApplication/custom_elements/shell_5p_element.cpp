@@ -480,11 +480,12 @@ namespace Kratos
 			///  Residual Part second part of Linearisation
 			///   difference to only projected Euclidean Hessian
 			/// LINEARIZATION OF PROJECTOR
-			//kgT = -(node[ii]->get_director_x() * fint_euk[6 * ii + 3]
-			//	+ node[ii]->get_director_y() * fint_euk[6 * ii + 4]
-			//	+ node[ii]->get_director_z() * fint_euk[6 * ii + 5]);
-			//Kg(ii4, ii4) += kgT;
-			//Kg(ii5, ii5) += kgT;
+			kgT = -inner_prod(GetGeometry()[ii].GetValue(DIRECTOR),(prod(WI1, rActKin.a1)                         * StressResultants[3] +
+				                                                    prod(WI2, rActKin.a2)                         * StressResultants[4] + 
+				                                                   (prod(WI2      , rActKin.a1)+ prod(WI1, rActKin.a2)) * StressResultants[5]));
+			kgT -= inner_prod(GetGeometry()[ii].GetValue(DIRECTOR), prod(ractVar.P, rActKin.a1) * Nii * StressResultants[6] + prod(ractVar.P, rActKin.a2) * Nii * StressResultants[7]);
+			Kg(ii4, ii4) += kgT;
+			Kg(ii5, ii5) += kgT;
 		}
 	}
 
@@ -670,7 +671,7 @@ namespace Kratos
 
 			for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
 			{
-				A3 = r_geometry.Normal(point_number); //this makes only sense if the geometry is undeformed
+				A3 = GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
 				A3 = A3 / sqrt(inner_prod(A3, A3));
 
 				for (int i = 0; i < r_number_of_nodes; ++i)

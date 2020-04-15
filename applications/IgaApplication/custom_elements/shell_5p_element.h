@@ -424,7 +424,7 @@ private:
 
 
     void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
-    void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix)
+    void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix);
   //  inline void CalculateAndAddKm(
  //       MatrixType& rLeftHandSideMatrix,
   //      const Matrix& B,
