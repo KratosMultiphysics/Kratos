@@ -252,13 +252,16 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         return GetFormulationInfo(self, self.fractional_step_model_part)
 
     def SetTimeSchemeSettings(self, settings):
-        scheme_type = settings["scheme_type"].GetString()
-        if (scheme_type == "steady"):
-            raise Exception("Steady scheme is not supported by pure fractional step method. Run it with RANS models")
-        elif (scheme_type == "transient"):
-            self.is_steady_simulation = False
+        if (settings.Has("scheme_type")):
+            scheme_type = settings["scheme_type"].GetString()
+            if (scheme_type == "steady"):
+                self.is_steady_simulation = True
+            elif (scheme_type == "transient"):
+                self.is_steady_simulation = False
+            else:
+                raise Exception("Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
         else:
-            raise Exception("Only \"transient\" time schemes are supported by " + self.GetName() + " [ scheme_type = " + scheme_type + " ]")
+            raise Exception("\"scheme_type\" is missing in time scheme settings")
 
         self.time_scheme_settings = settings
 

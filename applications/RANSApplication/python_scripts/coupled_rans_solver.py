@@ -4,7 +4,6 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
-from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
@@ -20,10 +19,7 @@ from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
     from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPICoupledStrategy as coupled_strategy
-elif (not IsDistributedRun()):
-    from KratosMultiphysics.RANSApplication import CoupledStrategy as coupled_strategy
-else:
+elif (IsDistributedRun()):
     raise Exception("Distributed run requires TrilinosApplication")
 
 class CoupledRANSSolver(PythonSolver):
@@ -96,15 +92,15 @@ class CoupledRANSSolver(PythonSolver):
                                 self.settings["formulation_settings"])
 
         self.formulation.SetConstants(self.settings["constants"])
-
         self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
+        self.formulation.SetMaxCouplingIterations(self.settings["max_iterations"].GetInt())
+
         self.is_periodic = self.formulation.IsPeriodic()
 
         self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
 
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
         self.move_mesh = self.settings["move_mesh"].GetBool()
-        self.max_iterations = self.settings["max_iterations"].GetInt()
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
@@ -190,8 +186,7 @@ class CoupledRANSSolver(PythonSolver):
         RansVariableUtilities.AssignBoundaryFlagsToGeometries(self.main_model_part)
         self.formulation.Initialize()
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                            "\n" + self.formulation.GetInfo())
+        Kratos.Logger.PrintInfo(self.__class__.__name__, self.formulation.GetInfo())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver initialization finished.")
@@ -211,10 +206,8 @@ class CoupledRANSSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            for _ in range(self.max_iterations):
-                self.formulation.SolveCouplingStep()
-                is_converged = self.formulation.IsConverged()
-
+            self.formulation.SolveCouplingStep()
+            is_converged = self.formulation.IsConverged()
 
             if not is_converged:
                 msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"

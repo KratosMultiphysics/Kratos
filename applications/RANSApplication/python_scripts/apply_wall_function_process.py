@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.RANSApplication as KratosRANS
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -13,15 +13,20 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "avoid_recomputing_normals": false
+                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME"
             }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
+        root_model_part_process_info = self.model_part.GetRootModelPart().ProcessInfo
+        if (root_model_part_process_info.Has(KratosRANS.WALL_MODEL_PART_NAMES)):
+            wall_model_parts = root_model_part_process_info[KratosRANS.WALL_MODEL_PART_NAMES]
+        else:
+            wall_model_parts = ""
+        # seperate model parts by spaces
+        wall_model_parts += settings["model_part_name"].GetString() + " "
+        root_model_part_process_info.SetValue(KratosRANS.WALL_MODEL_PART_NAMES, wall_model_parts)
 
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)

@@ -10,8 +10,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 
 # import utilities
-from KratosMultiphysics import VariableUtils
-from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
@@ -35,11 +33,7 @@ class KEpsilonHighReKFormulation(Formulation):
             "echo_level"            : 2,
             "linear_solver_settings": {
                 "solver_type"  : "amgcl"
-            },
-            "reform_dofs_at_each_step": true,
-            "move_mesh_strategy": 0,
-            "move_mesh_flag": false,
-            "compute_reactions": false
+            }
         }""")
 
         self.settings.ValidateAndAssignDefaults(defaults)
@@ -95,13 +89,11 @@ class KEpsilonHighReKFormulation(Formulation):
         self.solver.InitializeSolutionStep()
 
     def IsConverged(self):
-        if (hasattr(self, "is_solved")):
-            return self.is_solved
-        return False
+        return self.GetStrategy().IsConverged()
 
     def SolveCouplingStep(self):
         self.solver.Predict()
-        self.is_solved = self.solver.SolveSolutionStep()
+        self.solver.SolveSolutionStep()
 
     def FinializeSolutionStep(self):
         self.solver.FinializeSolutionStep()
@@ -117,3 +109,16 @@ class KEpsilonHighReKFormulation(Formulation):
 
     def GetStrategy(self):
         return self.solver
+
+    def SetTimeSchemeSettings(self, settings):
+        if (settings.Has("scheme_type")):
+            scheme_type = settings["scheme_type"].GetString()
+            if (scheme_type == "steady"):
+                self.is_steady_simulation = True
+            elif (scheme_type == "transient"):
+                self.is_steady_simulation = False
+            else:
+                raise Exception("Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+        else:
+            raise Exception("\"scheme_type\" is missing in time scheme settings")
+

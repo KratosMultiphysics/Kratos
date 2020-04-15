@@ -437,6 +437,14 @@ void AssignConditionVariableValuesToNodes(ModelPart& rModelPart,
     rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
 }
 
+std::vector<std::string> SplitString(const std::string& rInput)
+{
+    std::istringstream iss(rInput);
+    std::vector<std::string> results(std::istream_iterator<std::string>{iss},
+                                     std::istream_iterator<std::string>());
+    return results;
+}
+
 // template instantiations
 template void AssignConditionVariableValuesToNodes<double>(ModelPart&,
                                                            const Variable<double>&,

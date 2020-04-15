@@ -28,26 +28,35 @@ class IncompressiblePotentialFlowFormulation(Formulation):
 
         self.AddFormulation(IncompressiblePotentialFlowVelocityFormulation(model_part, settings["velocity_potential_flow_solver_settings"]))
         self.AddFormulation(IncompressiblePotentialFlowPressureFormulation(model_part, settings["pressure_potential_flow_solver_settings"]))
+        self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.PRESSURE)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.EXTERNAL_PRESSURE)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.VELOCITY_POTENTIAL)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.PRESSURE_POTENTIAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.BODY_FORCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.VELOCITY_POTENTIAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.PRESSURE_POTENTIAL)
+
+        # these variables are required because of outlet boundary condition
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.EXTERNAL_PRESSURE)
+
+        # these variables are required for calculation of reactions
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.REACTION)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.REACTION_WATER_PRESSURE)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
 
     def AddDofs(self):
-        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_X, self.GetBaseModelPart())
-        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Y, self.GetBaseModelPart())
-        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, self.GetBaseModelPart())
-        Kratos.VariableUtils().AddDof(Kratos.PRESSURE, self.GetBaseModelPart())
         Kratos.VariableUtils().AddDof(KratosRANS.VELOCITY_POTENTIAL, self.GetBaseModelPart())
         Kratos.VariableUtils().AddDof(KratosRANS.PRESSURE_POTENTIAL, self.GetBaseModelPart())
+
+        # these dofs are required since they are fixed in inlet and outlet boundary conditions.
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_X, Kratos.REACTION_X,self.GetBaseModelPart())
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Y, Kratos.REACTION_Y,self.GetBaseModelPart())
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z,self.GetBaseModelPart())
+        Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE,self.GetBaseModelPart())
 
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step dofs.")
 

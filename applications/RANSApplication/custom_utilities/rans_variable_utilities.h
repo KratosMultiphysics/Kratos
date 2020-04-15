@@ -100,6 +100,7 @@ void KRATOS_API(RANS_APPLICATION)
                                          const Flags& rFlag,
                                          const bool FlagValue = true);
 
+std::vector<std::string> SplitString(const std::string& rInput);
 ///@}
 } // namespace RansVariableUtilities
 

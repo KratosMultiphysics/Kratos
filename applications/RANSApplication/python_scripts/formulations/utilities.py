@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.RANSApplication as KratosRANS
 
 from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
@@ -12,7 +11,6 @@ if (IsDistributedRun()
     from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericScalarConvergenceCriteria as scalar_convergence_criteria
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualCriteria as residual_criteria
     from KratosMultiphysics.TrilinosApplication import TrilinosNewtonRaphsonStrategy as newton_raphson_strategy
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosPeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
@@ -22,7 +20,6 @@ elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import GenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
-    from KratosMultiphysics.RANSApplication import GenericScalarConvergenceCriteria as scalar_convergence_criteria
     from Kratos import ResidualCriteria as residual_criteria
     from Kratos import ResidualBasedNewtonRaphsonStrategy as newton_raphson_strategy
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import PeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
@@ -31,6 +28,7 @@ elif (not IsDistributedRun()):
 
 else:
     raise Exception("Distributed run requires TrilinosApplication")
+
 
 def CreateResidualBasedBlockBuilderAndSolver(linear_solver, is_periodic,
                                              communicator):
@@ -60,10 +58,6 @@ def CreateResidualCriteria(relative_tolerance, absolute_tolerance):
     return residual_criteria(relative_tolerance, absolute_tolerance)
 
 
-# def CreateScalarSteadyScheme(relaxation_factor):
-#     return steady_scalar_scheme(relaxation_factor)
-
-
 def CreateIncremantalUpdateScheme():
     return incemental_update_static_scheme()
 
@@ -71,8 +65,13 @@ def CreateIncremantalUpdateScheme():
 def CreateSteadyScalarScheme(relaxation_factor):
     return steady_scalar_scheme(relaxation_factor)
 
-def CreateBossakScalarScheme(bossak_value, relaxation_factor, scalar_variable, scalar_rate_variable, relaxed_scalar_rate_variable):
-    return bossak_scheme(bossak_value, relaxation_factor, scalar_variable, scalar_rate_variable, relaxed_scalar_rate_variable)
+
+def CreateBossakScalarScheme(bossak_value, relaxation_factor, scalar_variable,
+                             scalar_rate_variable,
+                             relaxed_scalar_rate_variable):
+    return bossak_scheme(bossak_value, relaxation_factor, scalar_variable,
+                         scalar_rate_variable, relaxed_scalar_rate_variable)
+
 
 def CalculateNormalsOnConditions(model_part):
     domain_size = model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
@@ -108,15 +107,19 @@ def CreateFormulationModelPart(formulation, element_name, condition_name):
 
 def GetFormulationInfo(formulation, model_part):
     info = "\n" + formulation.GetName()
-    info += "\n  Model part    : " + model_part.Name
-    info += "\n  Max iterations: " + str(
-        formulation.GetMaxCouplingIterations())
+    info += "\n   Model part: " + model_part.Name
     return info
 
 
-def GetConvergenceInfo(variable, relative_error, relative_tolerance, absolute_error = -1.0, absolute_tolerance = -1.0):
-    info = "[ Obtained ratio: {0:6e}; Expected ratio: {1:6e}".format(relative_error, relative_tolerance)
+def GetConvergenceInfo(variable,
+                       relative_error,
+                       relative_tolerance,
+                       absolute_error=-1.0,
+                       absolute_tolerance=-1.0):
+    info = "[ Obtained ratio: {0:6e}; Expected ratio: {1:6e}".format(
+        relative_error, relative_tolerance)
     if (absolute_error >= 0.0 and absolute_tolerance >= 0.0):
-        info += "; Absolute norm: {0:6e}; Expected norm: {1:6e}".format(absolute_error, absolute_tolerance)
+        info += "; Absolute norm: {0:6e}; Expected norm: {1:6e}".format(
+            absolute_error, absolute_tolerance)
     info += " ] - " + str(variable.Name())
     return info

@@ -35,6 +35,7 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         }""")
 
         self.settings.ValidateAndAssignDefaults(defaults)
+        self.max_coupling_iterations = 1
 
     def PrepareModelPart(self):
         self.velocity_model_part = CreateFormulationModelPart(self,

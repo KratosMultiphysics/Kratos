@@ -41,20 +41,19 @@ class Formulation(ABC):
         pass
 
     def SolveCouplingStep(self):
-        for iteration in range(self.GetMaxCouplingIterations()):
+        max_iterations = self.GetMaxCouplingIterations()
+        for iteration in range(max_iterations):
             solver_executed = False
             for formulation in self.list_of_formulations:
                 if (not formulation.IsConverged()):
                     formulation.ExecuteBeforeCouplingSolveStep()
-                    Kratos.Logger.PrintInfo(formulation.GetName(), "Initialized formulation coupling step.")
                     formulation.SolveCouplingStep()
-                    Kratos.Logger.PrintInfo(formulation.GetName(), "Solved formulation coupling step.")
                     formulation.ExecuteAfterCouplingSolveStep()
-                    Kratos.Logger.PrintInfo(formulation.GetName(), "Finalized formulation coupling step.")
                     solver_executed = True
+                    Kratos.Logger.PrintInfo(formulation.GetName(), "Solved  formulation.")
 
             if (solver_executed):
-                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + ".")
+                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
 
     def ExecuteAfterCouplingSolveStep(self):
         pass
@@ -114,27 +113,33 @@ class Formulation(ABC):
     def GetBaseModelPart(self):
         return self.base_computing_model_part
 
+    def SetMaxCouplingIterations(self, max_iterations):
+        self.max_coupling_iterations = max_iterations
+
     def GetMaxCouplingIterations(self):
-        return 1
+        if (hasattr(self, "max_coupling_iterations")):
+            return self.max_coupling_iterations
+        else:
+            raise Exception(self.__class__.__name__ + " needs to use \"SetMaxCouplingIterations\" first before calling \"GetMaxCouplingIterations\".")
 
     def GetInfo(self):
-        info = self.GetName()
+        info = "\n" + self.GetName()
         for formulation in self.list_of_formulations:
-            info += str(formulation.GetInfo()).replace("\n", "\n\t")
+            info += str(formulation.GetInfo()).replace("\n", "\n   ")
         return info
 
-    def __ExecuteFormulationMethods(self, method_name, args = []):
-        for formulation in self.list_of_formulations:
-            getattr(formulation, method_name)(*args)
-
     def SetConstants(self, settings):
-        pass
+        self.__ExecuteFormulationMethods("SetTimeSchemeSettings", [settings])
 
     def GetFormulationsList(self):
         return self.list_of_formulations
 
     def GetStrategy(self):
         return None
+
+    def __ExecuteFormulationMethods(self, method_name, args = []):
+        for formulation in self.list_of_formulations:
+            getattr(formulation, method_name)(*args)
 
 
 
