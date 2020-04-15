@@ -123,14 +123,24 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(ReturnValueReducer.max_value, 0.0 );
     KRATOS_CHECK_EQUAL(ReturnValueReducer.max_abs, nsize-1 );
 
+    typedef CombinedReduction< SumReduction<double>,
+                               MinReduction<double>,
+                               MaxReduction<double>,
+                               SubReduction<double>
+            > MultipleReduction;
+
     auto combined = IndexPartition<unsigned int>(data_vector.size()).
-        for_reduce<CombinedReduction< SumReduction<double>, MinReduction<double>>>(
+        for_reduce<MultipleReduction>(
             [&](unsigned int i){
-                return std::pair<double,double>{data_vector[i],data_vector[i]}; //note that here the lambda returns the values to be reduced
+                return std::tuple<double,double,double,double>{
+                    data_vector[i],data_vector[i],data_vector[i],data_vector[i]}; //note that here the lambda returns the values to be reduced
                 }
             );
-    KRATOS_CHECK_EQUAL(combined.GetValue().first, reference_sum );
-    KRATOS_CHECK_EQUAL(combined.GetValue().second, reference_min );
+    KRATOS_CHECK_EQUAL(std::get<0>(combined.GetValue()).mvalue, reference_sum );
+    KRATOS_CHECK_EQUAL(std::get<1>(combined.GetValue()).mvalue, reference_min );
+    KRATOS_CHECK_EQUAL(std::get<2>(combined.GetValue()).mvalue, reference_max );
+    KRATOS_CHECK_EQUAL(std::get<3>(combined.GetValue()).mvalue, reference_sub );
+    // KRATOS_CHECK_EQUAL(combined.GetValue().second, reference_min );
 }
 
 

@@ -19,6 +19,7 @@
 #include<iostream>
 #include<array>
 #include<vector>
+#include<tuple>
 #include<cmath>
 #include<limits>
 #include<omp.h>
@@ -192,7 +193,7 @@ public:
     }
 
     //a user could define a ThreadSafeMerge for his specific reduction case
-    void ThreadSafeMerge(SumReduction<TDataType>& rOther)
+    void ThreadSafeMerge(const SumReduction<TDataType>& rOther)
     {
         #pragma omp atomic
         mvalue += rOther.mvalue;
@@ -217,10 +218,10 @@ public:
         mvalue -= value;
     }
 
-    void ThreadSafeMerge(SubReduction<TDataType>& rOther)
+    void ThreadSafeMerge(const SubReduction<TDataType>& rOther)
     {
         #pragma omp atomic
-        mvalue -= rOther.mvalue;
+        mvalue += rOther.mvalue;
     }
 };
 
@@ -240,7 +241,7 @@ public:
     void LocalMerge(const TDataType value){
         mvalue = std::max(mvalue,value);
     }
-    void ThreadSafeMerge(MaxReduction<TDataType>& rOther)
+    void ThreadSafeMerge(const MaxReduction<TDataType>& rOther)
     {
         #pragma omp critical
         mvalue = std::max(mvalue,rOther.mvalue);
@@ -265,7 +266,7 @@ public:
         mvalue = std::min(mvalue,value);
     }
 
-    void ThreadSafeMerge(MinReduction<TDataType>& rOther)
+    void ThreadSafeMerge(const MinReduction<TDataType>& rOther)
     {
         #pragma omp critical
         mvalue = std::min(mvalue,rOther.mvalue);
@@ -275,31 +276,86 @@ public:
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
-template<class TFirstReduction, class TSecondReduction>
-class CombinedReduction
-{
-public:
-    typedef std::pair<typename TFirstReduction::value_type, typename TSecondReduction::value_type> value_type;
-    TFirstReduction mFirst;
-    TSecondReduction mSecond;
+// template<class TFirstReduction, class TSecondReduction>
+// class CombinedReduction
+// {
+// public:
+//     typedef std::pair<typename TFirstReduction::value_type, typename TSecondReduction::value_type> value_type;
+//     TFirstReduction mFirst;
+//     TSecondReduction mSecond;
 
-    value_type GetValue() const
+//     value_type GetValue() const
+//     {
+//         return value_type{mFirst.GetValue(), mSecond.GetValue()};
+//     }
+
+//     void LocalMerge(const value_type&& value){
+//         mFirst.LocalMerge(value.first);
+//         mSecond.LocalMerge(value.second);
+//     }
+
+//     void ThreadSafeMerge(CombinedReduction& rOther)
+//     {
+//         mFirst.ThreadSafeMerge(rOther.mFirst);
+//         mSecond.ThreadSafeMerge(rOther.mSecond);
+//     }
+// };
+template <class... Reducer>
+struct CombinedReduction {
+    typedef std::tuple<Reducer...> value_type;
+
+    std::tuple<Reducer...> mChild;
+
+    CombinedReduction() {}
+
+    const value_type& GetValue() const
     {
-        return value_type{mFirst.GetValue(), mSecond.GetValue()};
+        return mChild;
     }
 
-    void LocalMerge(const value_type&& value){
-        mFirst.LocalMerge(value.first);
-        mSecond.LocalMerge(value.second);
+    template <int I>
+    auto value() const -> decltype(std::get<I>(mChild).value) {
+        return std::get<I>(mChild).value;
     }
 
-    void ThreadSafeMerge(CombinedReduction& rOther)
-    {
-        mFirst.ThreadSafeMerge(rOther.mFirst);
-        mSecond.ThreadSafeMerge(rOther.mSecond);
+    template <class... T>
+    void LocalMerge(const std::tuple<T...> &&v) {
+        // Static recursive loop over tuple elements
+        reduce_local<0>(v);
     }
+
+    void ThreadSafeMerge(const CombinedReduction &other) {
+        reduce_global<0>(other);
+    }
+
+    private:
+
+        template <int I, class T>
+        typename std::enable_if<(I < sizeof...(Reducer)), void>::type
+        reduce_local(T &&v) {
+            std::get<I>(mChild).LocalMerge(std::get<I>(v));
+            reduce_local<I+1>(std::forward<T>(v));
+        };
+
+        template <int I, class T>
+        typename std::enable_if<(I == sizeof...(Reducer)), void>::type
+        reduce_local(T &&v) {
+            // Exit static recursion
+        }
+
+        template <int I>
+        typename std::enable_if<(I < sizeof...(Reducer)), void>::type
+        reduce_global(const CombinedReduction &other) {
+            std::get<I>(mChild).ThreadSafeMerge(std::get<I>(other.mChild));
+            reduce_global<I+1>(other);
+        }
+
+        template <int I>
+        typename std::enable_if<(I == sizeof...(Reducer)), void>::type
+        reduce_global(const CombinedReduction &other) {
+            // Exit static recursion
+        }
 };
-
 
 }  // namespace Kratos.
 
