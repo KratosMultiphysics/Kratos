@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-# Other imports
-import sys
-
 # Import the base structural analysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
@@ -206,4 +203,9 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    AdaptativeRemeshingContactStructuralMechanicsAnalysis(project_parameters_file_name).Run()
+    with open(project_parameters_file_name,'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+    model = KratosMultiphysics.Model()
+    simulation = AdaptativeRemeshingContactStructuralMechanicsAnalysis(model, parameters)
+    simulation.Run()

@@ -3,10 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
-
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
     has_meshing_application = True
