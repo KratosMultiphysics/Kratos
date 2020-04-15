@@ -79,19 +79,11 @@ public:
      * @brief Constructor with separate paramters
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
-     * @param PerformLocalCorrections Choice if corrections by locally convecting the distance field shall be performed
-     * @param PerformGlobalCorrections Choice if corrections by globally shifting the distance field shall be performed
      * @param CorrectionFreq Frequency of the correction (if wished) in time steps
-     * @param WriteToLogFile Choice if results shall be written to a log file in every time step
-     * @param LogFileName Name of the log file (if wished)
      */
     MassConservationCheckProcess(
         ModelPart& rModelPart,
-        const bool PerformLocalCorrections,
-        const bool PerformGlobalCorrections,
-        const int CorrectionFreq,
-        const bool WriteToLogFile,
-        const std::string LogFileName);
+        const int CorrectionFreq);
 
     /**
      * @brief Constructor with Kratos parameters
@@ -190,7 +182,24 @@ public:
      */
     void ApplyGlobalCorrection();
 
+    /**
+     * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
+     * This function requires further explanation:
+     * It is assumed that the interface between water and air is not moving.
+     * Given that, the velocity field would create a theoretical volume flux through the stationary interface.
+     * Of this volume flux, we only measure the part where fluid would leave the water domain and "convert water into air" if the surface
+     * remained stationary.
+     * @param factor Value 1.0 for function is described, value -1.0 to compute flow INTO the water domain under the same assumptions
+     * @return double Volume flow [3D: m3/s] computed over the surface
+     */
+    double OrthogonalFlowIntoAir( const double Factor );
 
+    /**
+     * @brief Get default settings in a Parameters object
+     *
+     * @return Default setings
+     */
+    const Parameters GetDefaultParameters();
 
     // ///@}
     // ///@name Inquiry
@@ -231,14 +240,10 @@ private:
     ///@{
 
     // Reference to the model part
-    const ModelPart& mrModelPart;
+    ModelPart& mrModelPart;
 
     // Process parameters
     int mCorrectionFreq = 1;
-    bool mWriteToLogFile = true;
-    bool mPerformGlobalCorrections = true;
-    bool mPerformLocalCorrections = true;
-    std::string mLogFileName = "mass_conservation.log";
 
     // Inital volume with negative distance field ("water" volume)
     double mInitialNegativeVolume = -1.0;
@@ -256,8 +261,7 @@ private:
 
     // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)
-    double mQNet1 = 0.0;      // for the past time step (t - 1)
-    double mQNet2 = 0.0;      // for the past time step (t - 2)
+
 
     ///@}
     ///@name Protected Operators
@@ -321,19 +325,8 @@ private:
                             Line3D2<IndexedPoint>::Pointer& rpAuxLine,
                             array_1d<double, 3>& rAuxVelocity1,
                             array_1d<double, 3>& rAuxVelocity2 );
-
-    /**
-     * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
-     * This function requires further explanation:
-     * It is assumed that the interface between water and air is not moving.
-     * Given that, the velocity field would create a theoretical volume flux through the stationary interface.
-     * Of this volume flux, we only measure the part where fluid would leave the water domain and "convert water into air" if the surface
-     * remained stationary.
-     * @param factor Value 1.0 for function is described, value -1.0 to compute flow INTO the water domain under the same assumptions
-     * @return double Volume flow [3D: m3/s] computed over the surface
-     */
-
-    double OrthogonalFlowIntoAir( const double Factor );
+    
+    bool IsGeometryCut(const Geometry<Node<3>> &rGeom, unsigned int &PtCountNeg, unsigned int &PtCountPos);
 
     ///@}
     ///@name Private  Access

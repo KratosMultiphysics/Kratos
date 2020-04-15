@@ -28,6 +28,7 @@ from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
+import test_mass_conservation_check_process import TestMassConservationCheckProcess
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -60,6 +61,7 @@ def AssembleTestSuites():
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassConservationCheckProcess]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

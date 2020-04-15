@@ -32,18 +32,11 @@ namespace Kratos
 /// constructor
 MassConservationCheckProcess::MassConservationCheckProcess(
         ModelPart& rModelPart,
-        const bool PerformLocalCorrections,
-        const bool PerformGlobalCorrections,
-        const int CorrectionFreq,
-        const bool WriteToLogFile,
-        const std::string LogFileName)
-    : Process(), mrModelPart(rModelPart) {
+        const int CorrectionFreq)
+    : Process(),
+      mrModelPart(rModelPart),
+      mCorrectionFreq(CorrectionFreq) {
 
-    mCorrectionFreq = CorrectionFreq;
-    mWriteToLogFile = WriteToLogFile;
-    mLogFileName = LogFileName;
-    mPerformLocalCorrections = PerformLocalCorrections;
-    mPerformGlobalCorrections = PerformGlobalCorrections;
 }
 
 
@@ -54,23 +47,11 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     Parameters& rParameters)
     : Process(), mrModelPart(rModelPart) {
 
-    Parameters default_parameters( R"(
-    {
-        "model_part_name"                        : "",
-        "perform_local_corrections"              : true,
-        "perform_global_corrections"             : false,
-        "correction_frequency_in_time_steps"     : 20,
-        "write_to_log_file"                      : false,
-        "log_file_name"                          : "mass_conservation.log"
-    }  )" );
+    const Parameters default_parameters = GetDefaultParameters();
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mCorrectionFreq = rParameters["correction_frequency_in_time_steps"].GetInt();
-    mWriteToLogFile = rParameters["write_to_log_file"].GetBool();
-    mPerformLocalCorrections = rParameters["perform_local_corrections"].GetBool();
-    mPerformGlobalCorrections = rParameters["perform_global_corrections"].GetBool();
-    mLogFileName = rParameters["log_file_name"].GetString();
 }
 
 
@@ -81,14 +62,15 @@ std::string MassConservationCheckProcess::Initialize(){
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double inter_area = 0.0;
-    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    mrModelPart.GetCommunicator().SynchronizeVariable(DISTANCE);
+    mrModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
+    mrModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
 
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);
-    this->mInitialNegativeVolume = r_comm.SumAll(neg_vol);
+    this->mInitialPositiveVolume = pos_vol;
+    this->mInitialNegativeVolume = neg_vol;
     this->mTheoreticalNegativeVolume = neg_vol;
-    inter_area = r_comm.SumAll(inter_area);
 
     std::string output_line =   "------ Initial values ----------------- \n";
     output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
@@ -109,35 +91,22 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double inter_area = 0.0;
+    mrModelPart.GetCommunicator().SynchronizeVariable(DISTANCE);
+    mrModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
+    mrModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
 
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
     mInterfaceArea = inter_area;
 
-    // computing global quantities via MPI communication
-    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet};
-    std::vector<double> remote_sum{0, 0, 0, 0, 0};
-    r_comm.SumAll(local_data, remote_sum);
-
-    pos_vol = remote_sum[0];
-    neg_vol = remote_sum[1];
-    inter_area = remote_sum[2];
-    net_inflow_inlet = remote_sum[3];
-    net_inflow_outlet = remote_sum[4];
-
     // making a "time step forwards" and updating the
     const double current_time = mrModelPart.GetProcessInfo()[TIME];
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
-    mQNet2 = mQNet1;
-    mQNet1 = mQNet0;
-    mQNet0 = net_inflow_inlet + net_inflow_outlet;
 
-    // ### Here all already global quantities ###
-    // adding time-integrated net inflow ( = new water volume ) to the theoretical value
-    // The value of the integral is evaluated following the idea of the Adams-Moulton-Procedure (s=2)
-    mTheoreticalNegativeVolume += current_dt * ( 5.0*mQNet0 + 8.0*mQNet1 - 1.0*mQNet2 ) / 12.0;
+    mQNet0 = net_inflow_inlet + net_inflow_outlet;
+    mTheoreticalNegativeVolume += current_dt * mQNet0;
+
 
     mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
 
@@ -165,8 +134,8 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
         // case: water volume was lost by mistake
         mAddWater = true;
         double water_outflow_over_boundary = OrthogonalFlowIntoAir( 1.0 );
-        comm.Barrier();
-        if ( comm.SumAll( water_outflow_over_boundary ) ){
+        comm.GetDataCommunicator().Barrier();
+        if ( comm.GetDataCommunicator().SumAll( water_outflow_over_boundary ) ){
             // checking if flow is sufficient (avoid division by 0)
             if ( water_outflow_over_boundary > 1.0e-7 ){
                 time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
@@ -179,8 +148,8 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
         // case: water volume was gained by mistake
         mAddWater = false;
         double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
-        comm.Barrier();
-        if ( comm.SumAll( water_inflow_over_boundary ) ){
+        comm.GetDataCommunicator().Barrier();
+        if ( comm.GetDataCommunicator().SumAll( water_inflow_over_boundary ) ){
             // checking if flow is sufficient (avoid division by 0)
             if ( water_inflow_over_boundary > 1.0e-7 ){
                 time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
@@ -203,12 +172,12 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
 
 void MassConservationCheckProcess::ApplyLocalCorrection( Variable<double>& rAuxDistVar ){
 
-    if ( mPerformLocalCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 ){
+    if (mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 ){
+        const auto node_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
+        const int number_nodes = static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
 
-        for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
-            // iteration over all nodes
-            auto it_node = mrModelPart.NodesBegin() + i_node;
-
+        for (int i_node = 0; i_node < number_nodes; ++i_node){
+            auto it_node = node_begin + i_node;
             double& r_original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
             const double& r_aux_dist = it_node->GetValue( rAuxDistVar );
 
@@ -233,16 +202,8 @@ void MassConservationCheckProcess::ReCheckTheMassConservation(){
     double inter_area = 0.0;
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    const auto& comm = mrModelPart.GetCommunicator();
-
-    comm.Barrier();
-    if ( comm.SumAll(neg_vol) && comm.SumAll(inter_area)  ){
-        // if communication was successful
-        mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
-        mInterfaceArea = inter_area;
-    } else {
-        KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ReCheckTheMassConservation()";
-    }
+    mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
+    mInterfaceArea = inter_area;
 }
 
 
@@ -252,7 +213,7 @@ void MassConservationCheckProcess::ApplyGlobalCorrection(){
     const double inter_area = mInterfaceArea;
 
     // check if it is time for a correction (if wished for)
-    if ( mPerformGlobalCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-7){
+    if (mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-7){
         // if water is missing, a shift into negative direction increases the water volume
         const double shift_for_correction = - mWaterVolumeError / inter_area;
 
@@ -281,15 +242,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& rPositive
         const auto rGeom = it_elem->GetGeometry();
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
-
-        // instead of using data.isCut()
-        for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                pt_count_pos++;
-            } else {
-                pt_count_neg++;
-            }
-        }
+        const bool is_geometry_cut = IsGeometryCut(rGeom, pt_count_neg, pt_count_pos);
 
         if ( pt_count_pos == rGeom.PointsNumber() ){
             // all nodes are positive (pointer is necessary to maintain polymorphism of DomainSize())
@@ -299,24 +252,24 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& rPositive
             // all nodes are negative (pointer is necessary to maintain polymorphism of DomainSize())
             neg_vol += it_elem->pGetGeometry()->DomainSize();
         }
-        else if ( 0 < pt_count_neg && 0 < pt_count_pos ){
+        else if ( is_geometry_cut ){
             // element is cut by the surface (splitting)
             Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_pos_side(3, 0.0);
             Vector w_gauss_neg_side(3, 0.0);
             Vector w_gauss_interface(3, 0.0);
 
-            Vector Distance( rGeom.PointsNumber(), 0.0 );
+            Vector nodal_distances( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
                 if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
-                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
+                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = -1.0e-7;
                 }
-                Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+                nodal_distances[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), nodal_distances); }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), nodal_distances); }
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
 
             // Call the positive side modified shape functions calculator (Gauss weights woulb be enough)
@@ -355,10 +308,10 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& rPositive
             }
         }
     }
-    // assigning the values to the arguments of type reference
-    rPositiveVolume = pos_vol;
-    rNegativeVolume = neg_vol;
-    rInterfaceArea = int_area;
+    mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+    rPositiveVolume = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(pos_vol);
+    rNegativeVolume = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(neg_vol);
+    rInterfaceArea = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(int_area);
 }
 
 
@@ -380,16 +333,8 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor 
         const auto r_geom = it_elem->GetGeometry();
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
-        // instead of using data.isCut()
-        for (unsigned int pt = 0; pt < r_geom.Points().size(); pt++){
-            if ( r_geom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                pt_count_pos++;
-            } else {
-                pt_count_neg++;
-            }
-        }
-
-        if ( 0 < pt_count_neg && 0 < pt_count_pos ){
+        const bool geom_is_cut = IsGeometryCut(r_geom, pt_count_neg, pt_count_pos);
+        if (geom_is_cut){
             // element is cut by the surface (splitting)
             Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_interface(3, 0.0);
@@ -398,7 +343,7 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor 
             for (unsigned int i = 0; i < r_geom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
                 if ( r_geom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
-                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
+                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = -1.0e-7;
                 }
                 Distance[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
             }
@@ -433,7 +378,8 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor 
 
                 array_1d<double,3> interpolated_velocity = ZeroVector(3);
                 for (unsigned int n_node = 0; n_node < r_geom.PointsNumber(); n_node++){
-                    noalias( interpolated_velocity ) += r_N[n_node] * r_geom[n_node].FastGetSolutionStepValue(VELOCITY);
+                    noalias( interpolated_velocity ) += r_N[n_node] * (r_geom[n_node].FastGetSolutionStepValue(VELOCITY)
+                        - r_geom[n_node].FastGetSolutionStepValue(MESH_VELOCITY));
                 }
 
                 const double& r_orthogonal_flow = inner_prod( r_normal, interpolated_velocity );
@@ -444,8 +390,9 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor 
             }
         }
     }
-
-    return outflow;
+    mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+    const double global_outflow = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(outflow);
+    return global_outflow;
 }
 
 
@@ -465,21 +412,8 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
         const auto rGeom = it_elem->GetGeometry();
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
-
-        // instead of using data.isCut()
-        for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                pt_count_pos++;
-            } else {
-                pt_count_neg++;
-            }
-        }
-
-        if ( pt_count_pos == rGeom.PointsNumber() || pt_count_neg == rGeom.PointsNumber() ){
-            // all nodes are on one side and the element is not split
-            continue;
-        }
-        else {
+        const bool geom_is_cut = IsGeometryCut(rGeom, pt_count_pos, pt_count_neg);
+        if (geom_is_cut) {
             // element is cut by the surface (splitting)
             Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_interface(3, 0.0);
@@ -525,15 +459,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
         const auto rGeom = it_elem->GetGeometry();
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
-
-        // instead of using data.isCut()
-        for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                pt_count_pos++;
-            } else {
-                pt_count_neg++;
-            }
-        }
+        const bool is_geometry_cut = IsGeometryCut(rGeom, pt_count_neg, pt_count_pos);
 
         if ( pt_count_pos == rGeom.PointsNumber() ){
             // jump into next iteration
@@ -543,7 +469,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
             // all nodes are negative
             neg_vol += it_elem->pGetGeometry()->DomainSize();
         }
-        else {
+        else if (is_geometry_cut) {
             // element is cut by the surface (splitting)
             Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_neg_side(3, 0.0);
@@ -592,13 +518,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
         unsigned int pt_count_neg = 0;
 
         // instead of using data.isCut()
-        for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                pt_count_pos++;
-            } else {
-                pt_count_neg++;
-            }
-        }
+        const bool is_geometry_cut = IsGeometryCut(rGeom, pt_count_neg, pt_count_pos);
 
         if ( pt_count_pos == rGeom.PointsNumber() ){
             // all nodes are positive
@@ -608,7 +528,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
             // jump into the next iteration
             continue;
         }
-        else {
+        else if (is_geometry_cut) {
             // element is cut by the surface (splitting)
             Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_pos_side(3, 0.0);
@@ -661,14 +581,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
             unsigned int neg_count = 0;
             unsigned int pos_count = 0;
-            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                distance[i] = p_condition->GetGeometry()[i].FastGetSolutionStepValue( DISTANCE );
-                if ( rGeom[i].FastGetSolutionStepValue( DISTANCE ) > 0.0 ){
-                    pos_count++;
-                } else {
-                    neg_count++;
-                }
-            }
+            const bool is_geometry_cut = IsGeometryCut(rGeom, neg_count, pos_count);
 
             // leave the current iteration of the condition is completely on positive side
             if ( pos_count == rGeom.PointsNumber() ){ continue; }
@@ -693,18 +606,22 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( interpolated_velocity ) += N[n_node] * (rGeom[n_node].FastGetSolutionStepValue(VELOCITY) -
+                             rGeom[n_node].FastGetSolutionStepValue(MESH_VELOCITY)) ;
                         }
                         inflow_over_boundary -= w_gauss * inner_prod( normal, interpolated_velocity );
                     }
 
                 // --- the condition is cut (2D)
-                } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){
+                } else if (is_geometry_cut){
 
                     array_1d<double, 3> aux_velocity1, aux_velocity2;
 
                     // Generation of an auxiliary line that only covers the negative fraction ("transferring the splitting mechanism to 1D")
                     Line3D2<IndexedPoint>::Pointer p_aux_line = nullptr;
+                    for (unsigned int i = 0; i < rGeom.PointsNumber(); i++) {
+                        distance[i] = p_condition->GetGeometry()[i].FastGetSolutionStepValue( DISTANCE );
+                    }
                     GenerateAuxLine( rGeom, distance, p_aux_line, aux_velocity1, aux_velocity2 );
 
                     // Gauss point information for auxiliary line geometry
@@ -745,17 +662,22 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         double const wGauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( interpolated_velocity ) += N[n_node] * (rGeom[n_node].FastGetSolutionStepValue(VELOCITY)
+                                - rGeom[n_node].FastGetSolutionStepValue(MESH_VELOCITY));
                         }
                         inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
 
                 // --- the condition is cut
-                } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){
+                } else if ( is_geometry_cut ){
 
                     Matrix r_shape_functions;
                     GeometryType::ShapeFunctionsGradientsType r_shape_derivatives;
                     Vector w_gauss_neg_side;
+
+                    for (unsigned int i = 0; i < rGeom.PointsNumber(); i++) {
+                        distance[i] = p_condition->GetGeometry()[i].FastGetSolutionStepValue( DISTANCE );
+                    }
 
                     // generating an auxiliary Triangle2D3 geometry the "Triangle2D3ModifiedShapeFunctions" can work with
                     const auto aux_2D_triangle = GenerateAuxTriangle( rGeom );
@@ -785,7 +707,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             }
         }
     }
-    return inflow_over_boundary;
+    const double global_inflow_over_boundary = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(inflow_over_boundary);
+    return global_inflow_over_boundary;
 }
 
 
@@ -916,6 +839,31 @@ void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rG
     rpAuxLine = Kratos::make_shared< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
 }
 
+const Parameters MassConservationCheckProcess::GetDefaultParameters()
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "correction_frequency_in_time_steps"     : 20
+    })" );
+    return default_parameters;
+}
+
+bool MassConservationCheckProcess::IsGeometryCut(
+    const GeometryType &rGeometry,
+    unsigned int &PtCountNeg,
+    unsigned int &PtCountPos)
+{
+    PtCountNeg = 0;
+    PtCountPos = 0;
+    for (unsigned int pt = 0; pt < rGeometry.Points().size(); pt++){
+        if ( rGeometry[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            PtCountPos++;
+        } else {
+            PtCountNeg++;
+        }
+    }
+    return (PtCountNeg > 0 && PtCountPos > 0);
+}
 
 
 };  // namespace Kratos.
