@@ -30,9 +30,9 @@ protected:
     struct KinematicVariables
     {
         // covariant metric
-        array_1d<double, 3> a_ab_covariant;
-        array_1d<double, 3> b_ab_covariant;
-        array_1d<double, 2> s_a_covariant; //shear 
+        array_1d<double, 3> metric;
+        array_1d<double, 3> curvature;
+        array_1d<double, 2> transShear; //shear 
 
         //base vector 1
         array_1d<double, 3> a1;
@@ -52,16 +52,17 @@ protected:
         * The default constructor
         * @param Dimension: The size of working space dimension
         */
-        KinematicVariables(SizeType Dimension)
+        KinematicVariables()
         {
-            noalias(a_ab_covariant) = ZeroVector(Dimension);
-            noalias(b_ab_covariant) = ZeroVector(Dimension);
+            noalias(metric) = ZeroVector(3);
+            noalias(curvature) = ZeroVector(3);
+            noalias(transShear) = ZeroVector(2);
 
-            noalias(a1) = ZeroVector(Dimension);
-            noalias(a2) = ZeroVector(Dimension);
-            noalias(t) = ZeroVector(Dimension);
-            noalias(dtd1) = ZeroVector(Dimension);
-            noalias(dtd2) = ZeroVector(Dimension);
+            noalias(a1) = ZeroVector(3);
+            noalias(a2) = ZeroVector(3);
+            noalias(t) = ZeroVector(3);
+            noalias(dtd1) = ZeroVector(3);
+            noalias(dtd2) = ZeroVector(3);
 
             dA = 1.0;
         }
@@ -352,9 +353,9 @@ private:
     // Components of the metric coefficient tensor on the contravariant basis
     //std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
     // Components of the curvature coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
+    std::vector<array_1d<double, 3>> reference_Curvature;
     // Components of the shear coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 2>> m_S_a_covariant_vector;
+    std::vector<array_1d<double, 2>> reference_TransShear;
 
     // Shape functions at all integration points
     Matrix m_N;
@@ -393,7 +394,7 @@ private:
         const KinematicVariables& rKinematicVariables,
         Matrix& rT);
 
-    void CalculateBOperator(
+    void CalculateStrainDisplacementOperator(
         IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic,
@@ -416,24 +417,25 @@ private:
     void CalculateConstitutiveVariables(
         IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
-        ConstitutiveVariables& rThisConstitutiveVariablesShear,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
 
-    inline void CalculateAndAddKm(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& B,
-        const Matrix& D,
-        const double IntegrationWeight);
 
-    inline void CalculateAndAddNonlinearKm(
-        Matrix& rLeftHandSideMatrix,
-        const SecondVariations& rSecondVariationsStrain,
-        const Vector& rSD,
-        const double IntegrationWeight);
+    void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
+    void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix)
+  //  inline void CalculateAndAddKm(
+ //       MatrixType& rLeftHandSideMatrix,
+  //      const Matrix& B,
+  //      const Matrix& D,
+   //     const double IntegrationWeight);
+
+  //  inline void CalculateAndAddNonlinearKm(
+   //     Matrix& rLeftHandSideMatrix,
+   //     const SecondVariations& rSecondVariationsStrain,
+  //      const Vector& rSD,
+   //     const double IntegrationWeight);
 
 
     ///@}
@@ -445,8 +447,8 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("A_ab_covariant_vector", m_B_ab_covariant_vector);
-        rSerializer.save("B_ab_covariant_vector", m_S_a_covariant_vector);
+        rSerializer.save("reference_Curvature", reference_Curvature);
+        rSerializer.save("reference_TransShear", reference_TransShear);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
@@ -455,8 +457,8 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("A_ab_covariant_vector", m_B_ab_covariant_vector);
-        rSerializer.load("B_ab_covariant_vector", m_S_a_covariant_vector);
+        rSerializer.load("curvature", reference_Curvature);
+        rSerializer.load("reference_TransShear", reference_TransShear);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
