@@ -422,6 +422,10 @@ double ComputeLocalMachSquaredDerivative(
     const double& local_mach_number,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2
+
     // read free stream values
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
