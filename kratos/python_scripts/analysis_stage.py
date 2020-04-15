@@ -229,7 +229,7 @@ class AnalysisStage(object):
         solver = self._GetSolver()
         processes = self._GetListOfProcesses()
 
-        reinitialize_requirement = self.GetReInitializeRequired()
+        reinitialize_requirement = self._GetReInitializeRequired()
 
         # Clear solver
         solver.Clear()
@@ -275,7 +275,7 @@ class AnalysisStage(object):
         # We reset the flags
         self._ResetModelIsModified()
 
-    def GetReInitializeRequired(self):
+    def _GetReInitializeRequired(self):
         """ This returns the initilization requirement. By default only elements and conditions are initialized
 
             Keyword arguments:
