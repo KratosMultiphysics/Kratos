@@ -108,6 +108,44 @@ class ConstitutiveLawUtilities
     ///@{
 
     /**
+     * @brief This method computes the deviatoric part of the strain
+     * @param rStrainVector The total strain
+     * @param rVolumetricStrainVector The volumetric strain part
+     * @param rDeviatoricStrainVector The deviatoric strain part
+     */
+    static void CalculateDeviatoricStrainVector(
+        const BoundedVectorType &rStrainVector,
+        const BoundedVectorType &rVolumetricStrainVector,
+        BoundedVectorType &rDeviatoricStrainVector);
+
+    /**
+     * @brief This method computes the volumetric part of the strain
+     * @param rStrainVector The total strain
+     * @param rVolumetricStrainVector The volumetric strain part
+     */
+    static void CalculateVolumetricStrainVector(
+        const BoundedVectorType &rStrainVector,
+        BoundedVectorType &rVolumetricStrainVector);
+
+
+    /**
+     * @brief This method creates an identity vector
+     * @param rIdentityVector The resulting Identity Vector
+     */
+    static void CalculateIdentityVector(
+        BoundedVectorType& rIdentityVector
+    )
+    {
+        if (rIdentityVector.size() != VoigtSize) {
+            rIdentityVector.resize(VoigtSize);
+            noalias(rIdentityVector) = ZeroVector(VoigtSize);
+        }
+
+        for (IndexType i = 0; i < Dimension; ++i)
+            rIdentityVector[i] = 1.0;
+    }
+
+    /**
      * @brief This method computes the Bulk modulus K = E / (2(1+nu))
      * @param rValues Parameters of the constitutive law
      */

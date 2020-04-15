@@ -24,6 +24,45 @@ namespace Kratos
 {
 
 template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateDeviatoricStrainVector(
+    const BoundedVectorType& rStrainVector,
+    const BoundedVectorType& rVolumetricStrainVector,
+    BoundedVectorType &rDeviatoricStrainVector
+    )
+{
+    if (rDeviatoricStrainVector.size() != VoigtSize)
+        rDeviatoricStrainVector.resize(VoigtSize);
+
+    noalias(rDeviatoricStrainVector) = rStrainVector - rVolumetricStrainVector;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateVolumetricStrainVector(
+    const BoundedVectorType& rStrainVector,
+    BoundedVectorType& rVolumetricStrainVector
+    )
+{
+    if (rVolumetricStrainVector.size() != VoigtSize)
+        rVolumetricStrainVector.resize(VoigtSize);
+
+    BoundedVectorType r_identity_vector = ZeroVector(VoigtSize);
+    CalculateIdentityVector(r_identity_vector);
+    double strain_trace = 0.0;
+
+    // Compute the trace of strain vector
+    for (IndexType i = 0; i < Dimension; ++i)
+        strain_trace += rStrainVector[i];
+
+    noalias(rVolumetricStrainVector) = 1.0 / 3.0 * (strain_trace)*r_identity_vector;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
     ConstitutiveLaw::Parameters& rValues
     )
@@ -51,8 +90,8 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateBulkModulus(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
     const BoundedVectorType& rStressVector,
     double& rI1
     )
@@ -62,19 +101,6 @@ void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
         rI1 += rStressVector[i];
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI1
-    )
-{
-    rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i)
-        rI1 += rStressVector[i];
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
