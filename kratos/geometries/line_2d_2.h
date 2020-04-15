@@ -968,52 +968,40 @@ public:
                     if (std::abs(inner_prod(AB, AC)) <= tolerance) { // p3 coincides with p1. Check if the lines are in the same direction
                         if (inner_prod(AB,CD) > tolerance) {
                             return true;
-                        }
-                        else {
+                        } else {
                             return false;
                         }
-                    }
-                    else if (std::abs(inner_prod(AB, AC) - inner_prod(AB, AB)) < tolerance) { // p3 coincides with p2. Check if the lines are in the same direction
+                    } else if (std::abs(inner_prod(AB, AC) - inner_prod(AB, AB)) < tolerance) { // p3 coincides with p2. Check if the lines are in the same direction
                         if (inner_prod(-1.0*AB, CD) > tolerance) {
                             return true;
-                        }
-                        else {
+                        } else {
                             return false;
                         }
-                    }
-                    else {
+                    } else {
                         return true; // p3 lies within the line
                     }
-                }
-                else if (inner_prod(AB, AD) >= (0.0 - tolerance) && inner_prod(AB, AD) <= (inner_prod(AB, AB) + tolerance)) { // Check if p4 is within the line
+                } else if (inner_prod(AB, AD) >= (0.0 - tolerance) && inner_prod(AB, AD) <= (inner_prod(AB, AB) + tolerance)) { // Check if p4 is within the line
                     if (std::abs(inner_prod(AB, AD)) <= tolerance) { // p4 coincides with Point 1. Check if the lines are in the same direction
                         if (inner_prod(AB, -1.0 * CD) > tolerance) {
                             return true; // p4 coincides with p2 and lines overlap
-                        }
-                        else {
+                        } else {
                             return false;
                         }
-                    }
-                    else if (std::abs(inner_prod(AB, AD) - inner_prod(AB, AB)) < tolerance) { // p4 coincides with p2. Check if the lines are in the same direction
+                    } else if (std::abs(inner_prod(AB, AD) - inner_prod(AB, AB)) < tolerance) { // p4 coincides with p2. Check if the lines are in the same direction
                         if (inner_prod(-1.0 * AB, -1.0 * CD) > tolerance) {
                             return true; // p4 coincides with p2 and lines overlap
-                        }
-                        else {
+                        } else {
                             return false;
                         }
-                    }
-                    else {
+                    } else {
                         return true; // p4 lies within the line
                     }
-                }
-                else if (inner_prod(CD,CA) > tolerance && inner_prod(CD, CB) > tolerance) { // check if the line lies entirely within the other line
+                } else if (inner_prod(CD,CA) > tolerance && inner_prod(CD, CB) > tolerance) { // check if the line lies entirely within the other line
                     return true; // the line lies entirely within the other line
-                }
-                else {
+                } else {
                     return false; // Lines are colinear, but do not overlap at all
                 }
-            }
-            else {
+            } else {
                 return false; // Lines are parallel but not colinear
             }
         }
