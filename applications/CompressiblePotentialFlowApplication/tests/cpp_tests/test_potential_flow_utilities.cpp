@@ -219,5 +219,54 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeSupersonicMach, Compr
     KRATOS_CHECK_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
+// Checks the function ComputeMaximumVelocitySquared from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    model_part.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+    model_part.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
+    model_part.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+    model_part.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = model_part.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              model_part.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+    // Max local Mach number = sqrt(3.0), hard coded in ComputeMaximumVelocitySquared
+
+    double reference_sq_max_velocity = 232356.0000000000000000;
+
+    double sq_max_velocity = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(model_part.GetProcessInfo());
+
+    KRATOS_CHECK_NEAR(sq_max_velocity, reference_sq_max_velocity, 1e-10);
+}
+
+// Checks ComputeLocalSpeedofSoundSquared in utilities, local velocity that should be clamped
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    model_part.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+    model_part.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
+    model_part.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+    model_part.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = model_part.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              model_part.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = 350000.0;
+    
+    double sq_local_speed_sound = PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<2,3>(velocity, model_part.GetProcessInfo());
+
+    double reference_sq_local_speed_sound = 77452.0000000000;
+
+    KRATOS_CHECK_NEAR(sq_local_speed_sound, reference_sq_local_speed_sound, 1e-16);
+}
+
 } // namespace Testing
 } // namespace Kratos.
