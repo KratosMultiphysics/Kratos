@@ -53,3 +53,11 @@ class IncompressiblePotentialFlowFormulation(Formulation):
 
     def GetMinimumBufferSize(self):
         return 1
+
+    def IsPeriodic(self):
+        return False
+
+    def SetIsPeriodic(self, value):
+        super(IncompressiblePotentialFlowFormulation, self).SetIsPeriodic(False)
+        if (value):
+            raise Exception("Periodic conditions are not supported by incompressible potential flow solver.")

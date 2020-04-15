@@ -21,6 +21,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateIncremantalUpdateScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 class IncompressiblePotentialFlowVelocityFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -111,4 +112,7 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
 
     def Clear(self):
         self.velocity_strategy.Clear()
+
+    def GetInfo(self):
+        return GetFormulationInfo(self, self.velocity_model_part)
 

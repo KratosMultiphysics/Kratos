@@ -6,9 +6,6 @@ import KratosMultiphysics as Kratos
 # import required applications
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-# impot processes
-from KratosMultiphysics import IntegrationValuesExtrapolationToNodesProcess as extrapolation_process
-
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 
@@ -22,7 +19,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateIncremantalUpdateScheme
-
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 class IncompressiblePotentialFlowPressureFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -109,3 +106,6 @@ class IncompressiblePotentialFlowPressureFormulation(Formulation):
 
     def Clear(self):
         self.pressure_strategy.Clear()
+
+    def GetInfo(self):
+        return GetFormulationInfo(self, self.pressure_model_part)
