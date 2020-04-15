@@ -19,7 +19,7 @@
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FEMDEM_coupling_utilities.h"
-#include "custom_utilities/aitken_relaxation_utility.hpp"
+#include "custom_utilities/aitken_relaxation_femdem_utility.hpp"
 
 namespace Kratos
 {
@@ -39,23 +39,23 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
         ;
 
-    py::class_<AitkenRelaxationUtility>(m, "AitkenRelaxationUtility")
+    py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
         .def(py::init<double>())
         .def(py::init<>())
         .def(py::init<double,double,double>())
-        .def("InitializeSolutionStep", &AitkenRelaxationUtility::InitializeSolutionStep)
-        .def("UpdateSolution", &AitkenRelaxationUtility::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &AitkenRelaxationUtility::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &AitkenRelaxationUtility::FinalizeSolutionStep)
-        .def("ComputeNorm", &AitkenRelaxationUtility::ComputeNorm)
-        .def("InitializeInterfaceSubModelPart", &AitkenRelaxationUtility::InitializeInterfaceSubModelPart)
-        .def("ResetNodalValues", &AitkenRelaxationUtility::ResetNodalValues)
-        .def("SavePreviousRelaxedValues", &AitkenRelaxationUtility::SavePreviousRelaxedValues)
-        .def("GetVectorSize", &AitkenRelaxationUtility::GetVectorSize)
-        .def("FillOldRelaxedValuesVector", &AitkenRelaxationUtility::FillOldRelaxedValuesVector)
-        .def("ComputeInterfaceResidualVector", &AitkenRelaxationUtility::ComputeInterfaceResidualVector)
-        .def("UpdateInterfaceValues", &AitkenRelaxationUtility::UpdateInterfaceValues)
-        .def("ResetPFEMkinematicValues", &AitkenRelaxationUtility::ResetPFEMkinematicValues)
+        .def("InitializeSolutionStep", &AitkenRelaxationFEMDEMUtility::InitializeSolutionStep)
+        .def("UpdateSolution", &AitkenRelaxationFEMDEMUtility::UpdateSolution)
+        .def("FinalizeNonLinearIteration", &AitkenRelaxationFEMDEMUtility::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep", &AitkenRelaxationFEMDEMUtility::FinalizeSolutionStep)
+        .def("ComputeNorm", &AitkenRelaxationFEMDEMUtility::ComputeNorm)
+        .def("InitializeInterfaceSubModelPart", &AitkenRelaxationFEMDEMUtility::InitializeInterfaceSubModelPart)
+        .def("ResetNodalValues", &AitkenRelaxationFEMDEMUtility::ResetNodalValues)
+        .def("SavePreviousRelaxedValues", &AitkenRelaxationFEMDEMUtility::SavePreviousRelaxedValues)
+        .def("GetVectorSize", &AitkenRelaxationFEMDEMUtility::GetVectorSize)
+        .def("FillOldRelaxedValuesVector", &AitkenRelaxationFEMDEMUtility::FillOldRelaxedValuesVector)
+        .def("ComputeInterfaceResidualVector", &AitkenRelaxationFEMDEMUtility::ComputeInterfaceResidualVector)
+        .def("UpdateInterfaceValues", &AitkenRelaxationFEMDEMUtility::UpdateInterfaceValues)
+        .def("ResetPFEMkinematicValues", &AitkenRelaxationFEMDEMUtility::ResetPFEMkinematicValues)
         ;
 }
 

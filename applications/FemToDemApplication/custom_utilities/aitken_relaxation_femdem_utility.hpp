@@ -44,13 +44,13 @@ namespace Kratos
 
 /** @brief Aitken relaxation technique for FSI PFEM-FEM-DEM coupling
  */
-class AitkenRelaxationUtility
+class AitkenRelaxationFEMDEMUtility
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(AitkenRelaxationUtility);
+    KRATOS_CLASS_POINTER_DEFINITION(AitkenRelaxationFEMDEMUtility);
 
     typedef UblasSpace<double, Matrix, Vector> TSpace;
 
@@ -66,9 +66,9 @@ public:
 
    /**
      * Constructor.
-     * AitkenRelaxationUtility
+     * AitkenRelaxationFEMDEMUtility
      */
-    AitkenRelaxationUtility(const double OmegaOld = 0.825, const double MaximumOmega = 0.825, const double MinimumOmega = 0.825)
+    AitkenRelaxationFEMDEMUtility(const double OmegaOld = 0.825, const double MaximumOmega = 0.825, const double MinimumOmega = 0.825)
     {
         mOmegaOld = OmegaOld;
         mOmegaMax = MaximumOmega;
@@ -78,7 +78,7 @@ public:
     /**
      * Copy Constructor.
      */
-    AitkenRelaxationUtility(const AitkenRelaxationUtility& rOther)
+    AitkenRelaxationFEMDEMUtility(const AitkenRelaxationFEMDEMUtility& rOther)
     {
         mOmegaOld = rOther.mOmegaOld;
     }
@@ -86,7 +86,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~AitkenRelaxationUtility() {}
+    virtual ~AitkenRelaxationFEMDEMUtility() {}
 
 
     ///@name Operators

@@ -53,7 +53,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             self.aitken_max_iterations = 30
             self.aitken_residual_dof_tolerance = 1e-5
 
-        self.FSI_aitken_utility = FEMDEM.AitkenRelaxationUtility(initial_relaxation, max_relaxation, min_relaxation)
+        self.FSI_aitken_utility = FEMDEM.AitkenRelaxationFEMDEMUtility(initial_relaxation, max_relaxation, min_relaxation)
 
         self.developer_mode = False
         if self.developer_mode:
