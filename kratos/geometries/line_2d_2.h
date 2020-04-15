@@ -957,12 +957,12 @@ public:
             const double rhs = (first_point_other[1] - second_point[1]) * (second_point[0] - first_point[0]);
             if (std::abs(lhs - rhs) < tolerance) {
                 // Lines are parallel and co-linear, check that at least one point of the other line is within the local line
-                const Vector AB = second_point - first_point;
-                const Vector AC = first_point_other - first_point;
-                const Vector AD = second_point_other - first_point;
-                const Vector CA = first_point - first_point_other;
-                const Vector CB = second_point - first_point_other;
-                const Vector CD = second_point_other - first_point_other;
+                const array_1d<double, 3> AB = second_point - first_point;
+                const array_1d<double, 3> AC = first_point_other - first_point;
+                const array_1d<double, 3> AD = second_point_other - first_point;
+                const array_1d<double, 3> CA = first_point - first_point_other;
+                const array_1d<double, 3> CB = second_point - first_point_other;
+                const array_1d<double, 3> CD = second_point_other - first_point_other;
                 
                 if (inner_prod(AB,AC) >= (0.0 - tolerance) && inner_prod(AB, AC) <= (inner_prod(AB,AB) + tolerance)) { // Check if p3 is within the line
                     if (std::abs(inner_prod(AB, AC)) <= tolerance) { // p3 coincides with p1. Check if the lines are in the same direction
