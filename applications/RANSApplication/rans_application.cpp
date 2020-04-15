@@ -33,6 +33,10 @@ KratosRANSApplication::KratosRANSApplication()
       mIncompressiblePotentialFlowVelocityCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowPressureCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
       mIncompressiblePotentialFlowPressureCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mFSHighReKWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+      mFSHighReKWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonLowReK2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonLowReK3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansEvmKEpsilonLowReEpsilon2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -86,6 +90,11 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE(ANALYSIS_STEPS)
     KRATOS_REGISTER_VARIABLE(VELOCITY_POTENTIAL)
     KRATOS_REGISTER_VARIABLE(PRESSURE_POTENTIAL)
+    KRATOS_REGISTER_VARIABLE(RANS_Y_PLUS_LIMIT)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FRICTION_VELOCITY)
+
+    KRATOS_REGISTER_VARIABLE(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT)
 
     KRATOS_REGISTER_VARIABLE(RANS_IS_INLET)
     KRATOS_REGISTER_VARIABLE(RANS_IS_OUTLET)
@@ -132,6 +141,12 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocity3D3N", mIncompressiblePotentialFlowVelocityCondition3D3N);
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressure2D2N", mIncompressiblePotentialFlowPressureCondition2D2N);
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressure3D3N", mIncompressiblePotentialFlowPressureCondition3D3N);
+
+    KRATOS_REGISTER_ELEMENT("RansFractionalStep2D3N", mRansFractionalStep2D);
+    KRATOS_REGISTER_ELEMENT("RansFractionalStep3D4N", mRansFractionalStep3D);
+
+    KRATOS_REGISTER_CONDITION("RansFSHighReKWall2D2N", mFSHighReKWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansFSHighReKWall3D3N", mFSHighReKWallCondition3D3N);
 
     KRATOS_REGISTER_CONDITION("RansEvmKEpsilonEpsilonWall2D2N", mRansEvmKEpsilonEpsilonWall2D2N);
     KRATOS_REGISTER_CONDITION("RansEvmKEpsilonEpsilonWall3D3N", mRansEvmKEpsilonEpsilonWall3D3N);

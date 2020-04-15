@@ -27,12 +27,14 @@
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
+#include "custom_elements/fractional_step/rans_fractional_step.h"
 
 // Condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_condition.h"
+#include "custom_conditions/fractional_step/fs_high_re_k_wall_condition.h"
 
 // Adjoint element includes
 #include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
@@ -196,6 +198,14 @@ private:
     const IncompressiblePotentialFlowVelocityCondition<3, 3> mIncompressiblePotentialFlowVelocityCondition3D3N;
     const IncompressiblePotentialFlowPressureCondition<2, 2> mIncompressiblePotentialFlowPressureCondition2D2N;
     const IncompressiblePotentialFlowPressureCondition<3, 3> mIncompressiblePotentialFlowPressureCondition3D3N;
+
+    // Fractionalstep elements
+    const RansFractionalStep<2> mRansFractionalStep2D;
+    const RansFractionalStep<3> mRansFractionalStep3D;
+
+    // FractionalStep wall conditions
+    const FSHighReKWallCondition<2, 2> mFSHighReKWallCondition2D2N;
+    const FSHighReKWallCondition<3, 3> mFSHighReKWallCondition3D3N;
 
     /// k-epsilon turbulence model elements
     const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
