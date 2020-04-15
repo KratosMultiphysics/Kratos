@@ -17,16 +17,11 @@
 
 // KratosCore dependencies
 #include "includes/model_part.h"
-#include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "spaces/ublas_space.h"
 
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
-
-// strategies
-#include "custom_strategies/coupled_strategy.h"
-#include "custom_strategies/coupled_strategy_item.h"
 
 // schemes
 #include "custom_strategies/generic_convergence_criteria.h"
@@ -46,30 +41,8 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseConvergenceCriteriaType = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
-    using MPIBaseSolvingStrategyType = SolvingStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-
-    // Add coupled strategy item
-    using MPICoupledStrategyItemType = CoupledStrategyItem<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-    py::class_<MPICoupledStrategyItemType, typename MPICoupledStrategyItemType::Pointer>(m, "MPICoupledStrategyItem")
-        .def(py::init<MPIBaseSolvingStrategyType::Pointer, std::string, int>())
-        .def(py::init<MPIBaseSolvingStrategyType::Pointer, std::string, int, std::vector<int>>())
-        .def("AddAuxiliaryProcess", &MPICoupledStrategyItemType::AddAuxiliaryProcess)
-        .def("GetName", &MPICoupledStrategyItemType::GetName)
-        .def("GetStrategy", &MPICoupledStrategyItemType::GetStrategy)
-        .def("GetAuxiliaryProcessList", &MPICoupledStrategyItemType::GetStrategy)
-        .def("GetStrategyInfo", &MPICoupledStrategyItemType::GetStrategyInfo)
-        .def("GetStrategySolvabilityPattern", &MPICoupledStrategyItemType::GetStrategySolvabilityPattern)
-        .def("SetStrategySolvabilityPattern", &MPICoupledStrategyItemType::SetStrategySolvabilityPattern);;
-
-    // Add strtegies
-    using MPICoupledStrategyType = CoupledStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-    py::class_<MPICoupledStrategyType, typename MPICoupledStrategyType::Pointer, MPIBaseSolvingStrategyType>(m, "MPICoupledStrategy")
-        .def(py::init<ModelPart&, bool, bool, bool, int>())
-        .def("AddStrategyItem", &MPICoupledStrategyType::AddStrategyItem)
-        .def("AddConvergenceCheckVariable", &MPICoupledStrategyType::AddConvergenceCheckVariable);
 
     // Convergence criteria
     using MPIGenericConvergenceCriteriaType = GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
