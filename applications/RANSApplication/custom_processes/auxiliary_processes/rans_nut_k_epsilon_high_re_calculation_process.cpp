@@ -87,16 +87,20 @@ void RansNutKEpsilonHighReCalculationProcess::Execute()
         const double epsilon =
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 
+        double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+
         if (epsilon > 0.0)
         {
             const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
-                mCmu * std::pow(tke, 2) / epsilon;
+            nu_t = mCmu * std::pow(tke, 2) / epsilon;
         }
         else
         {
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = mMinValue;
+            nu_t = mMinValue;
         }
+
+        r_node.FastGetSolutionStepValue(VISCOSITY) =
+            r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
