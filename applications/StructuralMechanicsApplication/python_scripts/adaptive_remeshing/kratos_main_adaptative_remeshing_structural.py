@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.MeshingApplication as MA
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 from KratosMultiphysics.StructuralMechanicsApplication.adaptive_remeshing.adaptative_remeshing_structural_mechanics_analysis import AdaptativeRemeshingStructuralMechanicsAnalysis
 
