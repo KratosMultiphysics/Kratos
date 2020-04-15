@@ -298,7 +298,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             self.mp.CloneTimeStep(time)
 
         self.mp.ProcessInfo[KM.IS_RESTARTED] = False
-        
+
     def _basic_setup_test(self, solving_with = "Block", linear_solver = "AMGCL"):
         dim = 2
         current_model = KM.Model()
