@@ -95,6 +95,25 @@ inline void CalculateStabilizationTau(double& rTau,
     rTau = 1.0 / std::sqrt(stab_dynamics + stab_convection + stab_diffusion + stab_reaction);
 }
 
+inline double CalculateStabilizationTau(const double ElementLength,
+                                        const double Velocity,
+                                        const double Reaction,
+                                        const double EffectiveKinematicViscosity,
+                                        const double Alpha,
+                                        const double Gamma,
+                                        const double DeltaTime,
+                                        const double DynamicTau)
+{
+    const double stab_convection = std::pow(2.0 * Velocity / ElementLength, 2);
+    const double stab_diffusion = std::pow(
+        12.0 * EffectiveKinematicViscosity / (ElementLength * ElementLength), 2);
+    const double stab_dynamics =
+        std::pow(DynamicTau * (1 - Alpha) / (Gamma * DeltaTime), 2);
+    const double stab_reaction = std::pow(Reaction, 2);
+
+    return 1.0 / std::sqrt(stab_dynamics + stab_convection + stab_diffusion + stab_reaction);
+}
+
 inline void CalculateCrossWindDiffusionParameters(double& rChi,
                                                   double& rStreamLineDiffusionCoeff,
                                                   double& rCrossWindDiffusionCoeff,
@@ -128,6 +147,52 @@ inline void CalculateCrossWindDiffusionParameters(double& rChi,
     value += psi_two;
 
     rCrossWindDiffusionCoeff = RansCalculationUtilities::SoftPositive(value);
+}
+
+template <unsigned int TSize>
+inline void CalculateDiscreteUpwindOperator(double& rScalarCoeff,
+                                            BoundedMatrix<double, TSize, TSize>& rDiffusionMatrix,
+                                            const BoundedMatrix<double, TSize, TSize>& rInputMatrix)
+{
+    rDiffusionMatrix.clear();
+
+    for (unsigned int a = 0; a < TSize; ++a)
+    {
+        for (unsigned int b = a + 1; b < TSize; ++b)
+        {
+            rDiffusionMatrix(a, b) =
+                -std::max(std::max(rInputMatrix(a, b), rInputMatrix(b, a)), 0.0);
+            rDiffusionMatrix(b, a) = rDiffusionMatrix(a, b);
+        }
+    }
+
+    for (unsigned int a = 0; a < TSize; ++a)
+    {
+        double row_sum = 0.0;
+        for (unsigned int b = 0; b < TSize; ++b)
+        {
+            // all the diagonal terms are initialized with zero
+            row_sum += rDiffusionMatrix(a, b);
+        }
+        rDiffusionMatrix(a, a) = -row_sum;
+    }
+
+    rScalarCoeff = norm_frobenius(rDiffusionMatrix);
+}
+
+inline double CalculatePositivityPreservingMatrix(const Matrix& rInputMatrix)
+{
+    double coefficient = 0.0;
+    for (unsigned int a = 0; a < rInputMatrix.size1(); ++a)
+    {
+        double row_sum = 0.0;
+        for (unsigned int b = 0; b < rInputMatrix.size2(); ++b)
+        {
+            row_sum += rInputMatrix(a, b);
+        }
+        coefficient = std::max(coefficient, -row_sum);
+    }
+    return coefficient;
 }
 } // namespace StabilizedConvectionDiffusionReactionUtilities
 
