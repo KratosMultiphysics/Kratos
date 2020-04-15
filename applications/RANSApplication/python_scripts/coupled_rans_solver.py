@@ -52,13 +52,17 @@ class CoupledRANSSolver(PythonSolver):
             "no_skin_parts": [""],
             "assign_neighbour_elements_to_conditions": true,
             "move_mesh": false,
+            "time_scheme_settings":{
+                "scheme_type": "steady"
+            },
             "time_stepping": {
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01,
                 "time_step"           : 0.0
-            }
+            },
+            "constants": {}
         }""")
 
         default_settings.AddMissingParameters(
@@ -91,7 +95,12 @@ class CoupledRANSSolver(PythonSolver):
         self.formulation = FomulationFactory(self.main_model_part,
                                 self.settings["formulation_settings"])
 
+        self.formulation.SetConstants(self.settings["constants"])
+
         self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
+        self.is_periodic = self.formulation.IsPeriodic()
+
+        self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
 
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
         self.move_mesh = self.settings["move_mesh"].GetBool()
@@ -102,6 +111,9 @@ class CoupledRANSSolver(PythonSolver):
 
     def AddVariables(self):
         self.formulation.AddVariables()
+
+        if self.is_periodic:
+            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         if (IsDistributedRun()):
             self.main_model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
@@ -177,6 +189,9 @@ class CoupledRANSSolver(PythonSolver):
 
         RansVariableUtilities.AssignBoundaryFlagsToGeometries(self.main_model_part)
         self.formulation.Initialize()
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__,
+                                            "\n" + self.formulation.GetInfo())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver initialization finished.")
