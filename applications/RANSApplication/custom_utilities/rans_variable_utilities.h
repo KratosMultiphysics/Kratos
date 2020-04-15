@@ -15,6 +15,7 @@
 #define KRATOS_RANS_VARIABLE_UTILS
 
 /* System includes */
+#include <tuple>
 
 /* External includes */
 
@@ -83,10 +84,8 @@ template<typename TDataType>
 double GetVariableValueNorm(const TDataType& rValue);
 
 template<typename TDataType>
-void KRATOS_API(RANS_APPLICATION) CalculateTransientVariableConvergence(double& rRelativeChange,
-                                                                        double& rAbsoluteChange,
-                                                                        const ModelPart& rModelPart,
-                                                                        const Variable<TDataType>& rVariable);
+std::tuple<double, double> KRATOS_API(RANS_APPLICATION) CalculateTransientVariableConvergence(const ModelPart& rModelPart,
+                                                                                              const Variable<TDataType>& rVariable);
 
 void KRATOS_API(RANS_APPLICATION) AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName);
 

@@ -323,10 +323,8 @@ double GetVariableValueNorm(const array_1d<double, 3>& rValue)
 }
 
 template <typename TDataType>
-void CalculateTransientVariableConvergence(double& rRelativeChange,
-                                           double& rAbsoluteChange,
-                                           const ModelPart& rModelPart,
-                                           const Variable<TDataType>& rVariable)
+std::tuple<double, double> CalculateTransientVariableConvergence(const ModelPart& rModelPart,
+                                                                 const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
@@ -356,7 +354,7 @@ void CalculateTransientVariableConvergence(double& rRelativeChange,
 
     // to improve mpi communication performance
     const std::vector<double> process_values = {dx, solution, number_of_dofs};
-    const std::vector<double> global_values =
+    const std::vector<double>& global_values =
         r_communicator.GetDataCommunicator().SumAll(process_values);
 
     dx = std::sqrt(global_values[0]);
@@ -364,8 +362,8 @@ void CalculateTransientVariableConvergence(double& rRelativeChange,
     number_of_dofs = std::max(1.0, global_values[2]);
     solution = (solution > 0.0 ? solution : 1.0);
 
-    rRelativeChange = dx / solution;
-    rAbsoluteChange = dx / number_of_dofs;
+    return std::make_tuple<double, double>(std::forward<double>(dx / solution),
+                                           std::forward<double>(dx / number_of_dofs));
 
     KRATOS_CATCH("");
 }
@@ -462,13 +460,11 @@ template void CopyFlaggedVariableToNonHistorical<double>(ModelPart&,
 template void CopyFlaggedVariableToNonHistorical<array_1d<double, 3>>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Flags&, const bool);
 
-template void CalculateTransientVariableConvergence<double>(double&,
-                                                            double&,
-                                                            const ModelPart&,
-                                                            const Variable<double>&);
+template std::tuple<double, double> CalculateTransientVariableConvergence<double>(
+    const ModelPart&, const Variable<double>&);
 
-template void CalculateTransientVariableConvergence<array_1d<double, 3>>(
-    double&, double&, const ModelPart&, const Variable<array_1d<double, 3>>&);
+template std::tuple<double, double> CalculateTransientVariableConvergence<array_1d<double, 3>>(
+    const ModelPart&, const Variable<array_1d<double, 3>>&);
 
 } // namespace RansVariableUtilities
 
