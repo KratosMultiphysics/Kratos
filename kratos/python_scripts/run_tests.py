@@ -181,6 +181,15 @@ def print_test_footer(application, exit_code):
     print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr)
     sys.stderr.flush()
 
+def print_summary(exit_codes):
+    print("Test results summary:", file=sys.stderr)
+    max_test_name_length = len(max(exit_codes.keys(), key=len))
+    for test, exit_code in exit_codes.items():
+        result_string = "OK" if exit_code == 0 else "FAILED"
+        pretty_name = test.ljust(max_test_name_length)
+        print("  {}: {}".format(pretty_name, result_string), file=sys.stderr)
+    sys.stderr.flush()
+
 def main():
 
     # Define the command
@@ -278,6 +287,8 @@ def main():
     # Create the commands
     commander = Commander()
 
+    exit_codes = {}
+
     # KratosCore must always be runned
     print_test_header("KratosCore")
 
@@ -293,7 +304,7 @@ def main():
         )
 
     print_test_footer("KratosCore", commander.exitCode)
-    exit_code = max(exit_code, commander.exitCode)
+    exit_codes["KratosCore"] = commander.exitCode
 
     # Run the tests for the rest of the Applications
     for application in applications:
@@ -311,18 +322,17 @@ def main():
             )
 
         print_test_footer(application, commander.exitCode)
-        exit_code = max(exit_code, commander.exitCode)
+        exit_codes[application] = commander.exitCode
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print_test_header("cpp")
     with KtsUt.SupressConsoleOutput():
         commander.RunCppTests(applications)
     print_test_footer("cpp", commander.exitCode)
+    exit_codes["cpp"] = commander.exitCode
 
-    exit_code = max(exit_code, commander.exitCode)
-
-    sys.exit(exit_code)
-
+    print_summary(exit_codes)
+    sys.exit(max(exit_codes.values()))
 
 if __name__ == "__main__":
     main()
