@@ -24,6 +24,21 @@ void IntersectionUtilities::FindIntersection1DGeometries2D(
     ModelPart& rModelPartResult,
     double Tolerance)
 {
+    // TODO delete
+    auto firstcond = rModelPartDomainA.ConditionsBegin();
+    std::cout << "condition info = " << firstcond->Info() << std::endl;
+    auto firstGeom = firstcond->GetGeometry();
+    std::cout << "firstGeom info = " << firstGeom.Info() << std::endl;
+
+    std::cout << "firstGeom has this many points = " << firstGeom.PointsNumber() << std::endl;
+    auto geompoints = firstGeom.Points();
+    for (size_t i = 0; i < firstGeom.PointsNumber(); i++)
+    {
+        std::cout << geompoints[i] << std::endl;
+    }
+    // TODO delete
+
+
     KRATOS_ERROR_IF(rModelPartDomainA.ConditionsBegin()->GetGeometry().Dimension() != 1)
         << "Can compare only line segments with other line segments." << std::endl;
 
