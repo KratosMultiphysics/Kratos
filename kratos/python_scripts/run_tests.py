@@ -172,6 +172,15 @@ class Commander(object):
             self.exitCode = 1
 
 
+def print_test_header(application):
+    print("\nRunning {} tests".format(application), file=sys.stderr)
+    sys.stderr.flush()
+
+def print_test_footer(application, exit_code):
+    appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
+    print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr)
+    sys.stderr.flush()
+
 def main():
 
     # Define the command
@@ -270,7 +279,7 @@ def main():
     commander = Commander()
 
     # KratosCore must always be runned
-    print('Running tests for KratosCore', file=sys.stderr)
+    print_test_header("KratosCore")
 
     with KtsUt.SupressConsoleOutput():
         commander.RunTestSuitInTime(
@@ -283,12 +292,12 @@ def main():
             signalTime
         )
 
+    print_test_footer("KratosCore", commander.exitCode)
     exit_code = max(exit_code, commander.exitCode)
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
-        sys.stderr.flush()
+        print_test_header(application)
 
         with KtsUt.SupressConsoleOutput():
             commander.RunTestSuitInTime(
@@ -301,12 +310,14 @@ def main():
                 signalTime
             )
 
+        print_test_footer(application, commander.exitCode)
         exit_code = max(exit_code, commander.exitCode)
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
-    print('Running cpp tests', file=sys.stderr)
+    print_test_header("cpp")
     with KtsUt.SupressConsoleOutput():
         commander.RunCppTests(applications)
+    print_test_footer("cpp", commander.exitCode)
 
     exit_code = max(exit_code, commander.exitCode)
 
