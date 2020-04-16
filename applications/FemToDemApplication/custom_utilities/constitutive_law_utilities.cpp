@@ -23,6 +23,60 @@
 namespace Kratos
 {
 
+template<>
+void ConstitutiveLawUtilities<6>::CalculateElasticMatrix(
+    Matrix& rConstitutiveMatrix,
+    const double E,
+    const double nu
+    )
+{
+    if (rConstitutiveMatrix.size1() != VoigtSize || rConstitutiveMatrix.size2() != VoigtSize)
+        rConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+
+    const double c1 = E / ((1.00 + nu) * (1 - 2 * nu));
+    const double c2 = c1 * (1 - nu);
+    const double c3 = c1 * nu;
+    const double c4 = c1 * 0.5 * (1 - 2 * nu);
+
+    rConstitutiveMatrix(0, 0) = c2;
+    rConstitutiveMatrix(0, 1) = c3;
+    rConstitutiveMatrix(0, 2) = c3;
+    rConstitutiveMatrix(1, 0) = c3;
+    rConstitutiveMatrix(1, 1) = c2;
+    rConstitutiveMatrix(1, 2) = c3;
+    rConstitutiveMatrix(2, 0) = c3;
+    rConstitutiveMatrix(2, 1) = c3;
+    rConstitutiveMatrix(2, 2) = c2;
+    rConstitutiveMatrix(3, 3) = c4;
+    rConstitutiveMatrix(4, 4) = c4;
+    rConstitutiveMatrix(5, 5) = c4;
+}
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateElasticMatrix(
+    Matrix& rConstitutiveMatrix,
+    const double E,
+    const double nu
+    )
+{
+    // Assuming plane strain TODO
+    if (rConstitutiveMatrix.size1() != VoigtSize || rConstitutiveMatrix.size2() != VoigtSize)
+        rConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+
+    const double c0 = E / ((1.00 + nu) * (1 - 2 * nu));
+    const double c1 = (1.00 - nu) * c0;
+    const double c2 = c0 * nu;
+    const double c3 = (0.5 - nu) * c0;
+
+    rConstitutiveMatrix(0, 0) = c1;
+    rConstitutiveMatrix(0, 1) = c2;
+    rConstitutiveMatrix(1, 0) = c2;
+    rConstitutiveMatrix(1, 1) = c1;
+    rConstitutiveMatrix(2, 2) = c3;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateDeviatoricStrainVector(
     const BoundedVectorType& rStrainVector,
@@ -64,13 +118,11 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateVolumetricStrainVector(
 
 template<SizeType TVoigtSize>
 double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
-    ConstitutiveLaw::Parameters& rValues
+    const double YoungModulus,
+    const double PoissonRatio
     )
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double young   = r_material_properties[YOUNG_MODULUS];
-    const double poisson = r_material_properties[POISSON_RATIO];
-    return young / (3 * (1 - 2.0 * poisson));
+    return YoungModulus / (3.0 * (1.0 - 2.0 * PoissonRatio));
 }
 
 /***********************************************************************************/
@@ -78,13 +130,11 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
 
 template<SizeType TVoigtSize>
 double ConstitutiveLawUtilities<TVoigtSize>::CalculateBulkModulus(
-    ConstitutiveLaw::Parameters& rValues
+    const double YoungModulus,
+    const double PoissonRatio
     )
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double young   = r_material_properties[YOUNG_MODULUS];
-    const double poisson = r_material_properties[POISSON_RATIO];
-    return young / (2.0 * (1 + poisson));
+    return YoungModulus / (2.0 * (1.0 + PoissonRatio));
 }
 
 /***********************************************************************************/

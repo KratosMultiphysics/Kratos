@@ -110,9 +110,8 @@ Element::Pointer GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::C
 /***********************************************************************************/
 /***********************************************************************************/
 
-
 template<unsigned int TDim, unsigned int TyieldSurf>
-Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedConstitutiveLaw(
+Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedConstitutiveLaw(
     const std::string& rYieldSurface,
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveVariables& rThisConstVars,
@@ -158,6 +157,66 @@ Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedCo
     const Vector& r_stress_vector = rThisConstVars.StressVector;
     return (1.0 - rDamageElement)*r_stress_vector;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::ComputePlasticMultiplier(
+    const double UniaxialStress,
+    const double Threshold,
+    double& rPlasticMultiplier,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    auto &r_mat_props              = rValues.GetMaterialProperties();
+    const double young_fiber       = r_mat_props[YOUNG_MODULUS_FIBER];
+    const double poisson_fiber     = r_mat_props[POISSON_RATIO_FIBER];
+    const double shear_modulus     = ConstitutiveLawUtilities<VoigtSize>::CalculateShearModulus(young_fiber, poisson_fiber);
+    const double hardening_modulus = r_mat_props.Has(HARDENING_MODULUS) ? r_mat_props[HARDENING_MODULUS] : 0.0;
+
+    // It assumes perfect plasticity of linear hardening, hence no iteration is required
+    rPlasticMultiplier = (UniaxialStress - Threshold) / (3.0 * shear_modulus + hardening_modulus);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::ComputePlasticThreshold(
+    const double AcumulatedPlasticStrain,
+    double& rThreshold,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    auto &r_mat_props = rValues.GetMaterialProperties();
+    const double yield_stress      = r_mat_props[YIELD_STRESS];
+    const double hardening_modulus = r_mat_props.Has(HARDENING_MODULUS) ? r_mat_props[HARDENING_MODULUS] : 0.0;
+    rThreshold = yield_stress + hardening_modulus * AcumulatedPlasticStrain;
+}
+
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+
+
+
+
+
+
 
 /***********************************************************************************/
 /***********************************************************************************/

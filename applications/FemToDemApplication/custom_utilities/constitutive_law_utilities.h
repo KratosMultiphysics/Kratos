@@ -108,6 +108,14 @@ class ConstitutiveLawUtilities
     ///@{
 
     /**
+     * @brief This method computes the elastic ConstitutiveMatrix
+     */
+    static void CalculateElasticMatrix(
+        Matrix &rConstitutiveMatrix,
+        const double E,
+        const double nu);
+
+    /**
      * @brief This method computes the deviatoric part of the strain
      * @param rStrainVector The total strain
      * @param rVolumetricStrainVector The volumetric strain part
@@ -150,14 +158,16 @@ class ConstitutiveLawUtilities
      * @param rValues Parameters of the constitutive law
      */
     static double CalculateBulkModulus(
-        ConstitutiveLaw::Parameters &rValues);
+        const double YoungModulus,
+        const double PoissonRatio);
 
     /**
      * @brief This method computes the Shear modulus G = E / (3(1-2nu))
      * @param rValues Parameters of the constitutive law
      */
     static double CalculateShearModulus(
-        ConstitutiveLaw::Parameters &rValues);
+        const double YoungModulus,
+        const double PoissonRatio);
 
     /**
      * @brief This method computes the first invariant from a given stress vector

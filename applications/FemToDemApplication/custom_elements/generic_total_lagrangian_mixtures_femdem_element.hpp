@@ -47,12 +47,13 @@ namespace Kratos
 /**
  * @class GenericTotalLagrangianMixturesFemDemElement
  * @ingroup FemToDemApplication
- * @brief Small Displacement element for the 2D and 3D cases
+ * @brief Total Lagrangian element taking into account a Classical Rule Of Mixtures
+ * and j2-plasticity for the fiber. See Computational Methods for Plasticity - EA de Souza Neto, D Peric and DRJ Owen
  * @author Alejandro Cornejo
  */
 template<unsigned int TDim, unsigned int TyieldSurf>
 class GenericTotalLagrangianMixturesFemDemElement 
-    : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> // Derived Element from SolidMechanics
+    : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>
 {
 public:
 
@@ -180,9 +181,24 @@ protected:
      * this performs the smooting and integrates the CL and returns the integrated Stress
      */
     Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
-                                             const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables, 
-                                             Vector &rStrainVector, double& rDamageElement,  bool& rIsDamaging, const double CharacteristicLength,
-                                             const bool SaveIntVars);
+                                            const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables,
+                                            Vector &rStrainVector, double &rDamageElement, bool &rIsDamaging, const double CharacteristicLength,
+                                            const bool SaveIntVars);
+    /**
+     * this method computes the plastic multiplier \dot{\lambda}
+     * used for computing the plastic strain vector
+     */
+    void ComputePlasticMultiplier(const double UniaxialStress,
+                                  const double Threshold,
+                                  double &rPlasticMultiplier,
+                                  ConstitutiveLaw::Parameters &rValues);
+    /**
+     * this method computes the plastic threshold  S = S0 + H*E^p
+     */
+    void ComputePlasticThreshold(const double AcumulatedPlasticStrain,
+                                 double &rThreshold,
+                                 ConstitutiveLaw::Parameters &rValues);
+
 
     double mAcumulatedPlasticStrain = 0.0;
     double mPlasticityThreshold     = 0.0;
