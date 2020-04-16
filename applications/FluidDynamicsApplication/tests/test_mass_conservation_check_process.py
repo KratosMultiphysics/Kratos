@@ -8,7 +8,7 @@ from KratosMultiphysics.FluidDynamicsApplication.apply_mass_conservation_check_p
 import sys
 import re
 
-if KratosMultiphysics.DataCommunicator.GetDefault():
+if KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed():
     import KratosMultiphysics.mpi as KratosMPI
     import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
 
