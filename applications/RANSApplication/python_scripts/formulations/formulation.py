@@ -1,13 +1,11 @@
-from abc import ABC, abstractmethod
-
 import KratosMultiphysics as Kratos
 
-
-class Formulation(ABC):
+class Formulation:
     def __init__(self, base_computing_model_part, settings):
         self.settings = settings
         self.base_computing_model_part = base_computing_model_part
         self.list_of_formulations = []
+        self.list_of_processes = []
         self.move_mesh = False
 
     def GetName(self):
@@ -15,6 +13,9 @@ class Formulation(ABC):
 
     def AddFormulation(self, formulation):
         self.list_of_formulations.append(formulation)
+
+    def AddProcess(self, process):
+        self.list_of_processes.append(process)
 
     def AddVariables(self):
         self.__ExecuteFormulationMethods("AddVariables")
@@ -29,40 +30,43 @@ class Formulation(ABC):
         self.__ExecuteFormulationMethods("Clear")
 
     def Check(self):
+        self.__ExecuteProcessMethods("Check")
         self.__ExecuteFormulationMethods("Check")
 
     def Initialize(self):
+        self.__ExecuteProcessMethods("ExecuteInitialize")
         self.__ExecuteFormulationMethods("Initialize")
 
     def InitializeSolutionStep(self):
+        self.__ExecuteProcessMethods("ExecuteInitializeSolutionStep")
         self.__ExecuteFormulationMethods("InitializeSolutionStep")
 
     def ExecuteBeforeCouplingSolveStep(self):
         pass
 
     def SolveCouplingStep(self):
+        self.ExecuteBeforeCouplingSolveStep()
+
         max_iterations = self.GetMaxCouplingIterations()
         for iteration in range(max_iterations):
-            solver_executed = False
             for formulation in self.list_of_formulations:
-                if (not formulation.IsConverged()):
-                    formulation.ExecuteBeforeCouplingSolveStep()
-                    formulation.SolveCouplingStep()
-                    formulation.ExecuteAfterCouplingSolveStep()
-                    solver_executed = True
-                    Kratos.Logger.PrintInfo(formulation.GetName(), "Solved  formulation.")
+                formulation.SolveCouplingStep()
+                Kratos.Logger.PrintInfo(formulation.GetName(), "Solved  formulation.")
 
-            if (solver_executed):
-                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+
+        self.ExecuteAfterCouplingSolveStep()
 
     def ExecuteAfterCouplingSolveStep(self):
-        pass
+        self.__ExecuteProcessMethods("Execute")
 
     def FinalizeSolutionStep(self):
         self.__ExecuteFormulationMethods("FinalizeSolutionStep")
+        self.__ExecuteProcessMethods("ExecuteFinalizeSolutionStep")
 
     def Finalize(self):
         self.__ExecuteFormulationMethods("Finalize")
+        self.__ExecuteProcessMethods("ExecuteFinalize")
 
     def GetMinimumBufferSize(self):
         min_buffer_size = 0
@@ -122,24 +126,45 @@ class Formulation(ABC):
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetMaxCouplingIterations\" first before calling \"GetMaxCouplingIterations\".")
 
-    def GetInfo(self):
-        info = "\n" + self.GetName()
-        for formulation in self.list_of_formulations:
-            info += str(formulation.GetInfo()).replace("\n", "\n   ")
-        return info
-
     def SetConstants(self, settings):
         self.__ExecuteFormulationMethods("SetTimeSchemeSettings", [settings])
 
     def GetFormulationsList(self):
         return self.list_of_formulations
 
+    def GetProcessList(self):
+        return self.list_of_processes
+
+    def GetModelPart(self):
+        return None
+
     def GetStrategy(self):
         return None
+
+    def GetInfo(self):
+        info = "\n" + self.GetName()
+        if (self.GetModelPart() is not None):
+            info += "\n   Model part: " + str(self.GetModelPart().Name)
+
+        if (str(self.GetMaxCouplingIterations()) != "N/A"):
+            info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())
+
+        if (len(self.GetProcessList()) > 0):
+            info += "\n   Process list:"
+            for process in self.GetProcessList():
+                info += "\n      " + str(process).strip()
+
+        for formulation in self.list_of_formulations:
+            info += str(formulation.GetInfo()).replace("\n", "\n   ")
+        return info
 
     def __ExecuteFormulationMethods(self, method_name, args = []):
         for formulation in self.list_of_formulations:
             getattr(formulation, method_name)(*args)
+
+    def __ExecuteProcessMethods(self, method_name):
+        for process in self.list_of_processes:
+            getattr(process, method_name)()
 
 
 
