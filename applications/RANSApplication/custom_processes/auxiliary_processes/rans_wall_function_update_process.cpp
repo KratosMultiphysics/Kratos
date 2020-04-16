@@ -132,7 +132,7 @@ void RansWallFunctionUpdateProcess::Execute()
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-        << "Calculated wall function based y_plus for " << mModelPartName << ".";
+        << "Calculated wall function based y_plus for " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");
 }

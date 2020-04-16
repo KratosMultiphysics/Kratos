@@ -119,7 +119,7 @@ void RansNutYPlusWallFunctionProcess::CalculateConditionNeighbourCount()
     r_model_part.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_CONDITIONS);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Calculated number of neighbour conditions in " << mModelPartName << ".";
+        << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
 }
 
 void RansNutYPlusWallFunctionProcess::Execute()
@@ -165,7 +165,7 @@ void RansNutYPlusWallFunctionProcess::Execute()
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-        << "Calculated wall function based nu_t for " << mModelPartName << ".";
+        << "Calculated wall function based nu_t for " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");
 }

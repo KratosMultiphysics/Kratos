@@ -114,7 +114,7 @@ void RansNutKEpsilonHighReCalculationProcess::Execute()
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-        << "Calculated nu_t for nodes in" << mModelPartName << "\n";
+        << "Calculated nu_t for nodes in " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");
 }
