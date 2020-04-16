@@ -192,7 +192,6 @@ protected:
      * this integrates the stress according to plasticity
      */
     Vector IntegrateStressPlasticity(ConstitutiveLaw::Parameters &rValues,
-                                     const ConstitutiveVariables &rThisConstVars,
                                      const Vector &rStrainVector,
                                      Vector& rPlasticStrainVector,
                                      double &rAcumulatedPlasticStrain,

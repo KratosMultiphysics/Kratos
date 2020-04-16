@@ -141,6 +141,9 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
     )
 {
     Vector damages_edges = ZeroVector(NumberOfEdges);
+    Vector plastic_strain_edges_sum(VoigtSize);
+    noalias(plastic_strain_edges_sum) = ZeroVector(VoigtSize);
+
     if (rYieldSurface != "Elastic") {
         // Loop over edges of the element...
         Vector average_stress_edge(VoigtSize);
@@ -155,24 +158,53 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
             if (!SaveIntVars) {
                 damages_edges[edge] = mDamages[edge];
                 double threshold = mThresholds[edge];
-            
-                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
-                                                        average_stress_edge, edge, CharacteristicLength, rValues, 
-                                                        rIsDamaging);
-                rDamageElement = this->CalculateElementalDamage(damages_edges);         
+
+                // Matrix constitutive damage model
+                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge,
+                                                     average_stress_edge, edge, CharacteristicLength, rValues,
+                                                     rIsDamaging);
+                rDamageElement = this->CalculateElementalDamage(damages_edges); 
+
+                // Fibre plasticity constitutive model
+                Vector plastic_strain            = mPlasticStrains[edge];
+                double acumulated_plastic_strain = mAcumulatedPlasticStrains[edge];
+                double plasticity_threshold      = mPlasticityThresholds[edge];
+
+                Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
+                                                                        plastic_strain, acumulated_plastic_strain,
+                                                                        plasticity_threshold, rIsDamaging);
+                plastic_strain_edges_sum += plastic_strain; // we smooth the plastic strain
             } else {
-                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
-                                        average_stress_edge, edge, CharacteristicLength, rValues, 
-                                        rIsDamaging);
+                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge,
+                                                     average_stress_edge, edge, CharacteristicLength, rValues,
+                                                     rIsDamaging);
                 mDamage = this->CalculateElementalDamage(mDamages);
                 rDamageElement = mDamage;
+
+                Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
+                                                                        mPlasticStrains[edge], mAcumulatedPlasticStrains[edge],
+                                                                        mPlasticityThresholds[edge], rIsDamaging);
+                plastic_strain_edges_sum += mPlasticStrains[edge]; // we smooth the plastic strain
             }
         } // Loop over edges
     }
 
+    plastic_strain_edges_sum /= NumberOfEdges;
+
     this->CalculateGreenLagrangeStrainVector(rStrainVector, rKinVariables.F);
     const Vector& r_stress_vector = rThisConstVars.StressVector;
-    return (1.0 - rDamageElement)*r_stress_vector;
+
+    Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
+    auto &r_mat_props    = rValues.GetMaterialProperties();
+    const double young   = r_mat_props[YOUNG_MODULUS_FIBER];
+    const double poisson = r_mat_props[POISSON_RATIO_FIBER];
+    ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(fiber_constitutive_matrix, young, poisson);
+
+    const Vector &r_stress_vector_fiber = prod(fiber_constitutive_matrix, rStrainVector - plastic_strain_edges_sum);
+
+    const double fiber_vol_part = r_mat_props[FIBER_VOLUMETRIC_PART];
+    
+    return (1.0 - fiber_vol_part)*(1.0 - rDamageElement) * r_stress_vector + fiber_vol_part * r_stress_vector_fiber;;
 }
 
 /***********************************************************************************/
@@ -181,7 +213,6 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
 template<unsigned int TDim, unsigned int TyieldSurf>
 Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateStressPlasticity(
     ConstitutiveLaw::Parameters& rValues,
-    const ConstitutiveVariables& rThisConstVars,
     const Vector& rStrainVector,
     Vector& rPlasticStrainVector,
     double& rAcumulatedPlasticStrain,
