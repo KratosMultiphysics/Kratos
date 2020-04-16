@@ -122,9 +122,9 @@ class ConstitutiveLawUtilities
      * @param rDeviatoricStrainVector The deviatoric strain part
      */
     static void CalculateDeviatoricStrainVector(
-        const BoundedVectorType &rStrainVector,
-        const BoundedVectorType &rVolumetricStrainVector,
-        BoundedVectorType &rDeviatoricStrainVector);
+        const Vector &rStrainVector,
+        const Vector &rVolumetricStrainVector,
+        Vector &rDeviatoricStrainVector);
 
     /**
      * @brief This method computes the volumetric part of the strain
@@ -132,8 +132,8 @@ class ConstitutiveLawUtilities
      * @param rVolumetricStrainVector The volumetric strain part
      */
     static void CalculateVolumetricStrainVector(
-        const BoundedVectorType &rStrainVector,
-        BoundedVectorType &rVolumetricStrainVector);
+        const Vector &rStrainVector,
+        Vector &rVolumetricStrainVector);
 
 
     /**

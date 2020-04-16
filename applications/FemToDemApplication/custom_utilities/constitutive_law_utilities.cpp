@@ -52,6 +52,9 @@ void ConstitutiveLawUtilities<6>::CalculateElasticMatrix(
     rConstitutiveMatrix(5, 5) = c4;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateElasticMatrix(
     Matrix& rConstitutiveMatrix,
@@ -74,14 +77,15 @@ void ConstitutiveLawUtilities<3>::CalculateElasticMatrix(
     rConstitutiveMatrix(1, 1) = c1;
     rConstitutiveMatrix(2, 2) = c3;
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateDeviatoricStrainVector(
-    const BoundedVectorType& rStrainVector,
-    const BoundedVectorType& rVolumetricStrainVector,
-    BoundedVectorType &rDeviatoricStrainVector
+    const Vector& rStrainVector,
+    const Vector& rVolumetricStrainVector,
+    Vector &rDeviatoricStrainVector
     )
 {
     if (rDeviatoricStrainVector.size() != VoigtSize)
@@ -95,8 +99,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateDeviatoricStrainVector(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateVolumetricStrainVector(
-    const BoundedVectorType& rStrainVector,
-    BoundedVectorType& rVolumetricStrainVector
+    const Vector& rStrainVector,
+    Vector& rVolumetricStrainVector
     )
 {
     if (rVolumetricStrainVector.size() != VoigtSize)
