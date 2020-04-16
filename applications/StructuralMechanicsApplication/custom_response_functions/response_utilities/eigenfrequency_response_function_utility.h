@@ -262,7 +262,7 @@ protected:
     // --------------------------------------------------------------------------
     void PerformSemiAnalyticSensitivityAnalysis()
     {
-        ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         // Predetermine all necessary eigenvalues and prefactors for gradient calculation
         const std::size_t num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
@@ -330,7 +330,7 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, Vector& rEigenvectorOfElement, ProcessInfo& CurrentProcessInfo)
+    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, Vector& rEigenvectorOfElement, const ProcessInfo& CurrentProcessInfo)
     {
         std::vector<std::size_t> eq_ids;
         rElement.EquationIdVector(eq_ids, CurrentProcessInfo);
