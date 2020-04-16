@@ -6,3 +6,7 @@
 /cmake_modules/       @KratosMultiphysics/technical-committee
 /external_libraries/  @KratosMultiphysics/technical-committee
 /scripts/             @KratosMultiphysics/technical-committee
+
+# Applications
+/applications/TrilinosApplication/              @KratosMultiphysics/technical-committee
+/applications/MetisApplication/                 @KratosMultiphysics/technical-committee

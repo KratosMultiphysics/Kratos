@@ -61,7 +61,7 @@ for move_node_id in list_of_move_nodes:
     response = structural_response_function_factory.CreateResponseFunction(kratos_response_settings["response_type"].GetString(), kratos_response_settings, model)
     response.RunCalculation(True)
     reference_value = response.GetValue()
-    reference_gradient = response.GetShapeGradient()
+    reference_gradient = response.GetNodalGradient(KM.SHAPE_SENSITIVITY)
 
     # Initialize results file
     with open(results_filename,'a') as open_file:

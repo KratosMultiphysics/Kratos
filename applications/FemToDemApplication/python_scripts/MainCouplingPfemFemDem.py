@@ -43,6 +43,12 @@ class MainCouplingPfemFemDem_Solution:
         # Now we storage the FEM modelpart in the PFEM_Solution
         self.PFEM_Solution.Initialize()
 
+        if self.FEMDEM_Solution.CreateInitialSkin:
+            self.FEMDEM_Solution.ComputeSkinSubModelPart()
+            if self.FEMDEM_Solution.DEMFEM_contact:
+                self.FEMDEM_Solution.TransferFEMSkinToDEM()
+            FEMDEM.GenerateInitialSkinDEMProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part, self.FEMDEM_Solution.SpheresModelPart).Execute()
+
         # We copy the output params in the PFEM
         self.PFEM_Solution.graphical_output = self.PFEM_Solution.SetCustomGraphicalOutput(self.FEMDEM_Solution.FEM_Solution.ProjectParameters)
         self.PFEM_Solution.GraphicalOutputExecuteInitialize()
@@ -114,6 +120,10 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def InitializeSolutionStep(self):
+        KratosPrintInfo("")
+        KratosPrintInfo("_____________________________________________________________________________________")
+        KratosPrintInfo("_____________________________________________________________________________________")
+        KratosPrintInfo("")
         self.UpdateDeltaTimeInSolutions()
         self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()

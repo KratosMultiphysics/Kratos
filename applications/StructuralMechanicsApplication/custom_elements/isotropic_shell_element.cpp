@@ -1942,7 +1942,7 @@ void IsotropicShellElement::SetupOrientationAngles()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::Initialize()
+void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix
