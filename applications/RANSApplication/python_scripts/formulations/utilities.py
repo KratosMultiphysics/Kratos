@@ -10,6 +10,7 @@ if (IsDistributedRun()
         and CheckIfApplicationsAvailable("TrilinosApplication")):
     from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualCriteria as residual_criteria
     from KratosMultiphysics.TrilinosApplication import TrilinosNewtonRaphsonStrategy as newton_raphson_strategy
@@ -19,6 +20,7 @@ if (IsDistributedRun()
 elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import GenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
     from Kratos import ResidualCriteria as residual_criteria
     from Kratos import ResidualBasedNewtonRaphsonStrategy as newton_raphson_strategy
@@ -65,6 +67,8 @@ def CreateIncremantalUpdateScheme():
 def CreateSteadyScalarScheme(relaxation_factor):
     return steady_scalar_scheme(relaxation_factor)
 
+def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor):
+    return afc_steady_scalar_scheme(relaxation_factor)
 
 def CreateBossakScalarScheme(bossak_value, relaxation_factor, scalar_variable,
                              scalar_rate_variable,
@@ -107,7 +111,9 @@ def CreateFormulationModelPart(formulation, element_name, condition_name):
 
 def GetFormulationInfo(formulation, model_part):
     info = "\n" + formulation.GetName()
-    info += "\n   Model part: " + model_part.Name
+    info += "\n   Model part    : " + model_part.Name
+    if (str(formulation.GetMaxCouplingIterations() != "N/A"):
+        info += "\n   Max iterations: " + str(formulation.GetMaxCouplingIterations())
     return info
 
 

@@ -89,8 +89,8 @@ void RansWallFunctionUpdateProcess::Execute()
         {
             ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
 
-            if (RansCalculationUtilities::IsWall(r_condition))
-            {
+            // if (RansCalculationUtilities::IsWall(r_condition))
+            // {
                 const array_1d<double, 3>& r_wall_cell_center_velocity =
                     RansCalculationUtilities::CalculateWallVelocity(r_condition);
                 const double wall_cell_center_velocity_magnitude =
@@ -121,7 +121,7 @@ void RansWallFunctionUpdateProcess::Execute()
 
                 r_condition.SetValue(RANS_Y_PLUS, y_plus);
                 r_condition.SetValue(FRICTION_VELOCITY, r_friction_velocity);
-            }
+            // }
         }
     }
     KRATOS_CATCH("");

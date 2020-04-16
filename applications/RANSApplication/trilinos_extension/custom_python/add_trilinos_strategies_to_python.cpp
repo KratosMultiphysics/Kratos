@@ -27,6 +27,7 @@
 #include "custom_strategies/generic_convergence_criteria.h"
 #include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
 #include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"
+#include "custom_strategies/algebraic_flux_corrected_scalar_steady_scheme.h"
 
 // Include base h
 #include "add_trilinos_strategies_to_python.h"
@@ -56,6 +57,11 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 
     using MPIGenericResidualBasedSimpleSteadyScalarSchemeType = GenericResidualBasedSimpleSteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>;
     py::class_<MPIGenericResidualBasedSimpleSteadyScalarSchemeType, typename MPIGenericResidualBasedSimpleSteadyScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIGenericResidualBasedSimpleSteadyScalarScheme")
+        .def(py::init<const double>());
+
+    using MPIAlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPIAlgebraicFluxCorrectedScalarSteadySchemeType, typename MPIAlgebraicFluxCorrectedScalarSteadySchemeType::Pointer, MPIBaseSchemeType>(
+        m, "MPIAlgebraicFluxCorrectedScalarSteadyScheme")
         .def(py::init<const double>());
 }
 

@@ -23,6 +23,7 @@
 // schemes
 #include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
 #include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"
+#include "custom_strategies/algebraic_flux_corrected_scalar_steady_scheme.h"
 
 // convergence criterians
 #include "custom_strategies/generic_convergence_criteria.h"
@@ -52,6 +53,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using GenericResidualBasedSimpleSteadyScalarSchemeType = GenericResidualBasedSimpleSteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<GenericResidualBasedSimpleSteadyScalarSchemeType, typename GenericResidualBasedSimpleSteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedSimpleSteadyScalarScheme")
+        .def(py::init<const double>());
+
+    using AlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<AlgebraicFluxCorrectedScalarSteadySchemeType, typename AlgebraicFluxCorrectedScalarSteadySchemeType::Pointer, BaseSchemeType>(
+        m, "AlgebraicFluxCorrectedScalarSteadyScheme")
         .def(py::init<const double>());
 
 }
