@@ -35,8 +35,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValue, Kratos
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);       // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     // Put some nodes in every partition
@@ -63,8 +63,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, Krato
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);       // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     // Put some nodes in every partition
@@ -94,7 +94,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, K
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     // Put some nodes in every partition
@@ -127,7 +127,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixityError, 
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     // Put some nodes in every partition
@@ -163,7 +163,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableCombinedError
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     // Put some nodes in every partition
@@ -201,8 +201,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableCombinedError
 //     Model model;
 //     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
 
-//     model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
-//     model_part.AddNodalSolutionStepVariable(TEMPERATURE);       // Any variables will do
+//     model_part.AddNodalSolutionStepVariable(PRESSURE);
+//     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 //     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
 //     // Put some nodes in every partition
