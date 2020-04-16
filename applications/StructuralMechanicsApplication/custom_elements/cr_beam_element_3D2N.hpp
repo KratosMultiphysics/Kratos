@@ -94,11 +94,11 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
@@ -236,7 +236,7 @@ public:
     void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
                                   msElementSize,msElementSize>& BigMatrix) const;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /**
