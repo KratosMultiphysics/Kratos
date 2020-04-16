@@ -109,3 +109,6 @@ class IncompressiblePotentialFlowPressureFormulation(Formulation):
 
     def GetInfo(self):
         return GetFormulationInfo(self, self.pressure_model_part)
+
+    def GetMaxCouplingIterations(self):
+        return "N/A"

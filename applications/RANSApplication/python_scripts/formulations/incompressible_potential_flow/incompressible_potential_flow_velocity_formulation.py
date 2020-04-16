@@ -117,3 +117,5 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
     def GetInfo(self):
         return GetFormulationInfo(self, self.velocity_model_part)
 
+    def GetMaxCouplingIterations(self):
+        return "N/A"
