@@ -85,6 +85,7 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
     // Set some flags
     this->Set(HISTORICAL_VALUE, mThisParameters["historical_value"].GetBool());
     this->Set(USE_NODE_COORDINATES, mThisParameters["use_node_coordinates"].GetBool());
+    KRATOS_WARNING_IF("FromJSONCheckResultProcess", this->Is(USE_NODE_COORDINATES)) << "use_node_coordinates is deprecated. Please do not use it" << std::endl;
     this->Set(CHECK_ONLY_LOCAL_ENTITIES, mThisParameters["check_only_local_entities"].GetBool());
 
     // We initialize the databases
