@@ -438,12 +438,12 @@ double ComputeLocalMachSquaredDerivative(
     double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
 
     // square bracket term
-    double square_bracket_term = 1.0 + 0.5*(heat_capacity_ratio - 1)*
-            sq_free_stream_mach*(1 - (sq_local_velocity/sq_free_stream_velocity));
+    double square_bracket_term = 1.0 + 0.5*(heat_capacity_ratio - 1.0)*
+            sq_free_stream_mach*(1.0 - (sq_local_velocity/sq_free_stream_velocity));
 
     // calculate mach derivative
-    return sq_local_mach_number * ((1/sq_local_velocity) +
-            0.5*(heat_capacity_ratio - 1)*(1/sq_free_stream_velocity)*sq_free_stream_mach*(1/square_bracket_term));
+    return sq_local_mach_number * ((1.0/sq_local_velocity) +
+            0.5*(heat_capacity_ratio - 1.0)*(1.0/sq_free_stream_velocity)*sq_free_stream_mach*(1.0/square_bracket_term));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
