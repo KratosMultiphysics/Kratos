@@ -133,17 +133,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, K
     // Build the communicator
     ParallelFillCommunicator(model_part).Execute();
 
-    if(world_rank) {
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
-            world_rank + " Inconsistent variable Val for Id: 0 Expected: 1 Obtained 0"
-        );
-    } else {
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
-            world_rank + " Inconsistent variable Val for Id: 0 Expected: 0 Obtained 1"
-        );
-    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
+        "Consistency Error Detected"
+    );
 }
 
 }

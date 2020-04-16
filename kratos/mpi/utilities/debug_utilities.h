@@ -85,6 +85,7 @@ public:
         std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
     {
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        bool error_detected = false;
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
@@ -93,19 +94,30 @@ public:
             }
         );
 
-        // Check all nodes.
+        // Check variable for all nodes.
         for(auto& node : rModelPart.Nodes()) {
             auto& gp = gp_map[node.Id()];
 
             // Check Variable
             if(data_proxy.Get(gp).first != node.FastGetSolutionStepValue(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable Val for Id: " << node.Id() <<  " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
+                std::cout << r_default_comm.Rank() << " Inconsistent variable Val for Id: " << node.Id() << " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
+                error_detected = true;
             }
+        }
+
+        // Check fixity for all nodes.
+        for(auto& node : rModelPart.Nodes()) {
+            auto& gp = gp_map[node.Id()];
 
             // Check Fixity
             if(data_proxy.Get(gp).second != node.IsFixed(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable Fix for Id: " << node.Id() <<  " Expected: " << node.IsFixed(rVariable) << " Obtained " << data_proxy.Get(gp).second << std::endl;
+                std::cout << r_default_comm.Rank() << " Inconsistent variable Fix for Id: " << node.Id() << " Expected: " << node.IsFixed(rVariable) << " Obtained " << data_proxy.Get(gp).second << std::endl;
+                error_detected = true;
             }
+        }
+
+        if(error_detected = 1) {
+            KRATOS_ERROR << "Consistency Error Detected" << std::endl;
         }
     }
 };
