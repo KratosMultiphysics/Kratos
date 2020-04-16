@@ -432,9 +432,9 @@ double ComputeLocalMachSquaredDerivative(
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
     // make squares of values
-    double sq_local_mach_number = pow(local_mach_number, 2);
-    double sq_free_stream_mach = pow(free_stream_mach, 2);
-    double sq_local_velocity = inner_prod(velocity, velocity);
+    double sq_local_mach_number = std::pow(rLocalMachNumber, 2);
+    double sq_free_stream_mach = std::pow(free_stream_mach, 2);
+    double sq_local_velocity = inner_prod(rVelocity, rVelocity);
     double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
 
     // square bracket term
@@ -473,7 +473,7 @@ template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
-template double ComputeLocalMachSquaredDerivative<2, 3>(const array_1d<double, 2>& velocity, const double& local_mach_number, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachSquaredDerivative<2, 3>(const array_1d<double, 2>& rVelocity, const double& rLocalMachNumber, const ProcessInfo& rCurrentProcessInfo);
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
@@ -499,7 +499,7 @@ template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
-template double ComputeLocalMachSquaredDerivative<3, 4>(const array_1d<double, 3>& velocity, const double& local_mach_number, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachSquaredDerivative<3, 4>(const array_1d<double, 3>& rVelocity, const double& rLocalMachNumber, const ProcessInfo& rCurrentProcessInfo);
 
 } // namespace PotentialFlow
 } // namespace Kratos
