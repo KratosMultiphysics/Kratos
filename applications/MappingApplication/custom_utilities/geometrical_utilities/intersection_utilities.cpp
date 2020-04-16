@@ -33,8 +33,6 @@ void IntersectionUtilities::FindIntersection1DGeometries2D(
         condition_a_itr != rModelPartDomainA.ConditionsEnd();
         ++condition_a_itr)
     {
-        std::cout << condition_a_itr->Info() << std::endl;
-        std::cout << condition_a_itr->GetGeometry().Info() << std::endl;
         for (auto condition_b_itr = rModelPartDomainB.ConditionsBegin();
             condition_b_itr != rModelPartDomainB.ConditionsEnd();
             ++condition_b_itr)
