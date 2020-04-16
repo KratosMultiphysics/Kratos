@@ -418,8 +418,8 @@ bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const
 
 template <int Dim, int NumNodes>
 double ComputeLocalMachSquaredDerivative(
-    const array_1d<double, Dim>& velocity,
-    const double& local_mach_number,
+    const array_1d<double, Dim>& rVelocity,
+    const double rLocalMachNumber,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
