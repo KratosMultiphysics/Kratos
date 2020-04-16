@@ -30,82 +30,71 @@ public:
 
     MpiDebugUtilities() {}
 
-    static void CheckNodalHistoricalDatabaseConsistency(ModelPart::NodesContainerType & rNodes) { 
+    // This will work with #5091 or when we move to C++17
+    // static void CheckNodalHistoricalDatabaseConsistency(ModelPart & rModelPart) { 
+    //     // Build the list of indices and the pointer communicator
+    //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    //     std::vector<int> indices;
+
+    //     auto node_list = rModelPart.Nodes();
+
+    //     for(auto& node : node_list) {
+    //         indices.push_back(node.Id());
+    //     }
+
+    //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
+    //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
+
+    //     GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+
+    //     // Note: I think this can be change for an access function with std::tuple of the variables instead of a loop, but not in C++11/14
+    //     for(auto & variableData: rModelPart.GetNodalSolutionStepVariablesList()) {
+    //         auto & variable = KratosComponents<VariableComponentType>::Get(variableData.Name());
+    //         CheckNodalHistoricalVariableConsistency(rModelPart, variable, pointer_comm, gp_map);
+    //     }
+    // }
+
+    template<class TVarType>
+    static void CheckNodalHistoricalVariableConsistency(
+        ModelPart & rModelPart,
+        const TVarType & rVariable) 
+    {
         // Build the list of indices and the pointer communicator
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
         std::vector<int> indices;
 
-        for(auto& node : rNodes) {
+        auto node_list = rModelPart.Nodes();
+
+        for(auto& node : node_list) {
             indices.push_back(node.Id());
         }
 
-        auto gp_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(rNodes, indices, r_default_comm );
-        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(rNodes, indices, r_default_comm );
+        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
+        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
 
         GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        // If there are nodes, asume they have the same variable list and get it.
-        if(rNodes.size()) {
-            auto & variable_list = rNodes.begin()->pGetVariablesList();
-
-            // Note: I think this can be change for an access function with std::tuple of the variables instead of a loop, but not in C++11/14
-            for(auto & variable: variable_list) {
-                CheckNodalHistoricalVariableConsistency(rNodes, variable, pointer_comm, gp_map);
-            }
-        }
+        CheckNodalHistoricalVariableConsistency(rModelPart, rVariable, pointer_comm, gp_map);
     }
 
     template<class TVarType>
     static void CheckNodalHistoricalVariableConsistency(
-        ModelPart::NodesContainerType & rNodes,
+        ModelPart & rModelPart,
         const TVarType & rVariable,
-        GlobalPointerCommunicator< Node<3>> & rPointerCommunicator, 
-        std::unordered_map<int, GlobalPointer<Node<3>>>) 
+        GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 
+        std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
     {
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+
         // Create the data functior
-        auto data_proxy = pointer_comm.Apply(
+        auto data_proxy = rPointerCommunicator.Apply(
             [rVariable](GlobalPointer< Node<3> >& gp)->std::pair<typename TVarType::Type, bool> {
                 return {gp->FastGetSolutionStepValue(rVariable),gp->IsFixed(rVariable)};
             }
         );
 
         // Check all nodes.
-        for(auto& node : rNodes) {
-            auto& gp = gp_map[node.Id()];
-
-            // Check Variable
-            if(data_proxy.Get(gp).first != node.FastGetSolutionStepValue(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable Val for Id: " << node.Id() <<  " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
-            }
-
-            // Check Fixity
-            if(data_proxy.Get(gp).second != node.IsFixed(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable Fix for Id: " << node.Id() <<  " Expected: " << node.IsFixed(rVariable) << " Obtained " << data_proxy.Get(gp).second << std::endl;
-            }
-        }
-    }
-
-    template<class TVarType>
-    static void CheckNodalDatabaseConsistency(ModelPart::NodesContainerType & rNodes, const TVarType & rVariable) {
-        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-        std::vector<int> indices;
-
-        for(auto& node : rNodes) {
-            indices.push_back(node.Id());
-        }
-
-        auto gp_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(rNodes, indices, r_default_comm );
-        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(rNodes, indices, r_default_comm );
-
-        GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
-
-        auto data_proxy = pointer_comm.Apply(
-            [rVariable](GlobalPointer< Node<3> >& gp)->std::pair<typename TVarType::Type, bool> {
-                return {gp->FastGetSolutionStepValue(rVariable),gp->IsFixed(rVariable)};
-            }
-        );
-
-        for(auto& node : rNodes) {
+        for(auto& node : rModelPart.Nodes()) {
             auto& gp = gp_map[node.Id()];
 
             // Check Variable
