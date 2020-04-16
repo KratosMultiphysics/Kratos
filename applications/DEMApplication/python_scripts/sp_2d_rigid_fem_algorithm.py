@@ -8,10 +8,37 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
     def __init__(self, model, project_parameters):
         super(DEMAnalysisStage2DSpRigidFem, self).__init__(model, project_parameters)
 
+        # TEST NUMBER:
+        # 1. CTW16, 2. CTW10, 3. CTW13, 4. Blind
+        self.test_number = project_parameters["test_number"].GetInt()
+        self.gmesh_with_inner_skin = project_parameters["gmesh_with_inner_skin"].GetBool()
+        self.compute_skin_factor = project_parameters["compute_skin_factor"].GetDouble()
+
     def Initialize(self):
         super(DEMAnalysisStage2DSpRigidFem, self).Initialize()
 
         self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
+        if self.gmesh_with_inner_skin:
+            self.RebuildBlindSkinElements()
+
+    def RebuildBlindSkinElements(self):
+
+        self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
+        self.PreUtilities.ComputeSkin(self.spheres_model_part, self.compute_skin_factor)
+
+        # These first two depend on the geometry of the test
+        #inner_radius = 0.0381
+        #outer_radius = 0.1524
+        # These two depend on the particular mesh sizes
+        #min_radius = 0.5 * 0.001
+        #max_radius = 0.5 * 0.0015
+        #center = KratosMultiphysics.Array3()
+        #center[0] = center[1] = center[2] = 0.0
+        #self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
+        #inner_skin_factor = 2.2
+        #outer_skin_factor = 1.6
+        #self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, inner_radius, inner_skin_factor * min_radius)
+        #self.PreUtilities.SetSkinParticlesOuterBoundaryBlind(self.spheres_model_part, outer_radius, center, outer_skin_factor * max_radius)
 
     def CreateSPMeasuringRingSubmodelpart(self, spheres_model_part):
 
@@ -19,7 +46,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
             self.spheres_model_part.CreateSubModelPart('RingSubmodelPart')
         self.ring_submodelpart = self.spheres_model_part.GetSubModelPart('RingSubmodelPart')
 
-        zone_radius_to_measure_2d_sp = 0.02 # In meters. This is a little bit less than half the CTW16 radius
+        if self.test_number == 1: # CTW16
+            zone_radius_to_measure_2d_sp = 0.015
+        elif self.test_number == 2: # CTW10
+            zone_radius_to_measure_2d_sp = 0.02
+        elif self.test_number == 3: # CTW13
+            zone_radius_to_measure_2d_sp = 0.017
+        else: # Blind
+            zone_radius_to_measure_2d_sp = 0.06
+
         nodes_in_zone_radius_list = []
         elements_in_zone_radius_list = []
 
@@ -39,9 +74,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
 
         DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.ring_submodelpart)
-
         self.SettingGeometricalSPValues()
-
         self.creator_destructor.MarkParticlesForErasingGivenCylinder(self.ring_submodelpart, self.center, self.axis, self.radius)
 
         DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.ring_submodelpart, self.rigid_face_model_part, self.time)
@@ -58,14 +91,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.axis[1] = 0; # self.sp_parameters["problem_data"]["axis"][1].GetDouble()
         self.axis[2] = 1; # self.sp_parameters["problem_data"]["axis"][2].GetDouble()
 
-        self.radius = 0
-        self.test_number = 1
-        if self.test_number == 1:
-            self.radius = 0.0036195; #0.01; #0.0036195; #95% of the real hole. CTW16 specimen
-        elif self.test_number == 2:
-            self.radius = 0.012065; #95% of the real hole. CTW10 specimen
-        elif self.test_number == 3:
-            self.radius = 0.036195; #95% of the real hole. Blind Test
+        # Zone radius to delete SP
+        if self.test_number == 1: # CTW16
+            self.radius = 0.0015
+        elif self.test_number == 2: # CTW10
+            self.radius = 0.005
+        elif self.test_number == 3: # CTW13
+            self.radius = 0.0025
+        else: # Blind
+            self.radius = 0.015
 
     def AdditionalFinalizeOperations(self):
 

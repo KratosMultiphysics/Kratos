@@ -546,6 +546,12 @@ namespace Kratos {
             sum[OpenMPUtils::ThisThread()] = 0;
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
+
+                SphericParticle* element = mListOfSphericParticles[i];
+                SphericContinuumParticle* continuous_element = dynamic_cast<SphericContinuumParticle*> (element);
+                if (continuous_element->IsSkin()) {
+                    continue;
+                }
                 neighbour_counter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
                 sum[OpenMPUtils::ThisThread()] += (mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 )*(mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 );
             }

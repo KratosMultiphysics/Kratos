@@ -295,6 +295,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ResetSkinParticles", &PreUtilities::ResetSkinParticles)
         .def("SetSkinParticlesInnerBoundary", &PreUtilities::SetSkinParticlesInnerBoundary)
         .def("SetSkinParticlesOuterBoundary", &PreUtilities::SetSkinParticlesOuterBoundary)
+        .def("SetSkinParticlesOuterBoundaryBlind", &PreUtilities::SetSkinParticlesOuterBoundaryBlind)
+        .def("ComputeSkin", &PreUtilities::ComputeSkin)
         ;
 
     py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")

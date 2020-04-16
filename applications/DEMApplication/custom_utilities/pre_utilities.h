@@ -428,8 +428,61 @@ class PreUtilities
             noalias(vector_distance_to_center) = coords;
             const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
             const double radius = it->FastGetSolutionStepValue(RADIUS);
-            if(distance_to_center + radius > outer_radius - detection_radius) {
+            if (distance_to_center + radius > outer_radius - detection_radius) {
                 it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
+            }
+        }
+    }
+
+    void SetSkinParticlesOuterBoundaryBlind(ModelPart& r_model_part, const double outer_radius, const array_1d<double, 3>& center, const double detection_radius) {
+
+        auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pNodes.size(); k++) {
+            auto it = pNodes.begin() + k;
+            const array_1d<double, 3>& coords = it->Coordinates();
+            array_1d<double, 3> vector_distance_to_center;
+            noalias(vector_distance_to_center) = coords - center;
+            const double total_x_distance = fabs(vector_distance_to_center[0]);
+            const double total_y_distance = fabs(vector_distance_to_center[1]);
+            const double radius = it->FastGetSolutionStepValue(RADIUS);
+
+            if ((total_x_distance + radius > outer_radius - detection_radius) || (total_y_distance + radius > outer_radius - detection_radius)) {
+                it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
+            }
+        }
+    }
+
+    void ComputeSkin(ModelPart& rSpheresModelPart, const double factor_radius = 1.0) {
+
+        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pElements.size(); k++) {
+
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            Element* p_element = &(*it);
+            SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+
+            const array_1d<double, 3> element_center = p_sphere->GetGeometry()[0].Coordinates();
+            const double element_radius              = p_sphere->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+            array_1d<double, 3> vector_from_element_to_neighbour = ZeroVector(3);
+            array_1d<double, 3> sum_of_vectors_from_element_to_neighbours = ZeroVector(3);
+            unsigned const int number_of_neighbors = p_sphere->mContinuumInitialNeighborsSize;
+            double modulus_of_vector_from_element_to_neighbour = 0.0;
+
+            for (unsigned int i = 0; i < number_of_neighbors; i++) {
+                SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(p_sphere->mNeighbourElements[i]);
+                if (!neighbour_iterator) continue;
+                const array_1d<double, 3> neigbour_center = neighbour_iterator->GetGeometry()[0].Coordinates();
+                vector_from_element_to_neighbour = neigbour_center - element_center;
+                modulus_of_vector_from_element_to_neighbour = DEM_MODULUS_3(vector_from_element_to_neighbour);
+                DEM_MULTIPLY_BY_SCALAR_3(vector_from_element_to_neighbour, element_radius / modulus_of_vector_from_element_to_neighbour);
+                sum_of_vectors_from_element_to_neighbours += vector_from_element_to_neighbour;
+            }
+
+            if (DEM_MODULUS_3(sum_of_vectors_from_element_to_neighbours) > factor_radius * element_radius) {
+                p_sphere->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
             }
         }
     }
