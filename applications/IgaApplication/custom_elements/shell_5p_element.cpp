@@ -158,7 +158,8 @@ namespace Kratos
 					kinematic_variables,
 					variation_variables,
 					constitutive_variables);
-				noalias(rLeftHandSideMatrix) += integration_weight * (prod(prod(trans(BOperator), constitutive_variables.ConstitutiveMatrix), BOperator)+ Kg);
+				//Matrix temp = prod(trans(BOperator), constitutive_variables.ConstitutiveMatrix);  //defined useless temporary due to ublas prod(prod( not working
+				rLeftHandSideMatrix = rLeftHandSideMatrix + integration_weight * (prod(prod<MatrixType>(trans(BOperator), constitutive_variables.ConstitutiveMatrix), BOperator)+ Kg);
 			}
 			// RIGHT HAND SIDE VECTOR
 			if (CalculateResidualVectorFlag == true) 
@@ -337,6 +338,13 @@ namespace Kratos
 		Matrix WI2(3, 3);
 		Matrix BLAI(3, 2);
 
+		///=============== only used since ublas not working with the commented bloc ===============
+		Vector Temp(1, 2);
+		Vector Temp1(1, 2);
+		Vector Temp2(1, 2);
+		Vector Temp3(1, 2);
+		Vector Temp4(1, 2);
+
 		for (IndexType r = 0; r < number_of_nodes; r++)
 		{
 			IndexType kr = 5 * r;
@@ -345,30 +353,64 @@ namespace Kratos
 			WI1 = rVariations.Q1 * m_N(IntegrationPointIndex, r) + rVariations.P * m_cart_deriv[IntegrationPointIndex](0, r);
 			WI2 = rVariations.Q2 * m_N(IntegrationPointIndex, r) + rVariations.P * m_cart_deriv[IntegrationPointIndex](1, r);
 
+			for (IndexType s = 0; s < 3; s++)
+			{ 
 			//membrane
-			noalias(subrange(rB, 0, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.a1); //TODO WHY DOES THIS NOT WORK is  the equal sign not overloaded for array_1d?
-			noalias(subrange(rB, 1, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.a2);
+			rB(0, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.a1[s];
+			rB(1, kr + s) = m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.a2[s];
 
-			//inplane shear
-			noalias(subrange(rB, 2, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.a2) + m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.a1);
+            //inplane shear
+			rB(2, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.a2[s] + m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.a1[s];
 
-			//BENDING PART displacement variation
-			noalias(subrange(rB, 3, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.dtd1);
-			noalias(subrange(rB, 4, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.dtd2);
-			noalias(subrange(rB, 5, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.dtd2) + m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.dtd1);
-
-			//BENDING PART director variation
-			noalias(subrange(rB, 3, 1, kr + 3, 2)) = prod(prod(trans(rActualKinematic.a1), WI1),BLAI);
-			noalias(subrange(rB, 4, 1, kr + 3, 2)) = prod(prod(trans(rActualKinematic.a2), WI2),BLAI);
-			noalias(subrange(rB, 5, 1, kr + 3, 2)) = prod(prod(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
+            //BENDING PART displacement variation
+			rB(3, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.dtd1[s];
+			rB(4, kr + s) = m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.dtd2[s];
+			rB(5, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.dtd2[s] + m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.dtd1[s];
 
 			//TransverseShear displacement variation
-			noalias(subrange(rB, 6, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.t); //TODO WHY DOES THIS NOT WORK
-			noalias(subrange(rB, 7, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.t);
+			rB(6, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.t[s];
+			rB(7, kr + s) = m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.t[s];
+			}
 
-			//TransverseShear director variation
-			noalias(subrange(rB, 6, 1, kr + 3, 2)) = prod(prod(trans(rActualKinematic.a1), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
-			noalias(subrange(rB, 7, 1, kr + 3, 2)) = prod(prod(trans(rActualKinematic.a2), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
+			Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI);
+			Temp1 = prod(prod<Vector>(trans(rActualKinematic.a2), WI2), BLAI);
+			Temp2 = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
+			Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
+			Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
+
+			for (IndexType s = 0; s < 2; s++)
+			{
+				rB(3, kr + 3 + s) = Temp[s];
+				rB(4, kr + 3 + s) = Temp1[s];
+				rB(5, kr + 3 + s) = Temp2[s];
+				rB(6, kr + 3 + s) = Temp3[s];
+				rB(7, kr + 3 + s) = Temp4[s];
+			}///=============== end of stupid version ===============
+
+			//membrane
+			//noalias(subrange(rB, 0, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.a1); //TODO WHY DOES THIS NOT WORK is  the equal sign not overloaded for array_1d?
+			//noalias(subrange(rB, 1, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.a2);
+
+			////inplane shear
+			//noalias(subrange(rB, 2, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.a2) + m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.a1);
+
+			////BENDING PART displacement variation
+			//noalias(subrange(rB, 3, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.dtd1);
+			//noalias(subrange(rB, 4, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.dtd2);
+			//noalias(subrange(rB, 5, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.dtd2) + m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.dtd1);
+
+			////BENDING PART director variation
+			//noalias(subrange(rB, 3, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), WI1),BLAI);
+			//noalias(subrange(rB, 4, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), WI2),BLAI);
+			//noalias(subrange(rB, 5, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
+
+			////TransverseShear displacement variation
+			//noalias(subrange(rB, 6, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.t); //TODO WHY DOES THIS NOT WORK
+			//noalias(subrange(rB, 7, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.t);
+
+			////TransverseShear director variation
+			//noalias(subrange(rB, 6, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
+			//noalias(subrange(rB, 7, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
 		}
 	}
 
@@ -398,6 +440,7 @@ namespace Kratos
 		Matrix BLAJ(3, 2);
 
 		Matrix Temp(3, 3);
+		Matrix Temp2(2, 3);
 
 
 		double  Nii, dN1ii, dN2ii, Njj, dN1jj, dN2jj, dN1ii_dN2jj_p_dN2ii_dN1jj, NS, NdN1, NdN2; //the first 6 are only for cleaner coding/debugging, can be removed and m_cart_deriv[IntegrationPointIndex](0, ii) directly called
@@ -474,7 +517,8 @@ namespace Kratos
 				Temp += ractVar.S1 * NdN1 * StressResultants[3] + ractVar.S2 * NdN2 * StressResultants[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * StressResultants[5];
 
 				//Kg.block<2, 2>(ii4, jj4).noalias() = prod(prod(BLAI_T , Temp) , BLAJ);
-				noalias(subrange(Kg, ii4, 2, jj4, 2)) = prod(prod(BLAI_T, Temp), BLAJ);
+				Temp2 = prod(BLAI_T, Temp); //useless temp due to ublas prodprod
+				noalias(subrange(Kg, ii4, 2, jj4, 2)) = prod(Temp2, BLAJ);
 
 			}
 			///  Residual Part second part of Linearisation
@@ -645,7 +689,7 @@ namespace Kratos
 			array_1d<double, 3> inc3d = prod(BLA,inc2d);
 
 			//projection-based update
-			director += inc3d;
+			director = director+inc3d;
 			director = director / sqrt(inner_prod(director, director));
 
 			GetGeometry()[i].SetValue(DIRECTOR, director);
@@ -673,11 +717,10 @@ namespace Kratos
 			{
 				A3 = GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
 				A3 = A3 / sqrt(inner_prod(A3, A3));
+				//Vector m_Nvec = trans(row(m_N, point_number));
+					rRightHandSideMatrix = rRightHandSideMatrix + outer_prod(trans(row(m_N, point_number)),  trans(A3)     ) ;
 
-				for (int i = 0; i < r_number_of_nodes; ++i)
-					noalias(subrange(rRightHandSideMatrix,i,1,0,3)) += trans(A3) * m_N(point_number, i);
-
-				rLeftHandSideMatrix += outer_prod(row(m_N,point_number), row(m_N, point_number));
+				rLeftHandSideMatrix = rLeftHandSideMatrix + outer_prod(row(m_N,point_number), row(m_N, point_number));
 			}
 	}
 	///@}
