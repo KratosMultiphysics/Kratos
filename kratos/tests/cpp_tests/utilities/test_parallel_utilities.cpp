@@ -47,15 +47,12 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     }
 
     //here we check for a reduction (computing the sum of all the entries)
-    auto reducer = BlockPartition<std::vector<double>>(data_vector).for_reduce<SumReduction<double>>(
+    auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_reduce<SumReduction<double>>(
         [](double& item)
         {
             return item;
         }
     );
-
-    //get the value of the final sum
-    double final_sum = reducer.mvalue;
 
     double expected_value = std::pow(5.0, 0.1)*nsize;
     KRATOS_CHECK_NEAR( std::abs(final_sum-expected_value)/std::abs(expected_value), 0.0, 1e-10  );
@@ -100,8 +97,17 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     }
     class CustomReducer{
         public:
+            typedef std::tuple<double,double> value_type;
             double max_value = -std::numeric_limits<double>::max();
             double max_abs = 0.0;
+
+            value_type GetValue()
+            {
+                value_type values;
+                std::get<0>(values) = max_value;
+                std::get<1>(values) = max_abs;
+                return values;
+            }
 
             void LocalMerge(double function_return_value){
                 this->max_value = std::max(this->max_value,function_return_value);
@@ -117,12 +123,14 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     };
 
     auto partition = IndexPartition<unsigned int>(data_vector.size());
-    auto ReturnValueReducer = partition.for_reduce<CustomReducer>([&](unsigned int i){
+
+    double max_value,max_abs;
+    std::tie(max_value,max_abs) = partition.for_reduce<CustomReducer>([&](unsigned int i){
             return data_vector[i]; //note that here the lambda returns the values to be reduced
         });
 
-    KRATOS_CHECK_EQUAL(ReturnValueReducer.max_value, 0.0 );
-    KRATOS_CHECK_EQUAL(ReturnValueReducer.max_abs, nsize-1 );
+    KRATOS_CHECK_EQUAL(max_value, 0.0 );
+    KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
 
 
 
@@ -134,27 +142,29 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                                SubReduction<double>
             > MultipleReduction;
 
-    auto reduction_res = IndexPartition<unsigned int>(data_vector.size()).
+    //auto reduction_res
+    double sum,min,max,sub;
+    std::tie(sum,min,max,sub) = IndexPartition<unsigned int>(data_vector.size()).
         for_reduce<MultipleReduction>(
             [&](unsigned int i){
                     double to_sum = data_vector[i];
                     double to_max = data_vector[i];
                     double to_min = data_vector[i];
                     double to_sub = data_vector[i];
-                    return std::make_tuple( to_sum, to_max, to_min, to_sub );
+                    return std::make_tuple( to_sum, to_max, to_min, to_sub ); //note that these may have different types
                 }
             );
-    KRATOS_CHECK_EQUAL(reduction_res.GetValue<0>(), reference_sum );
-    KRATOS_CHECK_EQUAL(reduction_res.GetValue<1>(), reference_min );
-    KRATOS_CHECK_EQUAL(reduction_res.GetValue<2>(), reference_max );
-    KRATOS_CHECK_EQUAL(reduction_res.GetValue<3>(), reference_sub );
+    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<0>(), reference_sum );
+    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<1>(), reference_min );
+    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<2>(), reference_max );
+    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<3>(), reference_sub );
 
-
-    //check ability to handle exceptions in pure c++ - DELIBERATELY THROWING AN EXCEPTION!
-    IndexPartition<unsigned int>(data_vector.size()).for_pure_c11([&](unsigned int i){
-                    data_vector.at(i+1); //the highest thread will throw
-                }
-            );
+    // double sum,max,min,sub;
+    // std::tie(sum,max,min,sub) = reduction_res.ReturnValue();
+    KRATOS_CHECK_EQUAL(sum, reference_sum );
+    KRATOS_CHECK_EQUAL(min, reference_min );
+    KRATOS_CHECK_EQUAL(max, reference_max );
+    KRATOS_CHECK_EQUAL(sub, reference_sub );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)

@@ -86,7 +86,7 @@ public:
 
     //version with reduction
     template <class TReducer, class TUnaryFunction>
-    inline TReducer for_reduce(TUnaryFunction &&f)
+    inline typename TReducer::value_type for_reduce(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -99,7 +99,7 @@ public:
             }
             global_reducer.ThreadSafeMerge(local_reducer);
         }
-        return global_reducer;
+        return global_reducer.GetValue();
     }
 
 private:
@@ -181,7 +181,7 @@ public:
 
     //version with reduction
     template <class TReducer, class TUnaryFunction>
-    inline TReducer for_reduce(TUnaryFunction &&f)
+    inline typename TReducer::value_type for_reduce(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -194,7 +194,7 @@ public:
             }
             global_reducer.ThreadSafeMerge(local_reducer);
         }
-        return global_reducer;
+        return global_reducer.GetValue();
     }
 
 private:
@@ -308,16 +308,33 @@ public:
 
 template <class... Reducer>
 struct CombinedReduction {
-    typedef std::tuple<Reducer...> value_type;
+    typedef std::tuple<typename Reducer::value_type...> value_type;
 
     std::tuple<Reducer...> mChild;
 
     CombinedReduction() {}
 
-    template <int I>
-    auto GetValue() const -> decltype(std::get<I>(mChild).GetValue()) {
-        return std::get<I>(mChild).GetValue();
+    value_type GetValue(){
+        value_type return_value;
+        fill_value<0>(return_value);
+        return return_value;
     }
+
+    template <int I, class T>
+    typename std::enable_if<(I < sizeof...(Reducer)), void>::type
+    fill_value(T& v) {
+        std::get<I>(v) = std::get<I>(mChild).GetValue();
+        fill_value<I+1>(v);
+        };
+
+    template <int I, class T>
+    typename std::enable_if<(I == sizeof...(Reducer)), void>::type
+    fill_value(T& v) {}
+
+    // template <int I>
+    // auto GetValue() const -> decltype(std::get<I>(mChild).GetValue()) {
+    //     return std::get<I>(mChild).GetValue();
+    // }
 
     template <class... T>
     void LocalMerge(const std::tuple<T...> &&v) {
