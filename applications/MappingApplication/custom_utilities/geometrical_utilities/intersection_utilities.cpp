@@ -103,7 +103,7 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
         // add the quadrature point geometry conditions to the result model part
         const IndexType id = (rModelPartResult.NumberOfConditions() == 0)
             ? 1
-            : rModelPartResult.ConditionsEnd()->Id() + 1;
+            : (rModelPartResult.ConditionsEnd() - 1)->Id() + 1;
         for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i) {
             rModelPartResult.AddCondition(Kratos::make_intrusive<Condition>(
                 id + i, CouplingGeometry<Node<3>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
