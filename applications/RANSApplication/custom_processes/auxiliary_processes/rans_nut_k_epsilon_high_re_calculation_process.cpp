@@ -53,6 +53,16 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
     KRATOS_CATCH("");
 }
 
+RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess(
+    Model& rModel, const std::string& rModelPartName, const double Cmu, const double MinValue, const int EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mCmu(Cmu),
+      mMinValue(MinValue),
+      mEchoLevel(EchoLevel)
+{
+}
+
 int RansNutKEpsilonHighReCalculationProcess::Check()
 {
     KRATOS_TRY

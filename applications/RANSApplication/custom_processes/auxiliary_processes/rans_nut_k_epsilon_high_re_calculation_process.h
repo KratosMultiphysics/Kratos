@@ -79,6 +79,12 @@ public:
 
     RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters);
 
+    RansNutKEpsilonHighReCalculationProcess(Model& rModel,
+                                            const std::string& rModelPartName,
+                                            const double Cmu,
+                                            const double MinValue,
+                                            const int EchoLevel);
+
     /// Destructor.
     ~RansNutKEpsilonHighReCalculationProcess() override = default;
 

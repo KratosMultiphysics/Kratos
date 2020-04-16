@@ -67,6 +67,12 @@ public:
 
     RansWallFunctionUpdateProcess(Model& rModel, Parameters rParameters);
 
+    RansWallFunctionUpdateProcess(Model& rModel,
+                                  const std::string& rModelPartName,
+                                  const double VonKarman,
+                                  const double Beta,
+                                  const int EchoLevel);
+
     /// Destructor.
     ~RansWallFunctionUpdateProcess() override = default;
 
@@ -79,8 +85,6 @@ public:
     ///@{
 
     int Check() override;
-
-    void ExecuteInitialize() override;
 
     void Execute() override;
 

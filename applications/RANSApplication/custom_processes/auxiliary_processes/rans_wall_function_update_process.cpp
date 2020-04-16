@@ -52,6 +52,19 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Para
     KRATOS_CATCH("");
 }
 
+RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel,
+                                                             const std::string& rModelPartName,
+                                                             const double VonKarman,
+                                                             const double Beta,
+                                                             const int EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mVonKarman(VonKarman),
+      mBeta(Beta),
+      mEchoLevel(EchoLevel)
+{
+}
+
 int RansWallFunctionUpdateProcess::Check()
 {
     KRATOS_TRY
@@ -62,14 +75,11 @@ int RansWallFunctionUpdateProcess::Check()
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
 
     return 0;
 
     KRATOS_CATCH("");
-}
-
-void RansWallFunctionUpdateProcess::ExecuteInitialize()
-{
 }
 
 void RansWallFunctionUpdateProcess::Execute()
@@ -89,41 +99,41 @@ void RansWallFunctionUpdateProcess::Execute()
         {
             ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
 
-            // if (RansCalculationUtilities::IsWall(r_condition))
-            // {
-                const array_1d<double, 3>& r_wall_cell_center_velocity =
-                    RansCalculationUtilities::CalculateWallVelocity(r_condition);
-                const double wall_cell_center_velocity_magnitude =
-                    norm_2(r_wall_cell_center_velocity);
-                const array_1d<double, 3>& r_normal = r_condition.GetValue(NORMAL);
+            const array_1d<double, 3>& r_wall_cell_center_velocity =
+                RansCalculationUtilities::CalculateWallVelocity(r_condition);
+            const double wall_cell_center_velocity_magnitude =
+                norm_2(r_wall_cell_center_velocity);
+            const array_1d<double, 3>& r_normal = r_condition.GetValue(NORMAL);
 
-                const double wall_height =
-                    RansCalculationUtilities::CalculateWallHeight(r_condition, r_normal);
+            const double wall_height =
+                RansCalculationUtilities::CalculateWallHeight(r_condition, r_normal);
 
-                const double nu = RansCalculationUtilities::EvaluateInParentCenter(
-                    KINEMATIC_VISCOSITY, r_condition);
+            const double nu = RansCalculationUtilities::EvaluateInParentCenter(
+                KINEMATIC_VISCOSITY, r_condition);
 
-                double y_plus{0.0}, u_tau{0.0};
-                RansCalculationUtilities::CalculateYPlusAndUtau(
-                    y_plus, u_tau, wall_cell_center_velocity_magnitude,
-                    wall_height, nu, mVonKarman, mBeta);
+            double y_plus{0.0}, u_tau{0.0};
+            RansCalculationUtilities::CalculateYPlusAndUtau(
+                y_plus, u_tau, wall_cell_center_velocity_magnitude, wall_height,
+                nu, mVonKarman, mBeta);
 
-                if (wall_cell_center_velocity_magnitude > 0.0)
-                {
-                    noalias(r_friction_velocity) =
-                        r_wall_cell_center_velocity *
-                        (u_tau / wall_cell_center_velocity_magnitude);
-                }
-                else
-                {
-                    noalias(r_friction_velocity) = ZeroVector(3);
-                }
+            if (wall_cell_center_velocity_magnitude > 0.0)
+            {
+                noalias(r_friction_velocity) =
+                    r_wall_cell_center_velocity * (u_tau / wall_cell_center_velocity_magnitude);
+            }
+            else
+            {
+                noalias(r_friction_velocity) = ZeroVector(3);
+            }
 
-                r_condition.SetValue(RANS_Y_PLUS, y_plus);
-                r_condition.SetValue(FRICTION_VELOCITY, r_friction_velocity);
-            // }
+            r_condition.SetValue(RANS_Y_PLUS, y_plus);
+            r_condition.SetValue(FRICTION_VELOCITY, r_friction_velocity);
         }
     }
+
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
+        << "Calculated wall function based y_plus for " << mModelPartName << ".";
+
     KRATOS_CATCH("");
 }
 

@@ -97,11 +97,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansLogarithmicYPlusCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansNutKEpsilonHighReCalculationProcessType = RansNutKEpsilonHighReCalculationProcess;
-    py::class_<RansNutKEpsilonHighReCalculationProcessType, RansNutKEpsilonHighReCalculationProcessType::Pointer, Process>(
-        m, "RansNutKEpsilonHighReCalculationProcess")
-        .def(py::init<Model&, Parameters&>());
-
     using RansKTurbulentIntensityInletProcessType = RansKTurbulentIntensityInletProcess;
     py::class_<RansKTurbulentIntensityInletProcessType, RansKTurbulentIntensityInletProcessType::Pointer, Process>(
         m, "RansKTurbulentIntensityInletProcess")
@@ -124,11 +119,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     py::class_<RansApplyExactNodalPeriodicConditionProcessType,
                RansApplyExactNodalPeriodicConditionProcessType::Pointer, Process>(
         m, "RansApplyExactNodalPeriodicConditionProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansNutYPlusWallFunctionProcessType = RansNutYPlusWallFunctionProcess;
-    py::class_<RansNutYPlusWallFunctionProcessType, RansNutYPlusWallFunctionProcessType::Pointer, Process>(
-        m, "RansNutYPlusWallFunctionProcess")
         .def(py::init<Model&, Parameters&>());
 
     using RansNutLowReCalculationProcessType = RansNutLowReCalculationProcess;
@@ -156,10 +146,23 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansNutYPlusWallFunctionSensitivitiesProcess")
         .def(py::init<Model&, Parameters&>());
 
+    using RansNutKEpsilonHighReCalculationProcessType = RansNutKEpsilonHighReCalculationProcess;
+    py::class_<RansNutKEpsilonHighReCalculationProcessType, RansNutKEpsilonHighReCalculationProcessType::Pointer, Process>(
+        m, "RansNutKEpsilonHighReCalculationProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+
+    using RansNutYPlusWallFunctionProcessType = RansNutYPlusWallFunctionProcess;
+    py::class_<RansNutYPlusWallFunctionProcessType, RansNutYPlusWallFunctionProcessType::Pointer, Process>(
+        m, "RansNutYPlusWallFunctionProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const double, const double, const int>());
+
     using RansWallFunctionUpdateProcessType = RansWallFunctionUpdateProcess;
     py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(
         m, "RansWallFunctionUpdateProcess")
-        .def(py::init<Model&, Parameters&>());
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 }
 
 } // namespace Python.

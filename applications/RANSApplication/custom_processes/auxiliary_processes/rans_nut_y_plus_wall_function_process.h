@@ -67,6 +67,14 @@ public:
 
     RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters);
 
+    RansNutYPlusWallFunctionProcess(Model& rModel,
+                                    const std::string& rModelPartName,
+                                    const double Cmu,
+                                    const double VonKarman,
+                                    const double Beta,
+                                    const double MinValue,
+                                    const int EchoLevel);
+
     /// Destructor.
     ~RansNutYPlusWallFunctionProcess() override = default;
 
@@ -154,8 +162,6 @@ private:
     std::string mModelPartName;
 
     int mEchoLevel;
-
-    double mLimitYPlus;
     double mMinValue;
 
     double mCmu;

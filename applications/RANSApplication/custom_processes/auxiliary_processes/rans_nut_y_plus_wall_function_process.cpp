@@ -52,10 +52,25 @@ RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, 
     mVonKarman = mrParameters["von_karman"].GetDouble();
     mBeta = mrParameters["beta"].GetDouble();
     mMinValue = mrParameters["min_value"].GetDouble();
-    mLimitYPlus =
-        RansCalculationUtilities::CalculateLogarithmicYPlusLimit(mVonKarman, mBeta);
 
     KRATOS_CATCH("");
+}
+
+RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel,
+                                                                 const std::string& rModelPartName,
+                                                                 const double Cmu,
+                                                                 const double VonKarman,
+                                                                 const double Beta,
+                                                                 const double MinValue,
+                                                                 const int EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mCmu(Cmu),
+      mVonKarman(VonKarman),
+      mBeta(Beta),
+      mMinValue(MinValue),
+      mEchoLevel(EchoLevel)
+{
 }
 
 int RansNutYPlusWallFunctionProcess::Check()
@@ -68,6 +83,7 @@ int RansNutYPlusWallFunctionProcess::Check()
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VISCOSITY);
 
     return 0;
 
@@ -90,20 +106,20 @@ void RansNutYPlusWallFunctionProcess::CalculateConditionNeighbourCount()
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
     {
         ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
-        if (RansCalculationUtilities::IsWall(r_cond))
+        ConditionGeometryType& r_geometry = r_cond.GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
-            ConditionGeometryType& r_geometry = r_cond.GetGeometry();
-            for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                NodeType& r_node = r_geometry[i_node];
-                r_node.SetLock();
-                r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
-                r_node.UnSetLock();
-            }
+            NodeType& r_node = r_geometry[i_node];
+            r_node.SetLock();
+            r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
+            r_node.UnSetLock();
         }
     }
 
     r_model_part.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_CONDITIONS);
+
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Calculated number of neighbour conditions in " << mModelPartName << ".";
 }
 
 void RansNutYPlusWallFunctionProcess::Execute()
@@ -111,55 +127,45 @@ void RansNutYPlusWallFunctionProcess::Execute()
     KRATOS_TRY
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const int number_of_nodes = r_model_part.NumberOfNodes();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-        if (RansCalculationUtilities::IsWall(r_node))
-        {
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 0.0;
-        }
-    }
+    VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY,
+                                                r_model_part.Nodes());
 
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
     {
         ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
-        if (RansCalculationUtilities::IsWall(r_cond))
-        {
-            ConditionType::GeometryType& r_geometry = r_cond.GetGeometry();
-            const double y_plus = r_cond.GetValue(RANS_Y_PLUS);
+        ConditionType::GeometryType& r_geometry = r_cond.GetGeometry();
+        const double y_plus = r_cond.GetValue(RANS_Y_PLUS);
 
-            for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                NodeType& r_node = r_geometry[i_node];
-                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
-                r_node.SetLock();
-                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
-                    mVonKarman * y_plus * nu;
-                r_node.UnSetLock();
-            }
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+        {
+            NodeType& r_node = r_geometry[i_node];
+            const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+            r_node.SetLock();
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
+                mVonKarman * y_plus * nu;
+            r_node.UnSetLock();
         }
     }
     r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_VISCOSITY);
 
+    const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-        if (RansCalculationUtilities::IsWall(r_node))
-        {
-            double& r_nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-            const double number_of_neighbour_conditions =
-                static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
-            r_nut = RansCalculationUtilities::SoftMax(
-                r_nut / number_of_neighbour_conditions, mMinValue);
-            r_node.FastGetSolutionStepValue(VISCOSITY) =
-                r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + r_nut;
-        }
+        double& r_nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        const double number_of_neighbour_conditions =
+            static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
+        r_nut = RansCalculationUtilities::SoftMax(
+            r_nut / number_of_neighbour_conditions, mMinValue);
+        r_node.FastGetSolutionStepValue(VISCOSITY) =
+            r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + r_nut;
     }
+
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
+        << "Calculated wall function based nu_t for " << mModelPartName << ".";
 
     KRATOS_CATCH("");
 }
