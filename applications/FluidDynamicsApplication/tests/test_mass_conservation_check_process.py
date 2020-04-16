@@ -8,13 +8,13 @@ from KratosMultiphysics.FluidDynamicsApplication.apply_mass_conservation_check_p
 import sys
 import re
 
-try:
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as KratosMetis           
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
-except:
-    print("Running tests without MPI")
+data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
+if data_comm:
+    try:
+        import KratosMultiphysics.mpi as KratosMPI
+        import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+    except:
+        print("Running tests without MPI")
 
 def GetFilePath(fileName):
     return KratosMultiphysics.os.path.dirname(KratosMultiphysics.os.path.realpath(__file__)) + "/" + fileName

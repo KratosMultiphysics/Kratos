@@ -67,9 +67,6 @@ public:
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
 
-    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     ///@}
     ///@name Life Cycle

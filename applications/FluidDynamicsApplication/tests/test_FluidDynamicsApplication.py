@@ -28,7 +28,7 @@ from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
-import test_mass_conservation_check_process import TestMassConservationCheckProcess
+from test_mass_conservation_check_process import TestMassConservationCheckProcess
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.

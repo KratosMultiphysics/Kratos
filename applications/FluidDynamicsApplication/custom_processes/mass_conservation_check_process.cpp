@@ -128,34 +128,32 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
 
     // a small step is set to avoid numerical problems
     double time_step_for_convection = 1.0e-7;
-    const auto& comm = mrModelPart.GetCommunicator();
+    const auto& r_comm = mrModelPart.GetCommunicator();
 
     if ( mWaterVolumeError > 0.0 ){
         // case: water volume was lost by mistake
         mAddWater = true;
         double water_outflow_over_boundary = OrthogonalFlowIntoAir( 1.0 );
-        comm.GetDataCommunicator().Barrier();
-        if ( comm.GetDataCommunicator().SumAll( water_outflow_over_boundary ) ){
+        if ( r_comm.GetDataCommunicator().SumAll( water_outflow_over_boundary ) ){
             // checking if flow is sufficient (avoid division by 0)
             if ( water_outflow_over_boundary > 1.0e-7 ){
                 time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
             }
         } else {
-            KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
+            KRATOS_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
         }
     }
     else if ( mWaterVolumeError < 0.0 ){
         // case: water volume was gained by mistake
         mAddWater = false;
         double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
-        comm.GetDataCommunicator().Barrier();
-        if ( comm.GetDataCommunicator().SumAll( water_inflow_over_boundary ) ){
+        if ( r_comm.GetDataCommunicator().SumAll( water_inflow_over_boundary ) ){
             // checking if flow is sufficient (avoid division by 0)
             if ( water_inflow_over_boundary > 1.0e-7 ){
                 time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
             }
         } else {
-            KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
+            KRATOS_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
         }
     }
     else {
