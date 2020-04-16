@@ -100,7 +100,7 @@ template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
-double ComputeLocalMachSquaredDerivative(const array_1d<double, Dim>& rVelocity, const double& local_mach_number,const ProcessInfo& rCurrentProcessInfo);
+double ComputeLocalMachSquaredDerivative(const array_1d<double, Dim>& rVelocity, const double local_mach_number,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
