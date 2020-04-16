@@ -183,15 +183,48 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveVariables& rThisConstVars,
     const Vector& rStrainVector,
+    Vector& rPlasticStrainVector,
     double& rAcumulatedPlasticStrain,
     double& rThreshold,
-    bool& rIsPlastifying,
-    const bool SaveIntVars
+    bool& rIsPlastifying
     )
 {
+    auto &r_mat_props = rValues.GetMaterialProperties();
+
     // E^e = E - E^p
-    const Vector &r_elastic_strain = ZeroVector(6);
-    return r_elastic_strain;
+    const Vector &r_elastic_strain = rStrainVector - rPlasticStrainVector;
+    Vector volumetric_elastic_strain(VoigtSize), deviatoric_elastic_strain(VoigtSize);
+
+    // Now we perform the splitting E = Ed + Evol
+    ConstitutiveLawUtilities<VoigtSize>::CalculateVolumetricStrainVector(
+        r_elastic_strain, volumetric_elastic_strain);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDeviatoricStrainVector(
+        r_elastic_strain, volumetric_elastic_strain, deviatoric_elastic_strain);
+
+    const double young             = r_mat_props[YOUNG_MODULUS_FIBER];
+    const double poisson           = r_mat_props[POISSON_RATIO_FIBER];
+    const double bulk_modulus      = ConstitutiveLawUtilities<VoigtSize>::CalculateBulkModulus(young, poisson);
+    const double shear_modulus     = ConstitutiveLawUtilities<VoigtSize>::CalculateShearModulus(young, poisson);
+
+    const Vector &pressure_stress = bulk_modulus * volumetric_elastic_strain;
+    Vector r_deviator_stress      = 2.0 * shear_modulus * deviatoric_elastic_strain;
+
+    const double uniaxial_stress = std::sqrt(1.5 * MathUtils<double>::Dot(r_deviator_stress, r_deviator_stress));
+    this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
+    const double stress_excess = uniaxial_stress - rThreshold;
+
+    // Check if plasticity occurs
+    if (stress_excess > tolerance) { // We must compute plasticity
+        rIsPlastifying = true;
+        const double hardening_modulus  = r_mat_props.Has(HARDENING_MODULUS) ? r_mat_props[HARDENING_MODULUS] : 0.0;
+        const double plastic_multiplier = stress_excess / (3.0 * shear_modulus + hardening_modulus);
+        rAcumulatedPlasticStrain       += plastic_multiplier;
+        this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
+        rPlasticStrainVector           += plastic_multiplier * std::sqrt(1.5) * r_deviator_stress / MathUtils<double>::Norm(r_deviator_stress);
+        r_deviator_stress = (1.0 - 3.0 * plastic_multiplier * shear_modulus / uniaxial_stress) * r_deviator_stress;
+    }
+
+    return pressure_stress + r_deviator_stress; // stress integrated
 }
 
 /***********************************************************************************/

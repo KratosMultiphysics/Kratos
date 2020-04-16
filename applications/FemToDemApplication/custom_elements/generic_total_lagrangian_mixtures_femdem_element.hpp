@@ -69,7 +69,7 @@ public:
     typedef GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> BaseType;
 
     ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    typedef Node<3> NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -110,6 +110,9 @@ public:
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
+    /// The definition of the bounded vector type
+    typedef array_1d<double, VoigtSize> BoundedVectorType;
 
     /// Counted pointer of GenericTotalLagrangianMixturesFemDemElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GenericTotalLagrangianMixturesFemDemElement);
@@ -184,6 +187,17 @@ protected:
                                             const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables,
                                             Vector &rStrainVector, double &rDamageElement, bool &rIsDamaging, const double CharacteristicLength,
                                             const bool SaveIntVars);
+
+    /**
+     * this integrates the stress according to plasticity
+     */
+    Vector IntegrateStressPlasticity(ConstitutiveLaw::Parameters &rValues,
+                                     const ConstitutiveVariables &rThisConstVars,
+                                     const Vector &rStrainVector,
+                                     Vector& rPlasticStrainVector,
+                                     double &rAcumulatedPlasticStrain,
+                                     double &rThreshold,
+                                     bool &rIsPlastifying);
     /**
      * this method computes the plastic multiplier \dot{\lambda}
      * used for computing the plastic strain vector
@@ -199,9 +213,9 @@ protected:
                                  double &rThreshold,
                                  ConstitutiveLaw::Parameters &rValues);
 
-
-    double mAcumulatedPlasticStrain = 0.0;
-    double mPlasticityThreshold     = 0.0;
+    Vector mAcumulatedPlasticStrains;
+    Vector mPlasticityThresholds;
+    std::vector<Vector> mPlasticStrains;
 
     ///@name Static Member Variables
     ///@{
