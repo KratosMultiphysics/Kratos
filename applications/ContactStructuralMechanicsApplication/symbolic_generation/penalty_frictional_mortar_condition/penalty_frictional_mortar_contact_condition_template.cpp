@@ -313,7 +313,7 @@ int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariatio
     KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_SLIP)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    GeometryType& r_slave_geometry = this->GetParentGeometry();
+    const GeometryType& r_slave_geometry = this->GetParentGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
         const NodeType& r_node = r_slave_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_SLIP, r_node)

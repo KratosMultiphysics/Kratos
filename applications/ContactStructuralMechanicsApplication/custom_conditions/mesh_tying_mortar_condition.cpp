@@ -6462,7 +6462,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
+int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

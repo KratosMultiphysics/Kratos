@@ -689,7 +689,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
+int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -706,15 +706,15 @@ int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNode
     KRATOS_CHECK_VARIABLE_KEY(NORMAL)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( IndexType i = 0; i < TNumNodes; i++ ) {
-        const Node<3> &rnode = r_current_slave[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        const auto& r_node = r_current_slave[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
     }
 
     return ierr;
