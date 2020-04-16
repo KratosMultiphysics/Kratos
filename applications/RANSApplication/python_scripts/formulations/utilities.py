@@ -109,14 +109,6 @@ def CreateFormulationModelPart(formulation, element_name, condition_name):
                                     condition_name, "")
 
 
-def GetFormulationInfo(formulation, model_part):
-    info = "\n" + formulation.GetName()
-    info += "\n   Model part    : " + model_part.Name
-    if (str(formulation.GetMaxCouplingIterations() != "N/A"):
-        info += "\n   Max iterations: " + str(formulation.GetMaxCouplingIterations())
-    return info
-
-
 def GetConvergenceInfo(variable,
                        relative_error,
                        relative_tolerance,
