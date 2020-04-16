@@ -39,7 +39,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    BaseType::BaseType(NewId, pGeometry);
+    BaseType::BaseType(NewId, pGeometry, pProperties);
 }
 
 /***********************************************************************************/

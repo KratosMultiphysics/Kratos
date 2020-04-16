@@ -28,14 +28,23 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianMixturesFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-    // DO NOT ADD DOFS HERE!!!
-    if (this->mThresholds.size() != NumberOfEdges)
-        this->mThresholds.resize(NumberOfEdges);
-    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+    BaseType::BaseType(NewId, pGeometry);
 
-    if (this->mDamages.size() != NumberOfEdges)
-        this->mDamages.resize(NumberOfEdges);
-    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+    if (mAcumulatedPlasticStrains.size() != NumberOfEdges)
+        mAcumulatedPlasticStrains.resize(NumberOfEdges);
+    noalias(mAcumulatedPlasticStrains) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (mPlasticityThresholds.size() != NumberOfEdges)
+        mPlasticityThresholds.resize(NumberOfEdges);
+    noalias(mPlasticityThresholds) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+
+    if (mPlasticStrains.size() != NumberOfEdges)
+        mPlasticStrains.resize(NumberOfEdges);
+    for (IndexType i = 0; i < NumberOfEdges; ++i) {
+        mPlasticStrains[i].resize(VoigtSize);
+        noalias(mPlasticStrains[i]) = ZeroVector(VoigtSize);
+    }
+        
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -45,14 +54,22 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianMixturesFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    // DO NOT ADD DOFS HERE!!!
-    if (this->mThresholds.size() != NumberOfEdges)
-        this->mThresholds.resize(NumberOfEdges);
-    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+    BaseType::BaseType(NewId, pGeometry, pProperties);
 
-    if (this->mDamages.size() != NumberOfEdges)
-        this->mDamages.resize(NumberOfEdges);
-    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+    if (mAcumulatedPlasticStrains.size() != NumberOfEdges)
+        mAcumulatedPlasticStrains.resize(NumberOfEdges);
+    noalias(mAcumulatedPlasticStrains) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (mPlasticityThresholds.size() != NumberOfEdges)
+        mPlasticityThresholds.resize(NumberOfEdges);
+    noalias(mPlasticityThresholds) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+
+    if (mPlasticStrains.size() != NumberOfEdges)
+        mPlasticStrains.resize(NumberOfEdges);
+    for (IndexType i = 0; i < NumberOfEdges; ++i) {
+        mPlasticStrains[i].resize(VoigtSize);
+        noalias(mPlasticStrains[i]) = ZeroVector(VoigtSize);
+    }
 }
 
 /***********************************************************************************/
@@ -156,6 +173,25 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
     this->CalculateGreenLagrangeStrainVector(rStrainVector, rKinVariables.F);
     const Vector& r_stress_vector = rThisConstVars.StressVector;
     return (1.0 - rDamageElement)*r_stress_vector;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateStressPlasticity(
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveVariables& rThisConstVars,
+    const Vector& rStrainVector,
+    double& rAcumulatedPlasticStrain,
+    double& rThreshold,
+    bool& rIsPlastifying,
+    const bool SaveIntVars
+    )
+{
+    // E^e = E - E^p
+    const Vector &r_elastic_strain = ZeroVector(6);
+    return r_elastic_strain;
 }
 
 /***********************************************************************************/
