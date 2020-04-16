@@ -19,7 +19,6 @@ from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -169,7 +168,20 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
 
     def Initialize(self):
-        CalculateNormalsOnConditions(self.GetBaseModelPart())
+        model_part = self.GetBaseModelPart()
+        CalculateNormalsOnConditions(model_part)
+
+        process_info = model_part.ProcessInfo
+        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
+        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
+        wall_fuction_update_process = KratosRANS.RansWallFunctionUpdateProcess(
+                                                            model_part.GetModel(),
+                                                            wall_model_part_name,
+                                                            kappa,
+                                                            beta,
+                                                            self.echo_level)
+        self.AddProcess(wall_fuction_update_process)
 
         self.solver_settings = CreateFractionalStepSolverSettings(
                                             self.IsPeriodic(),
@@ -207,6 +219,9 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        super(FractionalStepVelocityPressureFormulation, self).Initialize()
+        self.solver.Initialize()
+
         Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
@@ -214,6 +229,7 @@ class FractionalStepVelocityPressureFormulation(Formulation):
 
     def Finalize(self):
         self.solver.Clear()
+        super(FractionalStepVelocityPressureFormulation, self).Finalize()
 
     def IsConverged(self):
         if (hasattr(self, "is_converged")):
@@ -221,35 +237,28 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         return False
 
     def SolveCouplingStep(self):
-        self.solver.Predict()
-        self.is_converged = self.solver.SolveSolutionStep()
-
-    def ExecuteAfterCouplingSolveStep(self):
-        settings = Kratos.Parameters("{" + """
-            "model_part_name" : "{0:s}",
-            "echo_level"      : {1:1d},
-            "von_karman"      : {2:f},
-            "beta"            : {3:f}
-        """.format(self.fractional_step_model_part.Name,
-                   self.echo_level,
-                   self.fractional_step_model_part.ProcessInfo[KratosRANS.WALL_VON_KARMAN],
-                   self.fractional_step_model_part.ProcessInfo[KratosRANS.WALL_SMOOTHNESS_BETA]) + "}")
-        KratosRANS.RansWallFunctionUpdateProcess(self.fractional_step_model_part.GetModel(), settings).Execute()
+        max_iterations = self.GetMaxCouplingIterations()
+        for iteration in range(max_iterations):
+            self.solver.Predict()
+            self.is_converged = self.solver.SolveSolutionStep()
+            self.ExecuteAfterCouplingSolveStep()
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
 
     def InitializeSolutionStep(self):
+        super(FractionalStepVelocityPressureFormulation, self).InitializeSolutionStep()
         self.solver.InitializeSolutionStep()
 
     def FinializeSolutionStep(self):
         self.solver.FinializeSolutionStep()
+        super(FractionalStepVelocityPressureFormulation, self).FinializeSolutionStep()
 
     def Check(self):
+        super(FractionalStepVelocityPressureFormulation, self).Check()
         self.solver.Check()
 
     def Clear(self):
         self.solver.Clear()
-
-    def GetInfo(self):
-        return GetFormulationInfo(self, self.fractional_step_model_part)
+        super(FractionalStepVelocityPressureFormulation, self).Clear()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -286,3 +295,6 @@ class FractionalStepVelocityPressureFormulation(Formulation):
 
     def GetStrategy(self):
         return self.solver
+
+    def GetModelPart(self):
+        return self.fractional_step_model_part

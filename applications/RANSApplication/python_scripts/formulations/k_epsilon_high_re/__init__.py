@@ -24,7 +24,8 @@ class KEpsilonHighReFormulation(Formulation):
         {
             "formulation_name": "k_epsilon_high_re",
             "turbulent_kinetic_energy_solver_settings": {},
-            "turbulent_energy_dissipation_rate_solver_settings": {}
+            "turbulent_energy_dissipation_rate_solver_settings": {},
+            "echo_level": 0
         }''')
         self.settings.ValidateAndAssignDefaults(default_settings)
 
@@ -33,6 +34,8 @@ class KEpsilonHighReFormulation(Formulation):
 
         self.epsilon_formulation = KEpsilonHighReEpsilonFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"])
         self.AddFormulation(self.epsilon_formulation)
+
+        self.echo_level = self.settings["echo_level"].GetInt()
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
@@ -50,6 +53,11 @@ class KEpsilonHighReFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
+
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
 
     def AddDofs(self):
@@ -63,6 +71,35 @@ class KEpsilonHighReFormulation(Formulation):
             return 1
         else:
             return 2
+
+    def Initialize(self):
+        model_part = self.GetBaseModelPart()
+        model = model_part.GetModel()
+
+        process_info = model_part.ProcessInfo
+        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
+        c_mu = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
+        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
+        beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
+
+        nut_process = KratosRANS.RansNutKEpsilonHighReCalculationProcess(
+                                            model,
+                                            self.GetBaseModelPart().Name,
+                                            c_mu,
+                                            1e-12,
+                                            self.echo_level)
+        self.AddProcess(nut_process)
+
+        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionProcess(
+                                            model,
+                                            wall_model_part_name,
+                                            c_mu,
+                                            kappa,
+                                            beta,
+                                            1e-12,
+                                            self.echo_level)
+        self.AddProcess(nut_wall_process)
+        super(KEpsilonHighReFormulation, self).Initialize()
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{

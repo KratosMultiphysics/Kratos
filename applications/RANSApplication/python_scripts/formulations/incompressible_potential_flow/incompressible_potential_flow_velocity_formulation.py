@@ -21,7 +21,6 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateIncremantalUpdateScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 class IncompressiblePotentialFlowVelocityFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -76,14 +75,14 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
             self.velocity_strategy.InitializeSolutionStep()
 
     def IsConverged(self):
-        if (hasattr(self, "is_solved")):
-            return self.is_solved
+        if (hasattr(self, "is_converged")):
+            return self.is_converged
         return False
 
     def SolveCouplingStep(self):
-        self.is_solved = True
         self.velocity_strategy.Predict()
-        self.velocity_strategy.SolveSolutionStep()
+        self.is_converged = self.velocity_strategy.SolveSolutionStep()
+        self.ExecuteAfterCouplingSolveStep()
 
     def ExecuteAfterCouplingSolveStep(self):
         RansVariableUtilities.CopyFlaggedVariableToNonHistorical(
@@ -114,8 +113,8 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
     def Clear(self):
         self.velocity_strategy.Clear()
 
-    def GetInfo(self):
-        return GetFormulationInfo(self, self.velocity_model_part)
-
     def GetMaxCouplingIterations(self):
         return "N/A"
+
+    def GetModelPart(self):
+        return self.velocity_model_part

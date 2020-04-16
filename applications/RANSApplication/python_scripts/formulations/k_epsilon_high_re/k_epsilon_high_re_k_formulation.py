@@ -16,9 +16,8 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateN
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgeraicFluxCorrectedTransportScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 class KEpsilonHighReKFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -61,7 +60,7 @@ class KEpsilonHighReKFormulation(Formulation):
                                 self.settings["absolute_tolerance"].GetDouble())
 
         if (self.is_steady_simulation):
-            scheme = CreateSteadyScalarScheme(self.settings["relaxation_factor"].GetDouble())
+            scheme = CreateSteadyAlgeraicFluxCorrectedTransportScheme(self.settings["relaxation_factor"].GetDouble())
         else:
             scheme = CreateBossakScalarScheme(
                 self.k_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
@@ -89,9 +88,13 @@ class KEpsilonHighReKFormulation(Formulation):
         self.solver.InitializeSolutionStep()
 
     def IsConverged(self):
-        return self.GetStrategy().IsConverged()
+        if (hasattr(self, "is_solved_once")):
+            return self.GetStrategy().IsConverged()
+        else:
+            return False
 
     def SolveCouplingStep(self):
+        self.is_solved_once = True
         self.solver.Predict()
         self.solver.SolveSolutionStep()
 
@@ -103,9 +106,6 @@ class KEpsilonHighReKFormulation(Formulation):
 
     def Clear(self):
         self.solver.Clear()
-
-    def GetInfo(self):
-        return GetFormulationInfo(self, self.k_model_part)
 
     def GetStrategy(self):
         return self.solver
@@ -122,3 +122,8 @@ class KEpsilonHighReKFormulation(Formulation):
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
+    def GetMaxCouplingIterations(self):
+        return "N/A"
+
+    def GetModelPart(self):
+        return self.k_model_part

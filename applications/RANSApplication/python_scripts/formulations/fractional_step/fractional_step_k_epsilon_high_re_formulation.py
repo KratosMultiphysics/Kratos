@@ -69,7 +69,7 @@ class FractionalStepKEpsilonHighReFormulation(Formulation):
         self.AddFormulation(self.k_epsilon_formulation)
 
     def IsConverged(self):
-        self.is_converged = super(FractionalStepKEpsilonHighReFormulation, self).IsConverged()
+        self.is_converged = self.k_epsilon_formulation.IsConverged()
 
         if (self.is_steady_simulation):
             settings = self.settings["steady_convergence_settings"]

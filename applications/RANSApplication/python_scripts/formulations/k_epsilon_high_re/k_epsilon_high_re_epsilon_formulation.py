@@ -10,15 +10,15 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 
 # import utilities
+from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgeraicFluxCorrectedTransportScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 class KEpsilonHighReEpsilonFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -46,6 +46,9 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
                                 "Created formulation model part.")
 
     def Initialize(self):
+        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, self.epsilon_model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.FRICTION_VELOCITY, self.epsilon_model_part.Conditions)
+
         solver_settings = self.settings
         linear_solver = CreateLinearSolver(
             solver_settings["linear_solver_settings"])
@@ -56,7 +59,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
                                 self.settings["absolute_tolerance"].GetDouble())
 
         if (self.is_steady_simulation):
-            scheme = CreateSteadyScalarScheme(self.settings["relaxation_factor"].GetDouble())
+            scheme = CreateSteadyAlgeraicFluxCorrectedTransportScheme(self.settings["relaxation_factor"].GetDouble())
         else:
             scheme = CreateBossakScalarScheme(
                 self.epsilon_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
@@ -77,67 +80,31 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         convergence_criteria.SetEchoLevel(
             solver_settings["echo_level"].GetInt() - 1)
 
-        process_info = self.epsilon_model_part.ProcessInfo
-
-        settings = Kratos.Parameters("{" + """
-            "model_part_name" : "{0:s}",
-            "echo_level"      : {1:d},
-            "c_mu"            : {2:f},
-            "min_value"       : 1e-15
-        """.format(self.epsilon_model_part.Name, self.echo_level-1, process_info[KratosRANS.TURBULENCE_RANS_C_MU]) + "}")
-        self.nut_process = KratosRANS.RansNutKEpsilonHighReCalculationProcess(self.epsilon_model_part.GetModel(), settings)
-
-        settings = Kratos.Parameters("{" + """
-            "model_part_name" : "{0:s}",
-            "echo_level"      : {1:d},
-            "c_mu"            : {2:f},
-            "von_karman"      : {3:f},
-            "beta"            : {4:f},
-            "min_value"       : 1e-15
-        """.format(self.epsilon_model_part.Name,
-                    self.echo_level-1,
-                    process_info[KratosRANS.TURBULENCE_RANS_C_MU],
-                    process_info[KratosRANS.WALL_VON_KARMAN],
-                    process_info[KratosRANS.WALL_SMOOTHNESS_BETA]) + "}")
-        self.nut_wall_process = KratosRANS.RansNutYPlusWallFunctionProcess(self.epsilon_model_part.GetModel(), settings)
-
-        self.nut_process.ExecuteInitialize()
-        self.nut_wall_process.ExecuteInitialize()
-
         self.solver.Initialize()
         Kratos.Logger.PrintInfo(self.GetName(), "Initialized formulation")
 
     def InitializeSolutionStep(self):
-        self.nut_process.ExecuteInitializeSolutionStep()
-        self.nut_wall_process.ExecuteInitializeSolutionStep()
         self.solver.InitializeSolutionStep()
 
     def IsConverged(self):
-        return self.GetStrategy().IsConverged()
+        if (hasattr(self, "is_solved_once")):
+            return self.GetStrategy().IsConverged()
+        else:
+            return False
 
     def SolveCouplingStep(self):
+        self.is_solved_once = True
         self.solver.Predict()
         self.solver.SolveSolutionStep()
 
-    def ExecuteAfterCouplingSolveStep(self):
-        self.nut_process.Execute()
-        self.nut_wall_process.Execute()
-
     def FinializeSolutionStep(self):
         self.solver.FinializeSolutionStep()
-        self.nut_process.ExecuteFinializeSolutionStep()
-        self.nut_wall_process.ExecuteFinializeSolutionStep()
 
     def Check(self):
-        self.nut_process.Check()
-        self.nut_wall_process.Check()
         self.solver.Check()
 
     def Clear(self):
         self.solver.Clear()
-
-    def GetInfo(self):
-        return GetFormulationInfo(self, self.epsilon_model_part)
 
     def GetStrategy(self):
         return self.solver
@@ -154,3 +121,8 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
+    def GetMaxCouplingIterations(self):
+        return "N/A"
+
+    def GetModelPart(self):
+        return self.epsilon_model_part

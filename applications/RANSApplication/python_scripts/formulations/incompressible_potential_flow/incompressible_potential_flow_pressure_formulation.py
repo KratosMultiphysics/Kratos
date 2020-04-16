@@ -19,7 +19,6 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateIncremantalUpdateScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetFormulationInfo
 
 class IncompressiblePotentialFlowPressureFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -78,14 +77,15 @@ class IncompressiblePotentialFlowPressureFormulation(Formulation):
             self.pressure_strategy.InitializeSolutionStep()
 
     def IsConverged(self):
-        if (hasattr(self, "is_solved")):
-            return self.is_solved
+        if (hasattr(self, "is_converged")):
+            return self.is_converged
         return False
 
     def SolveCouplingStep(self):
-        self.is_solved = True
+        self.ExecuteBeforeCouplingSolveStep()
         self.pressure_strategy.Predict()
-        self.pressure_strategy.SolveSolutionStep()
+        self.is_converged = self.pressure_strategy.SolveSolutionStep()
+        self.ExecuteAfterCouplingSolveStep()
 
     def ExecuteBeforeCouplingSolveStep(self):
         RansVariableUtilities.CalculateMagnitudeSquareFor3DVariable(
@@ -107,8 +107,8 @@ class IncompressiblePotentialFlowPressureFormulation(Formulation):
     def Clear(self):
         self.pressure_strategy.Clear()
 
-    def GetInfo(self):
-        return GetFormulationInfo(self, self.pressure_model_part)
-
     def GetMaxCouplingIterations(self):
         return "N/A"
+
+    def GetModelPart(self):
+        return self.pressure_model_part
