@@ -86,6 +86,93 @@ namespace { // helpers namespace
 
     template<>double SettingsHelper<double>::GetE2() {return mParam["e_max"].GetDouble();}
     template<> double SettingsHelper<std::complex<double>>::GetE2() {return mParam["e_r"].GetDouble();}
+
+    template<typename TScalar>
+    struct SortingHelper
+    {
+        SortingHelper(std::string Order) : mOrder(Order) {};
+        // void Check();
+        template<typename MatrixType, typename VectorType>
+        void SortEigenvalues(VectorType&, MatrixType&);
+        private:
+            std::string mOrder;
+    };
+
+    template<> template<typename MatrixType, typename VectorType>
+    void SortingHelper<double>::SortEigenvalues(VectorType &rEigenvalues, MatrixType &rEigenvectors)
+    {
+        KRATOS_WARNING_IF("FeastEigensystemSolver", mOrder == "si") << "Attempting to sort by imaginary value. Falling back on \"sr\"" << std::endl;
+        KRATOS_WARNING_IF("FeastEigensystemSolver", mOrder == "li") << "Attempting to sort by imaginary value. Falling back on \"lr\"" << std::endl;
+
+        std::vector<size_t> idx(rEigenvalues.size());
+        std::iota(idx.begin(), idx.end(), 0);
+
+        if( mOrder == "sr" || mOrder == "si" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return rEigenvalues[i1] < rEigenvalues[i2];});
+        } else if( mOrder == "sm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) < std::abs(rEigenvalues[i2]);});
+        } else if( mOrder == "lr" || mOrder == "li" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return rEigenvalues[i1] > rEigenvalues[i2];});
+        } else if( mOrder == "lm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) > std::abs(rEigenvalues[i2]);});
+        } else {
+            KRATOS_ERROR << "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
+        }
+
+        VectorType tmp_eigenvalues(rEigenvalues.size());
+        MatrixType tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
+
+        for( size_t i=0; i<rEigenvalues.size(); ++i ) {
+            tmp_eigenvalues[i] = rEigenvalues[idx[i]];
+            column(tmp_eigenvectors, i).swap(column(rEigenvectors, idx[i]));
+        }
+        rEigenvalues.swap(tmp_eigenvalues);
+        rEigenvectors.swap(tmp_eigenvectors);
+    }
+
+    template<> template<typename MatrixType, typename VectorType>
+    void SortingHelper<std::complex<double>>::SortEigenvalues(VectorType &rEigenvalues, MatrixType &rEigenvectors)
+    {
+        std::vector<size_t> idx(rEigenvalues.size());
+        std::iota(idx.begin(), idx.end(), 0);
+
+        // const std::string t = mParam["sort_order"].GetString();
+        if( mOrder == "sr" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::real(rEigenvalues[i1]) < std::real(rEigenvalues[i2]);});
+        } else if( mOrder == "sm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) < std::abs(rEigenvalues[i2]);});
+        } else if( mOrder == "si") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::imag(rEigenvalues[i1]) < std::imag(rEigenvalues[i2]);});
+        } else if( mOrder == "lr" ) {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::real(rEigenvalues[i1]) > std::real(rEigenvalues[i2]);});
+        } else if( mOrder == "lm") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::abs(rEigenvalues[i1]) > std::abs(rEigenvalues[i2]);});
+        } else if( mOrder == "li") {
+            std::stable_sort(idx.begin(), idx.end(),
+                [&rEigenvalues](size_t i1, size_t i2) {return std::imag(rEigenvalues[i1]) > std::imag(rEigenvalues[i2]);});
+        } else {
+            KRATOS_ERROR << "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
+        }
+
+        VectorType tmp_eigenvalues(rEigenvalues.size());
+        MatrixType tmp_eigenvectors(rEigenvectors.size1(), rEigenvectors.size2());
+
+        for( size_t i=0; i<rEigenvalues.size(); ++i ) {
+            tmp_eigenvalues[i] = rEigenvalues[idx[i]];
+            column(tmp_eigenvectors, i).swap(column(rEigenvectors, idx[i]));
+        }
+        rEigenvalues.swap(tmp_eigenvalues);
+        rEigenvectors.swap(tmp_eigenvectors);
+    }
 }
 
 template<
@@ -129,6 +216,8 @@ class FEASTEigensystemSolver
             "number_of_eigenvalues" : 0,
             "search_lowest_eigenvalues" : false,
             "search_highest_eigenvalues" : false,
+            "sort_eigenvalues" : false,
+            "sort_order" : "sr",
             "subspace_size" : 0,
             "max_iteration" : 20,
             "tolerance" : 1e-12,
@@ -157,6 +246,10 @@ class FEASTEigensystemSolver
         KRATOS_INFO_IF( "FEASTEigensystemSolver",
             mParam["number_of_eigenvalues"].GetInt() > 0  && mParam["subspace_size"].GetInt() > 0 ) <<
             "Manually defined subspace size will be overwritten to match the defined number of eigenvalues" << std::endl;
+
+        const std::string s = mParam["sort_order"].GetString();
+        KRATOS_ERROR_IF( !(s=="sr" || s=="sm" || s=="si" || s=="lr" || s=="lm" || s=="li") ) <<
+            "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
 
         SettingsHelper<TScalarOut>(mParam).CheckParameters();
     }
@@ -259,6 +352,11 @@ class FEASTEigensystemSolver
         // truncate non-converged results
         tmp_eigenvalues.resize(M, true);
         tmp_eigenvectors.resize(system_size, M, true);
+
+        // sort if required
+        if( mParam["sort_eigenvalues"].GetBool() ) {
+            SortingHelper<TScalarOut>(mParam["sort_order"].GetString()).SortEigenvalues(tmp_eigenvalues, tmp_eigenvectors);
+        }
 
         // copy eigenvalues to result vector
         rEigenvalues.swap(tmp_eigenvalues);
