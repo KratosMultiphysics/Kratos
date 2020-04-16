@@ -13,6 +13,8 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 # Shell tests
 from structural_mechanics_test_factory_mpi import ShellT3AndQ4LinearStaticStructPinchedCylinderTests as TShellT3AndQ4LinearStaticStructPinchedCylinderTests
 
+from structural_mechanics_test_factory_mpi import RigidFaceTrilinosTestRigidMovementProcess as RigidFaceTrilinosTestRigidMovementProcess
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -34,6 +36,7 @@ def AssembleTestSuites():
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
     nightlyMPISuite.addTest(TShellT3AndQ4LinearStaticStructPinchedCylinderTests('test_execution'))
+    nightlyMPISuite.addTest(RigidFaceTrilinosTestRigidMovementProcess('test_execution'))
     nightlyMPISuite.addTests(smallMPISuite)
 
     ### Full MPI set ###########################################################

@@ -27,3 +27,6 @@ class StructuralMechanicsTestFactoryMPI(StructuralMechanicsTestFactory):
 
 class ShellT3AndQ4LinearStaticStructPinchedCylinderTests(StructuralMechanicsTestFactoryMPI):
     file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder"
+
+class RigidFaceTrilinosTestRigidMovementProcess(StructuralMechanicsTestFactoryMPI):
+    file_name = "rigid_test/mpi_test/trilinos_constraints_test"
