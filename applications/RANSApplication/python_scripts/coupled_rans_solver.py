@@ -98,7 +98,13 @@ class CoupledRANSSolver(PythonSolver):
         self.is_periodic = self.formulation.IsPeriodic()
 
         self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
+        scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
+        if (scheme_type == "steady"):
+            self.is_steady = True
+        else:
+            self.is_steady = False
 
+        self.is_converged = False
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
         self.move_mesh = self.settings["move_mesh"].GetBool()
 
@@ -207,13 +213,13 @@ class CoupledRANSSolver(PythonSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             self.formulation.SolveCouplingStep()
-            is_converged = self.formulation.IsConverged()
+            self.is_converged = self.formulation.IsConverged()
 
-            if not is_converged:
+            if not self.is_converged and not self.IsSteadySimulation():
                 msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[Kratos.TIME]) + "\n"
                 Kratos.Logger.PrintWarning(self.__class__.__name__, msg)
-            return is_converged
+            return self.is_converged
         return True
 
     def FinalizeSolutionStep(self):
@@ -225,6 +231,12 @@ class CoupledRANSSolver(PythonSolver):
 
     def Clear(self):
         self.formulation.Clear()
+
+    def IsSteadySimulation(self):
+        return self.is_steady
+
+    def IsConverged(self):
+        return self.is_steady and self.is_converged
 
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(
