@@ -818,13 +818,13 @@ protected:
      * @brief This method returns the model part
      * @return The model part of the problem
      */
-    ModelPart& GetModelPart() const;
+    const ModelPart& GetModelPart() const;
 
     /**
      * @brief This method returns the settings
      * @return The settings of the problem
      */
-    Parameters GetSettings() const;
+    const Parameters GetSettings() const;
 
     /**
      * @brief This method returns the Nodes database. If not initialized it will try initialize again

@@ -869,7 +869,7 @@ const Parameters FromJSONCheckResultProcess::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart& FromJSONCheckResultProcess::GetModelPart() const
+const ModelPart& FromJSONCheckResultProcess::GetModelPart() const
 {
     return this->mrModelPart;
 }
@@ -877,7 +877,7 @@ ModelPart& FromJSONCheckResultProcess::GetModelPart() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters FromJSONCheckResultProcess::GetSettings() const
+const Parameters FromJSONCheckResultProcess::GetSettings() const
 {
     return this->mThisParameters;
 }
