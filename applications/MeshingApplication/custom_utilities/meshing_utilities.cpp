@@ -22,27 +22,6 @@ namespace Kratos
 {
 namespace MeshingUtilities
 {
-void KRATOS_API(MESHING_APPLICATION) RecursiveEnsureModelPartOwnsProperties(
-    ModelPart& rModelPart,
-    const bool RemovePreviousProperties
-    )
-{
-    AuxiliarModelPartUtilities(rModelPart).RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void KRATOS_API(MESHING_APPLICATION) EnsureModelPartOwnsProperties(
-    ModelPart& rModelPart,
-    const bool RemovePreviousProperties
-    )
-{
-    AuxiliarModelPartUtilities(rModelPart).EnsureModelPartOwnsProperties(RemovePreviousProperties);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void BlockThresholdSizeElements(
     ModelPart& rModelPart,

@@ -616,7 +616,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
             Orientation = Quaternion<double>(r_sub_model_part_with_parameters[ORIENTATION]);
 
-            if (Orientation.w() == 0.0 && Orientation.x() == 0.0 && Orientation.y() == 0.0 && Orientation.z() == 0.0) Orientation = Quaternion<double>::Identity();
+            if (Orientation.W() == 0.0 && Orientation.X() == 0.0 && Orientation.Y() == 0.0 && Orientation.Z() == 0.0) Orientation = Quaternion<double>::Identity();
         }
 
         p_cluster->RigidBodyElement3D::SetOrientation(Orientation);

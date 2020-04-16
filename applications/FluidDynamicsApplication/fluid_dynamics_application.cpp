@@ -121,8 +121,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
 {}
 
 void KratosFluidDynamicsApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosFluidDynamicsApplication..." << std::endl;
 
     // Register Variables (defined in fluid_dynamics_application_variables.h)

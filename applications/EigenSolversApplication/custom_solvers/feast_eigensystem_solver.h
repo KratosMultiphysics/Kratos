@@ -26,8 +26,73 @@ extern "C" {
     #include <feast_sparse.h>
 }
 
-namespace Kratos
-{
+namespace Kratos {
+
+namespace { // helpers namespace
+    template<typename TScalar>
+    struct SettingsHelper
+    {
+        SettingsHelper(Parameters SolverParams) : mParam(SolverParams) {};
+
+        Parameters GetDefaultParameters();
+        void CheckParameters();
+        TScalar GetE1();
+        double GetE2();
+        private:
+            Parameters mParam;
+    };
+
+    template<>
+    Parameters SettingsHelper<double>::GetDefaultParameters()
+    {
+        return Parameters(R"({
+
+        })");
+    }
+
+    template<>
+    Parameters SettingsHelper<std::complex<double>>::GetDefaultParameters()
+    {
+        return Parameters(R"({
+
+        })");
+    }
+
+    template<>
+    void SettingsHelper<double>::CheckParameters()
+    {
+        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
+
+        KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
+            "Invalid eigenvalue limits provided" << std::endl;
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
+            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
+    }
+
+    template<>
+    void SettingsHelper<std::complex<double>>::CheckParameters()
+    {
+        KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
+            "Invalid search radius provided" << std::endl;
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
+            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
+
+        KRATOS_INFO_IF( "FEASTEigensystemSolver",
+            mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
+            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
+    }
+
+    template<> double SettingsHelper<double>::GetE1() {return mParam["e_min"].GetDouble();}
+    template<> std::complex<double> SettingsHelper<std::complex<double>>::GetE1() {return std::complex<double>(mParam["e_mid_re"].GetDouble(), mParam["e_mid_im"].GetDouble());}
+
+    template<>double SettingsHelper<double>::GetE2() {return mParam["e_max"].GetDouble();}
+    template<> double SettingsHelper<std::complex<double>>::GetE2() {return mParam["e_r"].GetDouble();}
+}
 
 template<
     bool TSymmetric,
@@ -65,7 +130,7 @@ class FEASTEigensystemSolver
     {
         Parameters default_params(R"(
         {
-            "solver_type" : "eigen_feast",
+            "solver_type" : "feast",
             "symmetric" : true,
             "keep_real_solution" : false,
             "sort_eigenvalues" : true,
@@ -83,6 +148,8 @@ class FEASTEigensystemSolver
             "tolerance" : 1e-12,
             "echo_level" : 0
         })");
+
+        default_params.AddMissingParameters(SettingsHelper<TScalarOut>(mParam).GetDefaultParameters());
 
         mParam.ValidateAndAssignDefaults(default_params);
 
@@ -110,7 +177,7 @@ class FEASTEigensystemSolver
         KRATOS_ERROR_IF( !(s=="sr" || s=="sm" || s=="si" || s=="lr" || s=="lm" || s=="li") ) <<
             "Invalid sort type. Allowed are sr, sm, si, lr, lm, li" << std::endl;
 
-        CheckParameters<TScalarOut>();
+        SettingsHelper<TScalarOut>(mParam).CheckParameters();
     }
 
     ~FEASTEigensystemSolver() override = default;
@@ -171,33 +238,25 @@ class FEASTEigensystemSolver
 
         // provide matrices in array form. fortran indices start with 1, must be int
         double* A = reinterpret_cast<double*>(rK.value_data().begin());
+
         std::vector<int> IA(N+1);
-        #pragma omp parallel for
-        for( int i=0; i<N+1; ++i ) {
-            IA[i] = static_cast<int>(rK.index1_data()[i]) + 1;
-        }
+        CreateFortranIndices(rK.index1_data(), IA);
+
         std::vector<int> JA(IA[N]-1);
-        #pragma omp parallel for
-        for( int i=0; i<IA[N]-1; ++i ) {
-            JA[i] = static_cast<int>(rK.index2_data()[i]) + 1;
-        }
+        CreateFortranIndices(rK.index2_data(), JA);
 
         double* B = reinterpret_cast<double*>(rM.value_data().begin());
+
         std::vector<int> IB(N+1);
-        #pragma omp parallel for
-        for( int i=0; i<N+1; ++i ) {
-            IB[i] = static_cast<int>(rM.index1_data()[i]) + 1;
-        }
+        CreateFortranIndices(rM.index1_data(), IB);
+
         std::vector<int> JB(IB[N]-1);
-        #pragma omp parallel for
-        for( int i=0; i<IB[N]-1; ++i ) {
-            JB[i] = static_cast<int>(rM.index2_data()[i]) + 1;
-        }
+        CreateFortranIndices(rM.index2_data(), JB);
 
         double epsout;
         int loop;
-        TScalarOut E1 = GetE1<TScalarOut>();
-        double E2 = GetE2<TScalarOut>();
+        TScalarOut E1 = SettingsHelper<TScalarOut>(mParam).GetE1();
+        double E2 = SettingsHelper<TScalarOut>(mParam).GetE2();
         double* Emin = reinterpret_cast<double*>(&E1);
         double* Emax = reinterpret_cast<double*>(&E2);
         int M0 = static_cast<int>(subspace_size);
@@ -288,58 +347,13 @@ class FEASTEigensystemSolver
         }
     }
 
-    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
-    double GetE1()
+    template<typename IndexDataType>
+    void CreateFortranIndices(const IndexDataType& rIndexData, std::vector<int>& rFortranIndices)
     {
-        return mParam["e_min"].GetDouble();
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
-    std::complex<double> GetE1()
-    {
-        return std::complex<double>(mParam["e_mid_re"].GetDouble(), mParam["e_mid_im"].GetDouble());
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
-    double GetE2()
-    {
-        return mParam["e_max"].GetDouble();
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
-    double GetE2()
-    {
-        return mParam["e_r"].GetDouble();
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<double, TScalar>::value, int>::type = 0>
-    void CheckParameters()
-    {
-        KRATOS_ERROR_IF( mParam["search_lowest_eigenvalues"].GetBool() && mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Cannot search for highest and lowest eigenvalues at the same time" << std::endl;
-
-        KRATOS_ERROR_IF( mParam["e_max"].GetDouble() <= mParam["e_min"].GetDouble() ) <<
-            "Invalid eigenvalue limits provided" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["e_mid_re"].GetDouble() != 0.0 || mParam["e_mid_im"].GetDouble() != 0.0 || mParam["e_r"].GetDouble() != 0.0 ) <<
-            "Manually defined e_mid_re, e_mid_im, e_r are not used for real symmetric matrices" << std::endl;
-    }
-
-    template<typename TScalar, typename std::enable_if<std::is_same<std::complex<double>, TScalar>::value, int>::type = 0>
-    void CheckParameters()
-    {
-        KRATOS_ERROR_IF( mParam["e_r"].GetDouble() <= 0.0 ) <<
-            "Invalid search radius provided" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["e_min"].GetDouble() != 0.0 || mParam["e_max"].GetDouble() != 0.0 ) <<
-            "Manually defined e_min, e_max are not used for complex symmetric matrices" << std::endl;
-
-        KRATOS_INFO_IF( "FEASTEigensystemSolver",
-            mParam["search_lowest_eigenvalues"].GetBool() || mParam["search_highest_eigenvalues"].GetBool() ) <<
-            "Search for extremal eigenvalues is only available for Hermitian problems" << std::endl;
-
+        #pragma omp parallel for
+        for( int i=0; i<static_cast<int>(rFortranIndices.size()); ++i ) {
+            rFortranIndices[i] = static_cast<int>(rIndexData[i]) + 1;
+        }
     }
 
 }; // class FEASTEigensystemSolver

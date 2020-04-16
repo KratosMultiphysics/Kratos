@@ -134,7 +134,7 @@ Condition::Pointer MeshCondition::Clone (
 void MeshCondition::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -146,7 +146,7 @@ void MeshCondition::AddExplicitContribution(
 void MeshCondition::AddExplicitContribution(
     const VectorType& rRHS,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double,3> >& rDestinationVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -158,7 +158,7 @@ void MeshCondition::AddExplicitContribution(
 void MeshCondition::AddExplicitContribution(
     const MatrixType& rLHSMatrix,
     const Variable<MatrixType>& rLHSVariable,
-    Variable<Matrix>& rDestinationVariable,
+    const Variable<Matrix>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {

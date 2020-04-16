@@ -360,10 +360,10 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
       QuaternionType iQd = Q * mQN[i] * mQ0.conjugate();
       iQd.normalize();
       RealType iN = N[i];
-      qx += iN * iQd.x();
-      qy += iN * iQd.y();
-      qz += iN * iQd.z();
-      qw += iN * iQd.w();
+      qx += iN * iQd.X();
+      qy += iN * iQd.Y();
+      qz += iN * iQd.Z();
+      qw += iN * iQd.W();
     }
 
     MatrixType R(3, 3);
