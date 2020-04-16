@@ -16,11 +16,16 @@ current_model = KM.Model()
 model_part_origin = current_model.CreateModelPart("origin")
 model_part_destination = current_model.CreateModelPart("destination")
 
-model_part_coupling = current_model.CreateModelPart("coupling")
-model_part_coupling_quadrature_points = current_model.CreateModelPart("coupling_quadrature_points")
-
 ReadModelPart(model_part_origin, "coupled_cantilever/domainA")
 ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
+
+# Potential change - add coupling and coupling quad parts to origin modelpart. Then we can submit everything when we make the mapper
+model_part_origin.CreateSubModelPart("coupling")
+model_part_origin.CreateSubModelPart("coupling_quadrature_points")
+model_part_coupling = model_part_origin.GetSubModelPart("coupling")
+model_part_coupling_quadrature_points = model_part_origin.GetSubModelPart("coupling_quadrature_points")
+#model_part_coupling = current_model.CreateModelPart("coupling")
+#model_part_coupling_quadrature_points = current_model.CreateModelPart("coupling_quadrature_points")
 
 # Create submodelparts
 model_part_origin.CreateSubModelPart("interface")
@@ -47,21 +52,17 @@ destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 101, [1,3], des
 destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 102, [3,6], destProps)
 destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 103, [6,10], destProps)
 
-
 # TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
 KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
 KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
-
-# TODO remove (for information only)
-print(model_part_coupling)
-print(model_part_coupling_quadrature_points)
+# TODO, the above problem need args changed to just origin_model_part and destination_model_part
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
     "echo_level" : 0
 }""")
 
-mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling_quadrature_points, model_part_destination, mapper_params)
+mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
 
 for node in model_part_origin.Nodes:
     node.SetSolutionStepValue(KM.DISPLACEMENT_X, 1.0, model_part_origin.ProcessInfo)

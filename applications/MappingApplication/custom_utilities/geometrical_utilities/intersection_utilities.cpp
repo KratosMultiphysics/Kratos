@@ -51,6 +51,8 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     ModelPart& rModelPartResult,
     double Tolerance)
 {
+    const ModelPart& rParentModelPart = *(rModelPartCoupling.GetParentModelPart());
+
     // Only perform the test for 1D lines in 2D space. Maybe this is too strict...
     KRATOS_ERROR_IF(rModelPartCoupling.GeometriesBegin()->LocalSpaceDimension() != 1 &&
         rModelPartCoupling.GeometriesBegin()->Dimension() != 2)
@@ -101,9 +103,9 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
         // r_geom_slave.CreateQuadraturePointGeometries(quadrature_point_geometries_slave, 1, integration_points); TODO check if the line above is an OK replacement for this line
 
         // add the quadrature point geometry conditions to the result model part
-        const IndexType id = (rModelPartResult.NumberOfConditions() == 0)
+        const IndexType id = (rParentModelPart.NumberOfConditions() == 0)
             ? 1
-            : (rModelPartResult.ConditionsEnd() - 1)->Id() + 1;
+            : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
         for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i) {
             rModelPartResult.AddCondition(Kratos::make_intrusive<Condition>(
                 id + i, CouplingGeometry<Node<3>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
