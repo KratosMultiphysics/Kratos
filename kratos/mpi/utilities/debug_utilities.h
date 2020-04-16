@@ -14,6 +14,8 @@
 #pragma once
 
 #include <vector>
+#include <sstream>
+
 #include "includes/model_part.h"
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
@@ -85,7 +87,11 @@ public:
         std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
     {
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-        bool error_detected = false;
+        
+        bool val_error_detected = false;
+        bool fix_error_detected = false;
+
+        std::stringstream error_stream;
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
@@ -101,7 +107,7 @@ public:
             // Check Variable
             if(data_proxy.Get(gp).first != node.FastGetSolutionStepValue(rVariable)) {
                 std::cout << r_default_comm.Rank() << " Inconsistent variable Val for Id: " << node.Id() << " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
-                error_detected = true;
+                val_error_detected = true;
             }
         }
 
@@ -112,12 +118,21 @@ public:
             // Check Fixity
             if(data_proxy.Get(gp).second != node.IsFixed(rVariable)) {
                 std::cout << r_default_comm.Rank() << " Inconsistent variable Fix for Id: " << node.Id() << " Expected: " << node.IsFixed(rVariable) << " Obtained " << data_proxy.Get(gp).second << std::endl;
-                error_detected = true;
+                fix_error_detected = true;
             }
         }
 
-        if(error_detected = 1) {
-            KRATOS_ERROR << "Consistency Error Detected" << std::endl;
+        if(val_error_detected) {
+            error_stream << "Value error(s) found" << std::endl;
+        }
+
+        if(fix_error_detected) {
+            error_stream << "Fixity error(s) found" << std::endl;
+        }
+
+        if(error_stream.rdbuf()->in_avail())
+        {
+            KRATOS_ERROR << error_stream.str() << std::endl;
         }
     }
 };

@@ -11,6 +11,8 @@
 //
 //
 
+#include <sstream>
+
 #include "mpi.h"
 
 #include "containers/model.h"
@@ -28,7 +30,6 @@ namespace Testing {
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValue, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-    const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
 
     Model model;
@@ -54,39 +55,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValue, Kratos
     MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, TEMPERATURE);
 }
 
-// This will work with #5091 or when we move to C++17
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleVariablesValue, KratosMPICoreFastSuite)
-// {
-//     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-//     const int world_rank = r_comm.Rank();
-//     const int world_size = r_comm.Size();
-
-//     Model model;
-//     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
-
-//     model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
-//     model_part.AddNodalSolutionStepVariable(TEMPERATURE);       // Any variables will do
-//     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
-
-//     // Put some nodes in every partition
-//     for(int i = 0; i < world_size; i++) {
-//         auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
-
-//         node->FastGetSolutionStepValue(PRESSURE) = i%world_size;
-//         node->FastGetSolutionStepValue(TEMPERATURE) = (i%world_size)*10;
-//         node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
-//     }
-
-//     // Build the communicator
-//     ParallelFillCommunicator(model_part).Execute();
-
-//     MpiDebugUtilities::CheckNodalHistoricalDatabaseConsistency(model_part);
-// }
-
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-    const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
 
     Model model;
@@ -101,6 +72,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, Krato
         auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
 
         node->FastGetSolutionStepValue(PRESSURE) = 0;
+        // Not optimal but should scramble the values enough
+        if(i%2) {
+            node->Fix(PRESSURE);
+        }
         node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
     }
 
@@ -133,11 +108,117 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, K
     // Build the communicator
     ParallelFillCommunicator(model_part).Execute();
 
+    std::stringstream error_message;
+
+    error_message << "Value error(s) found" << std::endl;
+
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
-        "Consistency Error Detected"
+        error_message.str()
     );
 }
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixityError, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int world_rank = r_comm.Rank();
+    const int world_size = r_comm.Size();
+
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
+
+    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Put some nodes in every partition
+    for(int i = 0; i < world_size; i++) {
+        auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
+
+        node->FastGetSolutionStepValue(PRESSURE) = 0;
+        if(world_rank == 0) {
+            node->Fix(PRESSURE);
+        }
+        node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
+    }
+
+    // Build the communicator
+    ParallelFillCommunicator(model_part).Execute();
+
+    std::stringstream error_message;
+
+    error_message << "Fixity error(s) found" << std::endl;
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
+        error_message.str()
+    );
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableCombinedError, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int world_rank = r_comm.Rank();
+    const int world_size = r_comm.Size();
+
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
+
+    model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Put some nodes in every partition
+    for(int i = 0; i < world_size; i++) {
+        auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
+
+        node->FastGetSolutionStepValue(PRESSURE) = (world_rank == 0);
+        if(world_rank == 0) {
+            node->Fix(PRESSURE);
+        }
+        node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
+    }
+
+    // Build the communicator
+    ParallelFillCommunicator(model_part).Execute();
+
+    std::stringstream error_message;
+
+    error_message << "Value error(s) found" << std::endl;
+    error_message << "Fixity error(s) found" << std::endl;
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
+        error_message.str()
+    );
+}
+
+// This will work with #5091 or when we move to C++17
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleVariablesValue, KratosMPICoreFastSuite)
+// {
+//     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+//     const int world_rank = r_comm.Rank();
+//     const int world_size = r_comm.Size();
+
+//     Model model;
+//     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
+
+//     model_part.AddNodalSolutionStepVariable(PRESSURE);          // Any variables will do
+//     model_part.AddNodalSolutionStepVariable(TEMPERATURE);       // Any variables will do
+//     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+//     // Put some nodes in every partition
+//     for(int i = 0; i < world_size; i++) {
+//         auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
+
+//         node->FastGetSolutionStepValue(PRESSURE) = i%world_size;
+//         node->FastGetSolutionStepValue(TEMPERATURE) = (i%world_size)*10;
+//         node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
+//     }
+
+//     // Build the communicator
+//     ParallelFillCommunicator(model_part).Execute();
+
+//     MpiDebugUtilities::CheckNodalHistoricalDatabaseConsistency(model_part);
+// }
 
 }
 }
