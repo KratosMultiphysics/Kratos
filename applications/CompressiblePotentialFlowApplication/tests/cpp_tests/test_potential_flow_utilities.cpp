@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachSquaredDerivativeTransonicMach, Compre
     double sq_local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
     double local_mach_number = sqrt(sq_local_mach_number);
 
-    auto mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
+    double mach_derivative = PotentialFlowUtilities::ComputeLocalMachSquaredDerivative<2, 3>(velocity,
                 local_mach_number, model_part.GetProcessInfo());
 
     double reference_derivative = 1.16201001910861e-05;

@@ -432,8 +432,8 @@ double ComputeLocalMachSquaredDerivative(
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
     // make squares of values
-    double sq_local_mach_number = pow(local_mach_number, 2);
-    double sq_free_stream_mach = pow(free_stream_mach, 2);
+    double sq_local_mach_number = std::pow(local_mach_number, 2);
+    double sq_free_stream_mach = std::pow(free_stream_mach, 2);
     double sq_local_velocity = inner_prod(velocity, velocity);
     double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
 
@@ -476,7 +476,7 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
     // make squares of values
-    double sq_free_stream_mach = pow(free_stream_mach, 2);
+    double sq_free_stream_mach = std::pow(free_stream_mach, 2);
     double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
 
     return sq_max_local_mach_number * sq_free_stream_velocity * 
@@ -500,8 +500,8 @@ double ComputeLocalSpeedofSoundSquared(
     const double free_stream_speed_sound = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // make squares of values
-    double sq_free_stream_mach = pow(free_stream_mach, 2);
-    double sq_free_stream_speed_sound = pow(free_stream_speed_sound,2);
+    double sq_free_stream_mach = std::pow(free_stream_mach, 2);
+    double sq_free_stream_speed_sound = std::pow(free_stream_speed_sound,2);
     double sq_local_velocity = inner_prod(rVelocity, rVelocity);
     double sq_free_stream_velocity = inner_prod(free_stream_velocity, free_stream_velocity);
 
@@ -519,8 +519,8 @@ double ComputeLocalSpeedofSoundSquared(
     }
 
     // square bracket term
-    double square_bracket_term = 1.0 + 0.5*(heat_capacity_ratio - 1)*
-            sq_free_stream_mach*(1 - (sq_local_velocity/sq_free_stream_velocity));
+    double square_bracket_term = 1.0 + 0.5*(heat_capacity_ratio - 1.0)*
+            sq_free_stream_mach*(1.0 - (sq_local_velocity/sq_free_stream_velocity));
 
     return sq_free_stream_speed_sound * square_bracket_term;
 }
