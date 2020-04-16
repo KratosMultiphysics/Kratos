@@ -31,7 +31,7 @@
 namespace Kratos
 {
 RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    : mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -43,12 +43,12 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
             "min_value"       : 1e-15
         })");
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mCmu = mrParameters["c_mu"].GetDouble();
-    mMinValue = mrParameters["min_value"].GetDouble();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mCmu = rParameters["c_mu"].GetDouble();
+    mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
 }

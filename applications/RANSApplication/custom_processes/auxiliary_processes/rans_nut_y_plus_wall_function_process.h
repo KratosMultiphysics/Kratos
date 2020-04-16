@@ -158,15 +158,12 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
     std::string mModelPartName;
-
-    int mEchoLevel;
-    double mMinValue;
-
     double mCmu;
     double mVonKarman;
     double mBeta;
+    double mMinValue;
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators

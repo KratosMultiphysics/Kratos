@@ -30,7 +30,7 @@
 namespace Kratos
 {
 RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    : mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -42,12 +42,12 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Para
             "beta"            : 5.2
         })");
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mVonKarman = mrParameters["von_karman"].GetDouble();
-    mBeta = mrParameters["beta"].GetDouble();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mVonKarman = rParameters["von_karman"].GetDouble();
+    mBeta = rParameters["beta"].GetDouble();
 
     KRATOS_CATCH("");
 }

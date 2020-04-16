@@ -30,7 +30,7 @@
 namespace Kratos
 {
 RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    : mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -44,14 +44,14 @@ RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, 
             "min_value"       : 1e-18
         })");
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mCmu = mrParameters["c_mu"].GetDouble();
-    mVonKarman = mrParameters["von_karman"].GetDouble();
-    mBeta = mrParameters["beta"].GetDouble();
-    mMinValue = mrParameters["min_value"].GetDouble();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mCmu = rParameters["c_mu"].GetDouble();
+    mVonKarman = rParameters["von_karman"].GetDouble();
+    mBeta = rParameters["beta"].GetDouble();
+    mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
 }
