@@ -286,7 +286,6 @@ public:
         // finalizing the assembly
         rA.GlobalAssemble();
         rb.GlobalAssemble();
-
         KRATOS_CATCH("")
     }
 
@@ -946,6 +945,9 @@ protected:
 
             EquationIdVectorType slave_ids;
             EquationIdVectorType master_ids;
+            Element::DofsVectorType slave_dof_list, master_dof_list;
+            mSlaveIds.clear();
+            const int mpi_rank = rModelPart.GetCommunicator().MyPID();
 
             for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                 auto it_const = it_const_begin + i_const;
@@ -955,6 +957,11 @@ protected:
                 bool constraint_is_active = it_const->IsDefined(ACTIVE) ? it_const->Is(ACTIVE) : true;
                 if(constraint_is_active) {
                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+                    it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+                    for(const auto& dof: slave_dof_list){
+                        if(dof->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
+                            mSlaveIds.push_back(dof->EquationId());
+                    }
 
                     // Slave DoFs
                     for (auto &id_i : slave_ids) {
@@ -963,12 +970,8 @@ protected:
                     mMasterIds.insert(mMasterIds.end(), master_ids.begin(), master_ids.end());
                 }
             }
-            mSlaveIds.clear();
             std::sort( mMasterIds.begin(), mMasterIds.end() );
             mMasterIds.erase( unique( mMasterIds.begin(), mMasterIds.end() ), mMasterIds.end() );
-            for(const auto& slave_masters_pair : indices){
-                mSlaveIds.push_back(slave_masters_pair.first);
-            }
             for(const auto& local_eq_id:local_eq_ids)
                 indices[local_eq_id].insert(local_eq_id);
 
@@ -1075,8 +1078,6 @@ protected:
             }
         }
 
-        // Assemble the weights. If the weights are to be added up.
-        mpT->GlobalAssemble(false, Add);
         // All other Dofs except slaves
         const double value = 1.0;
         for(auto const dof : BaseType::mDofSet){
@@ -1117,7 +1118,7 @@ protected:
             // First we do aux = T'A
             { // To delete aux_mat
                 TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
-                err = EpetraExt::MatrixMatrix::Multiply(*mpT, true, rA, false, aux_mat);
+                err = EpetraExt::MatrixMatrix::Multiply(*mpT, true, rA, false, aux_mat, false);
                 KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
                 aux_mat.FillComplete();
                 { // To delete mod_a
@@ -1137,7 +1138,7 @@ protected:
                             }
                         }
                     }
-                    mod_a.GlobalAssemble();
+                    mod_a.GlobalAssemble(true, Insert);
                     TSparseSpace::Copy(mod_a, rA);
                 }
             }
