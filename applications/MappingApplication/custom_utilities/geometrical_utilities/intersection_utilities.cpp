@@ -53,6 +53,11 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     ModelPart& rModelPartResult,
     double Tolerance)
 {
+    // Only perform the test for 1D lines in 2D space. Maybe this is too strict...
+    KRATOS_ERROR_IF(rModelPartCoupling.GeometriesBegin()->LocalSpaceDimension() != 1 &&
+        rModelPartCoupling.GeometriesBegin()->Dimension() != 2)
+        << "Can compare only line segments with other line segments." << std::endl;
+
     for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
         geometry_itr != rModelPartCoupling.GeometriesEnd();
         ++geometry_itr)
@@ -66,7 +71,7 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
         r_geom_master.PointLocalCoordinates(local_parameter_1, r_geom_slave[0]);
         r_geom_master.PointLocalCoordinates(local_parameter_1, r_geom_slave[1]);
 
-        SizeType IntegrationPointsPerSpan = 2;
+        const SizeType IntegrationPointsPerSpan = 2; // TODO this should depend on the basis order
 
         IntegrationPointsArrayType integration_points(IntegrationPointsPerSpan);
 
@@ -77,10 +82,12 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             IntegrationPointsPerSpan,
             local_parameter_1[0], local_parameter_2[0]);
 
+        // Determine quadrature point locations of span on master and then create quadrature point geometries
         GeometriesArrayType quadrature_point_geometries_master(IntegrationPointsPerSpan);
         CreateQuadraturePointsUtility<NodeType>::Create(
             r_geom_master, quadrature_point_geometries_master, integration_points, 1);
 
+        // Transfer quadrature point locations to slave
         for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i)
         {
             CoordinatesArrayType local_parameter_slave = ZeroVector(3);
@@ -89,17 +96,19 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             integration_points[i].X() = local_parameter_slave[0];
         }
 
+        // create slave quadrature point geometries
         GeometriesArrayType quadrature_point_geometries_slave(IntegrationPointsPerSpan);
-        r_geom_slave.CreateQuadraturePointGeometries(quadrature_point_geometries_slave, 1, integration_points);
+        CreateQuadraturePointsUtility<NodeType>::Create(
+            r_geom_slave, quadrature_point_geometries_slave, integration_points, 1);
+        // r_geom_slave.CreateQuadraturePointGeometries(quadrature_point_geometries_slave, 1, integration_points); TODO check if the line above is an OK replacement for this line
 
-        for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i)
-        {
-            IndexType id = 1;
-            if (rModelPartResult.NumberOfConditions() > 0) {
-                id = rModelPartResult.ConditionsEnd()->Id() + 1;
-            }
+        // add the quadrature point geometry conditions to the result model part
+        const IndexType id = (rModelPartResult.NumberOfConditions() == 0)
+            ? 1
+            : rModelPartResult.ConditionsEnd()->Id() + 1;
+        for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i) {
             rModelPartResult.AddCondition(Kratos::make_intrusive<Condition>(
-                id, CouplingGeometry<Node<3>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
+                id + i, CouplingGeometry<Node<3>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
         }
     }
 }
