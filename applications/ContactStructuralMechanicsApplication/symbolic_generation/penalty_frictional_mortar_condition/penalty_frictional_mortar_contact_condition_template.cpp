@@ -301,7 +301,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /***********************************************************************************/
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
-int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo )
+int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -315,7 +315,7 @@ int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariatio
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     GeometryType& r_slave_geometry = this->GetParentGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        NodeType& r_node = r_slave_geometry[i];
+        const NodeType& r_node = r_slave_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_SLIP, r_node)
     }
 
