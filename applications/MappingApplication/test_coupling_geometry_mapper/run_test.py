@@ -41,18 +41,20 @@ nodeOffset = 327
 for conditionIndex in range(1,6):
     cNode = nodeOffset + conditionIndex
     originInterface.CreateNewCondition("LineLoadCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
-print(originInterface)
 
 destProps = destinationInterface.GetProperties()[1]
 destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 101, [1,3], destProps)
 destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 102, [3,6], destProps)
 destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 103, [6,10], destProps)
-print(destinationInterface)
 
 
 # TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
 KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
 KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
+
+# TODO remove (for information only)
+print(model_part_coupling)
+print(model_part_coupling_quadrature_points)
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
