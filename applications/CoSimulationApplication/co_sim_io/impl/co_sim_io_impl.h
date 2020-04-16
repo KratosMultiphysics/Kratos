@@ -40,6 +40,14 @@ static CoSimConnection& GetConnection(const std::string& rConnectionName)
     return *s_co_sim_connections.at(rConnectionName);
 }
 
+inline void SendControlSignal(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    const CoSimIO::ControlSignal Signal)
+{
+    Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
+}
+
 } // namespace Internals
 
 inline void Connect(const std::string& rConnectionName, CoSimIO::SettingsType Settings)
@@ -164,14 +172,6 @@ inline void ExportMesh(
 inline int IsConverged(const std::string& rConnectionName)
 {
     return Internals::GetConnection(rConnectionName).IsConverged();
-}
-
-inline void SendControlSignal(
-    const std::string& rConnectionName,
-    const std::string& rIdentifier,
-    const CoSimIO::ControlSignal Signal)
-{
-    Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
 }
 
 inline void Run(const std::string& rConnectionName)
