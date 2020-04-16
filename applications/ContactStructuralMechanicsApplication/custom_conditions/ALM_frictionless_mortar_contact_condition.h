@@ -224,8 +224,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -234,8 +234,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
