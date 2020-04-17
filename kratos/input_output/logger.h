@@ -105,13 +105,13 @@ namespace Kratos
         return Stop(mCurrentMessage.GetLabel());
       }
 
+      Logger& Start(std::string const& TheSectionLabel);
+
+      Logger& Stop(std::string const& TheSectionLabel);
+
       ///@}
       ///@name Static Methods
       ///@{
-
-      static Logger& Start(std::string const& TheSectionLabel);
-
-      static Logger& Stop(std::string const& TheSectionLabel);
 
     static int& GetCurrentLevelInstance()
     {
