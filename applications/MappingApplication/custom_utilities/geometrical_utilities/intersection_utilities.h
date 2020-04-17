@@ -50,6 +50,12 @@ namespace IntersectionUtilities
         ModelPart& rModelPartCoupling,
         ModelPart& rModelPartResult,
         double Tolerance);
+
+    bool FindOverlapExtents1DGeometries2D(
+        const GeometryType& rMasterLine,
+        const GeometryType& rSlaveLine,
+        std::vector<array_1d<double, 3 > >& rOverlapExtents,
+        const double Tolerance = 1e-6);
 }  // namespace IntersectionUtilities.
 
 }  // namespace Kratos.
