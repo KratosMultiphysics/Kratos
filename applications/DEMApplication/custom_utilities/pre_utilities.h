@@ -454,7 +454,7 @@ class PreUtilities
         }
     }
 
-    void ComputeSkin(ModelPart& rSpheresModelPart, const double factor_radius = 1.0) {
+    void ComputeSkinIncludingInnerVoids(ModelPart& rSpheresModelPart, const double factor_radius = 1.0) {
 
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
         #pragma omp parallel for
