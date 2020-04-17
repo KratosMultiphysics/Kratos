@@ -139,7 +139,7 @@ namespace Kratos
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
             if (type == "element" || type == "Element") {
-                SizeType id = 0;
+                SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Elements().size() > 0)
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
@@ -148,7 +148,7 @@ namespace Kratos
                     rModelPart, name, id, PropertiesPointerType());
             }
             else if (type == "condition" || type == "Condition") {
-                SizeType id = 0;
+                SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
