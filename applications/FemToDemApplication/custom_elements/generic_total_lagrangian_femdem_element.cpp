@@ -422,12 +422,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
                                                         yield_surface, cl_values, this_constitutive_variables,
                                                         this_kinematic_variables, r_strain_vector, damage_element, 
                                                         is_damaging, characteristic_length, true);
-        if (mDamage >= 0.98) {
-            this->Set(ACTIVE, false);
-            mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
-        }
+        this->CheckIfEraseElement(rCurrentProcessInfo, r_properties);
     }
     KRATOS_CATCH( "" )
 }

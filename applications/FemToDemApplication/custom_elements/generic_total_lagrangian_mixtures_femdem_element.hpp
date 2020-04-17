@@ -245,6 +245,35 @@ protected:
         return average_plastic_strain / NumberOfEdges;
     }
 
+    double CalculateAverageAcumulatedPlasticStrain()
+    {
+        double acumulated_strain = 0.0;
+        for (IndexType i = 0; i < NumberOfEdges; ++i)
+            acumulated_strain += mAcumulatedPlasticStrains[i];
+        return acumulated_strain / NumberOfEdges;
+    }
+
+
+    void CheckIfEraseElement(
+        ProcessInfo &rCurrentProcessInfo,
+        const Properties& rProperties
+        ) override
+    {
+        if (mDamage >= 0.98 && this->CalculateAverageAcumulatedPlasticStrain() >= rProperties[MAX_PLASTIC_STRAIN]) {
+            this->Set(ACTIVE, false);
+            mDamage = 0.98;
+            // We set a "flag" to generate the DEM 
+            rCurrentProcessInfo[GENERATE_DEM] = true;
+        }
+    }
+
+    void CalculateAll(
+        MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag) override;
+
     Vector mAcumulatedPlasticStrains;
     Vector mPlasticityThresholds;
     std::vector<Vector> mPlasticStrains;

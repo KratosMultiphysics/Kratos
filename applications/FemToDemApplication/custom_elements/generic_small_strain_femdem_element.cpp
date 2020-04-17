@@ -357,13 +357,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         }
         // Calculate the elemental Damage...
         this->mDamage = this->CalculateElementalDamage(this->mDamages);
-
-        if (this->mDamage >= 0.98) {
-            this->Set(ACTIVE, false);
-            this->mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
-        }
+        this->CheckIfEraseElement(rCurrentProcessInfo, r_properties);
     }
     KRATOS_CATCH( "" )
 }

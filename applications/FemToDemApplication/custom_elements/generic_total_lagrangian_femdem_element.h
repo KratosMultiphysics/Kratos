@@ -416,6 +416,21 @@ protected:
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    virtual void CheckIfEraseElement(
+        ProcessInfo &rCurrentProcessInfo, 
+        const Properties& rProperties
+        )
+    {
+        if (mDamage >= 0.98) {
+            this->Set(ACTIVE, false);
+            mDamage = 0.98;
+            // We set a "flag" to generate the DEM 
+            rCurrentProcessInfo[GENERATE_DEM] = true;
+        }
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{
