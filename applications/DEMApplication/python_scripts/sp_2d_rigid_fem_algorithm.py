@@ -13,7 +13,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.test_number = project_parameters["test_number"].GetInt()
         self.gmesh_with_inner_skin = project_parameters["gmesh_with_inner_skin"].GetBool()
         self.compute_skin_factor = project_parameters["compute_skin_factor"].GetDouble()
-        self.outer_mesh_radius = project_parameters["outer_mesh_radius"].GetDouble() # This depends on the particular GiD mesh (radius of the coarser mesh)
+        self.outer_mesh_diameter = project_parameters["outer_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the coarser mesh)
         # The two values that follow may depend on the GiD mesh used. The higher the value, the more skin particles
         self.inner_skin_factor = project_parameters["inner_skin_factor"].GetDouble() # 2.4
         self.outer_skin_factor = project_parameters["outer_skin_factor"].GetDouble() # 0.8
@@ -66,10 +66,10 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
             self.PreUtilities.ComputeSkinIncludingInnerVoids(self.spheres_model_part, self.compute_skin_factor)
         else:
             self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * min_radius)
-            self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * self.outer_mesh_radius)
+            self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
 
         # Blind: TODO. At this moment, only implementations for the CTWs exist
-        #self.PreUtilities.SetSkinParticlesOuterBoundaryBlind(self.spheres_model_part, self.outer_radius, center, outer_skin_factor * self.outer_mesh_radius)
+        #self.PreUtilities.SetSkinParticlesOuterBoundaryBlind(self.spheres_model_part, self.outer_radius, center, outer_skin_factor * 0.5 * self.outer_mesh_diameter)
 
     def CreateSPMeasuringRingSubmodelpart(self, spheres_model_part):
 
