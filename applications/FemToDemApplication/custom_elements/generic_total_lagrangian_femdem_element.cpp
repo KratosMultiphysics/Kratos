@@ -833,7 +833,6 @@ Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedCo
     const bool SaveIntVars
     )
 {
-    KRATOS_WATCH("joder")
     Vector damages_edges = ZeroVector(NumberOfEdges);
     if (rYieldSurface != "Elastic") {
         // Loop over edges of the element...
