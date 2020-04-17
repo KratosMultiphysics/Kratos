@@ -231,6 +231,9 @@ class CoupledRANSSolver(PythonSolver):
     def IsSteadySimulation(self):
         return self.is_steady
 
+    def IsConverged(self):
+        return self.is_steady and self.is_converged
+
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(
                 "fluid_computational_model_part"):
