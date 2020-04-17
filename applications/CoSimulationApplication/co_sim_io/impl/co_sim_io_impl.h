@@ -171,6 +171,7 @@ inline void SendControlSignal(
     const std::string& rIdentifier,
     const CoSimIO::ControlSignal Signal)
 {
+    std::cout << "co_sim_io_impl SendControlSignal rIdentifier" << rIdentifier << std::endl;
     Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
 }
 

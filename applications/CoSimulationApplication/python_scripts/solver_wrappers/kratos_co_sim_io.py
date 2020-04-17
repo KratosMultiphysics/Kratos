@@ -56,10 +56,12 @@ class KratosCoSimIO(CoSimulationIO):
             KratosCoSim.CoSimIO.ExportData(self.solver_name, interface_data.name, interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
 
         elif data_type == "control_signal":
+            print('kratos_co_sim_io ExportData data_type', data_type)
             control_signal_key = data_config["signal"]
             KratosCoSim.CoSimIO.SendControlSignal(self.solver_name, data_config["identifier"], control_signal_key)
 
         elif data_type == "time":
+            print('kratos_co_sim_io ExportData data_type', data_type)
             current_time = data_config["time"]
             KratosCoSim.CoSimIO.ExportData(self.solver_name, "time_from_co_sim", [current_time])
 
@@ -67,6 +69,7 @@ class KratosCoSimIO(CoSimulationIO):
             if data_config["is_converged"]:
                 control_signal_key = KratosCoSim.CoSimIO.ControlSignal.ConvergenceAchieved
             else:
+                print('kratos_co_sim_io ExportData Dummy')
                 control_signal_key = KratosCoSim.CoSimIO.ControlSignal.Dummy
             KratosCoSim.CoSimIO.SendControlSignal(self.solver_name, "", control_signal_key)
         else:

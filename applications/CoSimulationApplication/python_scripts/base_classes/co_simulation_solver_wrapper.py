@@ -102,6 +102,7 @@ class CoSimulationSolverWrapper(object):
         self.__GetIO().ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
+        print("co_simulation_solver_wrapper Importdata echolevel = ", self.echo_level)
         if self.echo_level > 2:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
         self.__GetIO().ImportData(data_config)

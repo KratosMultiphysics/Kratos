@@ -64,6 +64,7 @@ public:
 
     void SendControlSignal(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal)
     {
+        std::cout << "co_sim_connection SendControlSignal rIdentifier" << rIdentifier << std::endl;
         KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnectionMaster) << "This function can only be called as the Connection-Master!" << std::endl;
         mpComm->SendControlSignal(rIdentifier, Signal);
     }
@@ -195,6 +196,7 @@ private:
 
     CoSimIO::ControlSignal RecvControlSignal(std::string& rIdentifier)
     {
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", 1) << " Connection RecvControlSignal " << std::endl;
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
         return mpComm->RecvControlSignal(rIdentifier);
     }

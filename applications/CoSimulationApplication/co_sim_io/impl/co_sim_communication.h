@@ -74,6 +74,7 @@ public:
 
     void SendControlSignal(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal)
     {
+        std::cout << "co_sim_communication SendControlSignal rIdentifier" << rIdentifier << std::endl;
         CheckConnection(); SendControlSignalDetail(rIdentifier, Signal);
     }
     CoSimIO::ControlSignal RecvControlSignal(std::string& rIdentifier)

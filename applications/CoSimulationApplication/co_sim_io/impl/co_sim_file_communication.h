@@ -135,6 +135,7 @@ private:
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << " ImportDataImpl " << std::endl;
         WaitForFile(file_name);
 
         const auto start_time(std::chrono::steady_clock::now());
@@ -205,6 +206,7 @@ private:
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << " ImportMeshImpl " << std::endl;
         WaitForFile(file_name);
 
         const auto start_time(std::chrono::steady_clock::now());
@@ -365,6 +367,8 @@ private:
 
     void SendControlSignalDetail(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal) override
     {
+        std::cout << "co_sim_file_communication SendControlSignalDetail rIdentifier" << rIdentifier << std::endl;
+        std::cout << "co_sim_file_communication SendControlSignalDetail Signal" << static_cast<int>(Signal) << std::endl;
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
@@ -385,10 +389,12 @@ private:
 
     CoSimIO::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
     {
+        std::cout << "co_sim_file_communication RecvControlSignalDetail rIdentifier" << rIdentifier << std::endl;
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive control signal in file \"" << file_name << "\" ..." << std::endl;
 
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << " RecvControlSignalDetail " << std::endl;
         WaitForFile(file_name);
 
         std::ifstream input_file(file_name);
@@ -419,6 +425,8 @@ private:
 
     void WaitForFile(const std::string& rFileName)
     {
+        std::cout << "CoSimIO WaitForFile" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << " WaitForFile " << std::endl;
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
         while(!FileExists(rFileName)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
