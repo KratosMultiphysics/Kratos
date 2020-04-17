@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
+#include "custom_utilities/hrom_model_part_utility.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -39,9 +40,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
-    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
+    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
-    ;     
+    ;
+
+    class_<HromModelPartUtility, typename HromModelPartUtility::Pointer>(m, "HromModelPartUtility")
+    .def(init<ModelPart&, Vector, Vector>()) //
+    .def("DoSomethig",&HromModelPartUtility::DoSomethig) //
+    ;
 
 }
 
