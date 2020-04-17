@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -51,6 +51,20 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             time = time + delta_time
             mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             mp.CloneTimeStep(time)
+
+    def _ResetDisplacementAndPosition(self,mp):
+        zero = KratosMultiphysics.Vector(3)
+        zero[0] = 0.0
+        zero[1] = 0.0
+        zero[2] = 0.0
+
+        for node in mp.Nodes:
+            node.X = node.X0
+            node.Y = node.Y0
+            node.Z = node.Z0
+
+            for step in range(mp.GetBufferSize()):
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,step,zero)
 
     def _apply_BCs(self,mp,A,b):
         for node in mp.Nodes:
@@ -100,39 +114,26 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         return A,b
 
-    def _solve(self,mp):
-
-        #define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        linear_solver,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+    def _solve(self,mp, builder_type = "block_builder"):
+        strategy = self._create_strategy(mp, builder_type)
         strategy.Check()
         strategy.Solve()
 
-    def _create_strategy(self, mp):
+    def _create_strategy(self, mp, builder_type = "block_builder"):
+        #define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        if(builder_type == "elimination_builder"):
+            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        elif(builder_type == "block_builder"):
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        else:
+            raise Exception("builder_type unknown")
+
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
         convergence_criterion.SetEchoLevel(0)
 
         #max_iters = 1
@@ -291,7 +292,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         # Create Element and condition
         tl_elem = tl_mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [1,2,3,4], tl_mp.GetProperties()[1])
-        tl_load = tl_mp.CreateSubModelPart("LoadCondtions")
+        tl_load = tl_mp.CreateSubModelPart("LoadConditions")
         tl_load.AddNodes(load_nodes)
         tl_cond = tl_mp.CreateNewCondition("LineLoadCondition2D2N", 1, load_nodes, tl_mp.GetProperties()[1])
 
@@ -341,6 +342,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         time = ul_mp.ProcessInfo[KratosMultiphysics.TIME]
 
         tl_strategy = self._create_strategy(tl_mp)
+
         ul_strategy = self._create_strategy(ul_mp)
 
         for iter in range(1, 4):
@@ -349,22 +351,12 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             tl_mp.CloneTimeStep(time)
             ul_mp.CloneTimeStep(time)
 
-            #load[1] = iter * 1.0e10
-            #tl_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
-            #ul_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
-
             for node in tl_load.Nodes:
                 node.Fix(KratosMultiphysics.DISPLACEMENT_X)
                 node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
             for node in ul_load.Nodes:
                 node.Fix(KratosMultiphysics.DISPLACEMENT_X)
                 node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
-            #for node in tl_load.Nodes:
-                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
-            #for node in ul_load.Nodes:
-                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
 
             self._solve_with_strategy(tl_strategy, tl_lhs, iter)
             self._solve_with_strategy(ul_strategy, ul_lhs, iter)
@@ -376,15 +368,15 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                 ul_dx = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 ul_dy = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
 
-                if (ul_dx > 0.0):
-                    self.assertLess((tl_dx - ul_dx) / ul_dx, 1.0e-3)
-                if (ul_dy > 0.0):
-                    self.assertLess((tl_dy - ul_dy) / ul_dy, 1.0e-3)
+                if(abs(tl_dx) > 1e-20):
+                    self.assertLess(abs(tl_dx - ul_dx) / abs(tl_dx), 1.0e-10)
+                if(abs(tl_dy) > 1e-20):
+                    self.assertLess(abs(tl_dy - ul_dy) / abs(tl_dy), 1.0e-10)
 
             # Compare matrices
             for i in range(ul_lhs.Size1()):
                 for j in range(ul_lhs.Size2()):
-                    self.assertLess((ul_lhs[i, j] - tl_lhs[i, j]) / tl_lhs[i, j], 1.0e-3)
+                    self.assertLess(abs(ul_lhs[i, j] - tl_lhs[i, j]) / abs(tl_lhs[i, j]), 1.0e-10)
 
         #self.__post_process(tl_mp)
         #self.__post_process(ul_mp)
@@ -419,8 +411,17 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -460,8 +461,17 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -503,8 +513,17 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -554,8 +573,17 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -606,8 +634,17 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         A,b = self._define_movement(dim)
 
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -644,8 +681,18 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         A,b = self._define_movement(dim)
 
         self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"block_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -686,8 +733,18 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         A,b = self._define_movement(dim)
 
         self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
@@ -739,8 +796,18 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         A,b = self._define_movement(dim)
 
         self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
         self._apply_BCs(bcs,A,b)
-        self._solve(mp)
+        self._solve(mp,"block_builder")
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp,"elimination_builder")
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
