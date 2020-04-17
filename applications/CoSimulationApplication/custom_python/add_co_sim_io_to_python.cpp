@@ -424,7 +424,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     mCoSimIO.def("IsConverged", CoSimIO::IsConverged);
 
-    mCoSimIO.def("SendControlSignal", CoSimIO::SendControlSignal);
+    mCoSimIO.def("SendControlSignal", CoSimIO::Internals::SendControlSignal); // this function should only be used by Kratos to control other solvers
 
     mCoSimIO.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     mCoSimIO.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);

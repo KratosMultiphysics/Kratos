@@ -98,7 +98,15 @@ def ExportMesh(conn_name, identifier):
 
 
 connection_name = "TAU"
-CoSimIO.Connect(connection_name, "tau_so_sim_io_settings.txt") # TODO @Philipp in the future this can also be a dict
+
+settings = {
+    "echo_level" : "0",
+    "print_timing" : "1",
+    "communication_format" : "file"
+}
+
+CoSimIO.Connect(connection_name, settings)
+
 CoSimIO.Register_AdvanceInTime(connection_name, AdvanceInTime)
 CoSimIO.Register_InitializeSolutionStep(connection_name, InitializeSolutionStep)
 CoSimIO.Register_SolveSolutionStep(connection_name, SolveSolutionStep)

@@ -40,6 +40,14 @@ static CoSimConnection& GetConnection(const std::string& rConnectionName)
     return *s_co_sim_connections.at(rConnectionName);
 }
 
+inline void SendControlSignal(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    const CoSimIO::ControlSignal Signal)
+{
+    Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
+}
+
 } // namespace Internals
 
 inline void Connect(const std::string& rConnectionName, CoSimIO::SettingsType Settings)
@@ -47,7 +55,7 @@ inline void Connect(const std::string& rConnectionName, CoSimIO::SettingsType Se
     using namespace Internals;
     KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for \"" << rConnectionName << "\" already exists!" << std::endl;
 
-    s_co_sim_connections[std::string(rConnectionName)] = std::unique_ptr<CoSimConnection>(new CoSimConnection(rConnectionName, Settings));
+    s_co_sim_connections[rConnectionName] = std::unique_ptr<CoSimConnection>(new CoSimConnection(rConnectionName, Settings));
     GetConnection(rConnectionName).Connect();
 }
 
@@ -62,7 +70,7 @@ inline void Disconnect(const std::string& rConnectionName)
     KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to disconnect connection \"" << rConnectionName << "\" which does not exist!" << std::endl;
 
     GetConnection(rConnectionName).Disconnect();
-    s_co_sim_connections.erase(std::string(rConnectionName));
+    s_co_sim_connections.erase(rConnectionName);
 }
 
 // Version for C++, there this input is a std::vector, which we have to wrap before passing it on
@@ -166,14 +174,14 @@ inline int IsConverged(const std::string& rConnectionName)
     return Internals::GetConnection(rConnectionName).IsConverged();
 }
 
-inline void SendControlSignal(
-    const std::string& rConnectionName,
-    const std::string& rIdentifier,
-    const CoSimIO::ControlSignal Signal)
-{
-    std::cout << "co_sim_io_impl SendControlSignal rIdentifier" << rIdentifier << std::endl;
-    Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
-}
+// inline void SendControlSignal(
+//     const std::string& rConnectionName,
+//     const std::string& rIdentifier,
+//     const CoSimIO::ControlSignal Signal)
+// {
+//     std::cout << "co_sim_io_impl SendControlSignal rIdentifier" << rIdentifier << std::endl;
+//     Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
+// }
 
 inline void Run(const std::string& rConnectionName)
 {

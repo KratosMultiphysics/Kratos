@@ -26,7 +26,11 @@ def SolveSolutionStep2(some_var):
 
 connection_name = "Python_solver"
 
-CoSimIO.Connect(connection_name, "py_solver_settings.txt")
+the_Settings = {
+    "communication_format" : "mpi"
+}
+
+CoSimIO.Connect(connection_name, the_Settings)
 
 # CoSimIO.FunctionCapture(SolveSolutionStep2)
 CoSimIO.Register_SolveSolutionStep(connection_name, SolveSolutionStep)
