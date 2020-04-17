@@ -32,6 +32,8 @@ namespace Kratos
             ? mParameters["geometry_file_name"].GetString()
             : "geometry.cad.json";
 
+        KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Importing Cad Model from: " << DataFileName << std::endl;
+
         CadJsonInput<Node<3>, Point>(
             DataFileName, mEchoLevel).ReadModelPart(cad_model_part);
     }
