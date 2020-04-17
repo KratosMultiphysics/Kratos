@@ -295,36 +295,6 @@ public:
     ///@name Operations
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    void Barrier() const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool SumAll(int& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool SumAll(double& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool SumAll(array_1d<double, 3>& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MinAll(int& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MinAll(double& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MaxAll(int& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MaxAll(double& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool ScanSum(const double& send_partial, double& receive_accumulated) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool ScanSum(const int& send_partial, int& receive_accumulated) const;
-
     virtual bool SynchronizeNodalSolutionStepsData();
 
     virtual bool SynchronizeDofs();

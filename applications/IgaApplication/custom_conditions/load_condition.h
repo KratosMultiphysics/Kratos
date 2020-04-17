@@ -206,7 +206,8 @@ namespace Kratos
         }
 
         /// Print object's data.
-        void PrintData(std::ostream& rOStream) const {
+        void PrintData(std::ostream& rOStream) const override
+        {
             pGetGeometry()->PrintData(rOStream);
         }
 

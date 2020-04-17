@@ -161,8 +161,8 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
 
 void SolidShellElementSprism3D6N::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -201,8 +201,8 @@ void SolidShellElementSprism3D6N::EquationIdVector(
 
 void SolidShellElementSprism3D6N::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -1417,7 +1417,7 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
+int SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
