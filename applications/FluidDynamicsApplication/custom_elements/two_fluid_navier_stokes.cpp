@@ -85,6 +85,20 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
+        const double beta_in = 0.0e0;
+        const double beta_out = 0.0e0;
+        const double beta_contact = 0.0e0;
+        const double zeta = 0.0e0;
+        const double surface_tension_coefficient = 0.01; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
+
+        ContactSurfaceDissipation(
+            data,
+            beta_in,
+            beta_out,
+            beta_contact,
+            rLeftHandSideMatrix,
+            rRightHandSideVector);
+
         if (data.IsCut()){
             Matrix shape_functions_pos, shape_functions_neg;
             Matrix shape_functions_enr_pos, shape_functions_enr_neg;
@@ -106,8 +120,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             //Kratos::Vector surface_tension;
 
             bool has_contact_line = false;
-
-            const double surface_tension_coefficient = 0.0728; //Surface tension coefficient, TODO: get from properties
             
             ComputeSplitting(
                 data,
@@ -223,7 +235,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     int_shape_derivatives_neg,
                     rRightHandSideVector); */
 
-                SurfaceTension(
+                /* SurfaceTension(
                     surface_tension_coefficient,
                     gauss_pts_curvature,
                     int_gauss_pts_weights,
@@ -233,6 +245,21 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     contact_shape_function_neg,
                     contact_tangential_neg,
                     has_contact_line,
+                    rRightHandSideVector); */
+
+                SurfaceTension(
+                    data,
+                    surface_tension_coefficient,
+                    zeta,
+                    gauss_pts_curvature,
+                    int_gauss_pts_weights,
+                    int_shape_function_neg,
+                    int_normals_neg,
+                    contact_gauss_pts_weights,
+                    contact_shape_function_neg,
+                    contact_tangential_neg,
+                    has_contact_line,
+                    rLeftHandSideMatrix,
                     rRightHandSideVector);
 
                 /* SurfaceTension(
@@ -3520,7 +3547,124 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     }
 
     noalias(rRHS) += rhs;
-} 
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+    const TElementData& rData,
+    const double coefficient,
+    const double zeta,
+    const Kratos::Vector& rCurvature,
+    const Kratos::Vector& rIntWeights,
+    const Matrix& rIntShapeFunctions,
+    const std::vector<Vector>& rIntNormalsNeg,
+    const Kratos::Vector& rCLWeights,
+    const Matrix& rCLShapeFunctions,
+    const Vector& rTangential,
+    bool HasContactLine,
+    MatrixType& rLHS,
+    VectorType& rRHS)
+{
+    const unsigned int NumIntGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rIntNormalsNeg[0].size();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    double total_weight = 0.0;
+    Vector normal_avg = ZeroVector(NumDim);
+
+    for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
+        total_weight += rIntWeights(intgp);
+        normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
+
+        for (unsigned int j = 0; j < NumNodes; j++){
+            for (unsigned int dim = 0; dim < NumDim; dim++){
+                rhs[ j*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,j);
+            }
+        }
+    }
+
+    normal_avg = 1.0/total_weight * normal_avg;
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    Vector contact_vector = ZeroVector(NumDim);
+    Vector wall_tangent = ZeroVector(NumDim);
+    std::vector< Vector > wall_normal;
+
+    if (HasContactLine){
+
+        MatrixType lhs_dissipation = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));
+        const unsigned int n_dim = 3;  // NumDim did not compiled!
+        const unsigned int n_nodes = n_dim + 1;
+        Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU; // Only velocity
+        for (unsigned int i = 0; i < NumNodes; i++){
+            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                tempU[i*(n_dim+1) + dimi] = rData.Velocity(i,dimi);
+            }
+        }
+
+        const unsigned int NumCLGP = rCLShapeFunctions.size1();    
+
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+
+            Vector wall_normal_gp = ZeroVector(NumDim);
+
+            for (unsigned int j = 0; j < NumNodes; j++){
+                wall_normal_gp += rCLShapeFunctions(clgp,j)*(*p_geom)[j].FastGetSolutionStepValue(NORMAL);
+            }
+
+            wall_normal.push_back( wall_normal_gp );
+        }
+
+        //KRATOS_INFO("Cut Element, has contact line, NumCLGP") << NumCLGP << std::endl;
+
+        MathUtils<double>::UnitCrossProduct(contact_vector, rTangential, normal_avg);
+
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+
+            //KRATOS_INFO("Cut Element, has contact line, CLWeight") << rCLWeights(clgp) << std::endl;
+            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal[clgp], rTangential);
+
+            for (unsigned int i = 0; i < NumNodes; i++){
+
+                //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
+
+                for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                    rhs[ i*(NumDim+1) + dimi ] -= coefficient*contact_vector[dimi]*rCLWeights(clgp)*rCLShapeFunctions(clgp,i);
+                    rhs[ i*(NumDim+1) + dimi ] -= 1.0*coefficient*wall_tangent[dimi]*rCLWeights(clgp)*rCLShapeFunctions(clgp,i); //Contac-line tangential force
+                    //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
+                    //KRATOS_INFO("Cut Element, has contact line, RHS") << rhs[ j*(NumDim+1) + dim ] << std::endl;
+
+                    for (unsigned int j = 0; j < NumNodes; j++){
+                        for (unsigned int dimj = 0; dimj < NumDim; dimj++){
+                            lhs_dissipation( i*(NumDim+1) + dimi, j*(NumDim+1) + dimj) += 
+                                zeta * rCLWeights(clgp) * rCLShapeFunctions(clgp,j) * rCLShapeFunctions(clgp,i);
+                        }
+                    }
+                }
+            }
+        }
+
+        noalias(rLHS) += lhs_dissipation;
+        noalias(rRHS) -= prod(lhs_dissipation,tempU);
+    }
+
+    for (unsigned int i=0; i < NumNodes; ++i){
+        
+        (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+
+        if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
+            if (HasContactLine){
+                (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+                (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
+            }
+        }
+    }
+
+    noalias(rRHS) += rhs;
+}
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
@@ -5201,6 +5345,142 @@ const double crhs_ee10 =             crhs_ee7*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(
     noalias(rKee) += rData.Weight * Kee;
     noalias(rRHS_ee) += rData.Weight * rhs_ee;
     //noalias(rRHS_eV) += rData.Weight * rhs_eV;
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
+    const TElementData& rData,
+    const double betaIn,
+    const double betaOut,
+    const double betaContact,
+    MatrixType& rLHS,
+    VectorType& rRHS)
+{
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    //GeometryType::GeometriesArrayType faces = p_geom->Faces();
+    GeometryType::GeometriesArrayType faces = p_geom->GenerateFaces();
+
+    bool not_found_contact = true;
+    const unsigned int n_faces = 4;
+    const unsigned int n_nodes = 4;
+    const unsigned int n_dim = n_nodes - 1;
+    unsigned int i_face = 0;
+
+    while (i_face < n_faces && not_found_contact) {
+        GeometryType& r_face = faces[i_face];
+        //KRATOS_INFO("ContactSurfaceDissipation, i_face") << i_face << std::endl;
+        unsigned int contact_node = 0;
+        const unsigned int n_face_nodes = 3;
+        for (unsigned int i=0; i < n_face_nodes/* r_face.size() */; ++i){
+            //KRATOS_INFO("ContactSurfaceDissipation, face_nodes") << i << std::endl;
+            if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
+                contact_node++;
+                //KRATOS_INFO("ContactSurfaceDissipation, contact node ID") << r_face[i].Id() << std::endl;
+            }
+        }
+
+        if (contact_node == n_face_nodes){
+            //KRATOS_INFO("ContactSurfaceDissipation, contact i_face") << i_face << std::endl;
+            not_found_contact = false;
+
+            MatrixType lhs_dissipation = ZeroMatrix(n_nodes*(n_dim+1),n_nodes*(n_dim+1));
+            Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU; // Only velocity
+            for (unsigned int i = 0; i < n_nodes; i++){
+                for (unsigned int dimi = 0; dimi < n_dim; dimi++){
+                    tempU[i*(n_dim+1) + dimi] = rData.Velocity(i,dimi);
+                }
+            }
+
+            double beta = 0.0;
+            unsigned int n_minus = 0;
+            unsigned int n_plus = 0;
+            
+            for (unsigned int i=0; i < n_face_nodes; ++i){
+                if ( r_face[i].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+                    n_plus++;
+                }
+                else{
+                    n_minus++;
+                }
+            }
+
+            if (n_plus == 0){
+                beta = betaIn;
+            } 
+            else if (n_minus == 0){
+                beta = betaOut;
+            }  
+            else{
+                beta = betaContact;
+            }
+
+            //MatrixType FaceShapeFunctions;
+            //GeometryType::ShapeFunctionsGradientsType FaceShapeFunctionsGradients;
+            //Kratos::Vector FaceWeights;
+
+            auto IntegrationMethod = GeometryData::GI_GAUSS_2;
+
+            const unsigned int n_int_pts = (faces[i_face]).IntegrationPointsNumber(IntegrationMethod);
+            //KRATOS_INFO("ContactSurfaceDissipation, n_int_pts") << n_int_pts << std::endl;
+
+            //FaceShapeFunctions.resize(n_int_pts, n_nodes, false);
+            //FaceShapeFunctionsGradients.resize(n_int_pts, false);
+            //FaceWeights.resize(n_int_pts, false);
+
+            std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
+            face_gauss_pts_gl_coords.clear();
+            face_gauss_pts_loc_coords.clear();
+            face_gauss_pts_gl_coords.reserve(n_int_pts);
+            face_gauss_pts_loc_coords.reserve(n_int_pts);
+
+            std::vector< IntegrationPoint<3> > face_gauss_pts;
+            face_gauss_pts = (faces[i_face]).IntegrationPoints(IntegrationMethod);
+
+            Kratos::Vector face_jacobians;
+            (faces[i_face]).DeterminantOfJacobian(face_jacobians, IntegrationMethod);
+
+            // Get the original geometry shape function and gradients values over the intersection
+            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+                // Store the Gauss points weights
+               const double face_weight /* FaceWeights (i_gauss) */ = face_jacobians(i_gauss) * face_gauss_pts[i_gauss].Weight();
+
+                // Compute the global coordinates of the face Gauss pt.
+                GeometryType::CoordinatesArrayType global_coords = ZeroVector(3);
+                global_coords = (faces[i_face]).GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
+
+                // Compute the parent geometry local coordinates of the Gauss pt.
+                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(3);
+                loc_coords = (*p_geom).PointLocalCoordinates(loc_coords, global_coords);
+
+                // Compute shape function values
+                // Obtain the parent subgeometry shape function values
+                double det_jac;
+                Kratos::Vector face_shape_func;
+                face_shape_func = (*p_geom).ShapeFunctionsValues(face_shape_func, loc_coords);
+
+                /* for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                    FaceShapeFunctions(i_gauss, i_node) = face_shape_func(i_node);
+                } */
+                //KRATOS_INFO("ContactSurfaceDissipation, gp") << i_gauss << ", Shape Functions: " << face_shape_func << std::endl;
+
+                for (unsigned int i = 0; i < n_nodes; i++){
+                    for (unsigned int j = 0; j < n_nodes; j++){
+                        for (unsigned int dimi = 0; dimi < n_dim; dimi++){
+                            for (unsigned int dimj = 0; dimj < n_dim; dimj++){ 
+                                lhs_dissipation( i*(n_dim+1) + dimi, j*(n_dim+1) + dimj) += 
+                                    beta * face_weight * face_shape_func(j) * face_shape_func(i);
+                            }
+                        }
+                    }
+                }
+            }
+
+            noalias(rLHS) += lhs_dissipation;
+            noalias(rRHS) -= prod(lhs_dissipation,tempU);
+        }
+        
+        i_face++;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

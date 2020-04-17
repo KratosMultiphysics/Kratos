@@ -193,19 +193,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #self.mass_conservation_correction = self._set_mass_conservation_correction()
         #(self.mass_conservation_correction).Initialize();
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Start re-distancing")
-
-        self.parallel_distance_process = self._set_parallel_distance_process()
-        layers = int(2000/100000*self.main_model_part.NumberOfElements())
-        (self.parallel_distance_process).CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    layers, 
-                    0.01,
-                    (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
+        #KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Start re-distancing")
+        #self.parallel_distance_process = self._set_parallel_distance_process()
+        #layers = int(2000/100000*self.main_model_part.NumberOfElements())
+        #(self.parallel_distance_process).CalculateDistances(
+        #            self.main_model_part, 
+        #            KratosMultiphysics.DISTANCE, 
+        #            KratosCFD.AREA_VARIABLE_AUX, 
+        #            layers, 
+        #            3.0,
+        #            (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
+        #KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -265,11 +263,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
-        #for node in (self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
-        #    node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
-            #NodeId = node.Id
-            #KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
-        #Set IS_STRUCTURE to define contact line.
+        #Set IS_STRUCTURE to define contact line
+        for node in (self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
+            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+            NodeId = node.Id
+            KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
 
         #for elem in self.main_model_part.Elements:
         #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_1, 0.0)
@@ -353,14 +351,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    (self.variational_distance_process).Execute()
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 50 == 0):
-                layers = int(1000/100000*self.main_model_part.NumberOfElements())
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    layers, 
-                    0.01)#,
+            #if (TimeStep % 50 == 0):
+            #    layers = int(1000/100000*self.main_model_part.NumberOfElements())
+            #    (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+            #        self.main_model_part, 
+            #        KratosMultiphysics.DISTANCE, 
+            #        KratosCFD.AREA_VARIABLE_AUX, 
+            #        layers, 
+            #        3.0)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Reinitialize distance according to time dependent Eikonal equation
@@ -447,6 +445,48 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             with open("ZeroDistance.log", "a") as distLogFile:
                 distLogFile.write( str(TimeStep*DT) + "\t" + str(YZero) + "\n" )
+
+            #ZPlus = 0.0
+            #ZMinus = 0.0
+            #DistPlus = 10.0
+            #DistMinus = -10.0
+            #ZZero = 0.0
+
+            #for node in self.main_model_part.Nodes:
+            #    NodeX = node.X
+            #    NodeY = node.Y
+            #    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            #    if (abs(NodeX - 0.027) < 1.0e-6 and abs(NodeY - 0.027) < 1.0e-6):
+            #        NodeZ = node.Z
+            #        if (Dist >= 0.0 and Dist < DistPlus):
+            #            DistPlus = Dist
+            #            ZPlus = NodeZ
+            #        if (Dist <= 0.0 and Dist > DistMinus):
+            #            DistMinus = Dist
+            #            ZMinus = NodeZ
+
+            #for node in self.main_model_part.Nodes:
+            #    NodeX = node.X
+            #    NodeY = node.Y
+            #    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            #    if (abs(NodeX - 0.027) < 1.0e-6 and abs(NodeY - 0.027) < 1.0e-6):
+            #        NodeZ = node.Z
+            #        if (NodeZ > ZPlus):
+            #            if (Dist >= 0.0 and Dist < DistPlus + 1.0e-2):
+            #                DistPlus = Dist
+            #                ZPlus = NodeZ
+            #        if (NodeZ > ZMinus):
+            #            if (Dist <= 0.0 and Dist > DistMinus - 1.0e-2):
+            #                DistMinus = Dist
+            #                ZMinus = NodeZ
+
+            #if (abs(DistPlus - DistMinus) > 1.0e-15):
+            #    ZZero = ZMinus + (-DistMinus)/(DistPlus - DistMinus)*(ZPlus - ZMinus)
+            #else:
+            #    ZZero = ZMinus
+
+            #with open("ZeroDistance.log", "a") as distLogFile:
+            #    distLogFile.write( str(TimeStep*DT) + "\t" + str(ZZero) + "\n" )
 
             VMax = 0.0
 
