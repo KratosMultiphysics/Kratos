@@ -199,6 +199,7 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
     const Vector& r_stress_vector = rThisConstVars.StressVector;
 
     Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
+    noalias(fiber_constitutive_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
     auto &r_mat_props    = rValues.GetMaterialProperties();
     const double young   = r_mat_props[YOUNG_MODULUS_FIBER];
     const double poisson = r_mat_props[POISSON_RATIO_FIBER];
@@ -351,6 +352,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegratePert
     const double damage_element = this->CalculateElementalDamage(damages_edges); 
 
     Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
+    noalias(fiber_constitutive_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
     auto &r_mat_props    = rValues.GetMaterialProperties();
     const double young   = r_mat_props[YOUNG_MODULUS_FIBER];
     const double poisson = r_mat_props[POISSON_RATIO_FIBER];
