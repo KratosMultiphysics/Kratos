@@ -113,7 +113,7 @@ namespace Kratos
 
       static Logger& Stop(std::string const& TheSectionLabel);
 
-    static int GetCurrentLevelInstance()
+    static int& GetCurrentLevelInstance()
     {
       static int instance = 0;
       return instance;
