@@ -41,6 +41,15 @@ namespace Kratos
     }
   }
 
+
+  Logger& Logger::Start(std::string const& TheSectionLabel){
+
+  }
+
+  Logger& Logger::Stop(std::string const& TheSectionLabel){
+
+  }
+
   void Logger::AddOutput(LoggerOutput::Pointer pTheOutput)
   {
     #pragma omp critical

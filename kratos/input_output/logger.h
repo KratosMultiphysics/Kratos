@@ -97,10 +97,21 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      Logger& Start(){
+        return Start(mCurrentMessage.GetLabel());
+      }
+
+      Logger& Stop(){
+        return Stop(mCurrentMessage.GetLabel());
+      }
 
       ///@}
       ///@name Static Methods
       ///@{
+
+      static Logger& Start(std::string const& TheSectionLabel);
+
+      static Logger& Stop(std::string const& TheSectionLabel);
 
     static LoggerOutputContainerType& GetOutputsInstance()
     {
