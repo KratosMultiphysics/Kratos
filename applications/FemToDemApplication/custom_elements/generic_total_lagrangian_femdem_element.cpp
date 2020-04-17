@@ -2055,10 +2055,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetValueOnIntegration
     const ProcessInfo &rCurrentProcessInfo)
 {
     if (rVariable == DAMAGE_ELEMENT || 
-    rVariable == IS_DAMAGED || 
-    rVariable == STRESS_THRESHOLD || 
-    rVariable == ACUMULATED_PLASTIC_STRAIN) {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        rVariable == IS_DAMAGED || 
+        rVariable == STRESS_THRESHOLD || 
+        rVariable == ACUMULATED_PLASTIC_STRAIN ||
+        rVariable == PLASTIC_UNIAXIAL_STRESS) {
+            CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 

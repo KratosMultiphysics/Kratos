@@ -196,6 +196,7 @@ protected:
                                      Vector& rPlasticStrainVector,
                                      double &rAcumulatedPlasticStrain,
                                      double &rThreshold,
+                                     double& rUniaxialStress,
                                      bool &rIsPlastifying);
     /**
      * this method computes the plastic multiplier \dot{\lambda}
@@ -247,6 +248,7 @@ protected:
     Vector mAcumulatedPlasticStrains;
     Vector mPlasticityThresholds;
     std::vector<Vector> mPlasticStrains;
+    double mUniaxialStress = 0.0;
 
     ///@name Static Member Variables
     ///@{

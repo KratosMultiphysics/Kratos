@@ -143,6 +143,7 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
     Vector damages_edges = ZeroVector(NumberOfEdges);
     Vector plastic_strain_edges_sum(VoigtSize);
     noalias(plastic_strain_edges_sum) = ZeroVector(VoigtSize);
+    double plastic_uniaxial_stress = 0.0;
 
     if (rYieldSurface != "Elastic") {
         // Loop over edges of the element...
@@ -170,9 +171,11 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
                 double acumulated_plastic_strain = mAcumulatedPlasticStrains[edge];
                 double plasticity_threshold      = mPlasticityThresholds[edge];
 
+                
                 Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
                                                                         plastic_strain, acumulated_plastic_strain,
-                                                                        plasticity_threshold, rIsDamaging);
+                                                                        plasticity_threshold, plastic_uniaxial_stress,
+                                                                        rIsDamaging);
                 plastic_strain_edges_sum += plastic_strain; // we smooth the plastic strain
             } else {
                 this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge,
@@ -183,7 +186,8 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
 
                 Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
                                                                         mPlasticStrains[edge], mAcumulatedPlasticStrains[edge],
-                                                                        mPlasticityThresholds[edge], rIsDamaging);
+                                                                        mPlasticityThresholds[edge], mUniaxialStress,
+                                                                        rIsDamaging);
                 plastic_strain_edges_sum += mPlasticStrains[edge]; // we smooth the plastic strain
             }
         } // Loop over edges
@@ -217,6 +221,7 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
     Vector& rPlasticStrainVector,
     double& rAcumulatedPlasticStrain,
     double& rThreshold,
+    double& rUniaxialStress,
     bool& rIsPlastifying
     )
 {
@@ -240,10 +245,9 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
     const Vector &pressure_stress = bulk_modulus * volumetric_elastic_strain;
     Vector r_deviator_stress      = 2.0 * shear_modulus * deviatoric_elastic_strain;
 
-    const double uniaxial_stress = std::sqrt(1.5 * MathUtils<double>::Dot(r_deviator_stress, r_deviator_stress));
-    KRATOS_WATCH(uniaxial_stress)
+    rUniaxialStress = std::sqrt(1.5 * MathUtils<double>::Dot(r_deviator_stress, r_deviator_stress));
     this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
-    const double stress_excess = uniaxial_stress - rThreshold;
+    const double stress_excess = rUniaxialStress - rThreshold;
 
     // Check if plasticity occurs
     if (stress_excess > tolerance) { // We must compute plasticity
@@ -253,7 +257,7 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
         rAcumulatedPlasticStrain += plastic_multiplier;
         this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
         rPlasticStrainVector += plastic_multiplier * std::sqrt(1.5) * r_deviator_stress / MathUtils<double>::Norm(r_deviator_stress);
-        r_deviator_stress = (1.0 - 3.0 * plastic_multiplier * shear_modulus / uniaxial_stress) * r_deviator_stress;
+        r_deviator_stress = (1.0 - 3.0 * plastic_multiplier * shear_modulus / rUniaxialStress) * r_deviator_stress;
     }
     return pressure_stress + r_deviator_stress; // stress integrated
 }
@@ -333,10 +337,12 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegratePert
         Vector plastic_strain            = mPlasticStrains[edge];
         double acumulated_plastic_strain = mAcumulatedPlasticStrains[edge];
         double plasticity_threshold      = mPlasticityThresholds[edge];
+        double plastic_uniaxial_stress = 0.0;
 
         Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
                                                                 plastic_strain, acumulated_plastic_strain,
-                                                                plasticity_threshold, dummy);
+                                                                plasticity_threshold, plastic_uniaxial_stress,
+                                                                dummy);
         plastic_strain_edges_sum += plastic_strain; // we smooth the plastic strain
 
     } // Loop over edges
@@ -373,6 +379,11 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
         rOutput.resize(1);
         for (unsigned int point_number = 0; point_number < 1; point_number++) {
             rOutput[point_number] = this->CalculateElementalDamage(mAcumulatedPlasticStrains);
+        }
+    } else if (rVariable == PLASTIC_UNIAXIAL_STRESS) {
+        rOutput.resize(1);
+        for (unsigned int point_number = 0; point_number < 1; point_number++) {
+            rOutput[point_number] = mUniaxialStress;
         }
     }
 }
@@ -423,6 +434,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
                 rOutput[point_number].resize(strain_size, false);
 
             Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
+            noalias(fiber_constitutive_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
             auto &r_mat_props    = cl_values.GetMaterialProperties();
             const double young   = r_mat_props[YOUNG_MODULUS_FIBER];
             const double poisson = r_mat_props[POISSON_RATIO_FIBER];
@@ -431,6 +443,8 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
             rOutput[point_number] = prod(fiber_constitutive_matrix,
                                          this_constitutive_variables.StrainVector - this->CalculateAveragePlasticStrain());
         }
+    } else if (rVariable == PLASTIC_STRAIN_VECTOR) {
+        rOutput[0] = this->CalculateAveragePlasticStrain();
     }
 
 }
