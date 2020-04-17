@@ -186,7 +186,7 @@ protected:
     Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
                                             const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables,
                                             Vector &rStrainVector, double &rDamageElement, bool &rIsDamaging, const double CharacteristicLength,
-                                            const bool SaveIntVars);
+                                            const bool SaveIntVars) override;
 
     /**
      * this integrates the stress according to plasticity
@@ -211,6 +211,38 @@ protected:
     void ComputePlasticThreshold(const double AcumulatedPlasticStrain,
                                  double &rThreshold,
                                  ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * this integrates the perturbed strain
+     */
+    void IntegratePerturbedStrain(Vector &rPerturbedStressVector,
+                                  const Vector &rPerturbedStrainVector,
+                                  const Matrix &rElasticMatrix,
+                                  ConstitutiveLaw::Parameters &rValues);
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    Vector CalculateAveragePlasticStrain()
+    {
+        Vector average_plastic_strain(VoigtSize);
+        noalias(average_plastic_strain) = ZeroVector(VoigtSize);
+        for (IndexType i = 0; i < NumberOfEdges; ++i)
+            average_plastic_strain += mPlasticStrains[i];
+        return average_plastic_strain / NumberOfEdges;
+    }
 
     Vector mAcumulatedPlasticStrains;
     Vector mPlasticityThresholds;

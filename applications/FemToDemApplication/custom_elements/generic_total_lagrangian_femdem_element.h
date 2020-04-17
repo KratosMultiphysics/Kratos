@@ -314,7 +314,7 @@ protected:
     /**
      * this performs the smooting and integrates the CL and returns the integrated Stress
      */
-    Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
+    virtual Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
                                              const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables, 
                                              Vector &rStrainVector, double& rDamageElement,  bool& rIsDamaging, const double CharacteristicLength,
                                              const bool SaveIntVars);

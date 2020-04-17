@@ -203,8 +203,8 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
     const Vector &r_stress_vector_fiber = prod(fiber_constitutive_matrix, rStrainVector - plastic_strain_edges_sum);
 
     const double fiber_vol_part = r_mat_props[FIBER_VOLUMETRIC_PART];
-    
-    return (1.0 - fiber_vol_part)*(1.0 - rDamageElement) * r_stress_vector + fiber_vol_part * r_stress_vector_fiber;;
+
+    return (1.0 - fiber_vol_part)*(1.0 - rDamageElement) * r_stress_vector + fiber_vol_part * r_stress_vector_fiber;
 }
 
 /***********************************************************************************/
@@ -232,15 +232,16 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
     ConstitutiveLawUtilities<VoigtSize>::CalculateDeviatoricStrainVector(
         r_elastic_strain, volumetric_elastic_strain, deviatoric_elastic_strain);
 
-    const double young             = r_mat_props[YOUNG_MODULUS_FIBER];
-    const double poisson           = r_mat_props[POISSON_RATIO_FIBER];
-    const double bulk_modulus      = ConstitutiveLawUtilities<VoigtSize>::CalculateBulkModulus(young, poisson);
-    const double shear_modulus     = ConstitutiveLawUtilities<VoigtSize>::CalculateShearModulus(young, poisson);
+    const double young         = r_mat_props[YOUNG_MODULUS_FIBER];
+    const double poisson       = r_mat_props[POISSON_RATIO_FIBER];
+    const double bulk_modulus  = ConstitutiveLawUtilities<VoigtSize>::CalculateBulkModulus(young, poisson);
+    const double shear_modulus = ConstitutiveLawUtilities<VoigtSize>::CalculateShearModulus(young, poisson);
 
     const Vector &pressure_stress = bulk_modulus * volumetric_elastic_strain;
     Vector r_deviator_stress      = 2.0 * shear_modulus * deviatoric_elastic_strain;
 
     const double uniaxial_stress = std::sqrt(1.5 * MathUtils<double>::Dot(r_deviator_stress, r_deviator_stress));
+    KRATOS_WATCH(uniaxial_stress)
     this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
     const double stress_excess = uniaxial_stress - rThreshold;
 
@@ -249,12 +250,11 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
         rIsPlastifying = true;
         const double hardening_modulus  = r_mat_props.Has(HARDENING_MODULUS) ? r_mat_props[HARDENING_MODULUS] : 0.0;
         const double plastic_multiplier = stress_excess / (3.0 * shear_modulus + hardening_modulus);
-        rAcumulatedPlasticStrain       += plastic_multiplier;
+        rAcumulatedPlasticStrain += plastic_multiplier;
         this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
-        rPlasticStrainVector           += plastic_multiplier * std::sqrt(1.5) * r_deviator_stress / MathUtils<double>::Norm(r_deviator_stress);
+        rPlasticStrainVector += plastic_multiplier * std::sqrt(1.5) * r_deviator_stress / MathUtils<double>::Norm(r_deviator_stress);
         r_deviator_stress = (1.0 - 3.0 * plastic_multiplier * shear_modulus / uniaxial_stress) * r_deviator_stress;
     }
-
     return pressure_stress + r_deviator_stress; // stress integrated
 }
 
@@ -288,35 +288,181 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::ComputePlasti
     )
 {
     auto &r_mat_props = rValues.GetMaterialProperties();
-    const double yield_stress      = r_mat_props[YIELD_STRESS];
+    const double yield_stress      = r_mat_props[YIELD_STRESS_T_FIBER];
     const double hardening_modulus = r_mat_props.Has(HARDENING_MODULUS) ? r_mat_props[HARDENING_MODULUS] : 0.0;
     rThreshold = yield_stress + hardening_modulus * AcumulatedPlasticStrain;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
+    Vector& rPerturbedStressVector,
+    const Vector& rPerturbedStrainVector,
+    const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    Vector damages_edges = ZeroVector(NumberOfEdges);
+    Vector plastic_strain_edges_sum(VoigtSize);
+    noalias(plastic_strain_edges_sum) = ZeroVector(VoigtSize);
+
+    Vector average_stress_edge(VoigtSize);
+    Vector average_strain_edge(VoigtSize);
+
+    const Vector& r_perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
+    const double characteristic_length = this->CalculateCharacteristicLength(this);
+
+    for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+        noalias(average_stress_edge) = r_perturbed_predictive_stress;
+        noalias(average_strain_edge) = rPerturbedStrainVector;
+        this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+        this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+
+        damages_edges[edge] = mDamages[edge];
+        double threshold = mThresholds[edge];
+        bool dummy = false;
+
+        // Matrix constitutive damage model
+        this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge,
+                                                average_stress_edge, edge, characteristic_length, rValues,
+                                                dummy);
+
+        // Fibre plasticity constitutive model
+        Vector plastic_strain            = mPlasticStrains[edge];
+        double acumulated_plastic_strain = mAcumulatedPlasticStrains[edge];
+        double plasticity_threshold      = mPlasticityThresholds[edge];
+
+        Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
+                                                                plastic_strain, acumulated_plastic_strain,
+                                                                plasticity_threshold, dummy);
+        plastic_strain_edges_sum += plastic_strain; // we smooth the plastic strain
+
+    } // Loop over edges
+
+    plastic_strain_edges_sum /= NumberOfEdges;
+    const double damage_element = this->CalculateElementalDamage(damages_edges); 
+
+    Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
+    auto &r_mat_props    = rValues.GetMaterialProperties();
+    const double young   = r_mat_props[YOUNG_MODULUS_FIBER];
+    const double poisson = r_mat_props[POISSON_RATIO_FIBER];
+    ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(fiber_constitutive_matrix, young, poisson);
+
+    const Vector &r_stress_vector_fiber = prod(fiber_constitutive_matrix, rPerturbedStrainVector - plastic_strain_edges_sum);
+
+    const double fiber_vol_part = r_mat_props[FIBER_VOLUMETRIC_PART];
+
+    rPerturbedStressVector = (1.0 - fiber_vol_part)*(1.0 - damage_element) * r_perturbed_predictive_stress + 
+        fiber_vol_part * r_stress_vector_fiber;
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
+    if (rVariable == ACUMULATED_PLASTIC_STRAIN) {
+        rOutput.resize(1);
+        for (unsigned int point_number = 0; point_number < 1; point_number++) {
+            rOutput[point_number] = this->CalculateElementalDamage(mAcumulatedPlasticStrains);
+        }
+    }
+}
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+    if (rVariable == FIBER_STRESS_VECTOR) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const SizeType number_of_integration_points = integration_points.size();
+        if ( rOutput.size() != number_of_integration_points )
+            rOutput.resize( number_of_integration_points );
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& cl_options=cl_values.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        // Reading integration points
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            //call the constitutive law to update material variables
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+
+            if ( rOutput[point_number].size() != strain_size ) {}
+                rOutput[point_number].resize(strain_size, false);
+
+            Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
+            auto &r_mat_props    = cl_values.GetMaterialProperties();
+            const double young   = r_mat_props[YOUNG_MODULUS_FIBER];
+            const double poisson = r_mat_props[POISSON_RATIO_FIBER];
+            ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(fiber_constitutive_matrix, young, poisson);
+
+            rOutput[point_number] = prod(fiber_constitutive_matrix,
+                                         this_constitutive_variables.StrainVector - this->CalculateAveragePlasticStrain());
+        }
+    }
+
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    std::vector<Vector> stress_vector;
 
+    if (rVariable == FIBER_STRESS_TENSOR) {
+        this->CalculateOnIntegrationPoints(FIBER_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
 
+        // Loop integration points
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            if (rOutput[point_number].size2() != dimension)
+                rOutput[point_number].resize( dimension, dimension, false);
 
-/***********************************************************************************/
-/***********************************************************************************/
+            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+        }
+    }
 
-
-
-
-
-
-
-
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
