@@ -31,7 +31,13 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
+    std::cout << mpGeom << std::endl;
     const auto& r_geometry_origin = mpGeom->GetGeometryPart(0);
+    // TODO change between projected and master consistent mass matrix switch here/*
+    /*const auto& r_geometry_origin = (mIsProjectorMappingMatrix)
+        ? mpGeom->GetGeometryPart(1)
+        : mpGeom->GetGeometryPart(0);*/
+    
     const auto& r_geometry_destination = mpGeom->GetGeometryPart(1);
 
     const std::size_t number_of_nodes_origin = r_geometry_origin.size();
@@ -63,6 +69,9 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                  * sf_values_destination( integration_point_itr, j )
                  * integration_point_values_origin[integration_point_itr].Weight()
                  * determinant_of_jacobian_values_origin[i];
+
+                KRATOS_DEBUG_ERROR_IF(sf_values_origin(integration_point_itr, i) < 0.0) << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                KRATOS_DEBUG_ERROR_IF(sf_values_destination(integration_point_itr, j) < 0.0) << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
         }
     }
@@ -100,10 +109,21 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 {
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen
     // kommt drauf an, wo die Coupling-Geometries sind
+    
+    // projector mass matrix
     CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
                              mMapperLocalSystems);
 
-    BuildMappingMatrix(MappingOptions);
+    // change to slave mass matrix
+    CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
+                            mMapperLocalSystems);
+
+    // invert projector interface matrix and assemble total interface mapping matrix
+
+
+    // assemble to global
+
+    BuildMappingMatrix(MappingOptions); // TODO we probably may not need this
 }
 
 /* Performs operations that are needed for Initialization and when the interface is updated (All cases)
