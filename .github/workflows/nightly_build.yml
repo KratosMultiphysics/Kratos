@@ -32,7 +32,7 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=gcc
           export CXX=g++
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
