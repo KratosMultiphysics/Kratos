@@ -280,7 +280,7 @@ protected:
     /**
      * this integrated the perturbed strain
      */
-    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    virtual void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this assings the components to the tangent tensor

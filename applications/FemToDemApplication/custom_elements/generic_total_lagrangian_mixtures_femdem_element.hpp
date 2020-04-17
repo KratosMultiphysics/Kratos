@@ -219,7 +219,7 @@ protected:
     void IntegratePerturbedStrain(Vector &rPerturbedStressVector,
                                   const Vector &rPerturbedStrainVector,
                                   const Matrix &rElasticMatrix,
-                                  ConstitutiveLaw::Parameters &rValues);
+                                  ConstitutiveLaw::Parameters &rValues) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
