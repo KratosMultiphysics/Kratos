@@ -28,6 +28,8 @@
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
 #include "custom_elements/fractional_step/rans_fractional_step.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_base_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_base_element.h"
 
 // Condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
@@ -208,6 +210,12 @@ private:
     const FSHighReKWallCondition<3, 3> mFSHighReKWallCondition3D3N;
 
     /// k-epsilon turbulence model elements
+    const RansEvmKEpsilonKBaseElement<2, 3> mRansEvmKEpsilonKBase2D;
+    const RansEvmKEpsilonKBaseElement<3, 4> mRansEvmKEpsilonKBase3D;
+
+    const RansEvmKEpsilonEpsilonBaseElement<2, 3> mRansEvmKEpsilonEpsilonBase2D;
+    const RansEvmKEpsilonEpsilonBaseElement<3, 4> mRansEvmKEpsilonEpsilonBase3D;
+
     const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
     const RansEvmKEpsilonLowReKElement<3, 4> mRansEvmKEpsilonLowReK3D;
 
