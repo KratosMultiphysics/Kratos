@@ -35,8 +35,15 @@
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
 #endif
 
+#if defined USE_EIGEN_FEAST
+#include "custom_solvers/feast_eigensystem_solver.h"
+#endif
+
 #include "factories/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
+
+/* Utilities */
+#include "custom_utilities/feast_condition_number_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -86,6 +93,23 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
         UblasSpace<double, Matrix, Vector>>;
 
     using EigenSystemSolverType = EigensystemSolver<>;
+
+    py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
+        (m, name.c_str())
+        .def(py::init<Parameters>())
+    ;
+}
+
+template<typename EigenSystemSolverType>
+void register_feast_eigensystem_solver(pybind11::module& m, const std::string& name)
+{
+    namespace py = pybind11;
+
+    using DataTypeIn = typename EigenSystemSolverType::ValueTypeIn;
+    using DataTypeOut = typename EigenSystemSolverType::ValueTypeOut;
+    using SparseSpaceType = TUblasSparseSpace<DataTypeIn>;
+    using DenseSpaceType = TUblasDenseSpace<DataTypeOut>;
+    using Base = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
         (m, name.c_str())
@@ -151,6 +175,8 @@ void register_base_dense_solver(pybind11::module& m)
 
 void AddCustomSolversToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
     using complex = std::complex<double>;
 
     // --- direct solvers
@@ -185,6 +211,20 @@ void AddCustomSolversToPython(pybind11::module& m)
     // --- eigensystem solver
 
     register_eigensystem_solver(m, "EigensystemSolver");
+#if defined USE_EIGEN_FEAST
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<true, double, double>>(m, "FEASTSymmetricEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<false, double, complex>>(m, "FEASTGeneralEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<true, complex, complex>>(m, "ComplexFEASTSymmetricEigensystemSolver");
+    register_feast_eigensystem_solver<FEASTEigensystemSolver<false, complex, complex>>(m, "ComplexFEASTGeneralEigensystemSolver");
+#endif
+
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+    typedef FEASTConditionNumberUtility<SparseSpaceType, LocalSpaceType> FEASTConditionNumberUtilityType;
+    py::class_<FEASTConditionNumberUtilityType,FEASTConditionNumberUtilityType::Pointer>(m,"FEASTConditionNumberUtility")
+        .def("GetConditionNumber", &FEASTConditionNumberUtilityType::GetConditionNumber)
+        ;
 }
 
 } // namespace Python

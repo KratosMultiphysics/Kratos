@@ -157,7 +157,7 @@ namespace Kratos
 
             // iterate through polygon and check for knot intersections
             for (IndexType i = 1; i < polygon.size(); ++i) {
-                if (std::get<1>(polygon[i])[0] - min_1 < (-1) * Tolerance) {
+                if (std::get<1>(polygon[i])[0] - min_1 < -Tolerance) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, min_1,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
@@ -172,7 +172,7 @@ namespace Kratos
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0]);
                 }
 
-                if (std::get<1>(polygon[i])[1] - min_2 < (-1) * Tolerance) {
+                if (std::get<1>(polygon[i])[1] - min_2 < -Tolerance) {
                     double intersection_parameter = BisectionToAxis(
                         rGeometry, min_2,
                         std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
