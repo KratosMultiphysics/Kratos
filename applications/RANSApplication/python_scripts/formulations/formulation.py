@@ -41,21 +41,15 @@ class Formulation:
         self.__ExecuteProcessMethods("ExecuteInitializeSolutionStep")
         self.__ExecuteFormulationMethods("InitializeSolutionStep")
 
-    def ExecuteBeforeCouplingSolveStep(self):
-        pass
-
     def SolveCouplingStep(self):
-        self.ExecuteBeforeCouplingSolveStep()
-
         max_iterations = self.GetMaxCouplingIterations()
-        for iteration in range(max_iterations):
+        for _ in range(max_iterations):
             for formulation in self.list_of_formulations:
-                formulation.SolveCouplingStep()
-                Kratos.Logger.PrintInfo(formulation.GetName(), "Solved  formulation.")
-
-            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+                if (not formulation.SolveCouplingStep()):
+                    return False
 
         self.ExecuteAfterCouplingSolveStep()
+        return True
 
     def ExecuteAfterCouplingSolveStep(self):
         self.__ExecuteProcessMethods("Execute")

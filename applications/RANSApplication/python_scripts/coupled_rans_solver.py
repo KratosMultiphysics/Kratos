@@ -207,24 +207,20 @@ class CoupledRANSSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self.formulation.InitializeSolutionStep()
+        self.formulation.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self.formulation.SolveCouplingStep()
-            self.is_converged = self.formulation.IsConverged()
+        self.formulation.SolveCouplingStep()
+        self.is_converged = self.formulation.IsConverged()
 
-            if not self.is_converged and not self.IsSteadySimulation():
-                msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"
-                msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[Kratos.TIME]) + "\n"
-                Kratos.Logger.PrintWarning(self.__class__.__name__, msg)
-            return self.is_converged
-        return True
+        if not self.is_converged and not self.IsSteadySimulation():
+            msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[Kratos.TIME]) + "\n"
+            Kratos.Logger.PrintWarning(self.__class__.__name__, msg)
+        return self.is_converged
 
     def FinalizeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self.formulation.FinalizeSolutionStep()
+        self.formulation.FinalizeSolutionStep()
 
     def Check(self):
         self.formulation.Check()
@@ -235,20 +231,12 @@ class CoupledRANSSolver(PythonSolver):
     def IsSteadySimulation(self):
         return self.is_steady
 
-    def IsConverged(self):
-        return self.is_steady and self.is_converged
-
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(
                 "fluid_computational_model_part"):
             raise Exception("The ComputingModelPart was not created yet!")
         return self.main_model_part.GetSubModelPart(
             "fluid_computational_model_part")
-
-    def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[
-            Kratos.STEP] + 1 >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number

@@ -82,15 +82,12 @@ class IncompressiblePotentialFlowPressureFormulation(Formulation):
         return False
 
     def SolveCouplingStep(self):
-        self.ExecuteBeforeCouplingSolveStep()
-        self.pressure_strategy.Predict()
-        self.is_converged = self.pressure_strategy.SolveSolutionStep()
-        self.ExecuteAfterCouplingSolveStep()
-
-    def ExecuteBeforeCouplingSolveStep(self):
-        RansVariableUtilities.CalculateMagnitudeSquareFor3DVariable(
-            self.pressure_model_part, Kratos.VELOCITY,
-            KratosRANS.VELOCITY_POTENTIAL)
+        if (not self.IsConverged()):
+            self.pressure_strategy.Predict()
+            self.is_converged = self.pressure_strategy.SolveSolutionStep()
+            self.ExecuteAfterCouplingSolveStep()
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
+        return True
 
     def ExecuteAfterCouplingSolveStep(self):
         VariableUtils().CopyModelPartNodalVar(KratosRANS.PRESSURE_POTENTIAL,
@@ -99,7 +96,9 @@ class IncompressiblePotentialFlowPressureFormulation(Formulation):
                                               self.pressure_model_part, 0)
 
     def FinializeSolutionStep(self):
-        self.pressure_strategy.FinializeSolutionStep()
+        if self.GetBaseModelPart().ProcessInfo[
+            Kratos.STEP] + 1 >= 2:
+            self.pressure_strategy.FinializeSolutionStep()
 
     def Check(self):
         self.pressure_strategy.Check()

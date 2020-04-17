@@ -19,6 +19,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgeraicFluxCorrectedTransportScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
 
 class KEpsilonHighReEpsilonFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -93,9 +94,14 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
             return False
 
     def SolveCouplingStep(self):
-        self.is_solved_once = True
-        self.solver.Predict()
-        self.solver.SolveSolutionStep()
+        if (IsBufferInitialized(self)):
+            self.is_solved_once = True
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
+            return True
+
+        return False
 
     def FinializeSolutionStep(self):
         self.solver.FinializeSolutionStep()

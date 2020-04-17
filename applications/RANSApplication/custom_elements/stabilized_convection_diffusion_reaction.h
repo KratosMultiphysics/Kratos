@@ -332,10 +332,10 @@ public:
 
                 value += gauss_shape_functions[a] * source;
 
-                // Add supg stabilization terms
-                value += (velocity_convective_terms[a] +
-                          reaction * gauss_shape_functions[a]) *
-                         tau * source;
+                // // Add supg stabilization terms
+                // value += (velocity_convective_terms[a] +
+                //           reaction * gauss_shape_functions[a]) *
+                //          tau * source;
 
                 rRightHandSideVector[a] += gauss_weights[g] * value;
             }
@@ -356,10 +356,10 @@ public:
     {
         CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 
-        // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
-        VectorType U;
-        this->GetValuesVector(U);
-        noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
+        // // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
+        // VectorType U;
+        // this->GetValuesVector(U);
+        // noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
     /**
@@ -399,39 +399,40 @@ public:
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         const double scalar_multiplier =
             this->CalculatePrimalDampingMatrix(local_matrix, rCurrentProcessInfo);
-        this->SetValue(ERROR_OVERALL, scalar_multiplier);
+        // this->SetValue(ERROR_OVERALL, scalar_multiplier);
+        // this->GetValue(PARENT_ELEMENT_POINTER)->SetValue(ERROR_OVERALL, scalar_multiplier);
 
-        double local_matrix_norm = norm_frobenius(local_matrix);
-        local_matrix_norm = (local_matrix_norm > 0.0 ? local_matrix_norm : 1.0);
+        // double local_matrix_norm = norm_frobenius(local_matrix);
+        // local_matrix_norm = (local_matrix_norm > 0.0 ? local_matrix_norm : 1.0);
 
         if (rDampingMatrix.size1() != TNumNodes || rDampingMatrix.size2() != TNumNodes)
             rDampingMatrix.resize(TNumNodes, TNumNodes, false);
 
-        const double discrete_upwind_operator_coefficient =
-            rCurrentProcessInfo[RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT];
-        const double diagonal_positivity_preserving_coefficient =
-            rCurrentProcessInfo[RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT];
+        // const double discrete_upwind_operator_coefficient =
+        //     rCurrentProcessInfo[RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT];
+        // const double diagonal_positivity_preserving_coefficient =
+        //     rCurrentProcessInfo[RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT];
 
-        BoundedMatrix<double, TNumNodes, TNumNodes> discrete_diffusion_matrix;
-        double matrix_norm;
-        StabilizedConvectionDiffusionReactionUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
-            matrix_norm, discrete_diffusion_matrix, local_matrix);
+        // BoundedMatrix<double, TNumNodes, TNumNodes>
+        // discrete_diffusion_matrix; double matrix_norm;
+        // StabilizedConvectionDiffusionReactionUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
+        //     matrix_norm, discrete_diffusion_matrix, local_matrix);
 
-        double diagonal_coefficient =
-            StabilizedConvectionDiffusionReactionUtilities::CalculatePositivityPreservingMatrix(
-                local_matrix);
+        // double diagonal_coefficient =
+        //     StabilizedConvectionDiffusionReactionUtilities::CalculatePositivityPreservingMatrix(
+        //         local_matrix);
 
-        diagonal_coefficient *= diagonal_positivity_preserving_coefficient * scalar_multiplier;
+        // diagonal_coefficient *= diagonal_positivity_preserving_coefficient * scalar_multiplier;
 
-        noalias(local_matrix) += discrete_diffusion_matrix *
-                                 (discrete_upwind_operator_coefficient * scalar_multiplier);
-        noalias(local_matrix) += IdentityMatrix(TNumNodes) * (diagonal_coefficient);
+        // noalias(local_matrix) += discrete_diffusion_matrix *
+        //                          (discrete_upwind_operator_coefficient * scalar_multiplier);
+        // noalias(local_matrix) += IdentityMatrix(TNumNodes) * (diagonal_coefficient);
 
-        this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT,
-                       discrete_upwind_operator_coefficient * matrix_norm *
-                           scalar_multiplier / local_matrix_norm);
-        this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT,
-                       diagonal_coefficient / local_matrix_norm);
+        // this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT,
+        //                discrete_upwind_operator_coefficient * matrix_norm *
+        //                    scalar_multiplier / local_matrix_norm);
+        // this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT,
+        //                diagonal_coefficient / local_matrix_norm);
 
         noalias(rDampingMatrix) = local_matrix;
     }
@@ -815,15 +816,15 @@ public:
                              gauss_shape_functions[b];
                     value += effective_kinematic_viscosity * dNa_dNb;
 
-                    // Adding SUPG stabilization terms
-                    value += tau *
-                             (velocity_convective_terms[a] +
-                              reaction * gauss_shape_functions[a]) *
-                             velocity_convective_terms[b];
-                    value += tau *
-                             (velocity_convective_terms[a] +
-                              reaction * gauss_shape_functions[a]) *
-                             reaction * gauss_shape_functions[b];
+                    // // Adding SUPG stabilization terms
+                    // value += tau *
+                    //          (velocity_convective_terms[a] +
+                    //           reaction * gauss_shape_functions[a]) *
+                    //          velocity_convective_terms[b];
+                    // value += tau *
+                    //          (velocity_convective_terms[a] +
+                    //           reaction * gauss_shape_functions[a]) *
+                    //          reaction * gauss_shape_functions[b];
 
                     rDampingMatrix(a, b) += gauss_weights[g] * value;
                 }

@@ -121,3 +121,6 @@ def GetConvergenceInfo(variable,
             absolute_error, absolute_tolerance)
     info += " ] - " + str(variable.Name())
     return info
+
+def IsBufferInitialized(formulation):
+    return (formulation.GetBaseModelPart().ProcessInfo[Kratos.STEP] + 1 >= formulation.GetMinimumBufferSize())

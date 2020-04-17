@@ -80,9 +80,12 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         return False
 
     def SolveCouplingStep(self):
-        self.velocity_strategy.Predict()
-        self.is_converged = self.velocity_strategy.SolveSolutionStep()
-        self.ExecuteAfterCouplingSolveStep()
+        if (not self.IsConverged()):
+            self.velocity_strategy.Predict()
+            self.is_converged = self.velocity_strategy.SolveSolutionStep()
+            self.ExecuteAfterCouplingSolveStep()
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
+        return True
 
     def ExecuteAfterCouplingSolveStep(self):
         RansVariableUtilities.CopyFlaggedVariableToNonHistorical(
@@ -103,6 +106,10 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         # take back the original inlet velocities
         RansVariableUtilities.CopyFlaggedVariableFromNonHistorical(
             self.velocity_model_part, Kratos.VELOCITY, Kratos.INLET)
+
+        RansVariableUtilities.CalculateMagnitudeSquareFor3DVariable(
+            self.velocity_model_part, Kratos.VELOCITY,
+            KratosRANS.VELOCITY_POTENTIAL)
 
     def FinializeSolutionStep(self):
         self.velocity_strategy.FinializeSolutionStep()

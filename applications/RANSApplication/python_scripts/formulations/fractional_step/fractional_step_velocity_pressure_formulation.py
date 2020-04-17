@@ -19,6 +19,7 @@ from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -237,20 +238,28 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         return False
 
     def SolveCouplingStep(self):
-        max_iterations = self.GetMaxCouplingIterations()
-        for iteration in range(max_iterations):
-            self.solver.Predict()
-            self.is_converged = self.solver.SolveSolutionStep()
-            self.ExecuteAfterCouplingSolveStep()
-            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+        if (IsBufferInitialized(self)):
+            max_iterations = self.GetMaxCouplingIterations()
+            for iteration in range(max_iterations):
+                self.solver.Predict()
+                self.is_converged = self.solver.SolveSolutionStep()
+                self.ExecuteAfterCouplingSolveStep()
+                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+                return True
+
+        return False
 
     def InitializeSolutionStep(self):
-        super(FractionalStepVelocityPressureFormulation, self).InitializeSolutionStep()
-        self.solver.InitializeSolutionStep()
+        if self.GetBaseModelPart().ProcessInfo[
+            Kratos.STEP] + 1 >= 3:
+            super(FractionalStepVelocityPressureFormulation, self).InitializeSolutionStep()
+            self.solver.InitializeSolutionStep()
 
     def FinializeSolutionStep(self):
-        self.solver.FinializeSolutionStep()
-        super(FractionalStepVelocityPressureFormulation, self).FinializeSolutionStep()
+        if self.GetBaseModelPart().ProcessInfo[
+            Kratos.STEP] + 1 >= 3:
+            self.solver.FinializeSolutionStep()
+            super(FractionalStepVelocityPressureFormulation, self).FinializeSolutionStep()
 
     def Check(self):
         super(FractionalStepVelocityPressureFormulation, self).Check()

@@ -44,6 +44,11 @@ class FractionalStepKEpsilonHighReFormulation(Formulation):
                 "turbulent_energy_dissipation_rate_tolerances": {
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5
+                },
+                "turbulent_viscosity_tolerances":
+                {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5
                 }
             },
             "coupling_settings":
@@ -74,20 +79,19 @@ class FractionalStepKEpsilonHighReFormulation(Formulation):
         if (self.is_steady_simulation):
             settings = self.settings["steady_convergence_settings"]
             formulation_converged = self.__CheckTransientConvergence(Kratos.VELOCITY, settings["velocity_tolerances"])
-            if (self.is_converged):
-                self.is_converged = formulation_converged
+            self.is_converged = self.is_converged and formulation_converged
 
             formulation_converged = self.__CheckTransientConvergence(Kratos.PRESSURE, settings["pressure_tolerances"])
-            if (self.is_converged):
-                self.is_converged = formulation_converged
+            self.is_converged = self.is_converged and formulation_converged
 
             formulation_converged = self.__CheckTransientConvergence(KratosRANS.TURBULENT_KINETIC_ENERGY, settings["turbulent_kinetic_energy_tolerances"])
-            if (self.is_converged):
-                self.is_converged = formulation_converged
+            self.is_converged = self.is_converged and formulation_converged
 
             formulation_converged = self.__CheckTransientConvergence(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, settings["turbulent_energy_dissipation_rate_tolerances"])
-            if (self.is_converged):
-                self.is_converged = formulation_converged
+            self.is_converged = self.is_converged and formulation_converged
+
+            formulation_converged = self.__CheckTransientConvergence(Kratos.TURBULENT_VISCOSITY, settings["turbulent_viscosity_tolerances"])
+            self.is_converged = self.is_converged and formulation_converged
 
         return self.is_converged
 
