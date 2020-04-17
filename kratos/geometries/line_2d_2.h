@@ -996,7 +996,7 @@ public:
                     } else {
                         return true; // p4 lies within the line
                     }
-                } else if (inner_prod(CD,CA) > tolerance && inner_prod(CD, CB) > tolerance) { // check if the line lies entirely within the other line
+                } else if (inner_prod(CD, CA) > tolerance && inner_prod(-1.0 * CD, (second_point - second_point_other)) > tolerance) { // check if the line lies entirely within the other line
                     return true; // the line lies entirely within the other line
                 } else {
                     return false; // Lines are colinear, but do not overlap at all
