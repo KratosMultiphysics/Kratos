@@ -80,6 +80,7 @@ def GetDefaultInputParameters():
             "test_number" : 1,
             "gmesh_with_inner_skin" : false,
             "compute_skin_factor" : 0.9,
+            "inner_mesh_diameter" : 0.00015,
             "outer_mesh_diameter" : 0.00015,
             "inner_skin_factor" : 2.4,
             "outer_skin_factor" : 0.8,

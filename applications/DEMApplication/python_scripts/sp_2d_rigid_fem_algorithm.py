@@ -13,6 +13,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.test_number = project_parameters["test_number"].GetInt()
         self.gmesh_with_inner_skin = project_parameters["gmesh_with_inner_skin"].GetBool()
         self.compute_skin_factor = project_parameters["compute_skin_factor"].GetDouble()
+        self.inner_mesh_diameter = project_parameters["inner_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the finer mesh)
         self.outer_mesh_diameter = project_parameters["outer_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the coarser mesh)
         # The two values that follow may depend on the GiD mesh used. The higher the value, the more skin particles
         self.inner_skin_factor = project_parameters["inner_skin_factor"].GetDouble() # 2.4
@@ -60,16 +61,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
         center = KratosMultiphysics.Array3()
         center[0] = center[1] = center[2] = 0.0
-        min_radius = 0.5 * 0.00015 # This is the real particle radius at the inner hole
 
         if self.gmesh_with_inner_skin:
             self.PreUtilities.ComputeSkinIncludingInnerVoids(self.spheres_model_part, self.compute_skin_factor)
         else:
-            self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * min_radius)
-            self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
-
-        # Blind: TODO. At this moment, only implementations for the CTWs exist
-        #self.PreUtilities.SetSkinParticlesOuterBoundaryBlind(self.spheres_model_part, self.outer_radius, center, outer_skin_factor * 0.5 * self.outer_mesh_diameter)
+            self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * 0.5 * self.inner_mesh_diameter)
+            if self.test_number < 4: # CTWs
+                self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
+            else: # Blind
+                self.PreUtilities.SetSkinParticlesOuterBoundaryBlind(self.spheres_model_part, self.outer_radius, center, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
 
     def CreateSPMeasuringRingSubmodelpart(self, spheres_model_part):
 
