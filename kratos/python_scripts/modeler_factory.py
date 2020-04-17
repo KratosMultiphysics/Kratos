@@ -36,7 +36,7 @@ class KratosModelerFactory(object):
                     constructed_modelers.append( p )
 
             else: # for cpp modelers
-                kratos_module = settings["modeler_name"].GetString()
-                constructed_modelers.append( KM.CreateModeler(kratos_module, settings["Parameters"]) )
+                kratos_module = modeler_item["modeler_name"].GetString()
+                constructed_modelers.append( KM.CreateModeler(kratos_module, modeler_item["Parameters"]) )
 
         return constructed_modelers
