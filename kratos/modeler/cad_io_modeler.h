@@ -62,8 +62,8 @@ public:
     CadIoModeler(const Parameters ModelerParameters = Parameters())
         : Modeler(ModelerParameters)
         , mEchoLevel(
-            ModelerParameters.Has("EchoLevel")
-            ? ModelerParameters["EchoLevel"].GetInt()
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
             : 0)
     {
     }
