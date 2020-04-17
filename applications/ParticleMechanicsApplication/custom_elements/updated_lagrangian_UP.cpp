@@ -1241,6 +1241,9 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF(rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+    << "Explicit time integration not implemented for Updated Lagrangian UP MPM Element";
+
     int correct = 0;
     correct = UpdatedLagrangian::Check(rCurrentProcessInfo);
 
