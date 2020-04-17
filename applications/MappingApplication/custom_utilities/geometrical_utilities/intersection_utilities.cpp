@@ -227,14 +227,9 @@ bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
                     return true; 
                 }
             }
-            else if (inner_prod(CD, CA) > tolerance && inner_prod(CD, CB) > tolerance) {// check if the line lies entirely within the other line
-                if (inner_prod(CA,CA) < inner_prod(CB,CB)) {
-                    rOverlapExtents[0] = first_point;
-                    rOverlapExtents[1] = second_point;
-                } else {
-                    rOverlapExtents[1] = first_point;
-                    rOverlapExtents[0] = second_point;
-                }
+            else if (inner_prod(CD, CA) > tolerance && inner_prod(-1.0 * CD, (second_point - second_point_other)) > tolerance) {// check if the line lies entirely within the other line
+                rOverlapExtents[0] = first_point;
+                rOverlapExtents[1] = second_point;
                 return true; // the line lies entirely within the other line
             } else return false; // Lines are colinear, but do not overlap at all
         } else return false; // Lines are parallel but not colinear
