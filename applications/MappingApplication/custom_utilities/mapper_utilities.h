@@ -206,7 +206,8 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
         rLocalSystems.resize(num_elements);
     }
 
-    #pragma omp parallel for
+    // TODO re-enable
+    //#pragma omp parallel for
     for (int i = 0; i< static_cast<int>(num_elements); ++i) {
         auto it_elem = elems_ptr_begin + i;
         Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));

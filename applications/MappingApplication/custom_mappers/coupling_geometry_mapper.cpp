@@ -100,7 +100,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 {
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen
     // kommt drauf an, wo die Coupling-Geometries sind
-    CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
+    CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
                              mMapperLocalSystems);
 
     BuildMappingMatrix(MappingOptions);
