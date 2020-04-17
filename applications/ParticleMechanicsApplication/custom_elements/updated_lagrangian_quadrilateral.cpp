@@ -934,30 +934,23 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
             nodal_inertia[j]  = Variables.N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
         }
 
-
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
         // be the initial particle acceleration mapped to the grid.
-        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-        {
-            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-            {
+        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
+            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
                 const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-                for (unsigned int j = 0; j < dimension; j++)
-                {
+                for (unsigned int j = 0; j < dimension; j++) {
                     nodal_momentum[j] += 0.5 * delta_time * (Variables.N[i] * mMP.acceleration[j]) * mMP.mass;
                 }
             }
         }
 
-
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
-
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * mMP.mass;
         r_geometry[i].UnSetLock();
-
     }
 }
 
