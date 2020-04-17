@@ -199,8 +199,25 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
 {
     // @tteschemachen here kann man zwischen Elementen & Conditions wählen
     // hab doch conditions genommen weil das in meinm MDPA so war :)
-    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions();
+    const auto localMesh = rModelPartCommunicator.LocalMesh(); // delete
+    std::cout << "localesh = " << localMesh << std::endl; // delete
+    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions(); 
     const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Conditions().ptr_begin();
+    // Questions for tobi:
+    // is this the number of line conditions in total or number of line conditions on the master side
+    // how does the communicator relate to the other model parts?
+
+    // can we access geometries thru the communicator?
+    /*
+    for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
+        geometry_itr != rModelPartCoupling.GeometriesEnd();
+        ++geometry_itr)
+    {
+        auto& r_geom_master = geometry_itr->GetGeometryPart(0);
+        auto& r_geom_slave = geometry_itr->GetGeometryPart(1);
+        */
+     
+
 
     if (rLocalSystems.size() != num_elements) {
         rLocalSystems.resize(num_elements);

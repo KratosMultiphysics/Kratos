@@ -116,6 +116,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krato
 
     const int echo_level = mMapperSettings["echo_level"].GetInt();
 
+    // TODO at this point the local mapper systems  are distinct. we need to re-combine them into the combined
+    // local mapping matrix, perform the inversion and then assemble this into the global system
+
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->pGetVector(),

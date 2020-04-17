@@ -68,6 +68,7 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
         CoordinatesArrayType local_parameter_1 = ZeroVector(3);
         CoordinatesArrayType local_parameter_2 = ZeroVector(3);
 
+        // TODO is there an error here?
         r_geom_master.PointLocalCoordinates(local_parameter_1, r_geom_slave[0]);
         r_geom_master.PointLocalCoordinates(local_parameter_1, r_geom_slave[1]);
 
