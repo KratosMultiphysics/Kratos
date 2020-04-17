@@ -131,7 +131,6 @@ namespace Kratos
 
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
-            KRATOS_WATCH("here")
             GeometriesArrayType geometries;
             rGeometryList[i].CreateQuadraturePointGeometries(
                 geometries, shape_function_derivatives_order);
