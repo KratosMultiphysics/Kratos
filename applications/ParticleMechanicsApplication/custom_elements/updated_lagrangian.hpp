@@ -494,6 +494,11 @@ public:
                                 ProcessInfo& rCurrentProcessInfo) override;
 
 
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override;
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -539,6 +544,10 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
         std::vector<int>& rValues,
@@ -607,6 +616,12 @@ protected:
      */
     bool mFinalizedStep;
 
+    /// Container to store shape functions over whole timestep
+    Vector mN;
+
+    /// Container to store shape function gradients over whole timestep
+    Matrix mDN_DX;
+
 
     ///@}
     ///@name Protected Operators
@@ -640,7 +655,8 @@ protected:
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
-                                    const double& rIntegrationWeight);
+                                    const double& rIntegrationWeight,
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -674,6 +690,10 @@ protected:
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
+
+    /// Calculation of the Explicit Stresses from velocity gradient.
+    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables);
 
 
     /**
@@ -799,11 +819,6 @@ protected:
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
-    /**
-     * Calculation of the Volume Force of the Element
-     */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables);
 
     ///@name Protected LifeCycle
     ///@{

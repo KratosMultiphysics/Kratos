@@ -431,7 +431,11 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight)
+void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, 
+    GeneralVariables& rVariables, 
+    Vector& rVolumeForce, 
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Contribution of the internal and external forces
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
