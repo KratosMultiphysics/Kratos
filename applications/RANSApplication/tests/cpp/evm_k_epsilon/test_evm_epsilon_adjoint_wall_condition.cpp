@@ -30,7 +30,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_EquationIdVector, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_EquationIdVector, KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_EquationIdVecto
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetDofList, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetDofList, KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetDofList, Kra
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetValuesVector, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetValuesVector, KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetValuesVector
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetFirstDerivativesVector,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetFirstDerivat
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetSecondDerivativesVector,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_GetSecondDeriva
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateFirstDerivativesLHS,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -169,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateFirstD
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_Calculate_RANS_
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateSecondDerivativesLHS,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateSecond
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateSensitivityMatrix,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateSensit
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {

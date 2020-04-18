@@ -32,7 +32,7 @@ namespace Kratos
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_GetValuesVector,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_GetFirstDerivativesVector,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_GetSecondDerivativesVector,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_GetDofList,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -168,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_EquationIdVector,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_E
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_VELOCITY,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_PRESSURE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int derivative_offset = 2;
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
@@ -241,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_TURBULENT_KINETIC_ENERGY,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int derivative_offset = 3;
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
@@ -256,7 +256,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_TURBULENT_ENERGY_DISSIPATON_RATE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int derivative_offset = 4;
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_VELOCITY,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 0;
@@ -287,7 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_PRESSURE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 2;
@@ -303,7 +303,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_TURBULENT_KINETIC_ENERGY,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 3;
@@ -319,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_TURBULENT_ENERGY_DISSIPATION_RATE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 4;
@@ -336,7 +336,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonKCondition2D2N_VELOCITY,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 0;
@@ -351,7 +351,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonKCondition2D2N_PRESSURE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 2;
@@ -366,7 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonKCondition2D2N_TURBULENT_KINETIC_ENERGY,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 3;
@@ -382,7 +382,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateFirstDerivativesLHS_RansEvmKEpsilonKCondition2D2N_TURBULENT_ENERGY_DISSIPATION_RATE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 4;
@@ -398,7 +398,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_ACCELERATION,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 0;
     constexpr int derivative_offset = 0;
@@ -416,7 +416,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_TURBULENT_KINETIC_ENERGY_RATE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 0;
     constexpr int derivative_offset = 3;
@@ -435,7 +435,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonVmsMonolithicWall2D2N_TURBULENT_ENERGY_DISSIPATION_RATE_2,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 0;
     constexpr int derivative_offset = 4;
@@ -454,7 +454,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonKCondition2D2N_ACCELERATION,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 0;
@@ -472,7 +472,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonKCondition2D2N_TURBULENT_KINETIC_ENERGY_RATE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 3;
@@ -490,7 +490,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonKCondition2D2N_TURBULENT_ENERGY_DISSIPATION_RATE_2,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 3;
     constexpr int derivative_offset = 4;
@@ -508,7 +508,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_ACCELERATION,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 0;
@@ -526,7 +526,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_TURBULENT_KINETIC_ENERGY_RATE,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 3;
@@ -545,7 +545,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSecondDerivativesLHS_RansEvmKEpsilonEpsilonWall2D2N_TURBULENT_ENERGY_DISSIPATION_RATE_2,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 4;
@@ -564,7 +564,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSensitivityMatrix_RansEvmKEpsilonVmsMonolithicWall2D2N,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 0;
     constexpr int derivative_offset = 0;
@@ -580,7 +580,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSensitivityMatrix_RansEvmKEpsilonEpsilonWall2D2N,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 0;
@@ -596,7 +596,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_CalculateSensitivityMatrix_RansEvmKEpsilonKCondition2D2N,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     constexpr int equation_offset = 4;
     constexpr int derivative_offset = 0;

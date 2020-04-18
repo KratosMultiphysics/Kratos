@@ -228,7 +228,7 @@ void RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(
 }
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_EquationIdVector, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_EquationIdVector, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -244,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_EquationIdVector, Krato
     RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_GetDofList, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_GetDofList, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -261,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_GetDofList, KratosRansF
     RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateLocalSystem, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateLocalSystem, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateLocalSystem, K
     RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateRightHandSide, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateRightHandSide, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -288,7 +288,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateRightHandSide,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateLocalVelocityContribution,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -319,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateLocalVelocityC
     RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateMassMatrix, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateMassMatrix, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -332,7 +332,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateMassMatrix, Kr
     RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateDampingMatrix, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateDampingMatrix, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition,
                                 ProcessInfo& rProcessInfo, const bool IsSlip) {
@@ -357,7 +357,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonWall2D2N_CalculateDampingMatrix,
     RansEvmKEpsilonEpsilonWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateLocalSystem, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateLocalSystem, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition, const ProcessInfo& rProcessInfo,
                                 const bool IsSlip, const bool IsCoSolvingProcessActive) {
@@ -372,7 +372,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateLocalSys
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateLocalVelocityContribution,
-                          KratosRansFastSuite)
+                          KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition, const ProcessInfo& rProcessInfo,
                                 const bool IsSlip, const bool IsCoSolvingProcessActive) {
@@ -426,7 +426,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateLocalVel
     RansEvmKEpsilonVmsMonolithicWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateMassMatrix, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateMassMatrix, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition, const ProcessInfo& rProcessInfo,
                                 const bool IsSlip, const bool IsCoSolvingProcessActive) {
@@ -439,7 +439,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateMassMatr
     RansEvmKEpsilonVmsMonolithicWall2D2N_EvaluateTest(evaluation_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateDampingMatrix, KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVmsMonolithicWall2D2N_CalculateDampingMatrix, KratosRansFastSuite1)
 {
     auto evaluation_method = [](Condition& rCondition, const ProcessInfo& rProcessInfo,
                                 const bool IsSlip, const bool IsCoSolvingProcessActive) {

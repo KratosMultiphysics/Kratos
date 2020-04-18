@@ -160,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateFirstDerivativesLHS
         };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonEpsilon2D3N", "RansEvmEpsilonAdjoint2D3N",
+        "RansEvmKEpsilonEpsilonCrossWindStabilized2D3N", "RansEvmEpsilonAdjoint2D3N",
         TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
@@ -174,8 +174,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_TURBULENT_KIN
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonEpsilon2D3N", "RansEvmEpsilonAdjoint2D3N",
-        TURBULENT_KINETIC_ENERGY, calculate_sensitivity_matrix, 1e-8, 1e-5);
+        "RansEvmKEpsilonEpsilonCrossWindStabilized2D3N",
+        "RansEvmEpsilonAdjoint2D3N", TURBULENT_KINETIC_ENERGY,
+        calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativesLHS, KratosRansFastSuite)
@@ -188,8 +189,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativesLH
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonEpsilon2D3N", "RansEvmEpsilonAdjoint2D3N",
-        TURBULENT_ENERGY_DISSIPATION_RATE_2, calculate_sensitivity_matrix, 1e-5, 1e-5);
+        "RansEvmKEpsilonEpsilonCrossWindStabilized2D3N",
+        "RansEvmEpsilonAdjoint2D3N", TURBULENT_ENERGY_DISSIPATION_RATE_2,
+        calculate_sensitivity_matrix, 1e-5, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatrix, KratosRansFastSuite)
@@ -200,8 +202,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatrix, 
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonEpsilon2D3N", "RansEvmEpsilonAdjoint2D3N",
-        SHAPE_SENSITIVITY, calculate_sensitivity_matrix, 1e-7, 1e-5);
+        "RansEvmKEpsilonEpsilonCrossWindStabilized2D3N",
+        "RansEvmEpsilonAdjoint2D3N", SHAPE_SENSITIVITY,
+        calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
@@ -213,8 +216,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_VELOCITY_PRES
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonEpsilon2D3N", "RansEvmEpsilonAdjoint2D3N", VELOCITY,
-        calculate_sensitivity_matrix, 1e-7, 1e-5);
+        "RansEvmKEpsilonEpsilonCrossWindStabilized2D3N",
+        "RansEvmEpsilonAdjoint2D3N", VELOCITY, calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
 } // namespace Testing
