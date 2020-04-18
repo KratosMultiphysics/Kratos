@@ -19,6 +19,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgeraicFluxCorrectedTransportScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
 
 class KEpsilonHighReEpsilonFormulation(Formulation):
@@ -41,7 +42,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.epsilon_model_part = CreateFormulationModelPart(self, "RansEvmKEpsilonEpsilon", "RansEvmKEpsilonEpsilonWall")
+        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, "RansEvmKEpsilonEpsilonWall")
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
@@ -60,7 +61,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
                                 self.settings["absolute_tolerance"].GetDouble())
 
         if (self.is_steady_simulation):
-            scheme = CreateSteadyAlgeraicFluxCorrectedTransportScheme(self.settings["relaxation_factor"].GetDouble())
+            scheme = self.scheme_type(self.settings["relaxation_factor"].GetDouble())
         else:
             scheme = CreateBossakScalarScheme(
                 self.epsilon_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
@@ -132,3 +133,16 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
 
     def GetModelPart(self):
         return self.epsilon_model_part
+
+    def SetStabilizationMethod(self, stabilization_method):
+        if (stabilization_method == "algebraic_flux_corrected"):
+            self.element_name = "RansEvmKEpsilonEpsilonAFC"
+            self.scheme_type = CreateSteadyAlgeraicFluxCorrectedTransportScheme
+        elif (stabilization_method == "residual_based_flux_corrected"):
+            self.element_name = "RansEvmKEpsilonEpsilonResidualBasedFluxCorrected"
+            self.scheme_type = CreateSteadyScalarScheme
+        elif (stabilization_method == "non_linear_cross_wind_dissipation"):
+            self.element_name = "RansEvmKEpsilonEpsilonCrossWind"
+            self.scheme_type = CreateSteadyScalarScheme
+        else:
+            raise Exception("Unsupported stabilization method")

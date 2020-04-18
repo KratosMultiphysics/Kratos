@@ -23,16 +23,21 @@ class KEpsilonHighReFormulation(Formulation):
         default_settings = Kratos.Parameters(r'''
         {
             "formulation_name": "k_epsilon_high_re",
+            "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
             "turbulent_energy_dissipation_rate_solver_settings": {},
             "echo_level": 0
         }''')
         self.settings.ValidateAndAssignDefaults(default_settings)
 
+        self.stabilization_method = self.settings["stabilization_method"].GetString()
+
         self.tke_formulation = KEpsilonHighReKFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"])
+        self.tke_formulation.SetStabilizationMethod(self.stabilization_method)
         self.AddFormulation(self.tke_formulation)
 
         self.epsilon_formulation = KEpsilonHighReEpsilonFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"])
+        self.epsilon_formulation.SetStabilizationMethod(self.stabilization_method)
         self.AddFormulation(self.epsilon_formulation)
 
         self.echo_level = self.settings["echo_level"].GetInt()
@@ -53,10 +58,11 @@ class KEpsilonHighReFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
+        if (self.stabilization_method == "algebraic_flux_corrected"):
+            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX)
+            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX)
+            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
+            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
 

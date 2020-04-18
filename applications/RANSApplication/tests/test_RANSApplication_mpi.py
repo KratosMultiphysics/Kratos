@@ -38,7 +38,7 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonTransientMPI'))
+    # nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonTransientMPI'))
     # nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyMPI'))
 
     ### Full MPI set ###########################################################
