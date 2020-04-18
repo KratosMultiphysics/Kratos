@@ -163,6 +163,8 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Initialize() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -207,27 +209,6 @@ protected:
     ///@{
 
     /**
-     * @brief Applies wall law based on logarithmic wall law
-     *
-     * This applies wall law based on the following equation for the period of
-     * time where RANS model is not activated for $y+ \leq 11.06$
-     * \[
-     *     u^+ = y^+
-     * \]
-     * for $y^+ > 11.06$
-     * \[
-     *     u^+ = \frac{1}{\kappa}ln\left(y^+\right\) + \beta
-     * \]
-     *
-     * @param rLocalMatrix         Left hand side matrix
-     * @param rLocalVector         Right hand side vector
-     * @param rCurrentProcessInfo  Current process info from model part
-     */
-    virtual void ApplyLogarithmicWallLaw(MatrixType& rLocalMatrix,
-                                         VectorType& rLocalVector,
-                                         ProcessInfo& rCurrentProcessInfo);
-
-    /**
      * @brief Applies rans based wall law
      *
      * This method calculate left hand side matrix and right hand side vector for following equation
@@ -242,10 +223,6 @@ protected:
      * @param rLocalVector         Right hand side vector
      * @param rCurrentProcessInfo  Current process info from model part
      */
-    virtual void ApplyRansBasedWallLaw(MatrixType& rLocalMatrix,
-                                       VectorType& rLocalVector,
-                                       ProcessInfo& rCurrentProcessInfo);
-
     void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector,
                       ProcessInfo& rCurrentProcessInfo) override;
@@ -271,6 +248,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    double mWallHeight;
 
     ///@}
     ///@name Serialization

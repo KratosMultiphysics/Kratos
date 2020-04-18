@@ -59,6 +59,8 @@ def CreateLinearSolver(solver_settings):
 def CreateResidualCriteria(relative_tolerance, absolute_tolerance):
     return residual_criteria(relative_tolerance, absolute_tolerance)
 
+def CreateVelocityPressureCriteria():
+    pass
 
 def CreateIncremantalUpdateScheme():
     return incemental_update_static_scheme()
