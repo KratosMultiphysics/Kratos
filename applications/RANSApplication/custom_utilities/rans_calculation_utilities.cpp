@@ -237,6 +237,28 @@ void CalculateGradient(array_1d<double, 3>& rOutput,
     }
 }
 
+double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
+                     const Variable<array_1d<double, 3>>& rVariable,
+                     const Matrix& rShapeDerivatives,
+                     const int Step)
+{
+    double value = 0.0;
+    const int number_of_nodes = rGeometry.PointsNumber();
+    const int dim = rShapeDerivatives.size2();
+
+    for (int i = 0; i < number_of_nodes; ++i)
+    {
+        const array_1d<double, 3>& r_value =
+            rGeometry[i].FastGetSolutionStepValue(rVariable, Step);
+        for (int j = 0; j < dim; ++j)
+        {
+            value += r_value[j] * rShapeDerivatives(i, j);
+        }
+    }
+
+    return value;
+}
+
 template <unsigned int TDim>
 Vector GetVector(const array_1d<double, 3>& rVector)
 {

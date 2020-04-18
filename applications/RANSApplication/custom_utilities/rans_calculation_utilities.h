@@ -97,6 +97,11 @@ void CalculateGradient(array_1d<double, 3>& rOutput,
                        const Matrix& rShapeDerivatives,
                        const int Step = 0);
 
+double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
+                     const Variable<array_1d<double, 3>>& rVariable,
+                     const Matrix& rShapeDerivatives,
+                     const int Step = 0);
+
 template <unsigned int TDim>
 Vector GetVector(const array_1d<double, 3>& rVector);
 
