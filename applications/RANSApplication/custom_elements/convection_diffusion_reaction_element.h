@@ -208,7 +208,8 @@ public:
         if (rResult.size() != TNumNodes)
             rResult.resize(TNumNodes, false);
 
-        const Variable<double>& r_variable = this->GetPrimalVariable();
+        const Variable<double>& r_variable =
+            TConvectionDiffusionReactionData::GetScalarVariable();
 
         for (unsigned int i = 0; i < TNumNodes; ++i)
             rResult[i] = Element::GetGeometry()[i].GetDof(r_variable).EquationId();
@@ -224,7 +225,8 @@ public:
         if (rElementalDofList.size() != TNumNodes)
             rElementalDofList.resize(TNumNodes);
 
-        const Variable<double>& r_variable = this->GetPrimalVariable();
+        const Variable<double>& r_variable =
+            TConvectionDiffusionReactionData::GetScalarVariable();
 
         for (unsigned int i = 0; i < TNumNodes; ++i)
             rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
@@ -241,7 +243,8 @@ public:
             rValues.resize(TNumNodes, false);
 
         GeometryType& rGeom = this->GetGeometry();
-        const Variable<double>& r_variable = this->GetPrimalVariable();
+        const Variable<double>& r_variable =
+            TConvectionDiffusionReactionData::GetScalarVariable();
 
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
@@ -257,7 +260,8 @@ public:
             rValues.resize(TNumNodes, false);
 
         GeometryType& rGeom = this->GetGeometry();
-        const Variable<double>& r_variable = this->GetPrimalRateVariable();
+        const Variable<double>& r_variable =
+            TConvectionDiffusionReactionData::GetScalarRateVariable();
 
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
@@ -319,18 +323,18 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
+        const GeometryType& r_geometry = this->GetGeometry();
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
 
             TConvectionDiffusionReactionData r_current_data;
-            this->CalculateElementData(r_current_data, gauss_shape_functions,
-                                       r_shape_derivatives, rCurrentProcessInfo);
-
-            const double source =
-                this->CalculateSourceTerm(r_current_data, gauss_shape_functions,
-                                          r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateElementData(r_geometry, gauss_shape_functions,
+                                                r_shape_derivatives, rCurrentProcessInfo);
+            const double source = r_current_data.CalculateSourceTerm(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
@@ -415,18 +419,7 @@ public:
         KRATOS_TRY
 
         int check = BaseType::Check(rCurrentProcessInfo);
-        const Variable<double>& r_variable = this->GetPrimalVariable();
-        const Variable<double>& r_variable_rate = this->GetPrimalRateVariable();
-
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
-        {
-            NodeType& r_node = this->GetGeometry()[iNode];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable_rate, r_node);
-
-            KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
-        }
+        TConvectionDiffusionReactionData::Check(this->GetGeometry(), rCurrentProcessInfo);
 
         return check;
 
@@ -495,168 +488,6 @@ public:
         return value;
     }
 
-    /**
-     * @brief Get the primal scalar variable
-     *
-     * This returns the scalar variable ($\phi$) used in stabilized
-     * convection-diffusion-reaction transport equation.
-     *
-     * This method should be implemented by the derrived class.
-     *
-     * @return const Variable<double>&
-     */
-    virtual const Variable<double>& GetPrimalVariable() const
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "Calling base GetPrimalVariable method in "
-                        "StabilizedConvectionDiffusionReactionAdjointElement "
-                        "class. Please implement it in the derrived class.";
-
-        return PRESSURE;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Get the primal scalar rate variable
-     *
-     * This returns the scalar rate variable ($\phi$) used in stabilized
-     * convection-diffusion-reaction transport equation.
-     *
-     * This method should be implemented by the derrived class.
-     *
-     * @return const Variable<double>&
-     */
-    virtual const Variable<double>& GetPrimalRateVariable() const
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "Calling base GetPrimalRateVariable method in "
-                        "StabilizedConvectionDiffusionReactionAdjointElement "
-                        "class. Please implement it in the derrived class.";
-
-        return PRESSURE;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Calculates all the data required by the element.
-     *
-     * This method is used to calculate and store all the required
-     * quantities under each gauss point. This method is called
-     * for each gauss point, before calculating the derivatives
-     *
-     * This method should be implemented by the derrived class.
-     *
-     * @param rData                      Element data container
-     * @param rShapeFunctions            Gauss point shape functions
-     * @param rShapeFunctionDerivatives  Gauss point shape function derivatives
-     * @param rCurrentProcessInfo        Current process info
-     */
-    virtual void CalculateElementData(TConvectionDiffusionReactionData& rData,
-                                      const Vector& rShapeFunctions,
-                                      const Matrix& rShapeFunctionDerivatives,
-                                      const ProcessInfo& rCurrentProcessInfo,
-                                      const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "ConvectionDiffusionReactionElement "
-                        "CalculateElementData method. "
-                        "Please implement it in the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Calculate effective kinematic viscosity
-     *
-     * Calculate effective kinematic viscosity (i.e. $\nu_\phi$)
-     * This method is called for each gauss point.
-     * This method should be implemented by the derrived class.
-     *
-     * @param rData
-     * @param rShapeFunctions
-     * @param rShapeFunctionDerivatives
-     * @param rCurrentProcessInfo
-     * @param Step
-     * @return double
-     */
-    virtual double CalculateEffectiveKinematicViscosity(const TConvectionDiffusionReactionData& rData,
-                                                        const Vector& rShapeFunctions,
-                                                        const Matrix& rShapeFunctionDerivatives,
-                                                        const ProcessInfo& rCurrentProcessInfo,
-                                                        const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "ConvectionDiffusionReactionElement "
-                        "CalculateEffectiveKinematicViscosity method. "
-                        "Please implement it in the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Calculates reaction coefficient
-     *
-     * This method calculates reaction coefficient (i.e. $s_\phi$).
-     * This method is called for each gauss point.
-     * This method should be implemented by the derrived class.
-     *
-     * @param rData
-     * @param rShapeFunctions
-     * @param rShapeFunctionDerivatives
-     * @param rCurrentProcessInfo
-     * @param Step
-     * @return double
-     */
-    virtual double CalculateReactionTerm(const TConvectionDiffusionReactionData& rData,
-                                         const Vector& rShapeFunctions,
-                                         const Matrix& rShapeFunctionDerivatives,
-                                         const ProcessInfo& rCurrentProcessInfo,
-                                         const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "ConvectionDiffusionReactionElement "
-                        "CalculateReactionTerm method. Please implement it in "
-                        "the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Calculates source term
-     *
-     * This method calculates source term (i.e. $f_\phi$).
-     * This method is called for each gauss point.
-     * This method should be implemented by the derrived class.
-     *
-     * @param rData
-     * @param rShapeFunctions
-     * @param rShapeFunctionDerivatives
-     * @param rCurrentProcessInfo
-     * @param Step
-     * @return double
-     */
-    virtual double CalculateSourceTerm(const TConvectionDiffusionReactionData& rData,
-                                       const Vector& rShapeFunctions,
-                                       const Matrix& rShapeFunctionDerivatives,
-                                       const ProcessInfo& rCurrentProcessInfo,
-                                       const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "ConvectionDiffusionReactionElement "
-                        "CalculateSourceTerm method. Please implement it in "
-                        "the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
     void CalculatePrimalDampingMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rDampingMatrix,
                                       const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -671,6 +502,8 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
+        const GeometryType& r_geometry = this->GetGeometry();
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -682,13 +515,14 @@ public:
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
             TConvectionDiffusionReactionData r_current_data;
-            this->CalculateElementData(r_current_data, gauss_shape_functions,
-                                       r_shape_derivatives, rCurrentProcessInfo);
-            const double effective_kinematic_viscosity = this->CalculateEffectiveKinematicViscosity(
-                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateElementData(r_geometry, gauss_shape_functions,
+                                                r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity =
+                r_current_data.CalculateEffectiveKinematicViscosity(
+                    gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
-            const double reaction = this->CalculateReactionTerm(
-                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double reaction = r_current_data.CalculateReactionTerm(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
@@ -734,47 +568,6 @@ public:
         }
 
         KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Calculate gradient matrix for a vector
-     *
-     * Calculates the gradient matrix for a given vector variable.
-     *
-     * @param rOutput            Output matrix, rows contain the given vector indices, columns containt physical coordinate dimensions
-     * @param rVariable          Vector variable
-     * @param rShapeDerivatives  Shape function derivatives at the gauss point
-     * @param Step               Time step
-     */
-    void CalculateGradient(BoundedMatrix<double, TDim, TDim>& rOutput,
-                           const Variable<array_1d<double, 3>>& rVariable,
-                           const Matrix& rShapeDerivatives,
-                           const int Step = 0) const
-    {
-        const GeometryType& r_geometry = this->GetGeometry();
-
-        RansCalculationUtilities::CalculateGradient<TDim>(
-            rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
-    }
-
-    /**
-     * @brief Calculate gradient vector for a scalar
-     *
-     * Calculates the gradient vector for a given scalar variable.
-     *
-     * @param rOutput            Output vector
-     * @param rVariable          Scalar variable
-     * @param rShapeDerivatives  Shape function derivatives at the gauss point
-     * @param Step               Time step
-     */
-    void CalculateGradient(array_1d<double, 3>& rOutput,
-                           const Variable<double>& rVariable,
-                           const Matrix& rShapeDerivatives,
-                           const int Step = 0) const
-    {
-        const GeometryType& r_geometry = this->GetGeometry();
-        RansCalculationUtilities::CalculateGradient(
-            rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
     /**
@@ -866,7 +659,8 @@ protected:
         const GeometryType& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGeometryData(
-            r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);
+            r_geometry, TConvectionDiffusionReactionData::GetIntegrationMethod(),
+            rGaussWeights, rNContainer, rDN_DX);
     }
 
     void AddLumpedMassMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rMassMatrix,
