@@ -21,15 +21,24 @@
 #include "includes/kratos_application.h"
 
 // Element includes
+// incompressible potential flow
+#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
+#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
+
+// fractional step
+#include "custom_elements/fractional_step/rans_fractional_step.h"
+
+// k-epsilon turbulence model
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
-#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
-#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
-#include "custom_elements/fractional_step/rans_fractional_step.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_base_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_base_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_afc_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_afc_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_residual_based_fc_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_residual_based_fc_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_cross_wind_stabilized_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_cross_wind_stabilized_element.h"
 
 // Condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
@@ -210,11 +219,27 @@ private:
     const FSHighReKWallCondition<3, 3> mFSHighReKWallCondition3D3N;
 
     /// k-epsilon turbulence model elements
-    const RansEvmKEpsilonKBaseElement<2, 3> mRansEvmKEpsilonKBase2D;
-    const RansEvmKEpsilonKBaseElement<3, 4> mRansEvmKEpsilonKBase3D;
+    /// Algebraic flux correction based elements
+    const RansEvmKEpsilonKAFCElement<2, 3> mRansEvmKEpsilonKAFC2D;
+    const RansEvmKEpsilonKAFCElement<3, 4> mRansEvmKEpsilonKAFC3D;
 
-    const RansEvmKEpsilonEpsilonBaseElement<2, 3> mRansEvmKEpsilonEpsilonBase2D;
-    const RansEvmKEpsilonEpsilonBaseElement<3, 4> mRansEvmKEpsilonEpsilonBase3D;
+    const RansEvmKEpsilonEpsilonAFCElement<2, 3> mRansEvmKEpsilonEpsilonAFC2D;
+    const RansEvmKEpsilonEpsilonAFCElement<3, 4> mRansEvmKEpsilonEpsilonAFC3D;
+
+    /// Residual based flux corrected elements
+    const RansEvmKEpsilonKResidualBasedFCElement<2, 3> mRansEvmKEpsilonKResidualBasedFC2D;
+    const RansEvmKEpsilonKResidualBasedFCElement<3, 4> mRansEvmKEpsilonKResidualBasedFC3D;
+
+    const RansEvmKEpsilonEpsilonResidualBasedFCElement<2, 3> mRansEvmKEpsilonEpsilonResidualBasedFC2D;
+    const RansEvmKEpsilonEpsilonResidualBasedFCElement<3, 4> mRansEvmKEpsilonEpsilonResidualBasedFC3D;
+
+    /// Cross wind stabilization based elements
+    const RansEvmKEpsilonKCrossWindStabilizedElement<2, 3> mRansEvmKEpsilonKCrossWindStabilized2D;
+    const RansEvmKEpsilonKCrossWindStabilizedElement<3, 4> mRansEvmKEpsilonKCrossWindStabilized3D;
+
+    const RansEvmKEpsilonEpsilonCrossWindStabilizedElement<2, 3> mRansEvmKEpsilonEpsilonCrossWindStabilized2D;
+    const RansEvmKEpsilonEpsilonCrossWindStabilizedElement<3, 4> mRansEvmKEpsilonEpsilonCrossWindStabilized3D;
+
 
     const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
     const RansEvmKEpsilonLowReKElement<3, 4> mRansEvmKEpsilonLowReK3D;
