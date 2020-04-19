@@ -32,7 +32,7 @@
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/global_variables.h"
 
 namespace Kratos
 {
@@ -41,25 +41,26 @@ namespace Kratos
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
-template<class TContainerType, class TIteratorType=typename TContainerType::iterator>
+template<
+        class TContainerType,
+        class TIteratorType=typename TContainerType::iterator,
+        int TMaxThreads=Globals::MaxAllowedThreads
+        >
 class BlockPartition
 {
 public:
 
-    static constexpr int max_allowed_threads = 128;
 
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
         : mit_begin(it_begin), mit_end(it_end), mNchunks(Nchunks)
     {
-        int NumTerms = it_end-it_begin;
-        int mBlockPartitionize = NumTerms / mNchunks;
-        mBlockPartition[0] = 0;
-        mBlockPartition[mNchunks] = NumTerms;
+        ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
+        mBlockPartition[0] = it_begin;
+        mBlockPartition[mNchunks] = it_end;
         for(int i = 1; i < mNchunks; i++)
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionize ;
-
+            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize ;
     }
 
     BlockPartition(TContainerType& rData,
@@ -77,9 +78,9 @@ public:
         #pragma omp parallel for
         for(int i=0; i<mNchunks; ++i)
         {
-            for (int k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k)
+            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
             {
-                f(*(mit_begin + k)); //note that we pass a reference to the value, not the iterator
+                f(*it); //note that we pass a reference to the value, not the iterator
             }
         }
     }
@@ -93,9 +94,9 @@ public:
         for(int i=0; i<mNchunks; ++i)
         {
             TReducer local_reducer;
-            for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k)
+            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
             {
-                local_reducer.LocalMerge(f(*(mit_begin + k)));
+                local_reducer.LocalMerge(f(*it));
             }
             global_reducer.ThreadSafeMerge(local_reducer);
         }
@@ -106,7 +107,7 @@ private:
 
     TIteratorType mit_begin, mit_end;
     int mNchunks;
-    std::array<int, max_allowed_threads> mBlockPartition;
+    std::array<TIteratorType, TMaxThreads> mBlockPartition;
 
 };
 
@@ -114,22 +115,20 @@ private:
 //***********************************************************************************
 //***********************************************************************************
 ///This class is useful for iteration over containers
-template<class TIndexType>
+template<class TIndexType, int TMaxThreads=Globals::MaxAllowedThreads>
 class IndexPartition
 {
 public:
-
-    static constexpr int max_allowed_threads = 128;
 
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
         : mSize(Size), mNchunks(Nchunks)
     {
-        int mBlockPartitionize = mSize / mNchunks;
+        int mBlockPartitionSize = mSize / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = mSize;
         for(int i = 1; i < mNchunks; i++)
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionize ;
+            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize ;
 
     }
 
@@ -139,7 +138,7 @@ public:
     template <class TUnaryFunction>
     inline void for_pure_c11(TUnaryFunction &&f)
     {
-        KRATOS_TRY
+
         std::vector< std::future<void> > runners(mNchunks);
         const auto& partition = mBlockPartition;
         for(int i=0; i<mNchunks; ++i)
@@ -152,17 +151,25 @@ public:
         }
 
         //here we impose a syncronization and we check the exceptions
+        std::stringstream ss;
         for(int i=0; i<mNchunks; ++i)
         {
             try {
                     runners[i].get();
-            } catch(const std::exception& e) {
-                std::cout << std::endl << "THREAD number: " << i << " caught exception " << e.what() << std::endl;
+            }
+            catch(Exception& e) {
+                ss << std::endl << "THREAD number: " << i << " caught exception " << e.what() << std::endl;
+            } catch(std::exception& e) {
+                ss << std::endl << "THREAD number: " << i << " caught exception " << e.what() << std::endl;
+            } catch(...) {
+                ss << std::endl << "unknown error" << std::endl;
+            }
         }
 
-        }
+        auto msg = ss.str();
+        if(!msg.empty())
+            KRATOS_ERROR << msg << std::endl;
 
-        KRATOS_CATCH("")
     }
 
     //simple version
@@ -202,7 +209,7 @@ private:
     TIndexType mSize;
     int mNchunks;
 
-    std::array<TIndexType, max_allowed_threads> mBlockPartition;
+    std::array<TIndexType, TMaxThreads> mBlockPartition;
 
 };
 
