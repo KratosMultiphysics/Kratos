@@ -67,6 +67,10 @@ public:
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
 
+    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -75,17 +79,11 @@ public:
      * @brief Constructor with separate paramters
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
-     * @param PerformCorrections Choice if only logging is required (false) or if corrections by shifting the distance field shall be performed (true)
      * @param CorrectionFreq Frequency of the correction (if wished) in time steps
-     * @param WriteToLogFile Choice if results shall be written to a log file in every time step
-     * @param LogFileName Name of the log file (if wished)
      */
     MassConservationCheckProcess(
         ModelPart& rModelPart,
-        const bool PerformCorrections,
-        const int CorrectionFreq,
-        const bool WriteToLogFile,
-        const std::string LogFileName);
+        const int CorrectionFreq);
 
     /**
      * @brief Constructor with Kratos parameters
@@ -136,10 +134,11 @@ public:
     /**
      * @brief Function to compute the "negative" (water) volume flow over a specified boundary
      *
-     * @param boundaryFlag Boundary to consider
+     * @param BoundaryFlag Boundary to consider
      * @return double Volume flow computed over boundary in regions with negative distance field
      */
-    double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
+    double ComputeFlowOverBoundary( const Kratos::Flags BoundaryFlag );
+
 
     /**
      * @brief Initialization of the process including computation of inital volumes
@@ -149,11 +148,58 @@ public:
     std::string Initialize();
 
     /**
-     * @brief Execution of the process in each time step
+     * @brief Execution of the process in each time step (global conservation)
      *
      * @return std::string Output message (can appear in log-file)
      */
-    std::string ExecuteInTimeStep();
+    std::string ComputeBalancedVolume();
+
+    /**
+     * @brief Function to compute the time step for the forward convection of the current distance field to find the auxiliary distance field
+     *
+     * @return double Time step
+     */
+    double ComputeDtForConvection();
+
+    /**
+     * @brief Function to apply the local corrections based on the auxiliary distance field coming from a convection process
+     *
+     * @param rAuxDistVar Non-historical variable of the auxiliary distance field
+     */
+    void ApplyLocalCorrection( Variable<double>& rAuxDistVar );
+
+
+    /**
+     * @brief Function to re-evaluate the mass conservation status after the local correction and before the global correction
+     *
+     */
+    void ReCheckTheMassConservation();
+
+
+    /**
+     * @brief Function to perform the global correction by means of a shift in the entire distance field
+     *
+     */
+    void ApplyGlobalCorrection();
+
+    /**
+     * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
+     * This function requires further explanation:
+     * It is assumed that the interface between water and air is not moving.
+     * Given that, the velocity field would create a theoretical volume flux through the stationary interface.
+     * Of this volume flux, we only measure the part where fluid would leave the water domain and "convert water into air" if the surface
+     * remained stationary.
+     * @param factor Value 1.0 for function is described, value -1.0 to compute flow INTO the water domain under the same assumptions
+     * @return double Volume flow [3D: m3/s] computed over the surface
+     */
+    double OrthogonalFlowIntoAir( const double Factor );
+
+    /**
+     * @brief Get default settings in a Parameters object
+     *
+     * @return Default setings
+     */
+    const Parameters GetDefaultParameters();
 
     // ///@}
     // ///@name Inquiry
@@ -194,13 +240,10 @@ private:
     ///@{
 
     // Reference to the model part
-    const ModelPart& mrModelPart;
+    ModelPart& mrModelPart;
 
     // Process parameters
     int mCorrectionFreq = 1;
-    bool mWriteToLogFile = true;
-    bool mPerformCorrections = true;
-    std::string mLogFileName = "mass_conservation.log";
 
     // Inital volume with negative distance field ("water" volume)
     double mInitialNegativeVolume = -1.0;
@@ -210,11 +253,15 @@ private:
     // Balance parameter resulting from an integration of the net inflow into the domain over time
     // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here
     double mTheoreticalNegativeVolume = -1.0;
+    double mWaterVolumeError = -1.0;
+    double mInterfaceArea = -1.0;
+
+    // Remember the necessary operation
+    bool mAddWater = true;
 
     // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)
-    double mQNet1 = 0.0;      // for the past time step (t - 1)
-    double mQNet2 = 0.0;      // for the past time step (t - 2)
+
 
     ///@}
     ///@name Protected Operators
@@ -227,11 +274,11 @@ private:
     /**
      * @brief Computing volumes and interface in a common procedure (most efficient)
      *
-     * @param positiveVolume "Air" volume
-     * @param negativeVolume "Water" volume
-     * @param interfaceArea Area of the two fluid interface
+     * @param rPositiveVolume "Air" volume
+     * @param rNegativeVolume "Water" volume
+     * @param rInterfaceArea Area of the two fluid interface
      */
-    void ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea );
+    void ComputeVolumesAndInterface( double& rPositiveVolume, double& rNegativeVolume, double& rInterfaceArea );
 
     /**
      * @brief Computation of normal (non-unit) vector on a line
@@ -254,7 +301,7 @@ private:
      *
      * @param deltaDist Distance for the shift ( negative = more "water", positive = more "air")
      */
-    void ShiftDistanceField( double deltaDist );
+    void ShiftDistanceField( const double DeltaDist );
 
     /**
      * @brief Generating a 2D triangle of type Triangle2D3 out of a Triangle3D3 geometry
@@ -262,22 +309,24 @@ private:
      * @param rGeom Original triangle geometry
      * @return Triangle2D3<Node<3>>::Pointer Shared pointer to the resulting triangle of type Triangle2D3
      */
-    Triangle2D3<Node<3>>::Pointer GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
+    Triangle2D3<Node<3>>::Pointer GenerateAuxTriangle( const Geometry<Node<3>>& rGeom );
 
     /**
      * @brief Function to generate an auxiliary line segment that covers only the negative part of the original geometry
      *
      * @param rGeom Reference to original geometry
-     * @param distance Distance of the initial boundary nodes
-     * @param p_aux_line Resulting line segment (output)
-     * @param aux_velocity1 Velocity at the first node of the new line segment(output)
-     * @param aux_velocity2 Velocity at the second node of the new line segment (output)
+     * @param rDistance Distance of the initial boundary nodes
+     * @param rpAuxLine Resulting line segment (output)
+     * @param rAuxVelocity1 Velocity at the first node of the new line segment(output)
+     * @param rAuxVelocity2 Velocity at the second node of the new line segment (output)
      */
     void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
-                            const Vector& distance,
-                            Line3D2<IndexedPoint>::Pointer& p_aux_line,
-                            array_1d<double, 3>& aux_velocity1,
-                            array_1d<double, 3>& aux_velocity2 );
+                            const Vector& rDistance,
+                            Line3D2<IndexedPoint>::Pointer& rpAuxLine,
+                            array_1d<double, 3>& rAuxVelocity1,
+                            array_1d<double, 3>& rAuxVelocity2 );
+    
+    bool IsGeometryCut(const Geometry<Node<3>> &rGeom, unsigned int &PtCountNeg, unsigned int &PtCountPos);
 
     ///@}
     ///@name Private  Access

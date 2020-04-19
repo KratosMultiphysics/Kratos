@@ -122,14 +122,18 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
     (m,"MassConservationCheckProcess")
-    .def(py::init < ModelPart&, const bool, const int, const bool, const std::string >())
+    .def(py::init < ModelPart&, const bool, const bool, const int, const bool, const std::string >())
     .def(py::init< ModelPart&, Parameters& >())
     .def("Initialize", &MassConservationCheckProcess::Initialize)
-    .def("ExecuteInTimeStep", &MassConservationCheckProcess::ExecuteInTimeStep)
     .def("ComputePositiveVolume", &MassConservationCheckProcess::ComputePositiveVolume)
     .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
     .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
+    .def("ComputeBalancedVolume", &MassConservationCheckProcess::ComputeBalancedVolume)
+    .def("ComputeDtForConvection", &MassConservationCheckProcess::ComputeDtForConvection)
+    .def("ApplyLocalCorrection", &MassConservationCheckProcess::ApplyLocalCorrection)
+    .def("ApplyGlobalCorrection", &MassConservationCheckProcess::ApplyGlobalCorrection)
+    .def("ReCheckTheMassConservation", &MassConservationCheckProcess::ReCheckTheMassConservation)
     ;
 
     py::class_<ShockDetectionProcess, ShockDetectionProcess::Pointer, Process>
