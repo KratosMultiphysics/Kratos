@@ -31,7 +31,7 @@ namespace Kratos
 
 void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
 {
-    KRATOS_WATCH("uno")
+    // KRATOS_WATCH("uno")
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<bool> cycle_identificator;
@@ -72,10 +72,10 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
-            // } else {
-            //     increment = 1000.0*12.0;
-            //         this->TimeAndCyclesUpdate(increment);   
-            //         process_info[ADVANCE_STRATEGY_APPLIED] = true;             
+            } else {
+                increment = 5000.0*12.0;
+                    this->TimeAndCyclesUpdate(increment);   
+                    process_info[ADVANCE_STRATEGY_APPLIED] = true;             
             }
         }
     }
@@ -155,10 +155,11 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingSt
             }
         }
     }
-    KRATOS_WATCH(acumulated_max_stress_rel_error)
-    KRATOS_WATCH(acumulated_rev_factor_rel_error)
+    // KRATOS_WATCH(acumulated_max_stress_rel_error)
+    // KRATOS_WATCH(acumulated_rev_factor_rel_error)
     if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-2 && acumulated_rev_factor_rel_error < 1e-2 && fatigue_in_course)) {
         rAdvancingStrategy = true;
+        // KRATOS_WATCH("lo he puesto en true")
     }
 }
 

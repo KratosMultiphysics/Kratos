@@ -158,9 +158,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 previous_max_stress = max_stress;
                 previous_min_stress = min_stress;
                 mCyclesToFailure = CyclesToFailure;
-                KRATOS_WATCH(local_number_of_cycles)
-                KRATOS_WATCH(previous_max_stress)
-                KRATOS_WATCH(previous_min_stress)
+                // KRATOS_WATCH(local_number_of_cycles)
+                // KRATOS_WATCH(previous_max_stress)
+                // KRATOS_WATCH(previous_min_stress)
 
                 HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                                 max_stress,
@@ -175,7 +175,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             }
 
             if (adnvance_strategy_applied) {
-                KRATOS_WATCH("AQUÍ????")
+                // KRATOS_WATCH("AQUÍ????")
                 cycles_after_advance_strategy = 0;
                 double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
                 double alphat;

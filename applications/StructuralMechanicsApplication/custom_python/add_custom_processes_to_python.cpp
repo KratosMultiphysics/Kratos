@@ -28,6 +28,7 @@
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
+#include "custom_processes/advance_in_time_strategy_high_cycle_fatigue_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -85,6 +86,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
         .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
+    py::class_<AdvanceInTimeStrategyHighCycleFatigueProcess, AdvanceInTimeStrategyHighCycleFatigueProcess::Pointer, Process>(m, "AdvanceInTimeStrategyHighCycleFatigueProcess")
         .def(py::init< ModelPart&, Parameters >())
         ;
 }
