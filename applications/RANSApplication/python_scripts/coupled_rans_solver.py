@@ -115,7 +115,7 @@ class CoupledRANSSolver(PythonSolver):
         self.formulation.AddVariables()
 
         if self.is_periodic:
-            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         if (IsDistributedRun()):
             self.main_model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
