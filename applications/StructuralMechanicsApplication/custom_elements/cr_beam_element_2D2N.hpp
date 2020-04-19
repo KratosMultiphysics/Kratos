@@ -95,13 +95,11 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void Initialize() override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetValuesVector(
         Vector& rValues,
@@ -141,7 +139,7 @@ public:
                                  Variable<array_1d<double, 3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /////////////////////////////////////////////////
     ///////////// CUSTOM FUNCTIONS --->>

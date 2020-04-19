@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -66,7 +66,7 @@ Condition::Pointer PeriodicCondition::Create(IndexType NewId, NodesArrayType con
     return Kratos::make_intrusive< PeriodicCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-int PeriodicCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+int PeriodicCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -75,31 +75,31 @@ int PeriodicCondition::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("");
 }
 
-void PeriodicCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PeriodicCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     rLeftHandSideMatrix.resize(0,0,false);
     rRightHandSideVector.resize(0,false);
 }
 
-void PeriodicCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void PeriodicCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     rLeftHandSideMatrix.resize(0,0,false);
 }
 
-void PeriodicCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PeriodicCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType LHS;
     CalculateLocalSystem(LHS,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void PeriodicCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void PeriodicCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     rResult.resize(0);
 }
 
-void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
     const unsigned int BlockSize = rPeriodicVariables.size();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -121,7 +121,7 @@ void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo
 
 }
 
-void PeriodicCondition::GetValuesVector(Vector& Values, int Step)
+void PeriodicCondition::GetValuesVector(Vector& Values, int Step) const
 {
 /*    PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
     const unsigned int BlockSize = rPeriodicVariables.size();

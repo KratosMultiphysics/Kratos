@@ -144,7 +144,7 @@ public:
     {
         KRATOS_TRY;
 
-        unsigned int Rank = this->mrComm.MyPID();
+        int Rank = this->mrComm.MyPID();
 
         // Count the Dofs on this partition (on periodic node pairs, only the dofs on the node with higher Id are counted)
         int DofCount = 0;
@@ -417,7 +417,7 @@ private:
         for (int i = 0; i < NumProcs; i++) ExtraDofs[i] = 0;
 
         Condition::DofsVectorType DofList;
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
         for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
         {
             Condition::GeometryType& rGeom = itCond->GetGeometry();
@@ -430,7 +430,7 @@ private:
                 itCond->GetDofList(DofList,rProcessInfo);
                 for(typename Condition::DofsVectorType::iterator iDof = DofList.begin() ; iDof != DofList.end() ; ++iDof)
                     if ( (*iDof)->Id() == FirstNode)
-                        ExtraDofs[ (unsigned int)( (*iDof)->GetSolutionStepValue(PARTITION_INDEX) ) ]++;
+                        ExtraDofs[(*iDof)->GetSolutionStepValue(PARTITION_INDEX)]++;
 
                 rGeom[0].GetValue(mPeriodicIdVar) = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
             }
