@@ -21,6 +21,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateStea
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 
 class KEpsilonHighReEpsilonFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -50,6 +51,9 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
     def Initialize(self):
         VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, self.epsilon_model_part.Conditions)
         VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.FRICTION_VELOCITY, self.epsilon_model_part.Conditions)
+
+        if (self.IsPeriodic()):
+            InitializePeriodicConditions(self.GetBaseModelPart(), self.epsilon_model_part, [KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE])
 
         solver_settings = self.settings
         linear_solver = CreateLinearSolver(
@@ -139,7 +143,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
             self.element_name = "RansEvmKEpsilonEpsilonAFC"
             self.scheme_type = CreateSteadyAlgeraicFluxCorrectedTransportScheme
         elif (stabilization_method == "residual_based_flux_corrected"):
-            self.element_name = "RansEvmKEpsilonEpsilonResidualBasedFluxCorrected"
+            self.element_name = "RansEvmKEpsilonEpsilonResidualBasedFC"
             self.scheme_type = CreateSteadyScalarScheme
         elif (stabilization_method == "non_linear_cross_wind_dissipation"):
             self.element_name = "RansEvmKEpsilonEpsilonCrossWind"
