@@ -20,6 +20,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLine
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -176,6 +177,7 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
+        domain_size = process_info[Kratos.DOMAIN_SIZE]
         wall_fuction_update_process = KratosRANS.RansWallFunctionUpdateProcess(
                                                             model_part.GetModel(),
                                                             wall_model_part_name,
@@ -183,6 +185,15 @@ class FractionalStepVelocityPressureFormulation(Formulation):
                                                             beta,
                                                             self.echo_level)
         self.AddProcess(wall_fuction_update_process)
+
+        if (self.IsPeriodic()):
+            if (domain_size == 2):
+                periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
+            else:
+                periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
+            InitializePeriodicConditions(model_part,
+                                         self.fractional_step_model_part,
+                                         periodic_variables_list)
 
         self.solver_settings = CreateFractionalStepSolverSettings(
                                             self.IsPeriodic(),
@@ -274,6 +285,9 @@ class FractionalStepVelocityPressureFormulation(Formulation):
             scheme_type = settings["scheme_type"].GetString()
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
+                if (not self.GetBaseModelPart().ProcessInfo.Has(Kratos.PRESSURE_COEFFICIENT)):
+                    Kratos.Logger.PrintWarning(self.GetName(), "Fractional step steady simulations require PRESSURE_COEFFICIENT to be set in process info.")
+                    self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.PRESSURE_COEFFICIENT, 0.5)
             elif (scheme_type == "transient"):
                 self.is_steady_simulation = False
             else:

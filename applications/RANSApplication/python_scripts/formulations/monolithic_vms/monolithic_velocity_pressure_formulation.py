@@ -23,6 +23,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResi
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -132,6 +133,15 @@ class MonolithicVelocityPressureFormulation(Formulation):
                                                             beta,
                                                             self.echo_level)
         self.AddProcess(wall_fuction_update_process)
+
+        if (self.IsPeriodic()):
+            if (domain_size == 2):
+                periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
+            else:
+                periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
+            InitializePeriodicConditions(model_part,
+                                         self.monolithic_model_part,
+                                         periodic_variables_list)
 
         if self.is_steady_simulation:
             conv_criteria = CreateResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
