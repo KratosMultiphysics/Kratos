@@ -74,7 +74,7 @@ class FractionalStepKEpsilonHighReFormulation(Formulation):
         self.AddFormulation(self.k_epsilon_formulation)
 
     def IsConverged(self):
-        self.is_converged = self.k_epsilon_formulation.IsConverged()
+        self.is_converged = True
 
         if (self.is_steady_simulation):
             settings = self.settings["steady_convergence_settings"]
@@ -92,6 +92,8 @@ class FractionalStepKEpsilonHighReFormulation(Formulation):
 
             formulation_converged = self.__CheckTransientConvergence(Kratos.TURBULENT_VISCOSITY, settings["turbulent_viscosity_tolerances"])
             self.is_converged = self.is_converged and formulation_converged
+        else:
+            self.is_converged = self.k_epsilon_formulation.IsConverged()
 
         return self.is_converged
 

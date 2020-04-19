@@ -65,9 +65,9 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
             self.AddFormulation(self.incompressible_potential_flow_formulation)
             self.is_potential_flow_initialized = True
 
-        self.fractional_step_formulation = MonolithicVelocityPressureFormulation(model_part, settings["monolithic_flow_solver_settings"])
-        self.fractional_step_formulation.SetMaxCouplingIterations(self.settings["coupling_settings"]["velocity_pressure_coupling_iterations"].GetInt())
-        self.AddFormulation(self.fractional_step_formulation)
+        self.monolithic_formulation = MonolithicVelocityPressureFormulation(model_part, settings["monolithic_flow_solver_settings"])
+        self.monolithic_formulation.SetMaxCouplingIterations(self.settings["coupling_settings"]["velocity_pressure_coupling_iterations"].GetInt())
+        self.AddFormulation(self.monolithic_formulation)
 
         self.k_epsilon_formulation = KEpsilonHighReFormulation(model_part, settings["k_epsilon_high_re_solver_settings"])
         self.k_epsilon_formulation.SetMaxCouplingIterations(self.settings["coupling_settings"]["k_epsilon_coupling_iterations"].GetInt())
@@ -94,7 +94,11 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
             self.is_converged = self.is_converged and formulation_converged
 
         else:
-            self.is_converged = self.k_epsilon_formulation.IsConverged()
+            formulation_converged = self.k_epsilon_formulation.IsConverged()
+            self.is_converged = self.is_converged and formulation_converged
+
+            formulation_converged = self.monolithic_formulation.IsConverged()
+            self.is_converged = self.is_converged and formulation_converged
 
         return self.is_converged
 
@@ -105,12 +109,6 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
         scheme_type = settings["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady_simulation = True
-            default_settings = Kratos.Parameters('''{
-                "scheme_type": "steady",
-                "pressure_coefficient": 0.5
-            }''')
-            settings.ValidateAndAssignDefaults(default_settings)
-            self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.PRESSURE_COEFFICIENT, settings["pressure_coefficient"].GetDouble())
         elif (scheme_type == "transient"):
             self.is_steady_simulation = False
             default_settings = Kratos.Parameters('''{
