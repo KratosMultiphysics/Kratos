@@ -6,13 +6,8 @@ from KratosMultiphysics import sympy_fe_utilities as sfu
 # DIMENSION TO COMPUTE:
 # This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
 # it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
-# LINEARISATION SETTINGS:
-# FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
-# Picard (a.k.a. QuasiNR) considers the convective velocity as "a", thus it is considered as a constant in the derivation of the LHS and RHS.
 # DIVIDE BY RHO:
 # If set to true, divides the mass conservation equation by rho in order to have a better conditioned matrix. Otherwise the original form is kept.
-
-##TO DO: include (div_vconv) term ?? -> commented now
 
 ## Symbolic generation settings
 do_simplifications = False
