@@ -389,8 +389,9 @@ void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& 
 
 
     // Compute explicit element kinematics, strain is incremented here.
-    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, mDN_DX,
-        mMP.almansi_strain_vector, rVariables.F);
+    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(mN, GetGeometry());
+    MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, mDN_DX,
+        mN, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 

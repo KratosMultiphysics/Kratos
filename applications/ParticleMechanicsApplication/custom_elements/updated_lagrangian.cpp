@@ -580,7 +580,7 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
 
     // Compute explicit element kinematics, strain is incremented here.
     MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, mDN_DX,
-        mMP.almansi_strain_vector, rVariables.F);
+        mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
