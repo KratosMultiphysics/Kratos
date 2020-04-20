@@ -144,6 +144,10 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_slave
     }
 
+    // Perform consistency scaling if requested
+    if (mMapperSettings["consistency_scaling"].GetBool()) 
+        EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
+
     // get total interface mapping matrix
     Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave);
     double aux_det_slave = 0;
@@ -218,6 +222,29 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
             mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
         mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(var_destination, MappingOptions);
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithScaling(
+    const Matrix& rInterfaceMatrixSlave, 
+    Matrix& rInterfaceMatrixProjected, 
+    const double scalingLimit)
+{
+    // Performs scaling of projected mapping entries as per eqn25 Wang2016
+    double row_sum_slave = 0.0;
+    double row_sum_projector = 0.0;
+
+    for (IndexType i = 0; i < rInterfaceMatrixSlave.size1(); ++i) {
+        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j) {
+            row_sum_slave += rInterfaceMatrixSlave(i, j);
+            row_sum_projector += rInterfaceMatrixProjected(i, j);
+        }
+        const double alpha = (row_sum_slave / row_sum_projector < scalingLimit)
+            ? alpha
+            : scalingLimit;
+        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j) 
+                rInterfaceMatrixProjected(i, j) *= alpha;
     }
 }
 

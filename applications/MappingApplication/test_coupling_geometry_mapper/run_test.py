@@ -60,7 +60,8 @@ KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
     "echo_level" : 0,
-    "dual_mortar": false
+    "dual_mortar": false,
+    "consistency_scaling" : false
 }""")
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)

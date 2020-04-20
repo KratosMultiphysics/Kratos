@@ -256,6 +256,10 @@ private:
             rLocalSystems);
     }
 
+    void EnforceConsistencyWithScaling(const Matrix& rInterfaceMatrixSlave,
+        Matrix& rInterfaceMatrixProjected,
+        const double scalingLimit = 1.1);
+
     Parameters GetMapperDefaultSettings() const
     {
         // @tobiasteschemachen
