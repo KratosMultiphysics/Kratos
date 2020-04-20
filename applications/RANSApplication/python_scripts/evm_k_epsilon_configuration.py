@@ -62,11 +62,11 @@ class TurbulenceKEpsilonConfiguration(
             ]
             if (self.fluid_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]==2):
                 self.model_conditions_list = [
-                    "LineCondition", "RansEvmKEpsilonEpsilonVelocityBasedWallCondition"
+                    "LineCondition", "RansEvmKEpsilonEpsilonWall"
                 ]
             else:
                 self.model_conditions_list = [
-                "SurfaceCondition", "RansEvmKEpsilonEpsilonVelocityBasedWallCondition"
+                "SurfaceCondition", "RansEvmKEpsilonEpsilonWall"
             ]
         else:
             self.model_elements_list = [
