@@ -407,12 +407,27 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rValues The values of the constitutive la
      * @param rAs The mapper operator
      * @param rAs The mapper operator inverse
-     * @note Eq. (2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
+     * @note Eq.(2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
      */
     static void CalculateAnisotropicStressMapperMatrix(
         ConstitutiveLaw::Parameters &rValues,
         Matrix &rAs,
         Matrix& rAsInv
+        );
+
+    /**
+     * @brief This computes the mapper operator between the strain in the isotropic
+     * "ficticious" space and the real anisotropic space
+     * @param rValues The values of the constitutive la
+     * @param rAs The mapper operator
+     * @param rAs The mapper operator inverse
+     * @note Eq.(2.35) S. Oller book: Comportamiento mecánico de los materiales compuestos
+     */
+    static void CalculateAnisotropicStrainMapperMatrix(
+        const Matrix& rAnisotropicElasticMatrix,
+        const Matrix& rIsotropicElasticMatrix,
+        const Matrix &rAs,
+        Matrix& rAe
         );
 
 private:

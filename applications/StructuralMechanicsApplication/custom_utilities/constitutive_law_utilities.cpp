@@ -978,6 +978,24 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatri
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatrix(
+    const Matrix& rAnisotropicElasticMatrix,
+    const Matrix& rIsotropicElasticMatrix,
+    const Matrix &rAs,
+    Matrix& rAe
+)
+{
+    if (rAe.size1() != VoigtSize || rAe.size2() != VoigtSize)
+        rAe.resize(VoigtSize, VoigtSize);
+    noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
+    double aux_det;
+    MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
+    noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
+}
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 

@@ -100,6 +100,10 @@ void GenericAnisotropicLaw::CalculateOrthotropicElasticMatrix( // TODO generaliz
     Matrix& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
+    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
+        rElasticityTensor.resize(6, 6, false);
+    rElasticityTensor.clear();
+
 	const double E1  = rMaterialProperties[YOUNG_MODULUS_X];
 	const double E2  = rMaterialProperties[YOUNG_MODULUS_Y];
 	const double E3  = rMaterialProperties[YOUNG_MODULUS_Z];
@@ -156,67 +160,21 @@ void GenericAnisotropicLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::P
 
 void GenericAnisotropicLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // const Vector& r_strain_vector = rValues.GetStrainVector();
-    // mPreviousStrainVector = r_strain_vector;
+    Vector& r_strain_vector = rValues.GetStrainVector();
+    
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
 
-    // // Recalculation to obtain the serial_strain_matrix and store the value
-    // const SizeType voigt_size = GetStrainSize();
+    // Previous flags saved
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-    // // Previous flags saved
-    // const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    
 
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-    // if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-    //     // Set new flags
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    //     // Total strain vector
-    //     Vector& r_strain_vector = rValues.GetStrainVector();
-    //     Vector fiber_stress_vector, matrix_stress_vector;
-    //     this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-    //                                                 fiber_stress_vector,
-    //                                                 matrix_stress_vector,
-    //                                                 r_material_properties,
-    //                                                 rValues,
-    //                                                 mPreviousSerialStrainMatrix);
-    //     // Previous flags restored
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
-    //     // We call the FinalizeMaterialResponse of the matrix and fiber CL
-    //     auto& r_material_properties = rValues.GetMaterialProperties();
-    //     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-    //     const auto& r_props_matrix_cl = *(it_cl_begin);
-    //     const auto& r_props_fiber_cl = *(it_cl_begin + 1);
-        
-    //     ConstitutiveLaw::Parameters values_fiber  = rValues;
-    //     ConstitutiveLaw::Parameters values_matrix = rValues;
-
-    //     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    //     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-
-    //     Matrix parallel_projector, serial_projector;
-    //     this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
-    //     Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-
-    //     this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, 
-    //                                           mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
-
-    //     values_fiber.SetStrainVector(fiber_strain_vector);
-    //     values_matrix.SetStrainVector(matrix_strain_vector);
-
-    //     mpMatrixConstitutiveLaw->FinalizeMaterialResponseCauchy(values_matrix);
-    //     mpFiberConstitutiveLaw ->FinalizeMaterialResponseCauchy(values_fiber);
-    // }
 }
 
 /***********************************************************************************/
